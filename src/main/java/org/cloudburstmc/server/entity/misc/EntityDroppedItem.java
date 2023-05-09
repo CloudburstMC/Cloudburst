@@ -1,34 +1,38 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.Nonnull;
 
-import static com.nukkitx.network.util.Preconditions.checkArgument;
-import static com.nukkitx.network.util.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.OWNER_EID;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 
 /**
  * @author MagicDroidX
@@ -93,7 +97,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         tag.listenForShort("Health", this::setHealth);
         tag.listenForShort("PickupDelay", this::setPickupDelay);
         tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForLong("OwnerID", v -> this.data.setLong(OWNER_EID, v));
+        tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
         tag.listenForCompound("Item", itemTag -> this.item = ItemUtils.deserializeItem(itemTag));
     }
 
@@ -104,8 +108,8 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         tag.putShort("Health", (short) this.getHealth());
         tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
-        tag.putLong("OwnerID", this.data.getLong(OWNER_EID));
-        tag.putCompound("Item", ItemUtils.serializeItem(this.item).toBuilder().build());
+        tag.putLong("OwnerID", this.data.get(OWNER_EID));
+        tag.putCompound("Item", ItemUtils.serializeItem(this.item));
     }
 
     @Override
@@ -136,25 +140,25 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getAmount() < this.getItem().getBehavior().getMaxStackSize(getItem())) {
+            if (this.getItem().getCount() < CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (!closeItem.equals(getItem(), true)) {
+                        if (!closeItem.isMergeable(getItem())) {
                             continue;
                         }
                         if (!entity.isOnGround()) {
                             continue;
                         }
-                        int newAmount = this.getItem().getAmount() + closeItem.getAmount();
-                        if (newAmount > this.getItem().getBehavior().getMaxStackSize(getItem())) {
+                        int newAmount = this.getItem().getCount() + closeItem.getCount();
+                        if (newAmount > CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
                             continue;
                         }
                         entity.close();
-                        this.item = getItem().withAmount(newAmount);
+                        this.item = getItem().withCount(newAmount);
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
@@ -206,7 +210,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var block = this.getLevel().getBlockState(pos.add(0, -1, -1).toInt());
-                friction *= block.getBehavior().getFrictionFactor(block);
+                friction *= CloudBlockRegistry.REGISTRY.getBehavior(block.getType(), BlockBehaviors.GET_FRICTION).execute(block);
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
@@ -236,7 +240,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
 
     @Override
     public String getName() {
-        return this.hasNameTag() ? this.getNameTag() : (this.item.hasName() ? this.item.getName() : this.item.getName());
+        return this.hasNameTag() ? this.getNameTag() : this.item.get(ItemKeys.CUSTOM_NAME);
     }
 
     public ItemStack getItem() {
@@ -271,7 +275,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
         addEntity.setPosition(this.getPosition());
         addEntity.setMotion(this.getMotion());
         this.data.putAllIn(addEntity.getMetadata());
-        addEntity.setItemInHand(((CloudItemStack) this.getItem()).getNetworkData());
+        addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
         return addEntity;
     }
 

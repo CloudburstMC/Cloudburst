@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.dispenser;
 
-import com.nukkitx.nbt.NbtMap;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.nbt.NbtMap;
 
 /**
  * @author CreeperFace

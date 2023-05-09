@@ -6,7 +6,6 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +27,7 @@ public class MultiRecipe implements CraftingRecipe {
 
     @Override
     public ItemStack getResult() {
-        return CloudItemRegistry.get().AIR;
+        return ItemStack.EMPTY;
     }
 
     @Override

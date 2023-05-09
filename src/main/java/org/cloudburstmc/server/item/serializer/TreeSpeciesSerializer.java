@@ -1,15 +1,16 @@
 package org.cloudburstmc.server.item.serializer;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.Map;
 
@@ -42,15 +43,15 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        itemTag.putString(NAME_TAG, identifiers[item.getMetadata(TreeSpecies.class, TreeSpecies.OAK).ordinal()].toString());
+        itemTag.putString(NAME_TAG, identifiers[item.get(ItemKeys.TREE_SPECIES).ordinal()].toString());
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, meta, amount, builder, tag);
-        builder.itemData(dataMap.getOrDefault(id, TreeSpecies.OAK));
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
+        builder.data(ItemKeys.TREE_SPECIES, dataMap.getOrDefault(id, TreeSpecies.OAK));
     }
 
     @Override

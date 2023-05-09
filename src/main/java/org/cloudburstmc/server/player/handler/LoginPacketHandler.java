@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.player.handler;
 
-import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
-import com.nukkitx.protocol.bedrock.packet.LoginPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
+import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
+import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerPreLoginEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
@@ -42,11 +42,11 @@ public class LoginPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public boolean handle(LoginPacket packet) {
+    public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         int protocolVersion = packet.getProtocolVersion();
-        BedrockPacketCodec packetCodec = ProtocolInfo.getPacketCodec(protocolVersion);
+        BedrockCodec codec = ProtocolInfo.getPacketCodec(protocolVersion);
 
-        if (packetCodec == null) {
+        if (codec == null) {
             PlayStatusPacket statusPacket = new PlayStatusPacket();
             if (protocolVersion < ProtocolInfo.getDefaultProtocolVersion()) {
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_CLIENT_OLD);
@@ -54,15 +54,27 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                 statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_FAILED_SERVER_OLD);
             }
             session.sendPacketImmediately(statusPacket);
-            return true;
+            return PacketSignal.HANDLED;
         }
-        session.setPacketCodec(packetCodec);
+        session.setCodec(codec);
 
+        NetworkSettingsPacket networkSettings = new NetworkSettingsPacket();
+        networkSettings.setCompressionThreshold(1);
+        networkSettings.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
+
+        session.sendPacketImmediately(networkSettings);
+        session.setCompression(PacketCompressionAlgorithm.ZLIB);
+
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(LoginPacket packet) {
         this.loginData.setChainData(ClientChainData.read(packet));
 
         if (!this.loginData.getChainData().isXboxAuthed() && this.server.getConfig().isXboxAuth()) {
             session.disconnect("disconnectionScreen.notAuthenticated");
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         String username = this.loginData.getChainData().getUsername();
@@ -70,21 +82,21 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
         if (!matcher.matches() || username.equalsIgnoreCase("rcon") || username.equalsIgnoreCase("console")) {
             session.disconnect("disconnectionScreen.invalidName");
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         this.loginData.setName(TextFormat.clean(username));
 
         if (!this.loginData.getChainData().getSerializedSkin().isValid()) {
             session.disconnect("disconnectionScreen.invalidSkin");
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         PlayerPreLoginEvent playerPreLoginEvent = new PlayerPreLoginEvent(loginData, "Plugin reason");
         this.server.getEventManager().fire(playerPreLoginEvent);
         if (playerPreLoginEvent.isCancelled()) {
             session.disconnect(playerPreLoginEvent.getKickMessage());
-            return true;
+            return PacketSignal.HANDLED;
         }
         session.setPacketHandler(new ResourcePackPacketHandler(session, server, loginData));
 
@@ -101,7 +113,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
             @Override
             public void onCompletion(CloudServer server) {
-                if (!loginDataInstance.getSession().isClosed()) {
+                if (!loginDataInstance.getSession().getPeer().isConnected()) {
                     if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
                         loginDataInstance.getSession().disconnect(e.getKickMessage());
                     } else if (loginDataInstance.isShouldLogin()) {
@@ -130,6 +142,6 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         session.sendPacket(statusPacket);
 
         session.sendPacket(this.server.getPackManager().getPacksInfos());
-        return true;
+        return PacketSignal.HANDLED;
     }
 }

@@ -40,8 +40,8 @@ public class ShapelessRecipe implements CraftingRecipe {
         this.ingredients = new ArrayList<>();
 
         for (ItemStack item : ingredients) {
-            if (item.getAmount() < 1) {
-                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not >= 1 (value: " + item.getAmount() + ")");
+            if (item.getCount() < 1) {
+                throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not >= 1 (value: " + item.getCount() + ")");
             }
             this.ingredients.add(item);
         }
@@ -124,7 +124,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     private boolean matchItemList(List<ItemStack> haveItems, List<ItemStack> needItems) {
         // Remove any air blocks that may have gotten through.
-        haveItems.removeIf(ItemStack::isNull);
+        haveItems.removeIf(item -> item == ItemStack.EMPTY);
 
         if (haveItems.size() != needItems.size()) {
             return false;

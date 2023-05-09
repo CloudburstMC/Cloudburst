@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.level.feature;
 
-import org.cloudburstmc.api.block.BlockIds;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
@@ -18,16 +16,16 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     @Override
     public boolean test(BlockState state) {
         Identifier id = state.getType().getId();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || (!state.getBehavior().isLiquid() && state.getType().isReplaceable());
+
+        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 ||
+                (!CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID) &&
+                        CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE));
     }
 
     public boolean testOrLiquid(BlockState state) {
-        Identifier id = state.getType().getId();
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 || state.getType().isReplaceable();
-    }
-
-    public boolean testOrLiquid(int runtimeId) {
-        return runtimeId == 0 || this.testOrLiquid(CloudBlockRegistry.get().getBlock(runtimeId));
+        BlockType type = state.getType();
+        return type == BlockTypes.AIR || type == BlockTypes.LEAVES ||
+                CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE);
     }
 
     /**

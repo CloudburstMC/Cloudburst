@@ -1,23 +1,23 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.EnumMap;
 import java.util.Map;
 
-import static com.nukkitx.math.vector.Vector3i.UP;
+import static org.cloudburstmc.math.vector.Vector3i.UP;
 
 /**
  * @author CreeperFace
@@ -61,8 +61,8 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        if (this.recordItem != null && !this.recordItem.isNull()) {
-            tag.putCompound("RecordItem", ((CloudItemStack) this.recordItem).getNbt());
+        if (!ItemUtils.isNull(this.recordItem)) {
+            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
         }
     }
 
@@ -81,7 +81,8 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     public void play() {
         if (this.recordItem.getType() == ItemTypes.RECORD) {
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.getMetadata(Record.class)));
+
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemKeys.RECORD_TYPE)));
         }
     }
 
@@ -90,7 +91,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void dropItem() {
-        if (this.recordItem != null && !this.recordItem.isNull()) {
+        if (!ItemUtils.isNull(this.recordItem)) {
             this.stop();
             this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
             this.recordItem = null;

@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -15,21 +11,27 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.inventory.CloudHopperInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static com.nukkitx.math.vector.Vector3i.UP;
+import static org.cloudburstmc.math.vector.Vector3i.UP;
 
 /**
  * Created by CreeperFace on 8.5.2017.
@@ -141,11 +143,11 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int slot : slots) {
                 ItemStack item = inv.getItem(slot);
 
-                if (item.isNull()) {
+                if (item == ItemStack.EMPTY) {
                     continue;
                 }
 
-                item = item.withAmount(1);
+                item = item.withCount(1);
 
                 if (!this.inventory.canAddItem(item)) {
                     continue;
@@ -184,11 +186,11 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             DroppedItem itemEntity = (DroppedItem) entity;
             ItemStack item = itemEntity.getItem();
 
-            if (item.isNull()) {
+            if (item == ItemStack.EMPTY) {
                 continue;
             }
 
-            int originalCount = item.getAmount();
+            int originalCount = item.getCount();
 
             if (!this.inventory.canAddItem(item)) {
                 continue;
@@ -209,9 +211,9 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 continue;
             }
 
-            if (items[0].getAmount() != originalCount) {
+            if (items[0].getCount() != originalCount) {
                 pickedUpItem = true;
-                itemEntity.setItem(item.withAmount(items[0].getAmount()));
+                itemEntity.setItem(item.withCount(items[0].getCount()));
             }
         }
 
@@ -254,7 +256,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
             for (int i = 0; i < this.inventory.getSize(); i++) {
                 ItemStack item = this.inventory.getItem(i);
 
-                if (item.isNull()) {
+                if (item == ItemStack.EMPTY) {
                     continue;
                 }
 
@@ -267,11 +269,13 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                 for (int slot : slots) {
                     ItemStack target = inv.getItem(slot);
 
-                    if (!target.isNull() && (!target.equals(item) || target.getAmount() >= item.getBehavior().getMaxStackSize(item))) {
+
+                    if (target != ItemStack.EMPTY && (!target.equals(item) ||
+                            target.getCount() >= CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute())) {
                         continue;
                     }
 
-                    item = item.withAmount(1);
+                    item = item.withCount(1);
 
                     InventoryMoveItemEvent event = new InventoryMoveItemEvent(this.inventory, inv, this, item, InventoryMoveItemEvent.Action.SLOT_CHANGE);
                     this.server.getEventManager().fire(event);
@@ -280,7 +284,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
                         return false;
                     }
 
-                    if (target.isNull()) {
+                    if (target == ItemStack.EMPTY) {
                         inv.setItem(slot, item);
                     } else {
                         inv.incrementCount(slot);

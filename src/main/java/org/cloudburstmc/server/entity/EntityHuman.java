@@ -1,48 +1,45 @@
 package org.cloudburstmc.server.entity;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.GameType;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.data.skin.AnimatedTextureType;
-import com.nukkitx.protocol.bedrock.data.skin.AnimationData;
-import com.nukkitx.protocol.bedrock.data.skin.ImageData;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
-import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.GameType;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimatedTextureType;
+import org.cloudburstmc.protocol.bedrock.data.skin.AnimationData;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
 /**
  * author: MagicDroidX
@@ -176,7 +173,7 @@ public class EntityHuman extends EntityCreature implements Human {
         super.saveAdditionalData(tag);
 
         if (this.skin != null) {
-            SerializedSkin nbtSkin = SkinUtils.fromSkin(skin);
+            SerializedSkin nbtSkin = SkinUtils.toSerialized(skin);
             NbtMapBuilder skinTag = NbtMap.builder()
                     .putByteArray("Data", nbtSkin.getSkinData().getImage())
                     .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
@@ -227,7 +224,7 @@ public class EntityHuman extends EntityCreature implements Human {
             if (this instanceof CloudPlayer)
                 this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), ((CloudPlayer) this).getDisplayName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.fromSkin(this.skin), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(this.skin), new CloudPlayer[]{player});
 
             player.sendPacket(createAddEntityPacket());
 
@@ -258,8 +255,8 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
-        packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
+        packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");
         packet.setGameType(GameType.SURVIVAL); // TODO
@@ -283,7 +280,7 @@ public class EntityHuman extends EntityCreature implements Human {
         if (!this.closed) {
             if (!(this instanceof CloudPlayer) || ((CloudPlayer) this).loggedIn) {
                 for (CloudPlayer viewer : this.getInventory().getViewers()) {
-                    viewer.removeWindow(this.getInventory());
+                    viewer.getInventoryManager().closeScreen(this.getInventory());
                 }
             }
 
@@ -303,7 +300,8 @@ public class EntityHuman extends EntityCreature implements Human {
             int toughness = 0;
 
             for (ItemStack armor : getInventory().getArmorContents()) {
-                armorPoints += armor.getBehavior().getArmorPoints(armor);
+//                TODO: Needs implementation
+//                armorPoints += armor.getBlockState().getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);
                 //toughness += armor.getToughness();
             }
@@ -327,30 +325,36 @@ public class EntityHuman extends EntityCreature implements Human {
 
             for (int slot = 0; slot < 4; slot++) {
                 ItemStack armor = this.getInventory().getArmorItem(slot);
+                //TODO: Enchantments implementation
+//                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
+//
+//                if (enchantments != null) {
+//                    if (damager != null) {
+//                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
+//                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
+//                        }
+//                    }
+//
+//                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
+//                    if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
+//                        continue;
+//                }
 
-                if (armor.hasEnchantments()) {
-                    if (damager != null) {
-                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
-                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
-                        }
+                var damage = armor.get(ItemKeys.DAMAGE);
+                Boolean unbreakable = armor.get(ItemKeys.UNBREAKABLE);
+
+                if (damage != null) {
+                    if (unbreakable != null && unbreakable) {
+                        continue;
                     }
 
-                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
-                    if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
-                        continue;
-                }
+                    armor = armor.toBuilder()
+                            .data(ItemKeys.DAMAGE, damage - 1)
+                            .build();
 
-                var damageable = armor.getMetadata(Damageable.class);
-
-                if (damageable != null) {
-                    if (damageable.isUnbreakable()) {
-                        continue;
-                    }
-
-                    armor = armor.withData(damageable.damage());
-
-                    if (damageable.getDurability() + 1 >= armor.getBehavior().getMaxDurability()) {
-                        getInventory().setArmorItem(slot, CloudItemRegistry.get().AIR);
+                    int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute();
+                    if (damage + 1 >= maxDurability) {
+                        getInventory().setArmorItem(slot, ItemStack.EMPTY);
                     } else {
                         getInventory().setArmorItem(slot, armor, true);
                     }
@@ -363,16 +367,18 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
+    //TODO: Enchantments implementation
     protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
-        if (!item.hasEnchantments()) {
-            return 0;
-        }
+//        List<Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
+//        if (enchantments == null) {
+//            return 0;
+//        }
 
         double epf = 0;
 
-        for (EnchantmentInstance ench : item.getEnchantments().values()) {
-            epf += ench.getBehavior().getProtectionFactor(ench, source);
-        }
+//        for (EnchantmentInstance ench : enchantments) {
+//            epf += ench.getBehavior().getProtectionFactor(ench, source);
+//        }
 
         return epf;
     }
@@ -381,13 +387,14 @@ public class EntityHuman extends EntityCreature implements Human {
     public void setOnFire(int seconds) {
         int level = 0;
 
-        for (ItemStack armor : this.getInventory().getArmorContents()) {
-            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
-
-            if (fireProtection != null && fireProtection.getLevel() > 0) {
-                level = Math.max(level, fireProtection.getLevel());
-            }
-        }
+        //TODO: Enchantments implementation
+//        for (ItemStack armor : this.getInventory().getArmorContents()) {
+//            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
+//
+//            if (fireProtection != null && fireProtection.getLevel() > 0) {
+//                level = Math.max(level, fireProtection.getLevel());
+//            }
+//        }
 
         seconds = (int) (seconds * (1 - level * 0.15));
 

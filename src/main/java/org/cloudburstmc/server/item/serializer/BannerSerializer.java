@@ -1,15 +1,17 @@
 package org.cloudburstmc.server.item.serializer;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
+import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.Map;
 
+@Log4j2
 public class BannerSerializer extends DefaultItemSerializer {
 
     private static final Map<Class<?>, Object> DEFAULT_VALUES;
@@ -19,26 +21,18 @@ public class BannerSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
 
-        int meta = item.getMetadata(DyeColor.class, DyeColor.WHITE).getDyeData();
+        int meta = item.get(ItemKeys.COLOR).getDyeData();
         itemTag.putShort("Damage", (short) meta);
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
-        var nbtBuilder = tag.toBuilder();
-        NbtMapBuilder tagBuilder;
-        if (tag.containsKey("tag", NbtType.COMPOUND)) {
-            tagBuilder = tag.getCompound("tag").toBuilder();
-        } else {
-            tagBuilder = NbtMap.builder();
-        }
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        builder.data(ItemKeys.COLOR, DyeColor.getByWoolData(meta));
 
-        nbtBuilder.putCompound("tag", tagBuilder.putInt("Base", meta).build());
-
-        super.deserialize(id, meta, amount, builder, nbtBuilder.build());
+        super.deserialize(id, meta, builder, tag);
     }
 
     @Override

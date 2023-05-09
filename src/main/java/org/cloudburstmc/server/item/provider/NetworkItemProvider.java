@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.item.provider;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -11,7 +11,7 @@ public class NetworkItemProvider extends ItemDataProvider {
 
     private final ItemData data;
 
-    public NetworkItemProvider(CloudItemStack item, ItemData data) {
+    public NetworkItemProvider(ItemStack item, ItemData data) {
         super(item, data.getTag());
         this.data = data;
     }

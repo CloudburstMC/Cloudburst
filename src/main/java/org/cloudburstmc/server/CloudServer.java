@@ -6,13 +6,11 @@ import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Stage;
-import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.spotify.futures.CompletableFutures;
 import io.netty.buffer.ByteBuf;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
 import org.cloudburstmc.api.Server;
@@ -32,6 +30,10 @@ import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
+import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
 import org.cloudburstmc.server.config.ServerConfig;
@@ -72,6 +74,7 @@ import org.iq80.leveldb.Options;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -190,15 +193,16 @@ public class CloudServer implements Server {
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
     private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
-    private final CloudBlockRegistry blockRegistry = CloudBlockRegistry.get();
-    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
+    private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
+    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
+
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
     private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
 
-    private final Map<InetSocketAddress, CloudPlayer> players = new HashMap<>();
+    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
 
     private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
     private final LevelData defaultLevelData = new LevelData();
@@ -219,6 +223,9 @@ public class CloudServer implements Server {
 
     private final Set<String> ignoredPackets = new HashSet<>();
 
+    @Getter
+    private final Injector injector;
+
     private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
@@ -226,7 +233,7 @@ public class CloudServer implements Server {
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
-        var injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+        this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
 
         this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
@@ -552,7 +559,7 @@ public class CloudServer implements Server {
         try {
             this.network.registerInterface(new BedrockInterface(this));
         } catch (Exception e) {
-            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!");
+            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!", e);
             log.fatal("Perhaps a server is already running on that port?");
             this.forceShutdown();
         }
@@ -775,7 +782,7 @@ public class CloudServer implements Server {
         }
     }
 
-    public void addPlayer(InetSocketAddress socketAddress, Player player) {
+    public void addPlayer(SocketAddress socketAddress, Player player) {
         this.players.put(socketAddress, (CloudPlayer) player);
     }
 
@@ -1494,7 +1501,7 @@ public class CloudServer implements Server {
             return;
         }
 
-        for (InetSocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
+        for (SocketAddress socketAddress : new ArrayList<>(this.players.keySet())) {
             CloudPlayer p = this.players.get(socketAddress);
             if (player == p) {
                 this.players.remove(socketAddress);
@@ -1582,12 +1589,12 @@ public class CloudServer implements Server {
     public void setBanned(Player who, boolean banned, boolean byIP) {
         if (banned) {
             if (byIP)
-                this.banByIP.addBan(((CloudPlayer) who).getAddress());
+                this.banByIP.addBan(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
             else
                 this.banByName.addBan(who.getName().toLowerCase());
         } else {
             this.banByName.remove(who.getName());
-            this.banByIP.remove(((CloudPlayer) who).getAddress());
+            this.banByIP.remove(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
         }
     }
 

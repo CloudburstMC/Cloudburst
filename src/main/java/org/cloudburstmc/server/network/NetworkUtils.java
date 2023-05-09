@@ -2,26 +2,22 @@ package org.cloudburstmc.server.network;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.data.GameRuleData;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.inventory.InventoryType;
-import org.cloudburstmc.api.item.data.Damageable;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
-import org.cloudburstmc.server.inventory.BaseInventory;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
+import org.cloudburstmc.server.inventory.CloudInventory;
 
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -160,28 +156,20 @@ public class NetworkUtils {
         return inventoryTypeMap.get(type);
     }
 
-    public static ItemStackResponsePacket.ItemEntry itemStackToNetwork(StackRequestSlotInfoData data, BaseInventory inv) {
-        int durablility = 0;
-        CloudItemStack item = inv.getItem(data.getSlot());
-        if (item.hasMetadata(Damageable.class)) {
-            durablility = item.getMetadata(Damageable.class).getDurability();
-        }
+    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudInventory inv) {
+        ItemStack item = inv.getItem(data.getSlot());
+        Integer damage = item.get(ItemKeys.DAMAGE);
+        String customName = item.get(ItemKeys.CUSTOM_NAME);
 
-        if (item.getStackNetworkId() == -1) {
-            item.getNetworkData(); // Will regen and assign stack ID
-        }
+//        if (item.getStackNetworkId() == -1) {
+//            item.getNetworkData(); // Will regen and assign stack ID
+//        }
 
-        return new ItemStackResponsePacket.ItemEntry(data.getSlot(),
+        return new ItemStackResponseSlot(data.getSlot(),
                 data.getSlot(),
-                (byte) item.getAmount(),
-                item.getStackNetworkId(),
-                item.getName() == null ? "" : item.getName(),
-                durablility);
-
-    }
-
-    public static CloudItemStack itemStackFromNetwork(ItemData data) {
-        int runtimeId = data.getId();
-        return ItemUtils.deserializeItem(CloudItemRegistry.get().getIdentifier(runtimeId), (short) data.getDamage(), data.getCount(), data.getTag() == null ? NbtMap.EMPTY : data.getTag());
+                item.getCount(),
+                -1, // FIXME: item.getStackNetworkId(),
+                customName == null ? "" : customName,
+                damage == null ? 0 : damage);
     }
 }

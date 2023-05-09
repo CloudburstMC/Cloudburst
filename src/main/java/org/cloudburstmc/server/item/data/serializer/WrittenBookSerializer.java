@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.Page;
 import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.utils.PageContent;
 
 import java.util.ArrayList;
@@ -28,25 +28,25 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
     private static final String TAG_ID = "id";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, WrittenBook value) {
-        dataTag.putInt(TAG_GENERATION, value.getGeneration());
-        dataTag.putString(TAG_TITLE, value.getTitle());
-        dataTag.putString(TAG_AUTHOR, value.getAuthor());
-        dataTag.putString(TAG_XUID, value.getXuid());
-        dataTag.putLong(TAG_ID, value.getId());
-        dataTag.putBoolean(TAG_RESOLVED, value.isResolved());
+    public void serialize(ItemStack item, NbtMapBuilder tag, WrittenBook value) {
+        tag.putInt(TAG_GENERATION, value.getGeneration());
+        tag.putString(TAG_TITLE, value.getTitle());
+        tag.putString(TAG_AUTHOR, value.getAuthor());
+        tag.putString(TAG_XUID, value.getXuid());
+        tag.putLong(TAG_ID, value.getId());
+        tag.putBoolean(TAG_RESOLVED, value.isResolved());
 
         List<NbtMap> pages = new ArrayList<>();
         for (PageContent page : value.getPages().toArray(new PageContent[0])) {
             pages.add(page.createTag());
         }
-        dataTag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
+        tag.putList(TAG_PAGES, NbtType.COMPOUND, pages);
     }
 
     @Override
-    public WrittenBook deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
+    public WrittenBook deserialize(Identifier id, NbtMap tag) {
         List<Page> pages;
-        List<NbtMap> pageTags = dataTag.getList(TAG_PAGES, NbtType.COMPOUND);
+        List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
 
         if (pageTags == null) {
             pages = ImmutableList.of();
@@ -59,12 +59,12 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
         }
 
         return WrittenBook.of(
-                dataTag.getInt(TAG_GENERATION),
-                dataTag.getString(TAG_TITLE),
-                dataTag.getString(TAG_AUTHOR),
-                dataTag.getString(TAG_XUID),
-                dataTag.getLong(TAG_ID),
-                dataTag.getBoolean(TAG_RESOLVED),
+                tag.getInt(TAG_GENERATION),
+                tag.getString(TAG_TITLE),
+                tag.getString(TAG_AUTHOR),
+                tag.getString(TAG_XUID),
+                tag.getLong(TAG_ID),
+                tag.getBoolean(TAG_RESOLVED),
                 pages
         );
     }

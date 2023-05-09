@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.block.serializer;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.serializer.MultiBlockSerializers.MultiBlock;
 
 import java.util.LinkedList;

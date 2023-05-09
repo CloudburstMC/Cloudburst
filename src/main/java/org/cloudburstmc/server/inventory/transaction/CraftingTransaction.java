@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.inventory.transaction;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
@@ -9,9 +7,10 @@ import org.cloudburstmc.api.event.inventory.CraftItemEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.server.inventory.transaction.action.InventoryAction;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import org.cloudburstmc.server.scheduler.Task;
 
@@ -41,7 +40,7 @@ public class CraftingTransaction extends InventoryTransaction {
         super(source, actions, false);
 
         this.gridSize = (source.getInventory().getCraftingGrid().getCraftingGridType() == CraftingGrid.Type.CRAFTING_GRID_BIG) ? 3 : 2;
-        ItemStack air = CloudItemRegistry.get().AIR;
+        ItemStack air = ItemStack.EMPTY;
         this.inputs = new ItemStack[gridSize][gridSize];
         for (ItemStack[] a : this.inputs) {
             Arrays.fill(a, air);
@@ -64,7 +63,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int y = index / this.gridSize;
         int x = index % this.gridSize;
 
-        if (this.inputs[y][x].isNull()) {
+        if (this.inputs[y][x] == ItemStack.EMPTY) {
             inputs[y][x] = item;
         } else if (!inputs[y][x].equals(item)) {
             throw new RuntimeException("Input " + index + " has already been set and does not match the current item (expected " + inputs[y][x] + ", got " + item + ")");
@@ -79,7 +78,7 @@ public class CraftingTransaction extends InventoryTransaction {
         int y = (index / this.gridSize);
         int x = index % gridSize;
 
-        if (secondaryOutputs[y][x].isNull()) {
+        if (secondaryOutputs[y][x] == ItemStack.EMPTY) {
             secondaryOutputs[y][x] = item;
         } else if (!secondaryOutputs[y][x].equals(item)) {
             throw new RuntimeException("Output " + index + " has already been set and does not match the current item (expected " + secondaryOutputs[y][x] + ", got " + item + ")");
@@ -115,7 +114,7 @@ public class CraftingTransaction extends InventoryTransaction {
             for (int x = 0; x < row.length; x++) {
                 ItemStack item = row[x];
 
-                if (!item.isNull()) {
+                if (item != ItemStack.EMPTY) {
                     xMin = Math.min(x, xMin);
                     yMin = Math.min(y, yMin);
 

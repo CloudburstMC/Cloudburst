@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion;
 import org.cloudburstmc.api.util.data.FireworkData.FireworkExplosion.ExplosionType;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public class FireworkSerializer implements ItemDataSerializer<FireworkData> {
     private static final String TAG_FLICKER = "FireworkFlicker";
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, FireworkData value) {
+    public void serialize(ItemStack item, NbtMapBuilder tag, FireworkData value) {
         List<NbtMap> explosionTags = new ArrayList<>();
         for (FireworkExplosion explosion : value.getExplosions()) {
             byte[] clrs = new byte[explosion.getColors().size()];
@@ -49,15 +49,15 @@ public class FireworkSerializer implements ItemDataSerializer<FireworkData> {
                     .build());
         }
 
-        dataTag.putCompound(TAG_FIREWORKS, NbtMap.builder()
+        tag.putCompound(TAG_FIREWORKS, NbtMap.builder()
                 .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
                 .putBoolean(TAG_FLIGHT, value.isFlight())
                 .build());
     }
 
     @Override
-    public FireworkData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        var compound = dataTag.getCompound(TAG_FIREWORKS);
+    public FireworkData deserialize(Identifier id, NbtMap tag) {
+        var compound = tag.getCompound(TAG_FIREWORKS);
 
         if (compound != null) {
             boolean flight = compound.getBoolean(TAG_FLIGHT, true);

@@ -2,134 +2,109 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.item.ItemIds;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.data.BehaviorKey;
+import org.cloudburstmc.api.data.DataKey;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.api.item.data.*;
-import org.cloudburstmc.api.potion.Potion;
+import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.Identifiers;
-import org.cloudburstmc.api.util.data.FireworkData;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
+import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.behavior.*;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
+import org.cloudburstmc.server.registry.behavior.CloudBehaviorCollection;
+import org.cloudburstmc.server.registry.behavior.proxy.BehaviorProxies;
 
-import javax.annotation.Nonnull;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-
-
 @Log4j2
-public class CloudItemRegistry implements ItemRegistry {
-    private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(CloudBlockRegistry.get()); // Needs to be initialized afterwards
+public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry, DefinitionRegistry<CloudItemDefinition> {
+    private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
+    private final Reference2ReferenceMap<ItemType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<Class<?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<ItemType, ItemBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
-    private final CloudBlockRegistry blockRegistry;
+    private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
     private int hardcodedBlockingId;
     private final ItemPalette itemPalette = new ItemPalette(this);
 
-    //StackNetId stuff
-    private final Int2ReferenceMap<WeakReference<CloudItemStack>> netIdMap = new Int2ReferenceOpenHashMap();
-    private final ReferenceQueue<CloudItemStack> oldIdQueue = new ReferenceQueue<>();
-
-    public final CloudItemStack AIR;
     private volatile boolean closed;
 
-    private CloudItemRegistry(CloudBlockRegistry blockRegistry) {
-        this.blockRegistry = blockRegistry;
-        AIR = new CloudItemStackBuilder().id(Identifiers.AIR).blockState(BlockStates.AIR).itemType(BlockTypes.AIR).amount(0).stackNetworkId(0).build();
-        this.netIdMap.put(0, new WeakReference<>(AIR, oldIdQueue));
+    private CloudItemRegistry() {
         try {
+            this.registerVanillaBehaviors();
             this.registerVanillaItems();
             this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
 
-            for (Identifier id : itemPalette.getItemIds()) {
-                if (itemPalette.getRuntimeId(id) == Integer.MAX_VALUE) {
-                    System.out.println("Unimplemented item found: " + id.getName());
-                    registerType(ItemTypes.UNKNOWN, id);
-                }
-            }
+//            for (ItemDefinition definition : itemPalette.getItemDefinitions()) {
+//                if (itemPalette.getDefinition(definition) == Integer.MAX_VALUE) {
+//                    System.out.println("Unimplemented item found: " + definition.getName());
+//                    registerType(ItemTypes.UNKNOWN, definition);
+//                }
+//            }
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
-
     }
 
     public static CloudItemRegistry get() {
         return INSTANCE;
     }
 
-    public synchronized <T> void registerDataSerializer(Class<T> metadataClass, ItemDataSerializer<T> serializer) {
-        Preconditions.checkNotNull(metadataClass, "metadataClass");
+    public synchronized <T> void registerDataSerializer(DataKey<T, T> dataKey, ItemDataSerializer<T> serializer) {
+        Preconditions.checkNotNull(dataKey, "dataKey");
         Preconditions.checkNotNull(serializer, "serializer");
-        this.dataSerializers.put(metadataClass, serializer);
+        this.dataSerializers.put(dataKey, serializer);
     }
 
-    public int getNextNetId() {
-        for (int i = 1; i < Integer.MAX_VALUE; i++) {
-            if (!netIdMap.containsKey(i) || netIdMap.get(i).refersTo(null)) {
-                return i;
-            }
+    @Override
+    public <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior) {
+        this.registerBehaviorInternal(key, defaultBehavior, (context, behavior) -> behavior);
+    }
+
+
+    @Override
+    public <F, E> void registerContextBehavior(BehaviorKey<F, E> key, F defaultBehavior) {
+        try {
+            this.registerBehaviorInternal(key, defaultBehavior, BehaviorProxies.createExecutorProxy(key.getType(), key.getExecutorType()));
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException |
+                 InstantiationException e) {
+            throw new IllegalArgumentException("Unable to create behavior proxy for " + key, e);
         }
-        return -1;
     }
 
-    public void addNetId(@Nonnull CloudItemStack item) {
-        if (item.getStackNetworkId() == -1) {
-            throw new RegistryException("Invalid network stack id for item: " + item);
-        }
-        if (item.getStackNetworkId() == 0 || item.getType() == BlockTypes.AIR) return;
-        WeakReference<CloudItemStack> ref = new WeakReference<>(item, oldIdQueue);
-        netIdMap.put(item.getStackNetworkId(), ref);
+    @Override
+    public BehaviorCollection getBehaviors(ItemType type) {
+        return behaviorMap.get(type);
     }
 
-    @Nonnull
-    public CloudItemStack getItemByNetId(@Nonnull int stackNetId) {
-        WeakReference<CloudItemStack> ref = netIdMap.getOrDefault(stackNetId, null);
-        if (ref == null || ref.refersTo(null)) return AIR;
-        return Objects.requireNonNull(ref.get());
-
-    }
-
-    public void clearQueue() { //TODO - call this how often? Every server tick, every x minutes on a new thread? need to syncronize?
-        java.lang.ref.Reference<? extends CloudItemStack> ref;
-        while ((ref = oldIdQueue.poll()) != null) {
-            if (ref.get() != null && !ref.get().isNull())
-                netIdMap.remove(ref.get().getStackNetworkId());
-        }
+    @Override
+    public GlobalRegistry global() {
+        //TODO Implementation
+        return null;
     }
 
     public int getHardcodedBlockingId() {
@@ -141,7 +116,7 @@ public class CloudItemRegistry implements ItemRegistry {
         Objects.requireNonNull(behavior, "behavior");
         checkClosed();
 
-        if (identifiers == null || identifiers.length <= 0) {
+        if (identifiers == null || identifiers.length == 0) {
             identifiers = new Identifier[]{type.getId()};
         }
 
@@ -160,48 +135,60 @@ public class CloudItemRegistry implements ItemRegistry {
         }
 
         for (Identifier identifier : identifiers) {
-            ItemTypes.addType(identifier, type);
             this.typeMap.put(identifier, type);
             int runtimeId = itemPalette.addItem(identifier);
             if (type == ItemTypes.SHIELD) {
                 this.hardcodedBlockingId = runtimeId;
             }
         }
-
-        this.behaviorMap.put(type, behavior);
     }
 
-    private synchronized void registerVanilla(ItemType type) throws RegistryException {
-        registerVanilla(type, null, NoopItemBehavior.INSTANCE);
-    }
-
-    private synchronized void registerVanilla(ItemType type, ItemBehavior behavior) throws RegistryException {
-        registerVanilla(type, null, behavior);
+    protected synchronized void registerVanilla(ItemType type) throws RegistryException {
+        registerVanilla(type, null);
     }
 
     private synchronized void registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
-        registerVanilla(type, serializer, NoopItemBehavior.INSTANCE);
-    }
-
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer, ItemBehavior behavior) throws RegistryException {
-        Objects.requireNonNull(behavior, "type");
-        Objects.requireNonNull(behavior, "behavior");
+        Objects.requireNonNull(type, "type");
         checkClosed();
 
         if (serializer != null) {
             this.serializers.put(type, serializer);
         }
 
+        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+
+        collection.bake();
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
+                throw new RegistryException(type + " is already registered");
+            }
+        }
+
         this.registerType(type, type.getId());
-        this.behaviorMap.put(type, behavior);
+    }
+
+    protected void registerBlock(BlockType type) {
+        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+
+        collection.bake();
+
+        synchronized (this.behaviorMap) {
+            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
+                throw new RegistryException(type + " is already registered");
+            }
+        }
     }
 
     public ItemSerializer getSerializer(ItemType type) {
         return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public ItemDataSerializer<?> getSerializer(Class<?> metaClass) {
-        return dataSerializers.get(metaClass);
+    public <T> ItemDataSerializer<T> getSerializer(DataKey<T, T> dataKey) {
+        //noinspection unchecked
+        return (ItemDataSerializer<T>) dataSerializers.get(dataKey);
     }
 
     public ItemType getType(Identifier id) {
@@ -212,14 +199,17 @@ public class CloudItemRegistry implements ItemRegistry {
         return getType(getIdentifier(legacyId));
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId) {
-        return getItem(getType(legacyId), 1);
+        return ItemStack.from(getType(legacyId), 1);
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId, short damage) {
         return getItemLegacy(legacyId, damage, 1);
     }
 
+    @Deprecated
     public ItemStack getItemLegacy(int legacyId, short damage, int amount) {
         return ItemUtils.deserializeItem(getIdentifier(legacyId), damage, amount, NbtMap.EMPTY);
     }
@@ -229,41 +219,8 @@ public class CloudItemRegistry implements ItemRegistry {
         this.register(itemType,DefaultItemSerializer.INSTANCE,itemBehavior,identifiers);
     }
 
-    @Override
-    public ItemStack getItem(BlockState state, int amount) throws RegistryException {
-        Preconditions.checkNotNull(state);
-        Preconditions.checkArgument(amount > 0, "amount must be positive");
-
-        if (state.getType() == BlockTypes.AIR) return AIR;
-
-        var builder = new CloudItemStackBuilder()
-                .blockState(state)
-                .amount(amount);
-
-        return builder.build();
-    }
-
-    @Override
-    public ItemStack getItem(ItemType type, int amount, Object... metadata) throws RegistryException {
-        Objects.requireNonNull(type, "identifier");
-        Preconditions.checkArgument(amount > 0, "amount must be positive");
-
-        if (type == BlockTypes.AIR) return AIR;
-
-        var builder = new CloudItemStackBuilder()
-                .itemType(type)
-                .amount(amount)
-                .itemData(metadata);
-
-        return builder.build();
-    }
-
     public Collection<Identifier> getIdentifiers(ItemType type) {
         return this.typeMap.entrySet().stream().filter((e) -> e.getValue() == type).map(Entry::getKey).collect(Collectors.toSet());
-    }
-
-    public ItemBehavior getBehavior(ItemType type) {
-        return behaviorMap.getOrDefault(type, NoopItemBehavior.INSTANCE);
     }
 
     public Identifier fromLegacy(int legacyId, int meta) throws RegistryException {
@@ -284,21 +241,49 @@ public class CloudItemRegistry implements ItemRegistry {
         return identifier;
     }
 
-    public int getRuntimeId(Identifier identifier) throws RegistryException {
-        return getRuntimeId(identifier, 0);
+    @Override
+    public ItemType getType(Identifier runtimeId, int data) {
+        var blockType = BlockPalette.INSTANCE.getType(runtimeId);
+
+        if (blockType != null) {
+            return blockType;
+        }
+
+        return typeMap.getOrDefault(runtimeId, BlockTypes.AIR);
     }
 
-    public int getRuntimeId(Identifier identifier, int meta) throws RegistryException {
-        int runtimeId = itemPalette.getRuntimeId(identifier, meta);
-        if (runtimeId == Integer.MAX_VALUE) {
+    @Override
+    public ItemType getType(int runtimeId, int data) {
+        return null;
+    }
+
+    @Override
+    public CloudItemDefinition getDefinition(int runtimeId) {
+        return itemPalette.getDefinition(runtimeId);
+    }
+
+    @Override
+    public boolean isRegistered(CloudItemDefinition definition) {
+        return itemPalette.getDefinition(definition.getRuntimeId()) == definition;
+    }
+
+    public CloudItemDefinition getDefinition(Identifier identifier) throws RegistryException {
+        return getDefinition(identifier, 0);
+    }
+
+    public CloudItemDefinition getDefinition(Identifier identifier, int meta) throws RegistryException {
+        CloudItemDefinition definition = itemPalette.getDefinition(identifier, meta);
+        if (definition == null) {
             throw new RegistryException(identifier + " is not a registered item");
         }
-        return runtimeId;
+        return definition;
     }
 
     @Override
     public ImmutableList<Identifier> getItems() {
-        return itemPalette.getItemIds();
+        return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
+                .map(itemDefinition -> Identifier.fromString(itemDefinition.getIdentifier()))
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -315,7 +300,7 @@ public class CloudItemRegistry implements ItemRegistry {
         }
     }
 
-    public List<StartGamePacket.ItemEntry> getItemEntries() {
+    public List<ItemDefinition> getItemEntries() {
         return itemPalette.getItemPalette();
     }
 
@@ -323,7 +308,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.IRON_SHOVEL);
         registerVanilla(ItemTypes.IRON_PICKAXE);
         registerVanilla(ItemTypes.IRON_AXE);
-        registerVanilla(ItemTypes.FLINT_AND_STEEL, new ItemFlintSteelBehavior());
+        registerVanilla(ItemTypes.FLINT_AND_STEEL);
         registerVanilla(ItemTypes.APPLE);
         registerVanilla(ItemTypes.BOW);
         registerVanilla(ItemTypes.ARROW);
@@ -385,18 +370,18 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.FLINT);
         registerVanilla(ItemTypes.PORKCHOP);
         registerVanilla(ItemTypes.COOKED_PORKCHOP);
-        registerVanilla(ItemTypes.PAINTING, new ItemPaintingBehavior());
-        registerVanilla(ItemTypes.GOLDEN_APPLE, new ItemAppleGoldBehavior());
+        registerVanilla(ItemTypes.PAINTING);
+        registerVanilla(ItemTypes.GOLDEN_APPLE);
         registerVanilla(ItemTypes.SIGN, TreeSpeciesSerializer.SIGN);
         registerVanilla(ItemTypes.WOODEN_DOOR, TreeSpeciesSerializer.DOOR);
-        registerVanilla(ItemTypes.BUCKET, new ItemBucketBehavior());
+        registerVanilla(ItemTypes.BUCKET);
 
-        registerVanilla(ItemTypes.MINECART, new ItemMinecartBehavior(EntityTypes.MINECART));
+        registerVanilla(ItemTypes.MINECART);
         registerVanilla(ItemTypes.SADDLE);
         registerVanilla(ItemTypes.IRON_DOOR);
         registerVanilla(ItemTypes.REDSTONE);
-        registerVanilla(ItemTypes.SNOWBALL, new ItemProjectileBehavior(EntityTypes.SNOWBALL, 1.5f));
-        registerVanilla(ItemTypes.BOAT, TreeSpeciesSerializer.BOAT, new ItemBoatBehavior());
+        registerVanilla(ItemTypes.SNOWBALL);
+        registerVanilla(ItemTypes.BOAT, TreeSpeciesSerializer.BOAT);
         registerVanilla(ItemTypes.LEATHER);
         registerVanilla(ItemTypes.KELP);
         registerVanilla(ItemTypes.BRICK);
@@ -405,9 +390,9 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.PAPER);
         registerVanilla(ItemTypes.BOOK);
         registerVanilla(ItemTypes.SLIME_BALL);
-        registerVanilla(ItemTypes.CHEST_MINECART, new ItemMinecartBehavior(EntityTypes.CHEST_MINECART));
+        registerVanilla(ItemTypes.CHEST_MINECART);
 
-        registerVanilla(ItemTypes.EGG, new ItemProjectileBehavior(EntityTypes.EGG, 1.5f));
+        registerVanilla(ItemTypes.EGG);
         registerVanilla(ItemTypes.COMPASS);
         registerVanilla(ItemTypes.FISHING_ROD);
         registerVanilla(ItemTypes.CLOCK);
@@ -421,7 +406,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.BED, EnumDamageSerializer.DYE_COLOR);
         registerVanilla(ItemTypes.REPEATER);
         registerVanilla(ItemTypes.COOKIE);
-        registerVanilla(ItemTypes.MAP, new ItemMapBehavior());
+        registerVanilla(ItemTypes.MAP);
         registerVanilla(ItemTypes.SHEARS);
         registerVanilla(ItemTypes.MELON);
         registerVanilla(ItemTypes.PUMPKIN_SEEDS);
@@ -431,13 +416,13 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CHICKEN);
         registerVanilla(ItemTypes.COOKED_CHICKEN);
         registerVanilla(ItemTypes.ROTTEN_FLESH);
-        registerVanilla(ItemTypes.ENDER_PEARL, new ItemProjectileBehavior(EntityTypes.ENDER_PEARL, 1.5f));
+        registerVanilla(ItemTypes.ENDER_PEARL);
         registerVanilla(ItemTypes.BLAZE_ROD);
         registerVanilla(ItemTypes.GHAST_TEAR);
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.NETHER_WART);
-        registerVanilla(ItemTypes.POTION, new ItemPotionBehavior());
-        registerVanilla(ItemTypes.GLASS_BOTTLE, new ItemGlassBottleBehavior());
+        registerVanilla(ItemTypes.POTION);
+        registerVanilla(ItemTypes.GLASS_BOTTLE);
         registerVanilla(ItemTypes.SPIDER_EYE);
         registerVanilla(ItemTypes.FERMENTED_SPIDER_EYE);
         registerVanilla(ItemTypes.BLAZE_POWDER);
@@ -446,10 +431,9 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CAULDRON);
         registerVanilla(ItemTypes.ENDER_EYE);
         registerVanilla(ItemTypes.SPECKLED_MELON);
-//        registerVanilla(ItemTypes.SPAWN_EGG, new ItemSpawnEggBehavior());
-        registerVanilla(ItemTypes.SPAWN_EGG, new SpawnEggSerializer());
-        registerVanilla(ItemTypes.EXPERIENCE_BOTTLE, new ItemProjectileBehavior(EntityTypes.XP_BOTTLE, 1f));
-        registerVanilla(ItemTypes.FIREBALL, new ItemFireChargeBehavior());
+        registerVanilla(ItemTypes.SPAWN_EGG);
+        registerVanilla(ItemTypes.EXPERIENCE_BOTTLE);
+        registerVanilla(ItemTypes.FIREBALL);
         registerVanilla(ItemTypes.WRITABLE_BOOK);
         registerVanilla(ItemTypes.WRITTEN_BOOK);
         registerVanilla(ItemTypes.EMERALD);
@@ -465,14 +449,14 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.CARROT_ON_A_STICK);
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.PUMPKIN_PIE);
-        registerVanilla(ItemTypes.FIREWORKS, new ItemFireworkBehavior());
+        registerVanilla(ItemTypes.FIREWORKS);
 
         registerVanilla(ItemTypes.ENCHANTED_BOOK);
         registerVanilla(ItemTypes.COMPARATOR);
         registerVanilla(ItemTypes.NETHERBRICK);
         registerVanilla(ItemTypes.QUARTZ);
-        registerVanilla(ItemTypes.TNT_MINECART, new ItemMinecartBehavior(EntityTypes.TNT_MINECART));
-        registerVanilla(ItemTypes.HOPPER_MINECART, new ItemMinecartBehavior(EntityTypes.HOPPER_MINECART));
+        registerVanilla(ItemTypes.TNT_MINECART);
+        registerVanilla(ItemTypes.HOPPER_MINECART);
         registerVanilla(ItemTypes.PRISMARINE_SHARD);
         registerVanilla(ItemTypes.HOPPER);
         registerVanilla(ItemTypes.RABBIT);
@@ -491,25 +475,25 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.MUTTON_COOKED);
 
         registerVanilla(ItemTypes.ARMOR_STAND);
-        registerVanilla(ItemTypes.END_CRYSTAL, new ItemEndCrystalBehavior());
-        registerVanilla(ItemTypes.CHORUS_FRUIT, new ItemChorusFruitBehavior());
+        registerVanilla(ItemTypes.END_CRYSTAL);
+        registerVanilla(ItemTypes.CHORUS_FRUIT);
         registerVanilla(ItemTypes.CHORUS_FRUIT_POPPED);
 
         registerVanilla(ItemTypes.DRAGON_BREATH);
-        registerVanilla(ItemTypes.SPLASH_POTION, new ItemPotionSplashBehavior());
+        registerVanilla(ItemTypes.SPLASH_POTION);
 
-        registerVanilla(ItemTypes.LINGERING_POTION, new ItemPotionLingeringBehavior());
+        registerVanilla(ItemTypes.LINGERING_POTION);
 
-        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART, new ItemMinecartBehavior(EntityTypes.COMMAND_BLOCK_MINECART));
+        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART);
         registerVanilla(ItemTypes.ELYTRA);
 
         registerVanilla(ItemTypes.SHULKER_SHELL);
-        registerVanilla(ItemTypes.BANNER, new org.cloudburstmc.server.item.serializer.BannerSerializer());
+        registerVanilla(ItemTypes.BANNER, new BannerSerializer());
         registerVanilla(ItemTypes.BANNER_PATTERN);
 
         registerVanilla(ItemTypes.IRON_NUGGET);
         registerVanilla(ItemTypes.NAUTILUS_SHELL);
-        registerVanilla(ItemTypes.TRIDENT, new ItemTridentBehavior());
+        registerVanilla(ItemTypes.TRIDENT);
 
         registerVanilla(ItemTypes.BEETROOT);
         registerVanilla(ItemTypes.BEETROOT_SEEDS);
@@ -520,7 +504,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.COOKED_SALMON);
         registerVanilla(ItemTypes.DRIED_KELP);
 
-        registerVanilla(ItemTypes.APPLE_ENCHANTED, new ItemAppleGoldEnchantedBehavior());
+        registerVanilla(ItemTypes.APPLE_ENCHANTED);
 
         registerVanilla(ItemTypes.TURTLE_HELMET);
         registerVanilla(ItemTypes.SWEET_BERRIES);
@@ -560,16 +544,10 @@ public class CloudItemRegistry implements ItemRegistry {
         registerVanilla(ItemTypes.RAW_GOLD);
         registerVanilla(ItemTypes.RAW_IRON);
         registerVanilla(ItemTypes.SPYGLASS);
-
-        registerVanilla(ItemTypes.CHEST_BOAT, TreeSpeciesSerializer.CHEST_BOAT);
-        registerVanilla(ItemTypes.DISC_FRAGMENT_5);
-        registerVanilla(ItemTypes.RECOVERY_COMPASS);
-        registerVanilla(ItemTypes.ECHO_CHARD);
     }
 
     private void registerType(ItemType type, Identifier id) {
         this.typeMap.put(id, type);
-        ItemTypes.addType(id, type);
         int runtime = itemPalette.addItem(id);
         if (type == ItemTypes.SHIELD) {
             this.hardcodedBlockingId = runtime;
@@ -593,7 +571,6 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.SIGN, ItemIds.DARK_OAK_SIGN);
         registerType(ItemTypes.SIGN, ItemIds.CRIMSON_SIGN);
         registerType(ItemTypes.SIGN, ItemIds.WARPED_SIGN);
-        registerType(ItemTypes.SIGN, ItemIds.MANGROVE_SIGN);
 
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.SPRUCE_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.BIRCH_DOOR);
@@ -602,9 +579,7 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.DARK_OAK_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.CRIMSON_DOOR);
         registerType(ItemTypes.WOODEN_DOOR, ItemIds.WARPED_DOOR);
-        registerType(ItemTypes.WOODEN_DOOR, ItemIds.MANGROVE_DOOR);
 
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_CAT);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_BLOCKS);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_CHIRP);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_FAR);
@@ -615,7 +590,6 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WARD);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_11);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_WAIT);
-        registerType(ItemTypes.RECORD, ItemIds.RECORD_PIGSTEP);
         registerType(ItemTypes.RECORD, ItemIds.RECORD_5);
 
         registerType(ItemTypes.COAL, ItemIds.CHARCOAL);
@@ -646,15 +620,6 @@ public class CloudItemRegistry implements ItemRegistry {
         registerType(ItemTypes.BOAT, ItemIds.JUNGLE_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.ACACIA_BOAT);
         registerType(ItemTypes.BOAT, ItemIds.DARK_OAK_BOAT);
-        registerType(ItemTypes.BOAT, ItemIds.MANGROVE_BOAT);
-
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.OAK_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.SPRUCE_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.BIRCH_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.JUNGLE_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.ACACIA_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.DARK_OAK_CHEST_BOAT);
-        registerType(ItemTypes.CHEST_BOAT, ItemIds.MANGROVE_CHEST_BOAT);
 
         registerType(ItemTypes.BANNER_PATTERN, ItemIds.CREEPER_BANNER_PATTERN);
         registerType(ItemTypes.BANNER_PATTERN, ItemIds.SKULL_BANNER_PATTERN);
@@ -744,20 +709,38 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     private void registerVanillaDataSerializers() {
-        this.registerDataSerializer(BannerData.class, new BannerDataSerializer());
-        this.registerDataSerializer(Damageable.class, new DamageableSerializer());
-        this.registerDataSerializer(FireworkData.class, new FireworkSerializer());
-        this.registerDataSerializer(MapItem.class, new MapSerializer());
-        this.registerDataSerializer(WrittenBook.class, new WrittenBookSerializer());
-        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
-        this.registerDataSerializer(Potion.class, new PotionSerializer());
-        this.registerDataSerializer(Bucket.class, BucketSerializer.INSTANCE);
-        this.registerDataSerializer(Coal.class, EnumSerializer.COAL);
+        this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
+        this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
+        this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
+        this.registerDataSerializer(ItemKeys.FIREWORK_DATA, new FireworkSerializer());
+        this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
+        this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
+//        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
+    }
+
+    private void registerVanillaBehaviors() {
+        this.registerContextBehavior(ItemBehaviors.GET_MAX_STACK_SIZE, (behavior) -> 64);
+        this.registerContextBehavior(ItemBehaviors.GET_MAX_DAMAGE, (behavior) -> 0);
+        this.registerContextBehavior(ItemBehaviors.MINE_BLOCK, (behavior, item, block, owner) -> item);
+        this.registerContextBehavior(ItemBehaviors.ON_DAMAGE, (behavior, item, damage, owner) -> item);
+        this.registerContextBehavior(ItemBehaviors.CAN_DESTROY, (behavior, block) -> true);
+        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED, (behavior, item, block) -> 1);
+        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED_BONUS, (behavior, item) -> 0);
+        this.registerBehavior(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, false);
+        this.registerContextBehavior(ItemBehaviors.GET_DAMAGE_CHANCE, (behavior, unbreaking) -> 0);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_USED, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.USE_ON, (behavior, item, entity, blockPos, face, clickPos) -> item);
+        this.registerBehavior(ItemBehaviors.GET_FUEL_DURATION, 0f);
+        this.registerContextBehavior(ItemBehaviors.GET_ATTACH_DAMAGE, (behavior) -> 0f);
+        this.registerContextBehavior(ItemBehaviors.IS_TOOL, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED, (behavior, item) -> false);
+        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED_ON, (behavior, item, block) -> true);
+        this.registerContextBehavior(ItemBehaviors.GET_BLOCK, (behavior, item) -> Optional.empty());
     }
 
     public void registerCreativeItem(ItemStack item) {
         Preconditions.checkNotNull(item, "item");
-        itemPalette.addCreativeItem((CloudItemStack) item);
+        itemPalette.addCreativeItem(item);
     }
 
     public ItemStack getCreativeItemByIndex(int index) {
@@ -769,10 +752,10 @@ public class CloudItemRegistry implements ItemRegistry {
     }
 
     public int getCreativeItemIndex(ItemStack item) {
-        int rid = itemPalette.getRuntimeId(((CloudItemStack) item).getId());
+        int rid = itemPalette.getDefinition(item.getType().getId()).getRuntimeId();
 
         for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
-            if (rid == itemPalette.getCreativeItems().get(i).getId()) {
+            if (rid == itemPalette.getCreativeItems().get(i).getDefinition().getRuntimeId()) {
                 return i;
             }
         }

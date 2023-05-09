@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -14,6 +14,6 @@ public class InkParticle extends GenericParticle {
     }
 
     public InkParticle(Vector3f pos, int scale) {
-        super(pos, LevelEventType.PARTICLE_INK, scale);
+        super(pos, ParticleType.INK, scale);
     }
 }

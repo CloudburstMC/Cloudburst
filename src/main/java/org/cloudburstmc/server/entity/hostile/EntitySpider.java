@@ -6,7 +6,6 @@ import org.cloudburstmc.api.entity.hostile.Spider;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * @author PikyCZ
@@ -40,6 +39,6 @@ public class EntitySpider extends EntityHostile implements Spider, Arthropod {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.STRING), CloudItemRegistry.get().getItem(ItemTypes.SPIDER_EYE)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.STRING).build(), ItemStack.builder().itemType(ItemTypes.SPIDER_EYE).build()};
     }
 }

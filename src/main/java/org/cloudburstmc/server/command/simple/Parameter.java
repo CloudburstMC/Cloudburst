@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.command.simple;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

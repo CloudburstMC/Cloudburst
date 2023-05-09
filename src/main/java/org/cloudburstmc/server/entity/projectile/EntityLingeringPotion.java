@@ -10,7 +10,7 @@ import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.LINGERING;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.LINGERING;
 
 public class EntityLingeringPotion extends EntitySplashPotion implements LingeringPotion {
 

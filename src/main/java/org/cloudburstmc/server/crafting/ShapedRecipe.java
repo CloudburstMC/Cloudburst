@@ -7,7 +7,7 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
@@ -141,7 +141,7 @@ public class ShapedRecipe implements CraftingRecipe {
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
-        return item != null ? item : CloudItemRegistry.get().AIR;
+        return item != null ? item : ItemStack.EMPTY;
     }
 
     public String[] getShape() {
@@ -195,13 +195,13 @@ public class ShapedRecipe implements CraftingRecipe {
         List<ItemStack> needItems = this.getExtraResults();
 
         for (ItemStack haveItem : new ArrayList<>(haveItems)) {
-            if (haveItem.isNull()) {
+            if (haveItem == ItemStack.EMPTY) {
                 haveItems.remove(haveItem);
                 continue;
             }
 
             for (ItemStack needItem : new ArrayList<>(needItems)) {
-                if (needItem.equals(haveItem) && needItem.getAmount() == haveItem.getAmount()) {
+                if (needItem.equals(haveItem) && needItem.getCount() == haveItem.getCount()) {
                     haveItems.remove(haveItem);
                     needItems.remove(needItem);
                     break;
@@ -221,7 +221,7 @@ public class ShapedRecipe implements CraftingRecipe {
                 ItemStack given = input[y][x];
                 ItemStack required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given) || required.getAmount() != given.getAmount()) {
+                if (given == null || !required.equals(given) || required.getCount() != given.getCount()) {
                     return false;
                 }
 
@@ -232,7 +232,7 @@ public class ShapedRecipe implements CraftingRecipe {
         //check if there are any items left in the grid outside of the recipe
         for (ItemStack[] items : input) {
             for (ItemStack item : items) {
-                if (item != null && !item.isNull()) {
+                if (!ItemUtils.isNull(item)) {
                     return false;
                 }
             }

@@ -1,27 +1,23 @@
 package org.cloudburstmc.server.level.particle;
 
 import com.google.common.base.Strings;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.PlayerPermission;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.data.skin.ImageData;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -59,36 +55,36 @@ public class FloatingTextParticle extends Particle {
         super(pos);
         this.level = level;
 
-        EntityFlags flags = new EntityFlags();
-        flags.setFlag(EntityFlag.NO_AI, true);
-        dataMap.putFlags(flags)
-                .putLong(LEASH_HOLDER_EID, -1)
-                .putFloat(SCALE, 0.01f) //zero causes problems on debug builds?
-                .putFloat(BOUNDING_BOX_HEIGHT, 0.01f)
-                .putFloat(BOUNDING_BOX_WIDTH, 0.01f);
+        EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
+        flags.add(EntityFlag.NO_AI);
+        dataMap.putFlags(flags);
+        dataMap.put(LEASH_HOLDER, -1L);
+        dataMap.put(SCALE, 0.01f); //zero causes problems on debug builds?
+        dataMap.put(HEIGHT, 0.01f);
+        dataMap.put(WIDTH, 0.01f);
         if (!Strings.isNullOrEmpty(title)) {
-            dataMap.putString(NAMETAG, title);
+            dataMap.put(NAME, title);
         }
         if (!Strings.isNullOrEmpty(text)) {
-            dataMap.putString(SCORE_TAG, text);
+            dataMap.put(SCORE, text);
         }
     }
 
     public String getText() {
-        return dataMap.getString(SCORE_TAG);
+        return dataMap.get(SCORE);
     }
 
     public void setText(String text) {
-        this.dataMap.putString(SCORE_TAG, text);
+        this.dataMap.put(SCORE, text);
         sendMetadata();
     }
 
     public String getTitle() {
-        return dataMap.getString(NAMETAG);
+        return dataMap.get(NAME);
     }
 
     public void setTitle(String title) {
-        this.dataMap.putString(NAMETAG, title);
+        this.dataMap.put(NAME, title);
         sendMetadata();
     }
 
@@ -133,7 +129,7 @@ public class FloatingTextParticle extends Particle {
         if (!this.invisible) {
             PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
             entry.setEntityId(entityId);
-            entry.setName(dataMap.getString(NAMETAG));
+            entry.setName(dataMap.get(NAME));
             entry.setSkin(EMPTY_SKIN);
             entry.setXuid("");
             entry.setPlatformChatId("");
@@ -148,13 +144,13 @@ public class FloatingTextParticle extends Particle {
             packet.setUniqueEntityId(this.entityId);
             packet.setRuntimeEntityId(this.entityId);
             packet.setPosition(this.getPosition());
-            packet.setMotion(com.nukkitx.math.vector.Vector3f.ZERO);
-            packet.setRotation(com.nukkitx.math.vector.Vector3f.ZERO);
+            packet.setMotion(Vector3f.ZERO);
+            packet.setRotation(Vector3f.ZERO);
             packet.getMetadata().putAll(this.dataMap);
             packet.setHand(ItemData.AIR);
             packet.setPlatformChatId("");
             packet.setDeviceId("");
-            packet.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+            packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
             packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
             packets.add(packet);
 

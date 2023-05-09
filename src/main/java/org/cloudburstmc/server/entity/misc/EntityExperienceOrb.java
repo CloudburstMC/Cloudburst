@@ -1,17 +1,19 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.EXPERIENCE_VALUE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VALUE;
 
 /**
  * Created on 2015/12/26 by xtypr.
@@ -64,7 +66,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
         setMaxHealth(5);
         setHealth(5);
 
-        this.data.setInt(EXPERIENCE_VALUE, 1);
+        this.data.set(VALUE, 1);
 
         //call event item spawn event
     }
@@ -161,7 +163,7 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var b = this.getLevel().getBlockState(this.getPosition().add(0, -1, -1).toInt());
-                friction = b.getBehavior().getFrictionFactor(b) * friction;
+                friction = CloudBlockRegistry.REGISTRY.getBehavior(b.getType(), BlockBehaviors.GET_FRICTION).execute(b) * friction;
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
@@ -183,14 +185,14 @@ public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
     }
 
     public int getExperience() {
-        return this.data.getInt(EXPERIENCE_VALUE);
+        return this.data.get(VALUE);
     }
 
     public void setExperience(int experience) {
         if (experience <= 0) {
             throw new IllegalArgumentException("XP amount must be greater than 0, got " + experience);
         }
-        this.data.setInt(EXPERIENCE_VALUE, experience);
+        this.data.set(VALUE, experience);
     }
 
     @Override

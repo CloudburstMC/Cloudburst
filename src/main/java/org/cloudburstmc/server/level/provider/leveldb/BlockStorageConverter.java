@@ -12,7 +12,7 @@ public class BlockStorageConverter {
         BlockStorage storage = new BlockStorage();
 
         for (int i = 0; i < 4096; i++) {
-            storage.setBlock(i, CloudBlockRegistry.get().getBlock(blockIds[i], data.get(i)));
+            storage.setBlock(i, CloudBlockRegistry.REGISTRY.getBlock(blockIds[i], data.get(i)));
         }
 
         return storage;

@@ -1,20 +1,22 @@
 package org.cloudburstmc.server.inventory;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Map;
 
@@ -24,7 +26,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class CloudContainer extends BaseInventory implements ContainerInventory {
+public abstract class CloudContainer extends CloudInventory implements ContainerInventory {
     public CloudContainer(InventoryHolder holder, InventoryType type) {
         super(holder, type);
     }
@@ -77,7 +79,8 @@ public abstract class CloudContainer extends BaseInventory implements ContainerI
                 ItemStack item = inv.getItem(slot);
 
                 if (item.getType() != AIR) {
-                    averageCount += (float) item.getAmount() / (float) Math.min(inv.getMaxStackSize(), item.getBehavior().getMaxStackSize(item));
+                    int maxStackSize = CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute();
+                    averageCount += (float) item.getCount() / (float) Math.min(inv.getMaxStackSize(), maxStackSize);
                     ++itemCount;
                 }
             }

@@ -5,13 +5,12 @@ import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
+public class CloudCraftingGrid extends CloudInventory implements CraftingGrid {
     public static final int CRAFTING_GRID_SMALL_OFFSET = 28;
     public static final int CRAFTING_GRID_LARGE_OFFSET = 32;
     public static final int CRAFTING_RESULT_OFFSET = 41;
@@ -38,7 +37,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
     }
 
     @Override
-    public CloudItemStack getCraftingResult() {
+    public ItemStack getCraftingResult() {
         return super.getItem(CRAFTING_RESULT_SLOT);
     }
 
@@ -57,7 +56,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
     }
 
     @Override
-    public @NonNull CloudItemStack getItem(int index) {
+    public @NonNull ItemStack getItem(int index) {
         if (index <= 10) {
             return super.getItem(index);
         }
@@ -103,7 +102,7 @@ public class CloudCraftingGrid extends BaseInventory implements CraftingGrid {
         List<ItemStack> drops = new ArrayList<>();
         if (!isEmpty()) {
             for (ItemStack item : this.getContents().values()) {
-                if (!item.isNull()) {
+                if (item != ItemStack.EMPTY) {
                     drops.add(item);
                 }
             }

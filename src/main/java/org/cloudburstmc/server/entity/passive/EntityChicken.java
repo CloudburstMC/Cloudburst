@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.passive.Chicken;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -39,7 +38,7 @@ public class EntityChicken extends Animal implements Chicken {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.CHICKEN), CloudItemRegistry.get().getItem(ItemTypes.FEATHER)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.CHICKEN).build(), ItemStack.builder().itemType(ItemTypes.FEATHER).build()};
     }
 
     @Override

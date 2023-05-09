@@ -1,9 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -20,17 +17,20 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorWater;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * Created by yescallop on 2016/2/13.
@@ -62,12 +62,12 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     public int getWoodType() {
-        return this.data.getInt(VARIANT);
+        return this.data.get(VARIANT);
     }
 
     @Override
     public void setWoodType(TreeSpecies woodType) {
-        this.data.setInt(VARIANT, woodType.ordinal());
+        this.data.set(VARIANT, woodType.ordinal());
     }
 
     @Override
@@ -176,7 +176,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var b = this.getLevel().getBlockState(this.getPosition().down().toInt());
-                friction *= b.getBehavior().getFrictionFactor(b);
+                friction *= CloudBlockRegistry.REGISTRY.getBehavior(b.getType(), BlockBehaviors.GET_FRICTION).execute(b);
             }
 
             this.motion = motion.mul(friction, 1, friction);
@@ -291,9 +291,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 BlockState state = block.getState();
 
                 if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
-                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
+//                    TODO This is broken :(
+//                    block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
+//                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
 
-                    diffY = Math.min(maxY - level, diffY);
+                    diffY = Math.min(maxY, diffY);
                 }
             }
 
@@ -324,9 +326,9 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public void onMount(Entity passenger) {
         super.onMount(passenger);
 
-        ((BaseEntity) passenger).getData().setByte(RIDER_ROTATION_LOCKED, 1);
-        ((BaseEntity) passenger).getData().setFloat(RIDER_MAX_ROTATION, 90);
-        ((BaseEntity) passenger).getData().setFloat(RIDER_MIN_ROTATION, -90);
+        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION, true);
+        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+        ((BaseEntity) passenger).getData().set(SEAT_ROTATION_OFFSET_DEGREES, -90f);
 
         //            if(entity instanceof Player && mode == SetEntityLinkPacket.TYPE_RIDE){ //TODO: controlling?
 //                entity.setDataProperty(new ByteEntityData(DATA_FLAG_WASD_CONTROLLED))
@@ -364,10 +366,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     public void onPaddle(AnimatePacket.Action animation, float value) {
-        EntityData data = animation == AnimatePacket.Action.ROW_RIGHT ? ROW_TIME_RIGHT : ROW_TIME_LEFT;
+        EntityDataType<Float> data = animation == AnimatePacket.Action.ROW_RIGHT ? ROW_TIME_RIGHT : ROW_TIME_LEFT;
 
-        if (this.data.getFloat(data) != value) {
-            this.data.setFloat(data, value);
+        if (this.data.get(data) != value) {
+            this.data.set(data, value);
         }
     }
 
@@ -413,7 +415,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.BOAT));
+            this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.BOAT).build());
         }
     }
 

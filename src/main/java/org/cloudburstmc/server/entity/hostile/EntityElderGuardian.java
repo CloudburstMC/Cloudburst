@@ -4,7 +4,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.ElderGuardian;
 import org.cloudburstmc.api.level.Location;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.ELDER;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.ELDER;
 
 /**
  * @author PikyCZ

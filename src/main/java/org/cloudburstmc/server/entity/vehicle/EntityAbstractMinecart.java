@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -20,18 +16,22 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Rail;
 
 import java.util.Iterator;
 import java.util.Objects;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.*;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 /**
  * Created by: larryTheCoder on 2017/6/26.
@@ -129,7 +129,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
             int id;
             int meta;
-            CloudBlockRegistry registry = CloudBlockRegistry.get();
+            CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
             if (tag.containsKey("DisplayTile") && tag.containsKey("DisplayData")) {
                 id = tag.getInt("DisplayTile");
                 meta = tag.getInt("DisplayData");
@@ -140,7 +140,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             }
             this.setDisplayBlock(registry.getBlock(id, meta));
 
-            this.setDisplayBlockOffset(tag.getInt("DisplayOffset"));
+//            this.setDisplayBlockOffset(tag.getInt("DisplayOffset"));
         }
     }
 
@@ -157,7 +157,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                     .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(blockState)) //TODO: check
                     .build());
 
-            tag.putInt("DisplayOffset", this.getDisplayOffset());
+//            tag.putInt("DisplayOffset", this.getDisplayOffset());
         }
     }
 
@@ -291,7 +291,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void dropItem() {
-        this.getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(ItemTypes.MINECART));
+        this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.MINECART).build());
     }
 
     @Override
@@ -449,8 +449,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         Boolean powered = state.ensureTrait(BlockTraits.IS_POWERED);
         boolean isPowered = powered != null ? powered : false;
         boolean isSlowed = !isPowered;
-
-        var behavior = block.getState().getBehavior();
 
         float motionX = this.motion.getX();
         float motionY = this.motion.getY();
@@ -704,7 +702,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      * @return integer
      */
     public int getDisplayOffset() {
-        return this.data.getInt(DISPLAY_OFFSET);
+        return this.data.get(DISPLAY_OFFSET);
     }
 
     /**
@@ -713,25 +711,25 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
      * @param offset The offset
      */
     public void setDisplayBlockOffset(int offset) {
-        this.data.setInt(DISPLAY_OFFSET, offset);
+        this.data.set(DISPLAY_OFFSET, offset);
     }
 
     public BlockState getDisplayBlock() {
-        int runtimeId = this.data.getInt(DISPLAY_ITEM);
-        return CloudBlockRegistry.get().getBlock(runtimeId);
+        CloudBlockDefinition definition = (CloudBlockDefinition) this.data.get(DISPLAY_BLOCK_STATE);
+        return definition.getCloudState();
     }
 
     public void setDisplayBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
-        this.data.setInt(DISPLAY_ITEM, runtimeId);
+        CloudBlockDefinition definition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+        this.data.set(DISPLAY_BLOCK_STATE, definition);
     }
 
     public boolean hasDisplay() {
-        return this.data.getBoolean(CUSTOM_DISPLAY);
+        return this.data.get(CUSTOM_DISPLAY) != 0;
     }
 
     public void setDisplay(boolean display) {
-        this.data.setBoolean(CUSTOM_DISPLAY, true);
+        this.data.set(CUSTOM_DISPLAY, (byte) (display ? 1 : 0));
     }
 
     /**
@@ -775,6 +773,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     private boolean _isNormalBlock(Block block) {
-        return block.getState().getBehavior().isNormalBlock(block);
+        return true;
+//        TODO Implement block traits
+//        return block.getState().getBehavior().isNormalBlock(block);
     }
 }

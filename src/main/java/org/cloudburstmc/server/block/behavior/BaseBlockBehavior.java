@@ -1,70 +1,60 @@
 package org.cloudburstmc.server.block.behavior;
 
-import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.behavior.BlockBehavior;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.item.ItemStack;
+import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.ToolTypes;
-import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Effect;
-import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
-
-import java.util.Objects;
-import java.util.Optional;
 
 import static org.cloudburstmc.api.block.BlockTypes.WEB;
 import static org.cloudburstmc.api.block.BlockTypes.WOOL;
 
-public abstract class BaseBlockBehavior extends BlockBehavior {
-
-    public float getBreakTime(BlockState state, ItemStack item, Player p) {
-        CloudPlayer player = (CloudPlayer)p;
-        Objects.requireNonNull(item, "getBreakTime: Item can not be null");
-        //Objects.requireNonNull(p, "getBreakTime: Player can not be null");
-        float blockHardness = getHardness(state);
-        var toolType = getToolType(state);
-
-        var itemBehavior = item.getBehavior();
-        var itemToolType = itemBehavior.getToolType(item);
-        var itemTier = itemBehavior.getTier(item);
-
-        boolean correctTool = toolType == null || itemToolType == toolType;
-        boolean canHarvestWithHand = canHarvestWithHand(state);
-        var blockType = state.getType();
-        int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(EnchantmentTypes.EFFICIENCY))
-                .map(EnchantmentInstance::getLevel).orElse(0);
-        int hasteEffectLevel = Optional.ofNullable(player).map((p1) -> p1.getEffect(EffectTypes.HASTE))
-                .map(Effect::getAmplifier).orElse(0);
-        boolean insideOfWaterWithoutAquaAffinity = player != null && player.isInsideOfWater() &&
-                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(EnchantmentTypes.AQUA_AFFINITY))
-                        .map(EnchantmentInstance::getLevel).map(l -> l >= 1).orElse(false);
-        boolean outOfWaterButNotOnGround = player != null && (!player.isInsideOfWater()) && (!player.isOnGround());
-        return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockType, itemToolType, itemTier,
-                efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
-    }
-
-    public boolean placeBlock(Block block, BlockState newState, boolean update) {
-        var state = block.getLiquid();
-        BlockBehavior behavior = CloudBlockRegistry.get().getBehavior(state.getType());
-        if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
-            boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
-
-            var newBehavior = newState.getBehavior();
-            if (!flowing && newBehavior.canWaterlogSource(newState) || flowing && newBehavior.canWaterlogFlowing(newState)) {
-                block.set(state, 1, true, false);
-            } else {
-                block.setExtra(BlockStates.AIR, true, false);
-            }
-        }
-
-        return block.getLevel().setBlockState(block.getPosition(), newState, true, update);
-    }
+@Log4j2
+public abstract class BaseBlockBehavior {
+//
+//    public float getBreakTime(BlockState state, ItemStack item, Player p) {
+//        CloudPlayer player = (CloudPlayer)p;
+//        Objects.requireNonNull(item, "getBreakTime: Item can not be null");
+//        //Objects.requireNonNull(p, "getBreakTime: Player can not be null");
+//        float blockHardness = getHardness(state);
+//        var toolType = getToolType(state);
+//
+//        var itemBehavior = item.getBehavior();
+//        var itemToolType = itemBehavior.getToolType(item);
+//        var itemTier = itemBehavior.getTier(item);
+//
+//        boolean correctTool = toolType == null || itemToolType == toolType;
+//        boolean canHarvestWithHand = canHarvestWithHand(state);
+//        var blockType = state.getType();
+//        int efficiencyLoreLevel = Optional.ofNullable(item.getEnchantment(EnchantmentTypes.EFFICIENCY))
+//                .map(EnchantmentInstance::getLevel).orElse(0);
+//        int hasteEffectLevel = Optional.ofNullable(player).map((p1) -> p1.getEffect(EffectTypes.HASTE))
+//                .map(Effect::getAmplifier).orElse(0);
+//        boolean insideOfWaterWithoutAquaAffinity = player != null && player.isInsideOfWater() &&
+//                Optional.ofNullable(player.getInventory().getHelmet().getEnchantment(EnchantmentTypes.WATER_WORKER))
+//                        .map(EnchantmentInstance::getLevel).map(l -> l >= 1).orElse(false);
+//        boolean outOfWaterButNotOnGround = player != null && (!player.isInsideOfWater()) && (!player.isOnGround());
+//        log.info("Yeeting break time");
+//        return breakTime0(blockHardness, correctTool, canHarvestWithHand, blockType, itemToolType, itemTier,
+//                efficiencyLoreLevel, hasteEffectLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround);
+//    }
+//
+//    public boolean placeBlock(Block block, BlockState newState, boolean update) {
+//        var state = block.getLiquid();
+//        Behavior behavior = CloudBlockRegistry.get().getBehavior(state.getType());
+//        if (behavior instanceof BlockBehaviorLiquid && ((BlockBehaviorLiquid) behavior).usesWaterLogging()) {
+//            boolean flowing = state.ensureTrait(BlockTraits.IS_FLOWING) || state.ensureTrait(BlockTraits.FLUID_LEVEL) != 0;
+//
+//            var newBehavior = newState.getBehavior();
+//            if (!flowing && newBehavior.canWaterlogSource(newState) || flowing && newBehavior.canWaterlogFlowing(newState)) {
+//                block.set(state, 1, true, false);
+//            } else {
+//                block.setExtra(BlockStates.AIR, true, false);
+//            }
+//        }
+//
+//        return block.getLevel().setBlockState(block.getPosition(), newState, true, update);
+//    }
 
     //http://minecraft.gamepedia.com/Breaking
     private static float breakTime0(float blockHardness, boolean correctTool, boolean canHarvestWithHand,
@@ -98,8 +88,4 @@ public abstract class BaseBlockBehavior extends BlockBehavior {
         return 1.0f + (0.2f * hasteLoreLevel);
     }
 
-    @Override
-    public ItemStack toItem(Block block) {
-        return CloudItemRegistry.get().getItem(block.getState());
-    }
 }

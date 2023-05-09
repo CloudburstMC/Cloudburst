@@ -4,8 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.*;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -14,8 +12,10 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
+import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
 import static net.daporkchop.lib.common.math.PMath.mix32;
 
 @Log4j2
-public class BlockPalette {
+public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
     public static final BlockPalette INSTANCE = new BlockPalette();
 
     //Runtime ID mappings
-    private final Reference2IntMap<BlockState> stateRuntimeMap = new Reference2IntOpenHashMap<>();
-    private final Int2ReferenceMap<BlockState> runtimeStateMap = new Int2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<BlockState, CloudBlockDefinition> stateDefinitionMap = new Reference2ReferenceOpenHashMap<>();
+    private final Int2ReferenceMap<CloudBlockDefinition> runtimeDefinitionMap = new Int2ReferenceOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
 
     //NBT Mappings
@@ -57,6 +57,8 @@ public class BlockPalette {
     private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, BlockState> identifier2stateMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<BlockState, Identifier> state2identifierMap = new Reference2ReferenceOpenHashMap<>();
+
+    private final Reference2ObjectMap<BlockType, ReferenceSet<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
     //private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
@@ -68,6 +70,7 @@ public class BlockPalette {
 
         this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
+        var typeIdentifiers = new ReferenceOpenHashSet<Identifier>();
         type.getStates().forEach(state -> {
             List<NbtMap> tags = (List<NbtMap>) serialize(type, serializer, state.getTraits());
             for (NbtMap nbt : tags) {
@@ -83,7 +86,6 @@ public class BlockPalette {
                 var traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
                 traitMap.put(statesTag, state);
 
-                ItemTypes.addType(id, type);
                 if (id != type.getId()) {
                     defaultStateMap.putIfAbsent(id, state);
                 }
@@ -101,13 +103,16 @@ public class BlockPalette {
                 state2identifierMap.putIfAbsent(state, id);
                 stateSerializedMap.put(state, nbt);
                 serializedStateMap.put(nbt, state);
+
+                typeIdentifiers.add(id);
             }
         });
 
+        type2identifierMap.put(type, typeIdentifiers);
     }
 
     public void generateRuntimeIds() {
-        if (!this.runtimeStateMap.isEmpty() || !this.stateRuntimeMap.isEmpty()) {
+        if (!this.runtimeDefinitionMap.isEmpty() || !this.stateDefinitionMap.isEmpty()) {
             log.warn("Palette runtime IDs have already been generated!");
             return;
         }
@@ -138,8 +143,10 @@ public class BlockPalette {
                 continue;
             }
 
-            this.runtimeStateMap.put(i, state);
-            this.stateRuntimeMap.putIfAbsent(state, i);
+            CloudBlockDefinition definition = new CloudBlockDefinition(state, nbt, i);
+
+            this.runtimeDefinitionMap.put(i, definition);
+            this.stateDefinitionMap.putIfAbsent(state, definition);
         }
     }
 
@@ -149,6 +156,16 @@ public class BlockPalette {
 
     public BlockType getType(Identifier id) {
         return typeMap.get(id);
+    }
+
+    public Set<Identifier> getTypeIdentifiers(BlockType type) {
+        var identifiers = type2identifierMap.get(type);
+
+        if (identifiers == null) {
+            return Collections.emptySet();
+        }
+
+        return identifiers;
     }
 
     public BlockState getState(Identifier id) {
@@ -172,11 +189,25 @@ public class BlockPalette {
     }
 
     public BlockState getBlockState(int runtimeId) {
-        BlockState blockState = this.runtimeStateMap.get(runtimeId);
-        if (blockState == null) {
+        CloudBlockDefinition definition = this.runtimeDefinitionMap.get(runtimeId);
+        if (definition == null) {
             throw new IllegalArgumentException("Invalid runtime ID: " + runtimeId);
         }
-        return blockState;
+        return definition.getCloudState();
+    }
+
+    @Override
+    public CloudBlockDefinition getDefinition(int runtimeId) {
+        CloudBlockDefinition definition = this.runtimeDefinitionMap.get(runtimeId);
+        if (definition == null) {
+            throw new IllegalArgumentException("Invalid runtime ID: " + runtimeId);
+        }
+        return definition;
+    }
+
+    @Override
+    public boolean isRegistered(CloudBlockDefinition definition) {
+        return this.runtimeDefinitionMap.get(definition.getRuntimeId()) == definition;
     }
 
     @Nullable
@@ -184,12 +215,12 @@ public class BlockPalette {
         return this.serializedStateMap.get(tag);
     }
 
-    public int getRuntimeId(BlockState blockState) {
-        int runtimeId = this.stateRuntimeMap.getInt(blockState);
-        if (runtimeId == -1) {
+    public CloudBlockDefinition getDefinition(BlockState blockState) {
+        CloudBlockDefinition definition = this.stateDefinitionMap.get(blockState);
+        if (definition == null) {
             throw new IllegalArgumentException("Invalid BlockState: " + blockState);
         }
-        return runtimeId;
+        return definition;
     }
 
     public NbtMap getSerialized(BlockState state) {
@@ -208,8 +239,8 @@ public class BlockPalette {
         return ImmutableList.copyOf(typeMap.keySet());
     }
 
-    public Map<Integer, BlockState> getRuntimeMap() {
-        return ImmutableMap.copyOf(this.runtimeStateMap);
+    public Map<Integer, CloudBlockDefinition> getRuntimeMap() {
+        return ImmutableMap.copyOf(this.runtimeDefinitionMap);
     }
 
     private static Collection<NbtMap> serialize(BlockType type, BlockSerializer serializer, Map<BlockTrait<?>, Comparable<?>> traits) {

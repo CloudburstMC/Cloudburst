@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.finish;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -12,6 +13,7 @@ import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.BiomeRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
 
@@ -38,7 +40,7 @@ public class IceSnowFinisher implements Finisher {
             BlockState state = level.getBlockState(blockX, y, blockZ, 0);
             if (state.getType().getId() == BlockIds.WATER) {
                 level.setBlockState(blockX, y, blockZ, 0, BlockStates.ICE);
-            } else if (y < 255 && state.getBehavior().isSolid(state)) {
+            } else if (y < 255 && CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_SOLID)) {
                 level.setBlockState(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
             }
         }

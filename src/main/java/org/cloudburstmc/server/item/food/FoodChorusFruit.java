@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.item.food;
 
-import com.nukkitx.math.vector.Vector3f;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemIds;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 

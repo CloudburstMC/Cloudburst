@@ -28,7 +28,7 @@ public final class AnyOfBlockFilter extends ReferenceOpenHashSet<BlockState> imp
 
     @Override
     public boolean test(BlockState blockState) {
-        return super.contains(CloudBlockRegistry.get().getRuntimeId(blockState));
+        return super.contains(CloudBlockRegistry.REGISTRY.getDefinition(blockState));
     }
 
     @AllArgsConstructor

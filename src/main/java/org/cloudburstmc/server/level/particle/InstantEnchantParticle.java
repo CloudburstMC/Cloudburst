@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 
 /**
  * Created on 2015/11/21 by xtypr.
@@ -9,6 +9,6 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
  */
 public class InstantEnchantParticle extends GenericParticle {
     public InstantEnchantParticle(Vector3f pos) {
-        super(pos, LevelEventType.PARTICLE_MOB_SPELL_INSTANTANEOUS);
+        super(pos, ParticleType.MOB_SPELL_INSTANTANEOUS);
     }
 }

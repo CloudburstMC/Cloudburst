@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.WrittenBook;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.Nonnegative;
@@ -58,7 +58,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
         if (this.book != null) {
             tag.putBoolean(TAG_HAS_BOOK, true);
-            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book).toBuilder().build());
+            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book));
             tag.putInt(TAG_PAGE, this.page);
             tag.putInt(TAG_TOTAL_PAGES, this.totalPages);
         }
@@ -124,7 +124,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.getMetadata(WrittenBook.class).getPages().size();
+            this.totalPages = this.book.get(ItemKeys.BOOK_DATA).getPages().size();
         } else {
             this.totalPages = 0;
         }

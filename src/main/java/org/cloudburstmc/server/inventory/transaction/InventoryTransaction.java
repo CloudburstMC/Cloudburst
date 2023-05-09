@@ -83,7 +83,7 @@ public class InventoryTransaction {
 
     protected boolean matchItems(List<ItemStack> needItems, List<ItemStack> haveItems) {
         for (InventoryAction action : this.actions) {
-            if (!action.getTargetItem().isNull()) {
+            if (action.getTargetItem() != ItemStack.EMPTY) {
                 needItems.add(action.getTargetItem());
             }
 
@@ -91,7 +91,7 @@ public class InventoryTransaction {
                 return false;
             }
 
-            if (!action.getSourceItem().isNull()) {
+            if (action.getSourceItem() != ItemStack.EMPTY) {
                 haveItems.add(action.getSourceItem());
             }
         }
@@ -106,19 +106,19 @@ public class InventoryTransaction {
                 var haveItem = haveIterator.next();
 
                 if (needItem.equals(haveItem)) {
-                    int amount = Math.min(haveItem.getAmount(), needItem.getAmount());
+                    int amount = Math.min(haveItem.getCount(), needItem.getCount());
 
-                    if (haveItem.getAmount() - amount <= 0) {
+                    if (haveItem.getCount() - amount <= 0) {
                         haveIterator.remove();
                     } else {
-                        haveIterator.set(haveItem.decrementAmount(amount));
+                        haveIterator.set(haveItem.decreaseCount(amount));
                     }
 
-                    if (needItem.getAmount() - amount <= 0) {
+                    if (needItem.getCount() - amount <= 0) {
                         needIterator.remove();
                         break;
                     } else {
-                        needItem = needItem.decrementAmount(amount);
+                        needItem = needItem.decreaseCount(amount);
                         needIterator.set(needItem);
                     }
                 }
@@ -205,14 +205,14 @@ public class InventoryTransaction {
                     SlotChangeAction action = list.get(i);
 
                     ItemStack actionSource = action.getSourceItem();
-                    if (actionSource.equals(lastTargetItem, true)) {
+                    if (actionSource.isMergeable(lastTargetItem)) {
                         lastTargetItem = action.getTargetItem();
                         list.remove(i);
                         sortedThisLoop++;
                     } else if (actionSource.equals(lastTargetItem)) {
-                        lastTargetItem = lastTargetItem.decrementAmount(actionSource.getAmount());
+                        lastTargetItem = lastTargetItem.decreaseCount(actionSource.getCount());
                         list.remove(i);
-                        if (lastTargetItem.getAmount() == 0) sortedThisLoop++;
+                        if (lastTargetItem.getCount() == 0) sortedThisLoop++;
                     }
                 }
             } while (sortedThisLoop > 0);
@@ -268,7 +268,7 @@ public class InventoryTransaction {
         }
 
         if (who != null && to != null) {
-            if (from.getTargetItem().getAmount() > from.getSourceItem().getAmount()) {
+            if (from.getTargetItem().getCount() > from.getSourceItem().getCount()) {
                 from = to;
             }
 

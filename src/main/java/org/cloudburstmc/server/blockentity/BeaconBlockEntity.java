@@ -1,9 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
@@ -11,9 +7,12 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.server.inventory.CloudBeaconInventory;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.network.protocol.types.ContainerIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 
@@ -206,9 +205,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 
-        CloudBeaconInventory inv = (CloudBeaconInventory) player.getWindowById(ContainerIds.BEACON);
+        CloudInventoryScreen screen = player.getInventoryManager().getScreen();
 
-        inv.clear(0);
+        // FIXME: Clear the beacon inventory
+//        screen.clear(0);
         this.scheduleUpdate();
         return true;
     }

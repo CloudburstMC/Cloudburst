@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.level.chunk;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NBTOutputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.network.VarInts;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.nbt.NBTInputStream;
+import org.cloudburstmc.nbt.NBTOutputStream;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
@@ -75,7 +75,7 @@ public class BlockStorage {
 
         VarInts.writeInt(buffer, palette.size());
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         palette.forEach(state -> VarInts.writeInt(buffer, registry.getRuntimeId(state)));
     }
 
@@ -120,7 +120,7 @@ public class BlockStorage {
                 try {
                     NbtMap tag = (NbtMap) nbtInputStream.readTag();
 
-                    BlockState state = CloudBlockRegistry.get().getBlock(tag);
+                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(tag);
 
                     if (this.palette.contains(state)) {
                         log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);

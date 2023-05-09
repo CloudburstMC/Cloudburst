@@ -1,10 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
@@ -14,11 +9,18 @@ import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.inventory.FurnaceInventory;
 import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.crafting.FurnaceRecipe;
 import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -112,8 +114,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     protected void checkFuel(ItemStack fuel) {
-        var behavior = fuel.getBehavior();
-        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, behavior.getFuelTime(fuel));
+        FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
+                CloudItemRegistry.get().getBehavior(fuel.getType(), ItemBehaviors.GET_FUEL_DURATION).shortValue());
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -136,14 +138,14 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                 p.sendPacket(packet);
             }
 
-            if (fuel.getAmount() <= 1) {
-                if (fuel.getType() == ItemTypes.BUCKET && fuel.getMetadata(Bucket.class) == Bucket.LAVA) {
-                    fuel = fuel.toBuilder().amount(1).itemData(Bucket.EMPTY).build();
+            if (fuel.getCount() <= 1) {
+                if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemKeys.BUCKET_DATA) == Bucket.LAVA) {
+                    fuel = fuel.toBuilder().amount(1).data(ItemKeys.BUCKET_DATA, Bucket.EMPTY).build();
                 } else {
-                    fuel = CloudItemRegistry.get().AIR;
+                    fuel = ItemStack.EMPTY;
                 }
             } else {
-                fuel = fuel.decrementAmount();
+                fuel = fuel.decreaseCount();
             }
             this.inventory.setFuel(fuel);
         }
@@ -158,16 +160,20 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         this.timing.startTiming();
 
         boolean ret = false;
+
         ItemStack fuel = this.inventory.getFuel();
         ItemStack raw = this.inventory.getSmelting();
         ItemStack product = this.inventory.getResult();
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
-        boolean canSmelt = (smelt != null && raw.getAmount() > 0 && ((smelt.getResult().equals(product)
-                && product.getAmount() < product.getBehavior().getMaxStackSize(product)) || product.isNull()));
+        boolean canSmelt = smelt != null && raw.getCount() > 0 &&
+                (product == ItemStack.EMPTY || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getBehavior(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()));
 
-        if (burnTime <= 0 && canSmelt && fuel.getBehavior().getFuelTime(fuel) != 0 && fuel.getAmount() > 0) {
+        if (
+                burnTime <= 0 && canSmelt
+                        && CloudItemRegistry.get().getBehavior(fuel.getType(), ItemBehaviors.GET_FUEL_DURATION) > 0
+                        && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }
 
@@ -177,16 +183,16 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             if (smelt != null && canSmelt) {
                 cookTime++;
                 if (cookTime >= (200 / getBurnRate())) {
-                    product = smelt.getResult().incrementAmount();
+                    product = smelt.getResult().increaseCount();
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
                     this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
                         this.inventory.setResult(ev.getResult());
-                        if (raw.getAmount() <= 1) {
-                            raw = CloudItemRegistry.get().AIR;
+                        if (raw.getCount() <= 1) {
+                            raw = ItemStack.EMPTY;
                         } else {
-                            raw = raw.decrementAmount();
+                            raw = raw.decreaseCount();
                         }
                         this.inventory.setSmelting(raw);
                     }

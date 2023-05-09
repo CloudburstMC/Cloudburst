@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.item.data.serializer;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.BannerData;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.List;
 public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
-    public void serialize(ItemStack item, NbtMapBuilder rootTag, NbtMapBuilder dataTag, BannerData value) {
-        dataTag.putInt("Base", value.getBase().getDyeData());
-        dataTag.putInt("Type", value.getType());
+    public void serialize(ItemStack item, NbtMapBuilder tag, BannerData value) {
+        tag.putInt("Base", value.getBase().getDyeData());
+        tag.putInt("Type", value.getType());
 
         if (!value.getPatterns().isEmpty()) {
             List<NbtMap> patternsTag = new ArrayList<>();
@@ -28,16 +28,16 @@ public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
                         putString("Pattern", pattern.getType().getName())
                         .build());
             }
-            dataTag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+            tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
         }
     }
 
     @Override
-    public BannerData deserialize(Identifier id, NbtMap rootTag, NbtMap dataTag) {
-        var base = DyeColor.getByDyeData(dataTag.getInt("Base", 0));
-        var bannerType = dataTag.getInt("Type", 0);
+    public BannerData deserialize(Identifier id, NbtMap tag) {
+        var base = DyeColor.getByDyeData(tag.getInt("Base", 0));
+        var bannerType = tag.getInt("Type", 0);
 
-        var patternTags = dataTag.getList("Patterns", NbtType.COMPOUND);
+        var patternTags = tag.getList("Patterns", NbtType.COMPOUND);
         List<BannerPattern> patterns;
 
         if (patternTags != null) {

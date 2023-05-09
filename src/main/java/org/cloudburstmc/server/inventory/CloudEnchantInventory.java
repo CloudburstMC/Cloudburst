@@ -13,7 +13,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class CloudEnchantInventory extends BaseInventory implements EnchantInventory {
+public class CloudEnchantInventory extends CloudInventory implements EnchantInventory {
 
 
     private EnchantingTable table;

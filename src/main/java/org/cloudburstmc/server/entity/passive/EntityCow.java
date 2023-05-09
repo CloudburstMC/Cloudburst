@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.passive.Cow;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Author: BeYkeRYkt Nukkit Project
@@ -39,7 +38,7 @@ public class EntityCow extends Animal implements Cow {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.LEATHER), CloudItemRegistry.get().getItem(ItemTypes.BEEF)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.LEATHER).build(), ItemStack.builder().itemType(ItemTypes.BEEF).build()};
     }
 
     @Override

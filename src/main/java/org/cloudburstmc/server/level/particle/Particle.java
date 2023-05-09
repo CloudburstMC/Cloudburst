@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.particle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 
 /**
  * author: MagicDroidX

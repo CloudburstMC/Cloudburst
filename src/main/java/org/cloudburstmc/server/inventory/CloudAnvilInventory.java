@@ -10,7 +10,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
  * author: MagicDroidX
  * Nukkit Project
  */
-public class CloudAnvilInventory extends BaseInventory implements AnvilInventory {
+public class CloudAnvilInventory extends CloudInventory implements AnvilInventory {
 
     public static final int TARGET = 0;
     public static final int SACRIFICE = 1;

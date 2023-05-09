@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.block.util;
 
-import com.nukkitx.blockstateupdater.BlockStateUpdaterBase;
-import com.nukkitx.blockstateupdater.BlockStateUpdaters;
-import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
@@ -13,10 +10,11 @@ import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaterBase;
+import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.item.CloudItemStack;
 
 @UtilityClass
 @Log4j2
@@ -63,11 +61,6 @@ public class BlockStateMetaMappings {
 
     public int getMetaFromState(BlockState state) {
         return state2meta.getOrDefault(state, -1);
-    }
-
-    public BlockState getStateFromMeta(ItemStack item) {
-        var cloudItem = (CloudItemStack) item;
-        return getStateFromMeta(cloudItem.getId(), cloudItem.getNetworkData().getDamage());
     }
 
     public BlockState getStateFromMeta(Identifier type, int meta) {

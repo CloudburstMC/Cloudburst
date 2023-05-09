@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity.projectile;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
@@ -11,13 +8,16 @@ import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.MovingObjectPosition;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.math.NukkitMath;
 
 import java.util.Set;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
 
 /**
  * author: MagicDroidX

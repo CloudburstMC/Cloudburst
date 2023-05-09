@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.passive.Dolphin;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by PetteriM1
@@ -38,6 +37,6 @@ public class EntityDolphin extends Animal implements Dolphin {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.FISH)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.FISH).build()};
     }
 }

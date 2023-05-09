@@ -1,16 +1,18 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.item.CloudItemStack;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -58,35 +60,35 @@ public class GiveCommand extends Command {
         }
 
         CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
-        ItemStack item;
+        CloudItemRegistry registry = CloudItemRegistry.get();
+        ItemType type;
 
         try {
-            var registry = CloudItemRegistry.get();
             Identifier id;
             try {
-                id = registry.fromLegacy(Integer.parseInt(args[1]));
-
+                type = registry.getType(Integer.parseInt(args[1]));
             } catch (NumberFormatException e) {
-                id = Identifier.fromString(args[1]);
+                type = registry.getType(Identifier.fromString(args[1]));
             }
-            item = registry.getItem(ItemTypes.byId(id));
         } catch (Exception e) {
             log.throwing(e);
             return false;
         }
 
+        int maxStackSize = registry.getBehavior(type, ItemBehaviors.GET_MAX_STACK_SIZE).execute();
+        ItemStack stack;
         try {
-            item = item.withAmount(Integer.parseInt(args[2]));
-        } catch (Exception e) {
-            item = item.withAmount(item.getBehavior().getMaxStackSize(item));
+            stack = ItemStack.from(type, GenericMath.clamp(Integer.parseInt(args[2]), 1, maxStackSize));
+        } catch (NumberFormatException e) {
+            stack = ItemStack.from(type);
         }
 
         if (player != null) {
-            if (item.isNull()) {
+            if (stack == ItemStack.EMPTY) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
                 return true;
             }
-            player.getInventory().addItem(item);
+            player.getInventory().addItem(stack);
         } else {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
 
@@ -94,8 +96,9 @@ public class GiveCommand extends Command {
         }
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer(
                 "%commands.give.success",
-                item.getName() == null ? item.getType() : item.getName() + " (" + item.getType() + ":" + ((CloudItemStack) item).getData() + ")",
-                item.getAmount(),
+                stack.get(ItemKeys.CUSTOM_NAME) == null ? type.getId() : stack.get(ItemKeys.CUSTOM_NAME) +
+                        " (" + type.getId() /*+ ":" + ((ItemStack) item).get()*/ + ")",
+                stack.getCount(),
                 player.getName()));
         return true;
     }

@@ -1,12 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import com.google.common.collect.Lists;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -20,6 +14,12 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.crafting.BrewingRecipe;
 import org.cloudburstmc.server.inventory.CloudBrewingInventory;
 import org.cloudburstmc.server.inventory.ContainerRecipe;
@@ -147,7 +147,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         boolean canBrew = false;
 
         ItemStack fuel = this.getInventory().getFuel();
-        if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getAmount() > 0) {
+        if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getCount() > 0) {
             this.fuelAmount = 20;
             this.fuelTotal = 20;
 
@@ -162,7 +162,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
                 }
             }
 
-            if (this.cookTime <= MAX_COOK_TIME && canBrew && ingredient.getAmount() > 0) {
+            if (this.cookTime <= MAX_COOK_TIME && canBrew && ingredient.getCount() > 0) {
                 if (!this.checkIngredient(ingredient)) {
                     canBrew = false;
                 }
@@ -274,7 +274,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             ItemStack potion = this.inventory.getItem(i);
 
             var id = potion.getType();
-            if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getAmount() > 0) {
+            if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getCount() > 0) {
                 switch (i) {
                     case 1:
                         state = state.withTrait(BlockTraits.IS_BREWING_A, true);

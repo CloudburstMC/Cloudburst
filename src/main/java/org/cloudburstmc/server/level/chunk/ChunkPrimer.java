@@ -33,7 +33,7 @@ public final class ChunkPrimer {
     }
 
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
-        this.data[index(x, y, z, layer)] = (char) CloudBlockRegistry.get().getRuntimeId(blockState);
+        this.data[index(x, y, z, layer)] = (char) CloudBlockRegistry.REGISTRY.getDefinition(blockState).getRuntimeId();
     }
 
     public BlockState getBlock(int x, int y, int z) {
@@ -41,7 +41,7 @@ public final class ChunkPrimer {
     }
 
     public BlockState getBlock(int x, int y, int z, int layer) {
-        return CloudBlockRegistry.get().getBlock(this.data[index(x, y, z, layer)]);
+        return CloudBlockRegistry.REGISTRY.getBlock(this.data[index(x, y, z, layer)]);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
 import net.daporkchop.lib.random.PRandom;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
@@ -13,6 +14,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.BitSet;
 import java.util.Objects;
@@ -118,11 +120,14 @@ public class LakePopulator extends ChancePopulator.Column {
                             BlockState state = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0);
 
                             if (y < 4) {
-                                if (state != block && !state.getBehavior().isSolid(state)) {
+//                                log.info("Getting behavior for {}", state.getType());
+                                boolean isSolid = CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_SOLID);
+                                if (state != block && !isSolid) {
                                     return;
                                 }
                             } else {
-                                if (state.getBehavior().isLiquid()) {
+//                                log.info("Getting behavior for {}", state.getType());
+                                if (CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID)) {
                                     return;
                                 }
                             }
@@ -193,7 +198,7 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && level.getBlockState(blockX + x, blockY + y, blockZ + z, 0).getType().isSolid()) {
+                                    && CloudBlockRegistry.REGISTRY.getBehavior(level.getBlockState(blockX + x, blockY + y, blockZ + z, 0).getType(), BlockBehaviors.IS_SOLID)) {
                                 level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
                             }
                         }

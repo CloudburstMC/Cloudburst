@@ -5,32 +5,12 @@ import co.aikar.timings.Timings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.nukkitx.math.vector.Vector2f;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.BedrockSession;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.handler.BatchHandler;
-import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.bytes.ByteOpenHashSet;
-import it.unimi.dsi.fastutil.bytes.ByteSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -38,7 +18,6 @@ import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.crafting.CraftingGrid;
-import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -55,11 +34,9 @@ import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.data.Damageable;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
@@ -77,9 +54,27 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
+import org.cloudburstmc.protocol.common.PacketSignal;
+import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.EnderChestBlockEntity;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
@@ -93,7 +88,6 @@ import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
 import org.cloudburstmc.server.inventory.PlayerCursorInventory;
-import org.cloudburstmc.server.inventory.transaction.CraftItemStackTransaction;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -103,12 +97,12 @@ import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
@@ -116,18 +110,17 @@ import org.cloudburstmc.server.utils.TextFormat;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.BED_POSITION;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.INTERACTIVE_TAG;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
 /**
  * @author MagicDroidX &amp; Box
@@ -149,12 +142,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public boolean loggedIn = false;
     public long lastBreak;
     public Vector3f speed = null;
-
-    protected final BiMap<Inventory, Byte> windows = HashBiMap.create();
-    protected final BiMap<Byte, Inventory> windowIndex = windows.inverse();
-    protected final ByteSet permanentWindows = new ByteOpenHashSet();
-    protected byte windowCnt = 4;
-
     protected final PlayerData playerData = new PlayerData();
 
     protected int messageCounter = 2;
@@ -162,6 +149,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     private String clientSecret;
     protected Vector3f forceMovement = null;
 
+    @Getter
+    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
     public long creationTime = 0;
@@ -245,7 +234,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
-        session.setBatchHandler(new Handler());
+        session.setPacketHandler(new Handler());
         this.perm = new PermissibleBase(this);
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
@@ -499,10 +488,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(this.getInventory().getItemInHand().getNetworkData());
+        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
-        packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.OPERATOR : CommandPermission.NORMAL));
+        packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.ADMIN : CommandPermission.ANY));
         packet.getAdventureSettings().setPlayerPermission((this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER));
         this.getData().putAllIn(packet.getMetadata());
         return packet;
@@ -639,19 +628,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
     }
 
-    @Override
-    protected void initEntity() {
-        super.initEntity();
-
-        this.addDefaultWindows();
-    }
-
     public boolean isPlayer() {
         return true;
     }
 
     public void sendCommandData() {
-        this.sendPacket(CommandRegistry.get().createPacketFor(this));
+//        this.sendPacket(CommandRegistry.get().createPacketFor(this));
     }
 
     public void removeAchievement(String achievementId) {
@@ -706,16 +688,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         return this.loginChainData.getClientUUID();
     }
 
-    public String getAddress() {
-        return this.getSocketAddress().getAddress().getHostAddress();
-    }
-
-    public InetSocketAddress getSocketAddress() {
-        return this.session.getAddress();
-    }
-
-    public int getPort() {
-        return this.getSocketAddress().getPort();
+    public SocketAddress getSocketAddress() {
+        return this.session.getSocketAddress();
     }
 
     public boolean isSleeping() {
@@ -751,7 +725,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public void setButtonText(String text) {
         if (!text.equals(buttonText)) {
             this.buttonText = text;
-            this.data.setString(INTERACTIVE_TAG, this.buttonText);
+            this.data.set(INTERACT_TEXT, this.buttonText);
         }
     }
 
@@ -860,7 +834,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     public long getPing() {
-        return this.session.getLatency();
+        return -1; // FIXME: Needs to be added to the protocol lib & RakNet
     }
 
     public boolean sleepOn(Vector3i pos) {
@@ -885,7 +859,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         this.sleeping = pos.clone();
         this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), this.getLevel()), null);
 
-        this.data.setVector3i(BED_POSITION, pos);
+        this.data.set(BED_POSITION, pos);
         //this.data.setBoolean(CAN_START_SLEEP, true); todo what did this change to?
 
         this.setSpawn(Location.from(pos.toFloat(), this.getLevel()));
@@ -900,7 +874,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
 
             this.sleeping = null;
-            this.data.setVector3i(BED_POSITION, Vector3i.ZERO);
+            this.data.set(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 
 
@@ -1036,13 +1010,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         boolean portal = false;
 
         for (Block block : this.getCollisionBlocks()) {
-            var state = block.getState();
-            if (state.getType() == BlockTypes.PORTAL) {
+            if (block.getState().getType() == BlockTypes.PORTAL) {
                 portal = true;
                 continue;
             }
 
-            state.getBehavior().onEntityCollide(block, this);
+            block.getBehaviors().get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
         }
 
         if (portal) {
@@ -1178,20 +1151,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             realBB.setMaxY(realBB.getMinY() + 0.1f);
             realBB.setMinY(realBB.getMinY() - 0.2f);
 
-            int minX = NukkitMath.floorDouble(bb.getMinX());
-            int minY = NukkitMath.floorDouble(bb.getMinY());
-            int minZ = NukkitMath.floorDouble(bb.getMinZ());
-            int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-            int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-            int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+            int minX = GenericMath.floor(bb.getMinX());
+            int minY = GenericMath.floor(bb.getMinY());
+            int minZ = GenericMath.floor(bb.getMinZ());
+            int maxX = GenericMath.ceil(bb.getMaxX());
+            int maxY = GenericMath.ceil(bb.getMaxY());
+            int maxZ = GenericMath.ceil(bb.getMaxZ());
 
             for (int z = minZ; z <= maxZ; ++z) {
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLevel().getBlock(x, y, z);
-                        var behavior = block.getState().getBehavior();
+                        BehaviorCollection behavior = block.getBehaviors();
 
-                        if (!behavior.canPassThrough(block.getState()) && behavior.collidesWithBB(block, realBB)) {
+                        if (!behavior.get(BlockBehaviors.IS_SOLID) && behavior.get(BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState()).addCoord(x, y, z).intersectsWith(realBB)) {
                             onGround = true;
                             break;
                         }
@@ -1564,7 +1537,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
-        startGamePacket.setItemEntries(CloudItemRegistry.get().getItemEntries());
+        startGamePacket.setItemDefinitions(CloudItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
@@ -1573,16 +1546,22 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         startGamePacket.setPremiumWorldTemplateId("");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
-        SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
-        settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
-        settings.setRewindHistorySize(0);
-        settings.setServerAuthoritativeBlockBreaking(false);
-        startGamePacket.setPlayerMovementSettings(settings);
+        startGamePacket.setRewindHistorySize(0);
+        startGamePacket.setServerAuthoritativeBlockBreaking(false);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(new UUID(0, 0));
         startGamePacket.setWorldEditor(false);
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
+        startGamePacket.setSpawnBiomeType(SpawnBiomeType.DEFAULT);
+        startGamePacket.setCustomBiomeName("");
+        startGamePacket.setEducationProductionId("");
+        startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
+        //noinspection unchecked,rawtypes
+        session.getPeer().getCodecHelper().setItemDefinitions((DefinitionRegistry) CloudItemRegistry.get());
+        //noinspection unchecked,rawtypes
+        session.getPeer().getCodecHelper().setBlockDefinitions((DefinitionRegistry) BlockPalette.INSTANCE);
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -1609,8 +1588,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
-                this.getAddress(),
-                this.getPort(),
+                "",
+                this.getSocketAddress(),
                 this.getUniqueId(),
                 this.getLevel().getName(),
                 NukkitMath.round(pos.getX(), 4),
@@ -1634,7 +1613,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         try (Timing ignore = Timings.playerNetworkReceiveTimer.startTiming()) {
             BedrockPacket packet;
             while ((packet = this.inboundQueue.poll()) != null) {
-                packetHandler.handle(packet);
+                packetHandler.handlePacket(packet);
             }
         }
 
@@ -1759,7 +1738,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         for (String msg : message.split("\n")) {
-            if (!msg.trim().isEmpty() && msg.length() < 512 && this.messageCounter-- > 0) {
+            if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
                 PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg, "chat.type.text",
                         //TODO this is way to hacky
                         new HashSet<>(this.getServer().getOnlinePlayers().values()));
@@ -2072,7 +2051,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             this.hiddenPlayers.clear();
 
-            this.removeAllWindows(true);
+            this.invManager.closeScreen();
 
             this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
                 int chunkX = CloudChunk.fromKeyX(chunkKey);
@@ -2087,7 +2066,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
             super.close();
 
-            if (!this.session.isClosed()) {
+            if (this.session.getPeer().isConnected()) {
                 this.session.disconnect(notify ? reason : "");
             }
 
@@ -2105,10 +2084,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
-                    this.getAddress(),
-                    this.getPort(),
+                    this.getSocketAddress(),
+                    "",
                     reason));
-            this.windows.clear();
             this.hasSpawned.clear();
             this.spawnLocation = null;
 
@@ -2306,7 +2284,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        if (item.isNull()) {
+        if (item == ItemStack.EMPTY) {
             log.debug(this.getName() + " attempted to drop a null item (" + item + ")");
             return true;
         }
@@ -2488,7 +2466,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
                 case LAVA:
                     BlockState state = this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) { //TODO: MAGMA should have its own DamageCause
+                    if (state.getType() == BlockTypes.MAGMA) {
                         message = "death.attack.magma";
                         break;
                     }
@@ -2790,7 +2768,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
      * @return DummyBossBar object
      * @see DummyBossBar#setText(String) Set BossBar text
      * @see DummyBossBar#setLength(float) Set BossBar length
-     * @see DummyBossBar#setColor(DummyBossBar.BossBarColor) Set BossBar color
+     * @see DummyBossBar#setColor(org.cloudburstmc.server.utils.DummyBossBar.BossBarColor) Set BossBar color
      */
     public DummyBossBar getDummyBossBar(long bossBarId) {
         return this.dummyBossBars.getOrDefault(bossBarId, null);
@@ -2834,87 +2812,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     }
 
     @Override
-    public byte getWindowId(Inventory inventory) {
-        if (this.windows.containsKey(inventory)) {
-            return this.windows.get(inventory);
-        }
-
-        return -1;
-    }
-
-    public Inventory getWindowById(int id) {
-        return this.windowIndex.get((byte) id);
-    }
-
-    public byte addWindow(Inventory inventory, Byte forceId, boolean isPermanent) {
-        if (this.windows.containsKey(inventory)) {
-            return this.windows.get(inventory);
-        }
-        byte cnt;
-        if (forceId == null) {
-            this.windowCnt = cnt = (byte) Math.max(4, ++this.windowCnt % 99);
-        } else {
-            cnt = forceId;
-        }
-
-        this.windows.forcePut(inventory, cnt);
-
-        if (isPermanent) {
-            this.permanentWindows.add(cnt);
-        }
-
-        if (inventory.open(this)) {
-            return cnt;
-        } else {
-            this.removeWindow(inventory);
-
-            return -1;
-        }
-    }
-
-    public Optional<Inventory> getTopWindow() {
-        for (Entry<Inventory, Byte> entry : this.windows.entrySet()) {
-            if (!this.permanentWindows.contains((byte) entry.getValue())) {
-                return Optional.of(entry.getKey());
-            }
-        }
-        return Optional.empty();
-    }
-
-    public void removeWindow(Inventory inventory) {
-        inventory.close(this);
-        if (!this.permanentWindows.contains(this.getWindowId(inventory)))
-            this.windows.remove(inventory);
-    }
-
-    public Inventory removeWindowById(byte id) {
-        Inventory inventory = this.windowIndex.remove(id);
-        if (inventory != null)
-            inventory.close(this);
-        return inventory;
-    }
-
-    public void sendAllInventories() {
-        for (Inventory inv : this.windows.keySet()) {
-            inv.sendContents(this);
-
-            if (inv instanceof CloudPlayerInventory) {
-                ((CloudPlayerInventory) inv).sendArmorContents(this);
-            }
-        }
-    }
-
-    protected void addDefaultWindows() {
-        this.addWindow(this.getInventory(), (byte) ContainerId.INVENTORY, true);
-        this.addWindow(this.getCraftingInventory(), (byte) ContainerId.NONE);
-        this.addWindow(this.getCursorInventory(), (byte) ContainerId.UI, true); // Is this needed?
-
-        //TODO: more windows
-    }
-
-    @Override
     public CloudPlayerInventory getInventory() {
-        return invManager.getPlayerInventory();
+        return invManager.getInventory();
     }
 
     @Override
@@ -2929,49 +2828,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     public PlayerInventoryManager getInventoryManager() {
         return invManager;
     }
-
-
-    @Nullable
-    public CraftItemStackTransaction getCraftingTransaction() {
-        return invManager.getCraftingTransaction();
-    }
-
-    public void setCraftingTransaction(@Nullable CraftItemStackTransaction craftingTransaction) {
-        this.invManager.setTransaction(craftingTransaction);
-    }
-
-    public void removeAllWindows() {
-        removeAllWindows(false);
-    }
-
-    public void removeAllWindows(boolean permanent) {
-        for (Entry<Byte, Inventory> entry : new ArrayList<>(this.windowIndex.entrySet())) {
-            if (!permanent && this.permanentWindows.contains((byte) entry.getKey())) {
-                continue;
-            }
-            this.removeWindow(entry.getValue());
-        }
-    }
-
-/*    @Override
-    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
-        this.server.getPlayerMetadata().setMetadata(this, metadataKey, newMetadataValue);
-    }
-
-    @Override
-    public List<MetadataValue> getMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().getMetadata(this, metadataKey);
-    }
-
-    @Override
-    public boolean hasMetadata(String metadataKey) {
-        return this.server.getPlayerMetadata().hasMetadata(this, metadataKey);
-    }
-
-    @Override
-    public void removeMetadata(String metadataKey, PluginContainer owningPlugin) {
-        this.server.getPlayerMetadata().removeMetadata(this, metadataKey, owningPlugin);
-    }*/
 
     protected boolean checkTeleportPosition() {
         if (this.teleportPosition != null) {
@@ -3014,7 +2870,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         //TODO Remove it! A hack to solve the client-side teleporting bug! (inside into the block)
         if (super.teleport(to.getY() == to.getFloorY() ? to.add(0, 0.00001, 0) : to, null)) { // null to prevent fire of duplicate EntityTeleportEvent
-            this.removeAllWindows();
+            this.invManager.closeScreen();
 
             this.teleportPosition = this.getPosition();
             this.getChunkManager().queueNewChunks(this.teleportPosition);
@@ -3246,7 +3102,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
 
         if (near) {
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = CloudItemRegistry.get().getItem(ItemTypes.ARROW);
+                ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
                 if (this.isSurvival() && !this.getInventory().canAddItem(item)) {
                     return false;
                 }
@@ -3335,30 +3191,31 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
                 this.getLevel().addSound(this.getPosition(), Sound.RANDOM_ORB);
                 pickedXPOrb = tick;
 
-                //Mending
-                ArrayList<Integer> itemsWithMending = new ArrayList<>();
-                for (int i = 0; i < 4; i++) {
-                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
-                        itemsWithMending.add(getInventory().getSize() + i);
-                    }
-                }
-                if (getInventory().getItemInHand().getEnchantment(EnchantmentTypes.MENDING) != null) {
-                    itemsWithMending.add(getInventory().getHeldItemIndex());
-                }
-                if (itemsWithMending.size() > 0) {
-                    Random rand = new Random();
-                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
-                    ItemStack toRepair = getInventory().getItem(itemToRepair);
-                    var behavior = toRepair.getBehavior();
-                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
-                        var damage = toRepair.getMetadata(Damageable.class);
-
-                        if (damage.getDurability() > 0) {
-                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
-                            return true;
-                        }
-                    }
-                }
+//                TODO Enchantments implementation
+//                //Mending
+//                ArrayList<Integer> itemsWithMending = new ArrayList<>();
+//                for (int i = 0; i < 4; i++) {
+//                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
+//                        itemsWithMending.add(getInventory().getSize() + i);
+//                    }
+//                }
+//                if (getInventory().getItemInHand().getEnchantment(EnchantmentTypes.MENDING) != null) {
+//                    itemsWithMending.add(getInventory().getHeldItemIndex());
+//                }
+//                if (itemsWithMending.size() > 0) {
+//                    Random rand = new Random();
+//                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
+//                    ItemStack toRepair = getInventory().getItem(itemToRepair);
+//                    var behavior = toRepair.getBehavior();
+//                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
+//                        var damage = toRepair.getMetadata(Damageable.class);
+//
+//                        if (damage.getDurability() > 0) {
+//                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
+//                            return true;
+//                        }
+//                    }
+//                }
 
                 this.addExperience(exp);
                 return true;
@@ -3378,13 +3235,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         return "Player(name=" + getName() + ")";
     }
 
-    private class Handler implements BatchHandler {
+    private class Handler implements BedrockPacketHandler {
 
         @Override
-        public void handle(BedrockSession session, ByteBuf buffer, Collection<BedrockPacket> packets) {
-            for (BedrockPacket packet : packets) {
-                CloudPlayer.this.handleDataPacket(packet);
-            }
+        public void onDisconnect(String reason) {
+            CloudPlayer.this.close("", reason);
+        }
+
+        @Override
+        public PacketSignal handlePacket(BedrockPacket packet) {
+            CloudPlayer.this.handleDataPacket(packet);
+            return PacketSignal.HANDLED;
         }
     }
 

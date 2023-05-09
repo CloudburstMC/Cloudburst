@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity.projectile;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
@@ -13,12 +10,14 @@ import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.MovingObjectPosition;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
 
 /**
  * Created by PetteriM1
@@ -63,7 +62,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         super.initEntity();
 
         this.damage = 8;
-        this.trident = CloudItemRegistry.get().AIR;
+        this.trident = ItemStack.EMPTY;
         closeOnCollide = false;
     }
 
@@ -83,7 +82,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
 
     @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : CloudItemRegistry.get().AIR;
+        return this.trident != null ? this.trident : ItemStack.EMPTY;
     }
 
     @Override

@@ -1,10 +1,6 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.collect.ImmutableList;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
@@ -13,8 +9,12 @@ import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -84,14 +84,14 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     @Override
-    public CloudItemStack getHotbarSlot(int slot) {
-        if (!isHotbarSlot(slot)) return CloudItemRegistry.get().AIR;
+    public ItemStack getHotbarSlot(int slot) {
+        if (!isHotbarSlot(slot)) return ItemStack.EMPTY;
         return super.getItem(slot);
     }
 
     @Override
-    public List<CloudItemStack> getHotbar() {
-        ImmutableList.Builder<CloudItemStack> builder = ImmutableList.builder();
+    public List<ItemStack> getHotbar() {
+        ImmutableList.Builder<ItemStack> builder = ImmutableList.builder();
         for (int i = 0; i < this.getHotbarSize(); i++) {
             builder.add(getItem(i));
         }
@@ -111,7 +111,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void clearCursor() {
-        getCursor().setItem(0, CloudItemRegistry.get().AIR, true);
+        getCursor().setItem(0, ItemStack.EMPTY, true);
     }
 
     @Override
@@ -162,7 +162,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
         if (index < 0 || index >= this.size) {
             return false;
-        } else if (item.getType() == BlockTypes.AIR || item.getAmount() <= 0) {
+        } else if (item.getType() == BlockTypes.AIR || item.getCount() <= 0) {
             return this.clear(index, send);
         }
 
@@ -193,7 +193,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     @Override
     public boolean clear(int index, boolean send) {
         if (this.slots.containsKey(index)) {
-            ItemStack item = CloudItemRegistry.get().AIR;
+            ItemStack item = ItemStack.EMPTY;
             ItemStack old = this.slots.get(index);
             if (index >= this.getSize() && index < this.size) {
                 EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
@@ -221,7 +221,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
                 item = ev.getNewItem();
             }
 
-            if (!item.isNull()) {
+            if (item != ItemStack.EMPTY) {
                 this.slots.put(index, item);
             } else {
                 this.slots.remove(index);
@@ -245,7 +245,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     public void sendContents(Player[] players) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
-            itemData.add(i, this.getItem(i).getNetworkData());
+            itemData.add(i, ItemUtils.toNetwork(this.getItem(i)));
         }
 
         for (Player p : players) {
@@ -266,7 +266,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void sendSlot(int index, Player... players) {
-        ItemData itemData = this.getItem(index).getNetworkData();
+        ItemData itemData = ItemUtils.toNetwork(this.getItem(index));
 
         for (Player player : players) {
             InventorySlotPacket packet = new InventorySlotPacket();

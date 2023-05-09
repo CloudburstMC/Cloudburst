@@ -1,16 +1,15 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
-import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 

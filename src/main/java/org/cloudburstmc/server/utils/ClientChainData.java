@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.LoginPacket;
+import com.nimbusds.jwt.SignedJWT;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.util.LoginChainData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
+import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.IOException;
@@ -54,8 +54,8 @@ public final class ClientChainData implements LoginChainData {
         }
     }
 
-    private final String chainData;
-    private final String skinData;
+    private final List<SignedJWT> chainData;
+    private final SignedJWT skinData;
     private SerializedSkin serializedSkin;
     private Skin skin;
 
@@ -131,8 +131,8 @@ public final class ClientChainData implements LoginChainData {
         return defaultInputMode;
     }
 
-    private ClientChainData(String chainData, String skinData) {
-        this.chainData = chainData;
+    private ClientChainData(List<SignedJWT> chain, SignedJWT skinData) {
+        this.chainData = chain;
         this.skinData = skinData;
         decodeChainData(chainData);
         decodeSkinData(skinData);
@@ -150,13 +150,13 @@ public final class ClientChainData implements LoginChainData {
     // Override
     ///////////////////////////////////////////////////////////////////////////
 
-    public static ClientChainData of(byte[] buffer) {
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(buffer);
-        return new ClientChainData(readString(byteBuf), readString(byteBuf));
-    }
+//    public static ClientChainData of(byte[] buffer) {
+//        ByteBuf byteBuf = Unpooled.wrappedBuffer(buffer);
+//        return new ClientChainData(readString(byteBuf), readString(byteBuf));
+//    }
 
     public static ClientChainData read(LoginPacket pk) {
-        return new ClientChainData(pk.getChainData().toString(), pk.getSkinData().toString());
+        return new ClientChainData(pk.getChain(), pk.getExtra());
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -215,27 +215,15 @@ public final class ClientChainData implements LoginChainData {
         return object.verify(new ECDSAVerifier(key));
     }
 
-    private JsonNode decodeToken(String token) {
-        String[] base = token.split("\\.");
-        if (base.length < 2) throw new IllegalArgumentException("Invalid token length");
-        String json = new String(Base64.getDecoder().decode(base[1]), StandardCharsets.UTF_8);
-        //Server.getInstance().getLogger().debug(json);
+    private JsonNode decodeToken(SignedJWT token) {
         try {
-            return Bootstrap.JSON_MAPPER.readTree(json);
+            return Bootstrap.JSON_MAPPER.readTree(token.getPayload().toBytes());
         } catch (IOException e) {
             throw new IllegalArgumentException("Invalid token JSON", e);
         }
     }
 
-    private void decodeChainData(String chainData) {
-        Map<String, List<String>> map;
-        try {
-            map = Bootstrap.JSON_MAPPER.readValue(chainData, MAP_TYPE_REFERENCE);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Invalid JSON", e);
-        }
-        if (map.isEmpty() || !map.containsKey("chain") || map.get("chain").isEmpty()) return;
-        List<String> chains = map.get("chain");
+    private void decodeChainData(List<SignedJWT> chains) {
 
         // Validate keys
         try {
@@ -244,7 +232,7 @@ public final class ClientChainData implements LoginChainData {
             xboxAuthed = false;
         }
 
-        for (String c : chains) {
+        for (SignedJWT c : chains) {
             JsonNode chainMap = decodeToken(c);
             if (chainMap == null) continue;
             if (chainMap.has("extraData")) {
@@ -262,14 +250,14 @@ public final class ClientChainData implements LoginChainData {
         }
     }
 
-    private boolean verifyChain(List<String> chains) throws Exception {
+    private boolean verifyChain(List<SignedJWT> chains) throws Exception {
         ECPublicKey lastKey = null;
         boolean mojangKeyVerified = false;
-        Iterator<String> iterator = chains.iterator();
+        Iterator<SignedJWT> iterator = chains.iterator();
         while (iterator.hasNext()) {
-            JWSObject jws = JWSObject.parse(iterator.next());
+            SignedJWT jwt = iterator.next();
 
-            URI x5u = jws.getHeader().getX509CertURL();
+            URI x5u = jwt.getHeader().getX509CertURL();
             if (x5u == null) {
                 return false;
             }
@@ -282,7 +270,7 @@ public final class ClientChainData implements LoginChainData {
                 return false;
             }
 
-            if (!verify(lastKey, jws)) {
+            if (!verify(lastKey, jwt)) {
                 return false;
             }
 
@@ -294,7 +282,7 @@ public final class ClientChainData implements LoginChainData {
                 mojangKeyVerified = true;
             }
 
-            Map<String, Object> payload = jws.getPayload().toJSONObject();
+            Map<String, Object> payload = jwt.getPayload().toJSONObject();
             Object base64key = payload.get("identityPublicKey");
             if (!(base64key instanceof String)) {
                 throw new RuntimeException("No key found");
@@ -311,7 +299,7 @@ public final class ClientChainData implements LoginChainData {
 
     public SerializedSkin getSerializedSkin() {
         if (this.serializedSkin == null) {
-            this.serializedSkin = SkinUtils.fromSkin(this.skin);
+            this.serializedSkin = SkinUtils.toSerialized(this.skin);
         }
         return this.serializedSkin;
     }
@@ -319,7 +307,7 @@ public final class ClientChainData implements LoginChainData {
     @Override
     public void setSkin(Skin skin) {
         this.skin = skin;
-        this.serializedSkin = SkinUtils.fromSkin(skin);
+        this.serializedSkin = SkinUtils.toSerialized(skin);
     }
 
     public void setSkin(SerializedSkin skin) {
@@ -327,7 +315,7 @@ public final class ClientChainData implements LoginChainData {
         this.skin = SkinUtils.fromSerialized(skin);
     }
 
-    private void decodeSkinData(String skinData) {
+    private void decodeSkinData(SignedJWT skinData) {
         JsonNode skinToken = decodeToken(skinData);
         if (skinToken == null) return;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").longValue();

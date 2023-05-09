@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.level.particle;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
@@ -17,13 +17,13 @@ public class DestroyBlockParticle extends Particle {
 
     public DestroyBlockParticle(Vector3f pos, BlockState blockState) {
         super(pos);
-        this.data = CloudBlockRegistry.get().getRuntimeId(blockState);
+        this.data = CloudBlockRegistry.REGISTRY.getDefinition(blockState).getRuntimeId();
     }
 
     @Override
     public BedrockPacket[] encode() {
         LevelEventPacket packet = new LevelEventPacket();
-        packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+        packet.setType(ParticleType.ICON_CRACK);
         packet.setPosition(this.getPosition());
         packet.setData(this.data);
 

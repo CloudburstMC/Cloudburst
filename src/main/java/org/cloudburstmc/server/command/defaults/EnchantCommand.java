@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
@@ -64,12 +66,13 @@ public class EnchantCommand extends Command {
         }
 
         ItemStack item = player.getInventory().getItemInHand();
-        if (item.isNull()) {
-            sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.getName()));
+        if (item == ItemStack.EMPTY) {
+            sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.get(ItemKeys.CUSTOM_NAME)));
             return true;
         }
 
-        item = item.withEnchantment(enchantment);
+        //TODO new format?
+        item.get(ItemKeys.ENCHANTMENTS).put(registry.getType(enchantId), new Enchantment(registry.getType(enchantId), enchantLevel));
 
         player.getInventory().setItemInHand(item);
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.enchant.success", sender.getName()));

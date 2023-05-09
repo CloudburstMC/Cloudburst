@@ -35,7 +35,7 @@ public final class ConstantBlock implements BlockFilter, BlockSelector, BlockSel
                     "damage",
                     "metadata"
             }) int meta) {
-        this(CloudBlockRegistry.get().getBlock(id, meta));
+        this(CloudBlockRegistry.REGISTRY.getBlock(id, meta));
     }
 
     @JsonCreator

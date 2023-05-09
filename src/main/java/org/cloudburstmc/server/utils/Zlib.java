@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.utils;
 
+import com.google.common.base.Preconditions;
 import com.nukkitx.natives.util.Natives;
 import com.nukkitx.natives.zlib.Deflater;
 import com.nukkitx.natives.zlib.Inflater;
-import com.nukkitx.network.util.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -99,5 +99,4 @@ public final class Zlib {
             outputBuffer.release();
         }
     }
-
 }

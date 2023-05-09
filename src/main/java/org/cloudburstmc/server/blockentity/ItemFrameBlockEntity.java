@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.Objects;
@@ -40,7 +40,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        if (this.item != null && !this.item.isNull()) {
+        if (!ItemUtils.isNull(this.item)) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
             tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
@@ -99,7 +99,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getAnalogOutput() {
-        return this.getItem() == null || this.getItem().isNull() ? 0 : this.getItemRotation() % 8 + 1;
+        return this.getItem() == null || this.getItem() == ItemStack.EMPTY ? 0 : this.getItemRotation() % 8 + 1;
     }
 
     @Override

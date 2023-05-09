@@ -2,14 +2,13 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.nukkitx.math.vector.Vector3i;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 

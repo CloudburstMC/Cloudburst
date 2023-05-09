@@ -2,6 +2,7 @@ package org.cloudburstmc.server.item.randomitem;
 
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -17,37 +18,38 @@ public final class Fishing {
     public static final Selector FISHES = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.85F);
     public static final Selector TREASURES = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.05F);
     public static final Selector JUNKS = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.1F);
-    public static final Selector FISH = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.FISH, FISHES), 0.6F);
-    public static final Selector SALMON = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.SALMON, FISHES), 0.25F);
-    public static final Selector CLOWNFISH = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.CLOWNFISH, FISHES), 0.02F);
-    public static final Selector PUFFERFISH = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.PUFFERFISH, FISHES), 0.13F);
-    public static final Selector TREASURE_BOW = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.BOW, TREASURES), 0.1667F);
-    public static final Selector TREASURE_ENCHANTED_BOOK = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.ENCHANTED_BOOK, TREASURES), 0.1667F);
-    public static final Selector TREASURE_FISHING_ROD = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.FISHING_ROD, TREASURES), 0.1667F);
-    public static final Selector TREASURE_NAME_TAG = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.NAME_TAG, TREASURES), 0.1667F);
-    public static final Selector TREASURE_SADDLE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.SADDLE, TREASURES), 0.1667F);
-    public static final Selector JUNK_BOWL = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.BOWL, JUNKS), 0.12F);
-    public static final Selector JUNK_FISHING_ROD = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.FISHING_ROD, JUNKS), 0.024F);
-    public static final Selector JUNK_LEATHER = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.LEATHER, JUNKS), 0.12F);
-    public static final Selector JUNK_LEATHER_BOOTS = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.LEATHER_BOOTS, JUNKS), 0.12F);
-    public static final Selector JUNK_ROTTEN_FLESH = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.ROTTEN_FLESH, JUNKS), 0.12F);
-    public static final Selector JUNK_STICK = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.STICK, JUNKS), 0.06F);
-    public static final Selector JUNK_STRING_ITEM = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.STRING, JUNKS), 0.06F);
-    public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.POTION, 0, JUNKS), 0.12F);
-    public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.BONE, JUNKS), 0.12F);
-    public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemTypes.DYE, 10, JUNKS, DyeColor.BLACK.getDyeData()), 0.012F);
-    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(BlockTypes.TRIPWIRE_HOOK, JUNKS), 0.12F);
+    public static final Selector FISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.FISH), FISHES), 0.6F);
+    public static final Selector SALMON = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.SALMON), FISHES), 0.25F);
+    public static final Selector CLOWNFISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.CLOWNFISH), FISHES), 0.02F);
+    public static final Selector PUFFERFISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.PUFFERFISH), FISHES), 0.13F);
+    public static final Selector TREASURE_BOW = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BOW), TREASURES), 0.1667F);
+    public static final Selector TREASURE_ENCHANTED_BOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.ENCHANTED_BOOK), TREASURES), 0.1667F);
+    public static final Selector TREASURE_FISHING_ROD = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.FISHING_ROD), TREASURES), 0.1667F);
+    public static final Selector TREASURE_NAME_TAG = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.NAME_TAG), TREASURES), 0.1667F);
+    public static final Selector TREASURE_SADDLE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.SADDLE), TREASURES), 0.1667F);
+    public static final Selector JUNK_BOWL = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BOWL), JUNKS), 0.12F);
+    public static final Selector JUNK_FISHING_ROD = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.FISHING_ROD), JUNKS), 0.024F);
+    public static final Selector JUNK_LEATHER = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.LEATHER), JUNKS), 0.12F);
+    public static final Selector JUNK_LEATHER_BOOTS = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.LEATHER_BOOTS), JUNKS), 0.12F);
+    public static final Selector JUNK_ROTTEN_FLESH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.ROTTEN_FLESH), JUNKS), 0.12F);
+    public static final Selector JUNK_STICK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.STICK), JUNKS), 0.06F);
+    public static final Selector JUNK_STRING_ITEM = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.STRING), JUNKS), 0.06F);
+    public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.POTION), JUNKS), 0.12F);
+    public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BONE), JUNKS), 0.12F);
+    public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemStack.builder(ItemTypes.DYE).amount(10).data(ItemKeys.COLOR, DyeColor.BLACK).build(), JUNKS), 0.012F);
+    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(BlockTypes.TRIPWIRE_HOOK), JUNKS), 0.12F);
 
     public static ItemStack getFishingResult(ItemStack rod) {
         int fortuneLevel = 0;
         int lureLevel = 0;
-        if (rod != null) {
-            if (rod.getEnchantment(EnchantmentTypes.FORTUNE) != null) {
-                fortuneLevel = rod.getEnchantment(EnchantmentTypes.FORTUNE).getLevel();
-            } else if (rod.getEnchantment(EnchantmentTypes.LURE) != null) {
-                lureLevel = rod.getEnchantment(EnchantmentTypes.LURE).getLevel();
-            }
-        }
+//        TODO Enchantment implementation
+//        if (rod != null) {
+//            if (rod.getEnchantment(EnchantmentTypes.FORTUNE) != null) {
+//                fortuneLevel = rod.getEnchantment(EnchantmentTypes.FORTUNE).getLevel();
+//            } else if (rod.getEnchantment(EnchantmentTypes.LURE) != null) {
+//                lureLevel = rod.getEnchantment(EnchantmentTypes.LURE).getLevel();
+//            }
+//        }
         return getFishingResult(fortuneLevel, lureLevel);
     }
 

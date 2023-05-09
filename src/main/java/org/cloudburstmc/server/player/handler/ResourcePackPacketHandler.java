@@ -1,21 +1,16 @@
 package org.cloudburstmc.server.player.handler;
 
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
-import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkDataPacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackChunkRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackClientResponsePacket;
-import com.nukkitx.protocol.bedrock.packet.ResourcePackDataInfoPacket;
+import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.pack.Pack;
-import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
+import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
-
-import java.util.function.Consumer;
 
 /**
  * @author Extollite
@@ -36,17 +31,17 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public boolean handle(ResourcePackClientResponsePacket packet) {
+    public PacketSignal handle(ResourcePackClientResponsePacket packet) {
         switch (packet.getStatus()) {
             case REFUSED:
                 session.disconnect("disconnectionScreen.noReason");
-                return true;
+                return PacketSignal.HANDLED;
             case SEND_PACKS:
                 for (String entry : packet.getPackIds()) {
                     Pack pack = this.server.getPackManager().getPackByIdVersion(entry);
                     if (pack == null) {
                         session.disconnect("disconnectionScreen.resourcePack");
-                        return true;
+                        return PacketSignal.HANDLED;
                     }
 
                     ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
@@ -59,17 +54,17 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                     dataInfoPacket.setType(ResourcePackType.values()[pack.getType().ordinal()]);
                     session.sendPacket(dataInfoPacket);
                 }
-                return true;
+                return PacketSignal.HANDLED;
             case HAVE_ALL_PACKS:
                 session.sendPacket(this.server.getPackManager().getPackStack());
-                return true;
+                return PacketSignal.HANDLED;
             case COMPLETED:
                 if (loginData.getPreLoginEventTask().isFinished()) {
                     try {
                         CloudPlayer player = loginData.initializePlayer();
-                        for (Consumer<Player> task : loginData.getLoginTasks()) {
-                            task.accept(player);
-                        }
+//                        for (Consumer<Player> task : loginData.getLoginTasks()) {
+//                            task.accept(player);
+//                        }
                     } catch (Exception e) {
                         log.debug("Exception in Player initialization: {}", e.getMessage());
                         e.printStackTrace();
@@ -78,28 +73,28 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 } else {
                     loginData.setShouldLogin(true);
                 }
-                return true;
+                return PacketSignal.HANDLED;
         }
-        return true;
+        return PacketSignal.HANDLED;
     }
 
     @Override
-    public boolean handle(ResourcePackChunkRequestPacket packet) {
+    public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
         Pack resourcePack = this.server.getPackManager().getPackByIdVersion(
                 packet.getPackId() + "_" + packet.getPackVersion());
         if (resourcePack == null) {
             session.disconnect("disconnectionScreen.resourcePack");
-            return true;
+            return PacketSignal.HANDLED;
         }
 
         ResourcePackChunkDataPacket dataPacket = new ResourcePackChunkDataPacket();
         dataPacket.setPackId(packet.getPackId());
         dataPacket.setPackVersion(packet.getPackVersion());
         dataPacket.setChunkIndex(packet.getChunkIndex());
-        dataPacket.setData(resourcePack.getChunk(RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex(), RESOURCE_PACK_CHUNK_SIZE));
+        dataPacket.setData(Unpooled.wrappedBuffer(resourcePack.getChunk(RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex(), RESOURCE_PACK_CHUNK_SIZE)));
         dataPacket.setProgress((long) RESOURCE_PACK_CHUNK_SIZE * packet.getChunkIndex());
         session.sendPacket(dataPacket);
-        return true;
+        return PacketSignal.HANDLED;
     }
 
 }

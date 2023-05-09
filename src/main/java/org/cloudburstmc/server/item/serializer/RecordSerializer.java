@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.item.serializer;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.item.CloudItemStack;
-import org.cloudburstmc.server.item.CloudItemStackBuilder;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.Map;
 
@@ -19,13 +20,12 @@ public class RecordSerializer extends DefaultItemSerializer {
     }
 
     @Override
-    public void serialize(CloudItemStack item, NbtMapBuilder itemTag) {
+    public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
         Identifier id;
-        Record value = item.getMetadata(Record.class);
+        Record value = item.get(ItemKeys.RECORD_TYPE);
 
         id = switch (value) {
-            case CAT -> ItemIds.RECORD_CAT;
             case FAR -> ItemIds.RECORD_FAR;
             case MALL -> ItemIds.RECORD_MALL;
             case STAL -> ItemIds.RECORD_STAL;
@@ -39,85 +39,85 @@ public class RecordSerializer extends DefaultItemSerializer {
             case THIRTEEN -> ItemIds.RECORD_13;
             case PIGSTEP -> ItemIds.RECORD_PIGSTEP;
             case FIVE -> ItemIds.RECORD_5;
+            default -> ItemIds.RECORD_CAT;
         };
 
         itemTag.putString(NAME_TAG, id.toString());
     }
 
     @Override
-    public void deserialize(Identifier id, short meta, int amount, CloudItemStackBuilder builder, NbtMap tag) {
-        super.deserialize(id, meta, amount, builder, tag);
+    public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
+        super.deserialize(id, meta, builder, tag);
         if (id == ItemIds.RECORD_13) {
-            builder.itemData(Record.THIRTEEN);
+            builder.data(ItemKeys.RECORD_TYPE, Record.THIRTEEN);
             return;
         }
 
         if (id == ItemIds.RECORD_CAT) {
-            builder.itemData(Record.CAT);
+            builder.data(ItemKeys.RECORD_TYPE, Record.CAT);
             return;
         }
 
         if (id == ItemIds.RECORD_BLOCKS) {
-            builder.itemData(Record.BLOCKS);
+            builder.data(ItemKeys.RECORD_TYPE, Record.BLOCKS);
             return;
         }
 
         if (id == ItemIds.RECORD_CHIRP) {
-            builder.itemData(Record.CHIRP);
+            builder.data(ItemKeys.RECORD_TYPE, Record.CHIRP);
             return;
         }
 
         if (id == ItemIds.RECORD_FAR) {
-            builder.itemData(Record.FAR);
+            builder.data(ItemKeys.RECORD_TYPE, Record.FAR);
             return;
         }
 
         if (id == ItemIds.RECORD_MALL) {
-            builder.itemData(Record.MALL);
+            builder.data(ItemKeys.RECORD_TYPE, Record.MALL);
             return;
         }
 
         if (id == ItemIds.RECORD_MELLOHI) {
-            builder.itemData(Record.MELLOHI);
+            builder.data(ItemKeys.RECORD_TYPE, Record.MELLOHI);
             return;
         }
 
         if (id == ItemIds.RECORD_STAL) {
-            builder.itemData(Record.STAL);
+            builder.data(ItemKeys.RECORD_TYPE, Record.STAL);
             return;
         }
 
         if (id == ItemIds.RECORD_STRAD) {
-            builder.itemData(Record.STRAD);
+            builder.data(ItemKeys.RECORD_TYPE, Record.STRAD);
             return;
         }
 
         if (id == ItemIds.RECORD_WARD) {
-            builder.itemData(Record.WARD);
+            builder.data(ItemKeys.RECORD_TYPE, Record.WARD);
             return;
         }
 
         if (id == ItemIds.RECORD_11) {
-            builder.itemData(Record.ELEVEN);
+            builder.data(ItemKeys.RECORD_TYPE, Record.ELEVEN);
             return;
         }
 
         if (id == ItemIds.RECORD_WAIT) {
-            builder.itemData(Record.WAIT);
+            builder.data(ItemKeys.RECORD_TYPE, Record.WAIT);
             return;
         }
 
         if (id == ItemIds.RECORD_PIGSTEP) {
-            builder.itemData(Record.PIGSTEP);
+            builder.data(ItemKeys.RECORD_TYPE, Record.PIGSTEP);
             return;
         }
 
         if (id == ItemIds.RECORD_5) {
-            builder.itemData(Record.FIVE);
-            return;
+            builder.data(ItemKeys.RECORD_TYPE, Record.FIVE);
         }
 
-        builder.itemData(Record.THIRTEEN);
+        builder.data(ItemKeys.RECORD_TYPE, Record.THIRTEEN);
     }
 
     @Override

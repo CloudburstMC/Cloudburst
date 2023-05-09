@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.util;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.nukkitx.math.vector.Vector3i;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.Tuple;
@@ -13,6 +12,7 @@ import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
@@ -136,7 +136,8 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
-        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+
+        checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         Map<String, Object> traits = new HashMap<>();
         String traitsTxt = matcher.group(2);
@@ -174,7 +175,7 @@ public class BlockUtils {
 
         String idText = matcher.group(1);
         Identifier blockId = Identifier.fromString(idText);
-        checkArgument(CloudBlockRegistry.get().getBlock(blockId) != null, "unknown block: \"%s\"", idText);
+        checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         List<Map<String, Object>> variants = new ArrayList<>();
 

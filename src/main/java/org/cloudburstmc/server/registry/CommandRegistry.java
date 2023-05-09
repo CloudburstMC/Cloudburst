@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.registry;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.nukkitx.network.util.Preconditions;
-import com.nukkitx.protocol.bedrock.data.command.CommandData;
-import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
+import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.*;
@@ -440,9 +439,6 @@ public class CommandRegistry implements Registry {
 
     private void registerDefaults() {
         // TODO - Move this to a plugin to provide vanilla commands
-        this.registerInternal("ban", new BanCommand());
-        this.registerInternal("ban-ip", new BanIpCommand());
-        this.registerInternal("banlist", new BanListCommand());
         this.registerInternal("defaultgamemode", new DefaultGamemodeCommand());
         this.registerInternal("deop", new DeopCommand());
         this.registerInternal("difficulty", new DifficultyCommand());
@@ -456,8 +452,6 @@ public class CommandRegistry implements Registry {
         this.registerInternal("list", new ListCommand());
         this.registerInternal("me", new MeCommand());
         this.registerInternal("op", new OpCommand());
-        this.registerInternal("pardon", new PardonCommand());
-        this.registerInternal("pardon-ip", new PardonIpCommand());
         this.registerInternal("particle", new ParticleCommand());
         this.registerInternal("say", new SayCommand());
         this.registerInternal("seed", new SeedCommand());

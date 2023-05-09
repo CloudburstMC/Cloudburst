@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.MovingBlock;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -31,7 +31,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         if (tag.containsKey("movingBlockId") && tag.containsKey("movingBlockData")) {
             int id = tag.getByte("movingBlockId") & 0xff;
             int meta = tag.getByte("movingBlockData");

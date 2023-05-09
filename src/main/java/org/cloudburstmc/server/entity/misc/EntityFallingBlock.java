@@ -1,9 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
@@ -11,18 +9,22 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityData.VARIANT;
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.ANVIL;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOCK;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 /**
  * @author MagicDroidX
@@ -82,7 +84,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
 
         int id;
         int meta;
-        CloudBlockRegistry registry = CloudBlockRegistry.get();
+        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
         if (tag.containsKey("Tile") && tag.containsKey("Data")) {
             id = tag.getByte("Tile") & 0xff;
             meta = tag.getByte("Data");
@@ -96,7 +98,7 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
             return;
         }
 
-        this.data.setInt(VARIANT, registry.getRuntimeId(id, meta));
+        this.data.set(BLOCK, registry.getDefinition(id, meta));
     }
 
     @Override
@@ -153,9 +155,9 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
                 close();
                 Block b = level.getBlock(pos);
                 BlockState blockState = b.getState();
-                if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !blockState.getBehavior().canBeReplaced(b)) {
+                if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), BlockBehaviors.IS_REPLACEABLE)) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), CloudItemRegistry.get().getItem(this.getBlock()));
+                        getLevel().dropItem(this.getPosition(), ItemStack.from(this.getBlock()));
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());
@@ -180,13 +182,12 @@ public class EntityFallingBlock extends BaseEntity implements FallingBlock {
     }
 
     public BlockState getBlock() {
-        return CloudBlockRegistry.get().getBlock(this.data.getInt(VARIANT));
+        return CloudBlockRegistry.REGISTRY.getBlock(this.data.get(VARIANT));
     }
 
     @Override
     public void setBlock(BlockState blockState) {
-        int runtimeId = CloudBlockRegistry.get().getRuntimeId(blockState);
-        this.data.setInt(VARIANT, runtimeId);
+        this.data.set(BLOCK, CloudBlockRegistry.REGISTRY.getDefinition(blockState));
     }
 
     @Override

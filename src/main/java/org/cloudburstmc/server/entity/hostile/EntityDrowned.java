@@ -6,7 +6,6 @@ import org.cloudburstmc.api.entity.hostile.Drowned;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 /**
  * Created by PetteriM1
@@ -40,7 +39,7 @@ public class EntityDrowned extends EntityHostile implements Drowned, Smiteable {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{CloudItemRegistry.get().getItem(ItemTypes.ROTTEN_FLESH)};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.ROTTEN_FLESH).build()};
     }
 
     @Override

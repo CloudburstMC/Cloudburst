@@ -5,7 +5,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.EntityCreature;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.BABY;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
 /**
  * author: MagicDroidX

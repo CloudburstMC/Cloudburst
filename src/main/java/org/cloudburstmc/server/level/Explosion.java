@@ -1,32 +1,28 @@
 package org.cloudburstmc.server.level;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.server.block.behavior.BlockBehaviorTNT;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.Hash;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +116,8 @@ public class Explosion {
                             if (block != null && block.getState() != BlockStates.AIR) {
                                 var state = block.getState();
                                 BlockState layer1 = block.getExtra();
-                                double resistance = Math.max(state.getBehavior().getResistance(state), layer1.getBehavior().getResistance(layer1));
+
+                                double resistance = Math.max(CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.GET_RESISTANCE), CloudBlockRegistry.REGISTRY.getBehavior(layer1.getType(), BlockBehaviors.GET_RESISTANCE));
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {
@@ -192,39 +189,40 @@ public class Explosion {
             }
         }
 
-        ItemStack air = CloudItemRegistry.get().AIR;
+        ItemStack air = ItemStack.EMPTY;
 
-        //Iterator iter = this.affectedBlocks.entrySet().iterator();
-        for (Block block : this.affectedBlockStates) {
-            var state = block.getState();
-            var behavior = state.getBehavior();
-            //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-            if (state.getType() == BlockTypes.TNT) {
-                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
-            } else if (Math.random() * 100 < yield) {
-                for (ItemStack drop : behavior.getDrops(block, air)) {
-                    this.level.dropItem(block.getPosition(), drop);
-                }
-            }
-
-            behavior.onBreak(block, air);
-
-            for (Direction side : Direction.values()) {
-                Block sideBlock = block.getSide(side);
-                Vector3i sidePos = sideBlock.getPosition();
-                long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
-                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
-                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
-                    this.level.getServer().getEventManager().fire(ev);
-                    if (!ev.isCancelled()) {
-                        var b = ev.getBlock();
-                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
-                    }
-
-                    updateBlocks.add(index);
-                }
-            }
-        }
+//        TODO For now no explosions
+//        //Iterator iter = this.affectedBlocks.entrySet().iterator();
+//        for (Block block : this.affectedBlockStates) {
+//            var state = block.getState();
+//            var behavior = state.getBehavior();
+//            //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
+//            if (state.getType() == BlockTypes.TNT) {
+//                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
+//            } else if (Math.random() * 100 < yield) {
+//                for (ItemStack drop : behavior.getDrops(block, air)) {
+//                    this.level.dropItem(block.getPosition(), drop);
+//                }
+//            }
+//
+//            behavior.onBreak(block, air);
+//
+//            for (Direction side : Direction.values()) {
+//                Block sideBlock = block.getSide(side);
+//                Vector3i sidePos = sideBlock.getPosition();
+//                long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
+//                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
+//                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
+//                    this.level.getServer().getEventManager().fire(ev);
+//                    if (!ev.isCancelled()) {
+//                        var b = ev.getBlock();
+//                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
+//                    }
+//
+//                    updateBlocks.add(index);
+//                }
+//            }
+//        }
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
         this.level.addLevelSoundEvent(source, SoundEvent.EXPLODE);

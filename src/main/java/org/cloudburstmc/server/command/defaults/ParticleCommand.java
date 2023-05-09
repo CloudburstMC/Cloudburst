@@ -1,11 +1,12 @@
 package org.cloudburstmc.server.command.defaults;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
@@ -13,8 +14,6 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Random;
 
@@ -166,9 +165,9 @@ public class ParticleCommand extends Command {
             case "reddust":
                 return new RedstoneParticle(pos, data != -1 ? data : 1);
             case "snowballpoof":
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SNOWBALL));
+                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SNOWBALL).build());
             case "slime":
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.SLIME_BALL));
+                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SLIME_BALL).build());
             case "itembreak":
                 if (data != -1 && data != 0) {
 //                    return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(data)); //TODO: item name
@@ -195,23 +194,24 @@ public class ParticleCommand extends Command {
                 return new BlockForceFieldParticle(pos);
         }
 
-        if (name.startsWith("iconcrack_")) {
-            String[] d = name.split("_");
-            if (d.length == 3) {
-                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
-            }
-        } else if (name.startsWith("blockcrack_")) {
-            String[] d = name.split("_");
-            if (d.length == 2) {
-                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
-            }
-        } else if (name.startsWith("blockdust_")) {
-            String[] d = name.split("_");
-            if (d.length >= 4) {
-                return new DustParticle(pos, Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[2]) & 0xff,
-                        Integer.parseInt(d[3]) & 0xff, d.length >= 5 ? Integer.parseInt(d[4]) & 0xff : 255);
-            }
-        }
+//        TODO Just ignore it and pretent it doesn't exist
+//        if (name.startsWith("iconcrack_")) {
+//            String[] d = name.split("_");
+//            if (d.length == 3) {
+//                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
+//            }
+//        } else if (name.startsWith("blockcrack_")) {
+//            String[] d = name.split("_");
+//            if (d.length == 2) {
+//                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
+//            }
+//        } else if (name.startsWith("blockdust_")) {
+//            String[] d = name.split("_");
+//            if (d.length >= 4) {
+//                return new DustParticle(pos, Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[2]) & 0xff,
+//                        Integer.parseInt(d[3]) & 0xff, d.length >= 5 ? Integer.parseInt(d[4]) & 0xff : 255);
+//            }
+//        }
 
         return null;
     }

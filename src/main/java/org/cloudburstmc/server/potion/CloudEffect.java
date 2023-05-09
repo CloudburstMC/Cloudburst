@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.potion;
 
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import lombok.NonNull;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -10,11 +8,13 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import static com.nukkitx.protocol.bedrock.data.entity.EntityFlag.INVISIBLE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.INVISIBLE;
 
 /**
  * author: MagicDroidX

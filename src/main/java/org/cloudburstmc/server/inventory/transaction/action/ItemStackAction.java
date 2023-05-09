@@ -1,16 +1,17 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
-import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.server.inventory.BaseInventory;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
+import org.cloudburstmc.server.inventory.CloudInventory;
 import org.cloudburstmc.server.inventory.transaction.InventoryTransaction;
 import org.cloudburstmc.server.inventory.transaction.ItemStackTransaction;
-import org.cloudburstmc.server.item.CloudItemStack;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
 
@@ -18,13 +19,13 @@ import java.util.List;
 @Getter
 public abstract class ItemStackAction extends InventoryAction {
 
-    private final StackRequestSlotInfoData sourceData, targetData;
+    private final ItemStackRequestSlotData sourceData, targetData;
     private final int requestId;
     private ItemStackTransaction transaction;
 
-    public ItemStackAction(int reqId, @Nullable StackRequestSlotInfoData sourceData, @Nullable StackRequestSlotInfoData targetData) {
-        super(sourceData != null ? CloudItemRegistry.get().getItemByNetId(sourceData.getStackNetworkId()) : CloudItemRegistry.get().AIR,
-                targetData != null ? CloudItemRegistry.get().getItemByNetId(targetData.getStackNetworkId()) : CloudItemRegistry.get().AIR);
+    public ItemStackAction(int reqId, @Nullable ItemStackRequestSlotData sourceData, @Nullable ItemStackRequestSlotData targetData) {
+        super(sourceData != null ? ItemUtils.getFromNetworkId(sourceData.getStackNetworkId()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY,
+                targetData != null ? ItemUtils.getFromNetworkId(targetData.getStackNetworkId()).orElse(ItemStack.EMPTY) : ItemStack.EMPTY);
         this.requestId = reqId;
         this.sourceData = sourceData;
         this.targetData = targetData;
@@ -43,15 +44,15 @@ public abstract class ItemStackAction extends InventoryAction {
 
     @Override
     public void onExecuteSuccess(CloudPlayer source) {
-        getTransaction().setResponseStatus(ItemStackResponsePacket.ResponseStatus.OK);
-        this.getTransaction().addContaiers(getContainers(source));
+        getTransaction().setResponseStatus(ItemStackResponseStatus.OK);
+        this.getTransaction().addContainers(getContainers(source));
     }
 
     @Override
     public void onExecuteFail(CloudPlayer source) {
         log.debug("Failed on transaction action: {}", this.getClass().getSimpleName());
-        getTransaction().setResponseStatus(ItemStackResponsePacket.ResponseStatus.ERROR);
-        this.getTransaction().addContaiers(getContainers(source));
+        getTransaction().setResponseStatus(ItemStackResponseStatus.ERROR);
+        this.getTransaction().addContainers(getContainers(source));
     }
 
     protected int getSourceSlot() {
@@ -63,7 +64,7 @@ public abstract class ItemStackAction extends InventoryAction {
     }
 
     @Nullable
-    protected BaseInventory getSourceInventory(CloudPlayer source) {
+    protected CloudInventory getSourceInventory(CloudPlayer source) {
         if (sourceData != null) {
             return source.getInventoryManager().getInventoryByType(sourceData.getContainer());
         }
@@ -71,22 +72,12 @@ public abstract class ItemStackAction extends InventoryAction {
     }
 
     @Nullable
-    protected BaseInventory getTargetInventory(CloudPlayer source) {
+    protected CloudInventory getTargetInventory(CloudPlayer source) {
         if (targetData != null) {
             return source.getInventoryManager().getInventoryByType(targetData.getContainer());
         }
         return null;
     }
 
-    @Override
-    public CloudItemStack getSourceItem() {
-        return (CloudItemStack) super.getSourceItem();
-    }
-
-    @Override
-    public CloudItemStack getTargetItem() {
-        return (CloudItemStack) super.getTargetItem();
-    }
-
-    protected abstract List<ItemStackResponsePacket.ContainerEntry> getContainers(CloudPlayer source);
+    protected abstract List<ItemStackResponseContainer> getContainers(CloudPlayer source);
 }
