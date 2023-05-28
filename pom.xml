@@ -77,26 +77,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.cloudburstmc</groupId>
-            <artifactId>cloudburst-api</artifactId>
-            <version>${api-version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.nukkitx.fastutil</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.checkerframework</groupId>
-                    <artifactId>checker</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.checkerframework</groupId>
-                    <artifactId>checker-qual</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- Terminal -->
         <dependency>
             <groupId>net.minecrell</groupId>
