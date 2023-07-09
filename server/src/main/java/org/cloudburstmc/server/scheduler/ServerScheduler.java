@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.scheduler;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginException;
 import org.cloudburstmc.api.plugin.PluginManager;
 
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
@@ -332,7 +332,7 @@ public class ServerScheduler {
         return currentTaskId.incrementAndGet();
     }
 
-    @Nonnull
+    @NonNull
     private PluginContainer ensurePlugin(Object plugin) {
         checkNotNull(plugin, "plugin");
         return this.pluginManager.fromInstance(plugin).orElseThrow(() ->

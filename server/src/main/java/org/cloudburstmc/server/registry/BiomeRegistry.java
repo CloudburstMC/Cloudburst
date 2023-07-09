@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
@@ -13,7 +14,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 
-import javax.inject.Singleton;
 import java.util.Map;
 import java.util.stream.Collectors;
 

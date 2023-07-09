@@ -2,7 +2,8 @@ package org.cloudburstmc.server.level.manager;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkLoader;
@@ -11,8 +12,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -97,7 +96,7 @@ public final class PopulationChunkManager implements ChunkManager {
         return this.chunks[this.chunkIndex(chunkX, chunkZ)];
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Chunk getChunk(long key) {
         return null;
@@ -109,13 +108,13 @@ public final class PopulationChunkManager implements ChunkManager {
         return null;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ) {
         return null;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<? extends Chunk> getChunks() {
         return null;

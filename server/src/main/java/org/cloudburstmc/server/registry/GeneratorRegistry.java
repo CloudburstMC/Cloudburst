@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.registry;
 
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
@@ -8,7 +9,6 @@ import org.cloudburstmc.server.level.generator.impl.FlatGenerator;
 import org.cloudburstmc.server.level.generator.impl.VoidGenerator;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -80,7 +80,7 @@ public class GeneratorRegistry implements Registry {
         private final int weight;
 
         @Override
-        public int compareTo(@Nonnull WeightedIdentifier o) {
+        public int compareTo(@NonNull WeightedIdentifier o) {
             return Integer.compare(this.weight, o.weight);
         }
     }

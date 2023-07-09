@@ -7,13 +7,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.server.form.element.ElementButton;
 import org.cloudburstmc.server.form.response.SimpleFormResponse;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.form.util.ImageType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,7 +80,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param content form text content
          * @return self builder instance
          */
-        public SimpleFormBuilder content(@Nonnull String content) {
+        public SimpleFormBuilder content(@NonNull String content) {
             Preconditions.checkNotNull(content, "content must not be null");
             this.content = content;
             return this;
@@ -92,7 +92,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param text button title
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text) {
+        public SimpleFormBuilder button(@NonNull String text) {
             this.buttons.add(new ElementButton(text));
             return this;
         }
@@ -105,7 +105,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param imageData button image data
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text, @Nonnull ImageType imageType, @Nonnull String imageData) {
+        public SimpleFormBuilder button(@NonNull String text, @NonNull ImageType imageType, @NonNull String imageData) {
             this.buttons.add(new ElementButton(text, imageType, imageData));
             return this;
         }
@@ -117,7 +117,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param action callback called when the button is clicked
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text, @Nonnull Consumer<CloudPlayer> action) {
+        public SimpleFormBuilder button(@NonNull String text, @NonNull Consumer<CloudPlayer> action) {
             this.buttons.add(new ElementButton(text));
             this.buttonListeners.put(buttons.size() - 1, action);
             return this;
@@ -132,7 +132,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param action    callback called when the button is clicked
          * @return self builder instance
          */
-        public SimpleFormBuilder button(@Nonnull String text, @Nonnull ImageType imageType, @Nonnull String imageData, @Nonnull Consumer<CloudPlayer> action) {
+        public SimpleFormBuilder button(@NonNull String text, @NonNull ImageType imageType, @NonNull String imageData, @NonNull Consumer<CloudPlayer> action) {
             this.buttons.add(new ElementButton(text, imageType, imageData));
             this.buttonListeners.put(buttons.size() - 1, action);
             return this;
@@ -145,7 +145,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param buttons list of button elements
          * @return self builder instance
          */
-        public SimpleFormBuilder buttons(@Nonnull ElementButton button, @Nonnull ElementButton... buttons) {
+        public SimpleFormBuilder buttons(@NonNull ElementButton button, @NonNull ElementButton... buttons) {
             this.buttons.add(button);
             this.buttons.addAll(Arrays.asList(buttons));
             return this;
@@ -157,7 +157,7 @@ public class SimpleForm extends Form<SimpleFormResponse> {
          * @param buttons list of button elements
          * @return self builder instance
          */
-        public SimpleFormBuilder buttons(@Nonnull Collection<ElementButton> buttons) {
+        public SimpleFormBuilder buttons(@NonNull Collection<ElementButton> buttons) {
             this.buttons.addAll(buttons);
             return this;
         }

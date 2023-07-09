@@ -2,16 +2,16 @@ package org.cloudburstmc.server.level;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.Utils;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.Closeable;
 import java.util.HashMap;
 import java.util.HashSet;

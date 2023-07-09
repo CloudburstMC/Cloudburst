@@ -7,6 +7,7 @@ import com.google.common.collect.Iterables;
 import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
@@ -55,7 +56,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;

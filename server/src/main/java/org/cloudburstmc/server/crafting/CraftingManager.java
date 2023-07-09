@@ -1,11 +1,10 @@
 package org.cloudburstmc.server.crafting;
 
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
-
-import javax.inject.Singleton;
 
 /**
  * author: MagicDroidX

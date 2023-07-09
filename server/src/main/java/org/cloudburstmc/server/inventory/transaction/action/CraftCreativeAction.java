@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.inventory.transaction.action;
 
+import com.google.inject.Inject;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
@@ -8,7 +9,6 @@ import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 

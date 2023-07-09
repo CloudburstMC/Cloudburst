@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -17,8 +19,6 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -106,7 +106,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
 
-    @Nonnull
+    @NonNull
     @Override
     public CloudChunkSection getOrCreateSection(int y) {
         checkElementIndex(y, sections.length, "section Y");
@@ -127,14 +127,14 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return this.sections[y];
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CloudChunkSection[] getSections() {
         return this.sections;
     }
 
 
-    @Nonnull
+    @NonNull
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
@@ -148,7 +148,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return blockState;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public BlockState getAndSetBlock(int x, int y, int z, int layer, BlockState blockState) {
         BlockState previousBlockState = this.getBlock(x, y, z, layer);
@@ -247,7 +247,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }*/
 
     @Override
-    public void addEntity(@Nonnull Entity entity) {
+    public void addEntity(@NonNull Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof Player) {
             this.players.add((CloudPlayer) entity);
@@ -301,19 +301,19 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return z;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Level getLevel() {
         return level;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public byte[] getBiomeArray() {
         return biomes;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public int[] getHeightMapArray() {
         return heightMap;
@@ -325,7 +325,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
      *
      * @return player set
      */
-    @Nonnull
+    @NonNull
     @Override
     public Set<CloudPlayer> getPlayers() {
         return players;
@@ -336,7 +336,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
      *
      * @return entity set
      */
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseEntity> getEntities() {
         return this.entities;
@@ -347,7 +347,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
      *
      * @return block entity collection
      */
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseBlockEntity> getBlockEntities() {
         return new HashSet<>(this.tiles.values());

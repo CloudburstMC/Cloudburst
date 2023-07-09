@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.server.form.element.*;
 import org.cloudburstmc.server.form.response.CustomFormResponse;
 import org.cloudburstmc.server.form.util.FormType;
@@ -12,7 +13,6 @@ import org.cloudburstmc.server.form.util.ImageData;
 import org.cloudburstmc.server.form.util.ImageType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -72,7 +72,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param options dropdown options
          * @return self builder instance
          */
-        public CustomFormBuilder dropdown(@Nonnull String text, @Nonnull String... options) {
+        public CustomFormBuilder dropdown(@NonNull String text, @NonNull String... options) {
             return dropdown(text, Arrays.asList(options));
         }
 
@@ -83,7 +83,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param options dropdown options
          * @return self builder instance
          */
-        public CustomFormBuilder dropdown(@Nonnull String text, @Nonnull List<String> options) {
+        public CustomFormBuilder dropdown(@NonNull String text, @NonNull List<String> options) {
             return element(new ElementDropdown(text, options));
         }
 
@@ -95,7 +95,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param options       dropdown options
          * @return self builder instance
          */
-        public CustomFormBuilder dropdown(@Nonnull String text, int defaultOption, @Nonnull String... options) {
+        public CustomFormBuilder dropdown(@NonNull String text, int defaultOption, @NonNull String... options) {
             return dropdown(text, defaultOption, Arrays.asList(options));
         }
 
@@ -107,7 +107,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param options       dropdown options
          * @return self builder instance
          */
-        public CustomFormBuilder dropdown(@Nonnull String text, int defaultOption, @Nonnull List<String> options) {
+        public CustomFormBuilder dropdown(@NonNull String text, int defaultOption, @NonNull List<String> options) {
             Preconditions.checkPositionIndex(defaultOption, options.size(), "Default option index out of bounds");
             return element(new ElementDropdown(text, options, defaultOption));
         }
@@ -118,7 +118,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param text input title
          * @return self builder instance
          */
-        public CustomFormBuilder input(@Nonnull String text) {
+        public CustomFormBuilder input(@NonNull String text) {
             return element(new ElementInput(text));
         }
 
@@ -129,7 +129,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param placeholder placeholder text
          * @return self builder instance
          */
-        public CustomFormBuilder input(@Nonnull String text, @Nonnull String placeholder) {
+        public CustomFormBuilder input(@NonNull String text, @NonNull String placeholder) {
             return element(new ElementInput(text, placeholder));
         }
 
@@ -141,7 +141,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param defaultText default input text
          * @return self builder instance
          */
-        public CustomFormBuilder input(@Nonnull String text, @Nonnull String placeholder, @Nonnull String defaultText) {
+        public CustomFormBuilder input(@NonNull String text, @NonNull String placeholder, @NonNull String defaultText) {
             return element(new ElementInput(text, placeholder, defaultText));
         }
 
@@ -151,7 +151,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param text label text
          * @return self builder instance
          */
-        public CustomFormBuilder label(@Nonnull String text) {
+        public CustomFormBuilder label(@NonNull String text) {
             return element(new ElementLabel(text));
         }
 
@@ -161,7 +161,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param elementText slider title
          * @return self builder instance
          */
-        public CustomFormBuilder slider(@Nonnull String elementText) {
+        public CustomFormBuilder slider(@NonNull String elementText) {
             return element(new ElementSlider(elementText));
         }
 
@@ -173,7 +173,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param maximum     maximal slider value
          * @return self builder instance
          */
-        public CustomFormBuilder slider(@Nonnull String elementText, float minimum, float maximum) {
+        public CustomFormBuilder slider(@NonNull String elementText, float minimum, float maximum) {
             return element(new ElementSlider(elementText, minimum, maximum));
         }
 
@@ -186,7 +186,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param stepCount   amount of steps in a given range
          * @return self builder instance
          */
-        public CustomFormBuilder slider(@Nonnull String elementText, float minimum, float maximum, int stepCount) {
+        public CustomFormBuilder slider(@NonNull String elementText, float minimum, float maximum, int stepCount) {
             return element(new ElementSlider(elementText, minimum, maximum, stepCount));
         }
 
@@ -200,7 +200,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param defaultValue default slider value
          * @return self builder instance
          */
-        public CustomFormBuilder slider(@Nonnull String elementText, float minimum, float maximum, int stepCount, float defaultValue) {
+        public CustomFormBuilder slider(@NonNull String elementText, float minimum, float maximum, int stepCount, float defaultValue) {
             return element(new ElementSlider(elementText, minimum, maximum, stepCount, defaultValue));
         }
 
@@ -210,7 +210,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param elementText step slider title
          * @return self builder instance
          */
-        public CustomFormBuilder stepSlider(@Nonnull String elementText) {
+        public CustomFormBuilder stepSlider(@NonNull String elementText) {
             return element(new ElementStepSlider(elementText));
         }
 
@@ -221,7 +221,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param stepOptions list of all available steps
          * @return self builder instance
          */
-        public CustomFormBuilder stepSlider(@Nonnull String elementText, @Nonnull String... stepOptions) {
+        public CustomFormBuilder stepSlider(@NonNull String elementText, @NonNull String... stepOptions) {
             return stepSlider(elementText, Arrays.asList(stepOptions));
         }
 
@@ -232,7 +232,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param stepOptions list of all available steps
          * @return self builder instance
          */
-        public CustomFormBuilder stepSlider(@Nonnull String elementText, @Nonnull List<String> stepOptions) {
+        public CustomFormBuilder stepSlider(@NonNull String elementText, @NonNull List<String> stepOptions) {
             return element(new ElementStepSlider(elementText, stepOptions));
         }
 
@@ -244,7 +244,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param stepOptions      list of all available steps
          * @return self builder instance
          */
-        public CustomFormBuilder stepSlider(@Nonnull String elementText, int defaultStepIndex, @Nonnull String... stepOptions) {
+        public CustomFormBuilder stepSlider(@NonNull String elementText, int defaultStepIndex, @NonNull String... stepOptions) {
             return stepSlider(elementText, defaultStepIndex, Arrays.asList(stepOptions));
         }
 
@@ -256,7 +256,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param stepOptions      list of all available steps
          * @return self builder instance
          */
-        public CustomFormBuilder stepSlider(@Nonnull String elementText, int defaultStepIndex, @Nonnull List<String> stepOptions) {
+        public CustomFormBuilder stepSlider(@NonNull String elementText, int defaultStepIndex, @NonNull List<String> stepOptions) {
             return element(new ElementStepSlider(elementText, stepOptions, defaultStepIndex));
         }
 
@@ -266,7 +266,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param elementText toggle title
          * @return self builder instance
          */
-        public CustomFormBuilder toggle(@Nonnull String elementText) {
+        public CustomFormBuilder toggle(@NonNull String elementText) {
             return element(new ElementToggle(elementText));
         }
 
@@ -277,7 +277,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param defaultValue default toggle value
          * @return self builder instance
          */
-        public CustomFormBuilder toggle(@Nonnull String elementText, boolean defaultValue) {
+        public CustomFormBuilder toggle(@NonNull String elementText, boolean defaultValue) {
             return element(new ElementToggle(elementText, defaultValue));
         }
 
@@ -287,7 +287,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param element an element to be added
          * @return self builder instance
          */
-        public CustomFormBuilder element(@Nonnull Element element) {
+        public CustomFormBuilder element(@NonNull Element element) {
             elements.add(element);
             return this;
         }
@@ -299,7 +299,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param elements list of elements to be added
          * @return self builder instance
          */
-        public CustomFormBuilder elements(@Nonnull Element element, @Nonnull Element... elements) {
+        public CustomFormBuilder elements(@NonNull Element element, @NonNull Element... elements) {
             this.elements.add(element);
             this.elements.addAll(Arrays.asList(elements));
             return this;
@@ -311,7 +311,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param elements list of elements to be added
          * @return self builder instance
          */
-        public CustomFormBuilder elements(@Nonnull Collection<Element> elements) {
+        public CustomFormBuilder elements(@NonNull Collection<Element> elements) {
             this.elements.addAll(elements);
             return this;
         }
@@ -324,7 +324,7 @@ public class CustomForm extends Form<CustomFormResponse> {
          * @param imageData icon image data
          * @return self builder instance
          */
-        public CustomFormBuilder icon(@Nonnull ImageType imageType, @Nonnull String imageData) {
+        public CustomFormBuilder icon(@NonNull ImageType imageType, @NonNull String imageData) {
             this.icon = new ImageData(imageType, imageData);
             return this;
         }

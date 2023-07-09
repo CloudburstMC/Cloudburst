@@ -7,7 +7,7 @@ open module org.cloudburstmc.api {
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.google.common;
     requires com.google.guice;
-    requires static javax.inject;
+    requires jakarta.inject;
     requires java.desktop;
     requires static lombok;
     requires org.cloudburstmc.math.immutable;

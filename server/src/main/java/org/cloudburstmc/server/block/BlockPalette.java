@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -19,7 +20,6 @@ import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;

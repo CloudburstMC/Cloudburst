@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
@@ -14,7 +15,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
 
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 

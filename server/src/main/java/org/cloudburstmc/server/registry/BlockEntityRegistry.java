@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
@@ -12,7 +13,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
-import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -61,7 +61,7 @@ public class BlockEntityRegistry implements Registry {
         return persistentMap.get(type);
     }
 
-    @Nonnull
+    @NonNull
     public BlockEntityType<?> getBlockEntityType(String persistentId) {
         return persistentMap.inverse().computeIfAbsent(persistentId, id -> BlockEntityType.from(id, UnknownBlockEntity.class));
     }

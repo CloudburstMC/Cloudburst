@@ -12,6 +12,8 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.ChunkUnloadEvent;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.config.ServerConfig;
@@ -20,9 +22,6 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 @Log4j2
-@ParametersAreNonnullByDefault
 public final class LevelChunkManager {
     private static final CompletableFuture<Void> COMPLETED_VOID_FUTURE = CompletableFuture.completedFuture(null);
     private static final AtomicIntegerFieldUpdater<LoadingChunk> GENERATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "generationRunning");
@@ -61,7 +59,7 @@ public final class LevelChunkManager {
      *
      * @return chunks
      */
-    @Nonnull
+    @NonNull
     public synchronized Set<CloudChunk> getLoadedChunks() {
         ImmutableSet.Builder<CloudChunk> chunks = ImmutableSet.builder();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
@@ -108,7 +106,7 @@ public final class LevelChunkManager {
      * @param z chunk z
      * @return chunk
      */
-    @Nonnull
+    @NonNull
     public Chunk getChunk(int x, int z) {
         Chunk chunk = getLoadedChunk(x, z);
         if (chunk == null) {
@@ -125,12 +123,12 @@ public final class LevelChunkManager {
      * @param z chunk z
      * @return chunk future
      */
-    @Nonnull
+    @NonNull
     public CompletableFuture<CloudChunk> getChunkFuture(int x, int z) {
         return this.getChunkFuture(x, z, true, true, true);
     }
 
-    @Nonnull
+    @NonNull
     private synchronized CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
         final long chunkKey = CloudChunk.key(chunkX, chunkZ);
         this.chunkLastAccessTimes.put(chunkKey, System.currentTimeMillis());

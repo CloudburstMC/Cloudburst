@@ -2,10 +2,9 @@ package org.cloudburstmc.server.scheduler;
 
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
-
-import javax.annotation.Nonnull;
 
 /**
  * Represents a task created by a plugin.
@@ -40,7 +39,7 @@ public abstract class PluginTask<T> extends Task {
      *
      * @param owner The plugin object that owns this task.
      */
-    public PluginTask(@Nonnull T owner) {
+    public PluginTask(@NonNull T owner) {
         Preconditions.checkNotNull(owner, "owner");
         this.owner = owner;
         this.container = CloudServer.getInstance().getPluginManager().fromInstance(owner).orElseThrow(() ->
@@ -53,12 +52,12 @@ public abstract class PluginTask<T> extends Task {
      *
      * @return The plugin object that owns this task.
      */
-    @Nonnull
+    @NonNull
     public final T getOwner() {
         return this.owner;
     }
 
-    @Nonnull
+    @NonNull
     public PluginContainer getContainer() {
         return container;
     }

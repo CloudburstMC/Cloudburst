@@ -7,6 +7,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
@@ -15,6 +16,8 @@ import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.enchantment.Enchantment;
@@ -87,9 +90,6 @@ import org.cloudburstmc.server.utils.BlockUpdateEntry;
 import org.cloudburstmc.server.utils.Hash;
 import org.cloudburstmc.server.utils.TextFormat;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.awt.*;
 import java.io.IOException;
 import java.util.List;
@@ -1275,7 +1275,7 @@ public class CloudLevel implements Level {
         );
     }
 
-    @Nonnull
+    @NonNull
     public Block getBlock(int x, int y, int z) {
         int chunkX = x >> 4;
         int chunkZ = z >> 4;
@@ -1499,7 +1499,7 @@ public class CloudLevel implements Level {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public DroppedItem dropItem(Vector3f source, ItemStack item, Vector3f motion, boolean dropAround, int delay) {
         checkNotNull(source, "source");
@@ -2029,12 +2029,12 @@ public class CloudLevel implements Level {
         return chunk == null ? null : chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
     }
 
-    @Nonnull
+    @NonNull
     public Set<BaseEntity> getChunkEntities(int chunkX, int chunkZ) {
         return this.getChunk(chunkX, chunkZ).getEntities();
     }
 
-    @Nonnull
+    @NonNull
     public Set<BaseEntity> getLoadedChunkEntities(int chunkX, int chunkZ) {
         CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         if (chunk != null) {
@@ -2047,12 +2047,12 @@ public class CloudLevel implements Level {
     }
 
 
-    @Nonnull
+    @NonNull
     public Collection<BaseBlockEntity> getChunkBlockEntities(int chunkX, int chunkZ) {
         return this.getChunk(chunkX, chunkZ).getBlockEntities();
     }
 
-    @Nonnull
+    @NonNull
     public Collection<BaseBlockEntity> getLoadedBlockEntities(int chunkX, int chunkZ) {
         CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         return chunk == null ? Collections.emptyList() : chunk.getBlockEntities();
@@ -2112,7 +2112,7 @@ public class CloudLevel implements Level {
         return this.getLoadedChunk(pos.toInt());
     }
 
-    @Nonnull
+    @NonNull
     public Set<CloudChunk> getChunks() {
         return this.chunkManager.getLoadedChunks();
     }

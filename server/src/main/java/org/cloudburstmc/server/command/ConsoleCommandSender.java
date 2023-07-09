@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command;
 
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.locale.TextContainer;
@@ -11,7 +12,6 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.permission.PermissibleBase;
 
-import javax.inject.Singleton;
 import java.util.Map;
 
 /**

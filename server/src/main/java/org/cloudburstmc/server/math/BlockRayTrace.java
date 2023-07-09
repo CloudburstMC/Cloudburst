@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.math;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
-import javax.annotation.Nonnull;
 import java.util.Iterator;
 
 public class BlockRayTrace implements Iterable<Vector3i> {
@@ -74,7 +74,7 @@ public class BlockRayTrace implements Iterable<Vector3i> {
         return this.start.distance(this.end);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Iterator<Vector3i> iterator() {
         return new BlockRayTraceIterator();

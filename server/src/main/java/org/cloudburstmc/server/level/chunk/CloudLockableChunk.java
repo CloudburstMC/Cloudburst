@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.level.chunk;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
@@ -11,8 +13,6 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Arrays;
 import java.util.Set;
@@ -27,7 +27,7 @@ public final class CloudLockableChunk extends LockableChunk {
         this.unsafe = unsafe;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CloudChunkSection getOrCreateSection(int y) {
         return unsafe.getOrCreateSection(y);
@@ -39,14 +39,14 @@ public final class CloudLockableChunk extends LockableChunk {
         return unsafe.getSection(y);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public CloudChunkSection[] getSections() {
         CloudChunkSection[] sections = unsafe.getSections();
         return Arrays.copyOf(sections, sections.length);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         return unsafe.getBlock(x, y, z, layer);
@@ -98,7 +98,7 @@ public final class CloudLockableChunk extends LockableChunk {
     }
 
     @Override
-    public void addEntity(@Nonnull Entity entity) {
+    public void addEntity(@NonNull Entity entity) {
         this.unsafe.addEntity(entity);
     }
 
@@ -132,37 +132,37 @@ public final class CloudLockableChunk extends LockableChunk {
         return this.unsafe.getZ();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Level getLevel() {
         return this.unsafe.getLevel();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public byte[] getBiomeArray() {
         return this.unsafe.getBiomeArray().clone();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public int[] getHeightMapArray() {
         return this.unsafe.getHeightMapArray().clone();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<CloudPlayer> getPlayers() {
         return this.unsafe.getPlayers();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseEntity> getEntities() {
         return this.unsafe.getEntities();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseBlockEntity> getBlockEntities() {
         return this.unsafe.getBlockEntities();

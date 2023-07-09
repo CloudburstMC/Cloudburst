@@ -2,8 +2,10 @@ package org.cloudburstmc.server.command.data;
 
 import lombok.NonNull;
 import lombok.ToString;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.PluginCommand;
@@ -73,7 +75,8 @@ public class CommandData {
     public org.cloudburstmc.protocol.bedrock.data.command.CommandData toNetwork() {
         String description = CloudServer.getInstance().getLanguage().translate(this.description);
 
-        CommandParamData[][] overloadData = new CommandParamData[this.overloads.size()][];
+        CommandOverloadData[] overloadData = new CommandOverloadData[this.overloads.size()];
+
 
         for (int i = 0; i < overloadData.length; i++) {
             CommandParameter[] parameters = this.overloads.get(i);
@@ -81,11 +84,11 @@ public class CommandData {
             for (int i2 = 0; i2 < parameters.length; i2++) {
                 params[i2] = parameters[i2].toNetwork();
             }
-            overloadData[i] = params;
+            overloadData[i] = new CommandOverloadData(false, params);
         }
 
         return new org.cloudburstmc.protocol.bedrock.data.command.CommandData(this.getRegisteredName(), description, Collections.emptySet(),
-                (byte) 0, this.aliases.toNetwork(), overloadData);
+                CommandPermission.ANY, this.aliases.toNetwork(), Collections.emptyList(), overloadData);
     }
 
     public List<CommandParameter[]> getOverloads() {

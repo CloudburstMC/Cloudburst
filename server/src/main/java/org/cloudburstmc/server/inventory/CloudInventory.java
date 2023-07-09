@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -24,8 +25,6 @@ import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import java.util.*;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
@@ -408,7 +407,7 @@ public abstract class CloudInventory implements Inventory {
         return count;
     }
 
-    private synchronized Int2ObjectMap<ItemStack> findMergable(@Nonnull ItemStack item) {
+    private synchronized Int2ObjectMap<ItemStack> findMergable(@NonNull ItemStack item) {
         Int2ObjectMap<ItemStack> mergable = new Int2ObjectOpenHashMap<>();
 
         for (var entry : this.slots.int2ObjectEntrySet()) {

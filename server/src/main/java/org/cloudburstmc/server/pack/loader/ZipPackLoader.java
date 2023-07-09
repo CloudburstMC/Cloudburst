@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.pack.loader;
 
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.pack.loader.PackLoader;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;

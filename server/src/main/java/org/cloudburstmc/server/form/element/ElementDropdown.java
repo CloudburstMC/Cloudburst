@@ -5,8 +5,8 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,18 +18,18 @@ public final class ElementDropdown extends Element {
     @JsonProperty("default")
     private int defaultOptionIndex = 0;
 
-    public ElementDropdown(@Nonnull String elementText) {
+    public ElementDropdown(@NonNull String elementText) {
         super(ElementType.DROPDOWN, elementText);
     }
 
-    public ElementDropdown(@Nonnull String elementText, @Nonnull List<String> options) {
+    public ElementDropdown(@NonNull String elementText, @NonNull List<String> options) {
         super(ElementType.DROPDOWN, elementText);
 
         Preconditions.checkNotNull(options, "The provided dropdown options can not be null");
         this.options.addAll(options);
     }
 
-    public ElementDropdown(@Nonnull String elementText, @Nonnull List<String> options, int defaultOptionIndex) {
+    public ElementDropdown(@NonNull String elementText, @NonNull List<String> options, int defaultOptionIndex) {
         super(ElementType.DROPDOWN, elementText);
 
         Preconditions.checkNotNull(options, "The provided dropdown options can not be null");

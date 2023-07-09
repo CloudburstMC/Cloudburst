@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.misc;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -25,8 +26,6 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-
-import javax.annotation.Nonnull;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -248,7 +247,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
     }
 
     @Override
-    public void setItem(@Nonnull ItemStack item) {
+    public void setItem(@NonNull ItemStack item) {
         checkNotNull(item, "item");
         checkArgument(this.item == null, "Item has already been set");
         this.item = item;

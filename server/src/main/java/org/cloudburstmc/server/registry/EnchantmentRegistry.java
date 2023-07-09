@@ -3,8 +3,9 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
@@ -26,8 +27,6 @@ import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentIm
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentLoyalty;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentRiptide;
 
-import javax.annotation.Nonnull;
-import javax.inject.Singleton;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -55,11 +54,11 @@ public class EnchantmentRegistry implements Registry {
         this.registerVanillaEnchantments();
     }
 
-    public synchronized void register(@NonNull EnchantmentType type, @Nonnull EnchantmentBehavior behavior) {
+    public synchronized void register(@NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
         throw new UnsupportedOperationException("Custom enchantments are not currently supported!");
     }
 
-    private synchronized void registerVanilla(@NonNull EnchantmentType type, @Nonnull EnchantmentBehavior behavior) {
+    private synchronized void registerVanilla(@NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
         this.checkClosed();
         Preconditions.checkNotNull(type, "type");
         Preconditions.checkNotNull(behavior, "behavior");
@@ -70,17 +69,17 @@ public class EnchantmentRegistry implements Registry {
         identifierMap.put(type, type.getType());
     }
 
-    public EnchantmentInstance getEnchantment(@Nonnull EnchantmentType type) {
+    public EnchantmentInstance getEnchantment(@NonNull EnchantmentType type) {
         return getEnchantment(type, 1);
     }
 
-    public EnchantmentInstance getEnchantment(@Nonnull EnchantmentType type, int level) {
+    public EnchantmentInstance getEnchantment(@NonNull EnchantmentType type, int level) {
         Preconditions.checkNotNull(type, "type");
 
         return new CloudEnchantmentInstance(type, level);
     }
 
-    public EnchantmentBehavior getBehavior(@Nonnull EnchantmentType type) {
+    public EnchantmentBehavior getBehavior(@NonNull EnchantmentType type) {
         Preconditions.checkNotNull(type, "type");
         return behaviorMap.get(type);
     }

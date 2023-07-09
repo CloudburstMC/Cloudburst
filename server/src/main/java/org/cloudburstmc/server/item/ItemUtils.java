@@ -15,7 +15,7 @@ import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.server.block.BlockPalette;

@@ -1,15 +1,14 @@
 package org.cloudburstmc.server.plugin;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.plugin.*;
 import org.cloudburstmc.server.plugin.util.DirectedAcyclicGraph;
 import org.cloudburstmc.server.plugin.util.GraphException;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -18,7 +17,6 @@ import java.nio.file.PathMatcher;
 import java.util.*;
 
 @Log4j2
-@ParametersAreNonnullByDefault
 @Singleton
 public class CloudPluginManager implements PluginManager {
     private final Map<String, PluginContainer> plugins = new HashMap<>();

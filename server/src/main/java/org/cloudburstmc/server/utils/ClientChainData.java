@@ -22,6 +22,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -156,7 +157,15 @@ public final class ClientChainData implements LoginChainData {
 //    }
 
     public static ClientChainData read(LoginPacket pk) {
-        return new ClientChainData(pk.getChain(), pk.getExtra());
+        return new ClientChainData(pk.getChain().stream().map(ClientChainData::parseJwt).toList(), parseJwt(pk.getExtra()));
+    }
+
+    private static SignedJWT parseJwt(String jwt) {
+        try {
+            return SignedJWT.parse(jwt);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////

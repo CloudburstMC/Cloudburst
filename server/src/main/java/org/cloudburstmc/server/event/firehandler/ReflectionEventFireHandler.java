@@ -3,11 +3,11 @@ package org.cloudburstmc.server.event.firehandler;
 import co.aikar.timings.Timing;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.EventFireHandler;
 import org.cloudburstmc.api.event.Listener;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -79,7 +79,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
         }
 
         @Override
-        public int compareTo(@Nonnull EventFireHandler.ListenerMethod o) {
+        public int compareTo(EventFireHandler.@NonNull ListenerMethod o) {
             Listener thisListener = getMethod().getAnnotation(Listener.class);
             if (listener == null) {
                 return -1;

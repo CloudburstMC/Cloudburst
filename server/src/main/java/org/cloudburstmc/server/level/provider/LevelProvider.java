@@ -6,7 +6,6 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.utils.LoadState;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -14,7 +13,6 @@ import java.util.function.BiConsumer;
 /**
  * Interface that allows the level to load and save chunks from any storage implementation.
  */
-@ParametersAreNonnullByDefault
 public interface LevelProvider extends PlayerDataProvider, Closeable {
 
     /**

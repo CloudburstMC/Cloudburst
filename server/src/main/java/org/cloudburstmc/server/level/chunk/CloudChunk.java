@@ -9,6 +9,7 @@ import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
@@ -32,10 +33,6 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
@@ -47,8 +44,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Log4j2
-@ThreadSafe
-@ParametersAreNonnullByDefault
 public final class CloudChunk implements Chunk, Closeable {
 
     public static final int SECTION_COUNT = 16;
@@ -125,7 +120,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public ChunkSection getOrCreateSection(int y) {
         this.writeLock.lock();
@@ -147,7 +142,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public ChunkSection[] getSections() {
         this.readLock.lock();
@@ -159,7 +154,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         this.readLock.lock();
@@ -170,7 +165,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public BlockState getAndSetBlock(int x, int y, int z, int layer, BlockState blockState) {
         this.writeLock.lock();
@@ -262,7 +257,7 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @Override
-    public void addEntity(@Nonnull Entity entity) {
+    public void addEntity(@NonNull Entity entity) {
         this.writeLock.lock();
         try {
             unsafe.addEntity(entity);
@@ -306,13 +301,13 @@ public final class CloudChunk implements Chunk, Closeable {
         return unsafe.getZ();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Level getLevel() {
         return unsafe.getLevel();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public byte[] getBiomeArray() {
         this.readLock.lock();
@@ -323,7 +318,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public int[] getHeightMapArray() {
         this.readLock.lock();
@@ -334,7 +329,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<CloudPlayer> getPlayers() {
         this.readLock.lock();
@@ -345,7 +340,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseEntity> getEntities() {
         this.readLock.lock();
@@ -402,13 +397,13 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Synchronized("loaders")
     public Set<ChunkLoader> getLoaders() {
         return ImmutableSet.copyOf(loaders);
     }
 
-    @Nonnull
+    @NonNull
     @Synchronized("loaders")
     public Set<CloudPlayer> getPlayerLoaders() {
         return new HashSet<>(playerLoaders);
@@ -514,7 +509,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<BaseBlockEntity> getBlockEntities() {
         this.readLock.lock();
@@ -542,7 +537,7 @@ public final class CloudChunk implements Chunk, Closeable {
         unsafe.setDirty(dirty);
     }
 
-    @Nonnull
+    @NonNull
     public synchronized LevelChunkPacket createChunkPacket() {
         if (UnsafeChunk.CLEAR_CACHE_FIELD.compareAndSet(unsafe, 1, 0)) {
             this.clearCache();

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.player;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.crafting.CraftingGrid;
@@ -10,7 +11,6 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.inventory.ContainerInventory;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
@@ -31,7 +31,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.CloudServer;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -594,21 +593,6 @@ public class OfflinePlayer implements Player {
     @Override
     public GameMode getGamemode() {
         return null;
-    }
-
-    @Override
-    public byte getWindowId(Inventory inventory) {
-        return 0;
-    }
-
-    @Override
-    public byte addWindow(Inventory window, Byte forceId, boolean isPermanent) {
-        return 0;
-    }
-
-    @Override
-    public void removeWindow(Inventory inventory) {
-
     }
 
     @Override

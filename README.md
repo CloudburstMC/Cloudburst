@@ -1,6 +1,6 @@
 ![Cloudburst](.github/images/banner.png)
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](server/LICENSE)
 [![Build Status](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/badge/icon)](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)
 ![Tests](https://img.shields.io/jenkins/t/https/ci.nukkitx.com/job/NukkitX/job/Server/job/master.svg)
 [![Discord](https://img.shields.io/discord/393465748535640064.svg)](https://discord.gg/5PzMkyK)
@@ -28,7 +28,8 @@ Links
 
 Build JAR file
 -------------
-- `git clone https://github.com/CloudburstMC/Server.git`
+
+- `git clone https://github.com/CloudburstMC/Cloudburst.git`
 - `cd Server`
 - `git submodule update --init`
 - `./mvnw clean package`

@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.permission;
 
+import com.google.inject.Singleton;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionManager;
 
-import javax.annotation.Nonnull;
-import javax.inject.Singleton;
 import java.util.*;
 
 @Singleton
@@ -18,7 +18,7 @@ public class CloudPermissionManager implements PermissionManager {
     private final Map<Permissible, Permissible> defSubs = new WeakHashMap<>();
     private final Map<Permissible, Permissible> defSubsOp = new WeakHashMap<>();
 
-    @Nonnull
+    @NonNull
     @Override
     public Optional<Permission> getPermission(String name) {
         if (this.permissions.containsKey(name)) {
@@ -48,7 +48,7 @@ public class CloudPermissionManager implements PermissionManager {
         this.removePermission(permission.getName());
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Map<String, Permission> getDefaultPermissions(boolean op) {
         if (op) {
@@ -103,7 +103,7 @@ public class CloudPermissionManager implements PermissionManager {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<Permissible> getPermissionSubscriptions(String permission) {
         if (this.permSubs.containsKey(permission)) {
@@ -135,7 +135,7 @@ public class CloudPermissionManager implements PermissionManager {
         }
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
         Set<Permissible> subs = new HashSet<>();
@@ -147,7 +147,7 @@ public class CloudPermissionManager implements PermissionManager {
         return subs;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Map<String, Permission> getPermissions() {
         return permissions;

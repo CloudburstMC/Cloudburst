@@ -1,12 +1,11 @@
 package org.cloudburstmc.server.command;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.registry.CommandRegistry;
-
-import javax.annotation.Nonnull;
 
 /**
  * <p>This class is used as a base for all Commands for Plugins. You will want to extend this class to implement
@@ -94,7 +93,7 @@ public class PluginCommand<T extends PluginContainer> extends Command implements
         return executor;
     }
 
-    public void setExecutor(@Nonnull CommandExecutor executor) {
+    public void setExecutor(@NonNull CommandExecutor executor) {
         Preconditions.checkNotNull(executor);
         this.executor = executor;
     }

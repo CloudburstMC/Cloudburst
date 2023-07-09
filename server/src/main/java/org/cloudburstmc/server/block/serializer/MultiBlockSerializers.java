@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.*;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.Tuple;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
@@ -14,7 +15,6 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.*;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.Map.Entry;

@@ -7,13 +7,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.server.form.CustomForm.CustomFormBuilder;
 import org.cloudburstmc.server.form.ModalForm.ModalFormBuilder;
 import org.cloudburstmc.server.form.SimpleForm.SimpleFormBuilder;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -102,7 +102,7 @@ public abstract class Form<R> {
          * @param title form title
          * @return self builder instance
          */
-        public T title(@Nonnull String title) {
+        public T title(@NonNull String title) {
             this.title = title;
             return self();
         }
@@ -113,7 +113,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onSubmit(@Nonnull BiConsumer<CloudPlayer, R> listener) {
+        public T onSubmit(@NonNull BiConsumer<CloudPlayer, R> listener) {
             this.listeners.add(listener);
             return self();
         }
@@ -124,7 +124,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onClose(@Nonnull Consumer<CloudPlayer> listener) {
+        public T onClose(@NonNull Consumer<CloudPlayer> listener) {
             this.closeListeners.add(listener);
             return self();
         }
@@ -136,7 +136,7 @@ public abstract class Form<R> {
          * @param listener callback function
          * @return builder instance
          */
-        public T onError(@Nonnull Consumer<CloudPlayer> listener) {
+        public T onError(@NonNull Consumer<CloudPlayer> listener) {
             this.errorListeners.add(listener);
             return self();
         }

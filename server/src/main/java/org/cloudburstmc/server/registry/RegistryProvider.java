@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.registry;
 
-import javax.annotation.Nonnull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class RegistryProvider<T> implements Comparable<RegistryProvider<T>> {
     private final T value;
@@ -13,7 +13,7 @@ public class RegistryProvider<T> implements Comparable<RegistryProvider<T>> {
         this.priority = priority;
     }
 
-    @Nonnull
+    @NonNull
     public T getValue() {
         return value;
     }

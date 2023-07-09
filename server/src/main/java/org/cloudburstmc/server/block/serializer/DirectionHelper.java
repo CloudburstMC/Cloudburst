@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.serializer;
 
 import com.google.common.base.Preconditions;
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
@@ -10,7 +11,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.math.NukkitMath;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -150,13 +150,13 @@ public class DirectionHelper {
         return list.get(meta);
     }
 
-    public short toMeta(@Nonnull Direction direction, SeqType type) {
+    public short toMeta(@NonNull Direction direction, SeqType type) {
         Preconditions.checkNotNull(direction);
         return faceMetaTranslators.get(type).get(direction);
     }
 
     @SuppressWarnings("ConstantConditions")
-    public int serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockType blockType, @Nonnull Map<BlockTrait<?>, Comparable<?>> traits) {
+    public int serialize(@NonNull NbtMapBuilder builder, @NonNull BlockType blockType, @NonNull Map<BlockTrait<?>, Comparable<?>> traits) {
         SeqType type = mapping.getOrDefault(blockType, TYPE_12); //2 is the most common
 
         Direction direction = (Direction) traits.get(BlockTraits.DIRECTION);
@@ -173,7 +173,7 @@ public class DirectionHelper {
     }
 
     @SuppressWarnings("ConstantConditions")
-    public void serialize(@Nonnull NbtMapBuilder builder, @Nonnull BlockState state, SeqType type) {
+    public void serialize(@NonNull NbtMapBuilder builder, @NonNull BlockState state, SeqType type) {
         builder.putInt("direction", toMeta(state.ensureTrait(BlockTraits.DIRECTION), type));
     }
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.projectile;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -23,7 +24,6 @@ import org.cloudburstmc.server.level.particle.WaterParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
-import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 

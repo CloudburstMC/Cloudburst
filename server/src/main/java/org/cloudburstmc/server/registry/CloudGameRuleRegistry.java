@@ -3,11 +3,11 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.gamerule.*;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
         return this.registered.get(name);
     }
 
-    @Nonnull
+    @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public GameRuleMap getDefaultRules() {
         GameRuleMap gameRules = new GameRuleMap();
@@ -55,13 +55,13 @@ public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
         return gameRules;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public List<GameRule<?>> getRules() {
         return ImmutableList.copyOf(this.registered.values());
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<String> getRuleNames() {
         return ImmutableSet.copyOf(this.registered.keySet());

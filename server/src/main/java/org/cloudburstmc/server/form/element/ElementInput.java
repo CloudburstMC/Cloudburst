@@ -3,9 +3,8 @@ package org.cloudburstmc.server.form.element;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.ToString;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @ToString
 @Getter
@@ -15,16 +14,16 @@ public final class ElementInput extends Element {
     @JsonProperty("default")
     private String defaultText;
 
-    public ElementInput(@Nonnull String elementText) {
+    public ElementInput(@NonNull String elementText) {
         super(ElementType.INPUT, elementText);
     }
 
-    public ElementInput(@Nonnull String elementText, @Nullable String placeholder) {
+    public ElementInput(@NonNull String elementText, @Nullable String placeholder) {
         super(ElementType.INPUT, elementText);
         this.placeholder = placeholder;
     }
 
-    public ElementInput(@Nonnull String elementText, @Nullable String placeholder, @Nullable String defaultText) {
+    public ElementInput(@NonNull String elementText, @Nullable String placeholder, @Nullable String defaultText) {
         super(ElementType.INPUT, elementText);
         this.placeholder = placeholder;
         this.defaultText = defaultText;

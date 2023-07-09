@@ -3,8 +3,7 @@ package org.cloudburstmc.server.form.element;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.ToString;
-
-import javax.annotation.Nonnull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @ToString
 @Getter
@@ -16,7 +15,7 @@ public final class ElementSlider extends Element {
     @JsonProperty("default")
     private final float defaultValue;
 
-    public ElementSlider(@Nonnull String elementText) {
+    public ElementSlider(@NonNull String elementText) {
         super(ElementType.SLIDER, elementText);
         this.min = 0f;
         this.max = 100f;
@@ -24,7 +23,7 @@ public final class ElementSlider extends Element {
         this.defaultValue = 0f;
     }
 
-    public ElementSlider(@Nonnull String elementText, float min, float max) {
+    public ElementSlider(@NonNull String elementText, float min, float max) {
         super(ElementType.SLIDER, elementText);
         if (min >= max) {
             throw new IllegalArgumentException("Maximal value can't be smaller or equal to the minimal value");
@@ -35,7 +34,7 @@ public final class ElementSlider extends Element {
         this.defaultValue = min;
     }
 
-    public ElementSlider(@Nonnull String elementText, float min, float max, int step) {
+    public ElementSlider(@NonNull String elementText, float min, float max, int step) {
         super(ElementType.SLIDER, elementText);
         if (min >= max) {
             throw new IllegalArgumentException("Maximal value can't be smaller or equal to the minimal value");
@@ -46,7 +45,7 @@ public final class ElementSlider extends Element {
         this.defaultValue = min;
     }
 
-    public ElementSlider(@Nonnull String elementText, float min, float max, int step, float defaultValue) {
+    public ElementSlider(@NonNull String elementText, float min, float max, int step, float defaultValue) {
         super(ElementType.SLIDER, elementText);
         if (min >= max) {
             throw new IllegalArgumentException("Maximal value can't be smaller or equal to the minimal value");

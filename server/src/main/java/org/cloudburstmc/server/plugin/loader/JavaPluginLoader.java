@@ -3,6 +3,7 @@ package org.cloudburstmc.server.plugin.loader;
 import com.google.inject.Injector;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.plugin.*;
 import org.cloudburstmc.server.inject.PluginModule;
 import org.cloudburstmc.server.plugin.CloudPluginContainer;
@@ -15,7 +16,6 @@ import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -40,9 +40,9 @@ public class JavaPluginLoader implements PluginLoader {
         return new Builder();
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public PluginDescription loadPlugin(@Nonnull Path path) throws Exception {
+    public PluginDescription loadPlugin(@NonNull Path path) throws Exception {
         Objects.requireNonNull(path, "path");
 
         try (JarInputStream jis = new JarInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
@@ -75,9 +75,9 @@ public class JavaPluginLoader implements PluginLoader {
         throw new PluginException("No main class found");
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    public PluginContainer createPlugin(@Nonnull Injector injector, @Nonnull PluginDescription description) throws Exception {
+    public PluginContainer createPlugin(@NonNull Injector injector, @NonNull PluginDescription description) throws Exception {
         Objects.requireNonNull(description, "description");
         if (!(description instanceof JavaPluginDescription)) {
             throw new IllegalArgumentException("Description provided is not of JavaPluginDescription");
@@ -93,7 +93,7 @@ public class JavaPluginLoader implements PluginLoader {
         return new CloudPluginContainer(inj.getInstance(pluginClass), description, logger, dataDirectory);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public PathMatcher getPathMatcher() {
         return PATH_MATCHER;

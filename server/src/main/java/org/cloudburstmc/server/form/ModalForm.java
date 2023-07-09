@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.server.form.util.FormType;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -60,7 +60,7 @@ public class ModalForm extends Form<Boolean> {
          * @param content form text content
          * @return self builder instance
          */
-        public ModalFormBuilder content(@Nonnull String content) {
+        public ModalFormBuilder content(@NonNull String content) {
             this.content = content;
             return this;
         }
@@ -71,7 +71,7 @@ public class ModalForm extends Form<Boolean> {
          * @param value string value for {@link Boolean#TRUE}
          * @return self builder instance
          */
-        public ModalFormBuilder trueValue(@Nonnull String value) {
+        public ModalFormBuilder trueValue(@NonNull String value) {
             this.trueValue = value;
             return this;
         }
@@ -82,7 +82,7 @@ public class ModalForm extends Form<Boolean> {
          * @param value string value for {@link Boolean#FALSE}
          * @return self builder instance
          */
-        public ModalFormBuilder falseValue(@Nonnull String value) {
+        public ModalFormBuilder falseValue(@NonNull String value) {
             this.falseValue = value;
             return this;
         }

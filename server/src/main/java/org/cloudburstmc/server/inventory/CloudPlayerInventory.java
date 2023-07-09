@@ -2,6 +2,7 @@ package org.cloudburstmc.server.inventory;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
@@ -18,7 +19,6 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,14 +98,14 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
         return builder.build();
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public ItemStack getCursorItem() {
         return getCursor().getItem(0);
     }
 
     @Override
-    public boolean setCursorItem(@Nonnull ItemStack item) {
+    public boolean setCursorItem(@NonNull ItemStack item) {
         return getCursor().setItem(0, item);
     }
 

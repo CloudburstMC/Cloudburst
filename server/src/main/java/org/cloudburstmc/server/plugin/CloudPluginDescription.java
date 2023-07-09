@@ -2,11 +2,11 @@ package org.cloudburstmc.server.plugin;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.plugin.PluginDependency;
 import org.cloudburstmc.api.plugin.PluginDescription;
 import org.cloudburstmc.api.plugin.PluginLoader;
 
-import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +37,7 @@ public class CloudPluginDescription implements PluginDescription {
         this.loader = Objects.requireNonNull(loader, "loader");
     }
 
-    public CloudPluginDescription(@Nonnull PluginDescription description) {
+    public CloudPluginDescription(@NonNull PluginDescription description) {
         this.id = Objects.requireNonNull(description.getId(), "id");
         this.name = Objects.requireNonNull(description.getName(), "name");
         this.version = Objects.requireNonNull(description.getVersion(), "version");
@@ -49,55 +49,55 @@ public class CloudPluginDescription implements PluginDescription {
         this.loader = Objects.requireNonNull(description.getPluginLoader(), "loader");
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public String getId() {
         return id;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public String getName() {
         return name;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Optional<String> getDescription() {
         return Optional.ofNullable(description);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Optional<Path> getPath() {
         return Optional.ofNullable(path);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public List<String> getAuthors() {
         return authors;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public String getVersion() {
         return version;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public List<PluginDependency> getDependencies() {
         return dependencies;
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Optional<String> getUrl() {
         return Optional.ofNullable(url);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public PluginLoader getPluginLoader() {
         return loader;

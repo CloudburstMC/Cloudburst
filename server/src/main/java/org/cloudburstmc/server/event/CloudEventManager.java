@@ -1,8 +1,11 @@
 package org.cloudburstmc.server.event;
 
 import co.aikar.timings.Timings;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.EventFireHandler;
 import org.cloudburstmc.api.event.EventManager;
@@ -11,10 +14,6 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
 
-import javax.annotation.Nonnull;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
@@ -22,7 +21,6 @@ import java.util.Map.Entry;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Log4j2
-@ParametersAreNonnullByDefault
 @Singleton
 public class CloudEventManager implements EventManager {
 
@@ -122,7 +120,7 @@ public class CloudEventManager implements EventManager {
         }
     }
 
-    @Nonnull
+    @NonNull
     private PluginContainer ensurePlugin(Object plugin) {
         checkNotNull(plugin, "plugin");
         return this.pluginManager.fromInstance(plugin).orElseThrow(() ->

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.protocol.bedrock.data.defintions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 
 public class CloudItemDefinition implements ItemDefinition {
 

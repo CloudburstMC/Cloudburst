@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.inject.LevelModule;
@@ -11,7 +12,6 @@ import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.registry.StorageRegistry;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +61,7 @@ public class LevelBuilder {
         return this;
     }
 
-    @Nonnull
+    @NonNull
     public CompletableFuture<CloudLevel> load() {
         CloudLevel loadedLevel = this.server.getLevel(id);
         if (loadedLevel != null) {

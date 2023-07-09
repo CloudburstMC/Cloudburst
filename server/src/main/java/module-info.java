@@ -1,14 +1,14 @@
 open module org.cloudburstmc.server {
-    requires block.state.updater;
+//    requires org.cloudburstmc.blockstateupdater;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.javaprop;
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.google.common;
     requires com.google.guice;
-    requires com.nimbusds.jose.jwt;
+//    requires com.nimbusds.jose.jwt;
     requires com.nukkitx.natives;
-    requires common;
-    requires completable.futures;
+//    requires common;
+//    requires completable.futures;
     requires io.netty.buffer;
     requires io.netty.common;
     requires io.netty.transport;
@@ -16,14 +16,13 @@ open module org.cloudburstmc.server {
     requires java.desktop;
     requires java.management;
     requires jdk.unsupported;
-    requires jopt.simple;
-    requires leveldb.api;
-    requires leveldb.mcpe.jni;
-    requires leveldb;
-    requires math;
-    requires natives;
+//    requires leveldb.api;
+//    requires leveldb.mcpe.jni;
+//    requires leveldb;
+//    requires math;
+//    requires natives;
     requires net.minecrell.terminalconsole;
-    requires noise;
+//    requires noise;
     requires org.apache.logging.log4j.core;
     requires org.apache.logging.log4j;
     requires org.cloudburstmc.api;
@@ -37,12 +36,14 @@ open module org.cloudburstmc.server {
     requires org.objectweb.asm.commons;
     requires org.objectweb.asm;
     requires org.slf4j;
-    requires random;
-    requires static javax.inject;
-    requires static jsr305;
+//    requires random;
     requires static lombok;
     requires static org.checkerframework.checker.qual;
-    requires upnp;
+    requires com.spotify.completablefutures;
+    requires com.nimbusds.jose.jwt;
+    requires org.iq80.leveldb.api;
+    requires net.daporkchop.leveldb.mcpe.jni;
+    requires org.cloudburstmc.upnp;
 
     exports co.aikar.timings;
     exports org.cloudburstmc.server.block.behavior;

@@ -209,3 +209,27 @@ nbdist/
 # Jrebel
 rebel.xml
 rebel-remote.xml
+
+# Nukkit generated files
+banned-ips.json
+banned-players.json
+cloudburst.yml
+!server/src/test/resources/config/cloudburst.yml
+ops.txt
+server.log
+server.properties
+!src/test/resources/config/server.properties
+white-list.txt
+worlds
+worlds/*
+plugins
+plugins/*
+players
+players/*
+logs
+logs/*
+resource_packs
+resource_packs/*
+creativeitems.json
+recipes.json
+/run/

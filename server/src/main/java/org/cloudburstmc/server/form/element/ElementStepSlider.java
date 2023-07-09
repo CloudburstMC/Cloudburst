@@ -5,8 +5,8 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,18 +18,18 @@ public final class ElementStepSlider extends Element {
     @JsonProperty("default")
     private int defaultStepIndex = 0;
 
-    public ElementStepSlider(@Nonnull String elementText) {
+    public ElementStepSlider(@NonNull String elementText) {
         super(ElementType.STEP_SLIDER, elementText);
     }
 
-    public ElementStepSlider(@Nonnull String elementText, @Nonnull List<String> steps) {
+    public ElementStepSlider(@NonNull String elementText, @NonNull List<String> steps) {
         super(ElementType.STEP_SLIDER, elementText);
         Preconditions.checkNotNull(steps, "The provided step options can not be null");
 
         this.steps.addAll(steps);
     }
 
-    public ElementStepSlider(@Nonnull String elementText, @Nonnull List<String> steps, int defaultStepIndex) {
+    public ElementStepSlider(@NonNull String elementText, @NonNull List<String> steps, int defaultStepIndex) {
         super(ElementType.STEP_SLIDER, elementText);
         Preconditions.checkNotNull(steps, "The provided step options can not be null");
 
