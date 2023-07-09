@@ -10,6 +10,7 @@ import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.inventory.InventoryOpenEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
@@ -17,15 +18,13 @@ import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.BaseEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
+import java.util.function.ObjIntConsumer;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.item.ItemBehaviors.GET_MAX_STACK_SIZE;
@@ -40,15 +39,14 @@ public abstract class CloudInventory implements Inventory {
 
     protected int maxStackSize = MAX_STACK;
 
-    protected int size;
 
     protected final String name;
 
     protected final String title;
 
-    public final Int2ObjectMap<ItemStack> slots = new Int2ObjectOpenHashMap<>();
+    protected ItemStack[] slots;
 
-    protected final Set<CloudPlayer> viewers = new HashSet<>();
+    protected final Set<InventoryListener> listeners = new HashSet<>();
 
     protected InventoryHolder holder;
 
@@ -56,26 +54,26 @@ public abstract class CloudInventory implements Inventory {
     ItemRegistry itemRegistry;
 
     public CloudInventory(InventoryHolder holder, InventoryType type) {
-        this(holder, type, new HashMap<>());
+        this(holder, type, new ItemStack[0]);
     }
 
-    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, ItemStack[] contents) {
         this(holder, type, contents, null);
     }
 
-    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, ItemStack[] contents, Integer overrideSize) {
         this(holder, type, contents, overrideSize, null);
     }
 
-    public CloudInventory(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> contents, Integer overrideSize, String overrideTitle) {
+    public CloudInventory(InventoryHolder holder, InventoryType type, ItemStack[] contents, Integer overrideSize, String overrideTitle) {
         this.holder = holder;
 
         this.type = type;
 
         if (overrideSize != null) {
-            this.size = overrideSize;
+            this.slots = new ItemStack[overrideSize];
         } else {
-            this.size = this.type.getDefaultSize();
+            this.slots = new ItemStack[this.type.getDefaultSize()];
         }
 
         if (overrideTitle != null) {
@@ -93,11 +91,11 @@ public abstract class CloudInventory implements Inventory {
 
     @Override
     public int getSize() {
-        return size;
+        return slots.length;
     }
 
     public void setSize(int size) {
-        this.size = size;
+        this.slots = Arrays.copyOf(this.slots, size);
     }
 
     @Override
@@ -118,50 +116,38 @@ public abstract class CloudInventory implements Inventory {
     @Override
     @NonNull
     public ItemStack getItem(int index) {
-        return this.slots.getOrDefault(index, ItemStack.EMPTY);
+        return this.slots[index];
     }
 
     @Override
-    public Map<Integer, ItemStack> getContents() {
-        return new HashMap<>(this.slots);
+    public ItemStack[] getContents() {
+        return Arrays.copyOf(this.slots, this.slots.length);
     }
 
     @Override
-    public void setContents(Map<Integer, ItemStack> items) {
-        if (items.size() > this.size) {
-            TreeMap<Integer, ItemStack> newItems = new TreeMap<>();
-            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
-                newItems.put(entry.getKey(), entry.getValue());
-            }
-            items = newItems;
-            newItems = new TreeMap<>();
-            int i = 0;
-            for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
-                newItems.put(entry.getKey(), entry.getValue());
-                i++;
-                if (i >= this.size) {
-                    break;
-                }
-            }
-            items = newItems;
+    public void setContents(ItemStack[] items) {
+        if (items.length > this.slots.length) {
+            throw new IllegalArgumentException("Invalid inventory size; expected " + this.slots.length + " or less");
+        } else if (items.length < this.slots.length) {
+            items = Arrays.copyOf(items, this.slots.length);
         }
 
-        for (int i = 0; i < this.size; ++i) {
-            if (!items.containsKey(i)) {
-                if (this.slots.containsKey(i)) {
-                    this.clear(i);
-                }
-            } else {
-                if (!this.setItem(i, items.get(i))) {
-                    this.clear(i);
-                }
+        for (int i = 0; i < this.slots.length; ++i) {
+            if (items[i] == null) {
+                items[i] = ItemStack.EMPTY;
             }
+        }
+
+        this.slots = items;
+
+        for (InventoryListener listener : this.listeners) {
+            listener.onInventoryContentsChange(this);
         }
     }
 
     @Override
     public boolean setItem(int index, ItemStack item, boolean send) {
-        if (index < 0 || index >= this.size) {
+        if (index < 0 || index >= this.slots.length) {
             return false;
         } else if (item.getType() == AIR || item.getCount() <= 0) {
             return this.clear(index, send);
@@ -172,7 +158,7 @@ public abstract class CloudInventory implements Inventory {
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, this.getItem(index), item, index);
             CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
-                this.sendSlot(index, this.getViewers());
+                this.sendSlot(index, this.getListeners());
                 return false;
             }
 
@@ -184,7 +170,7 @@ public abstract class CloudInventory implements Inventory {
         }
 
         ItemStack old = this.getItem(index);
-        this.slots.put(index, item);
+        this.slots[index] = item;
         this.onSlotChange(index, old, send);
 
         return true;
@@ -193,7 +179,7 @@ public abstract class CloudInventory implements Inventory {
     @Override
     public boolean contains(ItemStack item) {
         int count = Math.max(1, item.getCount());
-        for (ItemStack i : this.getContents().values()) {
+        for (ItemStack i : this.slots) {
             if (item.equals(i)) {
                 count -= i.getCount();
                 if (count <= 0) {
@@ -208,9 +194,9 @@ public abstract class CloudInventory implements Inventory {
     @Override
     public Map<Integer, ItemStack> all(ItemStack item) {
         Map<Integer, ItemStack> slots = new HashMap<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue())) {
-                slots.put(entry.getKey(), entry.getValue());
+        for (int i = 0; i < this.slots.length; ++i) {
+            if (item.equals(this.slots[i])) {
+                slots.put(i, this.slots[i]);
             }
         }
 
@@ -219,9 +205,9 @@ public abstract class CloudInventory implements Inventory {
 
     @Override
     public void remove(ItemStack item) {
-        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue())) {
-                this.clear(entry.getKey());
+        for (int i = 0; i < this.slots.length; ++i) {
+            if (item.equals(this.slots[i])) {
+                this.clear(i);
             }
         }
     }
@@ -229,9 +215,9 @@ public abstract class CloudInventory implements Inventory {
     @Override
     public int first(ItemStack item, boolean exact) {
         int count = Math.max(1, item.getCount());
-        for (Map.Entry<Integer, ItemStack> entry : this.getContents().entrySet()) {
-            if (item.equals(entry.getValue()) && (entry.getValue().getCount() == count || (!exact && entry.getValue().getCount() > count))) {
-                return entry.getKey();
+        for (int i = 0; i < this.slots.length; ++i) {
+            if (item.equals(this.slots[i]) && (this.slots[i].getCount() == count || (!exact && this.slots[i].getCount() > count))) {
+                return i;
             }
         }
 
@@ -240,7 +226,7 @@ public abstract class CloudInventory implements Inventory {
 
     @Override
     public int firstEmpty() {
-        for (int i = 0; i < this.size; ++i) {
+        for (int i = 0; i < this.slots.length; ++i) {
             if (this.getItem(i) == ItemStack.EMPTY) {
                 return i;
             }
@@ -251,7 +237,7 @@ public abstract class CloudInventory implements Inventory {
 
     @Override
     public int firstNonEmpty() {
-        for (int i = 0; i < this.size; ++i) {
+        for (int i = 0; i < this.slots.length; ++i) {
             if (this.getItem(i) != ItemStack.EMPTY) {
                 return i;
             }
@@ -265,7 +251,7 @@ public abstract class CloudInventory implements Inventory {
         int count = single ? 1 : item.getCount();
         int maxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
 
-        for (int i = 0; i < this.size; ++i) {
+        for (int i = 0; i < this.slots.length; ++i) {
             ItemStack slot = this.getItem(i);
             if (slot.getCount() + count < maxStackSize && slot.equals(item)) {
                 return i;
@@ -398,7 +384,7 @@ public abstract class CloudInventory implements Inventory {
     protected int getEmptySlotsCount() {
         int count = 0;
 
-        for (ItemStack item : this.slots.values()) {
+        for (ItemStack item : this.slots) {
             if (ItemUtils.isNull(item)) {
                 count++;
             }
@@ -410,11 +396,11 @@ public abstract class CloudInventory implements Inventory {
     private synchronized Int2ObjectMap<ItemStack> findMergable(@NonNull ItemStack item) {
         Int2ObjectMap<ItemStack> mergable = new Int2ObjectOpenHashMap<>();
 
-        for (var entry : this.slots.int2ObjectEntrySet()) {
-            ItemStack content = entry.getValue();
+        for (int i = 0; i < this.slots.length; i++) {
+            ItemStack content = this.slots[i];
 
             if (content != null && content.isMergeable(item)) {
-                mergable.put(entry.getIntKey(), content);
+                mergable.put(i, content);
             }
         }
 
@@ -440,7 +426,7 @@ public abstract class CloudInventory implements Inventory {
             }
         }
 
-        for (int i = 0; i < this.size; ++i) {
+        for (int i = 0; i < this.slots.length; ++i) {
             ItemStack item = this.getItem(i);
             if (item == ItemStack.EMPTY) {
                 continue;
@@ -469,15 +455,15 @@ public abstract class CloudInventory implements Inventory {
 
     @Override
     public boolean clear(int index, boolean send) {
-        if (this.slots.containsKey(index)) {
+        if (index >= 0 && index < this.slots.length) {
             ItemStack item = ItemStack.EMPTY;
-            ItemStack old = this.slots.get(index);
+            ItemStack old = this.slots[index];
             InventoryHolder holder = this.getHolder();
             if (holder instanceof BaseEntity) {
                 EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent((BaseEntity) holder, old, item, index);
                 CloudServer.getInstance().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
-                    this.sendSlot(index, this.getViewers());
+                    this.sendSlot(index, this.getListeners());
                     return false;
                 }
                 item = ev.getNewItem();
@@ -486,11 +472,7 @@ public abstract class CloudInventory implements Inventory {
                 ((BlockEntity) holder).setDirty();
             }
 
-            if (item != ItemStack.EMPTY) {
-                this.slots.put(index, item);
-            } else {
-                this.slots.remove(index);
-            }
+            this.slots[index] = item;
 
             this.onSlotChange(index, old, send);
         }
@@ -498,16 +480,22 @@ public abstract class CloudInventory implements Inventory {
         return true;
     }
 
+    protected void checkSlotIndex(int index) {
+        if (index < 0 || index >= this.slots.length) {
+            throw new IllegalArgumentException("Slot index out of range: " + index);
+        }
+    }
+
     @Override
     public void clearAll() {
-        for (Integer index : this.getContents().keySet()) {
+        for (int index = 0; index < this.slots.length; index++) {
             this.clear(index);
         }
     }
 
     @Override
-    public Set<CloudPlayer> getViewers() {
-        return viewers;
+    public Set<InventoryListener> getListeners() {
+        return listeners;
     }
 
     @Override
@@ -536,47 +524,41 @@ public abstract class CloudInventory implements Inventory {
     }
 
     public void onOpen(Player who) {
-        this.viewers.add((CloudPlayer) who);
+        this.listeners.add((CloudPlayer) who);
     }
 
     public void onClose(Player who) {
-        this.viewers.remove(who);
+        this.listeners.remove(who);
     }
 
     @Override
+    public void forEachSlot(ObjIntConsumer<ItemStack> consumer) {
+        for (int i = 0; i < this.slots.length; i++) {
+            ItemStack item = this.getItem(i);
+            consumer.accept(item, i);
+        }
+    }
+
     public void onSlotChange(int index, ItemStack before, boolean send) {
         if (send) {
-            this.sendSlot(index, this.getViewers());
+            this.sendSlot(index, this.getListeners());
         }
     }
 
     @Override
-    public void sendContents(Player... players) {
-        InventoryContentPacket packet = new InventoryContentPacket();
-        List<ItemData> contents = new ArrayList<>();
-        for (int i = 0; i < this.getSize(); ++i) {
-            contents.add(i, ItemUtils.toNetwork(this.getItem(i)));
-        }
-        packet.setContents(contents);
-
-        for (Player player : players) {
-            int id = player.getWindowId(this);
-            if (id == -1 || !player.isSpawned()) {
-                this.close(player);
-                continue;
-            }
-            packet.setContainerId(id);
-            ((CloudPlayer) player).sendPacket(packet);
+    public void sendContents(InventoryListener... listeners) {
+        for (InventoryListener listener : listeners) {
+            listener.onInventoryContentsChange(this);
         }
     }
 
     @Override
     public boolean isFull() {
-        if (this.slots.size() < this.getSize()) {
+        if (this.slots.length < this.getSize()) {
             return false;
         }
 
-        for (ItemStack item : this.slots.values()) {
+        for (ItemStack item : this.slots) {
             if (ItemUtils.isNull(item) || item.getCount() < this.getMaxStackSize() ||
                     item.getCount() < this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute()) {
                 return false;
@@ -592,7 +574,7 @@ public abstract class CloudInventory implements Inventory {
             return false;
         }
 
-        for (ItemStack item : this.slots.values()) {
+        for (ItemStack item : this.slots) {
             if (!ItemUtils.isNull(item)) {
                 return false;
             }
@@ -604,9 +586,9 @@ public abstract class CloudInventory implements Inventory {
     public int getFreeSpace(ItemStack item) {
         int itemMaxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
         int maxStackSize = Math.min(itemMaxStackSize, this.getMaxStackSize());
-        int space = (this.getSize() - this.slots.size()) * maxStackSize;
+        int space = (this.getSize() - this.slots.length) * maxStackSize;
 
-        for (ItemStack slot : this.getContents().values()) {
+        for (ItemStack slot : this.getContents()) {
             if (slot == null || slot == ItemStack.EMPTY) {
                 space += maxStackSize;
                 continue;
@@ -621,29 +603,19 @@ public abstract class CloudInventory implements Inventory {
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
-        InventorySlotPacket packet = new InventorySlotPacket();
-        packet.setSlot(index);
-        packet.setItem(ItemUtils.toNetwork(this.getItem(index)));
-
-        for (Player player : players) {
-            int id = player.getWindowId(this);
-            if (id == -1) {
-                this.close(player);
-                continue;
-            }
-            packet.setContainerId(id);
-            ((CloudPlayer) player).sendPacket(packet);
+    public void sendSlot(int index, InventoryListener... listeners) {
+        for (InventoryListener listener : listeners) {
+            listener.onInventorySlotChange(this, index, this.getItem(index));
         }
     }
 
     public void saveInventory(NbtMapBuilder tag) {
         List<NbtMap> inventoryItems = new ArrayList<>();
 
-        for (Int2ObjectMap.Entry<ItemStack> slot : this.slots.int2ObjectEntrySet()) {
-            ItemStack item = slot.getValue();
+        for (int i = 0; i < this.slots.length; i++) {
+            ItemStack item = this.slots[i];
             if (item != ItemStack.EMPTY) {
-                inventoryItems.add(ItemUtils.serializeItem(item, slot.getIntKey()));
+                inventoryItems.add(ItemUtils.serializeItem(item, i));
             }
         }
 
@@ -654,5 +626,11 @@ public abstract class CloudInventory implements Inventory {
     @Override
     public InventoryType getType() {
         return type;
+    }
+
+    public void close() {
+        for (InventoryListener listener : this.listeners) {
+            listener.onInventoryRemoved(this);
+        }
     }
 }

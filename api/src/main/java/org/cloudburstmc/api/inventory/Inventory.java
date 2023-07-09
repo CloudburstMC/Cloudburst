@@ -7,6 +7,7 @@ import org.cloudburstmc.api.player.Player;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ObjIntConsumer;
 
 /**
  * author: MagicDroidX
@@ -41,29 +42,29 @@ public interface Inventory {
 
     ItemStack[] removeItem(ItemStack... slots);
 
-    Map<Integer, ItemStack> getContents();
+    ItemStack[] getContents();
 
-    void setContents(Map<Integer, ItemStack> items);
+    void setContents(ItemStack[] items);
 
-    default void sendContents(Player player) {
-        sendContents(new Player[]{player});
+    default void sendContents(InventoryListener player) {
+        sendContents(new InventoryListener[]{player});
     }
 
-    default void sendContents(Collection<? extends Player> players) {
-        sendContents(players.toArray(new Player[]{}));
+    default void sendContents(Collection<? extends InventoryListener> players) {
+        sendContents(players.toArray(new InventoryListener[]{}));
     }
 
-    void sendContents(Player... players);
+    void sendContents(InventoryListener... players);
 
-    default void sendSlot(int index, Player player) {
-        sendSlot(index, new Player[]{player});
+    default void sendSlot(int index, InventoryListener player) {
+        sendSlot(index, new InventoryListener[]{player});
     }
 
-    default void sendSlot(int index, Collection<? extends Player> players) {
-        sendSlot(index, players.toArray(new Player[]{}));
+    default void sendSlot(int index, Collection<? extends InventoryListener> players) {
+        sendSlot(index, players.toArray(new InventoryListener[]{}));
     }
 
-    void sendSlot(int index, Player... players);
+    void sendSlot(int index, InventoryListener... players);
 
     boolean contains(ItemStack item);
 
@@ -145,7 +146,7 @@ public interface Inventory {
 
     boolean isEmpty();
 
-    Set<? extends Player> getViewers();
+    Set<? extends InventoryListener> getListeners();
 
     @NonNull
     InventoryType getType();
@@ -160,5 +161,5 @@ public interface Inventory {
 
     void onClose(Player who);
 
-    void onSlotChange(int index, ItemStack before, boolean send);
+    void forEachSlot(ObjIntConsumer<ItemStack> consumer);
 }

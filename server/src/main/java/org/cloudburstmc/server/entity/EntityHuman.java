@@ -278,12 +278,7 @@ public class EntityHuman extends EntityCreature implements Human {
     @Override
     public void close() {
         if (!this.closed) {
-            if (!(this instanceof CloudPlayer) || ((CloudPlayer) this).loggedIn) {
-                for (CloudPlayer viewer : this.getInventory().getViewers()) {
-                    viewer.getInventoryManager().closeScreen(this.getInventory());
-                }
-            }
-
+            this.getInventory().close();
             super.close();
         }
     }
@@ -404,7 +399,7 @@ public class EntityHuman extends EntityCreature implements Human {
     @Override
     public ItemStack[] getDrops() {
         if (this.getInventory() != null) {
-            return this.getInventory().getContents().values().toArray(new ItemStack[0]);
+            return this.getInventory().getContents();
         }
         return new ItemStack[0];
     }

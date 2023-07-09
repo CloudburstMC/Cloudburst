@@ -2,10 +2,10 @@ package org.cloudburstmc.api.player;
 
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.blockentity.EnderChest;
-import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.inventory.ContainerInventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -16,7 +16,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public interface Player extends Creature, InventoryHolder {
+public interface Player extends Creature, InventoryHolder, InventoryListener {
     /**
      * Checks if this player is currently online.
      *
@@ -110,8 +110,6 @@ public interface Player extends Creature, InventoryHolder {
     PlayerInventory getInventory();
 
     ContainerInventory getEnderChestInventory();
-
-    CraftingGrid getCraftingInventory();
 
     void setOp(boolean value);
 

@@ -25,7 +25,7 @@ public class CloudBarrelInventory extends CloudContainer implements BarrelInvent
     public void onOpen(Player who) {
         super.onOpen(who);
 
-        if (this.getViewers().size() == 1) {
+        if (this.getListeners().size() == 1) {
             toggle(true);
         }
     }
@@ -34,7 +34,7 @@ public class CloudBarrelInventory extends CloudContainer implements BarrelInvent
     public void onClose(Player who) {
         super.onClose(who);
 
-        if (this.getViewers().isEmpty()) {
+        if (this.getListeners().isEmpty()) {
             toggle(false);
         }
     }

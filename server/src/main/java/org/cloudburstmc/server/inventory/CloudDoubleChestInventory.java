@@ -3,18 +3,15 @@ package org.cloudburstmc.server.inventory;
 import org.cloudburstmc.api.blockentity.Chest;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * author: MagicDroidX
@@ -35,17 +32,17 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
         this.right = right.getRealInventory();
         this.right.setDoubleInventory(this);
 
-        Map<Integer, ItemStack> items = new HashMap<>();
+        ItemStack[] items = new ItemStack[this.left.getSize() + this.right.getSize()];
         // First we add the items from the left chest
         for (int idx = 0; idx < this.left.getSize(); idx++) {
-            if (this.left.getContents().containsKey(idx)) { // Don't forget to skip empty slots!
-                items.put(idx, this.left.getContents().get(idx));
+            if (this.left.slots[idx] != ItemStack.EMPTY) { // Don't forget to skip empty slots!
+                items[idx] = this.left.slots[idx];
             }
         }
         // And them the items from the right chest
         for (int idx = 0; idx < this.right.getSize(); idx++) {
-            if (this.right.getContents().containsKey(idx)) { // Don't forget to skip empty slots!
-                items.put(idx + this.left.getSize(), this.right.getContents().get(idx)); // idx + this.left.getSize() so we don't overlap left chest items
+            if (this.right.slots[idx] != ItemStack.EMPTY) { // Don't forget to skip empty slots!
+                items[idx + this.left.getSize()] = this.right.slots[idx]; // idx + this.left.getSize() so we don't overlap left chest items
             }
         }
 
@@ -78,48 +75,37 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
     }
 
     @Override
-    public Map<Integer, ItemStack> getContents() {
-        Map<Integer, ItemStack> contents = new HashMap<>();
+    public ItemStack[] getContents() {
+        ItemStack[] contents = new ItemStack[this.getSize()];
 
         for (int i = 0; i < this.getSize(); ++i) {
-            contents.put(i, this.getItem(i));
+            contents[i] = this.getItem(i);
         }
 
         return contents;
     }
 
     @Override
-    public void setContents(Map<Integer, ItemStack> items) {
-        if (items.size() > this.size) {
-            Map<Integer, ItemStack> newItems = new HashMap<>();
-            for (int i = 0; i < this.size; i++) {
-                newItems.put(i, items.get(i));
-            }
-            items = newItems;
+    public void setContents(ItemStack[] items) {
+        if (items.length > this.slots.length) {
+            throw new IllegalArgumentException("Invalid inventory size; expected " + this.slots.length + " or less");
+        } else if (items.length < this.slots.length) {
+            int oldLength = items.length;
+            items = Arrays.copyOf(items, this.slots.length);
+            Arrays.fill(items, oldLength, items.length, ItemStack.EMPTY);
         }
 
-        for (int i = 0; i < this.size; i++) {
-            if (!items.containsKey(i)) {
-                if (i < this.left.size) {
-                    if (this.left.slots.containsKey(i)) {
-                        this.clear(i);
-                    }
-                } else if (this.right.slots.containsKey(i - this.left.size)) {
-                    this.clear(i);
-                }
-            } else if (!this.setItem(i, items.get(i))) {
-                this.clear(i);
-            }
-        }
+        this.slots = items;
+        this.sendContents(this.getListeners());
     }
 
     @Override
     public void onOpen(Player who) {
         super.onOpen(who);
-        this.left.viewers.add((CloudPlayer) who);
-        this.right.viewers.add((CloudPlayer) who);
+        this.left.listeners.add(who);
+        this.right.listeners.add(who);
 
-        if (this.getViewers().size() == 1) {
+        if (this.getListeners().size() == 1) {
             CloudLevel level = this.left.getHolder().getLevel();
             if (level != null) {
                 CloudContainer.sendBlockEventPacket(this.right.getHolder(), 1);
@@ -130,7 +116,7 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
 
     @Override
     public void onClose(Player who) {
-        if (this.getViewers().size() == 1) {
+        if (this.getListeners().size() == 1) {
             CloudLevel level = this.right.getHolder().getLevel();
             if (level != null) {
                 CloudContainer.sendBlockEventPacket(this.right.getHolder(), 0);
@@ -138,8 +124,8 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
             }
         }
 
-        this.left.viewers.remove(who);
-        this.right.viewers.remove(who);
+        this.left.listeners.remove(who);
+        this.right.listeners.remove(who);
         super.onClose(who);
     }
 
@@ -151,19 +137,10 @@ public class CloudDoubleChestInventory extends CloudContainer implements Invento
         return this.right;
     }
 
-    public void sendSlot(Inventory inv, int index, Player... players) {
-
-        for (CloudPlayer player : (CloudPlayer[]) players) {
-            int id = player.getWindowId(this);
-            if (id == -1) {
-                this.close(player);
-                continue;
-            }
-            InventorySlotPacket packet = new InventorySlotPacket();
-            packet.setSlot(inv == this.right ? this.left.getSize() + index : index);
-            packet.setItem(ItemUtils.toNetwork(inv.getItem(index)));
-            packet.setContainerId(id);
-            player.sendPacket(packet);
+    public void sendSlot(Inventory inv, int index, InventoryListener... listeners) {
+        for (InventoryListener listener : listeners) {
+            int idx = inv == this.right ? this.left.getSize() + index : index;
+            listener.onInventorySlotChange(this, idx, inv.getItem(idx));
         }
     }
 }

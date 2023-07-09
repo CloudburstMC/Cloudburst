@@ -4,9 +4,9 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.inventory.BarrelInventory;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -17,7 +17,6 @@ import org.cloudburstmc.server.item.ItemUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
@@ -44,8 +43,9 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
+        ItemStack[] contents = this.inventory.getContents();
+        for (int i = 0; i < this.inventory.getSize(); i++) {
+            items.add(ItemUtils.serializeItem(contents[i], i));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
     }
@@ -53,8 +53,8 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
     @Override
     public void close() {
         if (!closed) {
-            for (Player player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getInventory());
+            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+                listener.onInventoryRemoved(this.getInventory());
             }
             super.close();
         }
@@ -62,7 +62,7 @@ public class BarrelBlockEntity extends BaseBlockEntity implements Barrel {
 
     @Override
     public void onBreak() {
-        for (ItemStack content : this.inventory.getContents().values()) {
+        for (ItemStack content : this.inventory.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
         this.inventory.clearAll(); // Stop items from being moved around by another player in the inventory

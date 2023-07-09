@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.inventory.CreatureInventory;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.nbt.NbtMap;
@@ -14,7 +15,6 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -121,12 +121,12 @@ public class CloudCreatureInventory extends CloudInventory implements CreatureIn
             getHolder().getServer().getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
-                this.sendArmorSlot(index, this.getViewers());
+                this.sendArmorSlot(index, this.getListeners());
                 return false;
             }
         }
         this.armorSlots.put(index, ((ItemStack) item));
-        this.sendArmorSlot(index, this.getViewers());
+        this.sendArmorSlot(index, this.getListeners());
         return true;
     }
 
@@ -205,28 +205,31 @@ public class CloudCreatureInventory extends CloudInventory implements CreatureIn
         }
     }
 
-    public void sendArmorContents(CloudPlayer player) {
-        this.sendArmorContents(new CloudPlayer[]{player});
+    public void sendArmorContents(InventoryListener listener) {
+        this.sendArmorContents(new InventoryListener[]{listener});
     }
 
-    public void sendArmorContents(CloudPlayer[] players) {
-        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
-        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
-        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
-        packet.setBoots(ItemUtils.toNetwork(getBoots()));
-
-        for (CloudPlayer player : players) {
-            if (player.equals(this.getHolder())) {
-                InventoryContentPacket packet2 = new InventoryContentPacket();
-                packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setContents(getArmorContents().stream().map(ItemUtils::toNetworkNetId).toList());
-                player.sendPacket(packet2);
-            } else {
-                player.sendPacket(packet);
-            }
+    public void sendArmorContents(InventoryListener[] listeners) {
+        for (InventoryListener listener : listeners) {
+            listener.onInventoryContentsChange(this);
         }
+//        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
+//        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
+//        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
+//        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
+//        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
+//        packet.setBoots(ItemUtils.toNetwork(getBoots()));
+//
+//        for (CloudPlayer player : listener) {
+//            if (player.equals(this.getHolder())) {
+//                InventoryContentPacket packet2 = new InventoryContentPacket();
+//                packet2.setContainerId(ContainerId.ARMOR);
+//                packet2.setContents(getArmorContents().stream().map(ItemUtils::toNetworkNetId).toList());
+//                player.sendPacket(packet2);
+//            } else {
+//                player.sendPacket(packet);
+//            }
+//        }
     }
 
     public void setArmorContents(ItemStack[] items) {
@@ -249,37 +252,40 @@ public class CloudCreatureInventory extends CloudInventory implements CreatureIn
         }
     }
 
-    public void sendArmorContents(Collection<CloudPlayer> players) {
-        this.sendArmorContents(players.toArray(new CloudPlayer[0]));
+    public void sendArmorContents(Collection<InventoryListener> listeners) {
+        this.sendArmorContents(listeners.toArray(new InventoryListener[0]));
     }
 
-    public void sendArmorSlot(int index, CloudPlayer player) {
-        this.sendArmorSlot(index, new CloudPlayer[]{player});
+    public void sendArmorSlot(int index, InventoryListener listener) {
+        this.sendArmorSlot(index, new InventoryListener[]{listener});
     }
 
-    public void sendArmorSlot(int index, CloudPlayer[] players) {
-        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
-        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
-        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
-        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
-        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
-        packet.setBoots(ItemUtils.toNetwork(getBoots()));
-
-        for (CloudPlayer player : players) {
-            if (player.equals(this.getHolder())) {
-                InventorySlotPacket packet2 = new InventorySlotPacket();
-                packet2.setContainerId(ContainerId.ARMOR);
-                packet2.setSlot(index);
-                packet2.setItem(ItemUtils.toNetwork(this.armorSlots.get(index)));
-                player.sendPacket(packet2);
-            } else {
-                player.sendPacket(packet);
-            }
+    public void sendArmorSlot(int index, InventoryListener[] listeners) {
+        for (InventoryListener listener : listeners) {
+            listener.onInventorySlotChange(this, index, this.armorSlots.get(index));
         }
+//        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
+//        packet.setRuntimeEntityId(this.getHolder().getRuntimeId());
+//        packet.setHelmet(ItemUtils.toNetwork(getHelmet()));
+//        packet.setChestplate(ItemUtils.toNetwork(getChestplate()));
+//        packet.setLeggings(ItemUtils.toNetwork(getLeggings()));
+//        packet.setBoots(ItemUtils.toNetwork(getBoots()));
+//
+//        for (CloudPlayer player : listeners) {
+//            if (player.equals(this.getHolder())) {
+//                InventorySlotPacket packet2 = new InventorySlotPacket();
+//                packet2.setContainerId(ContainerId.ARMOR);
+//                packet2.setSlot(index);
+//                packet2.setItem(ItemUtils.toNetwork(this.armorSlots.get(index)));
+//                player.sendPacket(packet2);
+//            } else {
+//                player.sendPacket(packet);
+//            }
+//        }
     }
 
-    public void sendArmorSlot(int index, Collection<CloudPlayer> players) {
-        this.sendArmorSlot(index, players.toArray(new CloudPlayer[0]));
+    public void sendArmorSlot(int index, Collection<InventoryListener> listeners) {
+        this.sendArmorSlot(index, listeners.toArray(new InventoryListener[0]));
     }
 
     @Override
@@ -300,8 +306,8 @@ public class CloudCreatureInventory extends CloudInventory implements CreatureIn
     @Override
     public void onSlotChange(int index, ItemStack before, boolean send) {
         if (index >= this.getSize()) {
-            this.sendArmorSlot(index - this.getSize(), this.getViewers());
-            this.sendArmorSlot(index - this.getSize(), this.getHolder().getViewers());
+            this.sendArmorSlot(index - this.getSize(), this.getListeners());
+            this.sendArmorSlot(index - this.getSize(), (Set) this.getHolder().getViewers());
         } else {
             super.onSlotChange(index, before, send);
         }

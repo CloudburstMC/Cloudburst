@@ -4,6 +4,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -19,7 +20,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * author: MagicDroidX
@@ -70,9 +70,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
-        }
+        this.inventory.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putBoolean("Findable", this.findable);
     }
@@ -92,13 +90,15 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getInventory());
+            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+                if (listener instanceof CloudPlayer) {
+                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                }
             }
 
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getRealInventory());
-            }
+//            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+//                listener.removeWindow(this.getRealInventory());
+//            }
             super.close();
         }
     }
@@ -108,7 +108,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         if (this.isPaired()) {
             unpair();
         }
-        for (ItemStack content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
         inventory.clearAll(); // Stop items from being moved around by another player in the inventory

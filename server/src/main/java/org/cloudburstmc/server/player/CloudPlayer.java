@@ -17,7 +17,6 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -34,6 +33,7 @@ import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -66,6 +66,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -84,10 +85,8 @@ import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.inventory.CloudCraftingGrid;
 import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudPlayerInventory;
-import org.cloudburstmc.server.inventory.PlayerCursorInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
@@ -295,16 +294,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     @Override
     public void setViewingEnderChest(EnderChest chest) {
         if (chest == null && this.viewingEnderChest != null) {
-            this.viewingEnderChest.getInventory().getViewers().remove(this);
+            this.viewingEnderChest.getInventory().getListeners().remove(this);
         } else if (chest != null) {
-            ((EnderChestBlockEntity) chest).getInventory().getViewers().add(this);
+            ((EnderChestBlockEntity) chest).getInventory().getListeners().add(this);
         }
         this.viewingEnderChest = chest;
-    }
-
-    @Override
-    public CloudCraftingGrid getCraftingInventory() {
-        return invManager.getCraftingGrid();
     }
 
     public TranslationContainer getLeaveMessage() {
@@ -1731,8 +1725,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
             return false;
         }
 
-        this.invManager.getCraftingGrid().setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
-
         if (this.removeFormat) {
             message = TextFormat.clean(message, true);
         }
@@ -2651,7 +2643,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         Location from = this.getLocation();
         if (super.teleport(location, cause)) {
 
-            this.removeAllWindows(false);
+            this.invManager.closeScreen();
 
             if (from.getLevel() != location.getLevel()) { //Different level, update compass position
                 SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
@@ -2819,10 +2811,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
     @Override
     public CloudEnderChestInventory getEnderChestInventory() {
         return invManager.getEnderChest();
-    }
-
-    public PlayerCursorInventory getCursorInventory() {
-        return this.invManager.getCursor();
     }
 
     public PlayerInventoryManager getInventoryManager() {
@@ -3223,6 +3211,60 @@ public class CloudPlayer extends EntityHuman implements CommandSender, Inventory
         }
 
         return false;
+    }
+
+    @Override
+    public void onInventoryRemoved(Inventory inventory) {
+    }
+
+    @Override
+    public void onInventoryAdded(Inventory inventory) {
+    }
+
+    @Override
+    public void onInventorySlotChange(Inventory inventory, int slot, ItemStack itemStack) {
+        InventorySlotPacket packet = new InventorySlotPacket();
+        packet.setSlot(slot);
+        packet.setItem(ItemUtils.toNetwork(itemStack));
+
+        if (inventory.getHolder() == this) {
+            packet.setContainerId(ContainerId.INVENTORY);
+        } else {
+            // TODO: Figure out how to get the container ID
+//            int id = listener.getWindowId(this);
+//            if (id == -1) {
+//                this.close(listener);
+//                continue;
+//            }
+//            packet.setContainerId(id);
+        }
+        this.sendPacket(packet);
+    }
+
+    @Override
+    public void onInventoryContentsChange(Inventory inventory) {
+        int id = -1;
+//        int id = this.getWindowId(this); TODO: Figure out how to get the container ID
+        if (id == -1) {
+            if (inventory.getHolder() != this) inventory.close(this);
+            return;
+        }
+
+        InventoryContentPacket pk = new InventoryContentPacket();
+        pk.setContents(ItemUtils.toNetwork(Arrays.asList(inventory.getContents())));
+        pk.setContainerId(id);
+
+        this.sendPacket(pk);
+    }
+
+    @Override
+    public void onInventoryDataChange(Inventory inventory, int property, int value) {
+        ContainerSetDataPacket packet = new ContainerSetDataPacket();
+        packet.setWindowId((byte) -1); // TODO
+        packet.setProperty(property);
+        packet.setValue(value);
+
+        this.sendPacket(packet);
     }
 
     @Override

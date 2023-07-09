@@ -71,7 +71,7 @@ public class SlotChangeAction extends InventoryAction {
      * @param source player
      */
     public void onExecuteSuccess(CloudPlayer source) {
-        Set<Player> viewers = new HashSet<>(this.inventory.getViewers());
+        Set<Player> viewers = new HashSet<>(this.inventory.getListeners());
         viewers.remove(source);
 
         this.inventory.sendSlot(this.inventorySlot, viewers);

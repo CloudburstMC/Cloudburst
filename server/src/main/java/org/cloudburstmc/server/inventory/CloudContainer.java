@@ -8,17 +8,10 @@ import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
-import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.math.NukkitMath;
-import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-
-import java.util.Map;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
@@ -31,40 +24,40 @@ public abstract class CloudContainer extends CloudInventory implements Container
         super(holder, type);
     }
 
-    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, ItemStack[] items) {
         super(holder, type, items);
     }
 
-    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, ItemStack[] items, Integer overrideSize) {
         super(holder, type, items, overrideSize);
     }
 
-    public CloudContainer(InventoryHolder holder, InventoryType type, Map<Integer, ItemStack> items, Integer overrideSize, String overrideTitle) {
+    public CloudContainer(InventoryHolder holder, InventoryType type, ItemStack[] items, Integer overrideSize, String overrideTitle) {
         super(holder, type, items, overrideSize, overrideTitle);
     }
 
     @Override
     public void onOpen(Player who) {
         super.onOpen(who);
-        ContainerOpenPacket packet = new ContainerOpenPacket();
-        packet.setId(who.getWindowId(this));
-        packet.setType(NetworkUtils.inventoryToNetwork(this.getType()));
-        InventoryHolder holder = this.getHolder();
-        if (holder instanceof BlockEntity) {
-            packet.setBlockPosition(((BlockEntity) holder).getPosition());
-        } else {
-            packet.setBlockPosition(Vector3i.ZERO);
-        }
-        ((CloudPlayer) who).sendPacket(packet);
-
-        this.sendContents(who);
+//        ContainerOpenPacket packet = new ContainerOpenPacket();
+//        packet.setId(who.getWindowId(this));
+//        packet.setType(NetworkUtils.inventoryToNetwork(this.getType()));
+//        InventoryHolder holder = this.getHolder();
+//        if (holder instanceof BlockEntity) {
+//            packet.setBlockPosition(((BlockEntity) holder).getPosition());
+//        } else {
+//            packet.setBlockPosition(Vector3i.ZERO);
+//        }
+//        ((CloudPlayer) who).sendPacket(packet);
+//
+//        this.sendContents(who);
     }
 
     @Override
     public void onClose(Player who) {
-        ContainerClosePacket packet = new ContainerClosePacket();
-        packet.setId(who.getWindowId(this));
-        ((CloudPlayer) who).sendPacket(packet);
+//        ContainerClosePacket packet = new ContainerClosePacket();
+//        packet.setId(who.getWindowId(this));
+//        ((CloudPlayer) who).sendPacket(packet);
         super.onClose(who);
     }
 

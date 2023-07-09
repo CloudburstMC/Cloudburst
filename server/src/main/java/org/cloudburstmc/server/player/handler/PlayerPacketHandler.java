@@ -15,7 +15,6 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
@@ -338,7 +337,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 }
 
-                player.getCraftingInventory().resetCraftingGrid();
+                player.getInventoryManager().closeScreen();
 
                 PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, player.getSpawn());
                 player.getServer().getEventManager().fire(playerRespawnEvent);
@@ -693,7 +692,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
         }
-        player.getCraftingInventory().setCraftingGridType(CraftingGrid.Type.CRAFTING_GRID_SMALL);
         PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(player, packet.getCommand());
         player.getServer().getEventManager().fire(playerCommandPreprocessEvent);
         if (playerCommandPreprocessEvent.isCancelled()) {
@@ -731,7 +729,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (packet.getId() == -1) {
-            player.getCraftingInventory().resetCraftingGrid();
 
             ContainerClosePacket ccp = new ContainerClosePacket();
             ccp.setId((byte) -1);
@@ -832,7 +829,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(MapInfoRequestPacket packet) {
         ItemStack mapItem = null;
 
-        for (ItemStack item1 : player.getInventory().getContents().values()) {
+        for (ItemStack item1 : player.getInventory().getContents()) {
             if (item1.getType() != ItemTypes.MAP) {
                 continue;
             }

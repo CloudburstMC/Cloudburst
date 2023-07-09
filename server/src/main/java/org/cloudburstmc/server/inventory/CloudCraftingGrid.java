@@ -2,9 +2,9 @@ package org.cloudburstmc.server.inventory;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.crafting.CraftingGrid;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -101,7 +101,7 @@ public class CloudCraftingGrid extends CloudInventory implements CraftingGrid {
     public void resetCraftingGrid() {
         List<ItemStack> drops = new ArrayList<>();
         if (!isEmpty()) {
-            for (ItemStack item : this.getContents().values()) {
+            for (ItemStack item : this.slots) {
                 if (item != ItemStack.EMPTY) {
                     drops.add(item);
                 }
@@ -122,12 +122,12 @@ public class CloudCraftingGrid extends CloudInventory implements CraftingGrid {
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
+    public void sendSlot(int index, InventoryListener... listeners) {
         if (index == 50) {
             index = CRAFTING_RESULT_SLOT;
         } else if (index <= 10) {
             index += getCraftingGridType() == Type.CRAFTING_GRID_SMALL ? CRAFTING_GRID_SMALL_OFFSET : CRAFTING_GRID_LARGE_OFFSET;
         }
-        super.sendSlot(index, players);
+        super.sendSlot(index, listeners);
     }
 }

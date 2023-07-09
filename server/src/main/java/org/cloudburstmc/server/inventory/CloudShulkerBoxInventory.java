@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.inventory;
 
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.inventory.ShulkerBoxInventory;
 import org.cloudburstmc.api.item.ItemStack;
@@ -27,7 +28,7 @@ public class CloudShulkerBoxInventory extends CloudContainer implements ShulkerB
     public void onOpen(Player who) {
         super.onOpen(who);
 
-        if (this.getViewers().size() == 1) {
+        if (this.getListeners().size() == 1) {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_OPEN);
@@ -38,7 +39,7 @@ public class CloudShulkerBoxInventory extends CloudContainer implements ShulkerB
 
     @Override
     public void onClose(Player who) {
-        if (this.getViewers().size() == 1) {
+        if (this.getListeners().size() == 1) {
             CloudLevel level = this.getHolder().getLevel();
             if (level != null) {
                 level.addLevelSoundEvent(this.getHolder().getPosition(), SoundEvent.SHULKERBOX_CLOSED);
@@ -59,7 +60,7 @@ public class CloudShulkerBoxInventory extends CloudContainer implements ShulkerB
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
-        super.sendSlot(index, players);
+    public void sendSlot(int index, InventoryListener... listeners) {
+        super.sendSlot(index, listeners);
     }
 }

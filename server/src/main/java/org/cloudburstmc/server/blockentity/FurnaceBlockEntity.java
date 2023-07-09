@@ -8,6 +8,7 @@ import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.inventory.FurnaceInventory;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -31,7 +32,6 @@ import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 
@@ -76,17 +76,19 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         tag.putShort("BurnTime", burnTime);
         tag.putShort("BurnDuration", burnDuration);
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
-        }
+        inventory.forEachSlot((itemStack, slot) -> {
+            items.add(ItemUtils.serializeItem(itemStack, slot));
+        });
         tag.putList("Items", NbtType.COMPOUND, items);
     }
 
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getInventory());
+            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+                if (listener instanceof CloudPlayer) {
+                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                }
             }
             super.close();
         }
@@ -94,7 +96,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     @Override
     public void onBreak() {
-        for (ItemStack content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -129,13 +131,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         }
 
         if (burnTime > 0 && ev.isBurning()) {
-            for (CloudPlayer p : this.getInventory().getViewers()) {
-                ContainerSetDataPacket packet = new ContainerSetDataPacket();
-                packet.setWindowId(p.getWindowId(this.getInventory()));
-                packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_DURATION);
-                packet.setValue(burnDuration);
-
-                p.sendPacket(packet);
+            for (InventoryListener listener : this.getInventory().getListeners()) {
+                listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_LIT_DURATION, burnDuration);
             }
 
             if (fuel.getCount() <= 1) {
@@ -214,21 +211,9 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             cookTime = 0;
         }
 
-        for (CloudPlayer player : this.getInventory().getViewers()) {
-            byte windowId = player.getWindowId(this.getInventory());
-            if (windowId > 0) {
-                ContainerSetDataPacket packet = new ContainerSetDataPacket();
-                packet.setWindowId(windowId);
-                packet.setProperty(ContainerSetDataPacket.FURNACE_TICK_COUNT);
-                packet.setValue(cookTime);
-                player.sendPacket(packet);
-
-                packet = new ContainerSetDataPacket();
-                packet.setWindowId(windowId);
-                packet.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);
-                packet.setValue(burnTime);
-                player.sendPacket(packet);
-            }
+        for (InventoryListener listener : this.getInventory().getListeners()) {
+            listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_TICK_COUNT, cookTime);
+            listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_LIT_TIME, burnTime);
         }
 
         this.lastUpdate = System.currentTimeMillis();

@@ -4,6 +4,7 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -17,7 +18,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by PetteriM1
@@ -49,9 +49,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
-        }
+        this.inventory.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putByte("facing", this.facing);
     }
@@ -67,8 +65,10 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getInventory());
+            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+                if (listener instanceof CloudPlayer) {
+                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                }
             }
             super.close();
         }

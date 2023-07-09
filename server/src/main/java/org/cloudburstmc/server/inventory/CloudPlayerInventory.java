@@ -7,13 +7,12 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.entity.EntityArmorChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityInventoryChangeEvent;
 import org.cloudburstmc.api.event.player.PlayerItemHeldEvent;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.packet.*;
+import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -54,7 +53,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
             this.getHolder().getLevel().getServer().getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
-                this.sendContents(this.getViewers());
+                this.sendContents(this.getListeners());
                 return false;
             }
 
@@ -74,7 +73,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     private PlayerCursorInventory getCursor() {
-        return getHolder().getCursorInventory();
+        return null;
     }
 
     @Override
@@ -160,7 +159,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     private boolean setItem(int index, ItemStack item, boolean send, boolean ignoreArmorEvents) {
-        if (index < 0 || index >= this.size) {
+        if (index < 0 || index >= this.slots.length) {
             return false;
         } else if (item.getType() == BlockTypes.AIR || item.getCount() <= 0) {
             return this.clear(index, send);
@@ -171,7 +170,7 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
             EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), this.getItem(index), item, index);
             CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled() && this.getHolder() != null) {
-                this.sendArmorSlot(index, this.getViewers());
+                this.sendArmorSlot(index, this.getListeners());
                 return false;
             }
             item = ev.getNewItem();
@@ -179,56 +178,51 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
             EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), this.getItem(index), item, index);
             CloudServer.getInstance().getEventManager().fire(ev);
             if (ev.isCancelled()) {
-                this.sendSlot(index, this.getViewers());
+                this.sendSlot(index, this.getListeners());
                 return false;
             }
             item = ev.getNewItem();
         }
         ItemStack old = this.getItem(index);
-        this.slots.put(index, item);
+        this.slots[index] = item;
         this.onSlotChange(index, old, send);
         return true;
     }
 
     @Override
     public boolean clear(int index, boolean send) {
-        if (this.slots.containsKey(index)) {
-            ItemStack item = ItemStack.EMPTY;
-            ItemStack old = this.slots.get(index);
-            if (index >= this.getSize() && index < this.size) {
-                EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
-                CloudServer.getInstance().getEventManager().fire(ev);
-                if (ev.isCancelled()) {
-                    if (index >= this.size) {
-                        this.sendArmorSlot(index, this.getViewers());
-                    } else {
-                        this.sendSlot(index, this.getViewers());
-                    }
-                    return false;
+        this.checkSlotIndex(index);
+        ItemStack item = ItemStack.EMPTY;
+        ItemStack old = this.slots[index];
+        if (index >= this.getSize() && index < this.getSize()) {
+            EntityArmorChangeEvent ev = new EntityArmorChangeEvent(this.getHolder(), old, item, index);
+            CloudServer.getInstance().getEventManager().fire(ev);
+            if (ev.isCancelled()) {
+                if (index >= this.getSize()) {
+                    this.sendArmorSlot(index, this.getListeners());
+                } else {
+                    this.sendSlot(index, this.getListeners());
                 }
-                item = ev.getNewItem();
-            } else {
-                EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), old, item, index);
-                CloudServer.getInstance().getEventManager().fire(ev);
-                if (ev.isCancelled()) {
-                    if (index >= this.size) {
-                        this.sendArmorSlot(index, this.getViewers());
-                    } else {
-                        this.sendSlot(index, this.getViewers());
-                    }
-                    return false;
+                return false;
+            }
+            item = ev.getNewItem();
+        } else {
+            EntityInventoryChangeEvent ev = new EntityInventoryChangeEvent(this.getHolder(), old, item, index);
+            CloudServer.getInstance().getEventManager().fire(ev);
+            if (ev.isCancelled()) {
+                if (index >= this.getSize()) {
+                    this.sendArmorSlot(index, this.getListeners());
+                } else {
+                    this.sendSlot(index, this.getListeners());
                 }
-                item = ev.getNewItem();
+                return false;
             }
-
-            if (item != ItemStack.EMPTY) {
-                this.slots.put(index, item);
-            } else {
-                this.slots.remove(index);
-            }
-
-            this.onSlotChange(index, old, send);
+            item = ev.getNewItem();
         }
+
+        this.slots[index] = item;
+
+        this.onSlotChange(index, old, send);
 
         return true;
     }
@@ -242,49 +236,23 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
     }
 
     @Override
-    public void sendContents(Player[] players) {
+    public void sendContents(InventoryListener[] listeners) {
         List<ItemData> itemData = new ArrayList<>();
         for (int i = 0; i < this.getSize(); ++i) {
             itemData.add(i, ItemUtils.toNetwork(this.getItem(i)));
         }
 
-        for (Player p : players) {
-            CloudPlayer player = (CloudPlayer) p;
-            int id = player.getWindowId(this);
-            if (id == -1) {
-                if (this.getHolder() != player) this.close(player);
-                continue;
-            }
-
-            InventoryContentPacket pk = new InventoryContentPacket();
-            pk.setContents(itemData);
-            pk.setContainerId(id);
-
-            player.sendPacket(pk);
+        for (InventoryListener listener : listeners) {
+            listener.onInventoryContentsChange(this);
         }
     }
 
     @Override
-    public void sendSlot(int index, Player... players) {
+    public void sendSlot(int index, InventoryListener... listeners) {
         ItemData itemData = ItemUtils.toNetwork(this.getItem(index));
 
-        for (Player player : players) {
-            InventorySlotPacket packet = new InventorySlotPacket();
-            packet.setSlot(index);
-            packet.setItem(itemData);
-
-            if (player.equals(this.getHolder())) {
-                packet.setContainerId(ContainerId.INVENTORY);
-                ((CloudPlayer) player).sendPacket(packet);
-            } else {
-                int id = player.getWindowId(this);
-                if (id == -1) {
-                    this.close(player);
-                    continue;
-                }
-                packet.setContainerId(id);
-                ((CloudPlayer) player).sendPacket(packet);
-            }
+        for (InventoryListener listener : listeners) {
+            listener.onInventorySlotChange(this, index, this.getItem(index));
         }
     }
 
@@ -311,27 +279,14 @@ public class CloudPlayerInventory extends CloudCreatureInventory implements Play
 
     @Override
     public void onOpen(Player who) {
-        super.onOpen(who);
-        ContainerOpenPacket pk = new ContainerOpenPacket();
-        pk.setId(who.getWindowId(this));
-        pk.setType(ContainerType.INVENTORY);
-        pk.setBlockPosition(who.getPosition().toInt());
-        pk.setUniqueEntityId(who.getUniqueId());
-        ((CloudPlayer) who).sendPacket(pk);
     }
 
     @Override
     public void onClose(Player who) {
-        ContainerClosePacket pk = new ContainerClosePacket();
-        pk.setId(who.getWindowId(this));
-        ((CloudPlayer) who).sendPacket(pk);
-        // Player can neer stop viewing their own inventory
-        if (who != holder)
-            super.onClose(who);
     }
 
     @Override
-    public CloudCraftingGrid getCraftingGrid() {
-        return this.getHolder().getCraftingInventory();
+    public @NonNull CloudCraftingGrid getCraftingGrid() {
+        return null; // TODO
     }
 }

@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.inventory.Inventory;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.inventory.CloudArmorInventory;
 import org.cloudburstmc.server.inventory.CloudEnderChestInventory;
 import org.cloudburstmc.server.inventory.CloudHandInventory;
@@ -13,7 +12,8 @@ import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.inventory.screen.HudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 @Log4j2
 @Getter
@@ -75,13 +75,13 @@ public class PlayerInventoryManager {
         StringJoiner str = new StringJoiner("\n");
         str.add("Player Inventories [" + player.getName() + ":");
         str.add("Main Inventory: ");
-        for (Map.Entry<Integer, ItemStack> entry : inventory.getContents().entrySet()) {
-            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        for (int i = 0; i < inventory.getSize(); i++) {
+            str.add("  " + i + ": " + inventory.getItem(i));
         }
         str.add("===============");
         str.add("EnderChest Inventory:");
-        for (Map.Entry<Integer, ItemStack> entry : enderChest.getContents().entrySet()) {
-            str.add("  " + entry.getKey() + ": " + entry.getValue());
+        for (int i = 0; i < enderChest.getSize(); i++) {
+            str.add("  " + i + ": " + enderChest.getItem(i));
         }
 
         return str.toString();

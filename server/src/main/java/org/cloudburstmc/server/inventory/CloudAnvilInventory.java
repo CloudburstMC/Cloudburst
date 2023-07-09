@@ -31,7 +31,6 @@ public class CloudAnvilInventory extends CloudInventory implements AnvilInventor
     @Override
     public void onClose(Player who) {
         super.onClose(who);
-        getHolder().getCraftingInventory().resetCraftingGrid();
 
         for (int i = 0; i < 2; ++i) {
             this.getHolder().getLevel().dropItem(this.getHolder().getPosition().toFloat().add(0.5, 0.5, 0.5), this.getItem(i));

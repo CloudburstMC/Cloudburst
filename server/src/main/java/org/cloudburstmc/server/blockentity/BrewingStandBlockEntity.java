@@ -9,6 +9,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -30,7 +31,6 @@ import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingStand {
 
@@ -70,9 +70,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
-        }
+        inventory.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putShort("CookTime", this.cookTime);
     }
@@ -88,8 +86,10 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(getInventory().getViewers())) {
-                player.removeWindow(getInventory());
+            for (InventoryListener listener : new HashSet<>(getInventory().getListeners())) {
+                if (listener instanceof CloudPlayer) {
+                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                }
             }
             super.close();
         }
@@ -97,7 +97,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public void onBreak() {
-        for (ItemStack content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -228,36 +228,15 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     public void sendFuel() {
-        for (CloudPlayer p : this.inventory.getViewers()) {
-            int windowId = p.getWindowId(this.inventory);
-            if (windowId > 0) {
-                ContainerSetDataPacket fuelAmountPacket = new ContainerSetDataPacket();
-                fuelAmountPacket.setWindowId((byte) windowId);
-
-                fuelAmountPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT);
-                fuelAmountPacket.setValue(this.fuelAmount);
-                p.sendPacket(fuelAmountPacket);
-
-                ContainerSetDataPacket totalFuelPacket = new ContainerSetDataPacket();
-
-                totalFuelPacket.setProperty(ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL);
-                totalFuelPacket.setValue(this.fuelTotal);
-                p.sendPacket(totalFuelPacket);
-            }
+        for (InventoryListener listener : this.inventory.getListeners()) {
+            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuelAmount);
+            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.fuelTotal);
         }
     }
 
     protected void sendBrewTime() {
-        for (CloudPlayer p : this.inventory.getViewers()) {
-            int windowId = p.getWindowId(this.inventory);
-            if (windowId > 0) {
-                ContainerSetDataPacket packet = new ContainerSetDataPacket();
-                packet.setProperty(ContainerSetDataPacket.BREWING_STAND_BREW_TIME);
-                packet.setWindowId((byte) windowId);
-                packet.setValue(this.cookTime);
-
-                p.sendPacket(packet);
-            }
+        for (InventoryListener listener : this.inventory.getListeners()) {
+            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_BREW_TIME, this.cookTime);
         }
     }
 

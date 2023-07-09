@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.inventory.InventoryMoveItemEvent;
 import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.InventoryHolder;
+import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -29,7 +30,6 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import static org.cloudburstmc.math.vector.Vector3i.UP;
 
@@ -66,9 +66,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        for (Map.Entry<Integer, ItemStack> entry : this.inventory.getContents().entrySet()) {
-            items.add(ItemUtils.serializeItem(entry.getValue(), entry.getKey()));
-        }
+        this.inventory.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
 
         tag.putInt("TransferCooldown", this.transferCooldown);
@@ -224,8 +222,10 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
     @Override
     public void close() {
         if (!closed) {
-            for (CloudPlayer player : new HashSet<>(this.getInventory().getViewers())) {
-                player.removeWindow(this.getInventory());
+            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+                if (listener instanceof CloudPlayer) {
+                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                }
             }
             super.close();
         }
@@ -233,8 +233,7 @@ public class HopperBlockEntity extends BaseBlockEntity implements Hopper {
 
     @Override
     public void onBreak() {
-
-        for (ItemStack content : inventory.getContents().values()) {
+        for (ItemStack content : inventory.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }

@@ -3,7 +3,6 @@ package org.cloudburstmc.server.player;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.blockentity.EnderChest;
-import org.cloudburstmc.api.crafting.CraftingGrid;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
@@ -11,6 +10,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.inventory.ContainerInventory;
+import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
@@ -757,11 +757,6 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public CraftingGrid getCraftingInventory() {
-        return null;
-    }
-
-    @Override
     public void setOnGround(boolean onGround) {
 
     }
@@ -799,6 +794,31 @@ public class OfflinePlayer implements Player {
 
     @Override
     public void close() {
+
+    }
+
+    @Override
+    public void onInventoryAdded(Inventory inventory) {
+
+    }
+
+    @Override
+    public void onInventoryRemoved(Inventory inventory) {
+
+    }
+
+    @Override
+    public void onInventorySlotChange(Inventory inventory, int slot, ItemStack itemStack) {
+
+    }
+
+    @Override
+    public void onInventoryContentsChange(Inventory inventory) {
+
+    }
+
+    @Override
+    public void onInventoryDataChange(Inventory inventory, int property, int value) {
 
     }
 }
