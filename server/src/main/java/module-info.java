@@ -88,12 +88,9 @@ open module org.cloudburstmc.server {
     exports org.cloudburstmc.server.inject.provider.config;
     exports org.cloudburstmc.server.inject.provider;
     exports org.cloudburstmc.server.inject;
-    exports org.cloudburstmc.server.inventory.screen;
-    exports org.cloudburstmc.server.inventory.transaction.action;
-    exports org.cloudburstmc.server.inventory.transaction.data;
-    exports org.cloudburstmc.server.inventory.transaction;
-    exports org.cloudburstmc.server.inventory.view;
-    exports org.cloudburstmc.server.inventory;
+    exports org.cloudburstmc.server.container.screen;
+    exports org.cloudburstmc.server.container.mapping;
+    exports org.cloudburstmc.server.container;
     exports org.cloudburstmc.server.item.data.serializer;
     exports org.cloudburstmc.server.item.food;
     exports org.cloudburstmc.server.item.provider;

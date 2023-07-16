@@ -1,8 +1,7 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.event.Event;
-import org.cloudburstmc.api.inventory.Inventory;
-import org.cloudburstmc.api.player.Player;
 
 /**
  * author: MagicDroidX
@@ -10,18 +9,14 @@ import org.cloudburstmc.api.player.Player;
  */
 public abstract class InventoryEvent extends Event {
 
-    protected final Inventory inventory;
+    protected final ContainerView inventory;
 
-    public InventoryEvent(Inventory inventory) {
+    public InventoryEvent(ContainerView inventory) {
         this.inventory = inventory;
     }
 
-    public Inventory getInventory() {
+    public ContainerView getView() {
         return inventory;
-    }
-
-    public Player[] getViewers() {
-        return this.inventory.getListeners().toArray(new Player[0]);
     }
 
 }

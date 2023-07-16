@@ -6,13 +6,13 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
-import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
+import org.cloudburstmc.server.container.screen.CloudContainerScreen;
 
 @Slf4j
 public class ItemStackRequestActionHandler {
 
 
-    private CloudInventoryScreen screen;
+    private CloudContainerScreen screen;
 
     public void handleAction(ItemStackRequestAction action) {
         switch (action.getType()) {
@@ -67,7 +67,7 @@ public class ItemStackRequestActionHandler {
 
     }
 
-    public void beginRequest(ItemStackRequest request, CloudInventoryScreen screen) {
+    public void beginRequest(ItemStackRequest request, CloudContainerScreen screen) {
         this.screen = screen;
     }
 

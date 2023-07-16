@@ -16,7 +16,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
@@ -29,7 +29,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 /**
  * @author MagicDroidX
  */
-public class EntityFallingBlock extends BaseEntity implements FallingBlock {
+public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
         super(type, location);

@@ -34,8 +34,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRe
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.container.ContainerRecipe;
 import org.cloudburstmc.server.crafting.*;
-import org.cloudburstmc.server.inventory.ContainerRecipe;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.TextFormat;
 
@@ -171,16 +171,16 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
         for (JsonNode recipe : json.get("recipes")) {
             Identifier id;
             if (recipe.has("id")) {
-                id = Identifier.fromString(recipe.get("id").asText());
+                id = Identifier.parse(recipe.get("id").asText());
             } else {
-                id = Identifier.fromString(UNLABELED_PREFIX + (++unlabeled));
+                id = Identifier.parse(UNLABELED_PREFIX + (++unlabeled));
             }
 
             switch (recipe.get("type").asInt()) {
                 case 0: // Shapeless
                 case 5:
                     String craftingBlock = recipe.get("block").asText();
-                    Identifier block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
+                    Identifier block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
 
                     List<ItemStack> outputs = new ArrayList<>();
                     for (Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>() {
@@ -201,7 +201,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                     String[] shape = Bootstrap.JSON_MAPPER.convertValue(recipe.get("shape"), new TypeReference<String[]>() {
                     });
                     craftingBlock = recipe.get("block").asText();
-                    block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
+                    block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
 
                     outputs = new ArrayList<>();
                     for (Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>() {
@@ -224,7 +224,7 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
                     Map<String, Object> inputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Object>>() {
                     });
                     craftingBlock = recipe.get("block").asText();
-                    block = craftingBlock == null ? null : Identifier.fromString(craftingBlock);
+                    block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
 
                     this.register(new FurnaceRecipe(id, ItemUtils.fromJson(outputData), ItemUtils.fromJson(inputData), block));
                     break;
@@ -240,22 +240,22 @@ public class CloudRecipeRegistry implements RecipeRegistry, Registry {
         //Load Potions
         unlabeled = 0;
         for (JsonNode recipe : json.get("potionMixes")) {
-            ItemStack input = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("inputId").asText()), recipe.get("inputMeta").shortValue(), 1, NbtMap.EMPTY);
-            ItemStack reagent = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("reagentId").asText()), recipe.get("reagentMeta").shortValue(), 1, NbtMap.EMPTY);
-            ItemStack output = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("outputId").asText()), recipe.get("outputMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack input = ItemUtils.deserializeItem(Identifier.parse(recipe.get("inputId").asText()), recipe.get("inputMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack reagent = ItemUtils.deserializeItem(Identifier.parse(recipe.get("reagentId").asText()), recipe.get("reagentMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack output = ItemUtils.deserializeItem(Identifier.parse(recipe.get("outputId").asText()), recipe.get("outputMeta").shortValue(), 1, NbtMap.EMPTY);
 
-            Identifier id = Identifier.fromString(UNLABELED_POTION_PREFIX + (++unlabeled));
+            Identifier id = Identifier.parse(UNLABELED_POTION_PREFIX + (++unlabeled));
             this.register(new BrewingRecipe(id, input, reagent, output));
         }
 
         //Load Container Mixes
         unlabeled = 0;
         for (JsonNode recipe : json.get("containerMixes")) {
-            ItemStack input = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("inputId").asText()), (short) 0, 1, NbtMap.EMPTY);
-            ItemStack reagent = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("reagentId").asText()), (short) 0, 1, NbtMap.EMPTY);
-            ItemStack output = ItemUtils.deserializeItem(Identifier.fromString(recipe.get("outputId").asText()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack input = ItemUtils.deserializeItem(Identifier.parse(recipe.get("inputId").asText()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack reagent = ItemUtils.deserializeItem(Identifier.parse(recipe.get("reagentId").asText()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack output = ItemUtils.deserializeItem(Identifier.parse(recipe.get("outputId").asText()), (short) 0, 1, NbtMap.EMPTY);
 
-            Identifier id = Identifier.fromString(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
+            Identifier id = Identifier.parse(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
         log.info("Loaded {} recipes.", recipeMap.size());

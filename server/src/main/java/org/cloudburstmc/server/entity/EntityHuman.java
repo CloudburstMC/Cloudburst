@@ -27,6 +27,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -50,6 +51,8 @@ public class EntityHuman extends EntityCreature implements Human {
     protected UUID identity;
 
     protected Skin skin;
+
+    protected final CloudContainer container = new CloudContainer(36);
 
     public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
@@ -228,7 +231,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
             player.sendPacket(createAddEntityPacket());
 
-            this.getInventory().sendArmorContents(player);
+//            this.getContainer().sendArmorContents(player); TODO: Fix this
 
             if (this.vehicle != null) {
                 SetEntityLinkPacket packet = new SetEntityLinkPacket();
@@ -255,7 +258,8 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(ItemUtils.toNetwork(this.getInventory().getItemInHand()));
+        packet.setHand(ItemUtils.toNetwork(ItemStack.EMPTY));
+//        packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem())); TODO: Fix this
         packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
         packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");
@@ -278,7 +282,7 @@ public class EntityHuman extends EntityCreature implements Human {
     @Override
     public void close() {
         if (!this.closed) {
-            this.getInventory().close();
+//            this.getContainer().close();
             super.close();
         }
     }
@@ -294,7 +298,7 @@ public class EntityHuman extends EntityCreature implements Human {
             int epf = 0;
             int toughness = 0;
 
-            for (ItemStack armor : getInventory().getArmorContents()) {
+            for (ItemStack armor : getArmor().getContainer().getContents()) {
 //                TODO: Needs implementation
 //                armorPoints += armor.getBlockState().getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);
@@ -319,7 +323,7 @@ public class EntityHuman extends EntityCreature implements Human {
             }
 
             for (int slot = 0; slot < 4; slot++) {
-                ItemStack armor = this.getInventory().getArmorItem(slot);
+                ItemStack armor = this.getArmor().getItem(slot);
                 //TODO: Enchantments implementation
 //                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
 //
@@ -349,9 +353,9 @@ public class EntityHuman extends EntityCreature implements Human {
 
                     int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute();
                     if (damage + 1 >= maxDurability) {
-                        getInventory().setArmorItem(slot, ItemStack.EMPTY);
+                        getArmor().setItem(slot, ItemStack.EMPTY);
                     } else {
-                        getInventory().setArmorItem(slot, armor, true);
+                        getArmor().setItem(slot, armor);
                     }
                 }
             }
@@ -398,9 +402,9 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public ItemStack[] getDrops() {
-        if (this.getInventory() != null) {
-            return this.getInventory().getContents();
-        }
+//        if (this.getContainer() != null) {
+//            return this.getContainer().getContents();
+//        }
         return new ItemStack[0];
     }
 

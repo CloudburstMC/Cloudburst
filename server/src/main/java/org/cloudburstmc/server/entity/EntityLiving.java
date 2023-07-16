@@ -43,7 +43,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityLiving extends BaseEntity implements Damageable, Living {
+public abstract class EntityLiving extends CloudEntity implements Damageable, Living {
 
     public EntityLiving(EntityType<?> type, Location location) {
         super(type, location);
@@ -198,7 +198,7 @@ public abstract class EntityLiving extends BaseEntity implements Damageable, Liv
             }
 
             if (this instanceof CloudPlayer) {
-                if (!isBreathing && ((CloudPlayer) this).getInventory().getHelmet().getType() == ItemTypes.TURTLE_HELMET) {
+                if (!isBreathing && ((CloudPlayer) this).getArmor().getHelmet().getType() == ItemTypes.TURTLE_HELMET) {
                     if (turtleTicks > 0) {
                         isBreathing = true;
                         turtleTicks--;

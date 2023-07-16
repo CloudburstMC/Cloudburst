@@ -17,7 +17,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
  */
 @JsonDeserialize
 public class SurfaceDecorator extends DepthNoiseDecorator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:surface");
+    public static final Identifier ID = Identifier.parse("cloudburst:surface");
 
     @JsonProperty
     protected IntRange height = null;

@@ -9,7 +9,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDestroyEvent;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
@@ -18,7 +18,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityVehicle extends BaseEntity implements Vehicle, Interactable {
+public abstract class EntityVehicle extends CloudEntity implements Vehicle, Interactable {
 
     public EntityVehicle(EntityType<?> type, Location location) {
         super(type, location);

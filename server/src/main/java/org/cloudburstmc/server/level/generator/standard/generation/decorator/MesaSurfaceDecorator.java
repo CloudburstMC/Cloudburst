@@ -24,7 +24,7 @@ import static net.daporkchop.lib.common.math.PMath.roundI;
  */
 @JsonDeserialize
 public class MesaSurfaceDecorator extends DepthNoiseDecorator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:mesa_surface");
+    public static final Identifier ID = Identifier.parse("cloudburst:mesa_surface");
 
     protected static final int BAND_COUNT = 64;
     protected static final int BAND_MASK = BAND_COUNT - 1;

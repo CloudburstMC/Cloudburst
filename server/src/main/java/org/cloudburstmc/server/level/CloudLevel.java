@@ -69,7 +69,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
@@ -1766,7 +1766,7 @@ public class CloudLevel implements Level {
             if (!ev.isCancelled()) {
                 targetBehaviors.get(ON_TICK).execute(target, new Random());
 
-                if ((!player.isSneaking() || player.getInventory().getItemInHand() == ItemStack.EMPTY) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
+                if ((!player.isSneaking() || player.getInventory().getSelectedItem() == ItemStack.EMPTY) && targetBehaviors.get(BlockBehaviors.CAN_BE_USED).execute(target) && targetBehaviors.get(USE).execute(target, player, face)) { //TODO: update the item from the behavior
                     if (this.itemRegistry.getBehavior(item.getType(), ItemBehaviors.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemBehaviors.GET_MAX_DAMAGE).execute()) {
                         item = ItemStack.EMPTY;
                     }
@@ -1942,8 +1942,8 @@ public class CloudLevel implements Level {
 
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
-                    Set<BaseEntity> colliding = this.getLoadedChunkEntities(x, z);
-                    for (BaseEntity ent : colliding) {
+                    Set<CloudEntity> colliding = this.getLoadedChunkEntities(x, z);
+                    for (CloudEntity ent : colliding) {
                         if ((entity == null || (ent != entity && entity.canCollideWith(ent)))
                                 && ent.getBoundingBox().intersectsWith(bb)) {
                             if (entities == null) {
@@ -1978,8 +1978,8 @@ public class CloudLevel implements Level {
 
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {
-                Set<BaseEntity> entitiesInRange = loadChunks ? this.getChunkEntities(x, z) : this.getLoadedChunkEntities(x, z);
-                for (BaseEntity entityInRange : entitiesInRange) {
+                Set<CloudEntity> entitiesInRange = loadChunks ? this.getChunkEntities(x, z) : this.getLoadedChunkEntities(x, z);
+                for (CloudEntity entityInRange : entitiesInRange) {
                     if (entityInRange != entity && entityInRange.getBoundingBox().intersectsWith(bb)) {
                         if (entities == null) {
                             entities = ImmutableSet.builder();
@@ -2030,15 +2030,15 @@ public class CloudLevel implements Level {
     }
 
     @NonNull
-    public Set<BaseEntity> getChunkEntities(int chunkX, int chunkZ) {
+    public Set<CloudEntity> getChunkEntities(int chunkX, int chunkZ) {
         return this.getChunk(chunkX, chunkZ).getEntities();
     }
 
     @NonNull
-    public Set<BaseEntity> getLoadedChunkEntities(int chunkX, int chunkZ) {
+    public Set<CloudEntity> getLoadedChunkEntities(int chunkX, int chunkZ) {
         CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
         if (chunk != null) {
-            return ImmutableSet.<BaseEntity>builder()
+            return ImmutableSet.<CloudEntity>builder()
                     .addAll(chunk.getEntities())
                     .addAll(chunk.getPlayers())
                     .build();
@@ -2380,7 +2380,7 @@ public class CloudLevel implements Level {
         packet.setPosition(Vector3f.from(x, y, z));
         packet.setRotation(Vector3f.from(pitch, yaw, headYaw));
 
-        CloudServer.broadcastPacket(((BaseEntity) entity).getViewers(), packet);
+        CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), packet);
     }
 
     public boolean isRaining() {

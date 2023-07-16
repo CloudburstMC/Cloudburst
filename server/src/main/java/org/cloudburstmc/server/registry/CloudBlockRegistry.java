@@ -234,7 +234,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         }
 
         if (state == null/* && tag.containsKey("states", NbtType.COMPOUND)*/) { //TODO: fix unknown states
-            var defaultState = getBlock(Identifier.fromString(tag.getString("name")));
+            var defaultState = getBlock(Identifier.parse(tag.getString("name")));
             var serialized = palette.getSerialized(defaultState);
 
             if (serialized.containsKey("states", NbtType.COMPOUND)) {
@@ -253,7 +253,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     public int getLegacyId(String name) {
-        return getLegacyId(Identifier.fromString(name));
+        return getLegacyId(Identifier.parse(name));
     }
 
     public int getLegacyId(Identifier identifier) {

@@ -23,7 +23,7 @@ import static net.daporkchop.lib.common.math.PMath.ceilI;
  */
 @JsonDeserialize
 public class SpikesPopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("cloudburst:spikes");
+    public static final Identifier ID = Identifier.parse("cloudburst:spikes");
 
     @JsonProperty
     protected BlockFilter on;

@@ -59,7 +59,7 @@ public class EntityRegistry implements Registry {
 
             ImmutableBiMap.Builder<String, Identifier> mapBuilder = ImmutableBiMap.builder();
 
-            legacyNames.forEach((name, identifier) -> mapBuilder.put(name, Identifier.fromString(identifier)));
+            legacyNames.forEach((name, identifier) -> mapBuilder.put(name, Identifier.parse(identifier)));
             LEGACY_NAMES = mapBuilder.build();
         } catch (IOException e) {
             throw new AssertionError("Unable to load legacy entity names", e);

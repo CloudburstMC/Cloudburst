@@ -50,12 +50,12 @@ import static net.daporkchop.lib.common.util.PorkUtil.fallbackIfNull;
 @NoArgsConstructor
 @Accessors(fluent = true)
 public final class StandardGenerator implements Generator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:standard");
+    public static final Identifier ID = Identifier.parse("cloudburst:standard");
 
     private static final String DEFAULT_PRESET = "minecraft:overworld";
 
     public static final GeneratorFactory FACTORY = (seed, options) -> {
-        Identifier presetId = Identifier.fromString(Strings.isNullOrEmpty(options) ? DEFAULT_PRESET : options);
+        Identifier presetId = Identifier.parse(Strings.isNullOrEmpty(options) ? DEFAULT_PRESET : options);
         try (InputStream in = StandardGeneratorUtils.read("preset", presetId)) {
             synchronized (StandardGenerator.class) {
                 return Bootstrap.YAML_MAPPER.readValue(in, StandardGenerator.class).init(seed);

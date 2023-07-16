@@ -27,6 +27,9 @@ dependencies {
     implementation(libs.jopt.simple)
     implementation(libs.jose.jwt)
     implementation(libs.upnp)
+
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
 }
 
 extraJavaModuleInfo {

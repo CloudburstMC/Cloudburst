@@ -11,7 +11,7 @@ import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.math.NukkitMath;
 
@@ -23,7 +23,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityProjectile extends BaseEntity implements Projectile {
+public abstract class EntityProjectile extends CloudEntity implements Projectile {
 
     protected float damage;
     public boolean hadCollision = false;

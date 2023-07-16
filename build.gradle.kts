@@ -27,6 +27,9 @@ subprojects {
         "annotationProcessor"(rootProject.libs.lombok)
 
         "compileOnly"(rootProject.libs.checker.qual)
+
+        "testAnnotationProcessor"(rootProject.libs.lombok)
+        "testImplementation"(rootProject.libs.lombok)
     }
 
     tasks {

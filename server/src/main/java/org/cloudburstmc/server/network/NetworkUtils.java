@@ -4,7 +4,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
@@ -14,21 +13,18 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
-import org.cloudburstmc.server.inventory.CloudInventory;
+import org.cloudburstmc.server.container.CloudContainer;
 
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 
 @UtilityClass
 public class NetworkUtils {
 
     private BiMap<PotionType, Short> potionTypeMap = HashBiMap.create();
     private BiMap<EffectType, Byte> effectTypeMap = HashBiMap.create();
-    private Map<InventoryType, ContainerType> inventoryTypeMap = new IdentityHashMap<>();
+//    private Map<ContainerViewType, ContainerType> inventoryTypeMap = new IdentityHashMap<>();
 
     static {
         potionTypeMap.put(PotionTypes.WATER, (short) 0);
@@ -104,25 +100,25 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.BAD_OMEN, (byte) 28);
         effectTypeMap.put(EffectTypes.VILLAGE_HERO, (byte) 29);
 
-        inventoryTypeMap.put(InventoryType.CHEST, ContainerType.CONTAINER);
-        inventoryTypeMap.put(InventoryType.ENDER_CHEST, ContainerType.CONTAINER);
-        inventoryTypeMap.put(InventoryType.DOUBLE_CHEST, ContainerType.CONTAINER);
-        inventoryTypeMap.put(InventoryType.PLAYER, ContainerType.INVENTORY);
-        inventoryTypeMap.put(InventoryType.FURNACE, ContainerType.FURNACE);
-        inventoryTypeMap.put(InventoryType.CRAFTING, ContainerType.WORKBENCH);
-        inventoryTypeMap.put(InventoryType.WORKBENCH, ContainerType.WORKBENCH);
-        inventoryTypeMap.put(InventoryType.BREWING_STAND, ContainerType.BREWING_STAND);
-        inventoryTypeMap.put(InventoryType.ANVIL, ContainerType.ANVIL);
-        inventoryTypeMap.put(InventoryType.ENCHANT_TABLE, ContainerType.ENCHANTMENT);
-        inventoryTypeMap.put(InventoryType.DISPENSER, ContainerType.DISPENSER);
-        inventoryTypeMap.put(InventoryType.DROPPER, ContainerType.DROPPER);
-        inventoryTypeMap.put(InventoryType.HOPPER, ContainerType.HOPPER);
-        inventoryTypeMap.put(InventoryType.UI, ContainerType.INVENTORY); // Might not be needed anymore?
-        inventoryTypeMap.put(InventoryType.SHULKER_BOX, ContainerType.CONTAINER);
-        inventoryTypeMap.put(InventoryType.BEACON, ContainerType.BEACON);
-        inventoryTypeMap.put(InventoryType.BLAST_FURNACE, ContainerType.BLAST_FURNACE);
-        inventoryTypeMap.put(InventoryType.SMOKER, ContainerType.SMOKER);
-        inventoryTypeMap.put(InventoryType.BARREL, ContainerType.CONTAINER);
+//        inventoryTypeMap.put(ContainerViewType.CHEST, ContainerType.CONTAINER);
+//        inventoryTypeMap.put(ContainerViewType.ENDER_CHEST, ContainerType.CONTAINER);
+//        inventoryTypeMap.put(ContainerViewType.DOUBLE_CHEST, ContainerType.CONTAINER);
+//        inventoryTypeMap.put(ContainerViewType.PLAYER, ContainerType.INVENTORY);
+//        inventoryTypeMap.put(ContainerViewType.FURNACE, ContainerType.FURNACE);
+//        inventoryTypeMap.put(ContainerViewType.CRAFTING, ContainerType.WORKBENCH);
+//        inventoryTypeMap.put(ContainerViewType.WORKBENCH, ContainerType.WORKBENCH);
+//        inventoryTypeMap.put(ContainerViewType.BREWING_STAND, ContainerType.BREWING_STAND);
+//        inventoryTypeMap.put(ContainerViewType.ANVIL, ContainerType.ANVIL);
+//        inventoryTypeMap.put(ContainerViewType.ENCHANT_TABLE, ContainerType.ENCHANTMENT);
+//        inventoryTypeMap.put(ContainerViewType.DISPENSER, ContainerType.DISPENSER);
+//        inventoryTypeMap.put(ContainerViewType.DROPPER, ContainerType.DROPPER);
+//        inventoryTypeMap.put(ContainerViewType.HOPPER, ContainerType.HOPPER);
+//        inventoryTypeMap.put(ContainerViewType.UI, ContainerType.INVENTORY); // Might not be needed anymore?
+//        inventoryTypeMap.put(ContainerViewType.SHULKER_BOX, ContainerType.CONTAINER);
+//        inventoryTypeMap.put(ContainerViewType.BEACON, ContainerType.BEACON);
+//        inventoryTypeMap.put(ContainerViewType.BLAST_FURNACE, ContainerType.BLAST_FURNACE);
+//        inventoryTypeMap.put(ContainerViewType.SMOKER, ContainerType.SMOKER);
+//        inventoryTypeMap.put(ContainerViewType.BARREL, ContainerType.CONTAINER);
 
     }
 
@@ -152,11 +148,11 @@ public class NetworkUtils {
         return effectTypeMap.inverse().get(effectId);
     }
 
-    public static ContainerType inventoryToNetwork(InventoryType type) {
-        return inventoryTypeMap.get(type);
-    }
+//    public static ContainerType inventoryToNetwork(ContainerViewType type) {
+//        return inventoryTypeMap.get(type);
+//    }
 
-    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudInventory inv) {
+    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudContainer inv) {
         ItemStack item = inv.getItem(data.getSlot());
         Integer damage = item.get(ItemKeys.DAMAGE);
         String customName = item.get(ItemKeys.CUSTOM_NAME);

@@ -522,7 +522,7 @@ public class CloudServer implements Server {
 
         this.registerVanillaComponents();
 
-        Identifier defaultStorageId = Identifier.fromString(getConfig().getLevelSettings().getDefaultFormat());
+        Identifier defaultStorageId = Identifier.parse(getConfig().getLevelSettings().getDefaultFormat());
         if (storageRegistry.isRegistered(defaultStorageId)) {
             this.defaultStorageId = defaultStorageId;
         } else {
@@ -1777,7 +1777,7 @@ public class CloudServer implements Server {
                 throw new IllegalStateException("Seed for world \"" + name + "\" is invalid: " + (seedObj == null ? "null" : seedObj.getClass().getCanonicalName()));
             }
 
-            Identifier generator = Identifier.fromString(config.getGenerator());
+            Identifier generator = Identifier.parse(config.getGenerator());
             String options = config.getOptions();
 
             levelFutures.add(this.loadLevel().id(name)

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -52,7 +52,7 @@ public class EntitySerializer {
 
     public static void saveEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.ENTITIES.getKey(chunk.getX(), chunk.getZ());
-        Set<BaseEntity> entities = chunk.getEntities();
+        Set<CloudEntity> entities = chunk.getEntities();
         if (entities.isEmpty()) {
             db.delete(key);
             return;
@@ -61,7 +61,7 @@ public class EntitySerializer {
         byte[] value;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (BaseEntity entity : entities) {
+            for (CloudEntity entity : entities) {
                 NbtMapBuilder tag = NbtMap.builder();
                 entity.saveAdditionalData(tag);
                 nbtOutputStream.writeTag(tag.build());
@@ -102,7 +102,7 @@ public class EntitySerializer {
                         continue;
                     }
                     Location location = getLocation(entityTag, chunk);
-                    Identifier identifier = Identifier.fromString(entityTag.getString("identifier"));
+                    Identifier identifier = Identifier.parse(entityTag.getString("identifier"));
                     EntityRegistry registry = EntityRegistry.get();
                     EntityType<?> type = registry.getEntityType(identifier);
                     if (type == null) {
@@ -111,7 +111,7 @@ public class EntitySerializer {
                         continue;
                     }
                     try {
-                        BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
+                        CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
                         if (entity != null) {
                             entity.loadAdditionalData(entityTag);
                         }

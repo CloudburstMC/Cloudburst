@@ -7,7 +7,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class UnknownEntity extends BaseEntity {
+public class UnknownEntity extends CloudEntity {
     public UnknownEntity(EntityType<?> type, Location location) {
         super(type, location);
     }

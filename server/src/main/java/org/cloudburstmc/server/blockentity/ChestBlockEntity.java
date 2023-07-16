@@ -4,16 +4,15 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
-import org.cloudburstmc.api.inventory.InventoryListener;
+import org.cloudburstmc.api.container.ContainerListener;
+import org.cloudburstmc.api.container.ContainerViewTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.inventory.CloudChestInventory;
-import org.cloudburstmc.server.inventory.CloudContainer;
-import org.cloudburstmc.server.inventory.CloudDoubleChestInventory;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -21,21 +20,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class ChestBlockEntity extends BaseBlockEntity implements Chest {
+public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
 
-    private final CloudChestInventory inventory = new CloudChestInventory(this);
-
-    private CloudDoubleChestInventory doubleInventory = null;
+    private CloudContainer combinedContainer = null;
     private Vector3i pairPosition;
     private boolean pairlead;
     private boolean findable;
 
     public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        super(type, chunk, position, new CloudContainer(27), ContainerViewTypes.CHEST);
     }
 
     @Override
@@ -45,7 +38,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
                 ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.inventory.setItem(itemTag.getByte("Slot"), item);
+                this.setItem(itemTag.getByte("Slot"), item);
             }
         });
         if (tag.containsKey("pairx") && tag.containsKey("pairz")) {
@@ -70,7 +63,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        this.inventory.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
+        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putBoolean("Findable", this.findable);
     }
@@ -90,7 +83,7 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
     @Override
     public void close() {
         if (!closed) {
-            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).getInventoryManager().closeScreen();
                 }
@@ -108,10 +101,10 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
         if (this.isPaired()) {
             unpair();
         }
-        for (ItemStack content : inventory.getContents()) {
+        for (ItemStack content : container.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
-        inventory.clearAll(); // Stop items from being moved around by another player in the inventory
+        container.clear(); // Stop items from being moved around by another player in the inventory
     }
 
     @Override
@@ -122,16 +115,12 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
 
     @Override
-    public CloudContainer getInventory() {
-        if (this.doubleInventory == null && this.isPaired()) {
+    public CloudContainer getContainer() {
+        if (this.combinedContainer == null && this.isPaired()) {
             this.checkPairing();
         }
 
-        return this.doubleInventory != null ? this.doubleInventory : this.inventory;
-    }
-
-    public CloudChestInventory getRealInventory() {
-        return inventory;
+        return this.combinedContainer != null ? this.combinedContainer : this.container;
     }
 
     protected void checkPairing() {
@@ -143,19 +132,19 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
                 pair.checkPairing();
             }
 
-            if (pair.doubleInventory != null) {
-                this.doubleInventory = pair.doubleInventory;
-            } else if (this.doubleInventory == null) {
+            if (pair.combinedContainer != null) {
+                this.combinedContainer = pair.combinedContainer;
+            } else if (this.combinedContainer == null) {
                 if ((pair.pairPosition.getX() + pair.pairPosition.getZ() << 15) >
-                        (this.pairPosition.getX() + this.pairPosition.getZ() << 15)) { //Order them correctly
-                    this.doubleInventory = new CloudDoubleChestInventory(pair, this);
+                        (this.pairPosition.getX() + this.pairPosition.getZ() << 15)) { // Order them correctly
+                    this.combinedContainer = new CloudContainer(pair.container, this.container);
                 } else {
-                    this.doubleInventory = new CloudDoubleChestInventory(this, pair);
+                    this.combinedContainer = new CloudContainer(this.container, pair.container);
                 }
             }
         } else {
             if (this.pairPosition != null && this.getLevel().isChunkLoaded(this.pairPosition)) {
-                this.doubleInventory = null;
+                this.combinedContainer = null;
                 this.pairPosition = null;
                 this.pairlead = false;
             }
@@ -204,14 +193,14 @@ public class ChestBlockEntity extends BaseBlockEntity implements Chest {
 
         ChestBlockEntity chest = this.getPair();
 
-        this.doubleInventory = null;
+        this.combinedContainer = null;
         this.pairPosition = null;
 
         this.spawnToAll();
 
         if (chest != null) {
             chest.pairPosition = null;
-            chest.doubleInventory = null;
+            chest.combinedContainer = null;
             chest.pairlead = false;
             chest.checkPairing();
             chest.spawnToAll();

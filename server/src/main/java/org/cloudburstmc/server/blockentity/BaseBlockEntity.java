@@ -83,7 +83,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return this.server;
     }
 
-    @Override
     public BlockEntityType<?> getType() {
         return this.type;
     }

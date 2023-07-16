@@ -117,18 +117,18 @@ public class ItemUtils {
         }
 
         ItemStackBuilder builder = ItemUtils.deserializeItem(
-                Identifier.fromString(tag.getString("Name")),
+                Identifier.parse(tag.getString("Name")),
                 tag.getShort("Damage", (short) 0),
                 tag.getByte("Count"),
                 tag.getCompound("tag", NbtMap.EMPTY)).toBuilder();
 
         if (tag.containsKey("CanPlaceOn", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
             builder.data(ItemKeys.CAN_PLACE_ON, list);
         }
 
         if (tag.containsKey("CanDestroy", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::fromString).map(BlockType::of).toList();
+            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
             builder.data(ItemKeys.CAN_DESTROY, list);
         }
 
@@ -240,7 +240,7 @@ public class ItemUtils {
             }
         }
 
-        Identifier id = Identifier.fromString(data.getDefinition().getIdentifier());
+        Identifier id = Identifier.parse(data.getDefinition().getIdentifier());
         NbtMap tag = data.getTag();
         if (tag == null) {
             tag = NbtMap.EMPTY;
@@ -304,7 +304,7 @@ public class ItemUtils {
 //            } catch (NumberFormatException | ClassCastException e) {
 //                id = Identifier.fromString(data.get("id").toString());
 //            }
-            id = Identifier.fromString(data.get("id").toString());
+            id = Identifier.parse(data.get("id").toString());
         } else {
             id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
         }

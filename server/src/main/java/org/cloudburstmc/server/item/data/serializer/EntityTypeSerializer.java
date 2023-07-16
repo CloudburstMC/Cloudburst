@@ -17,6 +17,6 @@ public class EntityTypeSerializer implements ItemDataSerializer<EntityType> {
 
     @Override
     public EntityType deserialize(Identifier id, NbtMap tag) {
-        return EntityRegistry.get().getEntityType(Identifier.fromString(tag.getString("ItemIdentifier", "unknown")));
+        return EntityRegistry.get().getEntityType(Identifier.parse(tag.getString("ItemIdentifier", "unknown")));
     }
 }

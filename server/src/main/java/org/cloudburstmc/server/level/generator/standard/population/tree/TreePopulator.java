@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class TreePopulator extends AbstractTreePopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:tree");
+    public static final Identifier ID = Identifier.parse("cloudburst:tree");
 
     protected WorldFeature[] types;
 

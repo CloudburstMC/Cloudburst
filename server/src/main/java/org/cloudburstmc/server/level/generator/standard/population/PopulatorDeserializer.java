@@ -20,7 +20,7 @@ final class PopulatorDeserializer extends JsonDeserializer<Populator> {
     public Populator deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
         String nextName = p.nextFieldName();
         Preconditions.checkState("id".equals(nextName), "first field must be \"id\", not \"%s\"", nextName);
-        Identifier id = Identifier.fromString(p.nextTextValue());
+        Identifier id = Identifier.parse(p.nextTextValue());
         p.nextToken();
 
         try {

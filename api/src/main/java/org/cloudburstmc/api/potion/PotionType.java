@@ -40,7 +40,7 @@ public class PotionType {
 
     @Nullable
     public static PotionType byName(String name) {
-        return typeMap.get(Identifier.fromString(name));
+        return typeMap.get(Identifier.parse(name));
     }
 
 }

@@ -15,7 +15,7 @@ public class FoodHoney extends Food {
     @Override
     public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(ItemStack.from(GLASS_BOTTLE));
+        player.getInventory().getContainer().addItem(ItemStack.from(GLASS_BOTTLE));
         player.removeEffect(EffectTypes.POISON);
         return true;
     }

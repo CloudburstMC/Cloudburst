@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class NoiseSelectionPopulator extends AbstractGenerationPass implements Populator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:noise");
+    public static final Identifier ID = Identifier.parse("cloudburst:noise");
 
     protected NoiseSource selector;
 

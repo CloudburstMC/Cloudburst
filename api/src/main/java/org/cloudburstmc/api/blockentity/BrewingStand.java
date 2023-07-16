@@ -1,11 +1,9 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.inventory.BrewingInventory;
+import org.cloudburstmc.api.container.view.BlockContainerView;
+import org.cloudburstmc.api.item.ItemStack;
 
-public interface BrewingStand extends BlockEntity, ContainerBlockEntity {
-
-    @Override
-    BrewingInventory getInventory();
+public interface BrewingStand extends BlockEntity, BlockContainerView {
 
     short getCookTime();
 
@@ -14,4 +12,12 @@ public interface BrewingStand extends BlockEntity, ContainerBlockEntity {
     short getFuelAmount();
 
     void setFuelAmount(int fuelAmount);
+
+    ItemStack getIngredient();
+
+    void setIngredient(ItemStack ingredient);
+
+    ItemStack getFuel();
+
+    void setFuel(ItemStack fuel);
 }

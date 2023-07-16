@@ -8,7 +8,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.Explosion;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
@@ -16,7 +16,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 /**
  * Created by PetteriM1
  */
-public class EntityEnderCrystal extends BaseEntity implements EnderCrystal, Explosive {
+public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Explosive {
 
     public EntityEnderCrystal(EntityType<EnderCrystal> type, Location location) {
         super(type, location);

@@ -617,7 +617,7 @@ public class MultiBlockSerializers {
             .buildSerializer();
 
     public static final MultiBlockSerializer ELEMENT = builder()
-            .add("element_type", ElementType.class, (e) -> Identifier.fromString(e.name().toLowerCase()), true)
+            .add("element_type", ElementType.class, (e) -> Identifier.parse(e.name().toLowerCase()), true)
             .buildSerializer();
 
     public static final MultiBlockSerializer FRAME = builder()

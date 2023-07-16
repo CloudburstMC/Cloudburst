@@ -23,7 +23,7 @@ public class NbtItemProvider extends ItemDataProvider {
 
         tag.listenForList("CanDestroy", NbtType.STRING, (types) -> {
             for (String type : types) {
-                canDestroy.add(Identifier.fromString(type));
+                canDestroy.add(Identifier.parse(type));
             }
         });
 
@@ -36,7 +36,7 @@ public class NbtItemProvider extends ItemDataProvider {
 
         tag.listenForList("CanPlaceOn", NbtType.STRING, (types) -> {
             for (String type : types) {
-                canDestroy.add(Identifier.fromString(type));
+                canDestroy.add(Identifier.parse(type));
             }
         });
 

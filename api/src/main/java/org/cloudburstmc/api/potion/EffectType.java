@@ -28,6 +28,6 @@ public class EffectType {
 
     @Nullable
     public static EffectType byName(String arg) {
-        return effectMap.get(Identifier.fromString(arg));
+        return effectMap.get(Identifier.parse(arg));
     }
 }

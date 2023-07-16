@@ -20,7 +20,7 @@ import org.cloudburstmc.server.level.generator.standard.population.Populator;
 @Populator.SkipRegistrationAsFinisher
 @JsonDeserialize
 public final class NextGenerationPass implements Decorator, Populator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:next");
+    public static final Identifier ID = Identifier.parse("cloudburst:next");
     public static final NextGenerationPass INSTANCE = new NextGenerationPass();
 
     @Override

@@ -19,7 +19,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class RiverBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("cloudburst:river");
+    public static final Identifier ID = Identifier.parse("cloudburst:river");
 
     protected int riverId;
     protected int fallbackId;

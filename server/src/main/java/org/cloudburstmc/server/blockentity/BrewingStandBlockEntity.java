@@ -7,23 +7,23 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
+import org.cloudburstmc.api.container.ContainerListener;
+import org.cloudburstmc.api.container.ContainerViewTypes;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
-import org.cloudburstmc.api.inventory.InventoryListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.ContainerRecipe;
 import org.cloudburstmc.server.crafting.BrewingRecipe;
-import org.cloudburstmc.server.inventory.CloudBrewingInventory;
-import org.cloudburstmc.server.inventory.ContainerRecipe;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -32,7 +32,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingStand {
+public class BrewingStandBlockEntity extends ContainerBlockEntity implements BrewingStand {
+
+    private static final int SLOT_INGREDIENT = 0;
+    private static final int SLOT_FUEL = 4;
 
     public static final short MAX_COOK_TIME = 400;
     public static final List<ItemType> ingredients = Lists.newArrayList(
@@ -40,13 +43,12 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
             ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.SPECKLED_MELON, ItemTypes.SUGAR, ItemTypes.FISH, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
             ItemTypes.TURTLE_SHELL_PIECE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
     );
-    protected final CloudBrewingInventory inventory = new CloudBrewingInventory(this);
     public short cookTime = MAX_COOK_TIME;
     public short fuelTotal;
     public short fuelAmount;
 
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        super(type, chunk, position, new CloudContainer(5), ContainerViewTypes.BREWING_STAND);
     }
 
     @Override
@@ -56,7 +58,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
                 ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.inventory.setItem(itemTag.getByte("Slot"), item);
+                this.container.setItem(itemTag.getByte("Slot"), item);
             }
         });
 
@@ -70,7 +72,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        inventory.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
+        container.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putShort("CookTime", this.cookTime);
     }
@@ -86,7 +88,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     @Override
     public void close() {
         if (!closed) {
-            for (InventoryListener listener : new HashSet<>(getInventory().getListeners())) {
+            for (ContainerListener listener : new HashSet<>(container.getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).getInventoryManager().closeScreen();
                 }
@@ -97,7 +99,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
     @Override
     public void onBreak() {
-        for (ItemStack content : inventory.getContents()) {
+        for (ItemStack content : container.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -105,11 +107,6 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     @Override
     public boolean isValid() {
         return getBlockState().getType() == BlockTypes.BREWING_STAND;
-    }
-
-    @Override
-    public CloudBrewingInventory getInventory() {
-        return inventory;
     }
 
     protected boolean checkIngredient(ItemStack ingredient) {
@@ -143,21 +140,21 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
         boolean ret = false;
 
-        ItemStack ingredient = this.inventory.getIngredient();
+        ItemStack ingredient = this.getIngredient();
         boolean canBrew = false;
 
-        ItemStack fuel = this.getInventory().getFuel();
+        ItemStack fuel = this.getFuel();
         if (this.fuelAmount <= 0 && fuel.getType() == ItemTypes.BLAZE_POWDER && fuel.getCount() > 0) {
             this.fuelAmount = 20;
             this.fuelTotal = 20;
 
-            this.inventory.decrementCount(CloudBrewingInventory.SLOT_FUEL);
+            this.container.decrementCount(SLOT_FUEL);
             this.sendFuel();
         }
 
         if (this.fuelAmount > 0) {
             for (int i = 1; i <= 3; i++) {
-                if (this.inventory.getItem(i).getType() == ItemTypes.POTION) {
+                if (this.getItem(i).getType() == ItemTypes.POTION) {
                     canBrew = true;
                 }
             }
@@ -190,22 +187,22 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
 
                 if (!e.isCancelled()) {
                     for (int i = 1; i <= 3; i++) {
-                        ItemStack potion = this.inventory.getItem(i);
+                        ItemStack potion = this.container.getItem(i);
 
                         ContainerRecipe containerRecipe = (ContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
                         if (containerRecipe != null) {
                             ItemStack result = containerRecipe.getResult();
 //                            result.setMeta(potion.getMeta()); //TODO: check
-                            this.inventory.setItem(i, result);
+                            this.setItem(i, result);
                         } else {
                             BrewingRecipe recipe = (BrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
                             if (recipe != null) {
-                                this.inventory.setItem(i, recipe.getResult());
+                                this.container.setItem(i, recipe.getResult());
                             }
                         }
                     }
                     this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
-                    this.inventory.decrementCount(CloudBrewingInventory.SLOT_INGREDIENT);
+                    this.container.decrementCount(SLOT_INGREDIENT);
 
                     this.fuelAmount--;
                     this.sendFuel();
@@ -228,15 +225,15 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     public void sendFuel() {
-        for (InventoryListener listener : this.inventory.getListeners()) {
-            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuelAmount);
-            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.fuelTotal);
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_FUEL_AMOUNT, this.fuelAmount);
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_FUEL_TOTAL, this.fuelTotal);
         }
     }
 
     protected void sendBrewTime() {
-        for (InventoryListener listener : this.inventory.getListeners()) {
-            listener.onInventoryDataChange(this.inventory, ContainerSetDataPacket.BREWING_STAND_BREW_TIME, this.cookTime);
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.BREWING_STAND_BREW_TIME, this.cookTime);
         }
     }
 
@@ -250,7 +247,7 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
         BlockState state = BlockStates.BREWING_STAND;
 
         for (int i = 1; i <= 3; ++i) {
-            ItemStack potion = this.inventory.getItem(i);
+            ItemStack potion = this.container.getItem(i);
 
             var id = potion.getType();
             if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getCount() > 0) {
@@ -282,25 +279,23 @@ public class BrewingStandBlockEntity extends BaseBlockEntity implements BrewingS
     }
 
     @Override
-    public int[] getHopperPushSlots(Direction direction, ItemStack item) {
-        var id = item.getType();
-
-        if (direction.getAxis().isHorizontal()) {
-            if (id == ItemTypes.BLAZE_POWDER) {
-                return new int[]{CloudBrewingInventory.SLOT_FUEL};
-            }
-        } else {
-            if (id == ItemTypes.NETHER_WART || id == ItemTypes.REDSTONE || id == ItemTypes.GLOWSTONE_DUST || id == ItemTypes.FERMENTED_SPIDER_EYE || id == ItemTypes.GUNPOWDER || id == ItemTypes.DRAGON_BREATH) {
-                return new int[]{CloudBrewingInventory.SLOT_INGREDIENT};
-            }
-        }
-
-        return null;
+    public ItemStack getIngredient() {
+        return this.container.getItem(SLOT_INGREDIENT);
     }
 
     @Override
-    public int[] getHopperPullSlots() {
-        return new int[]{1, 2, 3};
+    public void setIngredient(ItemStack ingredient) {
+        this.container.setItem(SLOT_INGREDIENT, ingredient);
+    }
+
+    @Override
+    public ItemStack getFuel() {
+        return this.container.getItem(SLOT_FUEL);
+    }
+
+    @Override
+    public void setFuel(ItemStack fuel) {
+        this.container.setItem(SLOT_FUEL, fuel);
     }
 
     @Override

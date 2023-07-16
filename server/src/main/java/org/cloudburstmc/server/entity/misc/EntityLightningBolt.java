@@ -10,7 +10,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,7 +21,7 @@ import static org.cloudburstmc.api.block.BlockTypes.TALL_GRASS;
 /**
  * Created by boybook on 2016/2/27.
  */
-public class EntityLightningBolt extends BaseEntity implements LightningBolt {
+public class EntityLightningBolt extends CloudEntity implements LightningBolt {
 
     public int state;
     public int liveTime;

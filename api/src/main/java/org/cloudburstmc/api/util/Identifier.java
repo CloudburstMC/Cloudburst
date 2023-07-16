@@ -54,7 +54,7 @@ public final class Identifier implements Comparable<Identifier> {
     }
 
     @JsonCreator
-    public static Identifier fromString(String identifier) {
+    public static Identifier parse(String identifier) {
         if (Preconditions.checkNotNull(identifier, "identifier").isEmpty()) {
             //check for empty before using matcher
             return EMPTY;
@@ -100,10 +100,10 @@ public final class Identifier implements Comparable<Identifier> {
                 return EMPTY;
             } else {
                 //assume minecraft namespace
-                return fromString(name);
+                return parse(name);
             }
         }
-        return fromString(space + NAMESPACE_SEPARATOR + name);
+        return parse(space + NAMESPACE_SEPARATOR + name);
     }
 
     public String getName() {
@@ -127,7 +127,7 @@ public final class Identifier implements Comparable<Identifier> {
     static final class Deserializer extends JsonDeserializer<Identifier> {
         @Override
         public Identifier deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            return Identifier.fromString(p.getText());
+            return Identifier.parse(p.getText());
         }
     }
 }

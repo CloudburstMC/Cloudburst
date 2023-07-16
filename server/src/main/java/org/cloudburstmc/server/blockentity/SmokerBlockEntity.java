@@ -4,14 +4,14 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Smoker;
-import org.cloudburstmc.api.inventory.InventoryType;
+import org.cloudburstmc.api.container.ContainerViewTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 
 public class SmokerBlockEntity extends FurnaceBlockEntity implements Smoker {
 
     public SmokerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, InventoryType.SMOKER);
+        super(type, chunk, position, ContainerViewTypes.SMOKER);
     }
 
     @Override

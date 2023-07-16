@@ -20,7 +20,7 @@ import java.util.*;
  */
 @JsonDeserialize
 public class SubstituteRandomBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("cloudburst:substitute_random");
+    public static final Identifier ID = Identifier.parse("cloudburst:substitute_random");
 
     protected final Int2ObjectMap<int[]> replacements = new Int2ObjectOpenHashMap<>();
 
@@ -33,7 +33,7 @@ public class SubstituteRandomBiomeFilter extends AbstractBiomeFilter.Next {
     @Override
     public void init(long seed, PRandom random) {
         Objects.requireNonNull(this.biomes, "biomes must be set!").forEach((key, arr) -> {
-            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.fromString(key)).getInternalId();
+            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.parse(key)).getInternalId();
             int[] replacementIds = Arrays.stream(arr).mapToInt(GenerationBiome::getInternalId).toArray();
             this.replacements.put(replaceId, replacementIds);
         });

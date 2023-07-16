@@ -12,7 +12,7 @@ public final class IntegerBlockTrait extends BlockTrait<Integer> {
     private final int defaultValue;
 
     private IntegerBlockTrait(String name, @Nullable String vanillaName, IntRange range, int defaultValue, boolean onlySerialize) {
-        super(Identifier.fromString(name), vanillaName, Integer.class, range, onlySerialize);
+        super(Identifier.parse(name), vanillaName, Integer.class, range, onlySerialize);
         this.range = range;
         this.defaultValue = defaultValue;
     }

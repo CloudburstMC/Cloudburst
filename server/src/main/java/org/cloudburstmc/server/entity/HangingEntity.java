@@ -10,7 +10,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class HangingEntity extends BaseEntity {
+public abstract class HangingEntity extends CloudEntity {
     protected byte direction;
 
     public HangingEntity(EntityType<?> type, Location location) {

@@ -17,7 +17,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
  */
 @JsonDeserialize
 public class BedrockDecorator extends AbstractGenerationPass implements Decorator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:bedrock");
+    public static final Identifier ID = Identifier.parse("cloudburst:bedrock");
 
     @JsonProperty(required = true)
     private ConstantBlock block;

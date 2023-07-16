@@ -55,7 +55,7 @@ public class SetBlockCommand extends Command {
             return true;
         }
 
-        Identifier id = Identifier.fromString(args[3]);
+        Identifier id = Identifier.parse(args[3]);
         int meta;
         if (args.length >= 5) {
             try {

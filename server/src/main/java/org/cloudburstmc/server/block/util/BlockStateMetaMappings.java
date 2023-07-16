@@ -31,7 +31,7 @@ public class BlockStateMetaMappings {
     public void init() {
 
         BlockStateUpdaterBase.LEGACY_BLOCK_DATA_MAP.forEach((name, states) -> {
-            Identifier type = Identifier.fromString(name);
+            Identifier type = Identifier.parse(name);
 
             Int2ReferenceMap<BlockState> mapping = new Int2ReferenceOpenHashMap<>();
 

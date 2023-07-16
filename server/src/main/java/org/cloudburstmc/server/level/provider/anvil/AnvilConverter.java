@@ -15,7 +15,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
@@ -207,7 +207,7 @@ public class AnvilConverter {
                     continue;
                 }
                 EntityType<?> type = registry.getEntityType(identifier);
-                BaseEntity entity = (BaseEntity) registry.newEntity(type, location);
+                CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
                 entity.loadAdditionalData(entityTag);
             }
             return dirty;

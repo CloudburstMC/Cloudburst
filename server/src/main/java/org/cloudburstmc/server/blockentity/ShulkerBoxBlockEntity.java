@@ -4,14 +4,15 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
-import org.cloudburstmc.api.inventory.InventoryListener;
+import org.cloudburstmc.api.container.ContainerListener;
+import org.cloudburstmc.api.container.ContainerViewTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.inventory.CloudShulkerBoxInventory;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -22,13 +23,11 @@ import java.util.List;
 /**
  * Created by PetteriM1
  */
-public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox {
-
-    private final CloudShulkerBoxInventory inventory = new CloudShulkerBoxInventory(this);
+public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements ShulkerBox {
     private byte facing;
 
     public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position);
+        super(type, chunk, position, new CloudContainer(27), ContainerViewTypes.SHULKER_BOX);
     }
 
     @Override
@@ -38,7 +37,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
                 ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.inventory.setItem(itemTag.getByte("Slot"), item);
+                this.container.setItem(itemTag.getByte("Slot"), item);
             }
         });
         this.facing = tag.getByte("facing");
@@ -49,7 +48,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        this.inventory.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
+        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putByte("facing", this.facing);
     }
@@ -65,7 +64,7 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
     @Override
     public void close() {
         if (!closed) {
-            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+            for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).getInventoryManager().closeScreen();
                 }
@@ -78,11 +77,6 @@ public class ShulkerBoxBlockEntity extends BaseBlockEntity implements ShulkerBox
     public boolean isValid() {
         BlockType type = this.getBlockState().getType();
         return type == BlockTypes.SHULKER_BOX || type == BlockTypes.UNDYED_SHULKER_BOX;
-    }
-
-    @Override
-    public CloudShulkerBoxInventory getInventory() {
-        return inventory;
     }
 
     @Override

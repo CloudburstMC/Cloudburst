@@ -12,7 +12,7 @@ public final class BooleanBlockTrait extends BlockTrait<Boolean> {
     private final boolean defaultValue;
 
     private BooleanBlockTrait(String name, @Nullable String vanillaName, boolean defaultValue, boolean onlySerialize) {
-        super(Identifier.fromString(name), vanillaName, Boolean.class, VALUES, onlySerialize);
+        super(Identifier.parse(name), vanillaName, Boolean.class, VALUES, onlySerialize);
         this.defaultValue = defaultValue;
     }
 

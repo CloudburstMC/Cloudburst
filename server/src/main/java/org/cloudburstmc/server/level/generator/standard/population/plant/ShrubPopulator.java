@@ -24,7 +24,7 @@ import static java.lang.Math.min;
  */
 @JsonDeserialize
 public class ShrubPopulator extends AbstractPlantPopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:shrub");
+    public static final Identifier ID = Identifier.parse("cloudburst:shrub");
 
     @JsonProperty
     protected BlockSelector block;

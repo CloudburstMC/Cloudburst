@@ -26,7 +26,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class RiverCombineBiomeFilter extends AbstractBiomeFilter {
-    public static final Identifier ID = Identifier.fromString("cloudburst:river_combine");
+    public static final Identifier ID = Identifier.parse("cloudburst:river_combine");
 
     @JsonProperty
     protected BiomeFilter biomeLayer;
@@ -56,7 +56,7 @@ public class RiverCombineBiomeFilter extends AbstractBiomeFilter {
         }
 
         Objects.requireNonNull(this.riverBiomes, "riverBiomes must be set!").forEach((key, biome) -> {
-            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.fromString(key)).getInternalId();
+            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.parse(key)).getInternalId();
             this.replacements.put(replaceId, biome.getInternalId());
         });
 

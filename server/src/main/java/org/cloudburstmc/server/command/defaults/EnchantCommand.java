@@ -65,7 +65,7 @@ public class EnchantCommand extends Command {
             return true;
         }
 
-        ItemStack item = player.getInventory().getItemInHand();
+        ItemStack item = player.getInventory().getSelectedItem();
         if (item == ItemStack.EMPTY) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.get(ItemKeys.CUSTOM_NAME)));
             return true;
@@ -74,7 +74,7 @@ public class EnchantCommand extends Command {
         //TODO new format?
         item.get(ItemKeys.ENCHANTMENTS).put(registry.getType(enchantId), new Enchantment(registry.getType(enchantId), enchantLevel));
 
-        player.getInventory().setItemInHand(item);
+        player.getInventory().setSelectedItem(item);
         CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.enchant.success", sender.getName()));
         return true;
     }

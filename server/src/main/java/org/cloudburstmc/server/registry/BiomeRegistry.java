@@ -29,13 +29,13 @@ public class BiomeRegistry implements Registry {
     static {
         //build initial biome map
         VANILLA_BIOMES = Biome.BIOME_DEFINITIONS.entrySet().stream().collect(Collectors.toMap(
-                entry -> Identifier.fromString(entry.getKey()),
+                entry -> Identifier.parse(entry.getKey()),
                 entry -> {
                     NbtMap tag = (NbtMap) entry.getValue();
-                    BiomeBuilder builder = BiomeBuilder.builder().setId(Identifier.fromString(entry.getKey()));
+                    BiomeBuilder builder = BiomeBuilder.builder().setId(Identifier.parse(entry.getKey()));
                     tag.listenForFloat("temperature", builder::setTemperature);
                     tag.listenForFloat("downfall", builder::setDownfall);
-                    tag.listenForList("tags", NbtType.STRING, list -> builder.setTags(list.stream().map(Identifier::fromString).collect(Collectors.toList())));
+                    tag.listenForList("tags", NbtType.STRING, list -> builder.setTags(list.stream().map(Identifier::parse).collect(Collectors.toList())));
                     return builder.build();
                 }));
 

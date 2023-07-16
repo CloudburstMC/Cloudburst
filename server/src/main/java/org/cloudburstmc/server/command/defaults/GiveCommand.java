@@ -68,7 +68,7 @@ public class GiveCommand extends Command {
             try {
                 type = registry.getType(Integer.parseInt(args[1]));
             } catch (NumberFormatException e) {
-                type = registry.getType(Identifier.fromString(args[1]));
+                type = registry.getType(Identifier.parse(args[1]));
             }
         } catch (Exception e) {
             log.throwing(e);
@@ -88,7 +88,7 @@ public class GiveCommand extends Command {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
                 return true;
             }
-            player.getInventory().addItem(stack);
+            player.getContainer().addItem(stack);
         } else {
             sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
 

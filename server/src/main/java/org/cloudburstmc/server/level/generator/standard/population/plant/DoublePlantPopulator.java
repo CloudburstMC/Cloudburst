@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class DoublePlantPopulator extends AbstractPlantPopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:double_plant");
+    public static final Identifier ID = Identifier.parse("cloudburst:double_plant");
 
     @JsonProperty
     @JsonAlias("type")

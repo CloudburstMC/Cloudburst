@@ -282,7 +282,7 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     @Override
     public ImmutableList<Identifier> getItems() {
         return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
-                .map(itemDefinition -> Identifier.fromString(itemDefinition.getIdentifier()))
+                .map(itemDefinition -> Identifier.parse(itemDefinition.getIdentifier()))
                 .collect(Collectors.toList()));
     }
 

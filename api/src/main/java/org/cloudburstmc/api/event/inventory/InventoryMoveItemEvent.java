@@ -1,8 +1,7 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.inventory.Inventory;
-import org.cloudburstmc.api.inventory.InventoryHolder;
 import org.cloudburstmc.api.item.ItemStack;
 
 
@@ -13,27 +12,21 @@ import org.cloudburstmc.api.item.ItemStack;
  */
 public final class InventoryMoveItemEvent extends InventoryEvent implements Cancellable {
 
-    private final Inventory targetInventory;
-    private final InventoryHolder source;
+    private final ContainerView targetInventory;
 
     private ItemStack item;
 
     private final Action action;
 
-    public InventoryMoveItemEvent(Inventory from, Inventory targetInventory, InventoryHolder source, ItemStack item, Action action) {
+    public InventoryMoveItemEvent(ContainerView from, ContainerView targetInventory, ItemStack item, Action action) {
         super(from);
         this.targetInventory = targetInventory;
-        this.source = source;
         this.item = item;
         this.action = action;
     }
 
-    public Inventory getTargetInventory() {
+    public ContainerView getTargetInventory() {
         return targetInventory;
-    }
-
-    public InventoryHolder getSource() {
-        return source;
     }
 
     public ItemStack getItem() {

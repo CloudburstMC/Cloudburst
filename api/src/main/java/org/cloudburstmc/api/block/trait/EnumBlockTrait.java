@@ -15,7 +15,7 @@ public final class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     private final E defaultValue;
 
     private EnumBlockTrait(String name, @Nullable String vanillaName, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
-        super(Identifier.fromString(name), vanillaName, enumClass, possibleValues, false);
+        super(Identifier.parse(name), vanillaName, enumClass, possibleValues, false);
         this.defaultValue = defaultValue;
     }
 

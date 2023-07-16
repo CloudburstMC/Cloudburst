@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.inventory.Inventory;
 
 /**
  * author: MagicDroidX
@@ -12,7 +12,7 @@ public final class InventoryPickupArrowEvent extends InventoryEvent implements C
 
     private final Arrow arrow;
 
-    public InventoryPickupArrowEvent(Inventory inventory, Arrow arrow) {
+    public InventoryPickupArrowEvent(ContainerView inventory, Arrow arrow) {
         super(inventory);
         this.arrow = arrow;
     }

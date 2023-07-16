@@ -76,7 +76,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
             for (NbtMap nbt : tags) {
                 Identifier id;
                 if (nbt.containsKey("name")) {
-                    id = Identifier.fromString(nbt.getString("name"));
+                    id = Identifier.parse(nbt.getString("name"));
                 } else {
                     id = type.getId();
                     nbt = nbt.toBuilder().putString("name", id.toString()).build();

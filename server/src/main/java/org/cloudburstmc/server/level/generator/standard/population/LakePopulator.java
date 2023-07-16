@@ -26,7 +26,7 @@ import static java.lang.Integer.min;
  */
 @JsonDeserialize
 public class LakePopulator extends ChancePopulator.Column {
-    public static final Identifier ID = Identifier.fromString("cloudburst:lake");
+    public static final Identifier ID = Identifier.parse("cloudburst:lake");
 
     protected static final HandledPool<BitSet> BITSET_CACHE = HandledPool.threadLocal(() -> new BitSet(2048), 1);
 

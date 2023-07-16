@@ -36,7 +36,7 @@ public abstract class Animal extends EntityCreature implements EntityAgeable {
             if (item.get(ItemKeys.CUSTOM_NAME) != null) {
                 this.setNameTag(item.get(ItemKeys.CUSTOM_NAME));
                 this.setNameTagVisible(true);
-                player.getInventory().removeItem(item);
+                player.getInventory().getContainer().removeItem(item);
                 return true;
             }
         }

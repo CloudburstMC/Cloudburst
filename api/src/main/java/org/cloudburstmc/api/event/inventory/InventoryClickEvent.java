@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 
@@ -16,7 +16,7 @@ public final class InventoryClickEvent extends InventoryEvent implements Cancell
     private final ItemStack heldItem;
     private final Player player;
 
-    public InventoryClickEvent(Player who, Inventory inventory, int slot, ItemStack sourceItem, ItemStack heldItem) {
+    public InventoryClickEvent(Player who, ContainerView inventory, int slot, ItemStack sourceItem, ItemStack heldItem) {
         super(inventory);
         this.slot = slot;
         this.sourceItem = sourceItem;

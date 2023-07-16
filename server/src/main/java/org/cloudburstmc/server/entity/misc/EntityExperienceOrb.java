@@ -9,7 +9,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
@@ -19,7 +19,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VALU
  * Created on 2015/12/26 by xtypr.
  * Package cn.nukkit.entity in project Nukkit .
  */
-public class EntityExperienceOrb extends BaseEntity implements ExperienceOrb {
+public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     public CloudPlayer closestPlayer = null;
     private int age;

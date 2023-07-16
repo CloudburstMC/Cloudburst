@@ -26,7 +26,7 @@ import static net.daporkchop.lib.common.math.PMath.lerp;
  */
 @JsonDeserialize
 public class VanillaDensitySource extends AbstractGenerationPass implements DensitySource {
-    public static final Identifier ID = Identifier.fromString("cloudburst:vanilla");
+    public static final Identifier ID = Identifier.parse("cloudburst:vanilla");
 
     //these fields aren't sorted in ascending order by size (so there's a possibility that fields might not be word-aligned), however they ARE sorted
     // by the order in which they're used (so they can be prefetched into the cache)

@@ -21,7 +21,7 @@ import static java.lang.Math.abs;
  */
 @JsonDeserialize
 public class BushPopulator extends AbstractTreePopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:bush");
+    public static final Identifier ID = Identifier.parse("cloudburst:bush");
 
     @JsonProperty
     protected BlockSelector log;

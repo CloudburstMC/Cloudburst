@@ -101,7 +101,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         }
 
         tag.listenForString("LevelName", data::setName);
-        tag.listenForString("generatorName", s -> data.setGenerator(Identifier.fromString(s)));
+        tag.listenForString("generatorName", s -> data.setGenerator(Identifier.parse(s)));
         tag.listenForString("generatorOptions", data::setGeneratorOptions);
         tag.listenForInt("thunderTime", data::setLightningTime);
         tag.listenForInt("Difficulty", data::setDifficulty);

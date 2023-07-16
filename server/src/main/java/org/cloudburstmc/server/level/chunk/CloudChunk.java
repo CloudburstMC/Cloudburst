@@ -27,7 +27,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
@@ -342,7 +342,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public Set<BaseEntity> getEntities() {
+    public Set<CloudEntity> getEntities() {
         this.readLock.lock();
         try {
             return new HashSet<>(unsafe.getEntities());

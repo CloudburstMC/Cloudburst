@@ -16,7 +16,7 @@ public class BlockEntityType<T extends BlockEntity> {
     }
 
     public static <T extends BlockEntity> BlockEntityType<T> from(String identifier, Class<T> entityClass) {
-        return from(Identifier.fromString(identifier), entityClass);
+        return from(Identifier.parse(identifier), entityClass);
     }
 
     public static <T extends BlockEntity> BlockEntityType<T> from(Identifier identifier, Class<T> entityClass) {

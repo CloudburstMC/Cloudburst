@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class ShoreBiomeFilter extends AbstractBiomeFilter.Next {
-    public static final Identifier ID = Identifier.fromString("cloudburst:shore");
+    public static final Identifier ID = Identifier.parse("cloudburst:shore");
 
     protected final IntSet oceanBiomes = new IntOpenHashSet();
     protected final Int2IntMap replacements = new Int2IntOpenHashMap();
@@ -45,7 +45,7 @@ public class ShoreBiomeFilter extends AbstractBiomeFilter.Next {
         }
 
         Objects.requireNonNull(this.beaches, "beaches must be set!").forEach((key, biome) -> {
-            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.fromString(key)).getInternalId();
+            int replaceId = StandardGeneratorStores.generationBiome().find(Identifier.parse(key)).getInternalId();
             this.replacements.put(replaceId, biome.getInternalId());
         });
 

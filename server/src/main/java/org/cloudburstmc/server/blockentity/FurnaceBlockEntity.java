@@ -5,25 +5,24 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.container.ContainerListener;
+import org.cloudburstmc.api.container.ContainerViewType;
+import org.cloudburstmc.api.container.ContainerViewTypes;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
-import org.cloudburstmc.api.inventory.FurnaceInventory;
-import org.cloudburstmc.api.inventory.InventoryListener;
-import org.cloudburstmc.api.inventory.InventoryType;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.crafting.FurnaceRecipe;
-import org.cloudburstmc.server.inventory.CloudFurnaceInventory;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -38,20 +37,22 @@ import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 /**
  * @author MagicDroidX
  */
-public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
+public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace {
 
-    protected final FurnaceInventory inventory;
+    private static final int SLOT_SMELTING = 0;
+    private static final int SLOT_FUEL = 1;
+    private static final int SLOT_RESULT = 2;
+
     protected short burnTime = 0;
     protected short cookTime = 0;
     protected short burnDuration = 0;
 
-    protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, InventoryType inventoryType) {
-        super(type, chunk, position);
-        this.inventory = new CloudFurnaceInventory(this, inventoryType);
+    public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+        this(type, chunk, position, ContainerViewTypes.FURNACE);
     }
 
-    public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        this(type, chunk, position, InventoryType.FURNACE);
+    protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, ContainerViewType<?> viewType) {
+        super(type, chunk, position, new CloudContainer(3), viewType);
     }
 
     @Override
@@ -60,7 +61,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                this.inventory.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
         });
         tag.listenForShort("CookTime", this::setCookTime);
@@ -76,7 +77,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         tag.putShort("BurnTime", burnTime);
         tag.putShort("BurnDuration", burnDuration);
         List<NbtMap> items = new ArrayList<>();
-        inventory.forEachSlot((itemStack, slot) -> {
+        container.forEachSlot((itemStack, slot) -> {
             items.add(ItemUtils.serializeItem(itemStack, slot));
         });
         tag.putList("Items", NbtType.COMPOUND, items);
@@ -85,7 +86,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     @Override
     public void close() {
         if (!closed) {
-            for (InventoryListener listener : new HashSet<>(this.getInventory().getListeners())) {
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).getInventoryManager().closeScreen();
                 }
@@ -96,7 +97,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
     @Override
     public void onBreak() {
-        for (ItemStack content : inventory.getContents()) {
+        for (ItemStack content : container.getContents()) {
             this.getLevel().dropItem(this.getPosition(), content);
         }
     }
@@ -104,11 +105,6 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     @Override
     public boolean isValid() {
         return getBlockState().getType() == FURNACE;
-    }
-
-    @Override
-    public CloudFurnaceInventory getInventory() {
-        return (CloudFurnaceInventory) inventory;
     }
 
     protected float getBurnRate() {
@@ -131,8 +127,8 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
         }
 
         if (burnTime > 0 && ev.isBurning()) {
-            for (InventoryListener listener : this.getInventory().getListeners()) {
-                listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_LIT_DURATION, burnDuration);
+            for (ContainerListener listener : this.container.getListeners()) {
+                listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_DURATION, burnDuration);
             }
 
             if (fuel.getCount() <= 1) {
@@ -144,7 +140,7 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             } else {
                 fuel = fuel.decreaseCount();
             }
-            this.inventory.setFuel(fuel);
+            this.setFuel(fuel);
         }
     }
 
@@ -158,9 +154,9 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
 
         boolean ret = false;
 
-        ItemStack fuel = this.inventory.getFuel();
-        ItemStack raw = this.inventory.getSmelting();
-        ItemStack product = this.inventory.getResult();
+        ItemStack fuel = this.getFuel();
+        ItemStack raw = this.getSmelting();
+        ItemStack product = this.getResult();
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
@@ -185,13 +181,13 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
                     this.server.getEventManager().fire(ev);
                     if (!ev.isCancelled()) {
-                        this.inventory.setResult(ev.getResult());
+                        this.setResult(ev.getResult());
                         if (raw.getCount() <= 1) {
                             raw = ItemStack.EMPTY;
                         } else {
                             raw = raw.decreaseCount();
                         }
-                        this.inventory.setSmelting(raw);
+                        this.setSmelting(raw);
                     }
 
                     cookTime -= (200 / getBurnRate());
@@ -211,9 +207,9 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
             cookTime = 0;
         }
 
-        for (InventoryListener listener : this.getInventory().getListeners()) {
-            listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_TICK_COUNT, cookTime);
-            listener.onInventoryDataChange(this.getInventory(), ContainerSetDataPacket.FURNACE_LIT_TIME, burnTime);
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_TICK_COUNT, cookTime);
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_TIME, burnTime);
         }
 
         this.lastUpdate = System.currentTimeMillis();
@@ -264,12 +260,32 @@ public class FurnaceBlockEntity extends BaseBlockEntity implements Furnace {
     }
 
     @Override
-    public int[] getHopperPullSlots() {
-        return new int[]{CloudFurnaceInventory.SLOT_RESULT};
+    public ItemStack getResult() {
+        return this.container.getItem(SLOT_RESULT);
     }
 
     @Override
-    public int[] getHopperPushSlots(Direction direction, ItemStack item) {
-        return new int[]{direction == Direction.DOWN ? CloudFurnaceInventory.SLOT_SMELTING : CloudFurnaceInventory.SLOT_FUEL};
+    public void setResult(ItemStack item) {
+        this.container.setItem(SLOT_RESULT, item);
+    }
+
+    @Override
+    public ItemStack getFuel() {
+        return this.container.getItem(SLOT_FUEL);
+    }
+
+    @Override
+    public void setFuel(ItemStack item) {
+        this.container.setItem(SLOT_FUEL, item);
+    }
+
+    @Override
+    public ItemStack getSmelting() {
+        return this.container.getItem(SLOT_SMELTING);
+    }
+
+    @Override
+    public void setSmelting(ItemStack item) {
+        this.container.setItem(SLOT_SMELTING, item);
     }
 }

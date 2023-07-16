@@ -11,7 +11,7 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.Explosion;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
@@ -20,7 +20,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 /**
  * @author MagicDroidX
  */
-public class EntityPrimedTnt extends BaseEntity implements PrimedTnt, Explosive {
+public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive {
 
     protected int fuse = 80;
 

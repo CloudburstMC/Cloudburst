@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class CocoaPopulator extends ChancePopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:cocoa");
+    public static final Identifier ID = Identifier.parse("cloudburst:cocoa");
 
     @JsonProperty
     protected IntRange height = IntRange.WHOLE_WORLD;

@@ -21,7 +21,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -36,7 +36,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNE
 /**
  * @author MagicDroidX
  */
-public class EntityDroppedItem extends BaseEntity implements DroppedItem {
+public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     protected ItemStack item;
     protected int pickupDelay;
@@ -146,7 +146,7 @@ public class EntityDroppedItem extends BaseEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (!closeItem.isMergeable(getItem())) {
+                        if (!closeItem.isCombinable(getItem())) {
                             continue;
                         }
                         if (!entity.isOnGround()) {

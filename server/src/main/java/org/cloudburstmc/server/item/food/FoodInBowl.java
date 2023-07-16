@@ -19,7 +19,7 @@ public class FoodInBowl extends Food {
     @Override
     public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(ItemStack.from(BOWL));
+        player.getInventory().getContainer().addItem(ItemStack.from(BOWL));
         return true;
     }
 

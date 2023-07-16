@@ -21,7 +21,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -326,9 +326,9 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public void onMount(Entity passenger) {
         super.onMount(passenger);
 
-        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION, true);
-        ((BaseEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-        ((BaseEntity) passenger).getData().set(SEAT_ROTATION_OFFSET_DEGREES, -90f);
+        ((CloudEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION, true);
+        ((CloudEntity) passenger).getData().set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+        ((CloudEntity) passenger).getData().set(SEAT_ROTATION_OFFSET_DEGREES, -90f);
 
         //            if(entity instanceof Player && mode == SetEntityLinkPacket.TYPE_RIDE){ //TODO: controlling?
 //                entity.setDataProperty(new ByteEntityData(DATA_FLAG_WASD_CONTROLLED))

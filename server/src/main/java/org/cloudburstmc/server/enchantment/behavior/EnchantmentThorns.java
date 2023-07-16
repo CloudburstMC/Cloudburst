@@ -37,7 +37,7 @@ public class EnchantmentThorns extends EnchantmentBehavior {
 
         int thornsLevel = 0;
 
-        for (ItemStack armor : human.getInventory().getArmorContents()) {
+        for (ItemStack armor : human.getArmor().getContainer().getContents()) {
             Enchantment thorns = armor.get(ItemKeys.ENCHANTMENTS).getOrDefault(EnchantmentTypes.THORNS, null);
             if (thorns != null) {
                 thornsLevel = Math.max(thorns.level(), thornsLevel);

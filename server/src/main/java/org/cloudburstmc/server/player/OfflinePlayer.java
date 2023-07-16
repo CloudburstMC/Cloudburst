@@ -2,16 +2,14 @@ package org.cloudburstmc.server.player;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
-import org.cloudburstmc.api.blockentity.EnderChest;
+import org.cloudburstmc.api.container.Container;
+import org.cloudburstmc.api.container.view.InventoryView;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.api.inventory.ContainerInventory;
-import org.cloudburstmc.api.inventory.Inventory;
-import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -646,16 +644,6 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public EnderChest getViewingEnderChest() {
-        return null;
-    }
-
-    @Override
-    public void setViewingEnderChest(EnderChest chest) {
-
-    }
-
-    @Override
     public void setOp(boolean value) {
         if (value == this.isOp()) {
             return;
@@ -747,12 +735,12 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public PlayerInventory getInventory() {
+    public InventoryView getInventory() {
         return null;
     }
 
     @Override
-    public ContainerInventory getEnderChestInventory() {
+    public Container getEnderChest() {
         return null;
     }
 
@@ -798,27 +786,27 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public void onInventoryAdded(Inventory inventory) {
+    public void onInventoryAdded(Container inventory) {
 
     }
 
     @Override
-    public void onInventoryRemoved(Inventory inventory) {
+    public void onInventoryRemoved(Container inventory) {
 
     }
 
     @Override
-    public void onInventorySlotChange(Inventory inventory, int slot, ItemStack itemStack) {
+    public void onInventorySlotChange(Container inventory, int slot) {
 
     }
 
     @Override
-    public void onInventoryContentsChange(Inventory inventory) {
+    public void onInventoryContentsChange(Container inventory) {
 
     }
 
     @Override
-    public void onInventoryDataChange(Inventory inventory, int property, int value) {
+    public void onInventoryDataChange(Container inventory, int property, int value) {
 
     }
 }

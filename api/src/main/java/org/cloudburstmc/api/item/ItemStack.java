@@ -147,7 +147,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return getAllMetadata().equals(other.getAllMetadata());
     }
 
-    public boolean isMergeable(ItemStack other) {
+    public boolean isCombinable(ItemStack other) {
         return isSimilar(other) && isSimilarMetadata(other);
     }
 }

@@ -16,7 +16,7 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.Closeable;
@@ -48,7 +48,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     private final Set<CloudPlayer> players = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private final Set<BaseEntity> entities = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Set<CloudEntity> entities = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final Short2ObjectMap<BaseBlockEntity> tiles = new Short2ObjectOpenHashMap<>();
 
@@ -251,7 +251,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof Player) {
             this.players.add((CloudPlayer) entity);
-        } else if (this.entities.add((BaseEntity) entity) && this.initialized == 1) {
+        } else if (this.entities.add((CloudEntity) entity) && this.initialized == 1) {
             this.setDirty();
         }
     }
@@ -338,7 +338,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
      */
     @NonNull
     @Override
-    public Set<BaseEntity> getEntities() {
+    public Set<CloudEntity> getEntities() {
         return this.entities;
     }
 

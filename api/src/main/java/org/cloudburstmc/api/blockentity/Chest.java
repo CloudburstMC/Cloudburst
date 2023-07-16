@@ -1,15 +1,12 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.inventory.ContainerInventory;
+import org.cloudburstmc.api.container.view.BlockContainerView;
 
-public interface Chest extends BlockEntity, ContainerBlockEntity {
+public interface Chest extends BlockEntity, BlockContainerView {
 
     boolean isFindable();
 
     void setFindable(boolean findable);
-
-    @Override
-    ContainerInventory getInventory();
 
     boolean isPaired();
 

@@ -19,7 +19,7 @@ import static java.lang.Math.min;
  */
 @JsonDeserialize
 public class ScatteredCoverDecorator implements Decorator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:scattered_cover");
+    public static final Identifier ID = Identifier.parse("cloudburst:scattered_cover");
 
     @JsonProperty
     protected double chance = Double.NaN;

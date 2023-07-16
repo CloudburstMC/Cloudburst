@@ -15,7 +15,7 @@ public final class EntityType<T extends Entity> {
     }
 
     public static <T extends Entity> EntityType<T> from(String identifier, Class<T> entityClass) {
-        return from(Identifier.fromString(identifier), entityClass);
+        return from(Identifier.parse(identifier), entityClass);
     }
 
     public static <T extends Entity> EntityType<T> from(Identifier identifier, Class<T> entityClass) {

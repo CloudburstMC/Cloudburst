@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.inventory.Inventory;
 import org.cloudburstmc.api.player.Player;
 
 /**
@@ -12,7 +12,7 @@ public final class InventoryOpenEvent extends InventoryEvent implements Cancella
 
     private final Player who;
 
-    public InventoryOpenEvent(Inventory inventory, Player who) {
+    public InventoryOpenEvent(ContainerView inventory, Player who) {
         super(inventory);
         this.who = who;
     }

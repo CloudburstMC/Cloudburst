@@ -1,12 +1,10 @@
 package org.cloudburstmc.api.player;
 
 import org.cloudburstmc.api.Server;
-import org.cloudburstmc.api.blockentity.EnderChest;
+import org.cloudburstmc.api.container.Container;
+import org.cloudburstmc.api.container.ContainerListener;
+import org.cloudburstmc.api.container.view.InventoryView;
 import org.cloudburstmc.api.entity.Creature;
-import org.cloudburstmc.api.inventory.ContainerInventory;
-import org.cloudburstmc.api.inventory.InventoryHolder;
-import org.cloudburstmc.api.inventory.InventoryListener;
-import org.cloudburstmc.api.inventory.PlayerInventory;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.skin.Skin;
@@ -16,7 +14,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import java.util.OptionalLong;
 import java.util.UUID;
 
-public interface Player extends Creature, InventoryHolder, InventoryListener {
+public interface Player extends Creature, ContainerListener {
     /**
      * Checks if this player is currently online.
      *
@@ -107,9 +105,9 @@ public interface Player extends Creature, InventoryHolder, InventoryListener {
 
     boolean isOnGround();
 
-    PlayerInventory getInventory();
+    InventoryView getInventory();
 
-    ContainerInventory getEnderChestInventory();
+    Container getEnderChest();
 
     void setOp(boolean value);
 
@@ -156,8 +154,4 @@ public interface Player extends Creature, InventoryHolder, InventoryListener {
     Skin getSkin();
 
     void setSkin(Skin newSkin);
-
-    EnderChest getViewingEnderChest();
-
-    void setViewingEnderChest(EnderChest chest);
 }

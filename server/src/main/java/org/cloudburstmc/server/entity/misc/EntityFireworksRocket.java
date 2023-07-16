@@ -16,7 +16,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.Random;
@@ -27,7 +27,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 /**
  * @author CreeperFace
  */
-public class EntityFireworksRocket extends BaseEntity implements FireworksRocket {
+public class EntityFireworksRocket extends CloudEntity implements FireworksRocket {
 
     private int life;
     private int lifetime;

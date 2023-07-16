@@ -108,7 +108,7 @@ public class ParticleCommand extends Command {
         Particle particle = this.getParticle(name, location, data);
 
         if (particle == null) {
-            ((CloudLevel) location.getLevel()).addParticleEffect(location.getPosition(), Identifier.fromString(args[0]), -1, ((CloudLevel) location.getLevel()).getDimension());
+            ((CloudLevel) location.getLevel()).addParticleEffect(location.getPosition(), Identifier.parse(args[0]), -1, ((CloudLevel) location.getLevel()).getDimension());
             return true;
         }
 

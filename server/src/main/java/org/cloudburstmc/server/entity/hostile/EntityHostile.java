@@ -25,7 +25,7 @@ public abstract class EntityHostile extends EntityCreature {
             if (item.get(ItemKeys.CUSTOM_NAME) != null) {
                 this.setNameTag(item.get(ItemKeys.CUSTOM_NAME));
                 this.setNameTagVisible(true);
-                player.getInventory().removeItem(item);
+                player.getInventory().getContainer().removeItem(item);
                 return true;
             }
         }

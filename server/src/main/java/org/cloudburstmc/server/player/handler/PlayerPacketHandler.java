@@ -45,13 +45,14 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.command.CommandUtils;
+import org.cloudburstmc.server.container.screen.CloudContainerScreen;
+import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.inventory.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
@@ -234,21 +235,21 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         boolean offhand = packet.getContainerId() == ContainerId.OFFHAND;
         ItemStack serverItem;
         if (offhand) {
-            serverItem = player.getInventory().getOffHandItem();
+            serverItem = player.getOffhand().getOffhandItem();
         } else {
-            serverItem = player.getInventory().getItem(packet.getHotbarSlot());
+            serverItem = player.getContainer().getItem(packet.getHotbarSlot());
         }
         ItemStack clientItem = ItemUtils.fromNetwork(packet.getItem());
 
         if (!serverItem.equals(clientItem)) {
             log.debug("Tried to equip " + clientItem + " but have " + serverItem + " in target slot");
-            player.getInventory().sendContents(player);
+            player.getInventoryManager().sendAllInventories();
             return PacketSignal.HANDLED;
         }
         if (offhand) {
-            player.getInventory().setOffHandItem(clientItem);
+            player.getOffhand().setOffhandItem(clientItem);
         } else {
-            player.getInventory().equipItem(packet.getHotbarSlot());
+            player.setSelectedHotbarSlot(packet.getHotbarSlot());
         }
         player.setUsingItem(false);
 
@@ -279,10 +280,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 Block target = player.getLevel().getBlock(blockPos);
                 var targetState = target.getState();
 
-                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getItemInHand(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
+                PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getSelectedItem(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
                 player.getServer().getEventManager().fire(playerInteractEvent);
                 if (playerInteractEvent.isCancelled()) {
-                    player.getInventory().sendHeldItem(player);
+                    player.getInventoryManager().sendAllInventories();
+//                    player.getContainer().sendHeldItem(player);
                     break;
                 }
 
@@ -362,8 +364,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.setMovementSpeed(DEFAULT_SPEED);
 
                 player.getAdventureSettings().update();
-                player.getInventory().sendContents(player);
-                player.getInventory().sendArmorContents(player);
+                player.getInventoryManager().sendAllInventories();
+//                player.getContainer().sendContents(player);
+//                player.getContainer().sendArmorContents(player);
 
                 player.spawnToAll();
                 player.scheduleUpdate();
@@ -542,7 +545,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             case OPEN_INVENTORY:
                 if (targetEntity.getRuntimeId() != player.getRuntimeId()) break;
                 if (player.canOpenInventory()) {
-                    player.getInventory().open(player);
+                    player.getInventoryManager().openScreen(new CloudInventoryScreen(player));
                     player.openInventory(player);
                 }
                 break;
@@ -583,10 +586,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!pickEvent.isCancelled()) {
             boolean itemExists = false;
             int itemSlot = -1;
-            for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
-                if (player.getInventory().getItem(slot).equals(pickEvent.getItem())) {
+            for (int slot = 0; slot < player.getContainer().size(); slot++) {
+                if (player.getContainer().getItem(slot).equals(pickEvent.getItem())) {
                     if (slot < player.getInventory().getHotbarSize()) {
-                        player.getInventory().setHeldItemSlot(slot);
+                        player.setSelectedHotbarSlot(slot);
                     } else {
                         itemSlot = slot;
                     }
@@ -596,35 +599,35 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
 
             for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getInventory().getItem(slot) == ItemStack.EMPTY) {
+                if (player.getContainer().getItem(slot) == ItemStack.EMPTY) {
                     if (!itemExists && player.isCreative()) {
-                        player.getInventory().setHeldItemSlot(slot);
-                        player.getInventory().setItemInHand(pickEvent.getItem());
+                        player.getInventory().setSelectedSlot(slot);
+                        player.getInventory().setSelectedItem(pickEvent.getItem());
                         return PacketSignal.HANDLED;
                     } else if (itemSlot > -1) {
-                        player.getInventory().setHeldItemSlot(slot);
-                        player.getInventory().setItemInHand(player.getInventory().getItem(itemSlot));
-                        player.getInventory().clear(itemSlot, true);
+                        player.getInventory().setSelectedSlot(slot);
+                        player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
+                        player.getInventory().setItem(itemSlot, ItemStack.EMPTY);
                         return PacketSignal.HANDLED;
                     }
                 }
             }
 
             if (!itemExists && player.isCreative()) {
-                ItemStack itemInHand = player.getInventory().getItemInHand();
-                player.getInventory().setItemInHand(pickEvent.getItem());
-                if (!player.getInventory().isFull()) {
-                    for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
-                        if (player.getInventory().getItem(slot) == ItemStack.EMPTY) {
-                            player.getInventory().setItem(slot, itemInHand);
+                ItemStack itemInHand = player.getInventory().getSelectedItem();
+                player.getInventory().setSelectedItem(pickEvent.getItem());
+                if (!player.getContainer().isFull()) {
+                    for (int slot = 0; slot < player.getContainer().size(); slot++) {
+                        if (player.getContainer().getItem(slot) == ItemStack.EMPTY) {
+                            player.getContainer().setItem(slot, itemInHand);
                             break;
                         }
                     }
                 }
             } else if (itemSlot > -1) {
-                ItemStack itemInHand = player.getInventory().getItemInHand();
-                player.getInventory().setItemInHand(player.getInventory().getItem(itemSlot));
-                player.getInventory().setItem(itemSlot, itemInHand);
+                ItemStack itemInHand = player.getInventory().getSelectedItem();
+                player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
+                player.getContainer().setItem(itemSlot, itemInHand);
             }
         }
         return PacketSignal.HANDLED;
@@ -722,7 +725,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        CloudInventoryScreen screen = this.player.getInventoryManager().closeScreen();
+        CloudContainerScreen screen = this.player.getInventoryManager().closeScreen();
         if (screen != null) {
             // TODO: Expose InventoryScreen to API
 //            player.getServer().getEventManager().fire(new InventoryCloseEvent(screen, player));
@@ -829,7 +832,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(MapInfoRequestPacket packet) {
         ItemStack mapItem = null;
 
-        for (ItemStack item1 : player.getInventory().getContents()) {
+        for (ItemStack item1 : player.getContainer().getContents()) {
             if (item1.getType() != ItemTypes.MAP) {
                 continue;
             }
@@ -938,15 +941,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //                        player.setUsingItem(false);
 //
 //                        if (player.canInteract(blockVector.toFloat().add(0.5, 0.5, 0.5), player.isCreative() ? 13 : 7)) {
-//                            ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//                            ItemStack clientHand = ItemUtils.fromNetwork(packet.getSelectedItem());
 //                            if (player.isCreative()) {
-//                                ItemStack i = player.getInventory().getItemInHand();
+//                                ItemStack i = player.getInventory().getSelectedItem();
 //                                if (player.getLevel().useItemOn(blockVector, i, face,
 //                                        packet.getClickPosition(), player) != null) {
 //                                    return PacketSignal.HANDLED;
 //                                }
-//                            } else if (player.getInventory().getItemInHand().equals(clientHand)) {
-//                                ItemStack serverHand = player.getInventory().getItemInHand();
+//                            } else if (player.getInventory().getSelectedItem().equals(clientHand)) {
+//                                ItemStack serverHand = player.getInventory().getSelectedItem();
 //                                ItemStack oldItem = serverHand;
 //                                //TODO: Implement adventure mode checks
 //                                if ((serverHand = player.getLevel().useItemOn(blockVector, serverHand, face,
@@ -979,7 +982,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //
 //                        player.getCraftingInventory().resetCraftingGrid();
 //
-//                        ItemStack i = player.getInventory().getItemInHand();
+//                        ItemStack i = player.getInventory().getSelectedItem();
 //
 //                        ItemStack oldItem = i;
 //
@@ -1011,16 +1014,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //                    case InventoryTransactionUtils.USE_ITEM_ACTION_CLICK_AIR:
 //                        Vector3f directionVector = player.getDirectionVector();
 //
-//                        ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//                        ItemStack clientHand = ItemUtils.fromNetwork(packet.getSelectedItem());
 //                        ItemStack serverItem;
 //
 //                        if (player.isCreative()) {
-//                            serverItem = player.getInventory().getItemInHand();
-//                        } else if (!player.getInventory().getItemInHand().equals(clientHand)) {
+//                            serverItem = player.getInventory().getSelectedItem();
+//                        } else if (!player.getInventory().getSelectedItem().equals(clientHand)) {
 //                            player.getInventory().sendHeldItem(player);
 //                            return PacketSignal.HANDLED;
 //                        } else {
-//                            serverItem = player.getInventory().getItemInHand();
+//                            serverItem = player.getInventory().getSelectedItem();
 //                        }
 //
 //                        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, serverItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
@@ -1069,13 +1072,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //                    return PacketSignal.HANDLED;
 //                }
 //
-//                ItemStack clientHand = ItemUtils.fromNetwork(packet.getItemInHand());
+//                ItemStack clientHand = ItemUtils.fromNetwork(packet.getSelectedItem());
 //
-//                if (!clientHand.isMergeable(player.getInventory().getItemInHand())) {
+//                if (!clientHand.isMergeable(player.getInventory().getSelectedItem())) {
 //                    player.getInventory().sendHeldItem(player);
 //                }
 //
-//                ItemStack serverItem = player.getInventory().getItemInHand();
+//                ItemStack serverItem = player.getInventory().getSelectedItem();
 //
 //                switch (packet.getActionType()) {
 //                    case InventoryTransactionUtils.USE_ITEM_ON_ENTITY_ACTION_INTERACT:
@@ -1117,7 +1120,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //
 //                        int knockback = 0;
 //
-//                        Enchantment enchKnockback = player.getInventory().getItemInHand().get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.KNOCKBACK);
+//                        Enchantment enchKnockback = player.getInventory().getSelectedItem().get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.KNOCKBACK);
 //                        if (enchKnockback != null) {
 //                            knockback = enchKnockback.level();
 //                        }
@@ -1176,7 +1179,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 //                    switch (packet.getActionType()) {
 //                        case InventoryTransactionUtils.RELEASE_ITEM_ACTION_RELEASE:
 //                            if (player.isUsingItem()) {
-//                                serverItem = player.getInventory().getItemInHand();
+//                                serverItem = player.getInventory().getSelectedItem();
 //
 //                                int ticksUsed = player.getServer().getTick() - player.getStartActionTick();
 ////                                var result = serverItem.getBehavior().onRelease(serverItem, ticksUsed, player);
@@ -1212,7 +1215,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED; // This should never happen
         }
 
-        player.getInventory().equipItem(packet.getSelectedHotbarSlot());
+        player.setSelectedHotbarSlot(packet.getSelectedHotbarSlot());
         return PacketSignal.HANDLED;
     }
 

@@ -1,4 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-public interface Dispenser extends BlockEntity, ContainerBlockEntity {
+import org.cloudburstmc.api.container.view.BlockContainerView;
+
+public interface Dispenser extends BlockEntity, BlockContainerView {
 }

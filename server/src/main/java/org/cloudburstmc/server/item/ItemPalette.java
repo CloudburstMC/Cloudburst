@@ -49,7 +49,7 @@ public class ItemPalette {
             Iterator<Map.Entry<String, JsonNode>> it = json.fields();
             while (it.hasNext()) {
                 Map.Entry<String, JsonNode> entry = it.next();
-                legacyIdMap.put(entry.getValue().asInt(), Identifier.fromString(entry.getKey()));
+                legacyIdMap.put(entry.getValue().asInt(), Identifier.parse(entry.getKey()));
             }
         } catch (IOException | NumberFormatException e) {
             throw new RegistryException("Unable to load Legacy Item IDs", e);
@@ -59,11 +59,11 @@ public class ItemPalette {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (Iterator<Map.Entry<String, JsonNode>> it = json.fields(); it.hasNext(); ) {
                 Map.Entry<String, JsonNode> entry = it.next();
-                Identifier id = Identifier.fromString(entry.getKey());
+                Identifier id = Identifier.parse(entry.getKey());
                 Int2ReferenceMap<Identifier> map = metaMap.computeIfAbsent(id, i -> new Int2ReferenceOpenHashMap<>());
                 for (Iterator<Map.Entry<String, JsonNode>> it2 = entry.getValue().fields(); it2.hasNext(); ) {
                     Map.Entry<String, JsonNode> value = it2.next();
-                    map.put(Integer.parseInt(value.getKey()), Identifier.fromString(value.getValue().asText()));
+                    map.put(Integer.parseInt(value.getKey()), Identifier.parse(value.getValue().asText()));
                 }
             }
         } catch (IOException | NumberFormatException e) {
@@ -73,7 +73,7 @@ public class ItemPalette {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json) {
-                Identifier id = Identifier.fromString(item.get("name").asText());
+                Identifier id = Identifier.parse(item.get("name").asText());
                 int runtime = item.get("id").intValue();
                 CloudItemDefinition definition = new CloudItemDefinition(id, runtime, false);
                 itemEntries.put(id, definition);
@@ -127,7 +127,7 @@ public class ItemPalette {
 
     public Identifier getIdByRuntime(int runtimeId, int meta) {
         ItemDefinition definition = runtimeIdMap.get(runtimeId);
-        Identifier id = Identifier.fromString(definition.getIdentifier());
+        Identifier id = Identifier.parse(definition.getIdentifier());
         if (metaMap.containsKey(id)) {
             id = metaMap.get(id).get(meta);
         }
@@ -187,7 +187,7 @@ public class ItemPalette {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json.get("items")) {
                 ItemData.Builder itemData = ItemData.builder();
-                itemData.definition(getDefinition(Identifier.fromString(item.get("id").asText())));
+                itemData.definition(getDefinition(Identifier.parse(item.get("id").asText())));
 
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());

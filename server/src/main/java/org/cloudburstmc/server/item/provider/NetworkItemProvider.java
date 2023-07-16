@@ -21,7 +21,7 @@ public class NetworkItemProvider extends ItemDataProvider {
         Set<Identifier> canDestroy = new HashSet<>();
 
         for (String type : data.getCanBreak()) {
-            canDestroy.add(Identifier.fromString(type));
+            canDestroy.add(Identifier.parse(type));
         }
 
         return canDestroy;
@@ -32,7 +32,7 @@ public class NetworkItemProvider extends ItemDataProvider {
         Set<Identifier> canDestroy = new HashSet<>();
 
         for (String type : data.getCanPlace()) {
-            canDestroy.add(Identifier.fromString(type));
+            canDestroy.add(Identifier.parse(type));
         }
 
         return canDestroy;

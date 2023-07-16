@@ -20,7 +20,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class HeightSelectionDecorator extends AbstractGenerationPass implements Decorator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:height");
+    public static final Identifier ID = Identifier.parse("cloudburst:height");
 
     protected NoiseSource threshold;
 

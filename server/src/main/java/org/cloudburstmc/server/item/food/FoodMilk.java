@@ -13,7 +13,7 @@ public class FoodMilk extends Food {
     @Override
     public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
-        player.getInventory().addItem(ItemStack.from(BUCKET));
+        player.getInventory().getContainer().addItem(ItemStack.from(BUCKET));
         player.removeAllEffects();
         return true;
     }

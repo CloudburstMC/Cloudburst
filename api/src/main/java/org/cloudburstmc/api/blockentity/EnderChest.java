@@ -1,4 +1,4 @@
 package org.cloudburstmc.api.blockentity;
 
-public interface EnderChest extends Chest {
+public interface EnderChest extends BlockEntity {
 }

@@ -1,4 +1,6 @@
 package org.cloudburstmc.api.blockentity;
 
-public interface Dropper extends BlockEntity, ContainerBlockEntity {
+import org.cloudburstmc.api.container.view.BlockContainerView;
+
+public interface Dropper extends BlockEntity, BlockContainerView {
 }

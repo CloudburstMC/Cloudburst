@@ -12,7 +12,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -26,7 +26,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.NO_AI;
 
-public class EntityAreaEffectCloud extends BaseEntity implements AreaEffectCloud {
+public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectCloud {
     private static final String TAG_DURATION = "Duration";
     private static final String TAG_REAPPLICATION_DELAY = "ReapplicationDelay";
     private static final String TAG_DURATION_ON_USE = "DurationOnUse";

@@ -27,7 +27,7 @@ import static net.daporkchop.lib.common.math.PMath.lerp;
  */
 @JsonDeserialize
 public class EndDensitySource extends AbstractGenerationPass implements DensitySource {
-    public static final Identifier ID = Identifier.fromString("cloudburst:end");
+    public static final Identifier ID = Identifier.parse("cloudburst:end");
 
     private static final double NOISE_SCALE_FACTOR = ((1 << 16) - 1.0d) / 512.0d;
 

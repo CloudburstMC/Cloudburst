@@ -10,7 +10,7 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -158,7 +158,7 @@ public final class CloudLockableChunk extends LockableChunk {
 
     @NonNull
     @Override
-    public Set<BaseEntity> getEntities() {
+    public Set<CloudEntity> getEntities() {
         return this.unsafe.getEntities();
     }
 

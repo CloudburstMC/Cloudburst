@@ -10,7 +10,7 @@ import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
-import org.cloudburstmc.server.entity.BaseEntity;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -135,7 +135,7 @@ public class CloudEffect extends Effect {
         }
 
         if (this.getType() == EffectTypes.INVISIBILITY) {
-            ((BaseEntity)entity).getData().setFlag(INVISIBLE, true);
+            ((CloudEntity) entity).getData().setFlag(INVISIBLE, true);
             entity.setNameTagVisible(false);
         }
 
@@ -163,7 +163,7 @@ public class CloudEffect extends Effect {
         }
 
         if (this.getType() == EffectTypes.INVISIBILITY) {
-            ((BaseEntity)entity).getData().setFlag(INVISIBLE, false);
+            ((CloudEntity) entity).getData().setFlag(INVISIBLE, false);
             entity.setNameTagVisible(true);
         }
 

@@ -40,7 +40,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.event.redstone;
     exports org.cloudburstmc.api.event.server;
     exports org.cloudburstmc.api.event.vehicle;
-    exports org.cloudburstmc.api.inventory;
+    exports org.cloudburstmc.api.container;
     exports org.cloudburstmc.api.item;
     exports org.cloudburstmc.api.item.behavior;
     exports org.cloudburstmc.api.item.data;
@@ -60,5 +60,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.util;
     exports org.cloudburstmc.api.util.behavior;
     exports org.cloudburstmc.api.util.data;
-    exports org.cloudburstmc.api.inventory.screen;
+    exports org.cloudburstmc.api.container.screen;
+    exports org.cloudburstmc.api.container.view;
 }

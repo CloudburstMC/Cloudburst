@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.event.inventory;
 
-import org.cloudburstmc.api.inventory.Inventory;
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.player.Player;
 
 /**
@@ -11,7 +11,7 @@ public final class InventoryCloseEvent extends InventoryEvent {
 
     private final Player who;
 
-    public InventoryCloseEvent(Inventory inventory, Player who) {
+    public InventoryCloseEvent(ContainerView inventory, Player who) {
         super(inventory);
         this.who = who;
     }

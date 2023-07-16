@@ -22,7 +22,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class IceSnowFinisher implements Finisher {
-    public static final Identifier ID = Identifier.fromString("cloudburst:ice_snow");
+    public static final Identifier ID = Identifier.parse("cloudburst:ice_snow");
 
     @JsonProperty
     protected IntRange height;

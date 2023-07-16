@@ -135,7 +135,7 @@ public class BlockUtils {
         checkArgument(matcher.find(), "unable to parse block state: \"%s\"", input);
 
         String idText = matcher.group(1);
-        Identifier blockId = Identifier.fromString(idText);
+        Identifier blockId = Identifier.parse(idText);
 
         checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
@@ -174,7 +174,7 @@ public class BlockUtils {
         checkArgument(matcher.find(), "unable to parse block state: \"%s\"", input);
 
         String idText = matcher.group(1);
-        Identifier blockId = Identifier.fromString(idText);
+        Identifier blockId = Identifier.parse(idText);
         checkArgument(CloudBlockRegistry.REGISTRY.getBlock(blockId) != null, "unknown block: \"%s\"", idText);
 
         List<Map<String, Object>> variants = new ArrayList<>();

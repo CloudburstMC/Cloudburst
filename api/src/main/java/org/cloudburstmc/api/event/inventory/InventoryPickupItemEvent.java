@@ -1,8 +1,8 @@
 package org.cloudburstmc.api.event.inventory;
 
+import org.cloudburstmc.api.container.view.ContainerView;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.inventory.Inventory;
 
 /**
  * author: MagicDroidX
@@ -12,7 +12,7 @@ public final class InventoryPickupItemEvent extends InventoryEvent implements Ca
 
     private final DroppedItem item;
 
-    public InventoryPickupItemEvent(Inventory inventory, DroppedItem item) {
+    public InventoryPickupItemEvent(ContainerView inventory, DroppedItem item) {
         super(inventory);
         this.item = item;
     }

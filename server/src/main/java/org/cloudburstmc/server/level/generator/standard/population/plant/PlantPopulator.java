@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 @JsonDeserialize
 public class PlantPopulator extends AbstractPlantPopulator {
-    public static final Identifier ID = Identifier.fromString("cloudburst:plant");
+    public static final Identifier ID = Identifier.parse("cloudburst:plant");
 
     @JsonProperty
     protected BlockSelector block;
