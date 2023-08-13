@@ -10,6 +10,8 @@ import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationP
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Places a given block type using a vanilla bedrock pattern.
  *
@@ -30,7 +32,7 @@ public class BedrockDecorator extends AbstractGenerationPass implements Decorato
     private boolean reverseFade = false;
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         final BlockState state = this.block.state();
 
         for (int y = this.base.min, max = this.base.max; y < max; y++) {

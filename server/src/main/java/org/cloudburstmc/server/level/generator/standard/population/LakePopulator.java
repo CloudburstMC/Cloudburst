@@ -18,6 +18,7 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.BitSet;
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Integer.min;
 
@@ -59,7 +60,7 @@ public class LakePopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         blockX -= 8;
         blockZ -= 8;
         final int blockY = min(level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF), this.height.rand(random));

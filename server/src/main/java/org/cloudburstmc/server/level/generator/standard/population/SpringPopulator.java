@@ -14,6 +14,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelec
 import org.cloudburstmc.server.level.generator.standard.population.cluster.AbstractReplacingPopulator;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -49,7 +50,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         int blockY = this.height.rand(random);
 
         if (blockY <= 0 || !this.replace.test(level.getBlockState(blockX, blockY, blockZ, 0))) {

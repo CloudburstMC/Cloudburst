@@ -12,6 +12,8 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
+import java.util.random.RandomGenerator;
+
 import static net.daporkchop.lib.common.math.PMath.roundI;
 
 /**
@@ -57,11 +59,11 @@ public abstract class DepthNoiseDecorator extends AbstractGenerationPass impleme
         this.depthNoise = new ScaleOctavesOffsetFilter(DEPTH_NOISE, this.depthNoiseScale, this.depthNoiseScale, 0.0d, 4, this.depthNoiseFactor, this.depthNoiseOffset);
     }
 
-    protected int getDepthNoise(Chunk chunk, PRandom random, int x, int z) {
+    protected int getDepthNoise(Chunk chunk, RandomGenerator random, int x, int z) {
         return this.getDepthNoise(random, (chunk.getX() << 4) + x, (chunk.getZ() << 4) + z);
     }
 
-    protected int getDepthNoise(PRandom random, int x, int z) {
+    protected int getDepthNoise(RandomGenerator random, int x, int z) {
         return roundI(this.depthNoise.get(x, z) + random.nextDouble() * this.randomFactor);
     }
 }

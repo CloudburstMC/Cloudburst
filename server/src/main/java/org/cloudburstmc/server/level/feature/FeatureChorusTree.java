@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.abs;
 
@@ -35,7 +36,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
     }
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         if (this.test(level.getBlockState(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
             level.setBlockState(x, y, z, 0, BlockStates.CHORUS_PLANT);
             return true;
@@ -44,7 +45,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         }
     }
 
-    private boolean place0(ChunkManager level, PRandom random, int x, int y, int z, int depth, int deltaX, int deltaZ) {
+    private boolean place0(ChunkManager level, RandomGenerator random, int x, int y, int z, int depth, int deltaX, int deltaZ) {
         final int branchHeight = this.branchHeight.rand(random) + (depth == 0 ? 1 : 0);
 
         for (int dy = 1; dy <= branchHeight; dy++) {

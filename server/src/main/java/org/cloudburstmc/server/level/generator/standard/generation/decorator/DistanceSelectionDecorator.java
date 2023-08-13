@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -60,7 +61,7 @@ public class DistanceSelectionDecorator extends AbstractGenerationPass implement
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int blockX = (chunk.getX() << 4) | x;
         int blockZ = (chunk.getZ() << 4) | z;
         double distanceSq = blockX * blockX + blockZ * blockZ;

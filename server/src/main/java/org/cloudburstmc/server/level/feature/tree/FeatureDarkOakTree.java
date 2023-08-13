@@ -7,6 +7,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 import static java.lang.Math.abs;
 
 /**
@@ -26,7 +28,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height + 1; dy++) {
             if (y + dy < 0 || y + dy >= 256) {
                 return false;
@@ -44,7 +46,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         x += random.nextInt(3) - 1;
         z += random.nextInt(3) - 1;
 
@@ -106,7 +108,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.placeTrunk(level, random, x, y, z, height, log, leaves);
 
         //branches
@@ -138,7 +140,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.finish(level, random, x, y, z, height, log, leaves);
     }
 }

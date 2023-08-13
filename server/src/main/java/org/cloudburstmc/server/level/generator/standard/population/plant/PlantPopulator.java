@@ -13,6 +13,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Places patches of plants of varying heights in the world.
@@ -41,7 +42,7 @@ public class PlantPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void placeCluster(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter water = this.water;
         final BlockFilter replace = this.replace;

@@ -14,6 +14,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -43,7 +44,7 @@ public class CocoaPopulator extends ChancePopulator {
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         final double chance = this.chance;
         final BlockFilter replace = this.replace;
         final BlockFilter on = this.on;

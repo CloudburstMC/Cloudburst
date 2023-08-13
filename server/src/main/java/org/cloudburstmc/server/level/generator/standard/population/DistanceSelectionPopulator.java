@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -59,7 +60,7 @@ public class DistanceSelectionPopulator extends AbstractGenerationPass implement
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         double distanceSq = blockX * blockX + blockZ * blockZ;
         for (Populator populator : distanceSq < this.minSq ? this.below : distanceSq > this.maxSq ? this.above : this.in) {
             populator.populate(random, level, blockX, blockZ);

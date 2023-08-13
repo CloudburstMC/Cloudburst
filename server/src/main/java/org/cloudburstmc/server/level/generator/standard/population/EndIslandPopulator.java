@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static net.daporkchop.lib.common.math.PMath.ceilI;
 import static net.daporkchop.lib.common.math.PMath.floorI;
@@ -41,7 +42,7 @@ public class EndIslandPopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         final int blockY = this.height.rand(random);
         final BlockState block = this.block.selectWeighted(random);
         double radius = this.radius.rand(random);

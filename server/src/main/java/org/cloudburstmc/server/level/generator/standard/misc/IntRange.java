@@ -10,6 +10,7 @@ import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 
+import java.util.random.RandomGenerator;
 import java.util.regex.Matcher;
 
 /**
@@ -92,12 +93,12 @@ public final class IntRange {
      * @param random an instance of {@link PRandom} to use for generating random numbers
      * @return a random value within this {@link IntRange}
      */
-    public int rand(@NonNull PRandom random) {
+    public int rand(@NonNull RandomGenerator random) {
         if (this.empty()) {
             return this.min;
         } else if (this.gaussian) {
             double center = (this.min + this.max) * 0.5d;
-            return (int) (random.nextGaussianDouble() * (this.max - center) + center);
+            return (int) (random.nextGaussian() * (this.max - center) + center);
         } else if (this.downwardBias) {
             return random.nextInt(this.min, random.nextInt(this.min, this.max) + 1);
         } else {

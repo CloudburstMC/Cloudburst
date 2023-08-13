@@ -16,6 +16,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static net.daporkchop.lib.common.math.PMath.roundI;
 
@@ -55,7 +56,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         this.ground = this.ground == null ? generator.ground() : this.ground;
         this.seaLevel = this.seaLevel < 0 ? generator.seaLevel() : this.seaLevel;
 
-        PRandom random = new FastPRandom(localSeed);
+        RandomGenerator random = new FastPRandom(localSeed);
         Arrays.fill(this.bands, Objects.requireNonNull(this.base, "base must be set!").state());
 
         for (Band band : Objects.requireNonNull(this.layers, "bands must be set!")) {
@@ -68,7 +69,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         final int blockX = (chunk.getX() << 4) + x;
         final int blockZ = (chunk.getZ() << 4) + z;
 
@@ -108,7 +109,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         @JsonProperty
         protected ConstantBlock below;
 
-        public void apply(@NonNull PRandom random, @NonNull BlockState[] bands) {
+        public void apply(@NonNull RandomGenerator random, @NonNull BlockState[] bands) {
             Objects.requireNonNull(this.count, "count must be set!");
             Objects.requireNonNull(this.size, "size must be set!");
             Objects.requireNonNull(this.block, "block must be set!");

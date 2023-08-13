@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Replaces the top block in a chunk with a given replacement if it matches a given filter.
@@ -39,7 +40,7 @@ public class ReplaceTopDecorator implements Decorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
         if (y >= 0 && this.replace.test(chunk.getBlock(x, y, z, 0)) && this.height.contains(y)) {
             chunk.setBlock(x, y, z, 0, this.block);

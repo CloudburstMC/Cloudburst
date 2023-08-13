@@ -4,6 +4,8 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Generates terrain in a level.
  * <p>
@@ -15,12 +17,12 @@ public interface Generator {
     /**
      * Generates a given chunk.
      *
-     * @param random an instance of {@link PRandom} for generating random numbers, initialized with a seed based on chunk's position
+     * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position
      * @param chunk  the chunk to generate
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ);
+    void generate(RandomGenerator random, Chunk chunk, int chunkX, int chunkZ);
 
     /**
      * Populates a given chunk.
@@ -30,7 +32,7 @@ public interface Generator {
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void populate(PRandom random, ChunkManager level, int chunkX, int chunkZ);
+    void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ);
 
     /**
      * Finishes a given chunk.
@@ -39,10 +41,10 @@ public interface Generator {
      * generated. This phase is intended for things like placing a layer of snow over cold biomes, where overlapping blocks from populated neighbors
      * can cause inconsistent/unexpected results.
      *
-     * @param random an instance of {@link PRandom} for generating random numbers, initialized with a seed based on chunk's position
+     * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position
      * @param level  a {@link ChunkManager} containing only a 3x3 square of generated chunks, centered around the chunk being populated
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void finish(PRandom random, ChunkManager level, int chunkX, int chunkZ);
+    void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ);
 }

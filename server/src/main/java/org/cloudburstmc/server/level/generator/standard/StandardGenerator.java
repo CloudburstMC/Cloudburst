@@ -13,7 +13,6 @@ import lombok.NonNull;
 import lombok.experimental.Accessors;
 import net.daporkchop.lib.common.ref.Ref;
 import net.daporkchop.lib.common.ref.ThreadRef;
-import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
@@ -38,6 +37,7 @@ import org.cloudburstmc.server.level.generator.standard.store.StandardGeneratorS
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 import static net.daporkchop.lib.common.util.PorkUtil.fallbackIfNull;
@@ -140,7 +140,7 @@ public final class StandardGenerator implements Generator {
                         .toArray(Finisher[]::new));
             }
 
-            PRandom random = new FastPRandom(seed);
+            RandomGenerator random = new FastPRandom(seed);
             for (GenerationPass pass : generationPasses) {
                 pass.init(seed, random.nextLong(), this);
             }
@@ -156,7 +156,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ) {
+    public void generate(RandomGenerator random, Chunk chunk, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();
@@ -243,7 +243,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int chunkX, int chunkZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();
@@ -263,7 +263,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void finish(PRandom random, ChunkManager level, int chunkX, int chunkZ) {
+    public void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();

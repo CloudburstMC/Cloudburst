@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.population.ChancePopulator;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.min;
 
@@ -39,7 +40,7 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         final BlockFilter replace = this.replace;
         final BlockFilter on = this.on;
 
@@ -59,5 +60,5 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
         }
     }
 
-    protected abstract void placeTree(PRandom random, ChunkManager level, int x, int y, int z);
+    protected abstract void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z);
 }

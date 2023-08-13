@@ -16,6 +16,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * A populator that places simple trees, with a similar shape to vanilla oak/birch trees.
@@ -36,7 +37,7 @@ public class TreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         this.types[random.nextInt(this.types.length)].place(level, random, x, y + 1, z);
     }
 

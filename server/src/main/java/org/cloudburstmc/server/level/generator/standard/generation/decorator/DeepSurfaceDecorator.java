@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Variant of {@link SurfaceDecorator} that adds an additional layer of blocks under the main layers.
@@ -36,7 +37,7 @@ public class DeepSurfaceDecorator extends SurfaceDecorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         boolean placed = false;
         final int depth = this.getDepthNoise(chunk, random, x, z);
 

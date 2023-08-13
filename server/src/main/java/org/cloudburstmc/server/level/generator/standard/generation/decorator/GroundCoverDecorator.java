@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Replaces the block above the top block in a chunk with a given replacement.
@@ -43,7 +44,7 @@ public class GroundCoverDecorator implements Decorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
         if (y >= 0 && y < 255 && (this.on == null || this.on.test(chunk.getBlock(x, y, z, 0)))
                 && this.replace.test(chunk.getBlock(x, y + 1, z, 0)) && random.nextDouble() < this.chance) {

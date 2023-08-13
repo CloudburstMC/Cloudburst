@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Places large spikes in the world.
@@ -45,7 +46,7 @@ public class BlobPopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (y < 0 || !this.on.test(level.getBlockState(blockX, y, blockZ, 0))) {
             return;

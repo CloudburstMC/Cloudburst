@@ -11,6 +11,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -24,7 +25,7 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
     protected final double vineChance;
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         if (y <= 0 || y >= 255) {
             return false;
         }

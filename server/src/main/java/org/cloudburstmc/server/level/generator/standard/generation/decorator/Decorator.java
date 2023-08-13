@@ -11,6 +11,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.random.RandomGenerator;
 
 /**
  * Allows individual modification of blocks in a chunk after surfaces have been built.
@@ -24,24 +25,24 @@ public interface Decorator extends Populator {
     Decorator[] EMPTY_ARRAY = new Decorator[0];
 
     @Override
-    default void finish(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    default void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         this.decorate(random, level.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
     }
 
     @Override
-    default void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    default void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         this.decorate(random, level.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
     }
 
     /**
      * Decorates a given chunk.
      *
-     * @param random an instance of {@link PRandom} for generating random numbers, initialized with a seed based on chunk's position
+     * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position
      * @param chunk  the chunk to be decorated
      * @param x      the X coordinate of the block column in the chunk to decorate
      * @param z      the Z coordinate of the block column in the chunk to decorate
      */
-    void decorate(PRandom random, Chunk chunk, int x, int z);
+    void decorate(RandomGenerator random, Chunk chunk, int x, int z);
 
     @Override
     Identifier getId();

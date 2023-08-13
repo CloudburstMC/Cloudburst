@@ -10,6 +10,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.population.cluster.AbstractReplacingPopulator;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -35,10 +36,10 @@ public abstract class AbstractPlantPopulator extends AbstractReplacingPopulator 
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         int height = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         this.placeCluster(random, level, blockX, random.nextInt(height << 1), blockZ);
     }
 
-    protected abstract void placeCluster(PRandom random, ChunkManager level, int x, int y, int z);
+    protected abstract void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z);
 }

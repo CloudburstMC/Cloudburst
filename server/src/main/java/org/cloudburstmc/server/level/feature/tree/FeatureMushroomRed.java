@@ -8,6 +8,8 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Generates a huge red mushroom.
  *
@@ -19,12 +21,12 @@ public class FeatureMushroomRed extends FeatureMushroomBrown {
     }
 
     @Override
-    protected BlockState selectLog(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected BlockState selectLog(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         return BlockStates.RED_MUSHROOM_BLOCK;//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM);
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         //as ugly as it is, this makes more sense to hardcode than trying to be smart about it
         int yy = y + height - 3;
         this.placeSideColumn(level, x + 2, yy, z, 0);//BlockBehaviorHugeMushroomRed.TOP_E);

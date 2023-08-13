@@ -15,6 +15,7 @@ import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGe
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Similar to {@link SurfaceDecorator}, but switches between two different populators based on the output of a noise function.
@@ -50,7 +51,7 @@ public class NoiseSelectionPopulator extends AbstractGenerationPass implements P
 
     @Override
     protected void init0(long levelSeed, long localSeed, StandardGenerator generator) {
-        PRandom random = new FastPRandom(localSeed);
+        RandomGenerator random = new FastPRandom(localSeed);
 
         Preconditions.checkState(!Double.isNaN(this.min), "min must be set!");
         Preconditions.checkState(!Double.isNaN(this.max), "max must be set!");
@@ -69,7 +70,7 @@ public class NoiseSelectionPopulator extends AbstractGenerationPass implements P
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         double noise = this.selector.get(blockX, blockZ) + random.nextDouble() * this.randomFactor;
         for (Populator populator : noise < this.min ? this.below : noise > this.max ? this.above : this.in) {
             populator.populate(random, level, blockX, blockZ);

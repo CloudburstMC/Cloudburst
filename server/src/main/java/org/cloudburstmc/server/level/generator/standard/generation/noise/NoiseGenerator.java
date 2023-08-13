@@ -5,6 +5,8 @@ import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.random.PRandom;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Creates instances of {@link NoiseSource}.
  *
@@ -19,5 +21,5 @@ public interface NoiseGenerator {
      * @param random an instance of {@link PRandom} to use for generating random numbers
      * @return a new {@link NoiseSource}
      */
-    NoiseSource create(@NonNull PRandom random);
+    NoiseSource create(@NonNull RandomGenerator random);
 }

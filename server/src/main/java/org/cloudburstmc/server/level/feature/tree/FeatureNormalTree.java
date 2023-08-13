@@ -7,6 +7,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 import static java.lang.Math.abs;
 
 /**
@@ -26,7 +28,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height; dy++) {
             if (y + dy < 0 || y + dy >= 256 || !this.test(level.getBlockState(x, y + dy, z, 0))) {
                 return false;
@@ -37,7 +39,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int yy = y + height - 3; yy <= y + height; yy++) {
             int dy = yy - (y + height);
             int radius = 1 - (dy / 2);
@@ -53,14 +55,14 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height; dy++) {
             level.setBlockState(x, y + dy, z, 0, log);
         }
     }
 
     @Override
-    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         this.replaceGrassWithDirt(level, x, y - 1, z);
     }
 }

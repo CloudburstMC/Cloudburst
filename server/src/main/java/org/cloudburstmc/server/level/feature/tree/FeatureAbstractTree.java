@@ -9,6 +9,8 @@ import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Common code for all tree types.
  *
@@ -34,7 +36,7 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
     }
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 255) {
             return false;
         }
@@ -55,23 +57,23 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
         return true;
     }
 
-    protected int chooseHeight(ChunkManager level, PRandom random, int x, int y, int z) {
+    protected int chooseHeight(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         return this.height.rand(random);
     }
 
-    protected abstract boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height);
+    protected abstract boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height);
 
-    protected BlockState selectLog(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected BlockState selectLog(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         return this.log.selectWeighted(random);
     }
 
-    protected BlockState selectLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected BlockState selectLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         return this.leaves.selectWeighted(random);
     }
 
-    protected abstract void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 }

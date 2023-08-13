@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGe
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Similar to {@link SurfaceDecorator}, but switches between two different decorators based on the elevation of the highest block in the chunk.
@@ -41,7 +42,7 @@ public class HeightSelectionDecorator extends AbstractGenerationPass implements 
 
     @Override
     protected void init0(long levelSeed, long localSeed, StandardGenerator generator) {
-        PRandom random = new FastPRandom(localSeed);
+        RandomGenerator random = new FastPRandom(localSeed);
 
         this.threshold = Objects.requireNonNull(this.thresholdNoise, "threshold must be set!").create(random);
         this.thresholdNoise = null;
@@ -59,7 +60,7 @@ public class HeightSelectionDecorator extends AbstractGenerationPass implements 
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int height = chunk.getHighestBlock(x, z);
         double noise = this.threshold.get((chunk.getX() << 4) + x, (chunk.getZ() << 4) + z) + this.additionalOffset;
         for (Decorator decorator : height < noise ? this.below : this.above) {

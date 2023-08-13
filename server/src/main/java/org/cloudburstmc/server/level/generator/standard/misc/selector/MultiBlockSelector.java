@@ -9,6 +9,7 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 
 import java.util.Arrays;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -63,7 +64,7 @@ public final class MultiBlockSelector implements BlockSelector {
     }
 
     @Override
-    public BlockState selectWeighted(@NonNull PRandom random) {
+    public BlockState selectWeighted(@NonNull RandomGenerator random) {
         return this.statesWeighted[random.nextInt(this.statesWeighted.length)];
     }
 

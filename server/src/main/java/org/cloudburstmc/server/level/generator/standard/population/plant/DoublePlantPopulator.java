@@ -15,6 +15,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * Places patches of double plants in the world.
@@ -37,7 +38,7 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void placeCluster(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter replace = this.replace;
 

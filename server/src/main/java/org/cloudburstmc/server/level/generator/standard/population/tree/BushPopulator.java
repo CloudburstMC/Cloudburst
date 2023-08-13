@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.abs;
 
@@ -42,7 +43,7 @@ public class BushPopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         level.setBlockState(x, ++y, z, 0, this.log.selectWeighted(random));
 
         final BlockState leaves = this.leaves.selectWeighted(random);

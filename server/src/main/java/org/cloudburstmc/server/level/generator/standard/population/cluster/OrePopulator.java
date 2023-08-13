@@ -13,6 +13,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -49,7 +50,7 @@ public class OrePopulator extends AbstractReplacingPopulator {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int x, int z) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int x, int z) {
         final int y = this.height.rand(random);
 
         final BlockState block = this.block.selectWeighted(random);

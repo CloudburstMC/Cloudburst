@@ -15,6 +15,7 @@ import org.cloudburstmc.server.level.generator.Generator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiFunction;
+import java.util.random.RandomGenerator;
 
 /**
  * Delegates chunk finishing to a {@link Generator}.
@@ -32,7 +33,7 @@ public final class FinishingTask implements BiFunction<CloudChunk, List<CloudChu
         }
         Preconditions.checkState(chunk.isPopulated(), "Chunk %s,%s was finished before being populated!", chunk.getX(), chunk.getZ());
 
-        PRandom random = new FastPRandom(chunk.getX() * 9050650275199519859L ^ chunk.getZ() * 5251710924988638743L ^ chunk.getLevel().getSeed());
+        RandomGenerator random = new FastPRandom(chunk.getX() * 9050650275199519859L ^ chunk.getZ() * 5251710924988638743L ^ chunk.getLevel().getSeed());
 
         chunks.add(chunk);
         LockableChunk[] lockableChunks = chunks.stream()

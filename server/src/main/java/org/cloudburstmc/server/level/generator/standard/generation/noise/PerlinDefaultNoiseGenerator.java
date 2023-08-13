@@ -7,6 +7,8 @@ import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.util.Identifier;
 
+import java.util.random.RandomGenerator;
+
 /**
  * @author DaPorkchop_
  */
@@ -15,7 +17,7 @@ public final class PerlinDefaultNoiseGenerator extends DefaultNoiseGenerator {
     public static final Identifier ID = Identifier.parse("cloudburst:perlin");
 
     @Override
-    protected NoiseSource create0(@NonNull PRandom random) {
-        return new PerlinNoiseEngine(random);
+    protected NoiseSource create0(@NonNull RandomGenerator random) {
+        return new PerlinNoiseEngine((PRandom) random);
     }
 }

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -10,6 +9,8 @@ import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector.Entry;
+
+import java.util.random.RandomGenerator;
 
 /**
  * A basic generator for superflat worlds.
@@ -36,7 +37,7 @@ public final class FlatGenerator implements Generator {
     }
 
     @Override
-    public void generate(PRandom random, Chunk chunk, int chunkX, int chunkZ) {
+    public void generate(RandomGenerator random, Chunk chunk, int chunkX, int chunkZ) {
         int y = 0;
 
         for (Entry layer : this.layers) {
@@ -52,12 +53,12 @@ public final class FlatGenerator implements Generator {
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int chunkX, int chunkZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
         //no-op
     }
 
     @Override
-    public void finish(PRandom random, ChunkManager level, int chunkX, int chunkZ) {
+    public void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
         //no-op
     }
 }

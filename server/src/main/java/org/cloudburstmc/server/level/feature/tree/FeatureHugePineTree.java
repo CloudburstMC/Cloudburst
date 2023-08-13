@@ -5,6 +5,8 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Generates a huge pine tree.
  * <p>
@@ -22,7 +24,7 @@ public class FeatureHugePineTree extends FeatureHugeSpruceTree {
     }
 
     @Override
-    protected int leafHeightOffset(PRandom random, int height) {
+    protected int leafHeightOffset(RandomGenerator random, int height) {
         return random.nextInt(5) + 3;
     }
 }

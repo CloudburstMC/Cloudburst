@@ -7,6 +7,8 @@ import net.daporkchop.lib.noise.engine.PorkianV2NoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.util.Identifier;
 
+import java.util.random.RandomGenerator;
+
 /**
  * @author DaPorkchop_
  */
@@ -15,7 +17,7 @@ public final class PorkianDefaultNoiseGenerator extends DefaultNoiseGenerator {
     public static final Identifier ID = Identifier.parse("cloudburst:porkian");
 
     @Override
-    protected NoiseSource create0(@NonNull PRandom random) {
-        return new PorkianV2NoiseEngine(random);
+    protected NoiseSource create0(@NonNull RandomGenerator random) {
+        return new PorkianV2NoiseEngine((PRandom) random);
     }
 }

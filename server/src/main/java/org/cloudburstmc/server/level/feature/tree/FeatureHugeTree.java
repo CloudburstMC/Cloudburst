@@ -7,6 +7,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Common code for all huge (2x2) tree types.
  *
@@ -22,7 +24,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     }
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         final int height = this.height.rand(random);
 
         if (!this.canPlace(level, random, x, y, z, height)) {
@@ -40,7 +42,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height + 1; dy++) {
             if (y + dy < 0 || y + dy >= 256) {
                 return false;
@@ -59,7 +61,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height - 2; dy++) {
             level.setBlockState(x, y + dy, z, 0, log);
             level.setBlockState(x + 1, y + dy, z, 0, log);
@@ -69,7 +71,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     }
 
     @Override
-    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         this.replaceGrassWithDirt(level, x, y - 1, z);
         this.replaceGrassWithDirt(level, x + 1, y - 1, z);
         this.replaceGrassWithDirt(level, x, y - 1, z + 1);

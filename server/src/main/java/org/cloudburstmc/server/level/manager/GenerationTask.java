@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.function.Function;
+import java.util.random.RandomGenerator;
 
 /**
  * Delegates chunk generation to a {@link Generator}.
@@ -28,7 +29,7 @@ public final class GenerationTask implements Function<CloudChunk, CloudChunk> {
             return chunk;
         }
 
-        PRandom random = new FastPRandom(chunk.getX() * 3053330778986901431L ^ chunk.getZ() * 1517227374085824433L ^ chunk.getLevel().getSeed());
+        RandomGenerator random = new FastPRandom(chunk.getX() * 3053330778986901431L ^ chunk.getZ() * 1517227374085824433L ^ chunk.getLevel().getSeed());
         LockableChunk lockable = chunk.writeLockable();
 
         lockable.lock();

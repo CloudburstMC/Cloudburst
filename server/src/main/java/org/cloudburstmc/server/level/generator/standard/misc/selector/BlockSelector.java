@@ -6,6 +6,7 @@ import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 /**
@@ -63,7 +64,7 @@ public interface BlockSelector {
      * @param random the instance of {@link PRandom} to use for generating random numbers
      * @return the selected {@link BlockState}
      */
-    BlockState selectWeighted(@NonNull PRandom random);
+    BlockState selectWeighted(@NonNull RandomGenerator random);
 
     /**
      * @return all of the {@link BlockState}s that this instance can select from, taking selection weights into account

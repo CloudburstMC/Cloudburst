@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.min;
 
@@ -40,7 +41,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void populate0(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         if (this.roundDown) {
             int height = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
             this.placeCluster(random, level, blockX, min(height, random.nextInt(height << 1)), blockZ);
@@ -50,7 +51,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void placeCluster(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter replace = this.replace;
         final BlockState block = this.block.selectWeighted(random);

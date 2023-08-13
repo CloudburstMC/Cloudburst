@@ -7,6 +7,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 import static java.lang.Math.abs;
 
 /**
@@ -26,7 +28,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
     }
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 256) {
             return false;
         }

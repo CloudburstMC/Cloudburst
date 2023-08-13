@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
@@ -16,6 +15,7 @@ import org.cloudburstmc.server.registry.BiomeRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 /**
  * @author DaPorkchop_
@@ -33,7 +33,7 @@ public class IceSnowFinisher implements Finisher {
     }
 
     @Override
-    public void finish(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         Biome biome = BiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {

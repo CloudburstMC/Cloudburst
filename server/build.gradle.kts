@@ -11,9 +11,9 @@ dependencies {
         exclude("com.nukkitx.fastutil")
     }
     api(libs.block.state.updater)
-    api(libs.noise)
-    api(libs.fastutil)
+    api(libs.bundles.fastutil)
     api(libs.leveldb.mcpe.jni)
+    api(libs.noise)
 
     implementation(libs.terminal.console.appender)
     implementation(libs.jline.terminal)

@@ -10,6 +10,8 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 import static java.lang.Math.min;
 
 /**
@@ -41,7 +43,7 @@ public class ScatteredCoverDecorator implements Decorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         BlockFilter on = this.on;
         BlockFilter replace = this.replace;
         double chance = this.chance;

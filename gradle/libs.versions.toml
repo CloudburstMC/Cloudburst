@@ -1,6 +1,6 @@
 [versions]
 checker-framework = "3.34.0"
-fastutil = "8.5.12"
+fastutil = "8.5.13-SNAPSHOT"
 jline = "3.23.0"
 log4j = "2.20.0"
 jackson = "2.15.0"
@@ -39,18 +39,39 @@ guice = { group = "com.google.inject", name = "guice", version = "7.0.0" }
 guava = { group = "com.google.guava", name = "guava", version = "32.1.1-jre" }
 disruptor = { group = "com.lmax", name = "disruptor", version = "3.4.4" }
 
+fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
+fastutil-object-reference-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-reference-maps", version.ref = "fastutil" }
+fastutil-int-short-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-short-maps", version.ref = "fastutil" }
+fastutil-int-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-int-maps", version.ref = "fastutil" }
+fastutil-int-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-object-maps", version.ref = "fastutil" }
+fastutil-int-reference-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-reference-maps", version.ref = "fastutil" }
+fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
+fastutil-long-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-int-maps", version.ref = "fastutil" }
+fastutil-long-byte-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-byte-maps", version.ref = "fastutil" }
+fastutil-long-long-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-long-maps", version.ref = "fastutil" }
+fastutil-long-queues = { group = "org.cloudburstmc.fastutil.queues", name = "long-queues", version.ref = "fastutil" }
+fastutil-reference-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-int-maps", version.ref = "fastutil" }
+fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
+fastutil-reference-reference-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-reference-maps", version.ref = "fastutil" }
+fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
+fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "short-object-maps", version.ref = "fastutil" }
+
 bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta1-SNAPSHOT" }
 block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.19.80-SNAPSHOT" }
 jopt-simple = { group = "net.sf.jopt-simple", name = "jopt-simple", version = "5.0.4" }
 leveldb-mcpe-jni = { group = "net.daporkchop", name = "leveldb-mcpe-jni", version = "0.0.10-SNAPSHOT" }
 noise = { group = "net.daporkchop.lib", name = "noise", version = "0.5.6-SNAPSHOT" }
 upnp = { group = "org.cloudburstmc", name = "upnp", version = "1.1.1" }
-fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
 jakarta-inject = { group = "jakarta.inject", name = "jakarta.inject-api", version = "2.0.1" }
 jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.10.1" }
 picocli = { group = "info.picocli", name = "picocli", version = "4.7.4" }
 
 [bundles]
+fastutil = [ "fastutil-object-int-maps", "fastutil-object-reference-maps", "fastutil-int-short-maps",
+    "fastutil-int-int-maps", "fastutil-int-object-maps", "fastutil-int-reference-maps", "fastutil-long-object-maps",
+    "fastutil-long-int-maps", "fastutil-long-byte-maps", "fastutil-long-long-maps", "fastutil-long-queues",
+    "fastutil-reference-int-maps", "fastutil-reference-object-maps", "fastutil-reference-reference-maps",
+    "fastutil-short-sets", "fastutil-short-object-maps" ]
 
 [plugins]
 checkerframework = { id = "org.checkerframework", version = "0.6.29" }

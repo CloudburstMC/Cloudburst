@@ -7,6 +7,8 @@ import net.daporkchop.lib.noise.engine.OpenSimplexNoiseEngine;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.util.Identifier;
 
+import java.util.random.RandomGenerator;
+
 /**
  * @author DaPorkchop_
  */
@@ -15,7 +17,7 @@ public final class OpenSimplexDefaultNoiseGenerator extends DefaultNoiseGenerato
     public static final Identifier ID = Identifier.parse("cloudburst:opensimplex");
 
     @Override
-    protected NoiseSource create0(@NonNull PRandom random) {
-        return new OpenSimplexNoiseEngine(random);
+    protected NoiseSource create0(@NonNull RandomGenerator random) {
+        return new OpenSimplexNoiseEngine((PRandom) random);
     }
 }

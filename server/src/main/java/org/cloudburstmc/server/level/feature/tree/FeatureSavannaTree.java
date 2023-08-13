@@ -9,6 +9,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.abs;
 
@@ -29,7 +30,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    public boolean place(ChunkManager level, PRandom random, int x, int y, int z) {
+    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 256) {
             return false;
         }
@@ -91,7 +92,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, PRandom random, int x, int y, int z, int height) {
+    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height + 1; dy++) {
             if (y + dy < 0 || y + dy >= 256) {
                 return false;
@@ -111,7 +112,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
                 if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {

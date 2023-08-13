@@ -10,6 +10,8 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Places the surface blocks on terrain, consisting of a single "top" block followed by a number of "filler" blocks.
  *
@@ -46,7 +48,7 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
     }
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         boolean placed = false;
         final int depth = this.getDepthNoise(chunk, random, x, z);
 

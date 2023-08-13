@@ -10,6 +10,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Generates normal trees, but with vines on the sides.
  *
@@ -27,7 +29,7 @@ public class FeatureSwampTree extends FeatureNormalTree {
     }
 
     @Override
-    protected void finish(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.finish(level, random, x, y, z, height, log, leaves);
 
         y = y + height - 3;
@@ -50,7 +52,7 @@ public class FeatureSwampTree extends FeatureNormalTree {
         }
     }
 
-    protected void placeVines(ChunkManager level, PRandom random, int x, int y, int z, Direction face, BlockState leaves) {
+    protected void placeVines(ChunkManager level, RandomGenerator random, int x, int y, int z, Direction face, BlockState leaves) {
         BlockState vine = BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getOpposite().getIndex());
         BlockState block;
         for (int dy = 0; dy < 4 && (block = level.getBlockState(x, y - dy, z, 0)) != leaves && this.test(block); dy++) {

@@ -7,6 +7,8 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
+import java.util.random.RandomGenerator;
+
 import static net.daporkchop.lib.common.math.PMath.floorI;
 
 /**
@@ -26,7 +28,7 @@ public class FeatureHugeSpruceTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, PRandom random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         int heightOffset = this.leafHeightOffset(random, height);
         int lastRadius = 0;
         for (int dy = height - heightOffset; dy <= height; dy++) {
@@ -36,7 +38,7 @@ public class FeatureHugeSpruceTree extends FeatureHugeTree {
         }
     }
 
-    protected int leafHeightOffset(PRandom random, int height) {
+    protected int leafHeightOffset(RandomGenerator random, int height) {
         return random.nextInt(5) + this.height.min;
     }
 }

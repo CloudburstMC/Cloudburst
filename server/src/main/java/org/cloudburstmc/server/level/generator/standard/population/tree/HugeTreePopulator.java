@@ -19,6 +19,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelec
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.min;
 import static net.daporkchop.lib.common.math.PMath.mix32;
@@ -50,7 +51,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         if (this.grid) {
             if ((mix32(mix64(this.seed() + (blockX >> 2)) + (blockZ >> 2)) & 0xF) != (((blockX & 3) << 2) | (blockZ & 3))) {
                 //bitwise magic!
@@ -81,7 +82,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(PRandom random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
                 BlockState test = level.getBlockState(x + dx, y, z + dz, 0);

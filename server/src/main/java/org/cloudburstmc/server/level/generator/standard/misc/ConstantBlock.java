@@ -15,6 +15,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 /**
@@ -89,7 +90,7 @@ public final class ConstantBlock implements BlockFilter, BlockSelector, BlockSel
     }
 
     @Override
-    public BlockState selectWeighted(PRandom random) {
+    public BlockState selectWeighted(RandomGenerator random) {
         return this.state;
     }
 

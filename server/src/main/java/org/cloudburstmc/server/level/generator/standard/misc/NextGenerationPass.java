@@ -10,6 +10,8 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 
+import java.util.random.RandomGenerator;
+
 /**
  * Dummy generation pass to indicate where generation passes from the next layer down should be inserted.
  *
@@ -24,12 +26,12 @@ public final class NextGenerationPass implements Decorator, Populator {
     public static final NextGenerationPass INSTANCE = new NextGenerationPass();
 
     @Override
-    public void decorate(PRandom random, Chunk chunk, int x, int z) {
+    public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void populate(PRandom random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
         throw new UnsupportedOperationException();
     }
 
