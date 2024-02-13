@@ -62,6 +62,9 @@ tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
 
+    manifest {
+        attributes["Main-Class"] = "org.cloudburstmc.server.Bootstrap"
+    }
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
 }
