@@ -90,7 +90,7 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.biome.Biome;
+import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -1549,7 +1549,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Biome.BIOME_DEFINITIONS);
+        biomeDefinitionListPacket.setDefinitions(CloudBiome.BIOME_DEFINITIONS);
         this.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();

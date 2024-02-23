@@ -18,7 +18,7 @@ public class BiomeBuilder {
         return new BiomeBuilder();
     }
 
-    public static BiomeBuilder from(@NonNull Biome biome) {
+    public static BiomeBuilder from(@NonNull CloudBiome biome) {
         return builder();
     }
 
@@ -47,7 +47,7 @@ public class BiomeBuilder {
         return this;
     }
 
-    public Biome build() {
-        return new Biome(this.id, this.tags, this.temperature, this.downfall);
+    public CloudBiome build() {
+        return new CloudBiome(this.id, this.tags, this.temperature, this.downfall);
     }
 }

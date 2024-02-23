@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.level.biome;
+package org.cloudburstmc.api.level.biome;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.util.Identifier;

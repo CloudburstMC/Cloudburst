@@ -7,11 +7,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
+import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.level.biome.Biome;
+import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 import org.cloudburstmc.api.registry.Registry;
 
@@ -19,17 +20,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.cloudburstmc.server.level.biome.BiomeIds.*;
+import static org.cloudburstmc.api.level.biome.BiomeIds.*;
 
 @Singleton
-public class BiomeRegistry implements Registry {
-    private static final BiomeRegistry INSTANCE;
+public class CloudBiomeRegistry implements BiomeRegistry {
+    private static final CloudBiomeRegistry INSTANCE;
 
-    private static final Map<Identifier, Biome> VANILLA_BIOMES;
+    private static final Map<Identifier, CloudBiome> VANILLA_BIOMES;
 
     static {
         //build initial biome map
-        VANILLA_BIOMES = Biome.BIOME_DEFINITIONS.entrySet().stream().collect(Collectors.toMap(
+        VANILLA_BIOMES = CloudBiome.BIOME_DEFINITIONS.entrySet().stream().collect(Collectors.toMap(
                 entry -> Identifier.parse(entry.getKey()),
                 entry -> {
                     NbtMap tag = (NbtMap) entry.getValue();
@@ -40,31 +41,31 @@ public class BiomeRegistry implements Registry {
                     return builder.build();
                 }));
 
-        INSTANCE = new BiomeRegistry();
+        INSTANCE = new CloudBiomeRegistry();
     }
 
-    private final Int2ObjectMap<Biome> runtimeToBiomeMap = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<CloudBiome> runtimeToBiomeMap = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectMap<Identifier> runtimeToIdMap = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<Identifier> idToRuntimeMap = new Object2IntLinkedOpenHashMap<>();
     private int runtimeTypeAllocator;
     private volatile boolean closed;
 
-    private BiomeRegistry() {
+    private CloudBiomeRegistry() {
         this.registerVanillaBiomes();
     }
 
-    public static BiomeRegistry get() {
+    public static CloudBiomeRegistry get() {
         return INSTANCE;
     }
 
-    public synchronized void register(@NonNull Biome biome) {
+    public synchronized void register(@NonNull CloudBiome biome) {
         /*Preconditions.checkState(this.runtimeTypeAllocator < 256, "Cannot register more than 256 biomes!");
         this.registerInternal(biome, biome.getId(), this.runtimeTypeAllocator++);*/
         throw new UnsupportedOperationException("Custom biomes are not currently supported!");
     }
 
     private void registerVanilla(@NonNull Identifier id, int runtime) {
-        Biome biome = VANILLA_BIOMES.get(id);
+        CloudBiome biome = VANILLA_BIOMES.get(id);
         Preconditions.checkArgument(biome != null, "Unknown vanilla biome ID: %s", id);
         this.registerInternal(biome, runtime);
 
@@ -73,7 +74,7 @@ public class BiomeRegistry implements Registry {
         }
     }
 
-    private synchronized void registerInternal(Biome biome, int runtime) throws RegistryException {
+    private synchronized void registerInternal(CloudBiome biome, int runtime) throws RegistryException {
         this.checkClosed();
         Preconditions.checkArgument(runtime >= 0, "Runtime ID may not be negative!");
         Preconditions.checkState(!this.runtimeToIdMap.containsKey(runtime), "Runtime ID already registered: %s", runtime);
@@ -84,7 +85,7 @@ public class BiomeRegistry implements Registry {
         this.idToRuntimeMap.put(biome.getId(), runtime);
     }
 
-    public int getRuntimeId(Biome biome) {
+    public int getRuntimeId(CloudBiome biome) {
         return this.getRuntimeId(biome.getId());
     }
 
@@ -92,11 +93,11 @@ public class BiomeRegistry implements Registry {
         return this.idToRuntimeMap.getOrDefault(id, -1);
     }
 
-    public Biome getBiome(Identifier identifier) {
+    public CloudBiome getBiome(Identifier identifier) {
         return this.getBiome(this.getRuntimeId(identifier));
     }
 
-    public Biome getBiome(int runtimeId) {
+    public CloudBiome getBiome(int runtimeId) {
         return this.runtimeToBiomeMap.get(runtimeId);
     }
 

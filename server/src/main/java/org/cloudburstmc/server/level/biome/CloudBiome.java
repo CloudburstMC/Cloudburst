@@ -6,6 +6,7 @@ import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.level.biome.Biome;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
@@ -19,7 +20,7 @@ import java.util.Set;
 /**
  * @author DaPorkchop_
  */
-public class Biome {
+public class CloudBiome implements Biome {
     public static final NbtMap BIOME_DEFINITIONS;
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
@@ -40,7 +41,7 @@ public class Biome {
     protected final double temperature;
     protected final double downfall;
 
-    protected Biome(@NonNull Identifier id, Set<Identifier> tags, float temperature, float downfall) {
+    protected CloudBiome(@NonNull Identifier id, Set<Identifier> tags, float temperature, float downfall) {
         this.id = id;
         this.tags = tags == null || tags.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(tags);
         this.temperature = temperature;

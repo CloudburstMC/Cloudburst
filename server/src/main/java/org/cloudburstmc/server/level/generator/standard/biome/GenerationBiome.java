@@ -5,7 +5,7 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.level.biome.Biome;
+import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 @JsonDeserialize(using = GenerationBiomeDeserializer.class)
 public final class GenerationBiome {
     private final Identifier id;
-    private final Biome biome;
+    private final CloudBiome biome;
 
     private final Decorator[] decorators;
     private final Populator[] populators;
@@ -36,7 +36,7 @@ public final class GenerationBiome {
     private final int internalId;
 
     public GenerationBiome(@NonNull GenerationBiomeStore.TempBiome temp, @NonNull Identifier id, int internalId) {
-        Biome biome = BiomeRegistry.get().getBiome(PorkUtil.fallbackIfNull(temp.getRealId(), id));
+        CloudBiome biome = BiomeRegistry.get().getBiome(PorkUtil.fallbackIfNull(temp.getRealId(), id));
 
         Decorator[] decorators = temp.getDecorators();
         Populator[] populators = temp.getPopulators();
@@ -110,7 +110,7 @@ public final class GenerationBiome {
         return this.id;
     }
 
-    public Biome getBiome() {
+    public CloudBiome getBiome() {
         return this.biome;
     }
 
