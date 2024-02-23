@@ -1,21 +1,9 @@
-[submodule "src/main/resources/lang"]
-	path = server/src/main/resources/lang
-	url = https://github.com/NukkitX/Languages.git
-[submodule "src/main/resources/locale/nukkit"]
-	path = server/src/main/resources/locale/nukkit
-	url = https://github.com/NukkitX/Languages/
-[submodule "src/main/resources/locale/vanilla"]
-	path = server/src/main/resources/locale/vanilla
-	url = https://github.com/NukkitX/Language/
 [submodule "src/main/resources/data"]
 	path = server/src/main/resources/data
 	url = https://github.com/CloudburstMC/Data.git
 [submodule "src/main/resources/locale/cloudburst"]
 	path = server/src/main/resources/locale/cloudburst
-	url = https://github.com/CloudburstMC/Languages/
+	url = https://github.com/CloudburstMC/Languages.git
 [submodule "src/main/resources/locale/vanilla"]
 	path = server/src/main/resources/locale/vanilla
-	url = https://github.com/NukkitX/Language/
-[submodule "src/main/resources/data"]
-	path = server/src/main/resources/data
-	url = https://github.com/CloudburstMC/Data.git
+	url = https://github.com/CloudburstMC/Language.git
