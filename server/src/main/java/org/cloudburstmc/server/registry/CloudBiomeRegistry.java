@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.cloudburstmc.api.level.biome.BiomeIds.*;
 
 @Singleton
-public class CloudBiomeRegistry implements BiomeRegistry {
+public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
     private static final CloudBiomeRegistry INSTANCE;
 
     private static final Map<Identifier, CloudBiome> VANILLA_BIOMES;

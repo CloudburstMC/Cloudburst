@@ -31,7 +31,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(ConsoleCommandSender.class);
 //        this.bindAndExpose(ServerScheduler.class);
 
-        this.bindAndExpose(BiomeRegistry.class).toInstance(BiomeRegistry.get());
+        this.bindAndExpose(CloudBiomeRegistry.class).toInstance(CloudBiomeRegistry.get());
         this.bindAndExpose(BlockEntityRegistry.class).toInstance(BlockEntityRegistry.get());
         this.bindAndExpose(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
         this.bindAndExpose(CommandRegistry.class).toInstance(CommandRegistry.get());

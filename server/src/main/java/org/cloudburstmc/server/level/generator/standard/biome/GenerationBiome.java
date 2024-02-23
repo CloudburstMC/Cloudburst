@@ -11,7 +11,7 @@ import org.cloudburstmc.server.level.generator.standard.generation.decorator.Dec
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 import org.cloudburstmc.server.level.generator.standard.store.GenerationBiomeStore;
-import org.cloudburstmc.server.registry.BiomeRegistry;
+import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -36,7 +36,7 @@ public final class GenerationBiome {
     private final int internalId;
 
     public GenerationBiome(@NonNull GenerationBiomeStore.TempBiome temp, @NonNull Identifier id, int internalId) {
-        CloudBiome biome = BiomeRegistry.get().getBiome(PorkUtil.fallbackIfNull(temp.getRealId(), id));
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(PorkUtil.fallbackIfNull(temp.getRealId(), id));
 
         Decorator[] decorators = temp.getDecorators();
         Populator[] populators = temp.getPopulators();
@@ -102,7 +102,7 @@ public final class GenerationBiome {
 
         this.elevation = elevation;
 
-        this.runtimeId = BiomeRegistry.get().getRuntimeId(this.biome);
+        this.runtimeId = CloudBiomeRegistry.get().getRuntimeId(this.biome);
         this.internalId = internalId;
     }
 

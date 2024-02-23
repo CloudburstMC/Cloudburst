@@ -11,7 +11,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
-import org.cloudburstmc.server.registry.BiomeRegistry;
+import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
@@ -34,7 +34,7 @@ public class IceSnowFinisher implements Finisher {
 
     @Override
     public void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
-        CloudBiome biome = BiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
             BlockState state = level.getBlockState(blockX, y, blockZ, 0);

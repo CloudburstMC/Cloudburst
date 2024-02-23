@@ -25,6 +25,7 @@ import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -199,7 +200,7 @@ public class CloudServer implements Server {
 
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final EntityRegistry entityRegistry = EntityRegistry.get();
-    private final BiomeRegistry biomeRegistry = BiomeRegistry.get();
+    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
     private final CommandRegistry commandRegistry = CommandRegistry.get();
 
     private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
