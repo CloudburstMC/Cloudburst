@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.registry;
 
 import org.cloudburstmc.api.crafting.Recipe;
+import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -8,7 +9,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.UUID;
 
-public interface RecipeRegistry {
+public interface RecipeRegistry extends Registry<RecipeType> {
 
     void register(Recipe recipe) throws RegistryException;
 

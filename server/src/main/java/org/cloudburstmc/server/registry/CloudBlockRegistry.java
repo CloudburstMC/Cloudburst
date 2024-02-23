@@ -45,7 +45,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 @Log4j2
-public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> implements BlockRegistry, Registry {
+public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> implements BlockRegistry {
     public static CloudBlockRegistry REGISTRY;
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
 

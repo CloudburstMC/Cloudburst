@@ -13,6 +13,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.level.biome.Biome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
+import org.cloudburstmc.api.registry.Registry;
 
 import java.util.Map;
 import java.util.stream.Collectors;

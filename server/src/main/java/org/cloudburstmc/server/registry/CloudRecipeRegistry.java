@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 
 @Log4j2
-public class CloudRecipeRegistry implements RecipeRegistry, Registry {
+public class CloudRecipeRegistry implements RecipeRegistry {
 
     private static final String UNLABELED_PREFIX = "minecraft:crafting_recipe_";
     private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";

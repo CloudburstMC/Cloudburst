@@ -3,7 +3,7 @@ package org.cloudburstmc.api.registry;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
-public interface BehaviorRegistry<T> {
+public interface BehaviorRegistry<T> extends Registry<T> {
 
     <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior);
 

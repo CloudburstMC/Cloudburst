@@ -1,4 +1,6 @@
 package org.cloudburstmc.api.registry;
 
-public interface ResourcePackRegistry {
+import org.cloudburstmc.api.pack.ResourcePack;
+
+public interface ResourcePackRegistry extends Registry<ResourcePack> {
 }

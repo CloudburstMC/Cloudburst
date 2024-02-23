@@ -15,6 +15,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NBTInputStream;

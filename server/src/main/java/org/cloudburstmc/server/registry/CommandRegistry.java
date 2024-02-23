@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;

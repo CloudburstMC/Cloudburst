@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 
 import static com.google.common.base.Preconditions.*;
 
-public abstract class CloudBehaviorRegistry<T> implements BehaviorRegistry<T>, Registry {
+public abstract class CloudBehaviorRegistry<T> implements BehaviorRegistry<T> {
 
     protected final Map<BehaviorKey<?, ?>, Data<?, ?>> behaviors = new HashMap<>();
 

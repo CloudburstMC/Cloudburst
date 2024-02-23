@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class CloudGameRuleRegistry implements GameRuleRegistry, Registry {
+public class CloudGameRuleRegistry implements GameRuleRegistry {
     private static final CloudGameRuleRegistry INSTANCE = new CloudGameRuleRegistry();
 
     private final Map<String, GameRule<?>> registered = new HashMap<>();

@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, Registry, DefinitionRegistry<CloudItemDefinition> {
+public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<CloudItemDefinition> {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
     private final Reference2ReferenceMap<ItemType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();

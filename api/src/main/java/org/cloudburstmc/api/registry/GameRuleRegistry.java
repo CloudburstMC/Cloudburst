@@ -6,7 +6,7 @@ import org.cloudburstmc.api.level.gamerule.GameRule;
 import java.util.List;
 import java.util.Set;
 
-public interface GameRuleRegistry {
+public interface GameRuleRegistry extends Registry<GameRule<?>> {
 
     <T extends Comparable<T>> void register(GameRule<T> gameRule);
 
