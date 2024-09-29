@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.registry.BehaviorRegistry;
+import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.util.behavior.Behavior;
 import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 
@@ -29,8 +30,14 @@ public class CloudBehavior<T> implements Behavior<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <U> BehaviorRegistry<U> getRegistry(Class<U> type) {
-        return collection.getRegistry().global().getRegistry(type);
+        Registry<?> registry = collection.getRegistry().global().getRegistry(type);
+        if (registry instanceof BehaviorRegistry) {
+            return (BehaviorRegistry<U>) registry;
+        } else {
+            throw new IllegalStateException("Registry is not a BehaviorRegistry for type: " + type.getName());
+        }
     }
 
     public T getExecutor() {

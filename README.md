@@ -30,11 +30,11 @@ Build JAR file
 -------------
 
 - `git clone https://github.com/CloudburstMC/Cloudburst.git`
-- `cd Server`
+- `cd Cloudburst`
 - `git submodule update --init`
-- `./mvnw clean package`
+- `./gradlew shadowJar`
 
-The compiled JAR can be found in the `target/` directory.
+The compiled JAR can be found in the `build/libs` directory.
 
 Running
 -------------

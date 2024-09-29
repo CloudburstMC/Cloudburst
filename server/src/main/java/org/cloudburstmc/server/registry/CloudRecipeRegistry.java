@@ -28,6 +28,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.ContainerMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
@@ -423,7 +424,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapelessRecipe) recipe).getPriority(),
-                                netIdMap.getOrDefault(recipe.getId(), 0)));
+                                netIdMap.getOrDefault(recipe.getId(), 0),
+                                RecipeUnlockingRequirement.INVALID));
                         break;
                     case SHULKER_BOX:
                         packet.getCraftingData().add(ShapelessRecipeData.shulkerBox(
@@ -445,7 +447,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 entry.getKey(),
                                 recipe.getBlock().getName(),
                                 ((ShapedRecipe) recipe).getPriority(),
-                                netIdMap.getOrDefault(recipe.getId(), 0)));
+                                netIdMap.getOrDefault(recipe.getId(), 0),
+                                false,
+                                RecipeUnlockingRequirement.INVALID));
                         break;
                     case FURNACE:
                         assert recipe instanceof FurnaceRecipe;

@@ -56,8 +56,8 @@ fastutil-reference-reference-maps = { group = "org.cloudburstmc.fastutil.maps", 
 fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
 fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "short-object-maps", version.ref = "fastutil" }
 
-bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta1-SNAPSHOT" }
-block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.19.80-SNAPSHOT" }
+bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta5-20240916.181041-6" }
+block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.30-SNAPSHOT" }
 jopt-simple = { group = "net.sf.jopt-simple", name = "jopt-simple", version = "5.0.4" }
 leveldb-mcpe-jni = { group = "net.daporkchop", name = "leveldb-mcpe-jni", version = "0.0.10-SNAPSHOT" }
 noise = { group = "net.daporkchop.lib", name = "noise", version = "0.5.6-SNAPSHOT" }
