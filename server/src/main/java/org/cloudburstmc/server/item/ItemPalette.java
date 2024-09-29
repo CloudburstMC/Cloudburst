@@ -192,7 +192,9 @@ public class ItemPalette {
                 if (item.has("block_state_b64")) {
                     NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
                     NbtMapBuilder builder = blockState.toBuilder();
-                    builder.remove("name_hash");
+                    builder.remove("name_hash"); // Added in 1.19.20
+                    builder.remove("network_id"); // Added in 1.19.80
+                    builder.remove("block_id"); // Added in 1.20.60
                     blockState = builder.build();
 
                     BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);

@@ -56,7 +56,6 @@ extraJavaModuleInfo {
     automaticModule("net.jodah:expiringmap", "net.jodah.expiringmap")
 }
 
-
 tasks.shadowJar {
     archiveBaseName.set("Cloudburst")
     archiveVersion.set("")
@@ -67,4 +66,7 @@ tasks.shadowJar {
     }
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
+
+    dependsOn(":api:classes")
+    from(project(":api").sourceSets.main.get().output)
 }

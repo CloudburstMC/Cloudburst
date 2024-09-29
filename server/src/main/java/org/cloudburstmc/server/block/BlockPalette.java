@@ -133,7 +133,9 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         for (int i = 0; i < vanillaPalette.size(); i++) {
             NbtMapBuilder builder = vanillaPalette.get(i).toBuilder();
-            builder.remove("name_hash"); // Temporary workaround - Added in 1.19.20
+            builder.remove("name_hash"); // Added in 1.19.20
+            builder.remove("network_id"); // Added in 1.19.80
+            builder.remove("block_id"); // Added in 1.20.60
             NbtMap nbt = builder.build();
 
             BlockState state = serializedStateMap.get(nbt);
