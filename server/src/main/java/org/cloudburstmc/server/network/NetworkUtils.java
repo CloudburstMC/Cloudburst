@@ -166,6 +166,7 @@ public class NetworkUtils {
                 item.getCount(),
                 -1, // FIXME: item.getStackNetworkId(),
                 customName == null ? "" : customName,
-                damage == null ? 0 : damage);
+                damage == null ? 0 : damage,
+                "");
     }
 }

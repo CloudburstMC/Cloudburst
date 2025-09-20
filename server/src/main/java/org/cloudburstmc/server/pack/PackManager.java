@@ -215,8 +215,8 @@ public class PackManager implements Closeable, ResourcePackRegistry {
         packStack.setGameVersion("*");
         for (Pack pack : packs.values()) {
             if (pack.getType() == PackType.RESOURCES) {
-                packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId().toString(),
-                        pack.getVersion().toString(), pack.getSize(), "", "", "", false, false, false));
+                packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId(),
+                        pack.getVersion().toString(), pack.getSize(), "", "", "", false, false, false, ""));
                 packStack.getResourcePacks().add(new ResourcePackStackPacket.Entry(pack.getId().toString(),
                         pack.getVersion().toString(), ""));
             }
