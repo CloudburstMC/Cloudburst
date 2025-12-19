@@ -14,7 +14,7 @@
         <jackson.version>2.15.0</jackson.version>
         <jline.version>3.23.0</jline.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
-        <log4j2.version>2.20.0</log4j2.version>
+        <log4j2.version>2.25.3</log4j2.version>
         <lombok.version>1.18.26</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
