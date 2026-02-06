@@ -1,8 +1,6 @@
 package org.cloudburstmc.server.item;
 
 import tools.jackson.databind.JsonNode;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -38,22 +36,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2
 public class ItemPalette {
-    private final static BiMap<Integer, Identifier> legacyIdMap = HashBiMap.create();
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
     private final CloudItemRegistry itemRegistry;
     private final static Reference2ReferenceMap<Identifier, CloudItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
     private final static Int2ReferenceMap<CloudItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
     static {
-        try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
-            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
-            for (Map.Entry<String, JsonNode> entry : json.properties()) {
-                legacyIdMap.put(entry.getValue().asInt(), Identifier.parse(entry.getKey()));
-            }
-        } catch (IOException | NumberFormatException e) {
-            throw new RegistryException("Unable to load Legacy Item IDs", e);
-        }
-
         try (InputStream in = RegistryUtils.getOrAssertResource("data/item_mappings.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (Map.Entry<String, JsonNode> entry : json.properties()) {
@@ -169,10 +157,11 @@ public class ItemPalette {
     }
 
     public Identifier fromLegacy(int legacyId, int meta) {
-        Identifier id = legacyIdMap.get(legacyId);
-        if (id == null) {
-            throw new RegistryException("Unknown legacy Id: " + legacyId);
+        CloudItemDefinition def = runtimeIdMap.get(legacyId);
+        if (def == null) {
+            throw new RegistryException("Unknown item Id: " + legacyId);
         }
+        Identifier id = Identifier.parse(def.getIdentifier());
         if (metaMap.containsKey(id)) {
             return metaMap.get(id).get(meta);
         }

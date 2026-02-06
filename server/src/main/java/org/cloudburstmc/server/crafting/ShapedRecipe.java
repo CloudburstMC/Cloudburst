@@ -7,6 +7,7 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -22,6 +23,7 @@ public class ShapedRecipe implements CraftingRecipe {
     private final ItemStack primaryResult;
     private final ImmutableList<ItemStack> extraResults;
     private final CharObjectHashMap<ItemStack> ingredients = new CharObjectHashMap<>();
+    private final CharObjectHashMap<ItemDescriptorWithCount> ingredientDescriptors = new CharObjectHashMap<>();
     private final String[] shape;
     private final int priority;
     private final Identifier block;
@@ -43,6 +45,12 @@ public class ShapedRecipe implements CraftingRecipe {
      */
     public ShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape,
                         CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
+        this(recipeId, priority, primaryResult, shape, ingredients, null, extraResults, block);
+    }
+
+    public ShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape,
+                        CharObjectMap<ItemStack> ingredients, CharObjectMap<ItemDescriptorWithCount> descriptors,
+                        List<ItemStack> extraResults, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
         int rowCount = shape.length;
@@ -77,6 +85,12 @@ public class ShapedRecipe implements CraftingRecipe {
 
         for (Map.Entry<Character, ItemStack> entry : ingredients.entrySet()) {
             this.setIngredient(entry.getKey(), entry.getValue());
+        }
+
+        if (descriptors != null) {
+            for (Map.Entry<Character, ItemDescriptorWithCount> entry : descriptors.entrySet()) {
+                this.ingredientDescriptors.put(entry.getKey().charValue(), entry.getValue());
+            }
         }
     }
 
@@ -120,6 +134,21 @@ public class ShapedRecipe implements CraftingRecipe {
             }
         }
         return items;
+    }
+
+    public List<ItemDescriptorWithCount> getInputDescriptorList() {
+        if (ingredientDescriptors.isEmpty()) {
+            return null;
+        }
+        List<ItemDescriptorWithCount> descriptors = new ArrayList<>();
+        for (int y = 0, y2 = getHeight(); y < y2; ++y) {
+            for (int x = 0, x2 = getWidth(); x < x2; ++x) {
+                char c = this.shape[y].charAt(x);
+                ItemDescriptorWithCount desc = this.ingredientDescriptors.get(c);
+                descriptors.add(Objects.requireNonNullElse(desc, ItemDescriptorWithCount.EMPTY));
+            }
+        }
+        return descriptors;
     }
 
     public Map<Integer, Map<Integer, ItemStack>> getIngredientMap() {

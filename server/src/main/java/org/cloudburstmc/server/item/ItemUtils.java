@@ -17,7 +17,10 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ComplexAliasDescriptor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -282,17 +285,16 @@ public class ItemUtils {
     }
 
     public static ItemStack fromJson(Map<String, Object> data) {
-        String nbt = (String) data.get("nbt_b64");
-
-        byte[] nbtBytes = null;
-        if (nbt != null) {
-            nbtBytes = Base64.getDecoder().decode(nbt);
-        } else if ((nbt = (String) data.getOrDefault("nbt_hex", null)) != null) { // Support old format for backwards compat
-            nbtBytes = Utils.parseHexBinary(nbt);
+        String type = (String) data.get("type");
+        if ("item_tag".equals(type) || "complex_alias".equals(type)) {
+            return ItemStack.EMPTY;
         }
 
+        String nbt = (String) data.get("nbt_b64");
         NbtMap tag;
-        if (nbtBytes != null) {
+
+        if (nbt != null) {
+            byte[] nbtBytes = Base64.getDecoder().decode(nbt);
             try (NBTInputStream stream = NbtUtils.createReaderLE(new ByteArrayInputStream(nbtBytes))) {
                 tag = (NbtMap) stream.readTag();
             } catch (IOException e) {
@@ -304,25 +306,48 @@ public class ItemUtils {
 
         Identifier id;
         if (data.containsKey("id")) {
-//            try {
-//                id = registry.fromLegacy(Utils.toInt(data.get("id")), Utils.toInt(data.getOrDefault("damage", 0)));  //try prior format first
-//            } catch (NumberFormatException | ClassCastException e) {
-//                id = Identifier.fromString(data.get("id").toString());
-//            }
             id = Identifier.parse(data.get("id").toString());
-        } else {
+        } else if (data.containsKey("legacyId")) {
             id = registry.fromLegacy(Utils.toInt(data.get("legacyId")), Utils.toInt(data.getOrDefault("damage", 0)));
+        } else if (data.containsKey("itemId")) {
+            int auxValue = Utils.toInt(data.getOrDefault("auxValue", 0));
+            id = registry.fromLegacy(Utils.toInt(data.get("itemId")), auxValue == 32767 ? 0 : auxValue);
+        } else {
+            id = null;
         }
 
         if (id == null) {
-            throw new IllegalStateException("Unable to decode item JSON");
-        }
-        int blockRuntimeId = -1;
-        if (data.containsKey("blockRuntimeId")) {
-            blockRuntimeId = Utils.toInt(data.get("blockRuntimeId"));
+            throw new IllegalStateException("Unable to decode item JSON: " + data);
         }
 
-        return deserializeItem(id, (short) Utils.toInt(data.getOrDefault("damage", 0)), Utils.toInt(data.getOrDefault("count", 1)), tag/*, blockRuntimeId*/);
+        int damage = Utils.toInt(data.getOrDefault("damage", data.getOrDefault("auxValue", 0)));
+        return deserializeItem(id, (short) damage, Utils.toInt(data.getOrDefault("count", 1)), tag);
+    }
+
+    public static ItemDescriptorWithCount descriptorFromJson(Map<String, Object> data) {
+        String type = (String) data.get("type");
+        int count = Utils.toInt(data.getOrDefault("count", 1));
+
+        if ("item_tag".equals(type)) {
+            String itemTag = (String) data.get("itemTag");
+            return new ItemDescriptorWithCount(new ItemTagDescriptor(itemTag), count);
+        }
+
+        if ("complex_alias".equals(type)) {
+            return new ItemDescriptorWithCount(new ComplexAliasDescriptor(""), count);
+        }
+
+        int auxValue = Utils.toInt(data.getOrDefault("auxValue", 0));
+        int itemId = Utils.toInt(data.get("itemId"));
+
+        Identifier id = registry.fromLegacy(itemId, auxValue == 32767 ? 0 : auxValue);
+        if (id == null) {
+            log.warn("Unknown legacy item ID {} in recipe descriptor", itemId);
+            return ItemDescriptorWithCount.EMPTY;
+        }
+
+        ItemDefinition definition = registry.getDefinition(id);
+        return new ItemDescriptorWithCount(new DefaultDescriptor(definition, auxValue), count);
     }
 
     // -- Used by recipes and crafting

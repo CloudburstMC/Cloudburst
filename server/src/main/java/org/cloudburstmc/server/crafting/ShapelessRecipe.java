@@ -4,6 +4,7 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.ArrayList;
@@ -20,12 +21,18 @@ public class ShapelessRecipe implements CraftingRecipe {
     private final Identifier recipeId;
     private final ItemStack output;
     private final List<ItemStack> ingredients;
+    private final List<ItemDescriptorWithCount> inputDescriptors;
     private final int priority;
     private final Identifier block;
     private final List<ItemStack> extraOutputs = new ArrayList<>();
     private final RecipeType type;
 
     public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock, RecipeType type) {
+        this(recipeId, priority, outputs, ingredients, null, craftingBlock, type);
+    }
+
+    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients,
+                           List<ItemDescriptorWithCount> inputDescriptors, Identifier craftingBlock, RecipeType type) {
         this.output = outputs.remove(0);
         this.extraOutputs.addAll(outputs);
         this.type = type;
@@ -38,13 +45,14 @@ public class ShapelessRecipe implements CraftingRecipe {
         }
 
         this.ingredients = new ArrayList<>();
-
         for (ItemStack item : ingredients) {
             if (item.getCount() < 1) {
                 throw new IllegalArgumentException("Recipe '" + recipeId + "' Ingredient amount was not >= 1 (value: " + item.getCount() + ")");
             }
             this.ingredients.add(item);
         }
+
+        this.inputDescriptors = inputDescriptors;
     }
 
     @Override
@@ -59,6 +67,10 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     public List<ItemStack> getIngredientList() {
         return this.ingredients;
+    }
+
+    public List<ItemDescriptorWithCount> getInputDescriptors() {
+        return this.inputDescriptors;
     }
 
     public int getIngredientCount() {

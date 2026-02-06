@@ -9,6 +9,8 @@ public enum RecipeType {
     SHULKER_BOX,
     SHAPELESS_CHEMISTRY,
     SHAPED_CHEMISTRY,
+    SMITHING_TRANSFORM,
+    SMITHING_TRIM,
 
     //Internal Use
     POTION,

@@ -33,6 +33,10 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceR
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.container.ContainerRecipe;
@@ -81,11 +85,10 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = (CloudItemRegistry) registry;
         try {
-            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("old_recipes.json").toURI());
+            loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
         } catch (URISyntaxException | NullPointerException e) {
-            throw new RegistryException("Unable to load recipes.json", e);
+            throw new RegistryException("Unable to load data/recipes.json", e);
         }
-
     }
 
     @Override
@@ -132,12 +135,20 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
         int outputHash;
         UUID id;
-        if (recipe.getType() == RecipeType.MULTI) {
-            outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
-            id = ((MultiRecipe) recipe).getUuid();
-        } else {
-            outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
-            id = getInputHash(recipe);
+        switch (recipe.getType()) {
+            case MULTI:
+                outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
+                id = ((MultiRecipe) recipe).getUuid();
+                break;
+            case SMITHING_TRANSFORM:
+            case SMITHING_TRIM:
+                outputHash = Objects.hash(System.identityHashCode(recipe.getId()));
+                id = UUID.nameUUIDFromBytes(recipe.getId().toString().getBytes());
+                break;
+            default:
+                outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
+                id = getInputHash(recipe);
+                break;
         }
         register0(recipe.getId(), id, outputHash, recipe);
 
@@ -177,12 +188,17 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 id = Identifier.parse(UNLABELED_PREFIX + (++unlabeled));
             }
 
+            Identifier block = null;
+            if (recipe.has("block")) {
+                String craftingBlock = recipe.get("block").asText();
+                if (craftingBlock != null && !craftingBlock.equals("deprecated")) {
+                    block = Identifier.parse(craftingBlock);
+                }
+            }
+
             switch (recipe.get("type").asInt()) {
                 case 0: // Shapeless
-                case 5:
-                    String craftingBlock = recipe.get("block").asText();
-                    Identifier block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
-
+                case 5: // Shulker/Bundle
                     List<ItemStack> outputs = new ArrayList<>();
                     for (Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>() {
                     })) {
@@ -190,19 +206,20 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     }
 
                     List<ItemStack> inputs = new ArrayList<>();
+                    List<ItemDescriptorWithCount> inputDescriptors = new ArrayList<>();
                     for (Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<List<Map<String, Object>>>() {
                     })) {
+                        inputDescriptors.add(ItemUtils.descriptorFromJson(item));
                         inputs.add(ItemUtils.fromJson(item));
                     }
                     inputs.sort(recipeComparator);
 
-                    this.register(new ShapelessRecipe(id, recipe.get("priority").asInt(), outputs, inputs, block, RecipeType.values()[recipe.get("type").asInt()]));
+                    RecipeType shapelessType = recipe.get("type").asInt() == 5 ? RecipeType.SHULKER_BOX : RecipeType.SHAPELESS;
+                    this.register(new ShapelessRecipe(id, recipe.get("priority").asInt(), outputs, inputs, inputDescriptors, block, shapelessType));
                     break;
-                case 1: //Shaped
+                case 1: // Shaped
                     String[] shape = Bootstrap.JSON_MAPPER.convertValue(recipe.get("shape"), new TypeReference<String[]>() {
                     });
-                    craftingBlock = recipe.get("block").asText();
-                    block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
 
                     outputs = new ArrayList<>();
                     for (Map<String, Object> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<List<Map<String, Object>>>() {
@@ -212,33 +229,46 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     ItemStack primary = outputs.remove(0);
 
                     CharObjectMap<ItemStack> ingredients = new CharObjectHashMap<>();
+                    CharObjectMap<ItemDescriptorWithCount> ingredientDescs = new CharObjectHashMap<>();
                     for (Map.Entry<String, Map<String, Object>> item : Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Map<String, Object>>>() {
                     }).entrySet()) {
-                        ingredients.put(item.getKey().charAt(0), ItemUtils.fromJson(item.getValue()));
+                        char key = item.getKey().charAt(0);
+                        ingredients.put(key, ItemUtils.fromJson(item.getValue()));
+                        ingredientDescs.put(key, ItemUtils.descriptorFromJson(item.getValue()));
                     }
-                    this.register(new ShapedRecipe(id, recipe.get("priority").asInt(), primary, shape, ingredients, outputs, block));
+                    this.register(new ShapedRecipe(id, recipe.get("priority").asInt(), primary, shape, ingredients, ingredientDescs, outputs, block));
                     break;
                 case 2:
-                case 3: //furnace
+                case 3: // Furnace
                     Map<String, Object> outputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("output"), new TypeReference<Map<String, Object>>() {
                     });
                     Map<String, Object> inputData = Bootstrap.JSON_MAPPER.convertValue(recipe.get("input"), new TypeReference<Map<String, Object>>() {
                     });
-                    craftingBlock = recipe.get("block").asText();
-                    block = craftingBlock == null ? null : Identifier.parse(craftingBlock);
 
                     this.register(new FurnaceRecipe(id, ItemUtils.fromJson(outputData), ItemUtils.fromJson(inputData), block));
                     break;
-                case 4: //Multi
+                case 4: // Multi
                     UUID uuid = UUID.fromString(recipe.get("uuid").asText());
                     this.register(new MultiRecipe(id, uuid));
                     break;
+                case 8: // Smithing Transform
+                    break;
+                case 9: // Smithing Trim
+                    ItemDescriptorWithCount trimBase = new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:trimmable_armors"), 1);
+                    ItemDescriptorWithCount trimAddition = new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:trim_materials"), 1);
+                    ItemDescriptorWithCount trimTemplate = new ItemDescriptorWithCount(new ItemTagDescriptor("minecraft:trim_templates"), 1);
+                    this.register(new SmithingTrimRecipe(
+                            Identifier.parse("minecraft:smithing_armor_trim"),
+                            trimTemplate, trimBase, trimAddition,
+                            Identifier.parse("smithing_table")));
+                    break;
                 default:
-                    throw new RegistryException("Unsupported Recipe type");
+                    log.warn("Unsupported recipe type {} for recipe {}", recipe.get("type").asInt(), id);
+                    break;
             }
         }
 
-        //Load Potions
+        // Load Potions
         unlabeled = 0;
         for (JsonNode recipe : json.get("potionMixes")) {
             ItemStack input = ItemUtils.deserializeItem(Identifier.parse(recipe.get("inputId").asText()), recipe.get("inputMeta").shortValue(), 1, NbtMap.EMPTY);
@@ -249,7 +279,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             this.register(new BrewingRecipe(id, input, reagent, output));
         }
 
-        //Load Container Mixes
+        // Load Container Mixes
         unlabeled = 0;
         for (JsonNode recipe : json.get("containerMixes")) {
             ItemStack input = ItemUtils.deserializeItem(Identifier.parse(recipe.get("inputId").asText()), (short) 0, 1, NbtMap.EMPTY);
@@ -415,73 +445,86 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         for (Map<UUID, Identifier> map : recipeHashMap.values()) {
             for (Map.Entry<UUID, Identifier> entry : map.entrySet()) {
                 Recipe recipe = recipeMap.get(entry.getValue());
+                String blockTag = recipe.getBlock() != null ? recipe.getBlock().getName() : "";
+
                 switch (recipe.getType()) {
-                    case SHAPELESS:
+                    case SHAPELESS: {
+                        ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
+                        List<ItemDescriptorWithCount> descriptors = shapeless.getInputDescriptors();
+                        if (descriptors == null) {
+                            descriptors = ItemUtils.toDescriptors(shapeless.getIngredientList());
+                        }
                         packet.getCraftingData().add(ShapelessRecipeData.shapeless(
                                 recipe.getId().toString(),
-                                ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
+                                descriptors,
+                                ItemUtils.toNetwork(shapeless.getAllResults()),
                                 entry.getKey(),
-                                recipe.getBlock().getName(),
-                                ((ShapelessRecipe) recipe).getPriority(),
+                                blockTag,
+                                shapeless.getPriority(),
                                 netIdMap.getOrDefault(recipe.getId(), 0),
                                 RecipeUnlockingRequirement.INVALID));
                         break;
-                    case SHULKER_BOX:
+                    }
+                    case SHULKER_BOX: {
+                        ShapelessRecipe shulker = (ShapelessRecipe) recipe;
+                        List<ItemDescriptorWithCount> descriptors = shulker.getInputDescriptors();
+                        if (descriptors == null) {
+                            descriptors = ItemUtils.toDescriptors(shulker.getIngredientList());
+                        }
                         packet.getCraftingData().add(ShapelessRecipeData.shulkerBox(
                                 recipe.getId().toString(),
-                                ItemUtils.toDescriptors(((ShapelessRecipe) recipe).getIngredientList()),
-                                ItemUtils.toNetwork(((ShapelessRecipe) recipe).getAllResults()),
+                                descriptors,
+                                ItemUtils.toNetwork(shulker.getAllResults()),
                                 entry.getKey(),
-                                recipe.getBlock().getName(),
-                                ((ShapelessRecipe) recipe).getPriority(),
+                                blockTag,
+                                shulker.getPriority(),
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
-                    case SHAPED:
+                    }
+                    case SHAPED: {
+                        ShapedRecipe shaped = (ShapedRecipe) recipe;
+                        List<ItemDescriptorWithCount> descriptors = shaped.getInputDescriptorList();
+                        if (descriptors == null) {
+                            descriptors = ItemUtils.toDescriptors(shaped.getIngredientList());
+                        }
                         packet.getCraftingData().add(ShapedRecipeData.shaped(
                                 recipe.getId().toString(),
-                                ((ShapedRecipe) recipe).getWidth(),
-                                ((ShapedRecipe) recipe).getHeight(),
-                                ItemUtils.toDescriptors(((ShapedRecipe) recipe).getIngredientList()),
-                                ItemUtils.toNetwork(((ShapedRecipe) recipe).getAllResults()),
+                                shaped.getWidth(),
+                                shaped.getHeight(),
+                                descriptors,
+                                ItemUtils.toNetwork(shaped.getAllResults()),
                                 entry.getKey(),
-                                recipe.getBlock().getName(),
-                                ((ShapedRecipe) recipe).getPriority(),
+                                blockTag,
+                                shaped.getPriority(),
                                 netIdMap.getOrDefault(recipe.getId(), 0),
                                 false,
                                 RecipeUnlockingRequirement.INVALID));
                         break;
+                    }
                     case FURNACE:
-                        assert recipe instanceof FurnaceRecipe;
-                        ItemData inputData = ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput());
-                        ItemData outputData = ItemUtils.toNetwork(recipe.getResult());
-
-                        packet.getCraftingData().add(FurnaceRecipeData.of(
-                                inputData.getDefinition().getRuntimeId(),
-                                outputData,
-                                recipe.getBlock().getName()));
-                        break;
-                    case FURNACE_DATA:
-                        assert recipe instanceof FurnaceRecipe;
-                        inputData = ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput());
-                        outputData = ItemUtils.toNetwork(recipe.getResult());
-
-                        packet.getCraftingData().add(FurnaceRecipeData.of(
-                                ItemUtils.toNetwork(((FurnaceRecipe) recipe).getInput()).getDefinition().getRuntimeId(),
-                                inputData.getDamage(),
-                                outputData,
-                                recipe.getBlock().getName()));
+                        packet.getCraftingData().add(((FurnaceRecipe) recipe).toNetwork());
                         break;
                     case MULTI:
                         packet.getCraftingData().add(MultiRecipeData.of(
                                 ((MultiRecipe) recipe).getUuid(),
                                 netIdMap.getOrDefault(recipe.getId(), 0)));
                         break;
-                    case POTION:
-                        assert recipe instanceof BrewingRecipe;
-                        ItemData reagentData = ItemUtils.toNetwork(((BrewingRecipe) recipe).getIngredient());
-                        inputData = ItemUtils.toNetwork(((BrewingRecipe) recipe).getInput());
-                        outputData = ItemUtils.toNetwork(recipe.getResult());
+                    case SMITHING_TRIM: {
+                        SmithingTrimRecipe trim = (SmithingTrimRecipe) recipe;
+                        packet.getCraftingData().add(SmithingTrimRecipeData.of(
+                                recipe.getId().toString(),
+                                trim.getBase(),
+                                trim.getAddition(),
+                                trim.getTemplate(),
+                                blockTag,
+                                netIdMap.getOrDefault(recipe.getId(), 0)));
+                        break;
+                    }
+                    case POTION: {
+                        BrewingRecipe brewing = (BrewingRecipe) recipe;
+                        ItemData reagentData = ItemUtils.toNetwork(brewing.getIngredient());
+                        ItemData inputData = ItemUtils.toNetwork(brewing.getInput());
+                        ItemData outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getPotionMixData().add(new PotionMixData(
                                 inputData.getDefinition().getRuntimeId(),
@@ -491,17 +534,19 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                                 outputData.getDefinition().getRuntimeId(),
                                 outputData.getDamage()));
                         break;
-                    case CONTAINER:
-                        assert recipe instanceof ContainerRecipe;
-                        reagentData = ItemUtils.toNetwork(((ContainerRecipe) recipe).getIngredient());
-                        inputData = ItemUtils.toNetwork(((ContainerRecipe) recipe).getInput());
-                        outputData = ItemUtils.toNetwork(recipe.getResult());
+                    }
+                    case CONTAINER: {
+                        ContainerRecipe container = (ContainerRecipe) recipe;
+                        ItemData reagentData = ItemUtils.toNetwork(container.getIngredient());
+                        ItemData inputData = ItemUtils.toNetwork(container.getInput());
+                        ItemData outputData = ItemUtils.toNetwork(recipe.getResult());
 
                         packet.getContainerMixData().add(new ContainerMixData(
                                 inputData.getDefinition().getRuntimeId(),
                                 reagentData.getDefinition().getRuntimeId(),
                                 outputData.getDefinition().getRuntimeId()));
                         break;
+                    }
                     default:
                         break;
                 }
@@ -523,7 +568,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 list.sort(recipeComparator);
                 return ItemUtils.getMultiItemHash(list);
             case FURNACE:
-            case FURNACE_DATA:
                 ItemStack input = ((FurnaceRecipe) recipe).getInput();
                 return ItemUtils.getMultiItemHash(Arrays.asList(input, recipe.getResult()));
             case POTION:
