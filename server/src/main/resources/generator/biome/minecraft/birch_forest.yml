@@ -4,7 +4,7 @@ populators:
     # Fallen trees
   - id: "cloudburst:tree"
     chance: 0.0005580357 # about 1 per 7 chunks
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     type:
       species: "birch"
@@ -13,21 +13,21 @@ populators:
     # Trees
   - id: "cloudburst:tree"
     chance: 0.0390625 # about 10 per chunk
-    on: "grass"
+    on: "grass_block"
     type: "birch"
 
     # Flowers
   - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "2*yellow_flower,red_flower"
+    block: "2*dandelion,poppy"
 
     # Double plants
   - id: "cloudburst:double_plant"
     chance: 0.01171875 # about 3 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     types:
       - 1 # lilac
@@ -37,5 +37,5 @@ populators:
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.0078125 # about 2 per chunk
-    on: "grass"
-    block: "tallgrass"
+    on: "grass_block"
+    block: "short_grass"

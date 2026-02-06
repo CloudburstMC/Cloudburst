@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.generator.standard.misc.filter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;

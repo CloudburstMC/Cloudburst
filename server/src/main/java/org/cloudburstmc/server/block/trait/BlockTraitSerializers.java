@@ -78,20 +78,15 @@ public class BlockTraitSerializers {
 
     public void init() {
         register(Direction.class, new DirectionSerializer());
-        register(TreeSpecies.class, new TreeSpeciesSerializer());
-        register(StoneSlabType.class, new StoneSlabSerializer());
         register(SeaGrassType.class, new SeagrassSerializer());
-        register(CardinalDirection.class, new EnumOrdinalSerializer<CardinalDirection>());
+        register(CardinalDirection.class, new CardinalDirectionSerializer());
         register(RailDirection.class, new EnumOrdinalSerializer<RailDirection>());
-        register(DyeColor.class, new DyeColorSerializer());
-        register(SandStoneType.class, new SandstoneTypeSerializer());
-        register(FluidType.class, new FluidTypeSerializer());
+
         register(Axis.class, new AxisSerializer());
+        register(SlabSlot.class, new SlabSlotSerializer());
         register(BlockTraits.TORCH_DIRECTION, new TorchDirectionSerializer());
         register(BlockTraits.IS_POWERED, new PoweredSerializer());
-        register(BlockTraits.IS_TRIGGERED, new TriggeredSerializer());
-        register(BlockTraits.STONE_BUTTON_TYPE, NoopTraitSerializer.INSTANCE);
-        register(BlockTraits.STONE_PRESSURE_PLATE_TYPE, NoopTraitSerializer.INSTANCE);
+        register(BlockTraits.BLOCK_FACE, NoopTraitSerializer.INSTANCE);
     }
 
     public interface TraitSerializer<T extends Comparable<T>> {

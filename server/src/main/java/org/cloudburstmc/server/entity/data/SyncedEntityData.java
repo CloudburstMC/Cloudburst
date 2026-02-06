@@ -4,12 +4,12 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 
-import java.util.EnumSet;
+import java.util.EnumMap;
 
 public class SyncedEntityData {
     private final EntityDataMap data = new EntityDataMap();
     private final EntityDataMap dataChangeSet = new EntityDataMap();
-    private final EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
+    private final EnumMap<EntityFlag, Boolean> flags = new EnumMap<>(EntityFlag.class);
     private final SyncedEntityDataListener listener;
 
     public SyncedEntityData(SyncedEntityDataListener listener) {
@@ -46,17 +46,13 @@ public class SyncedEntityData {
     }
 
     public boolean getFlag(EntityFlag flag) {
-        return flags.contains(flag);
+        return flags.getOrDefault(flag, false);
     }
 
     public void setFlag(EntityFlag flag, boolean value) {
-        boolean oldValue = this.flags.contains(flag);
-        if (value != oldValue) {
-            if (value) {
-                this.flags.add(flag);
-            } else {
-                this.flags.remove(flag);
-            }
+        Boolean oldValue = this.flags.get(flag);
+        if (oldValue == null || value != oldValue) {
+            this.flags.put(flag, value);
             this.dataChangeSet.putFlags(this.flags);
         }
     }

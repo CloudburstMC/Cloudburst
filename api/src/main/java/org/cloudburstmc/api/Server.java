@@ -1,6 +1,5 @@
 package org.cloudburstmc.api;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Difficulty;
@@ -10,6 +9,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 import java.util.UUID;

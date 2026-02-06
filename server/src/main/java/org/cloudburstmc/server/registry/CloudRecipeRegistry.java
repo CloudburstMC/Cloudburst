@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.registry;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
@@ -158,7 +158,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         int unlabeled = 0;
 
         try {
-            json = Bootstrap.JSON_MAPPER.readTree(file.toURL());
+            json = Bootstrap.JSON_MAPPER.readTree(file.toURL().openStream());
         } catch (IOException e) {
             throw new RuntimeException("Unable to read JSON File to load recipes", e);
         }

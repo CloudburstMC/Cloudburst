@@ -1,19 +1,18 @@
 [versions]
-checker-framework = "3.34.0"
+checker-framework = "3.53.1"
 fastutil = "8.5.13-SNAPSHOT"
-jline = "3.23.0"
-log4j = "2.20.0"
-jackson = "2.15.0"
-junit = "5.9.3"
-asm = "9.3"
+jline = "3.30.6"
+log4j = "2.25.3"
+jackson = "3.0.4"
+junit = "6.0.2"
+asm = "9.9.1"
 
 [libraries]
-
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asm-commons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 
 math-immutable = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
-lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.26" }
+lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.42" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checker-framework" }
 checker = { group = "org.checkerframework", name = "checker", version.ref = "checker-framework" }
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
@@ -26,18 +25,18 @@ jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
 log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
-slf4j-api = { group = "org.slf4j", name = "slf4j-api", version = "2.0.7" }
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version = "2.0.17" }
 
-jackson-core = { group = "com.fasterxml.jackson.core", name = "jackson-core", version.ref = "jackson" }
-jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
-jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
-jackson-dataformat-yaml = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
-jackson-dataformat-properties = { group = "com.fasterxml.jackson.dataformat", name = "jackson-dataformat-properties", version.ref = "jackson" }
-completable-futures = { group = "com.spotify", name = "completable-futures", version = "0.3.5" }
+jackson-core = { group = "tools.jackson.core", name = "jackson-core", version.ref = "jackson" }
+jackson-databind = { group = "tools.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-annotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version = "2.21" }
+jackson-dataformat-yaml = { group = "tools.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
+jackson-dataformat-properties = { group = "tools.jackson.dataformat", name = "jackson-dataformat-properties", version.ref = "jackson" }
+completable-futures = { group = "com.spotify", name = "completable-futures", version = "0.3.6" }
 
 guice = { group = "com.google.inject", name = "guice", version = "7.0.0" }
-guava = { group = "com.google.guava", name = "guava", version = "32.1.1-jre" }
-disruptor = { group = "com.lmax", name = "disruptor", version = "3.4.4" }
+guava = { group = "com.google.guava", name = "guava", version = "33.5.0-jre" }
+disruptor = { group = "com.lmax", name = "disruptor", version = "4.0.0" }
 
 fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
 fastutil-object-reference-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-reference-maps", version.ref = "fastutil" }
@@ -56,15 +55,16 @@ fastutil-reference-reference-maps = { group = "org.cloudburstmc.fastutil.maps", 
 fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
 fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "short-object-maps", version.ref = "fastutil" }
 
-bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta5-20240916.181041-6" }
-block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.30-SNAPSHOT" }
+bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta12-20260129.225905-2" }
+block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.110-SNAPSHOT" }
 jopt-simple = { group = "net.sf.jopt-simple", name = "jopt-simple", version = "5.0.4" }
 leveldb-mcpe-jni = { group = "net.daporkchop", name = "leveldb-mcpe-jni", version = "0.0.10-SNAPSHOT" }
 noise = { group = "net.daporkchop.lib", name = "noise", version = "0.5.6-SNAPSHOT" }
 upnp = { group = "org.cloudburstmc", name = "upnp", version = "1.1.1" }
 jakarta-inject = { group = "jakarta.inject", name = "jakarta.inject-api", version = "2.0.1" }
-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "9.10.1" }
-picocli = { group = "info.picocli", name = "picocli", version = "4.7.4" }
+jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "10.7" }
+jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version = "3.0.2" }
+picocli = { group = "info.picocli", name = "picocli", version = "4.7.7" }
 
 [bundles]
 fastutil = [ "fastutil-object-int-maps", "fastutil-object-reference-maps", "fastutil-int-short-maps",
@@ -74,6 +74,6 @@ fastutil = [ "fastutil-object-int-maps", "fastutil-object-reference-maps", "fast
     "fastutil-short-sets", "fastutil-short-object-maps" ]
 
 [plugins]
-checkerframework = { id = "org.checkerframework", version = "0.6.29" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "7.1.0" }
-extra-java-module-info = { id = "org.gradlex.extra-java-module-info", version = "1.4.1" }
+checkerframework = { id = "org.checkerframework", version = "0.6.61" }
+shadow = { id = "com.gradleup.shadow", version = "9.3.1" }
+extra-java-module-info = { id = "org.gradlex.extra-java-module-info", version = "1.13.1" }

@@ -214,7 +214,12 @@ public class ItemUtils {
             canPlace = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
 
-        CloudBlockDefinition blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
+        CloudBlockDefinition blockDefinition = null;
+        try {
+            blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
+        } catch (IllegalArgumentException e) {
+            log.debug("Block state not registered for item: {}", identifier);
+        }
         NbtMap tag = ItemUtils.getSerializedTag(item);
 
         return ItemData.builder()

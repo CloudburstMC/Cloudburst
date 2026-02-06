@@ -1,10 +1,10 @@
 open module org.cloudburstmc.api {
     requires static org.checkerframework.checker.qual;
-    requires com.fasterxml.jackson.core;
-    requires com.fasterxml.jackson.databind;
+    requires tools.jackson.core;
+    requires tools.jackson.databind;
     requires com.fasterxml.jackson.annotation;
-    requires com.fasterxml.jackson.dataformat.javaprop;
-    requires com.fasterxml.jackson.dataformat.yaml;
+    requires tools.jackson.dataformat.properties;
+    requires tools.jackson.dataformat.yaml;
     requires com.google.common;
     requires com.google.guice;
     requires jakarta.inject;
@@ -12,6 +12,7 @@ open module org.cloudburstmc.api {
     requires static lombok;
     requires org.cloudburstmc.math.immutable;
     requires org.slf4j;
+    requires java.sql;
 
     exports org.cloudburstmc.api;
     exports org.cloudburstmc.api.block;

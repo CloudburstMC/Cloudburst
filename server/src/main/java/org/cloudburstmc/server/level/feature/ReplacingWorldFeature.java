@@ -17,14 +17,16 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     public boolean test(BlockState state) {
         Identifier id = state.getType().getId();
 
-        return id == BlockIds.AIR || id == BlockIds.LEAVES || id == BlockIds.LEAVES2 ||
+        return id == BlockIds.AIR ||
+                BlockCategories.inCategory(state.getType(), BlockCategory.LEAVES) ||
                 (!CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID) &&
                         CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE));
     }
 
     public boolean testOrLiquid(BlockState state) {
         BlockType type = state.getType();
-        return type == BlockTypes.AIR || type == BlockTypes.LEAVES ||
+        return type == BlockTypes.AIR || 
+                BlockCategories.inCategory(type, BlockCategory.LEAVES) ||
                 CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE);
     }
 
@@ -32,14 +34,14 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      * Replaces the block at the given coordinates with dirt if it is a grassy block type.
      * <p>
      * The following blocks are considered "grassy":
-     * - {@link BlockIds#GRASS}
+     * - {@link BlockIds#GRASS_BLOCK}
      * - {@link BlockIds#MYCELIUM}
      * - {@link BlockIds#PODZOL}
      */
     public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
             Identifier id = level.getBlockState(x, y, z).getType().getId();
-            if (id == BlockIds.GRASS || id == BlockIds.MYCELIUM || id == BlockIds.PODZOL) {
+            if (id == BlockIds.GRASS_BLOCK || id == BlockIds.MYCELIUM || id == BlockIds.PODZOL) {
                 level.setBlockState(x, y, z, BlockStates.DIRT);
             }
         }

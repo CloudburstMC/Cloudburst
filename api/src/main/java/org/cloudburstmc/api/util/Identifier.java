@@ -1,16 +1,16 @@
 package org.cloudburstmc.api.util;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
@@ -124,9 +124,9 @@ public final class Identifier implements Comparable<Identifier> {
         return this.fullName.compareTo(o.fullName);
     }
 
-    static final class Deserializer extends JsonDeserializer<Identifier> {
+    static final class Deserializer extends ValueDeserializer<Identifier> {
         @Override
-        public Identifier deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        public Identifier deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             return Identifier.parse(p.getText());
         }
     }

@@ -23,7 +23,7 @@
  */
 package co.aikar.timings;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.command.CommandSender;

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.generator.standard.population.plant;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -43,7 +43,7 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
         final BlockFilter replace = this.replace;
 
         DoublePlantType type = this.types[random.nextInt(this.types.length)];
-        final BlockState state = BlockStates.DOUBLE_PLANT.withTrait(BlockTraits.DOUBLE_PLANT_TYPE, type);
+        final BlockState state = getDoublePlantState(type);
         final BlockState bottom = state.withTrait(BlockTraits.IS_UPPER_BLOCK, false);
         final BlockState top = state.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
 
@@ -63,6 +63,17 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
                 chunk.setBlock(blockX & 0xF, blockY + 2, blockZ & 0xF, 0, top);
             }
         }
+    }
+
+    private static BlockState getDoublePlantState(DoublePlantType type) {
+        return switch (type) {
+            case SUNFLOWER -> BlockStates.SUNFLOWER;
+            case SYRINGA -> BlockStates.LILAC;
+            case GRASS -> BlockStates.TALL_GRASS;
+            case FERN -> BlockStates.LARGE_FERN;
+            case ROSE -> BlockStates.ROSE_BUSH;
+            case PAEONIA -> BlockStates.PEONY;
+        };
     }
 
     @Override

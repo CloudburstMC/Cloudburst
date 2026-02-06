@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.biome;
 
+import tools.jackson.core.type.TypeReference;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
@@ -8,31 +9,33 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.biome.Biome;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.server.Bootstrap;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * @author DaPorkchop_
  */
 public class CloudBiome implements Biome {
-    public static final NbtMap BIOME_DEFINITIONS;
+    public static final BiomeDefinitions BIOME_DEFINITIONS;
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
-        InputStream inputStream = Bootstrap.class.getClassLoader().getResourceAsStream("data/biome_definitions.dat");
+        InputStream inputStream = Bootstrap.class.getClassLoader().getResourceAsStream("data/biome_definitions.json");
         if (inputStream == null) {
-            throw new AssertionError("Could not find biome_definitions.dat");
+            throw new AssertionError("Could not find biome_definitions.json");
         }
-        try (NBTInputStream stream = NbtUtils.createNetworkReader(inputStream)) {
-            BIOME_DEFINITIONS = (NbtMap) stream.readTag();
+        try {
+            Map<String, BiomeDefinitionData> biomes = Bootstrap.JSON_MAPPER.readValue(
+                    inputStream, new TypeReference<Map<String, BiomeDefinitionData>>() {});
+            BIOME_DEFINITIONS = new BiomeDefinitions(biomes);
         } catch (Exception e) {
-            throw new AssertionError("Error whilst loading biome_definitions.dat", e);
+            throw new AssertionError("Error whilst loading biome_definitions.json", e);
         }
     }
 

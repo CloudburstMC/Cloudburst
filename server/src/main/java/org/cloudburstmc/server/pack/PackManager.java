@@ -213,6 +213,9 @@ public class PackManager implements Closeable, ResourcePackRegistry {
         packStack.getResourcePacks().clear();
 //        packStack.setExperimental(true); // Needed for custom blocks, items and entities
         packStack.setGameVersion("*");
+        packsInfos.setWorldTemplateId(UUID.randomUUID());
+        packsInfos.setWorldTemplateVersion("*");
+        
         for (Pack pack : packs.values()) {
             if (pack.getType() == PackType.RESOURCES) {
                 packsInfos.getResourcePackInfos().add(new ResourcePacksInfoPacket.Entry(pack.getId(),

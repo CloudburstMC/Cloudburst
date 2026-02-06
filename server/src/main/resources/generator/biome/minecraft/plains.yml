@@ -5,15 +5,15 @@ elevationVanilla:
 
 decorators:
   - id: "cloudburst:surface"
-    top: "grass"
+    top: "grass_block"
     filler: "dirt"
 
 populators:
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.0390625 # about 10 per chunk
-    on: "grass"
-    block: "tallgrass"
+    on: "grass_block"
+    block: "short_grass"
 
   - id: "cloudburst:noise"
     selector:
@@ -25,42 +25,42 @@ populators:
         # Double tall grass
       - id: "cloudburst:double_plant"
         chance: 0.02734375 # about 7 per chunk
-        on: "grass"
+        on: "grass_block"
         type: 2
 
         # Flowers
       - id: "cloudburst:shrub"
         chance: 0.015625 # about 4 per chunk
-        on: "grass"
-        replace: "air,tallgrass"
+        on: "grass_block"
+        replace: "air,short_grass"
         roundDown: false
         block:
-          - "red_flower{flower_type=tulip_red}"
-          - "red_flower{flower_type=tulip_orange}"
-          - "red_flower{flower_type=tulip_white}"
-          - "red_flower{flower_type=tulip_pink}"
-          - "red_flower{flower_type=houstonia}"
-          - "red_flower{flower_type=oxeye}"
-          - "red_flower{flower_type=cornflower}"
+          - "red_tulip"
+          - "orange_tulip"
+          - "white_tulip"
+          - "pink_tulip"
+          - "azure_bluet"
+          - "oxeye_daisy"
+          - "cornflower"
     below:
         # Flowers
       - id: "cloudburst:shrub"
         chance: 0.05859375 # about 15 per chunk
-        on: "grass"
-        replace: "air,tallgrass"
+        on: "grass_block"
+        replace: "air,short_grass"
         roundDown: false
         block:
-          - "red_flower{flower_type=tulip_red}"
-          - "red_flower{flower_type=tulip_orange}"
-          - "red_flower{flower_type=tulip_white}"
-          - "red_flower{flower_type=tulip_pink}"
-          - "red_flower{flower_type=houstonia}"
-          - "red_flower{flower_type=oxeye}"
-          - "red_flower{flower_type=cornflower}"
+          - "red_tulip"
+          - "orange_tulip"
+          - "white_tulip"
+          - "pink_tulip"
+          - "azure_bluet"
+          - "oxeye_daisy"
+          - "cornflower"
 
     # Oak trees
   - id: "cloudburst:tree"
     chance: 0.0001953125 # about 1 per 20 chunks
-    on: "grass"
-    replace: "air,tallgrass"
+    on: "grass_block"
+    replace: "air,short_grass"
     type: "oak"

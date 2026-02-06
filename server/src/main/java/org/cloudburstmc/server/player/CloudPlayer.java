@@ -2,8 +2,8 @@ package org.cloudburstmc.server.player;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -12,6 +12,8 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockCategories;
+import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -102,6 +104,7 @@ import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
@@ -150,6 +153,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Getter
     private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
+    
+    @Getter
+    private final CloudInventoryView inventory = new CloudInventoryView(this, this.container);
+    @Getter
+    private final CloudContainer enderChest = new CloudContainer(27);
+    
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
     public long creationTime = 0;
@@ -227,10 +236,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public long lastSkinChange;
 
-    @Getter
-    private final CloudInventoryView inventory = new CloudInventoryView(this, this.container);
-    @Getter
-    private final CloudContainer enderChest = new CloudContainer(27);
     @Getter
     @Setter
     private int selectedHotbarSlot = 0;
@@ -623,7 +628,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     public void sendCommandData() {
-//        this.sendPacket(CommandRegistry.get().createPacketFor(this));
+        this.sendPacket(CommandRegistry.get().createPacketFor(this));
     }
 
     public void removeAchievement(String achievementId) {
@@ -1526,8 +1531,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
         startGamePacket.setServerChunkTickRange(4);
+        startGamePacket.setBehaviorPackLocked(false);
+        startGamePacket.setResourcePackLocked(false);
+        startGamePacket.setFromLockedWorldTemplate(false);
+        startGamePacket.setUsingMsaGamertagsOnly(false);
+        startGamePacket.setFromWorldTemplate(false);
+        startGamePacket.setWorldTemplateOptionLocked(false);
         startGamePacket.setVanillaVersion("1.17.40"); // Temporary hack that allows player to join by disabling the new chunk columns introduced in update 1.18
-        startGamePacket.setPremiumWorldTemplateId("");
+        startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setRewindHistorySize(0);
@@ -1535,13 +1546,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
-        startGamePacket.setWorldTemplateId(new UUID(0, 0));
-        startGamePacket.setWorldEditor(false);
+        startGamePacket.setWorldTemplateId(UUID.randomUUID());
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
         startGamePacket.setSpawnBiomeType(SpawnBiomeType.DEFAULT);
         startGamePacket.setCustomBiomeName("");
         startGamePacket.setEducationProductionId("");
         startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
+        startGamePacket.setServerId("");
+        startGamePacket.setWorldId("");
+        startGamePacket.setScenarioId("");
+        startGamePacket.setOwnerId("");
         //noinspection unchecked,rawtypes
         session.getPeer().getCodecHelper().setItemDefinitions((DefinitionRegistry) CloudItemRegistry.get());
         //noinspection unchecked,rawtypes
@@ -1549,7 +1563,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(startGamePacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(CloudBiome.BIOME_DEFINITIONS);
+        biomeDefinitionListPacket.setBiomes(CloudBiome.BIOME_DEFINITIONS);
         this.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
@@ -1800,8 +1814,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void sendMessage(String message) {
         TextPacket packet = new TextPacket();
-        packet.setType(TextPacket.Type.RAW);
-        packet.setXuid(this.getXuid());
+        packet.setType(TextPacket.Type.SYSTEM);
+        packet.setPlatformChatId("");
+        packet.setSourceName("");
+        packet.setXuid("");
+        packet.setNeedsTranslation(false);
         packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
         this.sendPacket(packet);
     }
@@ -1818,20 +1835,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void sendTranslation(String message, Object... parameters) {
         if (parameters == null) parameters = new Object[0];
         TextPacket packet = new TextPacket();
-        if (!this.server.isLanguageForced()) {
-            packet.setType(TextPacket.Type.TRANSLATION);
-            packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message, parameters));
-            String[] params = new String[parameters.length];
-            for (int i = 0; i < parameters.length; i++) {
-                params[i] = this.server.getLanguage().translateOnly("cloudburst.", parameters[i].toString());
-            }
-            packet.setParameters(Arrays.asList(params));
-        } else {
-            packet.setType(TextPacket.Type.RAW);
-            packet.setMessage(this.server.getLanguage().translate(message, parameters));
-        }
-        packet.setNeedsTranslation(true);
-        packet.setXuid(this.getXuid());
+        packet.setPlatformChatId("");
+        packet.setSourceName("");
+        packet.setXuid("");
+        packet.setNeedsTranslation(false);
+        // Always use SYSTEM type and pre-translate the message server-side
+        packet.setType(TextPacket.Type.SYSTEM);
+        packet.setMessage(this.server.getLanguage().translate(message, parameters));
         this.sendPacket(packet);
     }
 
@@ -1842,9 +1852,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void sendChat(String source, String message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.CHAT);
+        packet.setPlatformChatId("");
         packet.setSourceName(source);
+        packet.setXuid("");
         packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
-        packet.setXuid(this.getXuid());
         this.sendPacket(packet);
     }
 
@@ -1855,16 +1866,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void sendPopup(String message, String subtitle) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.POPUP);
+        packet.setPlatformChatId("");
+        packet.setSourceName("");
+        packet.setXuid("");
         packet.setMessage(message);
-        packet.setXuid(this.getXuid());
         this.sendPacket(packet);
     }
 
     public void sendTip(String message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.TIP);
+        packet.setPlatformChatId("");
+        packet.setSourceName("");
+        packet.setXuid("");
         packet.setMessage(message);
-        packet.setXuid(this.getXuid());
         this.sendPacket(packet);
     }
 
@@ -2682,7 +2697,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         packet.setFormId(id);
         try {
             packet.setFormData(new JsonMapper().writeValueAsString(window));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
         this.formWindows.put(id, window);
@@ -3135,7 +3150,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                             return false;
                         }
 
-                        if (item.getType() == BlockTypes.LOG) {
+                        if (item.getType() instanceof org.cloudburstmc.api.block.BlockType blockType && 
+                                BlockCategories.inCategory(blockType, BlockCategory.LOG)) {
                             this.awardAchievement("mineWood");
                         } else if (item.getType() == ItemTypes.DIAMOND) {
                             this.awardAchievement("diamond");
@@ -3266,8 +3282,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private class Handler implements BedrockPacketHandler {
 
         @Override
-        public void onDisconnect(String reason) {
-            CloudPlayer.this.close("", reason);
+        public void onDisconnect(CharSequence reason) {
+            CloudPlayer.this.close("", reason.toString());
         }
 
         @Override

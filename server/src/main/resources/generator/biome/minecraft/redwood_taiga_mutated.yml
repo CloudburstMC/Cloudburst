@@ -5,14 +5,14 @@ populators:
   - id: "cloudburst:blob"
     chance: 0.00390625 # about 1 per chunk
     radius: "0-1"
-    on: "grass,podzol,dirt{dirt_type=coarse}"
-    replace: "air,grass,podzol,dirt,dirt{dirt_type=coarse},water"
+    on: "grass_block,podzol,coarse_dirt"
+    replace: "air,grass_block,podzol,dirt,coarse_dirt,water"
     block: "mossy_cobblestone"
 
     # Huge trees
   - id: "cloudburst:huge_tree"
     chance: 0.0078125 # about 2 per chunk
-    on: "grass,podzol,dirt{dirt_type=coarse}"
+    on: "grass_block,podzol,coarse_dirt"
     replace: "air"
     below: "dirt"
     types:
@@ -33,25 +33,25 @@ populators:
     # Trees
   - id: "cloudburst:tree"
     chance: 0.0078125 # about 2 per chunk
-    on: "grass,podzol,dirt{dirt_type=coarse}"
+    on: "grass_block,podzol,coarse_dirt"
     replace: "air"
     type: "spruce"
 
     # Berry bushes & mushrooms
   - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
-    on: "grass,podzol,dirt{dirt_type=coarse}"
+    on: "grass_block,podzol,coarse_dirt"
     block: "sweet_berry_bush,2*brown_mushroom,red_mushroom"
 
     # Dead bushes
   - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
     patchSize: 4
-    on: "grass,podzol,dirt{dirt_type=coarse}"
+    on: "grass_block,podzol,coarse_dirt"
     block: "deadbush"
 
     # Tall grass & ferns
   - id: "cloudburst:shrub"
     chance: 0.02734375 # about 7 per chunk
-    on: "grass,podzol,dirt{dirt_type=coarse}"
-    block: "4*tallgrass,tallgrass{tall_grass_type=fern}"
+    on: "grass_block,podzol,coarse_dirt"
+    block: "4*short_grass,fern"

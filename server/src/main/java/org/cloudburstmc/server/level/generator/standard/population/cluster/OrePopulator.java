@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.generator.standard.population.cluster;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;

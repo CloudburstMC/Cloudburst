@@ -14,7 +14,7 @@ populators:
     chance: 0.01171875 # about 3 per chunk
     radius: "2-6"
     block: "sand"
-    replace: "dirt,grass"
+    replace: "dirt,grass_block"
     start: "water"
 
     # Clay
@@ -30,5 +30,5 @@ populators:
     chance: 0.00390625 # about 1 per chunk
     radius: "2-5"
     block: "gravel"
-    replace: "dirt,grass"
+    replace: "dirt,grass_block"
     start: "water"

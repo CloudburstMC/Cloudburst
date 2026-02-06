@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;

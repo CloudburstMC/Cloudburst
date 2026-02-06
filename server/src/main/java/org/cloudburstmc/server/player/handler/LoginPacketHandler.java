@@ -113,7 +113,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
 
             @Override
             public void onCompletion(CloudServer server) {
-                if (!loginDataInstance.getSession().getPeer().isConnected()) {
+                if (loginDataInstance.getSession().getPeer().isConnected()) {
                     if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
                         loginDataInstance.getSession().disconnect(e.getKickMessage());
                     } else if (loginDataInstance.isShouldLogin()) {

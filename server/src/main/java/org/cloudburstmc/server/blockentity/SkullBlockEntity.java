@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
@@ -44,7 +45,14 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.SKULL;
+        BlockType type = getBlockState().getType();
+        return type == BlockTypes.SKELETON_SKULL ||
+                type == BlockTypes.WITHER_SKELETON_SKULL ||
+                type == BlockTypes.ZOMBIE_HEAD ||
+                type == BlockTypes.PLAYER_HEAD ||
+                type == BlockTypes.CREEPER_HEAD ||
+                type == BlockTypes.DRAGON_HEAD ||
+                type == BlockTypes.PIGLIN_HEAD;
     }
 
     public float getRotation() {

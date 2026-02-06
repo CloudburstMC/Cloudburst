@@ -1,13 +1,5 @@
 package org.cloudburstmc.server;
 
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.base.Preconditions;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.internal.logging.InternalLoggerFactory;
@@ -23,9 +15,21 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.cloudburstmc.server.block.BlockDefinitionDeserializer;
 import org.cloudburstmc.server.block.BlockStateDeserializer;
+import org.cloudburstmc.server.utils.ColorDeserializer;
 import org.cloudburstmc.server.utils.ServerKiller;
+import tools.jackson.core.Version;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.dataformat.javaprop.JavaPropsMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -54,12 +58,16 @@ public class Bootstrap {
 
     public final static Path PATH = Paths.get(System.getProperty("user.dir"));
     public static final JsonMapper JSON_MAPPER = JsonMapper.builder()
+            .addModule(createCloudburstModule())
             .build();
     public static final YAMLMapper YAML_MAPPER = YAMLMapper.builder()
+            .addModule(createCloudburstModule())
             .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             .build();
     public static final JavaPropsMapper JAVA_PROPS_MAPPER = JavaPropsMapper.builder()
+            .addModule(createCloudburstModule())
             .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
             .build();
     public static final long START_TIME = System.currentTimeMillis();
@@ -68,18 +76,17 @@ public class Bootstrap {
     public static boolean shortTitle = requiresShortTitle();
     public static int DEBUG = 1;
 
-    private static final BlockStateDeserializer BLOCKSTATE_DESERIALIZER = new BlockStateDeserializer();
+    private static SimpleModule createCloudburstModule() {
+        SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
+        module.addDeserializer(BlockState.class, new BlockStateDeserializer());
+        module.addDeserializer(BlockDefinition.class, new BlockDefinitionDeserializer());
+        module.addDeserializer(Color.class, new ColorDeserializer());
+        return module;
+    }
 
     public static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
         System.setProperty("log4j.skipJansi", "false");
-
-        SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
-        module.addDeserializer(BlockState.class, BLOCKSTATE_DESERIALIZER);
-
-        YAML_MAPPER.registerModule(module);
-        JSON_MAPPER.registerModule(module);
-        JAVA_PROPS_MAPPER.registerModule(module);
 
         // Force Mapped ByteBuffers for LevelDB till fixed.
         System.setProperty("leveldb.mmap", "true");
@@ -194,7 +201,7 @@ public class Bootstrap {
 
     /**
      * Checks if the shorter version of the window title should be used.
-     *
+     * <p>
      * The longer window title also contains the upload and download
      * speeds, in KB/s, for the network.
      *
@@ -208,7 +215,7 @@ public class Bootstrap {
 
     /**
      * Returns the git information from this build of Cloudburst.
-     *
+     * <p>
      * The information is created by the "git-commit-id-plugin" maven
      * plugin and is saved in the resources directory.
      *

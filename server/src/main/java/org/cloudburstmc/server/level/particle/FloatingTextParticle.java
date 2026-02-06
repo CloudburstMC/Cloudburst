@@ -13,7 +13,7 @@ import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -55,8 +55,8 @@ public class FloatingTextParticle extends Particle {
         super(pos);
         this.level = level;
 
-        EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
-        flags.add(EntityFlag.NO_AI);
+        EnumMap<EntityFlag, Boolean> flags = new EnumMap<>(EntityFlag.class);
+        flags.put(EntityFlag.NO_AI, true);
         dataMap.putFlags(flags);
         dataMap.put(LEASH_HOLDER, -1L);
         dataMap.put(SCALE, 0.01f); //zero causes problems on debug builds?
@@ -71,7 +71,8 @@ public class FloatingTextParticle extends Particle {
     }
 
     public String getText() {
-        return dataMap.get(SCORE);
+        CharSequence value = dataMap.get(SCORE);
+        return value != null ? value.toString() : null;
     }
 
     public void setText(String text) {
@@ -80,7 +81,8 @@ public class FloatingTextParticle extends Particle {
     }
 
     public String getTitle() {
-        return dataMap.get(NAME);
+        CharSequence value = dataMap.get(NAME);
+        return value != null ? value.toString() : null;
     }
 
     public void setTitle(String title) {

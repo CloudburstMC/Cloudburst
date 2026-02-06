@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.form;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.ToString;

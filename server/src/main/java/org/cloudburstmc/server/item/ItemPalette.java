@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -22,6 +22,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.Bootstrap;
@@ -46,9 +47,7 @@ public class ItemPalette {
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
-            Iterator<Map.Entry<String, JsonNode>> it = json.fields();
-            while (it.hasNext()) {
-                Map.Entry<String, JsonNode> entry = it.next();
+            for (Map.Entry<String, JsonNode> entry : json.properties()) {
                 legacyIdMap.put(entry.getValue().asInt(), Identifier.parse(entry.getKey()));
             }
         } catch (IOException | NumberFormatException e) {
@@ -57,12 +56,10 @@ public class ItemPalette {
 
         try (InputStream in = RegistryUtils.getOrAssertResource("data/item_mappings.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
-            for (Iterator<Map.Entry<String, JsonNode>> it = json.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
+            for (Map.Entry<String, JsonNode> entry : json.properties()) {
                 Identifier id = Identifier.parse(entry.getKey());
                 Int2ReferenceMap<Identifier> map = metaMap.computeIfAbsent(id, i -> new Int2ReferenceOpenHashMap<>());
-                for (Iterator<Map.Entry<String, JsonNode>> it2 = entry.getValue().fields(); it2.hasNext(); ) {
-                    Map.Entry<String, JsonNode> value = it2.next();
+                for (Map.Entry<String, JsonNode> value : entry.getValue().properties()) {
                     map.put(Integer.parseInt(value.getKey()), Identifier.parse(value.getValue().asText()));
                 }
             }
@@ -141,8 +138,8 @@ public class ItemPalette {
 
             for (int i = 0; i < data.length; i++) {
                 data[i].setNetId(i + 1);
+                creativeContentPacket.getContents().add(CreativeItemData.builder().item(data[i]).netId(i + 1).build());
             }
-            creativeContentPacket.setContents(data);
         }
         return creativeContentPacket;
     }

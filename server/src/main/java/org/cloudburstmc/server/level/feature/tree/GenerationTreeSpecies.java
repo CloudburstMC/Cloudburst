@@ -141,7 +141,7 @@ public enum GenerationTreeSpecies {
             return new FeatureMushroomBrown(height);
         }
     },
-    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5), BlockIds.CHORUS_FLOWER, 0) {
+    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5), BlockIds.CHORUS_FLOWER, 0) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureChorusTree.DEFAULT_BRANCH_HEIGHT);
@@ -175,9 +175,51 @@ public enum GenerationTreeSpecies {
     }
 
     GenerationTreeSpecies(@NonNull TreeSpecies species, boolean hasSapling) {
-        this(BlockStates.LOG.withTrait(BlockTraits.TREE_SPECIES, species),
-                BlockStates.LEAVES.withTrait(BlockTraits.TREE_SPECIES_OVERWORLD, species),
-                hasSapling ? BlockIds.SAPLING : null, hasSapling ? species.ordinal() : -1);
+        this(getLogState(species),
+                getLeavesState(species),
+                hasSapling ? getSaplingId(species) : null, hasSapling ? species.ordinal() : -1);
+    }
+
+    private static BlockState getLogState(TreeSpecies species) {
+        return switch (species) {
+            case OAK -> BlockStates.OAK_LOG;
+            case SPRUCE -> BlockStates.SPRUCE_LOG;
+            case BIRCH -> BlockStates.BIRCH_LOG;
+            case JUNGLE -> BlockStates.JUNGLE_LOG;
+            case ACACIA -> BlockStates.ACACIA_LOG;
+            case DARK_OAK -> BlockStates.DARK_OAK_LOG;
+            case CRIMSON -> BlockStates.CRIMSON_STEM;
+            case WARPED -> BlockStates.WARPED_STEM;
+            case MANGROVE -> BlockStates.MANGROVE_LOG;
+        };
+    }
+
+    private static BlockState getLeavesState(TreeSpecies species) {
+        return switch (species) {
+            case OAK -> BlockStates.OAK_LEAVES;
+            case SPRUCE -> BlockStates.SPRUCE_LEAVES;
+            case BIRCH -> BlockStates.BIRCH_LEAVES;
+            case JUNGLE -> BlockStates.JUNGLE_LEAVES;
+            case ACACIA -> BlockStates.ACACIA_LEAVES;
+            case DARK_OAK -> BlockStates.DARK_OAK_LEAVES;
+            case CRIMSON -> BlockStates.NETHER_WART_BLOCK;
+            case WARPED -> BlockStates.WARPED_WART_BLOCK;
+            case MANGROVE -> BlockStates.MANGROVE_LEAVES;
+        };
+    }
+
+    private static Identifier getSaplingId(TreeSpecies species) {
+        return switch (species) {
+            case OAK -> BlockIds.OAK_SAPLING;
+            case SPRUCE -> BlockIds.SPRUCE_SAPLING;
+            case BIRCH -> BlockIds.BIRCH_SAPLING;
+            case JUNGLE -> BlockIds.JUNGLE_SAPLING;
+            case ACACIA -> BlockIds.ACACIA_SAPLING;
+            case DARK_OAK -> BlockIds.DARK_OAK_SAPLING;
+            case CRIMSON -> BlockIds.CRIMSON_FUNGUS;
+            case WARPED -> BlockIds.WARPED_FUNGUS;
+            case MANGROVE -> BlockIds.MANGROVE_PROPAGULE;
+        };
     }
 
     public Identifier getItemId() {

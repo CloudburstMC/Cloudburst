@@ -2,7 +2,7 @@ parent: "minecraft:extreme_hills"
 
 decorators:
   - id: "cloudburst:surface"
-    top: "grass"
+    top: "grass_block"
     filler: "dirt"
 
 populators:
@@ -11,7 +11,7 @@ populators:
     # More trees
   - id: "cloudburst:tree"
     chance: 0.01171875 # about 3 per chunk
-    on: "grass"
+    on: "grass_block"
     types:
       - "oak"
       - "spruce"

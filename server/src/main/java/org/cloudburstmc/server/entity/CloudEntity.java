@@ -325,7 +325,8 @@ public abstract class CloudEntity implements Entity {
     }
 
     public String getNameTag() {
-        return this.data.get(NAME);
+        CharSequence value = this.data.get(NAME);
+        return value != null ? value.toString() : "";
     }
 
     public void setNameTag(String name) {
@@ -357,7 +358,8 @@ public abstract class CloudEntity implements Entity {
     }
 
     public String getScoreTag() {
-        return this.data.get(SCORE);
+        CharSequence value = this.data.get(SCORE);
+        return value != null ? value.toString() : "";
     }
 
     public void setScoreTag(String score) {

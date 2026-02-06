@@ -68,7 +68,7 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     @Override
     public boolean isValid() {
         var blockType = getBlockState().getType();
-        return blockType == BlockTypes.STANDING_SIGN || blockType == BlockTypes.WALL_SIGN;
+        return blockType == BlockTypes.OAK_STANDING_SIGN || blockType == BlockTypes.OAK_WALL_SIGN;
     }
 
     public void setText(String... lines) {

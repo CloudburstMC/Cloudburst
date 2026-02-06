@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.form.util;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonSerialize;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.io.IOException;
 
 @JsonSerialize(using = ImageData.ImageDataSerializer.class)
 @ToString
@@ -39,18 +38,18 @@ public final class ImageData {
         return this.imageData;
     }
 
-    static final class ImageDataSerializer extends JsonSerializer<ImageData> {
+    static final class ImageDataSerializer extends ValueSerializer<ImageData> {
 
         @Override
-        public void serialize(ImageData imageData, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        public void serialize(ImageData imageData, JsonGenerator jsonGenerator, SerializationContext serializationContext) throws JacksonException {
             if (imageData.getImageData() == null || imageData.getImageData().isEmpty() || imageData.getImageType() == null) {
                 jsonGenerator.writeNull();
                 return;
             }
 
             jsonGenerator.writeStartObject();
-            jsonGenerator.writeObjectField("type", imageData.getImageType());
-            jsonGenerator.writeStringField("data", imageData.getImageData());
+            jsonGenerator.writePOJOProperty("type", imageData.getImageType());
+            jsonGenerator.writeStringProperty("data", imageData.getImageData());
             jsonGenerator.writeEndObject();
         }
     }

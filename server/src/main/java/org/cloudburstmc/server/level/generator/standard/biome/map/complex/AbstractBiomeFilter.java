@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.generator.standard.biome.map.complex;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 

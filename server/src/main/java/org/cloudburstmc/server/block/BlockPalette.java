@@ -102,7 +102,13 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
                 identifier2stateMap.putIfAbsent(id, state);
                 state2identifierMap.putIfAbsent(state, id);
                 stateSerializedMap.put(state, nbt);
-                serializedStateMap.put(nbt, state);
+
+                NbtMapBuilder strippedBuilder = nbt.toBuilder();
+                strippedBuilder.remove("version");
+                strippedBuilder.remove("name_hash");
+                strippedBuilder.remove("network_id");
+                strippedBuilder.remove("block_id");
+                serializedStateMap.put(strippedBuilder.build(), state);
 
                 typeIdentifiers.add(id);
             }
@@ -133,6 +139,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         for (int i = 0; i < vanillaPalette.size(); i++) {
             NbtMapBuilder builder = vanillaPalette.get(i).toBuilder();
+            builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
             builder.remove("name_hash"); // Added in 1.19.20
             builder.remove("network_id"); // Added in 1.19.80
             builder.remove("block_id"); // Added in 1.20.60
@@ -214,7 +221,12 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
     @Nullable
     public BlockState getBlockState(NbtMap tag) {
-        return this.serializedStateMap.get(tag);
+        NbtMapBuilder strippedBuilder = tag.toBuilder();
+        strippedBuilder.remove("version");
+        strippedBuilder.remove("name_hash");
+        strippedBuilder.remove("network_id");
+        strippedBuilder.remove("block_id");
+        return this.serializedStateMap.get(strippedBuilder.build());
     }
 
     public CloudBlockDefinition getDefinition(BlockState blockState) {

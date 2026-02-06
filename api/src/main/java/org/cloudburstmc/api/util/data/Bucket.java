@@ -11,7 +11,8 @@ public enum Bucket {
     TROPICAL_FISH,
     PUFFERFISH,
     WATER,
-    LAVA;
+    LAVA,
+    POWDER_SNOW;
 
     @Override
     public final String toString() {

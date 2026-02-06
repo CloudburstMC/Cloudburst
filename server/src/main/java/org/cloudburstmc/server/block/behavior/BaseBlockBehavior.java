@@ -1,13 +1,14 @@
 package org.cloudburstmc.server.block.behavior;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.BlockCategories;
+import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.item.TierType;
 import org.cloudburstmc.api.item.ToolType;
 import org.cloudburstmc.api.item.ToolTypes;
 
 import static org.cloudburstmc.api.block.BlockTypes.WEB;
-import static org.cloudburstmc.api.block.BlockTypes.WOOL;
 
 @Log4j2
 public abstract class BaseBlockBehavior {
@@ -62,7 +63,7 @@ public abstract class BaseBlockBehavior {
                                     boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround) {
         float baseTime = ((correctTool || canHarvestWithHand) ? 1.5f : 5.0f) * blockHardness;
         float speed = 1.0f / baseTime;
-        boolean isWoolBlock = id == WOOL, isCobweb = id == WEB;
+        boolean isWoolBlock = BlockCategories.inCategory(id, BlockCategory.WOOL), isCobweb = id == WEB;
         if (correctTool) speed *= toolBreakTimeBonus0(toolType, toolTier, isWoolBlock, isCobweb);
         speed += correctTool ? speedBonusByEfficiencyLore0(efficiencyLoreLevel) : 0;
         speed *= speedRateByHasteLore0(hasteEffectLevel);

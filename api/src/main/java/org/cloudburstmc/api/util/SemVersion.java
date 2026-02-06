@@ -1,16 +1,15 @@
 package org.cloudburstmc.api.util;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 @JsonSerialize(using = SemVersion.Serializer.class)
@@ -46,7 +45,7 @@ public final class SemVersion {
         }
 
         @Override
-        public void serialize(SemVersion value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        public void serialize(SemVersion value, JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
             gen.writeArray(value.version, 0, 3);
         }
     }
@@ -58,7 +57,7 @@ public final class SemVersion {
         }
 
         @Override
-        public SemVersion deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        public SemVersion deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
             int[] version = p.readValueAs(int[].class);
             return new SemVersion(version[0], version[1], version[2]);
         }

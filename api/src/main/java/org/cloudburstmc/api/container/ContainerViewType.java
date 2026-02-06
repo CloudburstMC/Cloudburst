@@ -18,8 +18,8 @@ public final class ContainerViewType<T extends ContainerView> {
     public static <T extends ContainerView> ContainerViewType<T> from(Identifier identifier, Class<T> containerViewClass) {
         requireNonNull(identifier, "identifier");
         requireNonNull(containerViewClass, "containerViewClass");
-        if (!Container.class.isAssignableFrom(containerViewClass)) {
-            throw new IllegalArgumentException("containerViewClass must be a subclass of Inventory");
+        if (!ContainerView.class.isAssignableFrom(containerViewClass)) {
+            throw new IllegalArgumentException("containerViewClass must be a subclass of ContainerView");
         }
         return new ContainerViewType<>(identifier, containerViewClass);
     }

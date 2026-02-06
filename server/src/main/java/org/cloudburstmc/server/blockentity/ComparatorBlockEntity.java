@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
@@ -35,7 +36,8 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
 
     @Override
     public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.COMPARATOR;
+        BlockType type = this.getBlockState().getType();
+        return type == BlockTypes.UNPOWERED_COMPARATOR || type == BlockTypes.POWERED_COMPARATOR;
     }
 
     public int getOutputSignal() {

@@ -4,7 +4,7 @@ populators:
     # Sunflower
   - id: "cloudburst:double_plant"
     chance: 0.0390625 # about 10 per chunk
-    on: "grass"
+    on: "grass_block"
     type: 0
 
   - id: "cloudburst:next"

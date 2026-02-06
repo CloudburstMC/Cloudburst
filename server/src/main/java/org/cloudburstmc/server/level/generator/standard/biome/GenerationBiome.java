@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.biome;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PorkUtil;

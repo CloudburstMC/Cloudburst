@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.generator.standard.misc.selector;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;

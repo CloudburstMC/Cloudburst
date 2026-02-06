@@ -14,7 +14,7 @@ decorators:
     above:
         # Generate grass surface sometimes
       - id: "cloudburst:surface"
-        top: "grass"
+        top: "grass_block"
         filler: "dirt"
 
 populators:
@@ -31,13 +31,13 @@ populators:
     chance: 0.015625 # about 4 per chunk
     size: 9
     height: "0-32"
-    block: "monster_egg"
+    block: "infested_stone"
     replace: "stone"
 
     # Trees
   - id: "cloudburst:tree"
     chance: 0.000390625 # about 1 per 10 chunks
-    on: "grass"
+    on: "grass_block"
     types:
       - "oak"
       - "spruce"

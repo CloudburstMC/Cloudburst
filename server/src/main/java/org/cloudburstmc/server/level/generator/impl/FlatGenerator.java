@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.generator.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -31,7 +31,7 @@ public final class FlatGenerator implements Generator {
 
         try {
             this.layers = Bootstrap.YAML_MAPPER.readValue(options, BlockSelector.class).entries().toArray(Entry[]::new);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException(options, e);
         }
     }

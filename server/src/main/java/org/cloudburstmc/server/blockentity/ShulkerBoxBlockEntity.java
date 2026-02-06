@@ -76,7 +76,23 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     @Override
     public boolean isValid() {
         BlockType type = this.getBlockState().getType();
-        return type == BlockTypes.SHULKER_BOX || type == BlockTypes.UNDYED_SHULKER_BOX;
+        return type == BlockTypes.UNDYED_SHULKER_BOX ||
+                type == BlockTypes.WHITE_SHULKER_BOX ||
+                type == BlockTypes.ORANGE_SHULKER_BOX ||
+                type == BlockTypes.MAGENTA_SHULKER_BOX ||
+                type == BlockTypes.LIGHT_BLUE_SHULKER_BOX ||
+                type == BlockTypes.YELLOW_SHULKER_BOX ||
+                type == BlockTypes.LIME_SHULKER_BOX ||
+                type == BlockTypes.PINK_SHULKER_BOX ||
+                type == BlockTypes.GRAY_SHULKER_BOX ||
+                type == BlockTypes.LIGHT_GRAY_SHULKER_BOX ||
+                type == BlockTypes.CYAN_SHULKER_BOX ||
+                type == BlockTypes.PURPLE_SHULKER_BOX ||
+                type == BlockTypes.BLUE_SHULKER_BOX ||
+                type == BlockTypes.BROWN_SHULKER_BOX ||
+                type == BlockTypes.GREEN_SHULKER_BOX ||
+                type == BlockTypes.RED_SHULKER_BOX ||
+                type == BlockTypes.BLACK_SHULKER_BOX;
     }
 
     @Override

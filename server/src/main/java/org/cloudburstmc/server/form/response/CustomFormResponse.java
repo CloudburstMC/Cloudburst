@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.form.response;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.cloudburstmc.server.form.CustomForm;

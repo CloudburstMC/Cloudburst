@@ -28,13 +28,13 @@ dependencies {
     implementation(libs.jose.jwt)
     implementation(libs.upnp)
 
+    compileOnly(libs.jsr305)
+
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
 
 extraJavaModuleInfo {
-    automaticModule(libs.block.state.updater, "org.cloudburstmc.blockstateupdater")
-    automaticModule(libs.math.immutable, "org.cloudburstmc.math.immutable")
     automaticModule(libs.noise, "net.daporkchop.lib.noise")
     automaticModule(libs.upnp, "org.cloudburstmc.upnp")
     automaticModule("net.daporkchop.lib:math", "net.daporkchop.lib.math")
@@ -50,10 +50,13 @@ extraJavaModuleInfo {
     automaticModule("io.airlift:aircompressor", "io.airlift.aircompressor")
     automaticModule("com.github.stephenc.jcip:jcip-annotations", "com.github.stephenc.jcip.annotations")
     automaticModule("aopalliance:aopalliance", "aopalliance.aop")
-    automaticModule("com.google.guava:failureaccess", "com.google.guava.failureaccess")
+    knownModule("com.google.guava:failureaccess", "com.google.common.util.concurrent.internal")
     automaticModule("com.google.code.findbugs:jsr305", "com.google.code.findbugs.jsr305")
-    automaticModule("com.google.j2objc:j2objc-annotations", "com.google.j2objc.annotations")
+    knownModule("com.google.j2objc:j2objc-annotations", "com.google.j2objc.annotations")
     automaticModule("net.jodah:expiringmap", "net.jodah.expiringmap")
+    automaticModule("com.google.guava:listenablefuture", "com.google.guava.listenablefuture")
+    automaticModule("org.osgi:org.osgi.resource", "org.osgi.resource")
+    automaticModule("org.osgi:org.osgi.service.serviceloader", "org.osgi.service.serviceloader")
 }
 
 tasks.shadowJar {
@@ -67,6 +70,13 @@ tasks.shadowJar {
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
 
-    dependsOn(":api:classes")
+    dependsOn(":api:jar")
     from(project(":api").sourceSets.main.get().output)
+}
+
+tasks.register<JavaExec>("run") {
+    mainClass.set("org.cloudburstmc.server.Bootstrap")
+    workingDir = projectDir.resolve("run")
+    workingDir.mkdir()
+    classpath = sourceSets["main"].runtimeClasspath
 }

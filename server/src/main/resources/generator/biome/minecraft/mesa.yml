@@ -15,8 +15,8 @@ decorators:
     below:
         # Plain old mesa surface
       - id: "cloudburst:surface"
-        top: "sand{sand_type=red}"
-        filler: "stained_hardened_clay{color=orange}"
+        top: "red_sand"
+        filler: "orange_terracotta"
     above:
         # Generate clay layers
       - id: "cloudburst:mesa_surface"
@@ -28,20 +28,20 @@ decorators:
         base: "hardened_clay"
         bands:
           - count: 21
-            block: "stained_hardened_clay{color=orange}"
+            block: "orange_terracotta"
           - count: "2-5"
             size: "1-3"
-            block: "stained_hardened_clay{color=yellow}"
+            block: "yellow_terracotta"
           - count: "2-5"
             size: "2-4"
-            block: "stained_hardened_clay{color=brown}"
+            block: "brown_terracotta"
           - count: "2-5"
             size: "1-3"
-            block: "stained_hardened_clay{color=red}"
+            block: "red_terracotta"
           - count: "3-5"
-            block: "stained_hardened_clay{color=white}"
-            above: "stained_hardened_clay{color=silver}"
-            below: "stained_hardened_clay{color=silver}"
+            block: "white_terracotta"
+            above: "light_gray_terracotta"
+            below: "light_gray_terracotta"
 
 populators:
     # Dead bushes
@@ -49,14 +49,14 @@ populators:
     chance: 0.078125 # about 20 per chunk
     patchSize: 4
     on:
-      - "sand{sand_type=red}"
+      - "red_sand"
       - "hardened_clay"
-      - "stained_hardened_clay{color=white}"
-      - "stained_hardened_clay{color=orange}"
-      - "stained_hardened_clay{color=yellow}"
-      - "stained_hardened_clay{color=silver}"
-      - "stained_hardened_clay{color=brown}"
-      - "stained_hardened_clay{color=red}"
+      - "white_terracotta"
+      - "orange_terracotta"
+      - "yellow_terracotta"
+      - "light_gray_terracotta"
+      - "brown_terracotta"
+      - "red_terracotta"
     block: "deadbush"
 
     # Cactus
@@ -64,7 +64,7 @@ populators:
     chance: 0.01953125 # about 5 per chunk
     patchSize: 10
     height: "1-3"
-    on: "sand{sand_type=red}"
+    on: "red_sand"
     block: "cactus"
 
     # Sugar cane
@@ -72,7 +72,7 @@ populators:
     chance: 0.01171875 # about 3 per chunk
     patchSize: 20
     height: "1-3"
-    on: "sand,sand{sand_type=red}"
+    on: "sand,red_sand"
     water: "water"
     block: "reeds"
 

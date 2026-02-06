@@ -8,13 +8,19 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.serializer.DirectionHelper;
+import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
+import java.util.Set;
 
 @ParametersAreNonnullByDefault
 public class DirectionSerializer implements TraitSerializer<Direction> {
+
+    private static final Set<BlockType> FACING_DIRECTION_STRING_BLOCKS = Set.of(
+            BlockTypes.OBSERVER
+    );
 
     static {
         DirectionHelper.init();
@@ -22,17 +28,20 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
 
     @Override
     public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, Direction direction) {
+        if (FACING_DIRECTION_STRING_BLOCKS.contains(type)) {
+            return direction.name().toLowerCase();
+        }
         return DirectionHelper.serialize(builder, type, traits);
     }
 
     @Override
     public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
         if (BlockCategories.inCategory(type, BlockCategory.STAIRS)) {
-            return "weirdo_direction";
+            return BedrockStateTags.TAG_WEIRDO_DIRECTION;
         }
 
-        if (type == BlockTypes.CORAL_FAN_HANG) {
-            return "coral_direction";
+        if (FACING_DIRECTION_STRING_BLOCKS.contains(type)) {
+            return BedrockStateTags.TAG_MINECRAFT_FACING_DIRECTION;
         }
 
         return null;

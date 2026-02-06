@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.registry;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
@@ -55,7 +55,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         try {
             VANILLA_LEGACY_IDS.putAll(Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<Identifier, Integer>>() {
             }));
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new AssertionError("Unable to load legacy IDs", e);
         }
     }
@@ -200,13 +200,15 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     public BlockState getBlock(Identifier identifier) {
-        return getBlock(identifier, 0);
+        return palette.getState(identifier);
     }
 
+    // TODO: Blocks are flattened
     public BlockState getBlock(Identifier identifier, int meta) {
         return getDefinition(identifier, meta).getCloudState();
     }
 
+    // TODO: Blocks are flattened
     public BlockState getBlock(int id, int meta) {
         return getDefinition(id, meta).getCloudState();
     }
@@ -314,351 +316,1327 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
     }
 
     private void registerVanillaBlocks() {
-        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false); // 0
-        this.registerVanilla(STONE); // 1
-        this.registerVanilla(GRASS); // 2
-        this.registerVanilla(DIRT); // 3
-        this.registerVanilla(COBBLESTONE); // 4
-        this.registerVanilla(PLANKS, MultiBlockSerializers.PLANKS); // 5
-        this.registerVanilla(SAPLING); // 6
-        this.registerVanilla(BEDROCK); // 7
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE); // 8
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE); // 9
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true); //10
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true); //11
-        this.registerVanilla(SAND); //12
-        this.registerVanilla(GRAVEL); //13
-        this.registerVanilla(GOLD_ORE); //14
-        this.registerVanilla(IRON_ORE); //15
-        this.registerVanilla(COAL_ORE); //16
-        this.registerVanilla(LOG, MultiBlockSerializers.LOG); //17
-        this.registerVanilla(LEAVES, MultiBlockSerializers.LEAVES); //18
-        this.registerVanilla(SPONGE); //19
-        this.registerVanilla(GLASS); //20
-        this.registerVanilla(LAPIS_ORE); //21
-        this.registerVanilla(LAPIS_BLOCK); //22
-        this.registerVanilla(DISPENSER); //23
-        this.registerVanilla(SANDSTONE); //24
-        this.registerVanilla(NOTEBLOCK); //25
-        this.registerVanilla(BED); //26
-        this.registerVanilla(GOLDEN_RAIL); //27
-        this.registerVanilla(DETECTOR_RAIL); //28
-        this.registerVanilla(WEB); //30
-        this.registerVanilla(TALL_GRASS); //31
-        this.registerVanilla(DEADBUSH); //32
-        this.registerVanilla(PISTON, MultiBlockSerializers.PISTON); //33
-        this.registerVanilla(PISTON_ARM_COLLISION, MultiBlockSerializers.PISTON_ARM_COLLISION); //34
-        this.registerVanilla(WOOL); //35
-        this.registerVanilla(FLOWER, MultiBlockSerializers.FLOWER); //37 - 38
-        this.registerVanilla(BROWN_MUSHROOM); //39
-        this.registerVanilla(RED_MUSHROOM); //40
-        this.registerVanilla(GOLD_BLOCK); //41
-        this.registerVanilla(IRON_BLOCK); //42
-        this.registerVanilla(STONE_SLAB, SlabSerializer.INSTANCE); //44
-        this.registerVanilla(BRICK_BLOCK); //45
-        this.registerVanilla(TNT); //46
-        this.registerVanilla(BOOKSHELF); //47
-        this.registerVanilla(MOSSY_COBBLESTONE); //48
-        this.registerVanilla(OBSIDIAN); //49
-        this.registerVanilla(TORCH, MultiBlockSerializers.TORCH); //50
-        this.registerVanilla(FIRE); //51
-        this.registerVanilla(MOB_SPAWNER); //52
-        this.registerVanilla(WOODEN_STAIRS, MultiBlockSerializers.WOOD_STAIRS); //53
-        this.registerVanilla(CHEST); //54
-        this.registerVanilla(REDSTONE_WIRE); //55
-        this.registerVanilla(DIAMOND_ORE); //56
-        this.registerVanilla(DIAMOND_BLOCK); //57
-        this.registerVanilla(CRAFTING_TABLE); //58
-        this.registerVanilla(WHEAT); //59
-        this.registerVanilla(FARMLAND); //60
-        this.registerVanilla(FURNACE, MultiBlockSerializers.FURNACE); //61
-        this.registerVanilla(STANDING_SIGN, MultiBlockSerializers.WOOD_STANDING_SIGN); //63
-        this.registerVanilla(WOODEN_DOOR, MultiBlockSerializers.WOOD_DOOR); //64
-        this.registerVanilla(LADDER); //65
-        this.registerVanilla(RAIL); //66
-        this.registerVanilla(STONE_STAIRS, MultiBlockSerializers.STONE_STAIRS); //67
-        this.registerVanilla(WALL_SIGN, MultiBlockSerializers.WOOD_WALL_SIGN); //68
-        this.registerVanilla(LEVER); //69
-        this.registerVanilla(STONE_PRESSURE_PLATE, MultiBlockSerializers.STONE_PRESSURE_PLATE); //70
-        this.registerVanilla(IRON_DOOR); //71
-        this.registerVanilla(WOODEN_PRESSURE_PLATE, MultiBlockSerializers.WOOD_PRESSURE_PLATE); //72
-        this.registerVanilla(REDSTONE_ORE, MultiBlockSerializers.REDSTONE_ORE); //73, 74
-        this.registerVanilla(REDSTONE_TORCH, MultiBlockSerializers.REDSTONE_TORCH); //75, 76
-        this.registerVanilla(STONE_BUTTON, MultiBlockSerializers.STONE_BUTTON); //77
-        this.registerVanilla(SNOW_LAYER); //78
-        this.registerVanilla(ICE); //79
-        this.registerVanilla(SNOW); //80
-        this.registerVanilla(CACTUS); //81
-        this.registerVanilla(CLAY); //82
-        this.registerVanilla(REEDS); //83
-        this.registerVanilla(JUKEBOX); //84
-        this.registerVanilla(WOODEN_FENCE, MultiBlockSerializers.WOOD_FENCE); //85
-        this.registerVanilla(PUMPKIN); //86
-        this.registerVanilla(NETHERRACK); //87
-        this.registerVanilla(SOUL_SAND); //88
-        this.registerVanilla(GLOWSTONE); //89
-        this.registerVanilla(PORTAL); //90
-        this.registerVanilla(LIT_PUMPKIN); //91
-        this.registerVanilla(CAKE); //92
-        this.registerVanilla(REPEATER, MultiBlockSerializers.REPEATER); //93, 94
-        this.registerVanilla(INVISIBLE_BEDROCK); //95
-        this.registerVanilla(WOODEN_TRAPDOOR, MultiBlockSerializers.WOOD_TRAPDOOR); //96
-        this.registerVanilla(MONSTER_EGG); //97
-        this.registerVanilla(STONEBRICK); //98
-        this.registerVanilla(BROWN_MUSHROOM_BLOCK); //99
-        this.registerVanilla(RED_MUSHROOM_BLOCK); //100
-        this.registerVanilla(IRON_BARS); //101
-        this.registerVanilla(GLASS_PANE); //102
-        this.registerVanilla(MELON_BLOCK); //103
-        this.registerVanilla(PUMPKIN_STEM); //104
-        this.registerVanilla(MELON_STEM); //105
-        this.registerVanilla(VINE); //106
-        this.registerVanilla(WOODEN_FENCE_GATE, MultiBlockSerializers.WOOD_FENCE_GATE); //107
-        this.registerVanilla(MYCELIUM); //110
-        this.registerVanilla(WATERLILY); // 111
-        this.registerVanilla(NETHER_BRICK, MultiBlockSerializers.NETHER_BRICKS); //112
-        this.registerVanilla(NETHER_BRICK_FENCE); //113
-        this.registerVanilla(NETHER_WART); //115
-        this.registerVanilla(ENCHANTING_TABLE); //116
-        this.registerVanilla(BREWING_STAND); //117
-        this.registerVanilla(CAULDRON, MultiBlockSerializers.CAULDRON); //118
-        this.registerVanilla(END_PORTAL); //119
-        this.registerVanilla(END_PORTAL_FRAME); //120
-        this.registerVanilla(END_STONE); //121
-        this.registerVanilla(DRAGON_EGG); //122
-        this.registerVanilla(REDSTONE_LAMP, MultiBlockSerializers.REDSTONE_LAMP); //123
-        this.registerVanilla(DROPPER);
-        this.registerVanilla(ACTIVATOR_RAIL); //126
-        this.registerVanilla(COCOA); //127
-        this.registerVanilla(EMERALD_ORE); //129
-        this.registerVanilla(ENDER_CHEST); //130
-        this.registerVanilla(TRIPWIRE_HOOK); //131
-        this.registerVanilla(TRIP_WIRE); //132
-        this.registerVanilla(EMERALD_BLOCK); //133
-        this.registerVanilla(COMMAND_BLOCK);
-        this.registerVanilla(BEACON); //138
-        this.registerVanilla(STONE_WALL, MultiBlockSerializers.WALL); //139
-        this.registerVanilla(FLOWER_POT); //140
-        this.registerVanilla(CARROTS); //141
-        this.registerVanilla(POTATOES); //142
-        this.registerVanilla(WOODEN_BUTTON, MultiBlockSerializers.WOOD_BUTTON); //143
-        this.registerVanilla(SKULL); //144
-        this.registerVanilla(ANVIL); //145
-        this.registerVanilla(TRAPPED_CHEST); //146
-        this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE); //147
-        this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE); //148
-        this.registerVanilla(COMPARATOR, MultiBlockSerializers.COMPARATOR); //150
-        this.registerVanilla(DAYLIGHT_DETECTOR); //151
-        this.registerVanilla(REDSTONE_BLOCK); //152
-        this.registerVanilla(QUARTZ_ORE); //153
-        this.registerVanilla(HOPPER); //154
-        this.registerVanilla(QUARTZ_BLOCK); //155
-        this.registerVanilla(WOODEN_SLAB, SlabSerializer.INSTANCE); //158
-        this.registerVanilla(STAINED_HARDENED_CLAY); //159
-        this.registerVanilla(STAINED_GLASS_PANE); //160
-        this.registerVanilla(SLIME); //165
-        //166: glow_stick
-        this.registerVanilla(IRON_TRAPDOOR); //167
-        this.registerVanilla(PRISMARINE); //168
-        this.registerVanilla(SEA_LANTERN); //169
-        this.registerVanilla(HAY_BLOCK); //170
-        this.registerVanilla(CARPET); //171
-        this.registerVanilla(HARDENED_CLAY); //172
-        this.registerVanilla(COAL_BLOCK); //173
-        this.registerVanilla(PACKED_ICE); //174
-        this.registerVanilla(DOUBLE_PLANT); //175
-        this.registerVanilla(STANDING_BANNER); //176
-        this.registerVanilla(WALL_BANNER); //177
-        this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED); //178
-        this.registerVanilla(RED_SANDSTONE); //179
-        this.registerVanilla(REPEATING_COMMAND_BLOCK); //188
-        this.registerVanilla(CHAIN_COMMAND_BLOCK); //189
-        this.registerVanilla(HARD_GLASS_PANE);
-        this.registerVanilla(HARD_STAINED_GLASS_PANE);
-        this.registerVanilla(CHEMICAL_HEAT);
-        this.registerVanilla(GRASS_PATH); //198
-        this.registerVanilla(FRAME, MultiBlockSerializers.FRAME); //199
-        this.registerVanilla(CHORUS_FLOWER); //200
-        this.registerVanilla(PURPUR_BLOCK); //201
-        this.registerVanilla(COLORED_TORCH_RG);
-        this.registerVanilla(COLORED_TORCH_BP);
-        this.registerVanilla(UNDYED_SHULKER_BOX); //205
-        this.registerVanilla(END_BRICKS); //206
-        this.registerVanilla(FROSTED_ICE); //206
-        this.registerVanilla(END_ROD); //208
-        this.registerVanilla(END_GATEWAY); //209
-        this.registerVanilla(ALLOW); //210
-        this.registerVanilla(DENY);
+        this.registerVanilla(ACACIA_BUTTON);
+        this.registerVanilla(ACACIA_DOOR);
+        this.registerVanilla(ACACIA_DOUBLE_SLAB);
+        this.registerVanilla(ACACIA_FENCE);
+        this.registerVanilla(ACACIA_FENCE_GATE);
+        this.registerVanilla(ACACIA_HANGING_SIGN);
+        this.registerVanilla(ACACIA_LEAVES);
+        this.registerVanilla(ACACIA_LOG);
+        this.registerVanilla(ACACIA_PLANKS);
+        this.registerVanilla(ACACIA_PRESSURE_PLATE);
+        this.registerVanilla(ACACIA_SAPLING);
+        this.registerVanilla(ACACIA_SHELF);
+        this.registerVanilla(ACACIA_SLAB);
+        this.registerVanilla(ACACIA_STAIRS);
+        this.registerVanilla(ACACIA_STANDING_SIGN);
+        this.registerVanilla(ACACIA_TRAPDOOR);
+        this.registerVanilla(ACACIA_WALL_SIGN);
+        this.registerVanilla(ACACIA_WOOD);
+        this.registerVanilla(ACTIVATOR_RAIL);
+        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(ALLIUM);
+        this.registerVanilla(ALLOW);
+        this.registerVanilla(AMETHYST_BLOCK);
+        this.registerVanilla(AMETHYST_CLUSTER);
+        this.registerVanilla(ANCIENT_DEBRIS);
+        this.registerVanilla(ANDESITE);
+        this.registerVanilla(ANDESITE_DOUBLE_SLAB);
+        this.registerVanilla(ANDESITE_SLAB);
+        this.registerVanilla(ANDESITE_STAIRS);
+        this.registerVanilla(ANDESITE_WALL);
+        this.registerVanilla(ANVIL);
+        this.registerVanilla(AZALEA);
+        this.registerVanilla(AZALEA_LEAVES);
+        this.registerVanilla(AZALEA_LEAVES_FLOWERED);
+        this.registerVanilla(AZURE_BLUET);
+        this.registerVanilla(BAMBOO);
+        this.registerVanilla(BAMBOO_BLOCK);
+        this.registerVanilla(BAMBOO_BUTTON);
+        this.registerVanilla(BAMBOO_DOOR);
+        this.registerVanilla(BAMBOO_DOUBLE_SLAB);
+        this.registerVanilla(BAMBOO_FENCE);
+        this.registerVanilla(BAMBOO_FENCE_GATE);
+        this.registerVanilla(BAMBOO_HANGING_SIGN);
+        this.registerVanilla(BAMBOO_MOSAIC);
+        this.registerVanilla(BAMBOO_MOSAIC_DOUBLE_SLAB);
+        this.registerVanilla(BAMBOO_MOSAIC_SLAB);
+        this.registerVanilla(BAMBOO_MOSAIC_STAIRS);
+        this.registerVanilla(BAMBOO_PLANKS);
+        this.registerVanilla(BAMBOO_PRESSURE_PLATE);
+        this.registerVanilla(BAMBOO_SAPLING);
+        this.registerVanilla(BAMBOO_SHELF);
+        this.registerVanilla(BAMBOO_SLAB);
+        this.registerVanilla(BAMBOO_STAIRS);
+        this.registerVanilla(BAMBOO_STANDING_SIGN);
+        this.registerVanilla(BAMBOO_TRAPDOOR);
+        this.registerVanilla(BAMBOO_WALL_SIGN);
+        this.registerVanilla(BARREL);
+        this.registerVanilla(BARRIER);
+        this.registerVanilla(BASALT);
+        this.registerVanilla(BEACON);
+        this.registerVanilla(BED);
+        this.registerVanilla(BEDROCK);
+        this.registerVanilla(BEEHIVE);
+        this.registerVanilla(BEETROOT);
+        this.registerVanilla(BEE_NEST);
+        this.registerVanilla(BELL);
+        this.registerVanilla(BIG_DRIPLEAF);
+        this.registerVanilla(BIRCH_BUTTON);
+        this.registerVanilla(BIRCH_DOOR);
+        this.registerVanilla(BIRCH_DOUBLE_SLAB);
+        this.registerVanilla(BIRCH_FENCE);
+        this.registerVanilla(BIRCH_FENCE_GATE);
+        this.registerVanilla(BIRCH_HANGING_SIGN);
+        this.registerVanilla(BIRCH_LEAVES);
+        this.registerVanilla(BIRCH_LOG);
+        this.registerVanilla(BIRCH_PLANKS);
+        this.registerVanilla(BIRCH_PRESSURE_PLATE);
+        this.registerVanilla(BIRCH_SAPLING);
+        this.registerVanilla(BIRCH_SHELF);
+        this.registerVanilla(BIRCH_SLAB);
+        this.registerVanilla(BIRCH_STAIRS);
+        this.registerVanilla(BIRCH_STANDING_SIGN);
+        this.registerVanilla(BIRCH_TRAPDOOR);
+        this.registerVanilla(BIRCH_WALL_SIGN);
+        this.registerVanilla(BIRCH_WOOD);
+        this.registerVanilla(BLACKSTONE);
+        this.registerVanilla(BLACKSTONE_DOUBLE_SLAB);
+        this.registerVanilla(BLACKSTONE_SLAB);
+        this.registerVanilla(BLACKSTONE_STAIRS);
+        this.registerVanilla(BLACKSTONE_WALL);
+        this.registerVanilla(BLACK_CANDLE);
+        this.registerVanilla(BLACK_CANDLE_CAKE);
+        this.registerVanilla(BLACK_CARPET);
+        this.registerVanilla(BLACK_CONCRETE);
+        this.registerVanilla(BLACK_CONCRETE_POWDER);
+        this.registerVanilla(BLACK_GLAZED_TERRACOTTA);
+        this.registerVanilla(BLACK_SHULKER_BOX);
+        this.registerVanilla(BLACK_STAINED_GLASS);
+        this.registerVanilla(BLACK_STAINED_GLASS_PANE);
+        this.registerVanilla(BLACK_TERRACOTTA);
+        this.registerVanilla(BLACK_WOOL);
+        this.registerVanilla(BLAST_FURNACE);
+        this.registerVanilla(BLUE_CANDLE);
+        this.registerVanilla(BLUE_CANDLE_CAKE);
+        this.registerVanilla(BLUE_CARPET);
+        this.registerVanilla(BLUE_CONCRETE);
+        this.registerVanilla(BLUE_CONCRETE_POWDER);
+        this.registerVanilla(BLUE_GLAZED_TERRACOTTA);
+        this.registerVanilla(BLUE_ICE);
+        this.registerVanilla(BLUE_ORCHID);
+        this.registerVanilla(BLUE_SHULKER_BOX);
+        this.registerVanilla(BLUE_STAINED_GLASS);
+        this.registerVanilla(BLUE_STAINED_GLASS_PANE);
+        this.registerVanilla(BLUE_TERRACOTTA);
+        this.registerVanilla(BLUE_WOOL);
+        this.registerVanilla(BONE_BLOCK);
+        this.registerVanilla(BOOKSHELF);
         this.registerVanilla(BORDER_BLOCK);
-        this.registerVanilla(MAGMA); //213
-        this.registerVanilla(NETHER_WART_BLOCK, MultiBlockSerializers.WART_BLOCK); //214
-        this.registerVanilla(BONE_BLOCK); //216
-        this.registerVanilla(STRUCTURE_VOID);
-        this.registerVanilla(SHULKER_BOX); //218
-        this.registerVanilla(GLAZED_TERRACOTTA, MultiBlockSerializers.TERRACOTTA); //219 - 235
-        this.registerVanilla(CONCRETE); //236
-        this.registerVanilla(CONCRETE_POWDER); //237
-        this.registerVanilla(CHEMISTRY_TABLE);
-        this.registerVanilla(UNDERWATER_TORCH);
-        this.registerVanilla(CHORUS_PLANT); //240
-        this.registerVanilla(STAINED_GLASS); //241
+        this.registerVanilla(BRAIN_CORAL);
+        this.registerVanilla(BRAIN_CORAL_BLOCK);
+        this.registerVanilla(BRAIN_CORAL_FAN);
+        this.registerVanilla(BRAIN_CORAL_WALL_FAN);
+        this.registerVanilla(BREWING_STAND);
+        this.registerVanilla(BRICK_BLOCK);
+        this.registerVanilla(BRICK_DOUBLE_SLAB);
+        this.registerVanilla(BRICK_SLAB);
+        this.registerVanilla(BRICK_STAIRS);
+        this.registerVanilla(BRICK_WALL);
+        this.registerVanilla(BROWN_CANDLE);
+        this.registerVanilla(BROWN_CANDLE_CAKE);
+        this.registerVanilla(BROWN_CARPET);
+        this.registerVanilla(BROWN_CONCRETE);
+        this.registerVanilla(BROWN_CONCRETE_POWDER);
+        this.registerVanilla(BROWN_GLAZED_TERRACOTTA);
+        this.registerVanilla(BROWN_MUSHROOM);
+        this.registerVanilla(BROWN_MUSHROOM_BLOCK);
+        this.registerVanilla(BROWN_SHULKER_BOX);
+        this.registerVanilla(BROWN_STAINED_GLASS);
+        this.registerVanilla(BROWN_STAINED_GLASS_PANE);
+        this.registerVanilla(BROWN_TERRACOTTA);
+        this.registerVanilla(BROWN_WOOL);
+        this.registerVanilla(BUBBLE_COLUMN);
+        this.registerVanilla(BUBBLE_CORAL);
+        this.registerVanilla(BUBBLE_CORAL_BLOCK);
+        this.registerVanilla(BUBBLE_CORAL_FAN);
+        this.registerVanilla(BUBBLE_CORAL_WALL_FAN);
+        this.registerVanilla(BUDDING_AMETHYST);
+        this.registerVanilla(BUSH);
+        this.registerVanilla(CACTUS);
+        this.registerVanilla(CACTUS_FLOWER);
+        this.registerVanilla(CAKE);
+        this.registerVanilla(CALCITE);
+        this.registerVanilla(CALIBRATED_SCULK_SENSOR);
         this.registerVanilla(CAMERA);
-        this.registerVanilla(PODZOL); //243
-        this.registerVanilla(BEETROOT); //244
-        this.registerVanilla(STONECUTTER); //245
-        this.registerVanilla(GLOWING_OBSIDIAN); //246
-        this.registerVanilla(NETHER_REACTOR);
+        this.registerVanilla(CAMPFIRE);
+        this.registerVanilla(CANDLE);
+        this.registerVanilla(CANDLE_CAKE);
+        this.registerVanilla(CARROTS);
+        this.registerVanilla(CARTOGRAPHY_TABLE);
+        this.registerVanilla(CARVED_PUMPKIN);
+        this.registerVanilla(CAULDRON);
+        this.registerVanilla(CAVE_VINES);
+        this.registerVanilla(CAVE_VINES_BODY_WITH_BERRIES);
+        this.registerVanilla(CAVE_VINES_HEAD_WITH_BERRIES);
+        this.registerVanilla(CHAIN_COMMAND_BLOCK);
+        this.registerVanilla(CHALKBOARD);
+        this.registerVanilla(CHEMICAL_HEAT);
+        this.registerVanilla(CHERRY_BUTTON);
+        this.registerVanilla(CHERRY_DOOR);
+        this.registerVanilla(CHERRY_DOUBLE_SLAB);
+        this.registerVanilla(CHERRY_FENCE);
+        this.registerVanilla(CHERRY_FENCE_GATE);
+        this.registerVanilla(CHERRY_HANGING_SIGN);
+        this.registerVanilla(CHERRY_LEAVES);
+        this.registerVanilla(CHERRY_LOG);
+        this.registerVanilla(CHERRY_PLANKS);
+        this.registerVanilla(CHERRY_PRESSURE_PLATE);
+        this.registerVanilla(CHERRY_SAPLING);
+        this.registerVanilla(CHERRY_SHELF);
+        this.registerVanilla(CHERRY_SLAB);
+        this.registerVanilla(CHERRY_STAIRS);
+        this.registerVanilla(CHERRY_STANDING_SIGN);
+        this.registerVanilla(CHERRY_TRAPDOOR);
+        this.registerVanilla(CHERRY_WALL_SIGN);
+        this.registerVanilla(CHERRY_WOOD);
+        this.registerVanilla(CHEST);
+        this.registerVanilla(CHIPPED_ANVIL);
+        this.registerVanilla(CHISELED_BOOKSHELF);
+        this.registerVanilla(CHISELED_COPPER);
+        this.registerVanilla(CHISELED_DEEPSLATE);
+        this.registerVanilla(CHISELED_NETHER_BRICKS);
+        this.registerVanilla(CHISELED_POLISHED_BLACKSTONE);
+        this.registerVanilla(CHISELED_QUARTZ_BLOCK);
+        this.registerVanilla(CHISELED_RED_SANDSTONE);
+        this.registerVanilla(CHISELED_RESIN_BRICKS);
+        this.registerVanilla(CHISELED_SANDSTONE);
+        this.registerVanilla(CHISELED_STONE_BRICKS);
+        this.registerVanilla(CHISELED_TUFF);
+        this.registerVanilla(CHISELED_TUFF_BRICKS);
+        this.registerVanilla(CHORUS_FLOWER);
+        this.registerVanilla(CHORUS_PLANT);
+        this.registerVanilla(CLAY);
+        this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
+        this.registerVanilla(CLOSED_EYEBLOSSOM);
+        this.registerVanilla(COAL_BLOCK);
+        this.registerVanilla(COAL_ORE);
+        this.registerVanilla(COARSE_DIRT);
+        this.registerVanilla(COBBLED_DEEPSLATE);
+        this.registerVanilla(COBBLED_DEEPSLATE_DOUBLE_SLAB);
+        this.registerVanilla(COBBLED_DEEPSLATE_SLAB);
+        this.registerVanilla(COBBLED_DEEPSLATE_STAIRS);
+        this.registerVanilla(COBBLED_DEEPSLATE_WALL);
+        this.registerVanilla(COBBLESTONE);
+        this.registerVanilla(COBBLESTONE_DOUBLE_SLAB);
+        this.registerVanilla(COBBLESTONE_SLAB);
+        this.registerVanilla(COBBLESTONE_WALL);
+        this.registerVanilla(COCOA);
+        this.registerVanilla(COLORED_TORCH_BLUE);
+        this.registerVanilla(COLORED_TORCH_GREEN);
+        this.registerVanilla(COLORED_TORCH_PURPLE);
+        this.registerVanilla(COLORED_TORCH_RED);
+        this.registerVanilla(COMMAND_BLOCK);
+        this.registerVanilla(COMPOSTER);
+        this.registerVanilla(COMPOUND_CREATOR);
+        this.registerVanilla(CONDUIT);
+        this.registerVanilla(COPPER_BARS);
+        this.registerVanilla(COPPER_BLOCK);
+        this.registerVanilla(COPPER_BULB);
+        this.registerVanilla(COPPER_CHAIN);
+        this.registerVanilla(COPPER_CHEST);
+        this.registerVanilla(COPPER_DOOR);
+        this.registerVanilla(COPPER_GOLEM_STATUE);
+        this.registerVanilla(COPPER_GRATE);
+        this.registerVanilla(COPPER_LANTERN);
+        this.registerVanilla(COPPER_ORE);
+        this.registerVanilla(COPPER_TORCH);
+        this.registerVanilla(COPPER_TRAPDOOR);
+        this.registerVanilla(CORNFLOWER);
+        this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
+        this.registerVanilla(CRACKED_DEEPSLATE_TILES);
+        this.registerVanilla(CRACKED_NETHER_BRICKS);
+        this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);
+        this.registerVanilla(CRACKED_STONE_BRICKS);
+        this.registerVanilla(CRAFTER);
+        this.registerVanilla(CRAFTING_TABLE);
+        this.registerVanilla(CREAKING_HEART);
+        this.registerVanilla(CREEPER_HEAD);
+        this.registerVanilla(CRIMSON_BUTTON);
+        this.registerVanilla(CRIMSON_DOOR);
+        this.registerVanilla(CRIMSON_DOUBLE_SLAB);
+        this.registerVanilla(CRIMSON_FENCE);
+        this.registerVanilla(CRIMSON_FENCE_GATE);
+        this.registerVanilla(CRIMSON_FUNGUS);
+        this.registerVanilla(CRIMSON_HANGING_SIGN);
+        this.registerVanilla(CRIMSON_HYPHAE);
+        this.registerVanilla(CRIMSON_NYLIUM);
+        this.registerVanilla(CRIMSON_PLANKS);
+        this.registerVanilla(CRIMSON_PRESSURE_PLATE);
+        this.registerVanilla(CRIMSON_ROOTS);
+        this.registerVanilla(CRIMSON_SHELF);
+        this.registerVanilla(CRIMSON_SLAB);
+        this.registerVanilla(CRIMSON_STAIRS);
+        this.registerVanilla(CRIMSON_STANDING_SIGN);
+        this.registerVanilla(CRIMSON_STEM);
+        this.registerVanilla(CRIMSON_TRAPDOOR);
+        this.registerVanilla(CRIMSON_WALL_SIGN);
+        this.registerVanilla(CRYING_OBSIDIAN);
+        this.registerVanilla(CUT_COPPER);
+        this.registerVanilla(CUT_COPPER_SLAB);
+        this.registerVanilla(CUT_COPPER_STAIRS);
+        this.registerVanilla(CUT_RED_SANDSTONE);
+        this.registerVanilla(CUT_RED_SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(CUT_RED_SANDSTONE_SLAB);
+        this.registerVanilla(CUT_SANDSTONE);
+        this.registerVanilla(CUT_SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(CUT_SANDSTONE_SLAB);
+        this.registerVanilla(CYAN_CANDLE);
+        this.registerVanilla(CYAN_CANDLE_CAKE);
+        this.registerVanilla(CYAN_CARPET);
+        this.registerVanilla(CYAN_CONCRETE);
+        this.registerVanilla(CYAN_CONCRETE_POWDER);
+        this.registerVanilla(CYAN_GLAZED_TERRACOTTA);
+        this.registerVanilla(CYAN_SHULKER_BOX);
+        this.registerVanilla(CYAN_STAINED_GLASS);
+        this.registerVanilla(CYAN_STAINED_GLASS_PANE);
+        this.registerVanilla(CYAN_TERRACOTTA);
+        this.registerVanilla(CYAN_WOOL);
+        this.registerVanilla(DAMAGED_ANVIL);
+        this.registerVanilla(DANDELION);
+        this.registerVanilla(DARKOAK_STANDING_SIGN);
+        this.registerVanilla(DARKOAK_WALL_SIGN);
+        this.registerVanilla(DARK_OAK_BUTTON);
+        this.registerVanilla(DARK_OAK_DOOR);
+        this.registerVanilla(DARK_OAK_DOUBLE_SLAB);
+        this.registerVanilla(DARK_OAK_FENCE);
+        this.registerVanilla(DARK_OAK_FENCE_GATE);
+        this.registerVanilla(DARK_OAK_HANGING_SIGN);
+        this.registerVanilla(DARK_OAK_LEAVES);
+        this.registerVanilla(DARK_OAK_LOG);
+        this.registerVanilla(DARK_OAK_PLANKS);
+        this.registerVanilla(DARK_OAK_PRESSURE_PLATE);
+        this.registerVanilla(DARK_OAK_SAPLING);
+        this.registerVanilla(DARK_OAK_SHELF);
+        this.registerVanilla(DARK_OAK_SLAB);
+        this.registerVanilla(DARK_OAK_STAIRS);
+        this.registerVanilla(DARK_OAK_TRAPDOOR);
+        this.registerVanilla(DARK_OAK_WOOD);
+        this.registerVanilla(DARK_PRISMARINE);
+        this.registerVanilla(DARK_PRISMARINE_DOUBLE_SLAB);
+        this.registerVanilla(DARK_PRISMARINE_SLAB);
+        this.registerVanilla(DARK_PRISMARINE_STAIRS);
+        this.registerVanilla(DAYLIGHT_DETECTOR);
+        this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED);
+        this.registerVanilla(DEADBUSH);
+        this.registerVanilla(DEAD_BRAIN_CORAL);
+        this.registerVanilla(DEAD_BRAIN_CORAL_BLOCK);
+        this.registerVanilla(DEAD_BRAIN_CORAL_FAN);
+        this.registerVanilla(DEAD_BRAIN_CORAL_WALL_FAN);
+        this.registerVanilla(DEAD_BUBBLE_CORAL);
+        this.registerVanilla(DEAD_BUBBLE_CORAL_BLOCK);
+        this.registerVanilla(DEAD_BUBBLE_CORAL_FAN);
+        this.registerVanilla(DEAD_BUBBLE_CORAL_WALL_FAN);
+        this.registerVanilla(DEAD_FIRE_CORAL);
+        this.registerVanilla(DEAD_FIRE_CORAL_BLOCK);
+        this.registerVanilla(DEAD_FIRE_CORAL_FAN);
+        this.registerVanilla(DEAD_FIRE_CORAL_WALL_FAN);
+        this.registerVanilla(DEAD_HORN_CORAL);
+        this.registerVanilla(DEAD_HORN_CORAL_BLOCK);
+        this.registerVanilla(DEAD_HORN_CORAL_FAN);
+        this.registerVanilla(DEAD_HORN_CORAL_WALL_FAN);
+        this.registerVanilla(DEAD_TUBE_CORAL);
+        this.registerVanilla(DEAD_TUBE_CORAL_BLOCK);
+        this.registerVanilla(DEAD_TUBE_CORAL_FAN);
+        this.registerVanilla(DEAD_TUBE_CORAL_WALL_FAN);
+        this.registerVanilla(DECORATED_POT);
+        this.registerVanilla(DEEPSLATE);
+        this.registerVanilla(DEEPSLATE_BRICKS);
+        this.registerVanilla(DEEPSLATE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(DEEPSLATE_BRICK_SLAB);
+        this.registerVanilla(DEEPSLATE_BRICK_STAIRS);
+        this.registerVanilla(DEEPSLATE_BRICK_WALL);
+        this.registerVanilla(DEEPSLATE_COAL_ORE);
+        this.registerVanilla(DEEPSLATE_COPPER_ORE);
+        this.registerVanilla(DEEPSLATE_DIAMOND_ORE);
+        this.registerVanilla(DEEPSLATE_EMERALD_ORE);
+        this.registerVanilla(DEEPSLATE_GOLD_ORE);
+        this.registerVanilla(DEEPSLATE_IRON_ORE);
+        this.registerVanilla(DEEPSLATE_LAPIS_ORE);
+        this.registerVanilla(DEEPSLATE_REDSTONE_ORE);
+        this.registerVanilla(DEEPSLATE_TILES);
+        this.registerVanilla(DEEPSLATE_TILE_DOUBLE_SLAB);
+        this.registerVanilla(DEEPSLATE_TILE_SLAB);
+        this.registerVanilla(DEEPSLATE_TILE_STAIRS);
+        this.registerVanilla(DEEPSLATE_TILE_WALL);
+        this.registerVanilla(DENY);
+        this.registerVanilla(DEPRECATED_ANVIL);
+        this.registerVanilla(DEPRECATED_PURPUR_BLOCK_1);
+        this.registerVanilla(DEPRECATED_PURPUR_BLOCK_2);
+        this.registerVanilla(DETECTOR_RAIL);
+        this.registerVanilla(DIAMOND_BLOCK);
+        this.registerVanilla(DIAMOND_ORE);
+        this.registerVanilla(DIORITE);
+        this.registerVanilla(DIORITE_DOUBLE_SLAB);
+        this.registerVanilla(DIORITE_SLAB);
+        this.registerVanilla(DIORITE_STAIRS);
+        this.registerVanilla(DIORITE_WALL);
+        this.registerVanilla(DIRT);
+        this.registerVanilla(DIRT_WITH_ROOTS);
+        this.registerVanilla(DISPENSER);
+        this.registerVanilla(DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(DRAGON_EGG);
+        this.registerVanilla(DRAGON_HEAD);
+        this.registerVanilla(DRIED_GHAST);
+        this.registerVanilla(DRIED_KELP_BLOCK);
+        this.registerVanilla(DRIPSTONE_BLOCK);
+        this.registerVanilla(DROPPER);
+        this.registerVanilla(ELEMENT_0);
+        this.registerVanilla(ELEMENT_1);
+        this.registerVanilla(ELEMENT_2);
+        this.registerVanilla(ELEMENT_3);
+        this.registerVanilla(ELEMENT_4);
+        this.registerVanilla(ELEMENT_5);
+        this.registerVanilla(ELEMENT_6);
+        this.registerVanilla(ELEMENT_7);
+        this.registerVanilla(ELEMENT_8);
+        this.registerVanilla(ELEMENT_9);
+        this.registerVanilla(ELEMENT_10);
+        this.registerVanilla(ELEMENT_11);
+        this.registerVanilla(ELEMENT_12);
+        this.registerVanilla(ELEMENT_13);
+        this.registerVanilla(ELEMENT_14);
+        this.registerVanilla(ELEMENT_15);
+        this.registerVanilla(ELEMENT_16);
+        this.registerVanilla(ELEMENT_17);
+        this.registerVanilla(ELEMENT_18);
+        this.registerVanilla(ELEMENT_19);
+        this.registerVanilla(ELEMENT_20);
+        this.registerVanilla(ELEMENT_21);
+        this.registerVanilla(ELEMENT_22);
+        this.registerVanilla(ELEMENT_23);
+        this.registerVanilla(ELEMENT_24);
+        this.registerVanilla(ELEMENT_25);
+        this.registerVanilla(ELEMENT_26);
+        this.registerVanilla(ELEMENT_27);
+        this.registerVanilla(ELEMENT_28);
+        this.registerVanilla(ELEMENT_29);
+        this.registerVanilla(ELEMENT_30);
+        this.registerVanilla(ELEMENT_31);
+        this.registerVanilla(ELEMENT_32);
+        this.registerVanilla(ELEMENT_33);
+        this.registerVanilla(ELEMENT_34);
+        this.registerVanilla(ELEMENT_35);
+        this.registerVanilla(ELEMENT_36);
+        this.registerVanilla(ELEMENT_37);
+        this.registerVanilla(ELEMENT_38);
+        this.registerVanilla(ELEMENT_39);
+        this.registerVanilla(ELEMENT_40);
+        this.registerVanilla(ELEMENT_41);
+        this.registerVanilla(ELEMENT_42);
+        this.registerVanilla(ELEMENT_43);
+        this.registerVanilla(ELEMENT_44);
+        this.registerVanilla(ELEMENT_45);
+        this.registerVanilla(ELEMENT_46);
+        this.registerVanilla(ELEMENT_47);
+        this.registerVanilla(ELEMENT_48);
+        this.registerVanilla(ELEMENT_49);
+        this.registerVanilla(ELEMENT_50);
+        this.registerVanilla(ELEMENT_51);
+        this.registerVanilla(ELEMENT_52);
+        this.registerVanilla(ELEMENT_53);
+        this.registerVanilla(ELEMENT_54);
+        this.registerVanilla(ELEMENT_55);
+        this.registerVanilla(ELEMENT_56);
+        this.registerVanilla(ELEMENT_57);
+        this.registerVanilla(ELEMENT_58);
+        this.registerVanilla(ELEMENT_59);
+        this.registerVanilla(ELEMENT_60);
+        this.registerVanilla(ELEMENT_61);
+        this.registerVanilla(ELEMENT_62);
+        this.registerVanilla(ELEMENT_63);
+        this.registerVanilla(ELEMENT_64);
+        this.registerVanilla(ELEMENT_65);
+        this.registerVanilla(ELEMENT_66);
+        this.registerVanilla(ELEMENT_67);
+        this.registerVanilla(ELEMENT_68);
+        this.registerVanilla(ELEMENT_69);
+        this.registerVanilla(ELEMENT_70);
+        this.registerVanilla(ELEMENT_71);
+        this.registerVanilla(ELEMENT_72);
+        this.registerVanilla(ELEMENT_73);
+        this.registerVanilla(ELEMENT_74);
+        this.registerVanilla(ELEMENT_75);
+        this.registerVanilla(ELEMENT_76);
+        this.registerVanilla(ELEMENT_77);
+        this.registerVanilla(ELEMENT_78);
+        this.registerVanilla(ELEMENT_79);
+        this.registerVanilla(ELEMENT_80);
+        this.registerVanilla(ELEMENT_81);
+        this.registerVanilla(ELEMENT_82);
+        this.registerVanilla(ELEMENT_83);
+        this.registerVanilla(ELEMENT_84);
+        this.registerVanilla(ELEMENT_85);
+        this.registerVanilla(ELEMENT_86);
+        this.registerVanilla(ELEMENT_87);
+        this.registerVanilla(ELEMENT_88);
+        this.registerVanilla(ELEMENT_89);
+        this.registerVanilla(ELEMENT_90);
+        this.registerVanilla(ELEMENT_91);
+        this.registerVanilla(ELEMENT_92);
+        this.registerVanilla(ELEMENT_93);
+        this.registerVanilla(ELEMENT_94);
+        this.registerVanilla(ELEMENT_95);
+        this.registerVanilla(ELEMENT_96);
+        this.registerVanilla(ELEMENT_97);
+        this.registerVanilla(ELEMENT_98);
+        this.registerVanilla(ELEMENT_99);
+        this.registerVanilla(ELEMENT_100);
+        this.registerVanilla(ELEMENT_101);
+        this.registerVanilla(ELEMENT_102);
+        this.registerVanilla(ELEMENT_103);
+        this.registerVanilla(ELEMENT_104);
+        this.registerVanilla(ELEMENT_105);
+        this.registerVanilla(ELEMENT_106);
+        this.registerVanilla(ELEMENT_107);
+        this.registerVanilla(ELEMENT_108);
+        this.registerVanilla(ELEMENT_109);
+        this.registerVanilla(ELEMENT_110);
+        this.registerVanilla(ELEMENT_111);
+        this.registerVanilla(ELEMENT_112);
+        this.registerVanilla(ELEMENT_113);
+        this.registerVanilla(ELEMENT_114);
+        this.registerVanilla(ELEMENT_115);
+        this.registerVanilla(ELEMENT_116);
+        this.registerVanilla(ELEMENT_117);
+        this.registerVanilla(ELEMENT_118);
+        this.registerVanilla(ELEMENT_CONSTRUCTOR);
+        this.registerVanilla(EMERALD_BLOCK);
+        this.registerVanilla(EMERALD_ORE);
+        this.registerVanilla(ENCHANTING_TABLE);
+        this.registerVanilla(ENDER_CHEST);
+        this.registerVanilla(END_BRICKS);
+        this.registerVanilla(END_BRICK_STAIRS);
+        this.registerVanilla(END_GATEWAY);
+        this.registerVanilla(END_PORTAL);
+        this.registerVanilla(END_PORTAL_FRAME);
+        this.registerVanilla(END_ROD);
+        this.registerVanilla(END_STONE);
+        this.registerVanilla(END_STONE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(END_STONE_BRICK_SLAB);
+        this.registerVanilla(END_STONE_BRICK_WALL);
+        this.registerVanilla(EXPOSED_CHISELED_COPPER);
+        this.registerVanilla(EXPOSED_COPPER);
+        this.registerVanilla(EXPOSED_COPPER_BARS);
+        this.registerVanilla(EXPOSED_COPPER_BULB);
+        this.registerVanilla(EXPOSED_COPPER_CHAIN);
+        this.registerVanilla(EXPOSED_COPPER_CHEST);
+        this.registerVanilla(EXPOSED_COPPER_DOOR);
+        this.registerVanilla(EXPOSED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(EXPOSED_COPPER_GRATE);
+        this.registerVanilla(EXPOSED_COPPER_LANTERN);
+        this.registerVanilla(EXPOSED_COPPER_TRAPDOOR);
+        this.registerVanilla(EXPOSED_CUT_COPPER);
+        this.registerVanilla(EXPOSED_CUT_COPPER_SLAB);
+        this.registerVanilla(EXPOSED_CUT_COPPER_STAIRS);
+        this.registerVanilla(EXPOSED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(EXPOSED_LIGHTNING_ROD);
+        this.registerVanilla(FARMLAND);
+        this.registerVanilla(FERN);
+        this.registerVanilla(FIRE);
+        this.registerVanilla(FIREFLY_BUSH);
+        this.registerVanilla(FIRE_CORAL);
+        this.registerVanilla(FIRE_CORAL_BLOCK);
+        this.registerVanilla(FIRE_CORAL_FAN);
+        this.registerVanilla(FIRE_CORAL_WALL_FAN);
+        this.registerVanilla(FLETCHING_TABLE);
+        this.registerVanilla(FLOWERING_AZALEA);
+        this.registerVanilla(FLOWER_POT);
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true);
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE);
+        this.registerVanilla(FRAME);
+        this.registerVanilla(FROG_SPAWN);
+        this.registerVanilla(FROSTED_ICE);
+        this.registerVanilla(FURNACE);
+        this.registerVanilla(GILDED_BLACKSTONE);
+        this.registerVanilla(GLASS);
+        this.registerVanilla(GLASS_PANE);
+        this.registerVanilla(GLOWINGOBSIDIAN);
+        this.registerVanilla(GLOWSTONE);
+        this.registerVanilla(GLOW_FRAME);
+        this.registerVanilla(GLOW_LICHEN);
+        this.registerVanilla(GOLDEN_RAIL);
+        this.registerVanilla(GOLD_BLOCK);
+        this.registerVanilla(GOLD_ORE);
+        this.registerVanilla(GRANITE);
+        this.registerVanilla(GRANITE_DOUBLE_SLAB);
+        this.registerVanilla(GRANITE_SLAB);
+        this.registerVanilla(GRANITE_STAIRS);
+        this.registerVanilla(GRANITE_WALL);
+        this.registerVanilla(GRASS_BLOCK);
+        this.registerVanilla(GRASS_PATH);
+        this.registerVanilla(GRAVEL);
+        this.registerVanilla(GRAY_CANDLE);
+        this.registerVanilla(GRAY_CANDLE_CAKE);
+        this.registerVanilla(GRAY_CARPET);
+        this.registerVanilla(GRAY_CONCRETE);
+        this.registerVanilla(GRAY_CONCRETE_POWDER);
+        this.registerVanilla(GRAY_GLAZED_TERRACOTTA);
+        this.registerVanilla(GRAY_SHULKER_BOX);
+        this.registerVanilla(GRAY_STAINED_GLASS);
+        this.registerVanilla(GRAY_STAINED_GLASS_PANE);
+        this.registerVanilla(GRAY_TERRACOTTA);
+        this.registerVanilla(GRAY_WOOL);
+        this.registerVanilla(GREEN_CANDLE);
+        this.registerVanilla(GREEN_CANDLE_CAKE);
+        this.registerVanilla(GREEN_CARPET);
+        this.registerVanilla(GREEN_CONCRETE);
+        this.registerVanilla(GREEN_CONCRETE_POWDER);
+        this.registerVanilla(GREEN_GLAZED_TERRACOTTA);
+        this.registerVanilla(GREEN_SHULKER_BOX);
+        this.registerVanilla(GREEN_STAINED_GLASS);
+        this.registerVanilla(GREEN_STAINED_GLASS_PANE);
+        this.registerVanilla(GREEN_TERRACOTTA);
+        this.registerVanilla(GREEN_WOOL);
+        this.registerVanilla(GRINDSTONE);
+        this.registerVanilla(HANGING_ROOTS);
+        this.registerVanilla(HARDENED_CLAY);
+        this.registerVanilla(HARD_BLACK_STAINED_GLASS);
+        this.registerVanilla(HARD_BLACK_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_BLUE_STAINED_GLASS);
+        this.registerVanilla(HARD_BLUE_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_BROWN_STAINED_GLASS);
+        this.registerVanilla(HARD_BROWN_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_CYAN_STAINED_GLASS);
+        this.registerVanilla(HARD_CYAN_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_GLASS);
+        this.registerVanilla(HARD_GLASS_PANE);
+        this.registerVanilla(HARD_GRAY_STAINED_GLASS);
+        this.registerVanilla(HARD_GRAY_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_GREEN_STAINED_GLASS);
+        this.registerVanilla(HARD_GREEN_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_LIGHT_BLUE_STAINED_GLASS);
+        this.registerVanilla(HARD_LIGHT_BLUE_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_LIGHT_GRAY_STAINED_GLASS);
+        this.registerVanilla(HARD_LIGHT_GRAY_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_LIME_STAINED_GLASS);
+        this.registerVanilla(HARD_LIME_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_MAGENTA_STAINED_GLASS);
+        this.registerVanilla(HARD_MAGENTA_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_ORANGE_STAINED_GLASS);
+        this.registerVanilla(HARD_ORANGE_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_PINK_STAINED_GLASS);
+        this.registerVanilla(HARD_PINK_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_PURPLE_STAINED_GLASS);
+        this.registerVanilla(HARD_PURPLE_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_RED_STAINED_GLASS);
+        this.registerVanilla(HARD_RED_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_WHITE_STAINED_GLASS);
+        this.registerVanilla(HARD_WHITE_STAINED_GLASS_PANE);
+        this.registerVanilla(HARD_YELLOW_STAINED_GLASS);
+        this.registerVanilla(HARD_YELLOW_STAINED_GLASS_PANE);
+        this.registerVanilla(HAY_BLOCK);
+        this.registerVanilla(HEAVY_CORE);
+        this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE);
+        this.registerVanilla(HONEYCOMB_BLOCK);
+        this.registerVanilla(HONEY_BLOCK);
+        this.registerVanilla(HOPPER);
+        this.registerVanilla(HORN_CORAL);
+        this.registerVanilla(HORN_CORAL_BLOCK);
+        this.registerVanilla(HORN_CORAL_FAN);
+        this.registerVanilla(HORN_CORAL_WALL_FAN);
+        this.registerVanilla(ICE);
+        this.registerVanilla(INFESTED_CHISELED_STONE_BRICKS);
+        this.registerVanilla(INFESTED_COBBLESTONE);
+        this.registerVanilla(INFESTED_CRACKED_STONE_BRICKS);
+        this.registerVanilla(INFESTED_DEEPSLATE);
+        this.registerVanilla(INFESTED_MOSSY_STONE_BRICKS);
+        this.registerVanilla(INFESTED_STONE);
+        this.registerVanilla(INFESTED_STONE_BRICKS);
         this.registerVanilla(INFO_UPDATE);
         this.registerVanilla(INFO_UPDATE2);
-        this.registerVanilla(MOVING_BLOCK);
-        this.registerVanilla(OBSERVER); //251
-        this.registerVanilla(STRUCTURE_BLOCK); //252
-        this.registerVanilla(HARD_GLASS);
-        this.registerVanilla(HARD_STAINED_GLASS);
-        this.registerVanilla(RESERVED6);
-        this.registerVanilla(PACKED_MUD);
-        this.registerVanilla(MUD_BRICKS);
-        this.registerVanilla(MUD);
-//        this.registerVanilla(MUD_BRICK_WALL); // Shouldn't this be in the StoneSlabType class?
-        //256: unknown
-        this.registerVanilla(BLUE_ICE); //266
-        this.registerVanilla(ELEMENT, MultiBlockSerializers.ELEMENT);
-        this.registerVanilla(SEAGRASS);
-        this.registerVanilla(CORAL);
-        this.registerVanilla(CORAL_BLOCK);
-        this.registerVanilla(CORAL_FAN);
-        this.registerVanilla(CORAL_FAN_DEAD);
-        this.registerVanilla(CORAL_FAN_HANG, new CoralHangBlockSerializer());
-        this.registerVanilla(KELP);//393
-        this.registerVanilla(DRIED_KELP_BLOCK); //394
-        this.registerVanilla(CARVED_PUMPKIN);
-        this.registerVanilla(SEA_PICKLE);
-        this.registerVanilla(CONDUIT);
-        this.registerVanilla(TURTLE_EGG);
-        this.registerVanilla(BUBBLE_COLUMN);
-        this.registerVanilla(BARRIER); //415
-        this.registerVanilla(BAMBOO);
-        this.registerVanilla(BAMBOO_SAPLING);
-        this.registerVanilla(SCAFFOLDING);
-        this.registerVanilla(SMOOTH_STONE); // 437
-        this.registerVanilla(LECTERN); //448
-        this.registerVanilla(GRINDSTONE);
-        this.registerVanilla(BLAST_FURNACE, MultiBlockSerializers.BLAST_FURNACE); // 450
-        this.registerVanilla(STONECUTTER_BLOCK); // 451
-        this.registerVanilla(SMOKER, MultiBlockSerializers.SMOKER); //452
-        this.registerVanilla(CARTOGRAPHY_TABLE); //454
-        this.registerVanilla(FLETCHING_TABLE); //455
-        this.registerVanilla(SMITHING_TABLE); //456
-        this.registerVanilla(BARREL); // 457
-        this.registerVanilla(LOOM);
-        this.registerVanilla(BELL);
-        this.registerVanilla(SWEET_BERRY_BUSH);
-        this.registerVanilla(LANTERN, MultiBlockSerializers.LANTERN);
-        this.registerVanilla(CAMPFIRE, MultiBlockSerializers.CAMPFIRE);//464
-        this.registerVanilla(JIGSAW, new JigsawSerializer());//466
-        this.registerVanilla(WOOD, MultiBlockSerializers.WOOD); //467
-        this.registerVanilla(COMPOSTER);//468
-        this.registerVanilla(LIGHT_BLOCK);//470
-        this.registerVanilla(WITHER_ROSE);//471
-        this.registerVanilla(BEE_NEST);//473
-        this.registerVanilla(BEEHIVE);//474
-        this.registerVanilla(HONEY_BLOCK);//475
-        this.registerVanilla(HONEYCOMB_BLOCK); // 476
-        this.registerVanilla(LODESTONE);//477
-        this.registerVanilla(NETHER_ROOTS, MultiBlockSerializers.ROOTS);//478
-        this.registerVanilla(NETHER_FUNGUS, MultiBlockSerializers.FUNGUS);//482
-        this.registerVanilla(SHROOMLIGHT);//484
-        this.registerVanilla(WEEPING_VINES);//485
-        this.registerVanilla(NETHER_NYLIUM, MultiBlockSerializers.NYLIUM);//486
-        this.registerVanilla(BASALT);//490
-        this.registerVanilla(POLISHED_BASALT);//590
-        this.registerVanilla(SOUL_SOIL);//491
-        this.registerVanilla(SOUL_FIRE);//492
-        this.registerVanilla(NETHER_SPROUTS);//493
-        this.registerVanilla(TARGET);//494
-        this.registerVanilla(NETHERITE_BLOCK);//525
-        this.registerVanilla(ANCIENT_DEBRIS);//526
-        this.registerVanilla(RESPAWN_ANCHOR);//527
-        this.registerVanilla(BLACKSTONE);//528
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICKS);//529
-        this.registerVanilla(CHISELED_POLISHED_BLACKSTONE);//534
-        this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);//535
-        this.registerVanilla(GILDED_BLACKSTONE);//536
-        this.registerVanilla(CHAIN);//541
-        this.registerVanilla(TWISTING_VINES);//542
-        this.registerVanilla(NETHER_GOLD_ORE);//543
-        this.registerVanilla(CRYING_OBSIDIAN);//544
-        this.registerVanilla(POLISHED_BLACKSTONE);//546
-        this.registerVanilla(QUARTZ_BRICKS);//559
-        this.registerVanilla(UNKNOWN); //560
-
-        this.registerVanilla(POWDER_SNOW);
-        this.registerVanilla(SCULK_SENSOR);
-        this.registerVanilla(POINTED_DRIPSTONE);
-        this.registerVanilla(COPPER_ORE);
+        this.registerVanilla(INVISIBLE_BEDROCK);
+        this.registerVanilla(IRON_BARS);
+        this.registerVanilla(IRON_BLOCK);
+        this.registerVanilla(IRON_CHAIN);
+        this.registerVanilla(IRON_DOOR);
+        this.registerVanilla(IRON_ORE);
+        this.registerVanilla(IRON_TRAPDOOR);
+        this.registerVanilla(JIGSAW);
+        this.registerVanilla(JUKEBOX);
+        this.registerVanilla(JUNGLE_BUTTON);
+        this.registerVanilla(JUNGLE_DOOR);
+        this.registerVanilla(JUNGLE_DOUBLE_SLAB);
+        this.registerVanilla(JUNGLE_FENCE);
+        this.registerVanilla(JUNGLE_FENCE_GATE);
+        this.registerVanilla(JUNGLE_HANGING_SIGN);
+        this.registerVanilla(JUNGLE_LEAVES);
+        this.registerVanilla(JUNGLE_LOG);
+        this.registerVanilla(JUNGLE_PLANKS);
+        this.registerVanilla(JUNGLE_PRESSURE_PLATE);
+        this.registerVanilla(JUNGLE_SAPLING);
+        this.registerVanilla(JUNGLE_SHELF);
+        this.registerVanilla(JUNGLE_SLAB);
+        this.registerVanilla(JUNGLE_STAIRS);
+        this.registerVanilla(JUNGLE_STANDING_SIGN);
+        this.registerVanilla(JUNGLE_TRAPDOOR);
+        this.registerVanilla(JUNGLE_WALL_SIGN);
+        this.registerVanilla(JUNGLE_WOOD);
+        this.registerVanilla(KELP);
+        this.registerVanilla(LAB_TABLE);
+        this.registerVanilla(LADDER);
+        this.registerVanilla(LANTERN);
+        this.registerVanilla(LAPIS_BLOCK);
+        this.registerVanilla(LAPIS_ORE);
+        this.registerVanilla(LARGE_AMETHYST_BUD);
+        this.registerVanilla(LARGE_FERN);
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true);
+        this.registerVanilla(LEAF_LITTER);
+        this.registerVanilla(LECTERN);
+        this.registerVanilla(LEVER);
         this.registerVanilla(LIGHTNING_ROD);
-        this.registerVanilla(DRIPSTONE_BLOCK);
-        this.registerVanilla(DIRT_WITH_ROOTS);
-        this.registerVanilla(HANGING_ROOTS);
+        this.registerVanilla(LIGHT_BLOCK_0).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_1).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_10).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_11).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_12).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_13).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_14).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_15).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_2).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_3).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_4).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_5).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_6).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_7).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_8).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_9).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLUE_CANDLE);
+        this.registerVanilla(LIGHT_BLUE_CANDLE_CAKE);
+        this.registerVanilla(LIGHT_BLUE_CARPET);
+        this.registerVanilla(LIGHT_BLUE_CONCRETE);
+        this.registerVanilla(LIGHT_BLUE_CONCRETE_POWDER);
+        this.registerVanilla(LIGHT_BLUE_GLAZED_TERRACOTTA);
+        this.registerVanilla(LIGHT_BLUE_SHULKER_BOX);
+        this.registerVanilla(LIGHT_BLUE_STAINED_GLASS);
+        this.registerVanilla(LIGHT_BLUE_STAINED_GLASS_PANE);
+        this.registerVanilla(LIGHT_BLUE_TERRACOTTA);
+        this.registerVanilla(LIGHT_BLUE_WOOL);
+        this.registerVanilla(LIGHT_GRAY_CANDLE);
+        this.registerVanilla(LIGHT_GRAY_CANDLE_CAKE);
+        this.registerVanilla(LIGHT_GRAY_CARPET);
+        this.registerVanilla(LIGHT_GRAY_CONCRETE);
+        this.registerVanilla(LIGHT_GRAY_CONCRETE_POWDER);
+        this.registerVanilla(LIGHT_GRAY_GLAZED_TERRACOTTA);
+        this.registerVanilla(LIGHT_GRAY_SHULKER_BOX);
+        this.registerVanilla(LIGHT_GRAY_STAINED_GLASS);
+        this.registerVanilla(LIGHT_GRAY_STAINED_GLASS_PANE);
+        this.registerVanilla(LIGHT_GRAY_TERRACOTTA);
+        this.registerVanilla(LIGHT_GRAY_WOOL);
+        this.registerVanilla(LIGHT_WEIGHTED_PRESSURE_PLATE);
+        this.registerVanilla(LILAC);
+        this.registerVanilla(LILY_OF_THE_VALLEY);
+        this.registerVanilla(LIME_CANDLE);
+        this.registerVanilla(LIME_CANDLE_CAKE);
+        this.registerVanilla(LIME_CARPET);
+        this.registerVanilla(LIME_CONCRETE);
+        this.registerVanilla(LIME_CONCRETE_POWDER);
+        this.registerVanilla(LIME_GLAZED_TERRACOTTA);
+        this.registerVanilla(LIME_SHULKER_BOX);
+        this.registerVanilla(LIME_STAINED_GLASS);
+        this.registerVanilla(LIME_STAINED_GLASS_PANE);
+        this.registerVanilla(LIME_TERRACOTTA);
+        this.registerVanilla(LIME_WOOL);
+        this.registerVanilla(LIT_BLAST_FURNACE);
+        this.registerVanilla(LIT_DEEPSLATE_REDSTONE_ORE);
+        this.registerVanilla(LIT_FURNACE);
+        this.registerVanilla(LIT_PUMPKIN);
+        this.registerVanilla(LIT_REDSTONE_LAMP);
+        this.registerVanilla(LIT_REDSTONE_ORE);
+        this.registerVanilla(LIT_SMOKER);
+        this.registerVanilla(LODESTONE);
+        this.registerVanilla(LOOM);
+        this.registerVanilla(MAGENTA_CANDLE);
+        this.registerVanilla(MAGENTA_CANDLE_CAKE);
+        this.registerVanilla(MAGENTA_CARPET);
+        this.registerVanilla(MAGENTA_CONCRETE);
+        this.registerVanilla(MAGENTA_CONCRETE_POWDER);
+        this.registerVanilla(MAGENTA_GLAZED_TERRACOTTA);
+        this.registerVanilla(MAGENTA_SHULKER_BOX);
+        this.registerVanilla(MAGENTA_STAINED_GLASS);
+        this.registerVanilla(MAGENTA_STAINED_GLASS_PANE);
+        this.registerVanilla(MAGENTA_TERRACOTTA);
+        this.registerVanilla(MAGENTA_WOOL);
+        this.registerVanilla(MAGMA);
+        this.registerVanilla(MANGROVE_BUTTON);
+        this.registerVanilla(MANGROVE_DOOR);
+        this.registerVanilla(MANGROVE_DOUBLE_SLAB);
+        this.registerVanilla(MANGROVE_FENCE);
+        this.registerVanilla(MANGROVE_FENCE_GATE);
+        this.registerVanilla(MANGROVE_HANGING_SIGN);
+        this.registerVanilla(MANGROVE_LEAVES);
+        this.registerVanilla(MANGROVE_LOG);
+        this.registerVanilla(MANGROVE_PLANKS);
+        this.registerVanilla(MANGROVE_PRESSURE_PLATE);
+        this.registerVanilla(MANGROVE_PROPAGULE);
+        this.registerVanilla(MANGROVE_ROOTS);
+        this.registerVanilla(MANGROVE_SHELF);
+        this.registerVanilla(MANGROVE_SLAB);
+        this.registerVanilla(MANGROVE_STAIRS);
+        this.registerVanilla(MANGROVE_STANDING_SIGN);
+        this.registerVanilla(MANGROVE_TRAPDOOR);
+        this.registerVanilla(MANGROVE_WALL_SIGN);
+        this.registerVanilla(MANGROVE_WOOD);
+        this.registerVanilla(MATERIAL_REDUCER);
+        this.registerVanilla(MEDIUM_AMETHYST_BUD);
+        this.registerVanilla(MELON_BLOCK);
+        this.registerVanilla(MELON_STEM);
+        this.registerVanilla(MOB_SPAWNER);
+        this.registerVanilla(MOSSY_COBBLESTONE);
+        this.registerVanilla(MOSSY_COBBLESTONE_DOUBLE_SLAB);
+        this.registerVanilla(MOSSY_COBBLESTONE_SLAB);
+        this.registerVanilla(MOSSY_COBBLESTONE_STAIRS);
+        this.registerVanilla(MOSSY_COBBLESTONE_WALL);
+        this.registerVanilla(MOSSY_STONE_BRICKS);
+        this.registerVanilla(MOSSY_STONE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(MOSSY_STONE_BRICK_SLAB);
+        this.registerVanilla(MOSSY_STONE_BRICK_STAIRS);
+        this.registerVanilla(MOSSY_STONE_BRICK_WALL);
         this.registerVanilla(MOSS_BLOCK);
-        this.registerVanilla(SPORE_BLOSSOM);
-        this.registerVanilla(BIG_DRIPLEAF);
-        this.registerVanilla(AZALEA_LEAVES, MultiBlockSerializers.AZALEA_LEAVES);
-        this.registerVanilla(CALCITE);
-        this.registerVanilla(AMETHYST_BLOCK);
-        this.registerVanilla(BUDDING_AMETHYST);
-        this.registerVanilla(AMETHYST_CLUSTER, MultiBlockSerializers.AMETHYST_CLUSTER);
-        this.registerVanilla(TUFF);
-        this.registerVanilla(TINTED_GLASS);
         this.registerVanilla(MOSS_CARPET);
-        this.registerVanilla(SMALL_DRIPLEAF);
-        this.registerVanilla(AZALEA, MultiBlockSerializers.AZALEA);
-        this.registerVanilla(COPPER, MultiBlockSerializers.COPPER_BLOCKS);
-        this.registerVanilla(CUT_COPPER, MultiBlockSerializers.CUT_COPPER);
-        this.registerVanilla(COPPER_SLAB, SlabSerializer.INSTANCE);
-        this.registerVanilla(COPPER_STAIRS, MultiBlockSerializers.COPPER_STAIRS);
-        this.registerVanilla(CAVE_VINES, MultiBlockSerializers.CAVE_VINES);
-        this.registerVanilla(SMOOTH_BASALT);
-        this.registerVanilla(DEEPSLATE, MultiBlockSerializers.DEEPSLATE);
-        this.registerVanilla(COBBLED_DEEPSLATE);
+        this.registerVanilla(MOVING_BLOCK);
+        this.registerVanilla(MUD);
+        this.registerVanilla(MUDDY_MANGROVE_ROOTS);
+        this.registerVanilla(MUD_BRICKS);
+        this.registerVanilla(MUD_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(MUD_BRICK_SLAB);
+        this.registerVanilla(MUD_BRICK_STAIRS);
+        this.registerVanilla(MUD_BRICK_WALL);
+        this.registerVanilla(MUSHROOM_STEM);
+        this.registerVanilla(MYCELIUM);
+        this.registerVanilla(NETHERITE_BLOCK);
+        this.registerVanilla(NETHERRACK);
+        this.registerVanilla(NETHERREACTOR);
+        this.registerVanilla(NETHER_BRICK);
+        this.registerVanilla(NETHER_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(NETHER_BRICK_FENCE);
+        this.registerVanilla(NETHER_BRICK_SLAB);
+        this.registerVanilla(NETHER_BRICK_STAIRS);
+        this.registerVanilla(NETHER_BRICK_WALL);
+        this.registerVanilla(NETHER_GOLD_ORE);
+        this.registerVanilla(NETHER_SPROUTS);
+        this.registerVanilla(NETHER_WART);
+        this.registerVanilla(NETHER_WART_BLOCK);
+        this.registerVanilla(NORMAL_STONE_DOUBLE_SLAB);
+        this.registerVanilla(NORMAL_STONE_SLAB);
+        this.registerVanilla(NORMAL_STONE_STAIRS);
+        this.registerVanilla(NOTE_BLOCK);
+        this.registerVanilla(OAK_BUTTON);
+        this.registerVanilla(OAK_DOOR);
+        this.registerVanilla(OAK_DOUBLE_SLAB);
+        this.registerVanilla(OAK_FENCE);
+        this.registerVanilla(OAK_FENCE_GATE);
+        this.registerVanilla(OAK_HANGING_SIGN);
+        this.registerVanilla(OAK_LEAVES);
+        this.registerVanilla(OAK_LOG);
+        this.registerVanilla(OAK_PLANKS);
+        this.registerVanilla(OAK_PRESSURE_PLATE);
+        this.registerVanilla(OAK_SAPLING);
+        this.registerVanilla(OAK_SHELF);
+        this.registerVanilla(OAK_SLAB);
+        this.registerVanilla(OAK_STAIRS);
+        this.registerVanilla(OAK_STANDING_SIGN);
+        this.registerVanilla(OAK_TRAPDOOR);
+        this.registerVanilla(OAK_WALL_SIGN);
+        this.registerVanilla(OAK_WOOD);
+        this.registerVanilla(OBSERVER);
+        this.registerVanilla(OBSIDIAN);
+        this.registerVanilla(OCHRE_FROGLIGHT);
+        this.registerVanilla(OPEN_EYEBLOSSOM);
+        this.registerVanilla(ORANGE_CANDLE);
+        this.registerVanilla(ORANGE_CANDLE_CAKE);
+        this.registerVanilla(ORANGE_CARPET);
+        this.registerVanilla(ORANGE_CONCRETE);
+        this.registerVanilla(ORANGE_CONCRETE_POWDER);
+        this.registerVanilla(ORANGE_GLAZED_TERRACOTTA);
+        this.registerVanilla(ORANGE_SHULKER_BOX);
+        this.registerVanilla(ORANGE_STAINED_GLASS);
+        this.registerVanilla(ORANGE_STAINED_GLASS_PANE);
+        this.registerVanilla(ORANGE_TERRACOTTA);
+        this.registerVanilla(ORANGE_TULIP);
+        this.registerVanilla(ORANGE_WOOL);
+        this.registerVanilla(OXEYE_DAISY);
+        this.registerVanilla(OXIDIZED_CHISELED_COPPER);
+        this.registerVanilla(OXIDIZED_COPPER);
+        this.registerVanilla(OXIDIZED_COPPER_BARS);
+        this.registerVanilla(OXIDIZED_COPPER_BULB);
+        this.registerVanilla(OXIDIZED_COPPER_CHAIN);
+        this.registerVanilla(OXIDIZED_COPPER_CHEST);
+        this.registerVanilla(OXIDIZED_COPPER_DOOR);
+        this.registerVanilla(OXIDIZED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(OXIDIZED_COPPER_GRATE);
+        this.registerVanilla(OXIDIZED_COPPER_LANTERN);
+        this.registerVanilla(OXIDIZED_COPPER_TRAPDOOR);
+        this.registerVanilla(OXIDIZED_CUT_COPPER);
+        this.registerVanilla(OXIDIZED_CUT_COPPER_SLAB);
+        this.registerVanilla(OXIDIZED_CUT_COPPER_STAIRS);
+        this.registerVanilla(OXIDIZED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(OXIDIZED_LIGHTNING_ROD);
+        this.registerVanilla(PACKED_ICE);
+        this.registerVanilla(PACKED_MUD);
+        this.registerVanilla(PALE_HANGING_MOSS);
+        this.registerVanilla(PALE_MOSS_BLOCK);
+        this.registerVanilla(PALE_MOSS_CARPET);
+        this.registerVanilla(PALE_OAK_BUTTON);
+        this.registerVanilla(PALE_OAK_DOOR);
+        this.registerVanilla(PALE_OAK_DOUBLE_SLAB);
+        this.registerVanilla(PALE_OAK_FENCE);
+        this.registerVanilla(PALE_OAK_FENCE_GATE);
+        this.registerVanilla(PALE_OAK_HANGING_SIGN);
+        this.registerVanilla(PALE_OAK_LEAVES);
+        this.registerVanilla(PALE_OAK_LOG);
+        this.registerVanilla(PALE_OAK_PLANKS);
+        this.registerVanilla(PALE_OAK_PRESSURE_PLATE);
+        this.registerVanilla(PALE_OAK_SAPLING);
+        this.registerVanilla(PALE_OAK_SHELF);
+        this.registerVanilla(PALE_OAK_SLAB);
+        this.registerVanilla(PALE_OAK_STAIRS);
+        this.registerVanilla(PALE_OAK_STANDING_SIGN);
+        this.registerVanilla(PALE_OAK_TRAPDOOR);
+        this.registerVanilla(PALE_OAK_WALL_SIGN);
+        this.registerVanilla(PALE_OAK_WOOD);
+        this.registerVanilla(PEARLESCENT_FROGLIGHT);
+        this.registerVanilla(PEONY);
+        this.registerVanilla(PETRIFIED_OAK_DOUBLE_SLAB);
+        this.registerVanilla(PETRIFIED_OAK_SLAB);
+        this.registerVanilla(PIGLIN_HEAD);
+        this.registerVanilla(PINK_CANDLE);
+        this.registerVanilla(PINK_CANDLE_CAKE);
+        this.registerVanilla(PINK_CARPET);
+        this.registerVanilla(PINK_CONCRETE);
+        this.registerVanilla(PINK_CONCRETE_POWDER);
+        this.registerVanilla(PINK_GLAZED_TERRACOTTA);
+        this.registerVanilla(PINK_PETALS);
+        this.registerVanilla(PINK_SHULKER_BOX);
+        this.registerVanilla(PINK_STAINED_GLASS);
+        this.registerVanilla(PINK_STAINED_GLASS_PANE);
+        this.registerVanilla(PINK_TERRACOTTA);
+        this.registerVanilla(PINK_TULIP);
+        this.registerVanilla(PINK_WOOL);
+        this.registerVanilla(PISTON);
+        this.registerVanilla(PISTON_ARM_COLLISION);
+        this.registerVanilla(PITCHER_CROP);
+        this.registerVanilla(PITCHER_PLANT);
+        this.registerVanilla(PLAYER_HEAD);
+        this.registerVanilla(PODZOL);
+        this.registerVanilla(POINTED_DRIPSTONE);
+        this.registerVanilla(POLISHED_ANDESITE);
+        this.registerVanilla(POLISHED_ANDESITE_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_ANDESITE_SLAB);
+        this.registerVanilla(POLISHED_ANDESITE_STAIRS);
+        this.registerVanilla(POLISHED_BASALT);
+        this.registerVanilla(POLISHED_BLACKSTONE);
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICKS);
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB);
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS);
+        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL);
+        this.registerVanilla(POLISHED_BLACKSTONE_BUTTON);
+        this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE);
+        this.registerVanilla(POLISHED_BLACKSTONE_SLAB);
+        this.registerVanilla(POLISHED_BLACKSTONE_STAIRS);
+        this.registerVanilla(POLISHED_BLACKSTONE_WALL);
         this.registerVanilla(POLISHED_DEEPSLATE);
-        this.registerVanilla(DEEPSLATE_TILES);
-        this.registerVanilla(DEEPSLATE_BRICKS);
-        this.registerVanilla(CHISELED_DEEPSLATE);
-        this.registerVanilla(DEEPSLATE_LAPIS_ORE);
-        this.registerVanilla(DEEPSLATE_IRON_ORE);
-        this.registerVanilla(DEEPSLATE_GOLD_ORE);
-        this.registerVanilla(DEEPSLATE_REDSTONE_ORE, MultiBlockSerializers.DEEPSLATE_REDSTONE_ORE);
-        this.registerVanilla(DEEPSLATE_DIAMOND_ORE);
-        this.registerVanilla(DEEPSLATE_COAL_ORE);
-        this.registerVanilla(DEEPSLATE_EMERALD_ORE);
-        this.registerVanilla(DEEPSLATE_COPPER_ORE);
-        this.registerVanilla(CRACKED_DEEPSLATE_TILES);
-        this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
-        this.registerVanilla(GLOW_LICHEN);
-        this.registerVanilla(CANDLE, MultiBlockSerializers.CANDLES);
-        this.registerVanilla(CANDLE_CAKE, MultiBlockSerializers.CANDLE_CAKES);
-        this.registerVanilla(RAW_IRON_BLOCK);
+        this.registerVanilla(POLISHED_DEEPSLATE_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_DEEPSLATE_SLAB);
+        this.registerVanilla(POLISHED_DEEPSLATE_STAIRS);
+        this.registerVanilla(POLISHED_DEEPSLATE_WALL);
+        this.registerVanilla(POLISHED_DIORITE);
+        this.registerVanilla(POLISHED_DIORITE_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_DIORITE_SLAB);
+        this.registerVanilla(POLISHED_DIORITE_STAIRS);
+        this.registerVanilla(POLISHED_GRANITE);
+        this.registerVanilla(POLISHED_GRANITE_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_GRANITE_SLAB);
+        this.registerVanilla(POLISHED_GRANITE_STAIRS);
+        this.registerVanilla(POLISHED_TUFF);
+        this.registerVanilla(POLISHED_TUFF_DOUBLE_SLAB);
+        this.registerVanilla(POLISHED_TUFF_SLAB);
+        this.registerVanilla(POLISHED_TUFF_STAIRS);
+        this.registerVanilla(POLISHED_TUFF_WALL);
+        this.registerVanilla(POPPY);
+        this.registerVanilla(PORTAL);
+        this.registerVanilla(POTATOES);
+        this.registerVanilla(POWDER_SNOW);
+        this.registerVanilla(POWERED_COMPARATOR);
+        this.registerVanilla(POWERED_REPEATER);
+        this.registerVanilla(PRISMARINE);
+        this.registerVanilla(PRISMARINE_BRICKS);
+        this.registerVanilla(PRISMARINE_BRICKS_STAIRS);
+        this.registerVanilla(PRISMARINE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(PRISMARINE_BRICK_SLAB);
+        this.registerVanilla(PRISMARINE_DOUBLE_SLAB);
+        this.registerVanilla(PRISMARINE_SLAB);
+        this.registerVanilla(PRISMARINE_STAIRS);
+        this.registerVanilla(PRISMARINE_WALL);
+        this.registerVanilla(PUMPKIN);
+        this.registerVanilla(PUMPKIN_STEM);
+        this.registerVanilla(PURPLE_CANDLE);
+        this.registerVanilla(PURPLE_CANDLE_CAKE);
+        this.registerVanilla(PURPLE_CARPET);
+        this.registerVanilla(PURPLE_CONCRETE);
+        this.registerVanilla(PURPLE_CONCRETE_POWDER);
+        this.registerVanilla(PURPLE_GLAZED_TERRACOTTA);
+        this.registerVanilla(PURPLE_SHULKER_BOX);
+        this.registerVanilla(PURPLE_STAINED_GLASS);
+        this.registerVanilla(PURPLE_STAINED_GLASS_PANE);
+        this.registerVanilla(PURPLE_TERRACOTTA);
+        this.registerVanilla(PURPLE_WOOL);
+        this.registerVanilla(PURPUR_BLOCK);
+        this.registerVanilla(PURPUR_DOUBLE_SLAB);
+        this.registerVanilla(PURPUR_PILLAR);
+        this.registerVanilla(PURPUR_SLAB);
+        this.registerVanilla(PURPUR_STAIRS);
+        this.registerVanilla(QUARTZ_BLOCK);
+        this.registerVanilla(QUARTZ_BRICKS);
+        this.registerVanilla(QUARTZ_DOUBLE_SLAB);
+        this.registerVanilla(QUARTZ_ORE);
+        this.registerVanilla(QUARTZ_PILLAR);
+        this.registerVanilla(QUARTZ_SLAB);
+        this.registerVanilla(QUARTZ_STAIRS);
+        this.registerVanilla(RAIL);
         this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
-
-        this.registerVanilla(SCULK);
-        this.registerVanilla(SCULK_VEIN);
-        this.registerVanilla(SCULK_CATALYST);
-        this.registerVanilla(SCULK_SHRIEKER);
-        this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
-//        this.registerVanilla(MYSTERIOUS_FRAME);
-//        this.registerVanilla(MYSTERIOUS_FRAME_SLOT);
-        this.registerVanilla(FROG_SPAWN);
-        this.registerVanilla(PEARLESCENT_FROGLIGHT);
-        this.registerVanilla(VERDANT_FROGLIGHT);
-        this.registerVanilla(OCHRE_FROGLIGHT);
-        this.registerVanilla(MANGROVE_ROOTS);
-        this.registerVanilla(MUDDY_MANGROVE_ROOTS);
-        this.registerVanilla(MANGROVE_PROPAGULE);
+        this.registerVanilla(RAW_IRON_BLOCK);
+        this.registerVanilla(REDSTONE_BLOCK);
+        this.registerVanilla(REDSTONE_LAMP);
+        this.registerVanilla(REDSTONE_ORE);
+        this.registerVanilla(REDSTONE_TORCH);
+        this.registerVanilla(REDSTONE_WIRE);
+        this.registerVanilla(RED_CANDLE);
+        this.registerVanilla(RED_CANDLE_CAKE);
+        this.registerVanilla(RED_CARPET);
+        this.registerVanilla(RED_CONCRETE);
+        this.registerVanilla(RED_CONCRETE_POWDER);
+        this.registerVanilla(RED_GLAZED_TERRACOTTA);
+        this.registerVanilla(RED_MUSHROOM);
+        this.registerVanilla(RED_MUSHROOM_BLOCK);
+        this.registerVanilla(RED_NETHER_BRICK);
+        this.registerVanilla(RED_NETHER_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(RED_NETHER_BRICK_SLAB);
+        this.registerVanilla(RED_NETHER_BRICK_STAIRS);
+        this.registerVanilla(RED_NETHER_BRICK_WALL);
+        this.registerVanilla(RED_SAND);
+        this.registerVanilla(RED_SANDSTONE);
+        this.registerVanilla(RED_SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(RED_SANDSTONE_SLAB);
+        this.registerVanilla(RED_SANDSTONE_STAIRS);
+        this.registerVanilla(RED_SANDSTONE_WALL);
+        this.registerVanilla(RED_SHULKER_BOX);
+        this.registerVanilla(RED_STAINED_GLASS);
+        this.registerVanilla(RED_STAINED_GLASS_PANE);
+        this.registerVanilla(RED_TERRACOTTA);
+        this.registerVanilla(RED_TULIP);
+        this.registerVanilla(RED_WOOL);
+        this.registerVanilla(REEDS);
         this.registerVanilla(REINFORCED_DEEPSLATE);
-        this.registerVanilla(GLOW_FRAME);
+        this.registerVanilla(REPEATING_COMMAND_BLOCK);
+        this.registerVanilla(RESERVED6);
+        this.registerVanilla(RESIN_BLOCK);
+        this.registerVanilla(RESIN_BRICKS);
+        this.registerVanilla(RESIN_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(RESIN_BRICK_SLAB);
+        this.registerVanilla(RESIN_BRICK_STAIRS);
+        this.registerVanilla(RESIN_BRICK_WALL);
+        this.registerVanilla(RESIN_CLUMP);
+        this.registerVanilla(RESPAWN_ANCHOR);
+        this.registerVanilla(ROSE_BUSH);
+        this.registerVanilla(SAND);
+        this.registerVanilla(SANDSTONE);
+        this.registerVanilla(SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(SANDSTONE_SLAB);
+        this.registerVanilla(SANDSTONE_STAIRS);
+        this.registerVanilla(SANDSTONE_WALL);
+        this.registerVanilla(SCAFFOLDING);
+        this.registerVanilla(SCULK);
+        this.registerVanilla(SCULK_CATALYST);
+        this.registerVanilla(SCULK_SENSOR);
+        this.registerVanilla(SCULK_SHRIEKER);
+        this.registerVanilla(SCULK_VEIN);
+        this.registerVanilla(SEAGRASS);
+        this.registerVanilla(SEA_LANTERN);
+        this.registerVanilla(SEA_PICKLE);
+        this.registerVanilla(SHORT_DRY_GRASS);
+        this.registerVanilla(SHORT_GRASS);
+        this.registerVanilla(SHROOMLIGHT);
+        this.registerVanilla(SKELETON_SKULL);
+        this.registerVanilla(SLIME);
+        this.registerVanilla(SMALL_AMETHYST_BUD);
+        this.registerVanilla(SMALL_DRIPLEAF_BLOCK);
+        this.registerVanilla(SMITHING_TABLE);
+        this.registerVanilla(SMOKER);
+        this.registerVanilla(SMOOTH_BASALT);
+        this.registerVanilla(SMOOTH_QUARTZ);
+        this.registerVanilla(SMOOTH_QUARTZ_DOUBLE_SLAB);
+        this.registerVanilla(SMOOTH_QUARTZ_SLAB);
+        this.registerVanilla(SMOOTH_QUARTZ_STAIRS);
+        this.registerVanilla(SMOOTH_RED_SANDSTONE);
+        this.registerVanilla(SMOOTH_RED_SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(SMOOTH_RED_SANDSTONE_SLAB);
+        this.registerVanilla(SMOOTH_RED_SANDSTONE_STAIRS);
+        this.registerVanilla(SMOOTH_SANDSTONE);
+        this.registerVanilla(SMOOTH_SANDSTONE_DOUBLE_SLAB);
+        this.registerVanilla(SMOOTH_SANDSTONE_SLAB);
+        this.registerVanilla(SMOOTH_SANDSTONE_STAIRS);
+        this.registerVanilla(SMOOTH_STONE);
+        this.registerVanilla(SMOOTH_STONE_DOUBLE_SLAB);
+        this.registerVanilla(SMOOTH_STONE_SLAB);
+        this.registerVanilla(SNIFFER_EGG);
+        this.registerVanilla(SNOW);
+        this.registerVanilla(SNOW_LAYER);
+        this.registerVanilla(SOUL_CAMPFIRE);
+        this.registerVanilla(SOUL_FIRE);
+        this.registerVanilla(SOUL_LANTERN);
+        this.registerVanilla(SOUL_SAND);
+        this.registerVanilla(SOUL_SOIL);
+        this.registerVanilla(SOUL_TORCH);
+        this.registerVanilla(SPONGE);
+        this.registerVanilla(SPORE_BLOSSOM);
+        this.registerVanilla(SPRUCE_BUTTON);
+        this.registerVanilla(SPRUCE_DOOR);
+        this.registerVanilla(SPRUCE_DOUBLE_SLAB);
+        this.registerVanilla(SPRUCE_FENCE);
+        this.registerVanilla(SPRUCE_FENCE_GATE);
+        this.registerVanilla(SPRUCE_HANGING_SIGN);
+        this.registerVanilla(SPRUCE_LEAVES);
+        this.registerVanilla(SPRUCE_LOG);
+        this.registerVanilla(SPRUCE_PLANKS);
+        this.registerVanilla(SPRUCE_PRESSURE_PLATE);
+        this.registerVanilla(SPRUCE_SAPLING);
+        this.registerVanilla(SPRUCE_SHELF);
+        this.registerVanilla(SPRUCE_SLAB);
+        this.registerVanilla(SPRUCE_STAIRS);
+        this.registerVanilla(SPRUCE_STANDING_SIGN);
+        this.registerVanilla(SPRUCE_TRAPDOOR);
+        this.registerVanilla(SPRUCE_WALL_SIGN);
+        this.registerVanilla(SPRUCE_WOOD);
+        this.registerVanilla(STANDING_BANNER);
+        this.registerVanilla(STICKY_PISTON);
+        this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
+        this.registerVanilla(STONE);
+        this.registerVanilla(STONECUTTER);
+        this.registerVanilla(STONECUTTER_BLOCK);
+        this.registerVanilla(STONE_BRICKS);
+        this.registerVanilla(STONE_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(STONE_BRICK_SLAB);
+        this.registerVanilla(STONE_BRICK_STAIRS);
+        this.registerVanilla(STONE_BRICK_WALL);
+        this.registerVanilla(STONE_BUTTON);
+        this.registerVanilla(STONE_PRESSURE_PLATE);
+        this.registerVanilla(STONE_STAIRS);
+        this.registerVanilla(STRIPPED_ACACIA_LOG);
+        this.registerVanilla(STRIPPED_ACACIA_WOOD);
+        this.registerVanilla(STRIPPED_BAMBOO_BLOCK);
+        this.registerVanilla(STRIPPED_BIRCH_LOG);
+        this.registerVanilla(STRIPPED_BIRCH_WOOD);
+        this.registerVanilla(STRIPPED_CHERRY_LOG);
+        this.registerVanilla(STRIPPED_CHERRY_WOOD);
+        this.registerVanilla(STRIPPED_CRIMSON_HYPHAE);
+        this.registerVanilla(STRIPPED_CRIMSON_STEM);
+        this.registerVanilla(STRIPPED_DARK_OAK_LOG);
+        this.registerVanilla(STRIPPED_DARK_OAK_WOOD);
+        this.registerVanilla(STRIPPED_JUNGLE_LOG);
+        this.registerVanilla(STRIPPED_JUNGLE_WOOD);
+        this.registerVanilla(STRIPPED_MANGROVE_LOG);
         this.registerVanilla(STRIPPED_MANGROVE_WOOD);
+        this.registerVanilla(STRIPPED_OAK_LOG);
+        this.registerVanilla(STRIPPED_OAK_WOOD);
+        this.registerVanilla(STRIPPED_PALE_OAK_LOG);
+        this.registerVanilla(STRIPPED_PALE_OAK_WOOD);
+        this.registerVanilla(STRIPPED_SPRUCE_LOG);
+        this.registerVanilla(STRIPPED_SPRUCE_WOOD);
+        this.registerVanilla(STRIPPED_WARPED_HYPHAE);
+        this.registerVanilla(STRIPPED_WARPED_STEM);
+        this.registerVanilla(STRUCTURE_BLOCK);
+        this.registerVanilla(STRUCTURE_VOID).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(SUNFLOWER);
+        this.registerVanilla(SUSPICIOUS_GRAVEL);
+        this.registerVanilla(SUSPICIOUS_SAND);
+        this.registerVanilla(SWEET_BERRY_BUSH);
+        this.registerVanilla(TALL_DRY_GRASS);
+        this.registerVanilla(TALL_GRASS);
+        this.registerVanilla(TARGET);
+        this.registerVanilla(TINTED_GLASS);
+        this.registerVanilla(TNT);
+        this.registerVanilla(TORCH);
+        this.registerVanilla(TORCHFLOWER);
+        this.registerVanilla(TORCHFLOWER_CROP);
+        this.registerVanilla(TRAPPED_CHEST);
+        this.registerVanilla(TRIAL_SPAWNER);
+        this.registerVanilla(TRIPWIRE_HOOK);
+        this.registerVanilla(TRIP_WIRE);
+        this.registerVanilla(TUBE_CORAL);
+        this.registerVanilla(TUBE_CORAL_BLOCK);
+        this.registerVanilla(TUBE_CORAL_FAN);
+        this.registerVanilla(TUBE_CORAL_WALL_FAN);
+        this.registerVanilla(TUFF);
+        this.registerVanilla(TUFF_BRICKS);
+        this.registerVanilla(TUFF_BRICK_DOUBLE_SLAB);
+        this.registerVanilla(TUFF_BRICK_SLAB);
+        this.registerVanilla(TUFF_BRICK_STAIRS);
+        this.registerVanilla(TUFF_BRICK_WALL);
+        this.registerVanilla(TUFF_DOUBLE_SLAB);
+        this.registerVanilla(TUFF_SLAB);
+        this.registerVanilla(TUFF_STAIRS);
+        this.registerVanilla(TUFF_WALL);
+        this.registerVanilla(TURTLE_EGG);
+        this.registerVanilla(TWISTING_VINES);
+        this.registerVanilla(UNDERWATER_TNT);
+        this.registerVanilla(UNDERWATER_TORCH);
+        this.registerVanilla(UNDYED_SHULKER_BOX);
+        this.registerVanilla(UNKNOWN);
+        this.registerVanilla(UNLIT_REDSTONE_TORCH);
+        this.registerVanilla(UNPOWERED_COMPARATOR);
+        this.registerVanilla(UNPOWERED_REPEATER);
+        this.registerVanilla(VAULT);
+        this.registerVanilla(VERDANT_FROGLIGHT);
+        this.registerVanilla(VINE);
+        this.registerVanilla(WALL_BANNER);
+        this.registerVanilla(WARPED_BUTTON);
+        this.registerVanilla(WARPED_DOOR);
+        this.registerVanilla(WARPED_DOUBLE_SLAB);
+        this.registerVanilla(WARPED_FENCE);
+        this.registerVanilla(WARPED_FENCE_GATE);
+        this.registerVanilla(WARPED_FUNGUS);
+        this.registerVanilla(WARPED_HANGING_SIGN);
+        this.registerVanilla(WARPED_HYPHAE);
+        this.registerVanilla(WARPED_NYLIUM);
+        this.registerVanilla(WARPED_PLANKS);
+        this.registerVanilla(WARPED_PRESSURE_PLATE);
+        this.registerVanilla(WARPED_ROOTS);
+        this.registerVanilla(WARPED_SHELF);
+        this.registerVanilla(WARPED_SLAB);
+        this.registerVanilla(WARPED_STAIRS);
+        this.registerVanilla(WARPED_STANDING_SIGN);
+        this.registerVanilla(WARPED_STEM);
+        this.registerVanilla(WARPED_TRAPDOOR);
+        this.registerVanilla(WARPED_WALL_SIGN);
+        this.registerVanilla(WARPED_WART_BLOCK);
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE);
+        this.registerVanilla(WATERLILY);
+        this.registerVanilla(WAXED_CHISELED_COPPER);
+        this.registerVanilla(WAXED_COPPER);
+        this.registerVanilla(WAXED_COPPER_BARS);
+        this.registerVanilla(WAXED_COPPER_BULB);
+        this.registerVanilla(WAXED_COPPER_CHAIN);
+        this.registerVanilla(WAXED_COPPER_CHEST);
+        this.registerVanilla(WAXED_COPPER_DOOR);
+        this.registerVanilla(WAXED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(WAXED_COPPER_GRATE);
+        this.registerVanilla(WAXED_COPPER_LANTERN);
+        this.registerVanilla(WAXED_COPPER_TRAPDOOR);
+        this.registerVanilla(WAXED_CUT_COPPER);
+        this.registerVanilla(WAXED_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_CUT_COPPER_STAIRS);
+        this.registerVanilla(WAXED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_EXPOSED_CHISELED_COPPER);
+        this.registerVanilla(WAXED_EXPOSED_COPPER);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_BARS);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_BULB);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_CHAIN);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_CHEST);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_DOOR);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_GRATE);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_LANTERN);
+        this.registerVanilla(WAXED_EXPOSED_COPPER_TRAPDOOR);
+        this.registerVanilla(WAXED_EXPOSED_CUT_COPPER);
+        this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_STAIRS);
+        this.registerVanilla(WAXED_EXPOSED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_EXPOSED_LIGHTNING_ROD);
+        this.registerVanilla(WAXED_LIGHTNING_ROD);
+        this.registerVanilla(WAXED_OXIDIZED_CHISELED_COPPER);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_BARS);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_BULB);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_CHAIN);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_CHEST);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_DOOR);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_GRATE);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_LANTERN);
+        this.registerVanilla(WAXED_OXIDIZED_COPPER_TRAPDOOR);
+        this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER);
+        this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_STAIRS);
+        this.registerVanilla(WAXED_OXIDIZED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_OXIDIZED_LIGHTNING_ROD);
+        this.registerVanilla(WAXED_WEATHERED_CHISELED_COPPER);
+        this.registerVanilla(WAXED_WEATHERED_COPPER);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_BARS);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_BULB);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_CHAIN);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_CHEST);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_DOOR);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_GRATE);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_LANTERN);
+        this.registerVanilla(WAXED_WEATHERED_COPPER_TRAPDOOR);
+        this.registerVanilla(WAXED_WEATHERED_CUT_COPPER);
+        this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_STAIRS);
+        this.registerVanilla(WAXED_WEATHERED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(WAXED_WEATHERED_LIGHTNING_ROD);
+        this.registerVanilla(WEATHERED_CHISELED_COPPER);
+        this.registerVanilla(WEATHERED_COPPER);
+        this.registerVanilla(WEATHERED_COPPER_BARS);
+        this.registerVanilla(WEATHERED_COPPER_BULB);
+        this.registerVanilla(WEATHERED_COPPER_CHAIN);
+        this.registerVanilla(WEATHERED_COPPER_CHEST);
+        this.registerVanilla(WEATHERED_COPPER_DOOR);
+        this.registerVanilla(WEATHERED_COPPER_GOLEM_STATUE);
+        this.registerVanilla(WEATHERED_COPPER_GRATE);
+        this.registerVanilla(WEATHERED_COPPER_LANTERN);
+        this.registerVanilla(WEATHERED_COPPER_TRAPDOOR);
+        this.registerVanilla(WEATHERED_CUT_COPPER);
+        this.registerVanilla(WEATHERED_CUT_COPPER_SLAB);
+        this.registerVanilla(WEATHERED_CUT_COPPER_STAIRS);
+        this.registerVanilla(WEATHERED_DOUBLE_CUT_COPPER_SLAB);
+        this.registerVanilla(WEATHERED_LIGHTNING_ROD);
+        this.registerVanilla(WEB);
+        this.registerVanilla(WEEPING_VINES);
+        this.registerVanilla(WET_SPONGE);
+        this.registerVanilla(WHEAT);
+        this.registerVanilla(WHITE_CANDLE);
+        this.registerVanilla(WHITE_CANDLE_CAKE);
+        this.registerVanilla(WHITE_CARPET);
+        this.registerVanilla(WHITE_CONCRETE);
+        this.registerVanilla(WHITE_CONCRETE_POWDER);
+        this.registerVanilla(WHITE_GLAZED_TERRACOTTA);
+        this.registerVanilla(WHITE_SHULKER_BOX);
+        this.registerVanilla(WHITE_STAINED_GLASS);
+        this.registerVanilla(WHITE_STAINED_GLASS_PANE);
+        this.registerVanilla(WHITE_TERRACOTTA);
+        this.registerVanilla(WHITE_TULIP);
+        this.registerVanilla(WHITE_WOOL);
+        this.registerVanilla(WILDFLOWERS);
+        this.registerVanilla(WITHER_ROSE);
+        this.registerVanilla(WITHER_SKELETON_SKULL);
+        this.registerVanilla(YELLOW_CANDLE);
+        this.registerVanilla(YELLOW_CANDLE_CAKE);
+        this.registerVanilla(YELLOW_CARPET);
+        this.registerVanilla(YELLOW_CONCRETE);
+        this.registerVanilla(YELLOW_CONCRETE_POWDER);
+        this.registerVanilla(YELLOW_GLAZED_TERRACOTTA);
+        this.registerVanilla(YELLOW_SHULKER_BOX);
+        this.registerVanilla(YELLOW_STAINED_GLASS);
+        this.registerVanilla(YELLOW_STAINED_GLASS_PANE);
+        this.registerVanilla(YELLOW_TERRACOTTA);
+        this.registerVanilla(YELLOW_WOOL);
+        this.registerVanilla(ZOMBIE_HEAD);
     }
 
     private void registerVanillaBehaviors() {

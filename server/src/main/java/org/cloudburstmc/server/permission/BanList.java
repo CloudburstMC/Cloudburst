@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.permission;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.utils.Utils;

@@ -6,5 +6,5 @@ elevationVanilla:
 
 decorators:
   - id: "cloudburst:surface"
-    top: "grass"
+    top: "grass_block"
     filler: "dirt"

@@ -75,9 +75,13 @@ public class CommandData {
     public org.cloudburstmc.protocol.bedrock.data.command.CommandData toNetwork() {
         String description = CloudServer.getInstance().getLanguage().translate(this.description);
 
+        // Since 1.21.130, the maximum description length is 1000 characters
+        // Truncate descriptions at 950 characters to be safe
+        if (description.length() > 950) {
+            description = description.substring(0, 947) + "...";
+        }
+
         CommandOverloadData[] overloadData = new CommandOverloadData[this.overloads.size()];
-
-
         for (int i = 0; i < overloadData.length; i++) {
             CommandParameter[] parameters = this.overloads.get(i);
             CommandParamData[] params = new CommandParamData[parameters.length];

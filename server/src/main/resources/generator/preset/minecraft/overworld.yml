@@ -24,7 +24,7 @@ populators:
   - id: "cloudburst:lake"
     chance: 0.0009765625 # about 1 per 4 chunks
     block: "water"
-    surfaceBlocks: "grass,podzol,mycelium"
+    surfaceBlocks: "grass_block,podzol,mycelium"
     replaceWithSurface: "dirt"
 
     # Lava lakes (underground)
@@ -46,7 +46,7 @@ populators:
       downwardBias: true
     block: "lava"
     border: "stone"
-    surfaceBlocks: "grass,podzol,mycelium"
+    surfaceBlocks: "grass_block,podzol,mycelium"
     replaceWithSurface: "dirt"
 
   - id: "cloudburst:next"
@@ -70,7 +70,7 @@ populators:
     chance: 0.1171875 # about 30 per chunk
     size: 33
     height: "0-80"
-    block: "stone{stone_type=granite},stone{stone_type=andesite},stone{stone_type=diorite}"
+    block: "granite,andesite,diorite"
     replace: "stone"
 
     #

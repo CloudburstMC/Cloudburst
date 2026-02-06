@@ -5,33 +5,33 @@ elevationVanilla:
 
 decorators:
   - id: "cloudburst:surface"
-    top: "grass"
+    top: "grass_block"
     filler: "dirt"
 
 populators:
     # Acacia trees
   - id: "cloudburst:tree"
     chance: 0.00390625 # about 1 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     type: "acacia"
 
     # Double tall grass
   - id: "cloudburst:double_plant"
     chance: 0.02734375 # about 7 per chunk
-    on: "grass"
+    on: "grass_block"
     type: 2
 
     # Flowers
   - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "2*yellow_flower,red_flower"
+    block: "2*dandelion,poppy"
 
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.078125 # about 20 per chunk
-    on: "grass"
-    block: "tallgrass"
+    on: "grass_block"
+    block: "short_grass"

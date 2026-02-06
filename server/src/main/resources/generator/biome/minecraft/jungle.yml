@@ -5,14 +5,14 @@ elevationVanilla:
 
 decorators:
   - id: "cloudburst:surface"
-    top: "grass"
+    top: "grass_block"
     filler: "dirt"
 
 populators:
     # Fallen trees
   - id: "cloudburst:tree"
     chance: 0.0005580357 # about 1 per 7 chunks
-    on: "grass"
+    on: "grass_block"
     type:
       species: "jungle"
       fallen: true
@@ -20,7 +20,7 @@ populators:
     # Trees
   - id: "cloudburst:tree"
     chance: 0.015625 # about 4 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     type:
       species: "jungle"
@@ -31,12 +31,12 @@ populators:
     chance: 0.2 # about one per 5 logs
     avoidDouble: true
     height: "60-75"
-    on: "log{old_log_type=jungle}"
+    on: "jungle_log"
 
     # Melons
   - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     roundDown: false
     block: "melon_block"
@@ -44,29 +44,29 @@ populators:
     # Huge trees
   - id: "cloudburst:huge_tree"
     chance: 0.02197265625 # about 5.625 per chunk
-    on: "grass"
-    replace: "air,leaves{old_leaf_type=jungle}"
-    below: "grass"
+    on: "grass_block"
+    replace: "air,jungle_leaves"
+    below: "grass_block"
     type: "jungle"
 
     # Bushes
   - id: "cloudburst:bush"
     chance: 0.0390625 # about 10 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
-    log: "log{old_log_type=jungle}"
-    leaves: "leaves{old_leaf_type=jungle}"
+    log: "jungle_log"
+    leaves: "jungle_leaves"
 
     # Flowers
   - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "2*yellow_flower,red_flower"
+    block: "2*dandelion,poppy"
 
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.09765625 # about 25 per chunk
-    on: "grass"
-    block: "3*tallgrass,tallgrass{tall_grass_type=fern}"
+    on: "grass_block"
+    block: "3*short_grass,fern"

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.level.provider.anvil;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.util.Identifier;

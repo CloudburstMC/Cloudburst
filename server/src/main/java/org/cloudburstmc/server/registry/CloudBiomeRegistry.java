@@ -10,12 +10,12 @@ import lombok.NonNull;
 import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 import org.cloudburstmc.api.registry.Registry;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,14 +30,17 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
 
     static {
         //build initial biome map
-        VANILLA_BIOMES = CloudBiome.BIOME_DEFINITIONS.entrySet().stream().collect(Collectors.toMap(
+        VANILLA_BIOMES = CloudBiome.BIOME_DEFINITIONS.getDefinitions().entrySet().stream().collect(Collectors.toMap(
                 entry -> Identifier.parse(entry.getKey()),
                 entry -> {
-                    NbtMap tag = (NbtMap) entry.getValue();
+                    BiomeDefinitionData data = entry.getValue();
                     BiomeBuilder builder = BiomeBuilder.builder().setId(Identifier.parse(entry.getKey()));
-                    tag.listenForFloat("temperature", builder::setTemperature);
-                    tag.listenForFloat("downfall", builder::setDownfall);
-                    tag.listenForList("tags", NbtType.STRING, list -> builder.setTags(list.stream().map(Identifier::parse).collect(Collectors.toList())));
+                    builder.setTemperature(data.getTemperature());
+                    builder.setDownfall(data.getDownfall());
+                    List<String> tags = data.getTags();
+                    if (tags != null) {
+                        builder.setTags(tags.stream().map(Identifier::parse).collect(Collectors.toList()));
+                    }
                     return builder.build();
                 }));
 

@@ -2,9 +2,9 @@ package org.cloudburstmc.server.player.handler;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import com.google.inject.Inject;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
@@ -503,7 +503,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     window.error(player);
                 }
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.debug("Received corrupted form json data");
         }
         return PacketSignal.HANDLED;
@@ -1232,7 +1232,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             re.setFormId(player.getServerSettingsId());
             re.setFormData(new JsonMapper().writeValueAsString(settings));
             player.sendPacket(re);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Error while writing form data", e);
         }
         return PacketSignal.HANDLED;

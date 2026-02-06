@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.level.generator.standard.biome.map;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
@@ -14,9 +14,9 @@ import java.io.InputStream;
 /**
  * @author DaPorkchop_
  */
-public final class BiomeMapReferenceDeserializer extends JsonDeserializer<BiomeMap> {
+public final class BiomeMapReferenceDeserializer extends ValueDeserializer<BiomeMap> {
     @Override
-    public BiomeMap deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public BiomeMap deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
         Identifier id = Identifier.parse(p.getText());
 
         try (InputStream in = StandardGeneratorUtils.read("biomemap", id)) {

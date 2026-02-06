@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.player.skin.data.ImageData;

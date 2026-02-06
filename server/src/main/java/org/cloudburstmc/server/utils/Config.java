@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.dataformat.javaprop.JavaPropsMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.server.CloudServer;
@@ -34,16 +34,23 @@ public class Config {
     public static final int ENUM = 5; // .txt, .list, .enum
     public static final int ENUMERATION = Config.ENUM;
 
-    private static final JsonMapper JSON_MAPPER = new JsonMapper();
-    private static final YAMLMapper YAML_MAPPER = new YAMLMapper();
-    private static final JavaPropsMapper JAVA_PROPS_MAPPER = new JavaPropsMapper();
+    private static final SimpleModule CONFIG_MODULE;
+    private static final JsonMapper JSON_MAPPER;
+    private static final YAMLMapper YAML_MAPPER;
+    private static final JavaPropsMapper JAVA_PROPS_MAPPER;
 
     static {
-        SimpleModule module = new SimpleModule();
-        module.addAbstractTypeMapping(Map.class, ConfigSection.class);
-        JSON_MAPPER.registerModule(module);
-        YAML_MAPPER.registerModule(module);
-        JAVA_PROPS_MAPPER.registerModule(module);
+        CONFIG_MODULE = new SimpleModule();
+        CONFIG_MODULE.addAbstractTypeMapping(Map.class, ConfigSection.class);
+        JSON_MAPPER = JsonMapper.builder()
+                .addModule(CONFIG_MODULE)
+                .build();
+        YAML_MAPPER = YAMLMapper.builder()
+                .addModule(CONFIG_MODULE)
+                .build();
+        JAVA_PROPS_MAPPER = JavaPropsMapper.builder()
+                .addModule(CONFIG_MODULE)
+                .build();
     }
 
     //private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
@@ -256,7 +263,7 @@ public class Config {
                 }
                 try {
                     content = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this.config);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     throw new IllegalStateException(e);
                 }
             }
@@ -579,7 +586,7 @@ public class Config {
             }
             try {
                 this.config = mapper.readValue(content, ConfigSection.class);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
         }

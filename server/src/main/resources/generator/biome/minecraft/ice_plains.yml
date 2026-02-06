@@ -8,12 +8,12 @@ populators:
     # Trees
   - id: "cloudburst:tree"
     chance: 0.000390625 # about 1 per 10 chunks
-    on: "grass"
+    on: "grass_block"
     replace: "air"
     type: "spruce"
 
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
-    on: "grass"
-    block: "tallgrass"
+    on: "grass_block"
+    block: "short_grass"

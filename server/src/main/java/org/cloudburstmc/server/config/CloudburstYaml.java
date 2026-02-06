@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.config;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonNaming;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.*;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.config.serializer.WorldConfigDeserializer;

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;

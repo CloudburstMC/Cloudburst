@@ -6,7 +6,7 @@ populators:
     # More trees
   - id: "cloudburst:tree"
     chance: 0.01171875 # about 3 per chunk
-    on: "grass"
+    on: "grass_block"
     types:
       - "oak"
       - "spruce"

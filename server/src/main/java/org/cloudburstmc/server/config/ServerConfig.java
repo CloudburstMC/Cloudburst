@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.config;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.player.GameMode;

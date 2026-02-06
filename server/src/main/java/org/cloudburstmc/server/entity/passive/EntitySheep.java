@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.passive;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
@@ -91,7 +91,7 @@ public class EntitySheep extends Animal implements Sheep {
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
 
-        ItemStack itemStack = ItemStack.builder(BlockStates.WOOL.withTrait(BlockTraits.COLOR, getColor()))
+        ItemStack itemStack = ItemStack.builder(getWoolState(getColor()))
                 .amount(ThreadLocalRandom.current().nextInt(2) + 1)
                 .build();
 
@@ -102,11 +102,32 @@ public class EntitySheep extends Animal implements Sheep {
     @Override
     public ItemStack[] getDrops() {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
-            return new ItemStack[]{ItemStack.builder(BlockStates.WOOL.withTrait(BlockTraits.COLOR, getColor()))
+            return new ItemStack[]{ItemStack.builder(getWoolState(getColor()))
                     .amount(1)
                     .build()};
         }
         return new ItemStack[0];
+    }
+
+    private static BlockState getWoolState(DyeColor color) {
+        return switch (color) {
+            case WHITE, NONE -> BlockStates.WHITE_WOOL;
+            case ORANGE -> BlockStates.ORANGE_WOOL;
+            case MAGENTA -> BlockStates.MAGENTA_WOOL;
+            case LIGHT_BLUE -> BlockStates.LIGHT_BLUE_WOOL;
+            case YELLOW -> BlockStates.YELLOW_WOOL;
+            case LIME -> BlockStates.LIME_WOOL;
+            case PINK -> BlockStates.PINK_WOOL;
+            case GRAY -> BlockStates.GRAY_WOOL;
+            case LIGHT_GRAY, SILVER -> BlockStates.LIGHT_GRAY_WOOL;
+            case CYAN -> BlockStates.CYAN_WOOL;
+            case PURPLE -> BlockStates.PURPLE_WOOL;
+            case BLUE -> BlockStates.BLUE_WOOL;
+            case BROWN -> BlockStates.BROWN_WOOL;
+            case GREEN -> BlockStates.GREEN_WOOL;
+            case RED -> BlockStates.RED_WOOL;
+            case BLACK -> BlockStates.BLACK_WOOL;
+        };
     }
 
     public boolean isSheared() {
