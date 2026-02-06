@@ -18,12 +18,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Singleton
 public class LevelManager implements Closeable {
-    private final ExecutorService chunkExecutor = Executors.newWorkStealingPool();
+    private final ExecutorService chunkExecutor = new ForkJoinPool(
+            Runtime.getRuntime().availableProcessors(),
+            pool -> {
+                ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+                thread.setDaemon(true);
+                thread.setName("chunk-worker-" + thread.getPoolIndex());
+                return thread;
+            },
+            null, true
+    );
     private final CloudServer server;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
@@ -101,7 +112,22 @@ public class LevelManager implements Closeable {
     @Override
     public synchronized void close() {
         for (CloudLevel level : this.levels) {
-            level.close();
+            try {
+                level.close();
+            } catch (Exception e) {
+                log.error("Error closing level " + level.getId(), e);
+            }
+        }
+
+        this.chunkExecutor.shutdown();
+        try {
+            if (!this.chunkExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                log.warn("Chunk executor did not terminate in time, forcing shutdown");
+                this.chunkExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            this.chunkExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 

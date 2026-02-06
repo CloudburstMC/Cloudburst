@@ -20,6 +20,7 @@ public class Watchdog extends Thread {
         this.time = time;
         this.running = true;
         this.setName("Watchdog");
+        this.setDaemon(true);
     }
 
     public void kill() {

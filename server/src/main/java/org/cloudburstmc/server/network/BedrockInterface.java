@@ -3,6 +3,7 @@ package org.cloudburstmc.server.network;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.log4j.Log4j2;
@@ -29,15 +30,17 @@ public class BedrockInterface implements AdvancedSourceInterface {
 
     private final CloudServer server;
 
+    private final EventLoopGroup eventLoopGroup;
     private final List<Channel> channels = new ArrayList<>();
     private final BedrockPong advertisement = new BedrockPong();
 
     public BedrockInterface(CloudServer server) throws Exception {
         this.server = server;
 
+        this.eventLoopGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(NioDatagramChannel.class)) // TODO: Epoll, KQueue and IO Uring support
-                .group(new NioEventLoopGroup())
+                .group(this.eventLoopGroup)
                 .childHandler(new BedrockServerInitializer() {
                     @Override
                     protected void initSession(BedrockServerSession session) {
@@ -110,6 +113,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
         for (Channel channel : this.channels) {
             channel.close().awaitUninterruptibly();
         }
+        this.eventLoopGroup.shutdownGracefully(0, 2, TimeUnit.SECONDS).awaitUninterruptibly();
     }
 
     @Override

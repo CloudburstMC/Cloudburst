@@ -149,6 +149,7 @@ class AnvilProvider implements LevelProvider {
                 } finally {
                     buffer.release();
                 }
+                savedFuture.complete(null);
             } catch (Exception e) {
                 savedFuture.completeExceptionally(e);
             }
@@ -251,7 +252,7 @@ class AnvilProvider implements LevelProvider {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        });
+        }, this.executor);
     }
 
     @Override

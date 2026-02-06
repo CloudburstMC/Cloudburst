@@ -14,7 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @RequiredArgsConstructor
-public class NukkitConsole extends SimpleTerminalConsole {
+public class CloudConsole extends SimpleTerminalConsole {
     private final CloudServer server;
     private final BlockingQueue<String> consoleQueue = new LinkedBlockingQueue<>();
     private final AtomicBoolean executingCommands = new AtomicBoolean(false);
@@ -56,7 +56,7 @@ public class NukkitConsole extends SimpleTerminalConsole {
 
     @Override
     protected LineReader buildReader(LineReaderBuilder builder) {
-        builder.completer(new NukkitConsoleCompleter(server));
+        builder.completer(new CloudConsoleCompleter(server));
         builder.appName("Cloudburst");
         builder.option(LineReader.Option.HISTORY_BEEP, false);
         builder.option(LineReader.Option.HISTORY_IGNORE_DUPS, true);

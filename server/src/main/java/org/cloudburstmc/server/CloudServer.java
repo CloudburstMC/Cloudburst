@@ -39,7 +39,7 @@ import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
-import org.cloudburstmc.server.console.NukkitConsole;
+import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.crafting.CraftingManager;
 import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.inject.CloudburstModule;
@@ -135,7 +135,7 @@ public class CloudServer implements Server {
 
     private final boolean dispatchSignals = false;
 
-    private final NukkitConsole console;
+    private final CloudConsole console;
     private final ConsoleThread consoleThread;
 
     private final CraftingManager craftingManager;
@@ -255,7 +255,7 @@ public class CloudServer implements Server {
 
         this.consoleSender = injector.getInstance(ConsoleCommandSender.class);
 
-        this.console = new NukkitConsole(this);
+        this.console = new CloudConsole(this);
         this.consoleThread = new ConsoleThread();
     }
 
@@ -654,7 +654,11 @@ public class CloudServer implements Server {
             this.hasStopped = true;
 
             for (CloudPlayer player : new ArrayList<>(this.players.values())) {
-                player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
+                try {
+                    player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
+                } catch (Exception e) {
+                    log.error("Error closing player " + player.getName(), e);
+                }
             }
 
             this.eventManager.fire(ServerShutdownEvent.INSTANCE);
@@ -1879,6 +1883,7 @@ public class CloudServer implements Server {
 
         private ConsoleThread() {
             super("Console Thread");
+            setDaemon(true);
         }
 
         @Override

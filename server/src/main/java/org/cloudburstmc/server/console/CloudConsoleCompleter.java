@@ -13,7 +13,7 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class NukkitConsoleCompleter implements Completer {
+public class CloudConsoleCompleter implements Completer {
     private final CloudServer server;
 
     @Override

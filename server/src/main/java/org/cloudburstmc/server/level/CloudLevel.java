@@ -301,9 +301,7 @@ public class CloudLevel implements Level {
     }
 
     public void close() {
-        if (this.getAutoSave()) {
-            this.save(true, true);
-        }
+        this.save(true, true);
 
         try {
             this.provider.close();
