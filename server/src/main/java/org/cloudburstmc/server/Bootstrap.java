@@ -86,7 +86,6 @@ public class Bootstrap {
 
     public static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
-        System.setProperty("log4j.skipJansi", "false");
 
         // Force Mapped ByteBuffers for LevelDB till fixed.
         System.setProperty("leveldb.mmap", "true");

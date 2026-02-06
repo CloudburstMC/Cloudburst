@@ -34,7 +34,7 @@ Build JAR file
 - `git submodule update --init`
 - `./gradlew shadowJar`
 
-The compiled JAR can be found in the `build/libs` directory.
+The compiled JAR can be found in the `server/build/libs` directory.
 
 Running
 -------------

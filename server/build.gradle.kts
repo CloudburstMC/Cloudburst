@@ -64,6 +64,11 @@ tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
 
+    // Shadow 9.x defaults to DuplicatesStrategy.EXCLUDE which prevents
+    // Log4j2PluginsCacheFileTransformer from merging all Log4j2Plugins.dat files.
+    // INCLUDE is required so the transformer sees .dat files from every dependency.
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
     manifest {
         attributes["Main-Class"] = "org.cloudburstmc.server.Bootstrap"
     }
