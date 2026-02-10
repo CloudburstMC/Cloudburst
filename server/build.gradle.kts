@@ -35,6 +35,7 @@ dependencies {
 }
 
 extraJavaModuleInfo {
+    skipLocalJars = true
     automaticModule(libs.noise, "net.daporkchop.lib.noise")
     automaticModule(libs.upnp, "org.cloudburstmc.upnp")
     automaticModule("net.daporkchop.lib:math", "net.daporkchop.lib.math")
