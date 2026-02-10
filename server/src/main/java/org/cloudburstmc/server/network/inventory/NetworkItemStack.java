@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NetworkItemStack {
 
-    private static final AtomicInteger NET_ID_ALLOCATOR = new AtomicInteger();
+    private static final AtomicInteger NET_ID_ALLOCATOR = new AtomicInteger(1);
 
     private static final Cache<Integer, ItemStack> NET_ID_CACHE = CacheBuilder.newBuilder()
             .weakValues() // Make sure the entry is removed when the item is no longer referenced
@@ -22,7 +22,7 @@ public class NetworkItemStack {
             .weakKeys() // Make sure the entry is removed when the item is no longer referenced
             .build();
 
-    private final int netId = NET_ID_ALLOCATOR.getAndUpdate(operand -> ++operand <= 0 ? 1 : operand);
+    private final int netId = NET_ID_ALLOCATOR.getAndUpdate(operand -> operand >= Integer.MAX_VALUE ? 1 : operand + 1);
     private SoftReference<NbtMap> tag;
 
     private static NetworkItemStack get(ItemStack itemStack) {

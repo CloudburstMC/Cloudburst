@@ -11,6 +11,7 @@ import org.cloudburstmc.api.data.DataStore;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -120,7 +121,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     @Nullable
     public BlockState getEnsuringBlockState() {
-        if(!this.isBlock()) {
+        if (!this.isBlock()) {
             throw new NullPointerException("Current Item isn't a block so it can't have a BlockState.");
         }
 
@@ -149,5 +150,24 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     public boolean isCombinable(ItemStack other) {
         return isSimilar(other) && isSimilarMetadata(other);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemStack other)) return false;
+        return this.count == other.count &&
+                Objects.equals(this.type, other.type) &&
+                Objects.equals(this.metadata, other.metadata);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, count, metadata);
+    }
+
+    @Override
+    public String toString() {
+        return "ItemStack{type=" + type.getId() + ", count=" + count + ", metadata=" + metadata + "}";
     }
 }

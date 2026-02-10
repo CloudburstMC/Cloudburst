@@ -1654,10 +1654,7 @@ public class CloudLevel implements Level {
         }
 
         if (createParticles) {
-            Chunk chunk = this.getLoadedChunk(target.getPosition());
-            if (chunk != null) {
-                this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5, 0.5, 0.5), target.getState()), (Collection<Player>) chunk.getPlayerLoaders());
-            }
+            this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), target.getState()));
         }
 
         // Close BlockEntity before we check onBreak
@@ -1892,9 +1889,9 @@ public class CloudLevel implements Level {
             }
         }
 
-//        if (playSound) {
-//            this.addLevelSoundEvent(block.getPosition().toFloat(), SoundEvent.PLACE, CloudBlockRegistry.REGISTRY.getRuntimeId(hand));
-//        }
+        if (playSound) {
+            this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, CloudBlockRegistry.REGISTRY.getRuntimeId(hand));
+        }
 
         if (item.getCount() <= 0) {
             item = ItemStack.EMPTY;

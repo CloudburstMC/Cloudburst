@@ -6,9 +6,13 @@ import org.cloudburstmc.api.container.screen.UiContainerScreen;
 import org.cloudburstmc.api.container.view.CursorView;
 import org.cloudburstmc.api.container.view.InventoryView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.server.container.mapping.ContainerMapping;
+import org.cloudburstmc.server.container.mapping.LimitedContainerMapping;
 import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
+import org.cloudburstmc.server.container.view.CloudCreatedOutputView;
 import org.cloudburstmc.server.container.view.CloudCursorView;
+import org.cloudburstmc.server.container.view.CloudInventoryView;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class CloudUiContainerScreen extends CloudContainerScreen implements UiContainerScreen {
@@ -32,7 +36,11 @@ public class CloudUiContainerScreen extends CloudContainerScreen implements UiCo
 
     @Override
     protected void setupMappings() {
-        this.addMapping(SimpleContainerMapping.playerInventoryView(this.player.getInventory()));
+        CloudInventoryView inventoryView = this.player.getInventory();
+        this.addMapping(SimpleContainerMapping.playerInventoryView(inventoryView));
+        this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR, inventoryView, 9));
+        this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR_AND_INVENTORY, inventoryView, 36));
         this.addMapping(new UIContainerMapping(ContainerSlotType.CURSOR, this.cursor));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, new CloudCreatedOutputView(), 1, -50));
     }
 }

@@ -1,18 +1,28 @@
 package org.cloudburstmc.server.item;
 
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 
 public class CloudItemDefinition implements ItemDefinition {
 
     private final Identifier identifier;
     private final int runtimeId;
     private final boolean componentBased;
+    private final ItemVersion version;
+    private final NbtMap componentData;
 
     public CloudItemDefinition(Identifier identifier, int runtimeId, boolean componentBased) {
+        this(identifier, runtimeId, componentBased, ItemVersion.LEGACY, null);
+    }
+
+    public CloudItemDefinition(Identifier identifier, int runtimeId, boolean componentBased, ItemVersion version, NbtMap componentData) {
         this.identifier = identifier;
         this.runtimeId = runtimeId;
         this.componentBased = componentBased;
+        this.version = version;
+        this.componentData = componentData;
     }
 
     public Identifier getCloudIdentifier() {
@@ -32,5 +42,15 @@ public class CloudItemDefinition implements ItemDefinition {
     @Override
     public boolean isComponentBased() {
         return componentBased;
+    }
+
+    @Override
+    public ItemVersion getVersion() {
+        return version;
+    }
+
+    @Override
+    public NbtMap getComponentData() {
+        return componentData;
     }
 }

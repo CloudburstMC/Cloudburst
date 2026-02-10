@@ -64,12 +64,12 @@ public final class CloudChunk implements Chunk, Closeable {
 
     private SoftReference<LevelChunkPacket> cached = null;
 
+    private final CloudLockableChunk readLockable;
+    private final CloudLockableChunk writeLockable;
+
     private Collection<ChunkDataLoader> chunkDataLoaders;
 
     private List<BlockUpdate> blockUpdates;
-
-    private final CloudLockableChunk readLockable;
-    private final CloudLockableChunk writeLockable;
 
     public CloudChunk(int x, int z, Level level) {
         this(new UnsafeChunk(x, z, level));
@@ -411,9 +411,14 @@ public final class CloudChunk implements Chunk, Closeable {
 
 
     private synchronized void clearCache() {
-        // Clear cached packet
         if (this.cached != null) {
             LevelChunkPacket packet = this.cached.get();
+            if (packet != null) {
+                ByteBuf data = packet.getData();
+                if (data != null && data.refCnt() > 0) {
+                    data.release();
+                }
+            }
             this.cached = null;
         }
     }
@@ -454,26 +459,6 @@ public final class CloudChunk implements Chunk, Closeable {
         }
         this.clearCache();
     }
-
-//    private static class CacheSoftReference extends FinalizableSoftReference<LevelChunkPacket> {
-//        private final LevelChunkPacket hardRef;
-//
-//        /**
-//         * Constructs a new finalizable soft reference.
-//         *
-//         * @param referent to softly reference
-//         * @param queue    that should finalize the referent
-//         */
-//        private CacheSoftReference(LevelChunkPacket referent, FinalizableReferenceQueue queue) {
-//            super(referent, queue);
-//            this.hardRef = referent;
-//        }
-//
-//        @Override
-//        public void finalizeReferent() {
-//            this.hardRef.release();
-//        }
-//    }
 
     @Override
     public void addBlockEntity(BlockEntity blockEntity) {
@@ -543,9 +528,14 @@ public final class CloudChunk implements Chunk, Closeable {
             this.clearCache();
         }
         if (this.cached != null) {
-            LevelChunkPacket packet = this.cached.get();
-            if (packet != null) {
-                return packet;
+            LevelChunkPacket cachedPacket = this.cached.get();
+            if (cachedPacket != null) {
+                LevelChunkPacket copy = new LevelChunkPacket();
+                copy.setChunkX(cachedPacket.getChunkX());
+                copy.setChunkZ(cachedPacket.getChunkZ());
+                copy.setSubChunksLength(cachedPacket.getSubChunksLength());
+                copy.setData(cachedPacket.getData().retainedDuplicate());
+                return copy;
             } else {
                 this.cached = null;
             }
@@ -605,7 +595,12 @@ public final class CloudChunk implements Chunk, Closeable {
 
                 packet.setData(buffer.retainedDuplicate());
 
-                this.cached = new SoftReference<>(packet);
+                LevelChunkPacket cacheEntry = new LevelChunkPacket();
+                cacheEntry.setChunkX(this.getX());
+                cacheEntry.setChunkZ(this.getZ());
+                cacheEntry.setSubChunksLength(subChunkCount);
+                cacheEntry.setData(buffer.retainedDuplicate());
+                this.cached = new SoftReference<>(cacheEntry);
 
                 return packet;
             } catch (IOException e) {

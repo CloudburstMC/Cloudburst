@@ -80,7 +80,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void play() {
-        if (this.recordItem.getType() == ItemTypes.RECORD) {
+        if (this.recordItem.getType() == ItemTypes.MUSIC_DISC_13) {
 
             this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemKeys.RECORD_TYPE)));
         }

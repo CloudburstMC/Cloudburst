@@ -75,7 +75,7 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public boolean onInteract(Player player, ItemStack item) {
-        if (item.getType() == ItemTypes.DYE) {
+        if (item.getAllMetadata().containsKey(ItemKeys.COLOR)) {
             this.setColor(item.get(ItemKeys.COLOR));
             return true;
         }

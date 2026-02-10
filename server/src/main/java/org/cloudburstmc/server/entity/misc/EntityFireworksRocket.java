@@ -166,7 +166,7 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
     @Override
     public void setFireworkData(FireworkData data) {
-        this.firework = ItemStack.builder(ItemTypes.FIREWORKS)
+        this.firework = ItemStack.builder(ItemTypes.FIREWORK_ROCKET)
                 .data(ItemKeys.FIREWORK_DATA, data)
                 .build();
         this.data.set(EntityDataTypes.DISPLAY_FIREWORK, ItemUtils.serializeItem(this.firework));

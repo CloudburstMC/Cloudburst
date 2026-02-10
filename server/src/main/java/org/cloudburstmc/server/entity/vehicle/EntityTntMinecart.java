@@ -123,7 +123,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     @Override
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         boolean interact = super.onInteract(player, item, clickedPos);
-        if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIREBALL) {
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIRE_CHARGE) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.IGNITE);
             this.data.set(FUSE_TIME, 79);
             return true;

@@ -13,6 +13,7 @@ public class ContainerViewTypes {
     public static final ContainerViewType<BrewingStand> BREWING_STAND = ContainerViewType.from(Identifier.parse("brewing_stand"), BrewingStand.class);
     public static final ContainerViewType<Chest> CHEST = ContainerViewType.from(Identifier.parse("chest"), Chest.class);
     public static final ContainerViewType<CraftingView> CRAFTING = ContainerViewType.from(Identifier.parse("crafting"), CraftingView.class);
+    public static final ContainerViewType<ContainerView> CREATED_OUTPUT = ContainerViewType.from(Identifier.parse("created_output"), ContainerView.class);
     public static final ContainerViewType<CursorView> CURSOR = ContainerViewType.from(Identifier.parse("cursor"), CursorView.class);
     public static final ContainerViewType<Dispenser> DISPENSER = ContainerViewType.from(Identifier.parse("dispenser"), Dispenser.class);
     public static final ContainerViewType<Dropper> DROPPER = ContainerViewType.from(Identifier.parse("dropper"), Dropper.class);

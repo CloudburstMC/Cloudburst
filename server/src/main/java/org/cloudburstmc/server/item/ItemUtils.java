@@ -2,8 +2,6 @@ package org.cloudburstmc.server.item;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
@@ -24,31 +22,23 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.network.inventory.NetworkItemStack;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @UtilityClass
 @Log4j2
 public class ItemUtils {
 
     private static final CloudItemRegistry registry = CloudItemRegistry.get();
-    private static final AtomicInteger NET_ID_CACHE = new AtomicInteger();
-    private static final Int2ReferenceMap<WeakReference<ItemStack>> NET_ID_REFERENCE = new Int2ReferenceOpenHashMap<>();
     private static final Cache<ItemStack, NbtMap> ITEM_CACHE = CacheBuilder.newBuilder().weakKeys().softValues().build();
-
-    public static Optional<ItemStack> getFromNetworkId(int netId) {
-        //TODO Should this be a get or a remove?
-        return Optional.ofNullable(NET_ID_REFERENCE.remove(netId).get());
-    }
 
     public static NbtMap serializeItem(ItemStack item) {
         NbtMapBuilder nbtTag = NbtMap.builder();
@@ -194,9 +184,7 @@ public class ItemUtils {
     }
 
     public static ItemData toNetworkNetId(ItemStack item) {
-        int netId = NET_ID_CACHE.getAndIncrement();
-        WeakReference<ItemStack> reference = new WeakReference<>(item);
-        NET_ID_REFERENCE.put(netId, reference);
+        int netId = NetworkItemStack.getNetId(item);
 
         return ItemUtils.toNetworkBuilder(item)
                 .netId(netId)
@@ -239,12 +227,12 @@ public class ItemUtils {
         if (data.isUsingNetId()) {
             int netId = data.getNetId();
 
-            WeakReference<ItemStack> weakReference = NET_ID_REFERENCE.remove(netId);
+            ItemStack cached = NetworkItemStack.getItemStack(netId);
 
-            if (weakReference == null || weakReference.get() == null) {
-                log.trace("Trying to find cached ItemStack for netId {} but it doesn't exists", netId);
+            if (cached == null) {
+                log.trace("Trying to find cached ItemStack for netId {} but it doesn't exist", netId);
             } else {
-                return weakReference.get();
+                return cached;
             }
         }
 

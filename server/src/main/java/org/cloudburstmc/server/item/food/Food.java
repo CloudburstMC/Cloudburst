@@ -30,7 +30,7 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     public static final Food apple_golden = registerFood(GOLDEN_APPLE, new FoodEffective(4, 9.6F)
             .addEffect(new CloudEffect(EffectTypes.REGENERATION).setAmplifier(1).setDuration(5 * 20))
             .addEffect(new CloudEffect(EffectTypes.ABSORPTION).setDuration(2 * 60 * 20)));
-    public static final Food apple_golden_enchanted = registerFood(APPLE_ENCHANTED, new FoodEffective(4, 9.6F)
+    public static final Food apple_golden_enchanted = registerFood(ENCHANTED_GOLDEN_APPLE, new FoodEffective(4, 9.6F)
             .addEffect(new CloudEffect(EffectTypes.REGENERATION).setAmplifier(4).setDuration(30 * 20))
             .addEffect(new CloudEffect(EffectTypes.ABSORPTION).setDuration(2 * 60 * 20).setAmplifier(3))
             .addEffect(new CloudEffect(EffectTypes.RESISTANCE).setDuration(5 * 60 * 20))
@@ -47,11 +47,11 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     public static final Food chicken_cooked = registerFood(COOKED_CHICKEN, new FoodNormal(6, 7.2F));
     public static final Food chorus_fruit = registerFood(CHORUS_FRUIT, new FoodChorusFruit());
     public static final Food cookie = registerFood(COOKIE, new FoodNormal(2, 0.4F));
-    public static final Food melon_slice = registerFood(MELON, new FoodNormal(2, 1.2F));
+    public static final Food melon_slice = registerFood(MELON_SLICE, new FoodNormal(2, 1.2F));
     public static final Food milk = registerFood(BUCKET, new FoodMilk().setMetadata(Bucket.MILK));
     public static final Food mushroom_stew = registerFood(MUSHROOM_STEW, new FoodInBowl(6, 7.2F));
-    public static final Food mutton_cooked = registerFood(MUTTON_COOKED, new FoodNormal(6, 9.6F));
-    public static final Food mutton_raw = registerFood(MUTTON_RAW, new FoodNormal(2, 1.2F));
+    public static final Food mutton_cooked = registerFood(COOKED_MUTTON, new FoodNormal(6, 9.6F));
+    public static final Food mutton_raw = registerFood(MUTTON, new FoodNormal(2, 1.2F));
     public static final Food porkchop_cooked = registerFood(COOKED_PORKCHOP, new FoodNormal(8, 12.8F));
     public static final Food porkchop_raw = registerFood(PORKCHOP, new FoodNormal(3, 1.8F));
     public static final Food potato_raw = registerFood(POTATO, new FoodNormal(1, 0.6F));
@@ -68,9 +68,9 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
             .addEffect(new CloudEffect(EffectTypes.POISON).setDuration(4 * 20)));
     public static final Food steak = registerFood(COOKED_BEEF, new FoodNormal(8, 12.8F));
     //different kinds of fishes
-    public static final Food clownfish = registerFood(CLOWNFISH, new FoodNormal(1, 0.2F));
-    public static final Food fish_cooked = registerFood(COOKED_FISH, new FoodNormal(5, 6F));
-    public static final Food fish_raw = registerFood(FISH, new FoodNormal(2, 0.4F));
+    public static final Food clownfish = registerFood(TROPICAL_FISH, new FoodNormal(1, 0.2F));
+    public static final Food fish_cooked = registerFood(COOKED_COD, new FoodNormal(5, 6F));
+    public static final Food fish_raw = registerFood(COD, new FoodNormal(2, 0.4F));
     public static final Food salmon_cooked = registerFood(COOKED_SALMON, new FoodNormal(6, 9.6F));
     public static final Food salmon_raw = registerFood(SALMON, new FoodNormal(2, 0.4F));
     public static final Food pufferfish = registerFood(PUFFERFISH, new FoodEffective(1, 0.2F)

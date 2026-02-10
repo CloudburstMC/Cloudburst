@@ -40,8 +40,8 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     public static final short MAX_COOK_TIME = 400;
     public static final List<ItemType> ingredients = Lists.newArrayList(
             ItemTypes.NETHER_WART, ItemTypes.GOLD_NUGGET, ItemTypes.GHAST_TEAR, ItemTypes.GLOWSTONE_DUST, ItemTypes.REDSTONE, ItemTypes.GUNPOWDER, ItemTypes.MAGMA_CREAM, ItemTypes.BLAZE_POWDER,
-            ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.SPECKLED_MELON, ItemTypes.SUGAR, ItemTypes.FISH, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
-            ItemTypes.TURTLE_SHELL_PIECE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
+            ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.GLISTERING_MELON_SLICE, ItemTypes.SUGAR, ItemTypes.COD, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
+            ItemTypes.TURTLE_SCUTE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
     );
     public short cookTime = MAX_COOK_TIME;
     public short fuelTotal;

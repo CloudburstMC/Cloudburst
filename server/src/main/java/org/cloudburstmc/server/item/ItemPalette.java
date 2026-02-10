@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.item;
 
-import tools.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
@@ -16,17 +15,16 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.*;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.RegistryUtils;
+import tools.jackson.databind.JsonNode;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -37,7 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log4j2
 public class ItemPalette {
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
-    private final CloudItemRegistry itemRegistry;
     private final static Reference2ReferenceMap<Identifier, CloudItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
     private final static Int2ReferenceMap<CloudItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
 
@@ -55,12 +52,30 @@ public class ItemPalette {
             throw new RegistryException("Unable to load Legacy Meta Mapping", e);
         }
 
+        NbtMap vanillaComponents;
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/item_components.nbt");
+             NBTInputStream nbtStream = NbtUtils.createGZIPReader(in)) {
+            vanillaComponents = (NbtMap) nbtStream.readTag();
+        } catch (IOException e) {
+            throw new RegistryException("Unable to load item components", e);
+        }
+
         try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json) {
-                Identifier id = Identifier.parse(item.get("name").asText());
+                String name = item.get("name").asText();
+                Identifier id = Identifier.parse(name);
                 int runtime = item.get("id").intValue();
-                CloudItemDefinition definition = new CloudItemDefinition(id, runtime, false);
+                boolean componentBased = item.has("componentBased") && item.get("componentBased").asBoolean();
+                int versionOrdinal = item.has("version") ? item.get("version").asInt() : 0;
+                ItemVersion version = ItemVersion.from(versionOrdinal);
+
+                NbtMap components = vanillaComponents.getCompound(name);
+                if (components != null && components.isEmpty()) {
+                    components = null;
+                }
+
+                CloudItemDefinition definition = new CloudItemDefinition(id, runtime, componentBased, version, components);
                 itemEntries.put(id, definition);
                 runtimeIdMap.put(runtime, definition);
             }
@@ -69,9 +84,11 @@ public class ItemPalette {
         }
     }
 
+    private final CloudItemRegistry itemRegistry;
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger(itemEntries.size());
+    private final List<CreativeItemData> creativeItems = new ArrayList<>();
+    private final List<CreativeItemGroup> creativeGroups = new ArrayList<>();
     private volatile CreativeContentPacket creativeContentPacket;
-    private final List<ItemData> creativeItems = new ArrayList<>();
 
     public ItemPalette(CloudItemRegistry registry) {
         this.itemRegistry = registry;
@@ -122,12 +139,8 @@ public class ItemPalette {
     public CreativeContentPacket getCreativeContentPacket() {
         if (creativeContentPacket == null) {
             this.creativeContentPacket = new CreativeContentPacket();
-            ItemData[] data = creativeItems.toArray(new ItemData[0]);
-
-            for (int i = 0; i < data.length; i++) {
-                data[i].setNetId(i + 1);
-                creativeContentPacket.getContents().add(CreativeItemData.builder().item(data[i]).netId(i + 1).build());
-            }
+            this.creativeContentPacket.getGroups().addAll(creativeGroups);
+            this.creativeContentPacket.getContents().addAll(creativeItems);
         }
         return creativeContentPacket;
     }
@@ -148,12 +161,17 @@ public class ItemPalette {
             blockDefinition = CloudBlockRegistry.REGISTRY.getDefinition(item.getBlockState().get());
         }
 
-        this.creativeItems.add(ItemData.builder()
-                .usingNetId(false)
+        int netId = creativeItems.size() + 1;
+        ItemData itemData = ItemData.builder()
                 .definition(getDefinition(item.getType().getId()))
                 .damage(damage)
+                .count(1)
+                .netId(netId)
                 .blockDefinition(blockDefinition)
-                .build());
+                .build();
+
+        creativeItems.add(new CreativeItemData(itemData, netId, 0));
+        this.creativeContentPacket = null;
     }
 
     public Identifier fromLegacy(int legacyId, int meta) {
@@ -171,25 +189,30 @@ public class ItemPalette {
     public void registerVanillaCreativeItems() {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/creative_items.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
+
+            AtomicInteger creativeNetId = new AtomicInteger();
             for (JsonNode item : json.get("items")) {
+                String identifier = item.get("id").asString();
+                ItemDefinition definition = getDefinition(Identifier.parse(identifier));
+                if (definition == null) {
+                    log.debug("Unknown item definition {} when loading creative items, skipping", identifier);
+                    continue;
+                }
+
                 ItemData.Builder itemData = ItemData.builder();
-                itemData.definition(getDefinition(Identifier.parse(item.get("id").asText())));
+                itemData.definition(definition);
+                itemData.netId(creativeNetId.incrementAndGet());
 
                 if (item.has("block_state_b64")) {
-                    NbtMap blockState = decodeNbt(item.get("block_state_b64").asText());
-                    NbtMapBuilder builder = blockState.toBuilder();
-                    builder.remove("name_hash"); // Added in 1.19.20
-                    builder.remove("network_id"); // Added in 1.19.80
-                    builder.remove("block_id"); // Added in 1.20.60
-                    blockState = builder.build();
-
-                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
-                    if (state != null) {
-                        itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(state));
+                    try {
+                        NbtMap blockState = decodeNbt(item.get("block_state_b64").asString());
+                        BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
+                        if (state != null) {
+                            itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(state));
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to resolve block state for creative item {}: {}", identifier, e.getMessage());
                     }
-                }
-                if (item.has("blockRuntimeId")) {
-                    itemData.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(item.get("blockRuntimeId").asInt()));
                 }
 
                 if (item.has("damage")) {
@@ -199,13 +222,59 @@ public class ItemPalette {
                 }
 
                 if (item.has("nbt_b64")) {
-                    itemData.tag(decodeNbt(item.get("nbt_b64").asText()));
+                    itemData.tag(decodeNbt(item.get("nbt_b64").asString()));
                 }
 
-                itemData.usingNetId(false)
-                        .count(1);
-                creativeItems.add(itemData.build());
+                itemData.count(1);
+
+                int groupId = item.has("groupId") ? item.get("groupId").asInt() : 0;
+                ItemData built = itemData.build();
+                creativeItems.add(new CreativeItemData(built, built.getNetId(), groupId));
             }
+
+            for (JsonNode groupNode : json.get("groups")) {
+                CreativeItemCategory category = CreativeItemCategory.valueOf(
+                        groupNode.get("category").asString().toUpperCase(Locale.ROOT));
+                String name = groupNode.get("name").asString();
+
+                JsonNode iconNode = groupNode.get("icon");
+                String iconId = iconNode.get("id").asString();
+                ItemData icon;
+
+                if (iconId.equals("minecraft:air")) {
+                    icon = ItemData.AIR;
+                } else {
+                    icon = creativeItems.stream()
+                            .map(CreativeItemData::getItem)
+                            .filter(i -> i.getDefinition().getIdentifier().equals(iconId))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (icon == null) {
+                        ItemData.Builder iconBuilder = ItemData.builder();
+                        iconBuilder.definition(getDefinition(Identifier.parse(iconId)));
+                        iconBuilder.count(1);
+
+                        if (iconNode.has("block_state_b64")) {
+                            try {
+                                NbtMap blockState = decodeNbt(iconNode.get("block_state_b64").asString());
+                                BlockState state = CloudBlockRegistry.REGISTRY.getBlock(blockState);
+                                if (state != null) {
+                                    iconBuilder.blockDefinition(CloudBlockRegistry.REGISTRY.getDefinition(state));
+                                }
+                            } catch (Exception e) {
+                                log.warn("Failed to resolve block state for creative group icon {}: {}", iconId, e.getMessage());
+                            }
+                        }
+
+                        icon = iconBuilder.build();
+                    }
+                }
+
+                creativeGroups.add(new CreativeItemGroup(category, name, icon));
+            }
+
+            log.info("Loaded {} creative items in {} groups", creativeItems.size(), creativeGroups.size());
         } catch (IOException | NumberFormatException e) {
             throw new RegistryException("Error loading Vanilla Creative Items", e);
         }
@@ -220,7 +289,7 @@ public class ItemPalette {
         }
     }
 
-    public List<ItemData> getCreativeItems() {
+    public List<CreativeItemData> getCreativeItems() {
         return ImmutableList.copyOf(creativeItems);
     }
 }

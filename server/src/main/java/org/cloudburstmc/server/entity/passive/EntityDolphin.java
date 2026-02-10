@@ -37,6 +37,6 @@ public class EntityDolphin extends Animal implements Dolphin {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.FISH).build()};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.COD).build()};
     }
 }

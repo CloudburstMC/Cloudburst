@@ -335,7 +335,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ACACIA_WALL_SIGN);
         this.registerVanilla(ACACIA_WOOD);
         this.registerVanilla(ACTIVATOR_RAIL);
-        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(ALLIUM);
         this.registerVanilla(ALLOW);
         this.registerVanilla(AMETHYST_BLOCK);
@@ -844,7 +844,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(EXPOSED_LIGHTNING_ROD);
         this.registerVanilla(FARMLAND);
         this.registerVanilla(FERN);
-        this.registerVanilla(FIRE);
+        this.registerVanilla(FIRE).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(FIREFLY_BUSH);
         this.registerVanilla(FIRE_CORAL);
         this.registerVanilla(FIRE_CORAL_BLOCK);
@@ -853,8 +853,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(FLETCHING_TABLE);
         this.registerVanilla(FLOWERING_AZALEA);
         this.registerVanilla(FLOWER_POT);
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true);
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE);
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(FRAME);
         this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(FROSTED_ICE);
@@ -991,7 +991,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LAPIS_ORE);
         this.registerVanilla(LARGE_AMETHYST_BUD);
         this.registerVanilla(LARGE_FERN);
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true);
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(LEAF_LITTER);
         this.registerVanilla(LECTERN);
         this.registerVanilla(LEVER);
@@ -1397,7 +1397,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(SNOW);
         this.registerVanilla(SNOW_LAYER);
         this.registerVanilla(SOUL_CAMPFIRE);
-        this.registerVanilla(SOUL_FIRE);
+        this.registerVanilla(SOUL_FIRE).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(SOUL_LANTERN);
         this.registerVanilla(SOUL_SAND);
         this.registerVanilla(SOUL_SOIL);
@@ -1524,7 +1524,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(WARPED_TRAPDOOR);
         this.registerVanilla(WARPED_WALL_SIGN);
         this.registerVanilla(WARPED_WART_BLOCK);
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE);
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(WATERLILY);
         this.registerVanilla(WAXED_CHISELED_COPPER);
         this.registerVanilla(WAXED_COPPER);
@@ -1669,7 +1669,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         });
         this.registerContextBehavior(BlockBehaviors.ON_LIGHTNING_HIT, (behavior, block) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_PLACE, (behavior, block, player, pos, face, clickPos) -> true);
+        this.registerContextBehavior(BlockBehaviors.ON_PLACE, (behavior, blockState, player, pos, face, clickPos) -> {
+            if (player != null) {
+                return player.getLevel().setBlockState(pos, blockState, true, true);
+            }
+            return false;
+        });
         this.registerContextBehavior(BlockBehaviors.ON_PROJECTILE_HIT, (behavior, block, entity) -> {
         });
         this.registerContextBehavior(BlockBehaviors.ON_REDSTONE_UPDATE, (behavior, block) -> {

@@ -69,6 +69,7 @@ import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -267,6 +268,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.setNameTag(this.username);
 
         this.creationTime = System.currentTimeMillis();
+
+        this.container.addContainerListener(this);
+        this.enderChest.addContainerListener(this);
+        this.armor.getContainer().addContainerListener(this);
+        this.offhand.getContainer().addContainerListener(this);
     }
 
     public int getStartActionTick() {
@@ -779,12 +785,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             this.sendPacket(respawnPacket);
         }
 
+        CreativeContentPacket creativePacket = CloudItemRegistry.get().getCreativeContent();
+        this.sendPacket(creativePacket);
+
         this.sendPlayStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
 
         this.noDamageTicks = 60;
 
         this.getServer().sendRecipeList(this);
-//        getContainer().sendCreativeContents();
 
         this.getChunkManager().getLoadedChunks().forEach((LongConsumer) chunkKey -> {
             int chunkX = CloudChunk.fromKeyX(chunkKey);
@@ -1073,7 +1081,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.resetFallDistance();
 
         this.invManager.sendAllInventories();
-//        this.getContainer().sendCreativeContents();
+        this.sendPacket(CloudItemRegistry.get().getCreativeContent());
         return true;
     }
 
@@ -1542,8 +1550,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setRewindHistorySize(0);
-        startGamePacket.setServerAuthoritativeBlockBreaking(false);
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(UUID.randomUUID());
@@ -1561,6 +1569,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         //noinspection unchecked,rawtypes
         session.getPeer().getCodecHelper().setBlockDefinitions((DefinitionRegistry) BlockPalette.INSTANCE);
         this.sendPacket(startGamePacket);
+
+        ItemComponentPacket componentPacket = new ItemComponentPacket();
+        componentPacket.getItems().addAll(CloudItemRegistry.get().getItemEntries());
+        this.sendPacket(componentPacket);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
         biomeDefinitionListPacket.setBiomes(CloudBiome.BIOME_DEFINITIONS);
@@ -3224,39 +3236,63 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public void onInventorySlotChange(Container inventory, int slot) {
+        if (!this.spawned) {
+            return;
+        }
+
+        int containerId = getContainerId(inventory);
+        if (containerId == ContainerId.NONE) {
+            return;
+        }
+
         ItemStack itemStack = inventory.getItem(slot);
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(slot);
-        packet.setItem(ItemUtils.toNetwork(itemStack));
-
-//        if (inventory.getHolder() == this) {
-        packet.setContainerId(ContainerId.INVENTORY);
-//        } else {
-        // TODO: Figure out how to get the container ID
-//            int id = listener.getWindowId(this);
-//            if (id == -1) {
-//                this.close(listener);
-//                continue;
-//            }
-//            packet.setContainerId(id);
-//        }
+        packet.setItem(ItemUtils.toNetworkNetId(itemStack));
+        packet.setContainerId(containerId);
         this.sendPacket(packet);
     }
 
     @Override
     public void onInventoryContentsChange(Container inventory) {
-        int id = -1;
-//        int id = this.getWindowId(this); TODO: Figure out how to get the container ID
-        if (id == -1) {
-//            if (inventory.getHolder() != this) inventory.close(this);
+        if (!this.spawned) {
             return;
         }
 
-        InventoryContentPacket pk = new InventoryContentPacket();
-        pk.setContents(ItemUtils.toNetwork(Arrays.asList(inventory.getContents())));
-        pk.setContainerId(id);
+        int containerId = getContainerId(inventory);
+        if (containerId == ContainerId.NONE) {
+            return;
+        }
 
-        this.sendPacket(pk);
+        List<ItemData> contents = new ArrayList<>();
+        for (ItemStack item : inventory.getContents()) {
+            contents.add(ItemUtils.toNetworkNetId(item));
+        }
+
+        InventoryContentPacket packet = new InventoryContentPacket();
+        packet.setContents(contents);
+        packet.setContainerId(containerId);
+        this.sendPacket(packet);
+    }
+
+    private int getContainerId(Container inventory) {
+        if (inventory == this.container) {
+            return ContainerId.INVENTORY;
+        } else if (inventory == this.armor.getContainer()) {
+            return ContainerId.ARMOR;
+        } else if (inventory == this.offhand.getContainer()) {
+            return ContainerId.OFFHAND;
+        }
+        // TODO: dynamic container IDs for block entity containers
+        return ContainerId.NONE;
+    }
+
+    public void sendHeldItemSlot() {
+        this.onInventorySlotChange(this.container, this.selectedHotbarSlot);
+    }
+
+    public void sendInventoryContents() {
+        this.onInventoryContentsChange(this.container);
     }
 
     @Override

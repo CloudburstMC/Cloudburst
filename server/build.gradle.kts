@@ -75,7 +75,7 @@ tasks.shadowJar {
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
 
-    dependsOn(":api:jar")
+    dependsOn(":api:classes")
     from(project(":api").sourceSets.main.get().output)
 }
 

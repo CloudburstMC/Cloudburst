@@ -154,7 +154,7 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
         } else if (Ravager.class.isAssignableFrom(type)) {
             itemTag.putString(NAME_TAG, ItemIds.RAVAGER_SPAWN_EGG.toString());
         } else {
-            itemTag.putString(NAME_TAG, ItemIds.SPAWN_EGG.toString());
+            itemTag.putString(NAME_TAG, ItemIds.BAT_SPAWN_EGG.toString());
         }
 
     }

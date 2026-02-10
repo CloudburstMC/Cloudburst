@@ -44,6 +44,6 @@ public class EntityOcelot extends Animal implements Ocelot {
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        return item.getType() == ItemTypes.FISH;
+        return item.getType() == ItemTypes.COD;
     }
 }

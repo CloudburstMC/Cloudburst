@@ -14,7 +14,7 @@ public class CloudInventoryScreen extends CloudUiContainerScreen implements Inve
 
     @Override
     protected void setupMappings() {
-        this.addMapping(SimpleContainerMapping.playerInventoryView(this.player.getInventory()));
+        super.setupMappings();
         this.addMapping(SimpleContainerMapping.armorView(this.player.getArmor()));
         this.addMapping(SimpleContainerMapping.offhandView(this.player.getOffhand()));
     }

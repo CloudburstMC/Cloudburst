@@ -39,6 +39,6 @@ public class EntityPolarBear extends Animal implements PolarBear {
 
     @Override
     public ItemStack[] getDrops() {
-        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.FISH).build(), ItemStack.builder().itemType(ItemTypes.SALMON).build()};
+        return new ItemStack[]{ItemStack.builder().itemType(ItemTypes.COD).build(), ItemStack.builder().itemType(ItemTypes.SALMON).build()};
     }
 }

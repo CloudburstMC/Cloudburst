@@ -81,7 +81,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     public void setBook(ItemStack item) {
-        if (item != null && (item.getType() == ItemTypes.WRITTEN_BOOK || item.getType() == ItemTypes.WRITABLE_BOOK)) {
+        if (item != null && item.getType() == ItemTypes.WRITABLE_BOOK) {
             this.book = item;
         } else {
             this.book = null;

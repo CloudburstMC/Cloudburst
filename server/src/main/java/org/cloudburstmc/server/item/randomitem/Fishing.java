@@ -18,9 +18,9 @@ public final class Fishing {
     public static final Selector FISHES = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.85F);
     public static final Selector TREASURES = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.05F);
     public static final Selector JUNKS = RandomItem.putSelector(new Selector(ROOT_FISHING), 0.1F);
-    public static final Selector FISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.FISH), FISHES), 0.6F);
+    public static final Selector FISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.COD), FISHES), 0.6F);
     public static final Selector SALMON = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.SALMON), FISHES), 0.25F);
-    public static final Selector CLOWNFISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.CLOWNFISH), FISHES), 0.02F);
+    public static final Selector CLOWNFISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.TROPICAL_FISH), FISHES), 0.02F);
     public static final Selector PUFFERFISH = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.PUFFERFISH), FISHES), 0.13F);
     public static final Selector TREASURE_BOW = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BOW), TREASURES), 0.1667F);
     public static final Selector TREASURE_ENCHANTED_BOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.ENCHANTED_BOOK), TREASURES), 0.1667F);
@@ -36,7 +36,7 @@ public final class Fishing {
     public static final Selector JUNK_STRING_ITEM = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.STRING), JUNKS), 0.06F);
     public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.POTION), JUNKS), 0.12F);
     public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BONE), JUNKS), 0.12F);
-    public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemStack.builder(ItemTypes.DYE).amount(10).data(ItemKeys.COLOR, DyeColor.BLACK).build(), JUNKS), 0.012F);
+    public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemStack.builder(ItemTypes.INK_SAC).amount(10).data(ItemKeys.COLOR, DyeColor.BLACK).build(), JUNKS), 0.012F);
     public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(BlockTypes.TRIPWIRE_HOOK), JUNKS), 0.12F);
 
     public static ItemStack getFishingResult(ItemStack rod) {

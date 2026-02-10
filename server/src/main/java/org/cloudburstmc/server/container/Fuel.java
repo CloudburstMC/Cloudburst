@@ -180,7 +180,13 @@ public abstract class Fuel {
         duration.put(ItemIds.BANNER, (short) 300);
         duration.put(ItemIds.BIRCH_DOOR, (short) 200);
         duration.put(ItemIds.BLAZE_ROD, (short) 2400);
-        duration.put(ItemIds.BOAT, (short) 1200);
+        duration.put(ItemIds.OAK_BOAT, (short) 1200);
+        duration.put(ItemIds.SPRUCE_BOAT, (short) 1200);
+        duration.put(ItemIds.BIRCH_BOAT, (short) 1200);
+        duration.put(ItemIds.JUNGLE_BOAT, (short) 1200);
+        duration.put(ItemIds.ACACIA_BOAT, (short) 1200);
+        duration.put(ItemIds.DARK_OAK_BOAT, (short) 1200);
+        duration.put(ItemIds.MANGROVE_BOAT, (short) 1200);
         duration.put(ItemIds.BOW, (short) 200);
         duration.put(ItemIds.BOWL, (short) 200);
         duration.put(ItemIds.BUCKET, (short) 20000);

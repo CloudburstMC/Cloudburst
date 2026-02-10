@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.network.inventory;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.container.Container;
 import org.cloudburstmc.api.container.view.ContainerView;
@@ -16,7 +15,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import java.util.*;
 
 @Log4j2
-@RequiredArgsConstructor
 public class ItemStackNetManager {
 
     private final CloudPlayer player;
@@ -26,7 +24,12 @@ public class ItemStackNetManager {
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
     private boolean currentRequestIsCrafting;
-    private ItemStackRequestActionHandler handler = new ItemStackRequestActionHandler();
+    private final ItemStackRequestActionHandler handler;
+
+    public ItemStackNetManager(CloudPlayer player) {
+        this.player = player;
+        this.handler = new ItemStackRequestActionHandler(player);
+    }
 
     public void handlePacket(ItemStackRequestPacket packet) {
         for (ItemStackRequest request : packet.getRequests()) {
@@ -91,6 +94,7 @@ public class ItemStackNetManager {
             return;
         }
 
+        this.currentRequestIsCrafting = false;
         this.handler.beginRequest(request, screen);
 
         for (ItemStackRequestAction action : request.getActions()) {
@@ -101,6 +105,7 @@ public class ItemStackNetManager {
             handler.handleAction(action);
         }
 
+        this.currentRequestIsCrafting = false;
         responses.add(this.handler.endRequest());
     }
 
@@ -116,7 +121,6 @@ public class ItemStackNetManager {
             case LAB_TABLE_COMBINE:
             case BEACON_PAYMENT:
             case MINE_BLOCK:
-//            case TEST
                 return true;
             case SWAP:
             case CRAFT_RECIPE:
@@ -126,7 +130,11 @@ public class ItemStackNetManager {
             case CRAFT_REPAIR_AND_DISENCHANT:
             case CRAFT_LOOM:
             case CRAFT_NON_IMPLEMENTED_DEPRECATED:
-                return !this.currentRequestIsCrafting;
+                if (this.currentRequestIsCrafting) {
+                    return false;
+                }
+                this.currentRequestIsCrafting = true;
+                return true;
             case CONSUME:
             case CREATE:
             case CRAFT_RESULTS_DEPRECATED:
