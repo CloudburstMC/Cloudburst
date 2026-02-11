@@ -3,8 +3,8 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.daporkchop.lib.common.math.BinMath;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.common.util.PArrays;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.common.util.PorkUtil;
@@ -20,14 +20,17 @@ import java.util.Deque;
  * @author DaPorkchop_
  */
 public class IntArrayAllocator {
-    public static final Ref<IntArrayAllocator> DEFAULT = ThreadRef.soft(() -> new IntArrayAllocator(8));
+    public static final Cached<IntArrayAllocator> DEFAULT = Cached.threadLocal(() -> new IntArrayAllocator(8), ReferenceStrength.SOFT);
 
     protected final Deque<int[]>[] arenas;
     protected final int maxArenaSize;
 
     public IntArrayAllocator(int maxArenaSize) {
-        this.maxArenaSize = PValidation.positive(maxArenaSize);
-        this.arenas = PorkUtil.uncheckedCast(PArrays.filled(32, Deque[]::new, () -> new ArrayDeque(maxArenaSize)));
+        this.maxArenaSize = PValidation.positive(maxArenaSize, "maxArenaSize");
+        this.arenas = PorkUtil.uncheckedCast(new Deque[32]);
+        for (int i = 0; i < 32; i++) {
+            this.arenas[i] = new ArrayDeque<>(maxArenaSize);
+        }
     }
 
     public int[] get(int minSize) {

@@ -3,11 +3,6 @@ package org.cloudburstmc.api.util;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import tools.jackson.databind.annotation.JsonSerialize;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 
@@ -19,7 +14,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@JsonDeserialize(using = Identifier.Deserializer.class)
 @JsonSerialize(using = ToStringSerializer.class)
 public final class Identifier implements Comparable<Identifier> {
     private static final char NAMESPACE_SEPARATOR = ':';
@@ -47,10 +41,13 @@ public final class Identifier implements Comparable<Identifier> {
     private final String name;
     private final String fullName;
 
+    private final transient int hashCode;
+
     private Identifier(String namespace, String name, String fullName) {
         this.namespace = namespace;
         this.name = name;
         this.fullName = fullName;
+        this.hashCode = System.identityHashCode(this); // Precompute identity hash code and store it in a local field, this is ever so slightly faster
     }
 
     @JsonCreator
@@ -124,10 +121,8 @@ public final class Identifier implements Comparable<Identifier> {
         return this.fullName.compareTo(o.fullName);
     }
 
-    static final class Deserializer extends ValueDeserializer<Identifier> {
-        @Override
-        public Identifier deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
-            return Identifier.parse(p.getText());
-        }
+    @Override
+    public int hashCode() {
+        return this.hashCode;
     }
 }

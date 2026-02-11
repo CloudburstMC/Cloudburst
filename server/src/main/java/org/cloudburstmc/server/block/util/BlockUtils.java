@@ -6,8 +6,7 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.Tuple;
 import net.daporkchop.lib.common.misc.string.PStrings;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.common.util.PorkUtil;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -29,17 +28,17 @@ public class BlockUtils {
 
     public static final Comparator<BlockState> BLOCK_STATE_COMPARATOR = new BlockStateComparator();
 
-    private final Ref<Matcher> SINGLE_STATE_PATTERN = ThreadRef.regex(Pattern.compile(
+    private final Cached<Matcher> SINGLE_STATE_PATTERN = Cached.regex(Pattern.compile(
             "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=[a-z0-9_]+(?:,\\s*)?)+\\})?$", Pattern.CASE_INSENSITIVE));
-    private final Ref<Matcher> SINGLE_TRAIT_PATTERN = ThreadRef.regex(Pattern.compile(
+    private final Cached<Matcher> SINGLE_TRAIT_PATTERN = Cached.regex(Pattern.compile(
             "(?<=^\\{|,|\\s)([a-z_]+)=([a-z0-9_]+),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
 
-    private final Ref<Matcher> WILDCARD_STATE_PATTERN = ThreadRef.regex(Pattern.compile(
+    private final Cached<Matcher> WILDCARD_STATE_PATTERN = Cached.regex(Pattern.compile(
             "^((?:[a-z0-9_]+:)?[a-z0-9_]+)(\\{(?:[a-z_]+=(?:[a-z0-9_]+|\\*)(?:,\\s*)?)+\\})?$", Pattern.CASE_INSENSITIVE));
-    private final Ref<Matcher> WILDCARD_TRAIT_PATTERN = ThreadRef.regex(Pattern.compile(
+    private final Cached<Matcher> WILDCARD_TRAIT_PATTERN = Cached.regex(Pattern.compile(
             "(?<=^\\{|,|\\s)([a-z_]+)=([a-z0-9_]+|\\*),?(?=\\}$|,)", Pattern.CASE_INSENSITIVE));
 
-    private final Ref<Matcher> INT_PATTERN = ThreadRef.regex(Pattern.compile(
+    private final Cached<Matcher> INT_PATTERN = Cached.regex(Pattern.compile(
             "\\d+", Pattern.CASE_INSENSITIVE));
 
 

@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.level.generator.standard.misc.selector;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.server.block.util.BlockUtils;
@@ -38,7 +37,7 @@ final class BlockSelectorDeserializer extends ValueDeserializer<BlockSelector> {
 
     @JsonDeserialize
     private static final class TempEntry {
-        private static final Ref<Matcher> ENTRY_MATCHER_CACHE = ThreadRef.regex(Pattern.compile("^(?:(\\d+)\\*)?(.+)$"));
+        private static final Cached<Matcher> ENTRY_MATCHER_CACHE = Cached.regex(Pattern.compile("^(?:(\\d+)\\*)?(.+)$"));
 
         private final BlockState[] states;
         private final int weight;
