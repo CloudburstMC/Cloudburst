@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.shadow)
@@ -6,7 +7,11 @@ plugins {
 }
 
 dependencies {
-    api(projects.api)
+    implementation(project(":api")) {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
+        }
+    }
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
     }
@@ -14,6 +19,8 @@ dependencies {
     api(libs.bundles.fastutil)
     api(libs.leveldb.mcpe.jni)
     api(libs.noise)
+
+    compileOnly(libs.jsr305)
 
     implementation(libs.terminal.console.appender)
     implementation(libs.jline.terminal)
@@ -28,14 +35,18 @@ dependencies {
     implementation(libs.jose.jwt)
     implementation(libs.upnp)
 
-    compileOnly(libs.jsr305)
-
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
 }
 
 extraJavaModuleInfo {
-    skipLocalJars = true
+    failOnAutomaticModules.set(false)
+    automaticModule(libs.block.state.updater, "org.cloudburstmc.blockstateupdater") {
+        overrideModuleName()
+    }
+    automaticModule(libs.math.immutable, "org.cloudburstmc.math.immutable") {
+        overrideModuleName()
+    }
     automaticModule(libs.noise, "net.daporkchop.lib.noise")
     automaticModule(libs.upnp, "org.cloudburstmc.upnp")
     automaticModule("net.daporkchop.lib:math", "net.daporkchop.lib.math")
@@ -51,11 +62,15 @@ extraJavaModuleInfo {
     automaticModule("io.airlift:aircompressor", "io.airlift.aircompressor")
     automaticModule("com.github.stephenc.jcip:jcip-annotations", "com.github.stephenc.jcip.annotations")
     automaticModule("aopalliance:aopalliance", "aopalliance.aop")
-    knownModule("com.google.guava:failureaccess", "com.google.common.util.concurrent.internal")
+    module("com.google.guava:failureaccess", "com.google.guava.failureaccess") {
+        patchRealModule()
+    }
     automaticModule("com.google.code.findbugs:jsr305", "com.google.code.findbugs.jsr305")
-    knownModule("com.google.j2objc:j2objc-annotations", "com.google.j2objc.annotations")
-    automaticModule("net.jodah:expiringmap", "net.jodah.expiringmap")
+    module("com.google.j2objc:j2objc-annotations", "com.google.j2objc.annotations") {
+        patchRealModule()
+    }
     automaticModule("com.google.guava:listenablefuture", "com.google.guava.listenablefuture")
+    automaticModule("net.jodah:expiringmap", "net.jodah.expiringmap")
     automaticModule("org.osgi:org.osgi.resource", "org.osgi.resource")
     automaticModule("org.osgi:org.osgi.service.serviceloader", "org.osgi.service.serviceloader")
 }
@@ -76,7 +91,7 @@ tasks.shadowJar {
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
 
-    dependsOn(":api:classes")
+    dependsOn(":api:classes", ":api:jar")
     from(project(":api").sourceSets.main.get().output)
 }
 
@@ -85,4 +100,58 @@ tasks.register<JavaExec>("run") {
     workingDir = projectDir.resolve("run")
     workingDir.mkdir()
     classpath = sourceSets["main"].runtimeClasspath
+    jvmArgs(
+        "--enable-native-access=ALL-UNNAMED",
+        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+        "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+    systemProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true")
+    systemProperty("guice_bytecode_gen_option", "DISABLED")
+    systemProperty("io.netty.noUnsafe", "true")
+}
+
+abstract class GenerateGitPropertiesTask : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @get:Inject
+    abstract val providers: ProviderFactory
+
+    @TaskAction
+    fun generate() {
+        val file = outputFile.get().asFile
+        file.parentFile.mkdirs()
+        val properties = Properties()
+
+        try {
+            val gitCommit = providers.exec {
+                commandLine("git", "rev-parse", "--short", "HEAD")
+            }.standardOutput.asText.get().trim()
+            properties["git.commit.id.abbrev"] = gitCommit
+
+            val gitBranch = providers.exec {
+                commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
+            }.standardOutput.asText.get().trim()
+            properties["git.branch"] = gitBranch
+
+            val gitCommitTime = providers.exec {
+                commandLine("git", "log", "-1", "--format=%ct")
+            }.standardOutput.asText.get().trim()
+            properties["git.commit.time"] = gitCommitTime
+        } catch (e: Exception) {
+            println("Warning: Could not retrieve git information: ${e.message}")
+            properties["git.commit.id.abbrev"] = "unknown"
+        }
+
+        file.outputStream().use { properties.store(it, "Git Information") }
+    }
+}
+
+tasks.register<GenerateGitPropertiesTask>("generateGitProperties") {
+    outputFile.set(layout.buildDirectory.file("resources/main/git.properties"))
+    notCompatibleWithConfigurationCache("Executes git commands at runtime")
+}
+
+tasks.processResources {
+    dependsOn("generateGitProperties")
 }

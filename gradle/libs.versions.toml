@@ -77,3 +77,4 @@ fastutil = [ "fastutil-object-int-maps", "fastutil-object-reference-maps", "fast
 checkerframework = { id = "org.checkerframework", version = "0.6.61" }
 shadow = { id = "com.gradleup.shadow", version = "9.3.1" }
 extra-java-module-info = { id = "org.gradlex.extra-java-module-info", version = "1.13.1" }
+git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }

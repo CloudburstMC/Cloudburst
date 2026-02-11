@@ -52,6 +52,15 @@ import java.util.Properties;
  */
 @Log4j2
 public class Bootstrap {
+    static {
+        // Disable JLine deprecated terminal provider warning
+        System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
+        // Disable Guice bytecode generation to avoid Unsafe.staticFieldBase deprecation warning
+        System.setProperty("guice_bytecode_gen_option", "DISABLED");
+        // Disable Netty Unsafe usage to avoid objectFieldOffset deprecation warning
+        System.setProperty("io.netty.noUnsafe", "true");
+    }
+    
     public final static Properties GIT_INFO = getGitInfo();
     public final static String VERSION = getVersion();
     public final static String API_VERSION = "2.0.0";
