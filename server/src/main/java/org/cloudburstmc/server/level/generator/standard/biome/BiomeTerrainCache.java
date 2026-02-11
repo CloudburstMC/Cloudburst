@@ -6,8 +6,8 @@ import tools.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.common.util.PValidation;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
@@ -17,7 +17,7 @@ import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
  */
 @JsonDeserialize
 public final class BiomeTerrainCache {
-    private final Ref<Long2ObjectLinkedOpenHashMap<Data>> cacheCache = ThreadRef.soft(Long2ObjectLinkedOpenHashMap::new);
+    private final Cached<Long2ObjectLinkedOpenHashMap<Data>> cacheCache = Cached.threadLocal(Long2ObjectLinkedOpenHashMap::new, ReferenceStrength.SOFT);
     private final double[] weights;
     private final int radius;
     private final int scale;

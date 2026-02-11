@@ -2,10 +2,9 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 
 import java.util.regex.Matcher;
 
@@ -17,7 +16,7 @@ import java.util.regex.Matcher;
 //TODO: remove this and add jackson deserializer methods to Vector classes in math library
 @JsonDeserialize
 public final class DoubleTriple {
-    private static final Ref<Matcher> TRIPLE_MATCHER_CACHE = ThreadRef.regex("^(-?(?:[0-9]+|[0-9]*\\.[0-9]+)),(-?(?:[0-9]+|[0-9]*\\.[0-9]+)),(-?(?:[0-9]+|[0-9]*\\.[0-9]+))$");
+    private static final Cached<Matcher> TRIPLE_MATCHER_CACHE = Cached.regex("^(-?(?:[0-9]+|[0-9]*\\.[0-9]+)),(-?(?:[0-9]+|[0-9]*\\.[0-9]+)),(-?(?:[0-9]+|[0-9]*\\.[0-9]+))$");
 
     public static final DoubleTriple ONE = new DoubleTriple(1.0d, 1.0d, 1.0d);
 

@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import it.unimi.dsi.fastutil.longs.Long2LongLinkedOpenHashMap;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.common.util.PValidation;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
@@ -16,7 +16,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 public abstract class TerrainDoubleCache {
     protected static final long NaN = Double.doubleToRawLongBits(Double.NaN);
 
-    protected final Ref<Long2LongLinkedOpenHashMap> cacheCache = ThreadRef.soft(Long2LongLinkedOpenHashMap::new);
+    protected final Cached<Long2LongLinkedOpenHashMap> cacheCache = Cached.threadLocal(Long2LongLinkedOpenHashMap::new, ReferenceStrength.SOFT);
     protected final int radius;
     protected final int scale;
 

@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
+import net.daporkchop.ldbjni.direct.DirectDB;
+import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.server.level.LevelData;
@@ -12,7 +14,9 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
 import org.cloudburstmc.server.utils.LoadState;
-import org.iq80.leveldb.*;
+import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.DBIterator;
+import org.iq80.leveldb.Options;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
@@ -29,7 +33,7 @@ class LevelDBProvider implements LevelProvider {
     private final String levelId;
     private final Path path;
     private final Executor executor;
-    private final DB db;
+    private final DirectDB db;
     private volatile boolean closed;
 
     LevelDBProvider(String levelId, Path worldPath, Executor executor) throws IOException {
@@ -97,11 +101,11 @@ class LevelDBProvider implements LevelProvider {
                 //the chunk was not dirty, do nothing
                 return null;
             }
-            try (WriteBatch batch = this.db.createWriteBatch()) {
+            try (DirectWriteBatch batch = this.db.createWriteBatch()) {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    ChunkSerializers.serializeChunk(batch, (CloudChunk) chunk, 19);
+                    ChunkSerializers.serializeChunk(batch, chunk, 19);
                     Data2dSerializer.serialize(batch, (CloudChunk) chunk);
 
                     batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{19});

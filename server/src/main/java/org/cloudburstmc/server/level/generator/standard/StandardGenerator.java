@@ -11,8 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
+import net.daporkchop.lib.common.reference.ReferenceStrength;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
@@ -81,7 +81,7 @@ public final class StandardGenerator implements Generator {
     public static final double SCALE_Y = 1.0d / STEP_Y;
     public static final double SCALE_Z = 1.0d / STEP_Z;
 
-    private static final Ref<ThreadData> THREAD_DATA_CACHE = ThreadRef.soft(ThreadData::new);
+    private static final Cached<ThreadData> THREAD_DATA_CACHE = Cached.threadLocal(ThreadData::new, ReferenceStrength.SOFT);
 
     @JsonProperty
     @JsonDeserialize(using = BiomeMapReferenceDeserializer.class)

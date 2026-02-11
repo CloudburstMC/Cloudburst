@@ -3,11 +3,10 @@ package org.cloudburstmc.server.level.generator.standard.misc;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.daporkchop.lib.common.reference.cache.Cached;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.daporkchop.lib.common.ref.Ref;
-import net.daporkchop.lib.common.ref.ThreadRef;
 import net.daporkchop.lib.random.PRandom;
 
 import java.util.random.RandomGenerator;
@@ -22,7 +21,7 @@ import java.util.regex.Matcher;
  */
 @JsonDeserialize
 public final class IntRange {
-    private static final Ref<Matcher> RANGE_MATCHER_CACHE = ThreadRef.regex("^([0-9]+)(?:-([0-9]+))?$");
+    private static final Cached<Matcher> RANGE_MATCHER_CACHE = Cached.regex("^([0-9]+)(?:-([0-9]+))?$");
 
     public static final IntRange EMPTY_RANGE = new IntRange(0, 0, 0L);
     public static final IntRange ONE = new IntRange(1, 1);
