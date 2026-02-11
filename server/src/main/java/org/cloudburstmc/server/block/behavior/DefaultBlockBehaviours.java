@@ -88,7 +88,7 @@ public class DefaultBlockBehaviours {
                 .build();
     });
     public static final BooleanBlockBehavior CAN_BE_SILK_TOUCHED = (behavior, block) -> true;
-    public static final BooleanBlockStateBehavior CAN_PASS_THROUGH = (behavior, block) -> false;
+    public static final BooleanBlockStateBehavior CAN_PASS_THROUGH = (behavior, block) -> !behavior.get(BlockBehaviors.IS_SOLID);
     public static final BooleanBlockBehavior CAN_BE_USED_IN_COMMANDS = (behavior, block) -> true;
     public static final BooleanBlockBehavior CAN_CONTAIN_LIQUID = (behavior, block) -> false;
     public static final BooleanBlockBehavior CAN_SPAWN_ON = (behavior, block) -> true;

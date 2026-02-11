@@ -69,6 +69,11 @@ public class NetworkUtils {
         potionTypeMap.put(PotionTypes.STRONG_TURTLE_MASTER, (short) 39);
         potionTypeMap.put(PotionTypes.SLOW_FALLING, (short) 40);
         potionTypeMap.put(PotionTypes.LONG_SLOW_FALLING, (short) 41);
+        potionTypeMap.put(PotionTypes.STRONG_SLOWNESS, (short) 42);
+        potionTypeMap.put(PotionTypes.WIND_CHARGING, (short) 43);
+        potionTypeMap.put(PotionTypes.WEAVING, (short) 44);
+        potionTypeMap.put(PotionTypes.OOZING, (short) 45);
+        potionTypeMap.put(PotionTypes.INFESTATION, (short) 46);
 
         effectTypeMap.put(EffectTypes.SPEED, (byte) 1);
         effectTypeMap.put(EffectTypes.SLOWNESS, (byte) 2);
@@ -99,6 +104,12 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.SLOW_FALLING, (byte) 27);
         effectTypeMap.put(EffectTypes.BAD_OMEN, (byte) 28);
         effectTypeMap.put(EffectTypes.VILLAGE_HERO, (byte) 29);
+        effectTypeMap.put(EffectTypes.DARKNESS, (byte) 30);
+        effectTypeMap.put(EffectTypes.TRIAL_OMEN, (byte) 31);
+        effectTypeMap.put(EffectTypes.WIND_CHARGING, (byte) 32);
+        effectTypeMap.put(EffectTypes.WEAVING, (byte) 33);
+        effectTypeMap.put(EffectTypes.OOZING, (byte) 34);
+        effectTypeMap.put(EffectTypes.INFESTATION, (byte) 35);
 
 //        inventoryTypeMap.put(ContainerViewType.CHEST, ContainerType.CONTAINER);
 //        inventoryTypeMap.put(ContainerViewType.ENDER_CHEST, ContainerType.CONTAINER);

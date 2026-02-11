@@ -630,6 +630,12 @@ public class Identifiers {
     public static final Identifier WATER_BREATHING = Identifier.parse("water_breathing");
     public static final Identifier WEAKNESS = Identifier.parse("weakness");
     public static final Identifier WITHER = Identifier.parse("wither");
+    public static final Identifier DARKNESS = Identifier.parse("darkness");
+    public static final Identifier TRIAL_OMEN = Identifier.parse("trial_omen");
+    public static final Identifier WIND_CHARGING = Identifier.parse("wind_charging");
+    public static final Identifier WEAVING = Identifier.parse("weaving");
+    public static final Identifier OOZING = Identifier.parse("oozing");
+    public static final Identifier INFESTATION = Identifier.parse("infestation");
 
     //Potions
     public static final Identifier POTION_AWKWARD = Identifier.parse("awkward");
@@ -675,4 +681,8 @@ public class Identifiers {
     public static final Identifier POTION_WATER_BREATHING = Identifier.parse("water_breathing");
     public static final Identifier POTION_WEAKNESS = Identifier.parse("weakness");
     public static final Identifier POTION_WITHER = Identifier.parse("wither");
+    public static final Identifier POTION_WIND_CHARGING = Identifier.parse("wind_charging");
+    public static final Identifier POTION_WEAVING = Identifier.parse("weaving");
+    public static final Identifier POTION_OOZING = Identifier.parse("oozing");
+    public static final Identifier POTION_INFESTATION = Identifier.parse("infestation");
 }

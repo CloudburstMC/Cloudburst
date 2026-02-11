@@ -35,4 +35,10 @@ public class EffectTypes {
     public final static EffectType WATER_BREATHING = new EffectType(Identifiers.WATER_BREATHING, Vector3i.from(46, 82, 153));
     public final static EffectType WEAKNESS = new EffectType(Identifiers.WEAKNESS, Vector3i.from(72, 77, 72), true);
     public final static EffectType WITHER = new EffectType(Identifiers.WITHER, Vector3i.from(53, 42, 39), true);
+    public final static EffectType DARKNESS = new EffectType(Identifiers.DARKNESS, Vector3i.from(41, 39, 33), true);
+    public final static EffectType TRIAL_OMEN = new EffectType(Identifiers.TRIAL_OMEN, Vector3i.from(22, 166, 166), true);
+    public final static EffectType WIND_CHARGING = new EffectType(Identifiers.WIND_CHARGING, Vector3i.from(179, 205, 210));
+    public final static EffectType WEAVING = new EffectType(Identifiers.WEAVING, Vector3i.from(183, 195, 221));
+    public final static EffectType OOZING = new EffectType(Identifiers.OOZING, Vector3i.from(100, 145, 99), true);
+    public final static EffectType INFESTATION = new EffectType(Identifiers.INFESTATION, Vector3i.from(99, 117, 105), true);
 }

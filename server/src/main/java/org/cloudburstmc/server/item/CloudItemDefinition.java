@@ -14,7 +14,7 @@ public class CloudItemDefinition implements ItemDefinition {
     private final NbtMap componentData;
 
     public CloudItemDefinition(Identifier identifier, int runtimeId, boolean componentBased) {
-        this(identifier, runtimeId, componentBased, ItemVersion.LEGACY, null);
+        this(identifier, runtimeId, componentBased, ItemVersion.LEGACY, NbtMap.EMPTY);
     }
 
     public CloudItemDefinition(Identifier identifier, int runtimeId, boolean componentBased, ItemVersion version, NbtMap componentData) {
@@ -22,7 +22,7 @@ public class CloudItemDefinition implements ItemDefinition {
         this.runtimeId = runtimeId;
         this.componentBased = componentBased;
         this.version = version;
-        this.componentData = componentData;
+        this.componentData = componentData != null ? componentData : NbtMap.EMPTY;
     }
 
     public Identifier getCloudIdentifier() {

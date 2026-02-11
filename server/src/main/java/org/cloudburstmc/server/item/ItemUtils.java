@@ -194,7 +194,8 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        ItemDefinition definition = registry.getDefinition(identifier);
+        int damage = item.get(ItemKeys.DAMAGE) != null ? item.get(ItemKeys.DAMAGE) : 0;
+        ItemDefinition definition = registry.getDefinition(identifier, damage);
 
         String[] canPlace = new String[0];
         if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
@@ -215,7 +216,7 @@ public class ItemUtils {
 
         return ItemData.builder()
                 .definition(definition)
-                .damage(0)
+                .damage(damage)
                 .count(item.getCount())
                 .tag(tag.isEmpty() ? null : tag)
                 .canPlace(canPlace)

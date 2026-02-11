@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.container;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Inject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -13,6 +12,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
 import java.util.function.ObjIntConsumer;
@@ -27,8 +27,7 @@ public class CloudContainer implements Container {
     protected final ContainerStorage storage;
     protected final Set<ContainerListener> listeners = new HashSet<>();
     protected final int maxStackSize;
-    @Inject
-    ItemRegistry itemRegistry;
+    protected final ItemRegistry itemRegistry;
 
     public CloudContainer(int size) {
         this(size, MAX_STACK);
@@ -37,6 +36,7 @@ public class CloudContainer implements Container {
     public CloudContainer(int size, int maxStackSize) {
         this.storage = new ArrayContainerStorage(size);
         this.maxStackSize = maxStackSize;
+        this.itemRegistry = CloudItemRegistry.get();
     }
 
     public CloudContainer(CloudContainer... children) {
@@ -50,6 +50,7 @@ public class CloudContainer implements Container {
         }
         this.storage = new MultiContainerStorage(childStorage);
         this.maxStackSize = maxStackSize;
+        this.itemRegistry = CloudItemRegistry.get();
     }
 
     @Override

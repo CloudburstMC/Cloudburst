@@ -48,4 +48,8 @@ public class PotionTypes {
     public static final PotionType WATER_BREATHING = PotionType.builder().potionId(Identifiers.POTION_WATER_BREATHING).type(EffectTypes.WATER_BREATHING).level(1).duration(180).build();
     public static final PotionType WEAKNESS = PotionType.builder().potionId(Identifiers.POTION_WEAKNESS).type(EffectTypes.WEAKNESS).level(1).duration(90).build();
     public static final PotionType WITHER = PotionType.builder().potionId(Identifiers.POTION_WITHER).type(EffectTypes.WITHER).level(1).duration(40).build();
+    public static final PotionType WIND_CHARGING = PotionType.builder().potionId(Identifiers.POTION_WIND_CHARGING).type(EffectTypes.WIND_CHARGING).level(1).duration(180).build();
+    public static final PotionType WEAVING = PotionType.builder().potionId(Identifiers.POTION_WEAVING).type(EffectTypes.WEAVING).level(1).duration(180).build();
+    public static final PotionType OOZING = PotionType.builder().potionId(Identifiers.POTION_OOZING).type(EffectTypes.OOZING).level(1).duration(180).build();
+    public static final PotionType INFESTATION = PotionType.builder().potionId(Identifiers.POTION_INFESTATION).type(EffectTypes.INFESTATION).level(1).duration(180).build();
 }
