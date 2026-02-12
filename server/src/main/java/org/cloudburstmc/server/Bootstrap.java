@@ -57,8 +57,6 @@ public class Bootstrap {
         System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
         // Disable Guice bytecode generation to avoid Unsafe.staticFieldBase deprecation warning
         System.setProperty("guice_bytecode_gen_option", "DISABLED");
-        // Disable Netty Unsafe usage to avoid objectFieldOffset deprecation warning
-        System.setProperty("io.netty.noUnsafe", "true");
     }
     
     public final static Properties GIT_INFO = getGitInfo();

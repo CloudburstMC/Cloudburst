@@ -35,17 +35,54 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log4j2
 public class ItemPalette {
     private final static Reference2ObjectMap<Identifier, Int2ReferenceMap<Identifier>> metaMap = new Reference2ObjectOpenHashMap<>();
+    private final static Reference2ReferenceMap<Identifier, Identifier> simpleMap = new Reference2ReferenceOpenHashMap<>();
     private final static Reference2ReferenceMap<Identifier, CloudItemDefinition> itemEntries = new Reference2ReferenceOpenHashMap<>();
     private final static Int2ReferenceMap<CloudItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
+    private final static Int2ReferenceMap<Identifier> legacyIdMap = new Int2ReferenceOpenHashMap<>();
+    private final static Int2ReferenceMap<Identifier> legacyBlockIdMap = new Int2ReferenceOpenHashMap<>();
 
     static {
-        try (InputStream in = RegistryUtils.getOrAssertResource("data/item_mappings.json")) {
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (Map.Entry<String, JsonNode> entry : json.properties()) {
                 Identifier id = Identifier.parse(entry.getKey());
-                Int2ReferenceMap<Identifier> map = metaMap.computeIfAbsent(id, i -> new Int2ReferenceOpenHashMap<>());
-                for (Map.Entry<String, JsonNode> value : entry.getValue().properties()) {
-                    map.put(Integer.parseInt(value.getKey()), Identifier.parse(value.getValue().asText()));
+                int legacyId = entry.getValue().intValue();
+                legacyIdMap.put(legacyId, id);
+            }
+        } catch (IOException e) {
+            throw new RegistryException("Unable to load legacy item IDs", e);
+        }
+
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json")) {
+            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
+            for (Map.Entry<String, JsonNode> entry : json.properties()) {
+                Identifier id = Identifier.parse(entry.getKey());
+                int legacyId = entry.getValue().intValue();
+                legacyBlockIdMap.put(legacyId, id);
+            }
+        } catch (IOException e) {
+            throw new RegistryException("Unable to load legacy block IDs", e);
+        }
+
+        try (InputStream in = RegistryUtils.getOrAssertResource("data/item_mappings.json")) {
+            JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
+            if (json.has("simple")) {
+                JsonNode simpleNode = json.get("simple");
+                for (Map.Entry<String, JsonNode> entry : simpleNode.properties()) {
+                    Identifier oldId = Identifier.parse(entry.getKey());
+                    Identifier newId = Identifier.parse(entry.getValue().asString());
+                    simpleMap.put(oldId, newId);
+                }
+            }
+
+            if (json.has("complex")) {
+                JsonNode complexNode = json.get("complex");
+                for (Map.Entry<String, JsonNode> entry : complexNode.properties()) {
+                    Identifier id = Identifier.parse(entry.getKey());
+                    Int2ReferenceMap<Identifier> map = metaMap.computeIfAbsent(id, i -> new Int2ReferenceOpenHashMap<>());
+                    for (Map.Entry<String, JsonNode> value : entry.getValue().properties()) {
+                        map.put(Integer.parseInt(value.getKey()), Identifier.parse(value.getValue().asString()));
+                    }
                 }
             }
         } catch (IOException | NumberFormatException e) {
@@ -63,7 +100,7 @@ public class ItemPalette {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
             JsonNode json = Bootstrap.JSON_MAPPER.readTree(in);
             for (JsonNode item : json) {
-                String name = item.get("name").asText();
+                String name = item.get("name").asString();
                 Identifier id = Identifier.parse(name);
                 int runtime = item.get("id").intValue();
                 boolean componentBased = item.has("componentBased") && item.get("componentBased").asBoolean();
@@ -78,6 +115,10 @@ public class ItemPalette {
                 CloudItemDefinition definition = new CloudItemDefinition(id, runtime, componentBased, version, components);
                 itemEntries.put(id, definition);
                 runtimeIdMap.put(runtime, definition);
+
+                if (!legacyIdMap.containsKey(runtime) && !legacyBlockIdMap.containsKey(runtime)) {
+                    legacyIdMap.put(runtime, id);
+                }
             }
         } catch (IOException e) {
             throw new RegistryException("Unable to load vanilla runtime mapping", e);
@@ -116,11 +157,28 @@ public class ItemPalette {
     }
 
     public CloudItemDefinition getDefinition(Identifier id, int meta) {
-        if ((meta & 0x7FFF) == 0x7FFF) meta = 0;
-        if (metaMap.containsKey(id)) {
-            id = metaMap.get(id).get(meta);
+        if ((meta & 0x7FFF) == 0x7FFF) {
+            meta = 0;
         }
-        return itemEntries.get(id);
+
+        if (simpleMap.containsKey(id)) {
+            id = simpleMap.get(id);
+        }
+
+        if (metaMap.containsKey(id)) {
+            Identifier mapped = metaMap.get(id).get(meta);
+            if (mapped != null) {
+                id = mapped;
+            }
+        }
+
+        CloudItemDefinition result = itemEntries.get(id);
+        if (result == null && id != null) {
+            Identifier canonical = Identifier.parse(id.toString());
+            result = itemEntries.get(canonical);
+        }
+
+        return result;
     }
 
     public Identifier getIdByRuntime(int runtimeId) {
@@ -175,13 +233,20 @@ public class ItemPalette {
     }
 
     public Identifier fromLegacy(int legacyId, int meta) {
-        CloudItemDefinition def = runtimeIdMap.get(legacyId);
-        if (def == null) {
+        Identifier id = legacyIdMap.get(legacyId);
+        if (id == null) {
+            id = legacyBlockIdMap.get(legacyId);
+        }
+
+        if (id == null) {
             throw new RegistryException("Unknown item Id: " + legacyId);
         }
-        Identifier id = Identifier.parse(def.getIdentifier());
+
         if (metaMap.containsKey(id)) {
-            return metaMap.get(id).get(meta);
+            Identifier metaId = metaMap.get(id).get(meta);
+            if (metaId != null) {
+                return metaId;
+            }
         }
         return id;
     }

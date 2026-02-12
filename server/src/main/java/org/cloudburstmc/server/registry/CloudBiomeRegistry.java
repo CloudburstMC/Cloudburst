@@ -11,9 +11,8 @@ import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
-import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
-import org.cloudburstmc.api.registry.Registry;
+import org.cloudburstmc.server.level.biome.CloudBiome;
 
 import java.util.List;
 import java.util.Map;
@@ -190,5 +189,21 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
         this.registerVanilla(MESA_BRYCE, 165);
         this.registerVanilla(MESA_PLATEAU_STONE_MUTATED, 166);
         this.registerVanilla(MESA_PLATEAU_MUTATED, 167);
+        this.registerVanilla(SOUL_SAND_VALLEY, 178);
+        this.registerVanilla(CRIMSON_FOREST, 179);
+        this.registerVanilla(WARPED_FOREST, 180);
+        this.registerVanilla(BASALT_DELTAS, 181);
+        this.registerVanilla(JAGGED_PEAKS, 182);
+        this.registerVanilla(FROZEN_PEAKS, 183);
+        this.registerVanilla(SNOWY_SLOPES, 184);
+        this.registerVanilla(GROVE, 185);
+        this.registerVanilla(MEADOW, 186);
+        this.registerVanilla(LUSH_CAVES, 187);
+        this.registerVanilla(DRIPSTONE_CAVES, 188);
+        this.registerVanilla(STONY_PEAKS, 189);
+        this.registerVanilla(DEEP_DARK, 190);
+        this.registerVanilla(MANGROVE_SWAMP, 191);
+        this.registerVanilla(CHERRY_GROVE, 192);
+        this.registerVanilla(PALE_GARDEN, 193);
     }
 }

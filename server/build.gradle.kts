@@ -100,14 +100,8 @@ tasks.register<JavaExec>("run") {
     workingDir = projectDir.resolve("run")
     workingDir.mkdir()
     classpath = sourceSets["main"].runtimeClasspath
-    jvmArgs(
-        "--enable-native-access=ALL-UNNAMED",
-        "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-        "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED"
-    )
     systemProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true")
     systemProperty("guice_bytecode_gen_option", "DISABLED")
-    systemProperty("io.netty.noUnsafe", "true")
 }
 
 abstract class GenerateGitPropertiesTask : DefaultTask() {
