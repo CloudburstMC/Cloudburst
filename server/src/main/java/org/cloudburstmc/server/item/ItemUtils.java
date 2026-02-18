@@ -210,7 +210,9 @@ public class ItemUtils {
         try {
             blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
         } catch (IllegalArgumentException e) {
-            log.debug("Block state not registered for item: {}", identifier);
+            // Block state exists but doesn't have a definition in the vanilla palette
+            // This can happen when creative_items.json has block states that were merged
+            // but don't exist as exact matches in block_palette.nbt
         }
         NbtMap tag = ItemUtils.getSerializedTag(item);
 

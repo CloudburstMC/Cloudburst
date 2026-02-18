@@ -26,16 +26,16 @@ public class CloudBiome implements Biome {
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
 
     static {
-        InputStream inputStream = Bootstrap.class.getClassLoader().getResourceAsStream("data/biome_definitions.json");
+        InputStream inputStream = Bootstrap.class.getClassLoader().getResourceAsStream("data/stripped_biome_definitions.json");
         if (inputStream == null) {
-            throw new AssertionError("Could not find biome_definitions.json");
+            throw new AssertionError("Could not find stripped_biome_definitions.json");
         }
         try {
             Map<String, BiomeDefinitionData> biomes = Bootstrap.JSON_MAPPER.readValue(
                     inputStream, new TypeReference<Map<String, BiomeDefinitionData>>() {});
             BIOME_DEFINITIONS = new BiomeDefinitions(biomes);
         } catch (Exception e) {
-            throw new AssertionError("Error whilst loading biome_definitions.json", e);
+            throw new AssertionError("Error whilst loading stripped_biome_definitions.json", e);
         }
     }
 
