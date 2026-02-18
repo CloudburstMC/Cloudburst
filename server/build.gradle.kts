@@ -15,6 +15,10 @@ dependencies {
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
     }
+    compileOnly(libs.netty.transport.native.epoll)
+    compileOnly(libs.netty.transport.native.kqueue)
+    runtimeOnly(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
+    runtimeOnly(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
     api(libs.block.state.updater)
     api(libs.bundles.fastutil)
     api(libs.leveldb.mcpe.jni)

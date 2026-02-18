@@ -4,7 +4,14 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueDatagramChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
@@ -29,17 +36,30 @@ import java.util.concurrent.TimeUnit;
 public class BedrockInterface implements AdvancedSourceInterface {
 
     private final CloudServer server;
-
     private final EventLoopGroup eventLoopGroup;
     private final List<Channel> channels = new ArrayList<>();
     private final BedrockPong advertisement = new BedrockPong();
 
-    public BedrockInterface(CloudServer server) throws Exception {
+    public BedrockInterface(CloudServer server) {
         this.server = server;
 
-        this.eventLoopGroup = new NioEventLoopGroup();
+        Class<? extends DatagramChannel> datagramChannelClass;
+        if (Epoll.isAvailable()) {
+            this.eventLoopGroup = new EpollEventLoopGroup();
+            datagramChannelClass = EpollDatagramChannel.class;
+            log.debug("Using Epoll transport");
+        } else if (KQueue.isAvailable()) {
+            this.eventLoopGroup = new KQueueEventLoopGroup();
+            datagramChannelClass = KQueueDatagramChannel.class;
+            log.debug("Using KQueue transport");
+        } else {
+            this.eventLoopGroup = new NioEventLoopGroup();
+            datagramChannelClass = NioDatagramChannel.class;
+            log.debug("Using NIO transport");
+        }
+
         ServerBootstrap bootstrap = new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(NioDatagramChannel.class)) // TODO: Epoll, KQueue and IO Uring support
+                .channelFactory(RakChannelFactory.server(datagramChannelClass))
                 .group(this.eventLoopGroup)
                 .childHandler(new BedrockServerInitializer() {
                     @Override
@@ -79,7 +99,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
     @Override
     public void setName(String name) {
         QueryRegenerateEvent info = this.server.getQueryInformation();
-        String[] names = name.split("!@#");  //Split double names within the program
+        String[] names = name.split("!@#"); // Split double names within the program
         String motd = Utils.rtrim(names[0].replace(";", "\\;"), '\\');
         String subMotd = names.length > 1 ? Utils.rtrim(names[1].replace(";", "\\;"), '\\') : "";
         String gm = this.server.getDefaultGamemode().getName();
@@ -89,10 +109,12 @@ public class BedrockInterface implements AdvancedSourceInterface {
                 .subMotd(subMotd.trim().isEmpty() ? "Cloudburst" : subMotd)
                 .playerCount(info.getPlayerCount())
                 .maximumPlayerCount(info.getMaxPlayerCount())
-                .version("1")
-                .protocolVersion(0)
+                .version(ProtocolInfo.getDefaultMinecraftVersion())
+                .protocolVersion(ProtocolInfo.getDefaultProtocolVersion())
                 .gameType(gm.substring(0, 1).toUpperCase() + gm.substring(1))
-                .nintendoLimited(false);
+                .nintendoLimited(false)
+                .ipv4Port(this.server.getPort())
+                .serverId(this.server.getServerUniqueId().getMostSignificantBits());
 
         for (Channel channel : this.channels) {
             channel.config().setOption(RakChannelOption.RAK_ADVERTISEMENT, this.advertisement.toByteBuf());
@@ -101,10 +123,6 @@ public class BedrockInterface implements AdvancedSourceInterface {
 
     @Override
     public boolean process() {
-//        NukkitSessionListener listener;
-//        while ((listener = disconnectQueue.poll()) != null) {
-//            listener.player.close(listener.player.getLeaveMessage(), listener.disconnectReason, false);
-//        }
         return true;
     }
 
@@ -120,21 +138,4 @@ public class BedrockInterface implements AdvancedSourceInterface {
     public void emergencyShutdown() {
         this.shutdown();
     }
-//
-//    @RequiredArgsConstructor
-//    private class NukkitSessionListener implements Consumer<DisconnectReason> {
-//        private final CloudPlayer player;
-//        private String disconnectReason = null;
-//
-//        @Override
-//        public void accept(DisconnectReason disconnectReason) {
-//            if (disconnectReason == DisconnectReason.TIMED_OUT) {
-//                this.disconnectReason = "Timed out";
-//            } else {
-//                this.disconnectReason = "Disconnected from Server";
-//            }
-//            // Queue for disconnect on main thread.
-//            BedrockInterface.this.disconnectQueue.add(this);
-//        }
-//    }
 }
