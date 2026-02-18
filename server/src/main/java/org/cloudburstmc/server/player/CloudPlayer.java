@@ -238,7 +238,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public long lastSkinChange;
 
     @Getter
-    @Setter
     private int selectedHotbarSlot = 0;
 
     public CloudPlayer(BedrockServerSession session, ClientChainData chainData) {
@@ -3289,6 +3288,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public void sendHeldItemSlot() {
         this.onInventorySlotChange(this.container, this.selectedHotbarSlot);
+    }
+
+    public void setSelectedHotbarSlot(int slot) {
+        this.selectedHotbarSlot = slot;
+
+        PlayerHotbarPacket packet = new PlayerHotbarPacket();
+        packet.setSelectedHotbarSlot(slot);
+        packet.setContainerId(ContainerId.INVENTORY);
+        packet.setSelectHotbarSlot(true);
+        this.sendPacket(packet);
     }
 
     public void sendInventoryContents() {

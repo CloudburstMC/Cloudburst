@@ -767,9 +767,18 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(BlockPickRequestPacket packet) {
+        if (player.isSpectator()) {
+            log.debug("Got block-pick request from " + player.getName() + " when in spectator mode");
+            return PacketSignal.HANDLED;
+        }
+
         Vector3i pickPos = packet.getBlockPosition();
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
 
+        if (block.getState().getType() == AIR) {
+            log.debug("Got block-pick request from " + player.getName() + " for air block");
+            return PacketSignal.HANDLED;
+        }
 
         ItemStack serverItem = ItemStack.from(block.getState());
 
@@ -788,11 +797,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         PlayerBlockPickEvent pickEvent = new PlayerBlockPickEvent(player, block, serverItem);
-        if (player.isSpectator()) {
-            log.debug("Got block-pick request from " + player.getName() + " when in spectator mode");
-            pickEvent.setCancelled();
-        }
-
         player.getServer().getEventManager().fire(pickEvent);
 
         if (!pickEvent.isCancelled()) {
