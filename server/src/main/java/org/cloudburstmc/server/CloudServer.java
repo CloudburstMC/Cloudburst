@@ -72,6 +72,7 @@ import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 
+import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -82,6 +83,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
@@ -829,6 +831,7 @@ public class CloudServer implements Server {
         entry.setSkin(skin);
         entry.setXuid(xboxUserId);
         entry.setPlatformChatId("");
+        entry.setColor(parseSkinColor(skin.getSkinColor()));
         packet.getEntries().add(entry);
         CloudServer.broadcastPacket(players, packet);
     }
@@ -866,6 +869,7 @@ public class CloudServer implements Server {
                     entry.setSkin(p.getSerializedSkin());
                     entry.setXuid(p.getXuid());
                     entry.setPlatformChatId("");
+                    entry.setColor(parseSkinColor(p.getSerializedSkin().getSkinColor()));
                     return entry;
                 }).collect(Collectors.toList()));
 
@@ -874,6 +878,16 @@ public class CloudServer implements Server {
 
     public void sendRecipeList(Player player) {
         this.craftingManager.sendRecipesTo((CloudPlayer) player);
+    }
+
+    private static Color parseSkinColor(String skinColor) {
+        if (skinColor != null && skinColor.startsWith("#") && skinColor.length() == 7) {
+            try {
+                return Color.decode(skinColor);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return Color.WHITE;
     }
 
     private void checkTickUpdates(int currentTick, long tickTime) {

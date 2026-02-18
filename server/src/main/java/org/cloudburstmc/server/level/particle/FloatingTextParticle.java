@@ -12,6 +12,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.level.CloudLevel;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.UUID;
@@ -33,8 +34,8 @@ public class FloatingTextParticle extends Particle {
                 .skinData(SKIN_DATA).build();
     }
 
-    protected UUID uuid = UUID.randomUUID();
     protected final CloudLevel level;
+    protected UUID uuid = UUID.randomUUID();
     protected long entityId = -1;
     protected boolean invisible = false;
     protected EntityDataMap dataMap = new EntityDataMap();
@@ -135,6 +136,7 @@ public class FloatingTextParticle extends Particle {
             entry.setSkin(EMPTY_SKIN);
             entry.setXuid("");
             entry.setPlatformChatId("");
+            entry.setColor(Color.WHITE);
             PlayerListPacket playerAdd = new PlayerListPacket();
             playerAdd.getEntries().add(entry);
             playerAdd.setAction(PlayerListPacket.Action.ADD);
