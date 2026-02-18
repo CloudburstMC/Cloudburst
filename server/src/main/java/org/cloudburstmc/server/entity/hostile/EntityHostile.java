@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.hostile;
 
+import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -9,14 +10,21 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.EntityCreature;
 
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
-public abstract class EntityHostile extends EntityCreature {
+public abstract class EntityHostile extends EntityCreature implements EntityAgeable {
 
     public EntityHostile(EntityType<?> type, Location location) {
         super(type, location);
+    }
+
+    @Override
+    public boolean isBaby() {
+        return this.data.getFlag(BABY);
     }
 
     @Override
