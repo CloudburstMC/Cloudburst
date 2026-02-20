@@ -669,8 +669,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.scheduleUpdate();
                 break;
             case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK:
-                player.sendPosition(player.getPosition(), player.getYaw(), player.getPitch(), MovePlayerPacket.Mode.NORMAL);
-                break; //TODO
             default:
                 break;
         }

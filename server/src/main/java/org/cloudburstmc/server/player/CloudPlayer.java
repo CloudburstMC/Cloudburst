@@ -1545,6 +1545,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
         startGamePacket.setVanillaVersion("1.17.40"); // Temporary hack that allows player to join by disabling the new chunk columns introduced in update 1.18
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
