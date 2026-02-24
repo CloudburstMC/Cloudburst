@@ -4,6 +4,7 @@ import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -11,7 +12,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.container.screen.CloudContainerScreen;
+import org.cloudburstmc.server.container.screen.CloudBeaconContainerScreen;
+import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
@@ -21,13 +23,17 @@ import java.util.Map;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
 /**
- * author: Rover656
+ * Block entity implementation for a beacon. Tracks the primary and secondary potion effects and the current
+ * power level, and periodically applies those effects to nearby players within range.
  */
 public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
+
+    private static final int POWER_LEVEL_MAX = 4;
 
     private EffectType primaryEffect;
     private EffectType secondaryEffect;
     private int powerLevel;
+    private long currentTick = 0;
 
     public BeaconBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -52,8 +58,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     public boolean isValid() {
         return getBlockState().getType() == BlockTypes.BEACON;
     }
-
-    private long currentTick = 0;
 
     @Override
     public boolean onUpdate() {
@@ -127,8 +131,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         return true;
     }
 
-    private static final int POWER_LEVEL_MAX = 4;
-
     private boolean hasSkyAccess() {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
@@ -166,6 +168,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         return POWER_LEVEL_MAX;
     }
 
+    public int getPowerLevel() {
+        return powerLevel;
+    }
+
     public EffectType getPrimaryEffect() {
         return primaryEffect;
     }
@@ -176,6 +182,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             setDirty();
             this.spawnToAll();
         }
+    }
+
+    public void setPrimaryEffect(int legacyId) {
+        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
     }
 
     public EffectType getSecondaryEffect() {
@@ -190,10 +200,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         }
     }
 
-    public void setPrimaryEffect(int legacyId) {
-        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
-    }
-
     public void setSecondaryEffect(int legacyId) {
         this.setSecondaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
     }
@@ -205,10 +211,10 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 
-        CloudContainerScreen screen = player.getInventoryManager().getScreen();
-
-        // FIXME: Clear the beacon inventory
-//        screen.clear(0);
+        CloudInventoryScreen screen = player.getInventoryManager().getScreen();
+        if (screen instanceof CloudBeaconContainerScreen beaconScreen) {
+            beaconScreen.getBeacon().setPayment(ItemStack.EMPTY);
+        }
         this.scheduleUpdate();
         return true;
     }

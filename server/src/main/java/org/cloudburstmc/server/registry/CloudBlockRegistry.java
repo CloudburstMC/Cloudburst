@@ -24,6 +24,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
+import org.cloudburstmc.server.block.behavior.ContainerBlockBehaviors;
 import org.cloudburstmc.server.block.behavior.DefaultBlockBehaviours;
 import org.cloudburstmc.server.block.serializer.*;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
@@ -44,6 +45,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
+/**
+ * Singleton {@link BlockRegistry} that loads the block state palette from the embedded JSON resource,
+ * maintains a bidirectional {@link org.cloudburstmc.api.block.BlockState} ↔ network runtime-ID mapping,
+ * and registers all block behaviors.
+ */
 @Log4j2
 public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> implements BlockRegistry {
     public static CloudBlockRegistry REGISTRY;
@@ -346,7 +352,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ANDESITE_SLAB);
         this.registerVanilla(ANDESITE_STAIRS);
         this.registerVanilla(ANDESITE_WALL);
-        this.registerVanilla(ANVIL);
+        this.registerVanilla(ANVIL)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
         this.registerVanilla(AZALEA);
         this.registerVanilla(AZALEA_LEAVES);
         this.registerVanilla(AZALEA_LEAVES_FLOWERED);
@@ -372,10 +380,14 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BAMBOO_STANDING_SIGN);
         this.registerVanilla(BAMBOO_TRAPDOOR);
         this.registerVanilla(BAMBOO_WALL_SIGN);
-        this.registerVanilla(BARREL);
+        this.registerVanilla(BARREL)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BARREL);
         this.registerVanilla(BARRIER);
         this.registerVanilla(BASALT);
-        this.registerVanilla(BEACON);
+        this.registerVanilla(BEACON)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BEACON);
         this.registerVanilla(BED);
         this.registerVanilla(BEDROCK);
         this.registerVanilla(BEEHIVE);
@@ -412,12 +424,16 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BLACK_CONCRETE);
         this.registerVanilla(BLACK_CONCRETE_POWDER);
         this.registerVanilla(BLACK_GLAZED_TERRACOTTA);
-        this.registerVanilla(BLACK_SHULKER_BOX);
+        this.registerVanilla(BLACK_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(BLACK_STAINED_GLASS);
         this.registerVanilla(BLACK_STAINED_GLASS_PANE);
         this.registerVanilla(BLACK_TERRACOTTA);
         this.registerVanilla(BLACK_WOOL);
-        this.registerVanilla(BLAST_FURNACE);
+        this.registerVanilla(BLAST_FURNACE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BLAST_FURNACE);
         this.registerVanilla(BLUE_CANDLE);
         this.registerVanilla(BLUE_CANDLE_CAKE);
         this.registerVanilla(BLUE_CARPET);
@@ -426,7 +442,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BLUE_GLAZED_TERRACOTTA);
         this.registerVanilla(BLUE_ICE);
         this.registerVanilla(BLUE_ORCHID);
-        this.registerVanilla(BLUE_SHULKER_BOX);
+        this.registerVanilla(BLUE_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(BLUE_STAINED_GLASS);
         this.registerVanilla(BLUE_STAINED_GLASS_PANE);
         this.registerVanilla(BLUE_TERRACOTTA);
@@ -438,7 +456,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BRAIN_CORAL_BLOCK);
         this.registerVanilla(BRAIN_CORAL_FAN);
         this.registerVanilla(BRAIN_CORAL_WALL_FAN);
-        this.registerVanilla(BREWING_STAND);
+        this.registerVanilla(BREWING_STAND)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BREWING_STAND);
         this.registerVanilla(BRICK_BLOCK);
         this.registerVanilla(BRICK_DOUBLE_SLAB);
         this.registerVanilla(BRICK_SLAB);
@@ -452,7 +472,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BROWN_GLAZED_TERRACOTTA);
         this.registerVanilla(BROWN_MUSHROOM);
         this.registerVanilla(BROWN_MUSHROOM_BLOCK);
-        this.registerVanilla(BROWN_SHULKER_BOX);
+        this.registerVanilla(BROWN_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(BROWN_STAINED_GLASS);
         this.registerVanilla(BROWN_STAINED_GLASS_PANE);
         this.registerVanilla(BROWN_TERRACOTTA);
@@ -474,7 +496,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CANDLE);
         this.registerVanilla(CANDLE_CAKE);
         this.registerVanilla(CARROTS);
-        this.registerVanilla(CARTOGRAPHY_TABLE);
+        this.registerVanilla(CARTOGRAPHY_TABLE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CARTOGRAPHY_TABLE);
         this.registerVanilla(CARVED_PUMPKIN);
         this.registerVanilla(CAULDRON);
         this.registerVanilla(CAVE_VINES);
@@ -501,8 +525,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CHERRY_TRAPDOOR);
         this.registerVanilla(CHERRY_WALL_SIGN);
         this.registerVanilla(CHERRY_WOOD);
-        this.registerVanilla(CHEST);
-        this.registerVanilla(CHIPPED_ANVIL);
+        this.registerVanilla(CHEST)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CHEST);
+        this.registerVanilla(CHIPPED_ANVIL)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
         this.registerVanilla(CHISELED_BOOKSHELF);
         this.registerVanilla(CHISELED_COPPER);
         this.registerVanilla(CHISELED_DEEPSLATE);
@@ -559,8 +587,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CRACKED_NETHER_BRICKS);
         this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);
         this.registerVanilla(CRACKED_STONE_BRICKS);
-        this.registerVanilla(CRAFTER);
-        this.registerVanilla(CRAFTING_TABLE);
+        this.registerVanilla(CRAFTER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CRAFTER);
+        this.registerVanilla(CRAFTING_TABLE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CRAFTING_TABLE);
         this.registerVanilla(CREAKING_HEART);
         this.registerVanilla(CREEPER_HEAD);
         this.registerVanilla(CRIMSON_BUTTON);
@@ -598,12 +630,16 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CYAN_CONCRETE);
         this.registerVanilla(CYAN_CONCRETE_POWDER);
         this.registerVanilla(CYAN_GLAZED_TERRACOTTA);
-        this.registerVanilla(CYAN_SHULKER_BOX);
+        this.registerVanilla(CYAN_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(CYAN_STAINED_GLASS);
         this.registerVanilla(CYAN_STAINED_GLASS_PANE);
         this.registerVanilla(CYAN_TERRACOTTA);
         this.registerVanilla(CYAN_WOOL);
-        this.registerVanilla(DAMAGED_ANVIL);
+        this.registerVanilla(DAMAGED_ANVIL)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
         this.registerVanilla(DANDELION);
         this.registerVanilla(DARKOAK_STANDING_SIGN);
         this.registerVanilla(DARKOAK_WALL_SIGN);
@@ -684,14 +720,18 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(DIORITE_WALL);
         this.registerVanilla(DIRT);
         this.registerVanilla(DIRT_WITH_ROOTS);
-        this.registerVanilla(DISPENSER);
+        this.registerVanilla(DISPENSER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.DISPENSER);
         this.registerVanilla(DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(DRAGON_EGG);
         this.registerVanilla(DRAGON_HEAD);
         this.registerVanilla(DRIED_GHAST);
         this.registerVanilla(DRIED_KELP_BLOCK);
         this.registerVanilla(DRIPSTONE_BLOCK);
-        this.registerVanilla(DROPPER);
+        this.registerVanilla(DROPPER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.DROPPER);
         this.registerVanilla(ELEMENT_0);
         this.registerVanilla(ELEMENT_1);
         this.registerVanilla(ELEMENT_2);
@@ -814,8 +854,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ELEMENT_CONSTRUCTOR);
         this.registerVanilla(EMERALD_BLOCK);
         this.registerVanilla(EMERALD_ORE);
-        this.registerVanilla(ENCHANTING_TABLE);
-        this.registerVanilla(ENDER_CHEST);
+        this.registerVanilla(ENCHANTING_TABLE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ENCHANTING_TABLE);
+        this.registerVanilla(ENDER_CHEST)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ENDER_CHEST);
         this.registerVanilla(END_BRICKS);
         this.registerVanilla(END_BRICK_STAIRS);
         this.registerVanilla(END_GATEWAY);
@@ -858,7 +902,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(FRAME);
         this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(FROSTED_ICE);
-        this.registerVanilla(FURNACE);
+        this.registerVanilla(FURNACE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.FURNACE);
         this.registerVanilla(GILDED_BLACKSTONE);
         this.registerVanilla(GLASS);
         this.registerVanilla(GLASS_PANE);
@@ -883,7 +929,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(GRAY_CONCRETE);
         this.registerVanilla(GRAY_CONCRETE_POWDER);
         this.registerVanilla(GRAY_GLAZED_TERRACOTTA);
-        this.registerVanilla(GRAY_SHULKER_BOX);
+        this.registerVanilla(GRAY_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(GRAY_STAINED_GLASS);
         this.registerVanilla(GRAY_STAINED_GLASS_PANE);
         this.registerVanilla(GRAY_TERRACOTTA);
@@ -894,12 +942,16 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(GREEN_CONCRETE);
         this.registerVanilla(GREEN_CONCRETE_POWDER);
         this.registerVanilla(GREEN_GLAZED_TERRACOTTA);
-        this.registerVanilla(GREEN_SHULKER_BOX);
+        this.registerVanilla(GREEN_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(GREEN_STAINED_GLASS);
         this.registerVanilla(GREEN_STAINED_GLASS_PANE);
         this.registerVanilla(GREEN_TERRACOTTA);
         this.registerVanilla(GREEN_WOOL);
-        this.registerVanilla(GRINDSTONE);
+        this.registerVanilla(GRINDSTONE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.GRINDSTONE);
         this.registerVanilla(HANGING_ROOTS);
         this.registerVanilla(HARDENED_CLAY);
         this.registerVanilla(HARD_BLACK_STAINED_GLASS);
@@ -941,7 +993,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(HEAVY_WEIGHTED_PRESSURE_PLATE);
         this.registerVanilla(HONEYCOMB_BLOCK);
         this.registerVanilla(HONEY_BLOCK);
-        this.registerVanilla(HOPPER);
+        this.registerVanilla(HOPPER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.HOPPER);
         this.registerVanilla(HORN_CORAL);
         this.registerVanilla(HORN_CORAL_BLOCK);
         this.registerVanilla(HORN_CORAL_FAN);
@@ -993,7 +1047,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LARGE_FERN);
         this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
         this.registerVanilla(LEAF_LITTER);
-        this.registerVanilla(LECTERN);
+        this.registerVanilla(LECTERN)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.LECTERN);
         this.registerVanilla(LEVER);
         this.registerVanilla(LIGHTNING_ROD);
         this.registerVanilla(LIGHT_BLOCK_0).extend(BlockBehaviors.IS_SOLID, false);
@@ -1018,7 +1074,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIGHT_BLUE_CONCRETE);
         this.registerVanilla(LIGHT_BLUE_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_BLUE_GLAZED_TERRACOTTA);
-        this.registerVanilla(LIGHT_BLUE_SHULKER_BOX);
+        this.registerVanilla(LIGHT_BLUE_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS_PANE);
         this.registerVanilla(LIGHT_BLUE_TERRACOTTA);
@@ -1029,7 +1087,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIGHT_GRAY_CONCRETE);
         this.registerVanilla(LIGHT_GRAY_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_GRAY_GLAZED_TERRACOTTA);
-        this.registerVanilla(LIGHT_GRAY_SHULKER_BOX);
+        this.registerVanilla(LIGHT_GRAY_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS_PANE);
         this.registerVanilla(LIGHT_GRAY_TERRACOTTA);
@@ -1043,27 +1103,39 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIME_CONCRETE);
         this.registerVanilla(LIME_CONCRETE_POWDER);
         this.registerVanilla(LIME_GLAZED_TERRACOTTA);
-        this.registerVanilla(LIME_SHULKER_BOX);
+        this.registerVanilla(LIME_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(LIME_STAINED_GLASS);
         this.registerVanilla(LIME_STAINED_GLASS_PANE);
         this.registerVanilla(LIME_TERRACOTTA);
         this.registerVanilla(LIME_WOOL);
-        this.registerVanilla(LIT_BLAST_FURNACE);
+        this.registerVanilla(LIT_BLAST_FURNACE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BLAST_FURNACE);
         this.registerVanilla(LIT_DEEPSLATE_REDSTONE_ORE);
-        this.registerVanilla(LIT_FURNACE);
+        this.registerVanilla(LIT_FURNACE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.FURNACE);
         this.registerVanilla(LIT_PUMPKIN);
         this.registerVanilla(LIT_REDSTONE_LAMP);
         this.registerVanilla(LIT_REDSTONE_ORE);
-        this.registerVanilla(LIT_SMOKER);
+        this.registerVanilla(LIT_SMOKER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMOKER);
         this.registerVanilla(LODESTONE);
-        this.registerVanilla(LOOM);
+        this.registerVanilla(LOOM)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.LOOM);
         this.registerVanilla(MAGENTA_CANDLE);
         this.registerVanilla(MAGENTA_CANDLE_CAKE);
         this.registerVanilla(MAGENTA_CARPET);
         this.registerVanilla(MAGENTA_CONCRETE);
         this.registerVanilla(MAGENTA_CONCRETE_POWDER);
         this.registerVanilla(MAGENTA_GLAZED_TERRACOTTA);
-        this.registerVanilla(MAGENTA_SHULKER_BOX);
+        this.registerVanilla(MAGENTA_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(MAGENTA_STAINED_GLASS);
         this.registerVanilla(MAGENTA_STAINED_GLASS_PANE);
         this.registerVanilla(MAGENTA_TERRACOTTA);
@@ -1160,7 +1232,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ORANGE_CONCRETE);
         this.registerVanilla(ORANGE_CONCRETE_POWDER);
         this.registerVanilla(ORANGE_GLAZED_TERRACOTTA);
-        this.registerVanilla(ORANGE_SHULKER_BOX);
+        this.registerVanilla(ORANGE_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(ORANGE_STAINED_GLASS);
         this.registerVanilla(ORANGE_STAINED_GLASS_PANE);
         this.registerVanilla(ORANGE_TERRACOTTA);
@@ -1218,7 +1292,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PINK_CONCRETE_POWDER);
         this.registerVanilla(PINK_GLAZED_TERRACOTTA);
         this.registerVanilla(PINK_PETALS);
-        this.registerVanilla(PINK_SHULKER_BOX);
+        this.registerVanilla(PINK_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(PINK_STAINED_GLASS);
         this.registerVanilla(PINK_STAINED_GLASS_PANE);
         this.registerVanilla(PINK_TERRACOTTA);
@@ -1289,7 +1365,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PURPLE_CONCRETE);
         this.registerVanilla(PURPLE_CONCRETE_POWDER);
         this.registerVanilla(PURPLE_GLAZED_TERRACOTTA);
-        this.registerVanilla(PURPLE_SHULKER_BOX);
+        this.registerVanilla(PURPLE_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(PURPLE_STAINED_GLASS);
         this.registerVanilla(PURPLE_STAINED_GLASS_PANE);
         this.registerVanilla(PURPLE_TERRACOTTA);
@@ -1334,7 +1412,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(RED_SANDSTONE_SLAB);
         this.registerVanilla(RED_SANDSTONE_STAIRS);
         this.registerVanilla(RED_SANDSTONE_WALL);
-        this.registerVanilla(RED_SHULKER_BOX);
+        this.registerVanilla(RED_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(RED_STAINED_GLASS);
         this.registerVanilla(RED_STAINED_GLASS_PANE);
         this.registerVanilla(RED_TERRACOTTA);
@@ -1375,8 +1455,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(SLIME);
         this.registerVanilla(SMALL_AMETHYST_BUD);
         this.registerVanilla(SMALL_DRIPLEAF_BLOCK);
-        this.registerVanilla(SMITHING_TABLE);
-        this.registerVanilla(SMOKER);
+        this.registerVanilla(SMITHING_TABLE)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMITHING_TABLE);
+        this.registerVanilla(SMOKER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMOKER);
         this.registerVanilla(SMOOTH_BASALT);
         this.registerVanilla(SMOOTH_QUARTZ);
         this.registerVanilla(SMOOTH_QUARTZ_DOUBLE_SLAB);
@@ -1426,8 +1510,12 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(STICKY_PISTON);
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
         this.registerVanilla(STONE);
-        this.registerVanilla(STONECUTTER);
-        this.registerVanilla(STONECUTTER_BLOCK);
+        this.registerVanilla(STONECUTTER)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.STONECUTTER);
+        this.registerVanilla(STONECUTTER_BLOCK)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.STONECUTTER);
         this.registerVanilla(STONE_BRICKS);
         this.registerVanilla(STONE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(STONE_BRICK_SLAB);
@@ -1473,7 +1561,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(TORCH);
         this.registerVanilla(TORCHFLOWER);
         this.registerVanilla(TORCHFLOWER_CROP);
-        this.registerVanilla(TRAPPED_CHEST);
+        this.registerVanilla(TRAPPED_CHEST)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.TRAPPED_CHEST);
         this.registerVanilla(TRIAL_SPAWNER);
         this.registerVanilla(TRIPWIRE_HOOK);
         this.registerVanilla(TRIP_WIRE);
@@ -1495,7 +1585,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(TWISTING_VINES);
         this.registerVanilla(UNDERWATER_TNT);
         this.registerVanilla(UNDERWATER_TORCH);
-        this.registerVanilla(UNDYED_SHULKER_BOX);
+        this.registerVanilla(UNDYED_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(UNKNOWN);
         this.registerVanilla(UNLIT_REDSTONE_TORCH);
         this.registerVanilla(UNPOWERED_COMPARATOR);
@@ -1616,7 +1708,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(WHITE_CONCRETE);
         this.registerVanilla(WHITE_CONCRETE_POWDER);
         this.registerVanilla(WHITE_GLAZED_TERRACOTTA);
-        this.registerVanilla(WHITE_SHULKER_BOX);
+        this.registerVanilla(WHITE_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(WHITE_STAINED_GLASS);
         this.registerVanilla(WHITE_STAINED_GLASS_PANE);
         this.registerVanilla(WHITE_TERRACOTTA);
@@ -1631,7 +1725,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(YELLOW_CONCRETE);
         this.registerVanilla(YELLOW_CONCRETE_POWDER);
         this.registerVanilla(YELLOW_GLAZED_TERRACOTTA);
-        this.registerVanilla(YELLOW_SHULKER_BOX);
+        this.registerVanilla(YELLOW_SHULKER_BOX)
+                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
+                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
         this.registerVanilla(YELLOW_STAINED_GLASS);
         this.registerVanilla(YELLOW_STAINED_GLASS_PANE);
         this.registerVanilla(YELLOW_TERRACOTTA);

@@ -4,8 +4,6 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.container.Container;
-import org.cloudburstmc.api.container.ContainerListener;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.nbt.NbtMap;
@@ -22,18 +20,28 @@ import static org.cloudburstmc.api.item.ItemBehaviors.GET_MAX_STACK_SIZE;
 
 public class CloudContainer implements Container {
 
-    //    protected final String name;
-//    protected final String title;
     protected final ContainerStorage storage;
     protected final Set<ContainerListener> listeners = new HashSet<>();
     protected final int maxStackSize;
     protected final ItemRegistry itemRegistry;
+    protected String name;
+    protected String title;
 
     public CloudContainer(int size) {
         this(size, MAX_STACK);
     }
 
     public CloudContainer(int size, int maxStackSize) {
+        this("", "", size, maxStackSize);
+    }
+
+    public CloudContainer(String name, String title, int size) {
+        this(name, title, size, MAX_STACK);
+    }
+
+    public CloudContainer(String name, String title, int size, int maxStackSize) {
+        this.name = name;
+        this.title = title;
         this.storage = new ArrayContainerStorage(size);
         this.maxStackSize = maxStackSize;
         this.itemRegistry = CloudItemRegistry.get();
@@ -44,6 +52,8 @@ public class CloudContainer implements Container {
     }
 
     public CloudContainer(int maxStackSize, CloudContainer... children) {
+        this.name = "";
+        this.title = "";
         ContainerStorage[] childStorage = new ContainerStorage[children.length];
         for (int i = 0; i < children.length; i++) {
             childStorage[i] = children[i].storage;
@@ -69,12 +79,12 @@ public class CloudContainer implements Container {
 
     @Override
     public String getName() {
-        return null; // TODO
+        return name;
     }
 
     @Override
     public String getTitle() {
-        return null; // TODO
+        return title;
     }
 
     @Override
@@ -113,6 +123,8 @@ public class CloudContainer implements Container {
     public void setItem(int index, @NonNull ItemStack item) {
         Objects.requireNonNull(item, "item");
         checkSlotIndex(index);
+
+        item = item.normalizeBlockState();
 
         // TODO: check if the item is valid with the registry
 
@@ -220,7 +232,7 @@ public class CloudContainer implements Container {
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (slot.getCount() + count < maxStackSize && slot.equals(item)) {
+            if (slot.getCount() + count <= maxStackSize && slot.equals(item)) {
                 return i;
             }
         }
@@ -242,7 +254,7 @@ public class CloudContainer implements Container {
         ItemStack item = this.getItem(slot);
 
         if (item.getType() != AIR) {
-            this.setItem(slot, item.decreaseCount());
+            this.setItem(slot, item.increaseCount());
         }
     }
 
@@ -299,7 +311,7 @@ public class CloudContainer implements Container {
 
             int maxStack = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
 
-            var copy = new ArrayList<>(itemSlots);
+            ArrayList<ItemStack> copy = new ArrayList<>(itemSlots);
             for (int j = 0; j < copy.size(); j++) {
                 ItemStack slot = copy.get(j);
 
@@ -399,20 +411,24 @@ public class CloudContainer implements Container {
                 continue;
             }
 
-            for (ItemStack slot : new ArrayList<>(itemSlots)) {
+            for (int j = 0; j < itemSlots.size(); j++) {
+                ItemStack slot = itemSlots.get(j);
                 if (slot.equals(item)) {
                     int count = Math.min(item.getCount(), slot.getCount());
                     slot = slot.decreaseCount(count);
                     item = item.decreaseCount(count);
-                    this.setItem(i, item);
+                    this.setItem(i, item.getCount() <= 0 ? ItemStack.EMPTY : item);
                     if (slot.getCount() <= 0) {
-                        itemSlots.remove(slot);
+                        itemSlots.remove(j);
+                        j--;
+                    } else {
+                        itemSlots.set(j, slot);
                     }
-
+                    break;
                 }
             }
 
-            if (itemSlots.size() == 0) {
+            if (itemSlots.isEmpty()) {
                 break;
             }
         }
@@ -486,10 +502,6 @@ public class CloudContainer implements Container {
 
     @Override
     public boolean isFull() {
-        if (this.size() < this.size()) {
-            return false;
-        }
-
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
             if (ItemUtils.isNull(item) || item.getCount() < this.getMaxStackSize() ||
@@ -520,7 +532,7 @@ public class CloudContainer implements Container {
     public int getFreeSpace(ItemStack item) {
         int itemMaxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
         int maxStackSize = Math.min(itemMaxStackSize, this.getMaxStackSize());
-        int space = (this.size() - this.size()) * maxStackSize;
+        int space = 0;
 
         for (ItemStack slot : this.getContents()) {
             if (slot == null || slot == ItemStack.EMPTY) {

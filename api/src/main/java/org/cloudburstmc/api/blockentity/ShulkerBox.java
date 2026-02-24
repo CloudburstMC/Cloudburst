@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.container.view.BlockContainerView;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
 
-public interface ShulkerBox extends BlockEntity, BlockContainerView {
+/**
+ * A shulker box block entity with 27 storage slots that retains its inventory when broken.
+ */
+public interface ShulkerBox extends BlockEntity, BlockStorageView {
 }

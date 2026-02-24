@@ -2,10 +2,12 @@ package org.cloudburstmc.api.blockentity;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Registry of {@link BlockEntityType} constants for all built-in block entity types.
+ */
 @SuppressWarnings("RedundantModifiersUtilityClassLombok")
 @UtilityClass
 public class BlockEntityTypes {
-
     public static final BlockEntityType<Banner> BANNER = BlockEntityType.from("banner", Banner.class);
     public static final BlockEntityType<Barrel> BARREL = BlockEntityType.from("barrel", Barrel.class);
     public static final BlockEntityType<Beacon> BEACON = BlockEntityType.from("beacon", Beacon.class);
@@ -18,13 +20,14 @@ public class BlockEntityTypes {
     public static final BlockEntityType<Chest> CHEST = BlockEntityType.from("chest", Chest.class);
     public static final BlockEntityType<CommandBlock> COMMAND_BLOCK = BlockEntityType.from("command_block", CommandBlock.class);
     public static final BlockEntityType<Comparator> COMPARATOR = BlockEntityType.from("comparator", Comparator.class);
+    public static final BlockEntityType<Crafter> CRAFTER = BlockEntityType.from("crafter", Crafter.class);
     public static final BlockEntityType<DaylightDetector> DAYLIGHT_DETECTOR = BlockEntityType.from("daylight_detector", DaylightDetector.class);
     public static final BlockEntityType<Dispenser> DISPENSER = BlockEntityType.from("dispenser", Dispenser.class);
     public static final BlockEntityType<Dropper> DROPPER = BlockEntityType.from("dropper", Dropper.class);
     public static final BlockEntityType<EnchantingTable> ENCHANTING_TABLE = BlockEntityType.from("enchanting_table", EnchantingTable.class);
-    public static final BlockEntityType<EnderChest> ENDER_CHEST = BlockEntityType.from("ender_chest", EnderChest.class);
     public static final BlockEntityType<EndGateway> END_GATEWAY = BlockEntityType.from("end_gateway", EndGateway.class);
     public static final BlockEntityType<EndPortal> END_PORTAL = BlockEntityType.from("end_portal", EndPortal.class);
+    public static final BlockEntityType<EnderChest> ENDER_CHEST = BlockEntityType.from("ender_chest", EnderChest.class);
     public static final BlockEntityType<FlowerPot> FLOWER_POT = BlockEntityType.from("flower_pot", FlowerPot.class);
     public static final BlockEntityType<Furnace> FURNACE = BlockEntityType.from("furnace", Furnace.class);
     public static final BlockEntityType<Hopper> HOPPER = BlockEntityType.from("hopper", Hopper.class);
@@ -42,5 +45,4 @@ public class BlockEntityTypes {
     public static final BlockEntityType<Skull> SKULL = BlockEntityType.from("skull", Skull.class);
     public static final BlockEntityType<Smoker> SMOKER = BlockEntityType.from("smoker", Smoker.class);
     public static final BlockEntityType<StructureBlock> STRUCTURE_BLOCK = BlockEntityType.from("structure_block", StructureBlock.class);
-
 }

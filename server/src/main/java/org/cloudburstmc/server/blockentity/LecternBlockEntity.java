@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -16,6 +18,10 @@ import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.Nonnegative;
 
+/**
+ * Block entity implementation for a lectern. Stores a single book item and tracks the currently
+ * displayed page number out of the book's total pages.
+ */
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private static final String TAG_HAS_BOOK = "hasBook";
@@ -29,6 +35,16 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     public LecternBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
+    }
+
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.LECTERN;
+    }
+
+    @Override
+    public Lectern getBlockEntity() {
+        return this;
     }
 
     @Override
@@ -71,23 +87,30 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         }
     }
 
+    @Override
     public boolean hasBook() {
         return this.book != null;
     }
 
-    @Nullable
+    @Override
     public ItemStack getBook() {
-        return book;
+        return this.book != null ? this.book : ItemStack.EMPTY;
     }
 
+    @Override
     public void setBook(ItemStack item) {
-        if (item != null && item.getType() == ItemTypes.WRITABLE_BOOK) {
+        if (item != null && item != ItemStack.EMPTY && item.getType() == ItemTypes.WRITABLE_BOOK) {
             this.book = item;
         } else {
             this.book = null;
         }
 
         updateTotalPages(true);
+    }
+
+    @Override
+    public int getTotalPages() {
+        return totalPages;
     }
 
     public int getLeftPage() {
@@ -117,11 +140,6 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         this.getLevel().updateAround(this.getPosition());
     }
 
-    @Override
-    public int getTotalPages() {
-        return totalPages;
-    }
-
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
             this.totalPages = this.book.get(ItemKeys.BOOK_DATA).getPages().size();
@@ -132,6 +150,23 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         if (updateRedstone) {
             this.getLevel().updateAroundRedstone(this.getPosition(), null);
         }
+    }
+
+    @Override
+    public int size() {
+        return 1;
+    }
+
+    @Override
+    public ItemStack getItem(int slot) {
+        if (slot != 0) throw new IndexOutOfBoundsException("Lectern has only 1 slot, index: " + slot);
+        return getBook();
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack itemStack) {
+        if (slot != 0) throw new IndexOutOfBoundsException("Lectern has only 1 slot, index: " + slot);
+        setBook(itemStack);
     }
 
     @Override

@@ -19,12 +19,16 @@ import org.cloudburstmc.server.container.CloudContainer;
 
 import java.util.List;
 
+/**
+ * Utility class providing static helpers for protocol conversions: potion and effect type ↔ protocol ID,
+ * {@link org.cloudburstmc.api.item.ItemStack} ↔ {@code ItemData}, attribute and game-rule serialisation,
+ * and slot data helpers.
+ */
 @UtilityClass
 public class NetworkUtils {
 
-    private BiMap<PotionType, Short> potionTypeMap = HashBiMap.create();
-    private BiMap<EffectType, Byte> effectTypeMap = HashBiMap.create();
-//    private Map<ContainerViewType, ContainerType> inventoryTypeMap = new IdentityHashMap<>();
+    private final BiMap<PotionType, Short> potionTypeMap = HashBiMap.create();
+    private final BiMap<EffectType, Byte> effectTypeMap = HashBiMap.create();
 
     static {
         potionTypeMap.put(PotionTypes.WATER, (short) 0);
@@ -110,27 +114,6 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.WEAVING, (byte) 33);
         effectTypeMap.put(EffectTypes.OOZING, (byte) 34);
         effectTypeMap.put(EffectTypes.INFESTATION, (byte) 35);
-
-//        inventoryTypeMap.put(ContainerViewType.CHEST, ContainerType.CONTAINER);
-//        inventoryTypeMap.put(ContainerViewType.ENDER_CHEST, ContainerType.CONTAINER);
-//        inventoryTypeMap.put(ContainerViewType.DOUBLE_CHEST, ContainerType.CONTAINER);
-//        inventoryTypeMap.put(ContainerViewType.PLAYER, ContainerType.INVENTORY);
-//        inventoryTypeMap.put(ContainerViewType.FURNACE, ContainerType.FURNACE);
-//        inventoryTypeMap.put(ContainerViewType.CRAFTING, ContainerType.WORKBENCH);
-//        inventoryTypeMap.put(ContainerViewType.WORKBENCH, ContainerType.WORKBENCH);
-//        inventoryTypeMap.put(ContainerViewType.BREWING_STAND, ContainerType.BREWING_STAND);
-//        inventoryTypeMap.put(ContainerViewType.ANVIL, ContainerType.ANVIL);
-//        inventoryTypeMap.put(ContainerViewType.ENCHANT_TABLE, ContainerType.ENCHANTMENT);
-//        inventoryTypeMap.put(ContainerViewType.DISPENSER, ContainerType.DISPENSER);
-//        inventoryTypeMap.put(ContainerViewType.DROPPER, ContainerType.DROPPER);
-//        inventoryTypeMap.put(ContainerViewType.HOPPER, ContainerType.HOPPER);
-//        inventoryTypeMap.put(ContainerViewType.UI, ContainerType.INVENTORY); // Might not be needed anymore?
-//        inventoryTypeMap.put(ContainerViewType.SHULKER_BOX, ContainerType.CONTAINER);
-//        inventoryTypeMap.put(ContainerViewType.BEACON, ContainerType.BEACON);
-//        inventoryTypeMap.put(ContainerViewType.BLAST_FURNACE, ContainerType.BLAST_FURNACE);
-//        inventoryTypeMap.put(ContainerViewType.SMOKER, ContainerType.SMOKER);
-//        inventoryTypeMap.put(ContainerViewType.BARREL, ContainerType.CONTAINER);
-
     }
 
     public static AttributeData attributeToNetwork(Attribute attr) {
@@ -158,10 +141,6 @@ public class NetworkUtils {
     public static EffectType effectFromLegacy(byte effectId) {
         return effectTypeMap.inverse().get(effectId);
     }
-
-//    public static ContainerType inventoryToNetwork(ContainerViewType type) {
-//        return inventoryTypeMap.get(type);
-//    }
 
     public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudContainer inv) {
         ItemStack item = inv.getItem(data.getSlot());

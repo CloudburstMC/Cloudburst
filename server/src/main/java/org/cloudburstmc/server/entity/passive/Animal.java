@@ -8,13 +8,14 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.entity.EntityCreature;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Abstract base class for passive animals. Extends {@link EntityCreature} and implements {@link EntityAgeable}
+ * for baby/adult state.
  */
 public abstract class Animal extends EntityCreature implements EntityAgeable {
     public Animal(EntityType<?> type, Location location) {
@@ -36,7 +37,7 @@ public abstract class Animal extends EntityCreature implements EntityAgeable {
             if (item.get(ItemKeys.CUSTOM_NAME) != null) {
                 this.setNameTag(item.get(ItemKeys.CUSTOM_NAME));
                 this.setNameTagVisible(true);
-                player.getInventory().getContainer().removeItem(item);
+                ((CloudPlayerInventory) player.getInventory()).getContainer().removeItem(item);
                 return true;
             }
         }

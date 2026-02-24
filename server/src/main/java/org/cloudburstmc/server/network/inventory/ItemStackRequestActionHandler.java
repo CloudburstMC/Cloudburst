@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -12,18 +14,25 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
-import org.cloudburstmc.server.container.screen.CloudContainerScreen;
+import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
 
+/**
+ * Translates protocol {@code ItemStackRequestAction} objects into {@link org.cloudburstmc.api.event.inventory.InventoryClickEvent}s
+ * and direct slot mutations. Tracks every slot affected during a single request and assembles the
+ * {@code ItemStackResponse} that is sent back to the client.
+ */
 @Log4j2
 public class ItemStackRequestActionHandler {
 
+    private static final int CREATED_OUTPUT_PROTOCOL_SLOT = 50;
+
     private final CloudPlayer player;
     private final Map<ContainerSlotType, Set<Integer>> affectedSlots = new LinkedHashMap<>();
-    private CloudContainerScreen screen;
+    private CloudInventoryScreen screen;
     private ItemStackRequest currentRequest;
     private boolean requestFailed;
 
@@ -78,11 +87,66 @@ public class ItemStackRequestActionHandler {
         if (destItem == ItemStack.EMPTY) {
             newDest = sourceItem.withCount(count);
         } else {
+            if (!destItem.isSimilarMetadata(sourceItem)) {
+                throw new IllegalArgumentException("Cannot merge incompatible items in transfer");
+            }
             newDest = destItem.withCount(destItem.getCount() + count);
         }
 
+        SlotGroup srcGroup = screen.resolveSlotGroup(srcSlot.getContainerName().getContainer());
+        int srcViewSlot = screen.resolveInventorySlot(srcSlot.getContainerName().getContainer(), srcSlot.getSlot());
+        SlotGroup dstGroup = screen.resolveSlotGroup(dstSlot.getContainerName().getContainer());
+        int dstViewSlot = screen.resolveInventorySlot(dstSlot.getContainerName().getContainer(), dstSlot.getSlot());
+
+        InventoryClickEvent.ActionType actionType = switch (action.getType()) {
+            case TAKE -> InventoryClickEvent.ActionType.TAKE;
+            case PLACE -> InventoryClickEvent.ActionType.PLACE;
+            default -> InventoryClickEvent.ActionType.UNKNOWN;
+        };
+
+        InventoryClickEvent.ClickType clickType;
+        if (action.getType() == ItemStackRequestActionType.TAKE) {
+            if (count == sourceItem.getCount()) {
+                clickType = InventoryClickEvent.ClickType.TAKE_ALL;
+            } else if (count == sourceItem.getCount() / 2) {
+                clickType = InventoryClickEvent.ClickType.TAKE_HALF;
+            } else {
+                clickType = InventoryClickEvent.ClickType.TAKE_SOME;
+            }
+        } else if (action.getType() == ItemStackRequestActionType.PLACE) {
+            if (count == sourceItem.getCount()) {
+                clickType = InventoryClickEvent.ClickType.PLACE_ALL;
+            } else if (count == 1) {
+                clickType = InventoryClickEvent.ClickType.PLACE_ONE;
+            } else {
+                clickType = InventoryClickEvent.ClickType.PLACE_SOME;
+            }
+        } else {
+            clickType = InventoryClickEvent.ClickType.UNKNOWN;
+        }
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(srcViewSlot)
+                .slotGroup(srcGroup)
+                .sourceItem(sourceItem)
+                .cursorItem(destItem)
+                .actionType(actionType)
+                .clickType(clickType)
+                .destinationSlot(dstViewSlot)
+                .destinationSlotGroup(dstGroup)
+                .resultItem(newDest)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
+        }
+
+        ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : newDest;
+
         setSlot(srcSlot, newSource);
-        setSlot(dstSlot, newDest);
+        setSlot(dstSlot, resolvedDest);
     }
 
     private void handleSwap(SwapAction action) {
@@ -92,8 +156,33 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
 
+        SlotGroup srcGroup = screen.resolveSlotGroup(srcSlot.getContainerName().getContainer());
+        int srcViewSlot = screen.resolveInventorySlot(srcSlot.getContainerName().getContainer(), srcSlot.getSlot());
+        SlotGroup dstGroup = screen.resolveSlotGroup(dstSlot.getContainerName().getContainer());
+        int dstViewSlot = screen.resolveInventorySlot(dstSlot.getContainerName().getContainer(), dstSlot.getSlot());
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(srcViewSlot)
+                .slotGroup(srcGroup)
+                .sourceItem(sourceItem)
+                .cursorItem(destItem)
+                .actionType(InventoryClickEvent.ActionType.SWAP)
+                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .destinationSlot(dstViewSlot)
+                .destinationSlotGroup(dstGroup)
+                .resultItem(sourceItem)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
+        }
+
+        ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : sourceItem;
+
         setSlot(srcSlot, destItem);
-        setSlot(dstSlot, sourceItem);
+        setSlot(dstSlot, resolvedDest);
     }
 
     private void handleDrop(DropAction action) {
@@ -114,6 +203,24 @@ public class ItemStackRequestActionHandler {
             newSource = sourceItem.withCount(sourceItem.getCount() - count);
         }
 
+        SlotGroup srcGroup = screen.resolveSlotGroup(srcSlot.getContainerName().getContainer());
+        int srcViewSlot = screen.resolveInventorySlot(srcSlot.getContainerName().getContainer(), srcSlot.getSlot());
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(srcViewSlot)
+                .slotGroup(srcGroup)
+                .sourceItem(sourceItem)
+                .cursorItem(ItemStack.EMPTY)
+                .actionType(InventoryClickEvent.ActionType.DROP)
+                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
+        }
+
         setSlot(srcSlot, newSource);
         player.dropItem(dropItem);
     }
@@ -125,6 +232,24 @@ public class ItemStackRequestActionHandler {
 
         if (sourceItem == ItemStack.EMPTY) {
             throw new IllegalArgumentException("Source item is empty");
+        }
+
+        SlotGroup srcGroup = screen.resolveSlotGroup(srcSlot.getContainerName().getContainer());
+        int srcViewSlot = screen.resolveInventorySlot(srcSlot.getContainerName().getContainer(), srcSlot.getSlot());
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(srcViewSlot)
+                .slotGroup(srcGroup)
+                .sourceItem(sourceItem)
+                .cursorItem(ItemStack.EMPTY)
+                .actionType(InventoryClickEvent.ActionType.DESTROY)
+                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
         }
 
         ItemStack newSource;
@@ -147,8 +272,26 @@ public class ItemStackRequestActionHandler {
 
         creativeItem = creativeItem.withCount(64); // TODO: Use actual creative item size
 
-        this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, 50, creativeItem);
-        trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, 50);
+        SlotGroup createdOutputGroup = screen.resolveSlotGroup(ContainerSlotType.CREATED_OUTPUT);
+        int createdOutputViewSlot = screen.resolveInventorySlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(createdOutputViewSlot)
+                .slotGroup(createdOutputGroup)
+                .sourceItem(ItemStack.EMPTY)
+                .cursorItem(creativeItem)
+                .actionType(InventoryClickEvent.ActionType.CRAFT_CREATIVE)
+                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
+        }
+
+        this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, creativeItem);
+        trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
     }
 
     private ItemStack getSlot(ItemStackRequestSlotData slotData) {
@@ -165,7 +308,7 @@ public class ItemStackRequestActionHandler {
         affectedSlots.computeIfAbsent(containerType, k -> new LinkedHashSet<>()).add(slot);
     }
 
-    public void beginRequest(ItemStackRequest request, CloudContainerScreen screen) {
+    public void beginRequest(ItemStackRequest request, CloudInventoryScreen screen) {
         this.screen = screen;
         this.currentRequest = request;
         this.requestFailed = false;

@@ -1,21 +1,16 @@
 package org.cloudburstmc.server.container.view;
 
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.container.ContainerViewTypes;
-import org.cloudburstmc.api.container.view.EnderChestView;
+import org.cloudburstmc.api.inventory.view.EnderChestView;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.server.player.CloudPlayer;
 
+/**
+ * Slot group implementation for a player's personal 27-slot ender chest, delegating to the
+ * player's own persistent ender chest container.
+ */
 public class CloudEnderChestView extends CloudPlayerContainerView implements EnderChestView {
 
-    private final Block block;
-
-    public CloudEnderChestView(CloudPlayer holder, Block block) {
-        super(ContainerViewTypes.ENDER_CHEST, holder, holder.getEnderChest());
-        this.block = block;
-    }
-
-    @Override
-    public Block getBlock() {
-        return block;
+    public CloudEnderChestView(CloudPlayer holder) {
+        super(SlotGroupTypes.ENDER_CHEST, holder, holder.getEnderChestContainer());
     }
 }

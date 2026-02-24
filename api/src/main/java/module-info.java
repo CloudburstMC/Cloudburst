@@ -1,18 +1,18 @@
 open module org.cloudburstmc.api {
+    requires static lombok;
     requires static org.checkerframework.checker.qual;
-    requires tools.jackson.core;
-    requires tools.jackson.databind;
     requires com.fasterxml.jackson.annotation;
-    requires tools.jackson.dataformat.properties;
-    requires tools.jackson.dataformat.yaml;
     requires com.google.common;
     requires com.google.guice;
     requires jakarta.inject;
     requires java.desktop;
-    requires static lombok;
+    requires java.sql;
     requires org.cloudburstmc.math.immutable;
     requires org.slf4j;
-    requires java.sql;
+    requires tools.jackson.core;
+    requires tools.jackson.databind;
+    requires tools.jackson.dataformat.properties;
+    requires tools.jackson.dataformat.yaml;
 
     exports org.cloudburstmc.api;
     exports org.cloudburstmc.api.block;
@@ -41,7 +41,8 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.event.redstone;
     exports org.cloudburstmc.api.event.server;
     exports org.cloudburstmc.api.event.vehicle;
-    exports org.cloudburstmc.api.container;
+    exports org.cloudburstmc.api.inventory;
+    exports org.cloudburstmc.api.inventory.view;
     exports org.cloudburstmc.api.item;
     exports org.cloudburstmc.api.item.behavior;
     exports org.cloudburstmc.api.item.data;
@@ -61,6 +62,4 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.util;
     exports org.cloudburstmc.api.util.behavior;
     exports org.cloudburstmc.api.util.data;
-    exports org.cloudburstmc.api.container.screen;
-    exports org.cloudburstmc.api.container.view;
 }

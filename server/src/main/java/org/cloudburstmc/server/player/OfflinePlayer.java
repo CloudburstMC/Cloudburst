@@ -2,14 +2,16 @@ package org.cloudburstmc.server.player;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
-import org.cloudburstmc.api.container.Container;
-import org.cloudburstmc.api.container.view.InventoryView;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.inventory.*;
+import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -549,13 +551,26 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public void setMovementSpeed(float speed) {
+    public void setOp(boolean value) {
+        if (value == this.isOp()) {
+            return;
+        }
 
+        if (value) {
+            this.server.addOp(this.getName().toLowerCase());
+        } else {
+            this.server.removeOp(this.getName().toLowerCase());
+        }
     }
 
     @Override
     public float getMovementSpeed() {
         return 0;
+    }
+
+    @Override
+    public void setMovementSpeed(float speed) {
+
     }
 
     @Override
@@ -644,19 +659,6 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public void setOp(boolean value) {
-        if (value == this.isOp()) {
-            return;
-        }
-
-        if (value) {
-            this.server.addOp(this.getName().toLowerCase());
-        } else {
-            this.server.removeOp(this.getName().toLowerCase());
-        }
-    }
-
-    @Override
     public boolean isBanned() {
         return this.server.getNameBans().isBanned(this.getName());
     }
@@ -735,18 +737,33 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public InventoryView getInventory() {
-        return null;
-    }
-
-    @Override
-    public Container getEnderChest() {
-        return null;
-    }
-
-    @Override
     public void setOnGround(boolean onGround) {
 
+    }
+
+    @Override
+    public PlayerInventoryView getInventory() {
+        return null;
+    }
+
+    @Override
+    public HotbarView getHotbar() {
+        return null;
+    }
+
+    @Override
+    public EnderChestView getEnderChest() {
+        return null;
+    }
+
+    @Override
+    public ArmorView getArmor() {
+        return null;
+    }
+
+    @Override
+    public OffhandView getOffhand() {
+        return null;
     }
 
     @Override
@@ -786,27 +803,57 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public void onInventoryAdded(Container inventory) {
+    public void closeInventory() {
 
     }
 
     @Override
-    public void onInventoryRemoved(Container inventory) {
+    public HudScreen getHudScreen() {
+        throw new UnsupportedOperationException("Cannot get HUD screen for offline players");
+    }
+
+    @Override
+    public InventoryScreen getCurrentScreen() {
+        throw new UnsupportedOperationException("Cannot get current screen for offline players");
+    }
+
+    @Override
+    public ContainerScreen getOpenInventory() {
+        return null;
+    }
+
+    @Override
+    public PlayerInventoryScreen getInventoryScreen() {
+        return null;
+    }
+
+    @Override
+    public void openInventory(InventoryScreen view) {
 
     }
 
     @Override
-    public void onInventorySlotChange(Container inventory, int slot) {
-
+    public void openContainer(Block block) {
+        throw new UnsupportedOperationException("Cannot open containers for offline players");
     }
 
     @Override
-    public void onInventoryContentsChange(Container inventory) {
-
+    public void openContainer(BlockEntity blockEntity) {
+        throw new UnsupportedOperationException("Cannot open containers for offline players");
     }
 
     @Override
-    public void onInventoryDataChange(Container inventory, int property, int value) {
+    public VirtualChestScreen createVirtualChest(String title) {
+        throw new UnsupportedOperationException("Cannot create virtual views for offline players");
+    }
 
+    @Override
+    public VirtualDoubleChestScreen createVirtualDoubleChest(String title) {
+        throw new UnsupportedOperationException("Cannot create virtual views for offline players");
+    }
+
+    @Override
+    public VirtualHopperScreen createVirtualHopper(String title) {
+        throw new UnsupportedOperationException("Cannot create virtual views for offline players");
     }
 }

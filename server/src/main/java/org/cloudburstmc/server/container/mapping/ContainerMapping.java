@@ -1,16 +1,16 @@
 package org.cloudburstmc.server.container.mapping;
 
+import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.server.container.view.CloudContainerView;
 
 public class ContainerMapping {
 
     protected final ContainerSlotType slotType;
     protected final int size;
     protected final int offset;
-    protected final CloudContainerView view;
+    protected final SlotGroup view;
 
-    public ContainerMapping(ContainerSlotType slotType, CloudContainerView view, int size, int offset) {
+    public ContainerMapping(ContainerSlotType slotType, SlotGroup view, int size, int offset) {
         this.slotType = slotType;
         this.view = view;
         this.size = size;
@@ -21,7 +21,7 @@ public class ContainerMapping {
         return slotType;
     }
 
-    public CloudContainerView getView() {
+    public SlotGroup getView() {
         return view;
     }
 

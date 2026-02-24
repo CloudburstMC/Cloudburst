@@ -7,10 +7,12 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
-import org.cloudburstmc.api.container.ContainerListener;
-import org.cloudburstmc.api.container.ContainerViewTypes;
+import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -32,23 +34,39 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Block entity implementation for a brewing stand. Manages a 5-slot container (3 bottles, 1 ingredient,
+ * 1 fuel) and performs tick-based brewing, firing {@link org.cloudburstmc.api.event.inventory.BrewStartEvent}
+ * and {@link org.cloudburstmc.api.event.inventory.BrewFinishEvent} at the start and end of each cycle.
+ */
 public class BrewingStandBlockEntity extends ContainerBlockEntity implements BrewingStand {
 
-    private static final int SLOT_INGREDIENT = 0;
-    private static final int SLOT_FUEL = 4;
-
-    public static final short MAX_COOK_TIME = 400;
     public static final List<ItemType> ingredients = Lists.newArrayList(
             ItemTypes.NETHER_WART, ItemTypes.GOLD_NUGGET, ItemTypes.GHAST_TEAR, ItemTypes.GLOWSTONE_DUST, ItemTypes.REDSTONE, ItemTypes.GUNPOWDER, ItemTypes.MAGMA_CREAM, ItemTypes.BLAZE_POWDER,
             ItemTypes.GOLDEN_CARROT, ItemTypes.SPIDER_EYE, ItemTypes.FERMENTED_SPIDER_EYE, ItemTypes.GLISTERING_MELON_SLICE, ItemTypes.SUGAR, ItemTypes.COD, ItemTypes.RABBIT_FOOT, ItemTypes.PUFFERFISH,
             ItemTypes.TURTLE_SCUTE, ItemTypes.PHANTOM_MEMBRANE, ItemTypes.DRAGON_BREATH
     );
-    public short cookTime = MAX_COOK_TIME;
-    public short fuelTotal;
-    public short fuelAmount;
+    public static final int MAX_COOK_TIME = 400;
+
+    private static final int SLOT_INGREDIENT = 0;
+    private static final int SLOT_FUEL = 4;
+
+    private int cookTime = MAX_COOK_TIME;
+    private short fuelTotal;
+    private int fuelAmount;
 
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(5), ContainerViewTypes.BREWING_STAND);
+        super(type, chunk, position, new CloudContainer(5));
+    }
+
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.BREWING_STAND;
+    }
+
+    @Override
+    public BrewingStand getBlockEntity() {
+        return this;
     }
 
     @Override
@@ -62,8 +80,8 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
             }
         });
 
-        tag.listenForShort("CookTime", this::setCookTime);
-        tag.listenForShort("FuelAmount", this::setFuelAmount);
+        tag.listenForInt("CookTime", this::setCookTime);
+        tag.listenForInt("FuelAmount", this::setFuelAmount);
         tag.listenForShort("FuelTotal", this::setFuelTotal);
     }
 
@@ -74,14 +92,14 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         List<NbtMap> items = new ArrayList<>();
         container.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
-        tag.putShort("CookTime", this.cookTime);
+        tag.putInt("CookTime", this.cookTime);
     }
 
     @Override
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.putShort("FuelAmount", this.fuelAmount);
+        tag.putInt("FuelAmount", this.fuelAmount);
         tag.putShort("FuelTotal", this.fuelTotal);
     }
 
@@ -90,7 +108,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         if (!closed) {
             for (ContainerListener listener : new HashSet<>(container.getListeners())) {
                 if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                    ((CloudPlayer) listener).closeInventory();
                 }
             }
             super.close();
@@ -113,7 +131,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         return ingredients.contains(ingredient.getType());
     }
 
-    public short getCookTime() {
+    public int getCookTime() {
         return cookTime;
     }
 
@@ -121,7 +139,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         if (cookTime < MAX_COOK_TIME) {
             this.scheduleUpdate();
         }
-        this.cookTime = (short) cookTime;
+        this.cookTime = cookTime;
     }
 
     public short getFuelTotal() {
@@ -270,12 +288,12 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         }
     }
 
-    public short getFuelAmount() {
+    public int getFuelAmount() {
         return fuelAmount;
     }
 
     public void setFuelAmount(int fuel) {
-        this.fuelAmount = (short) fuel;
+        this.fuelAmount = fuel;
     }
 
     @Override
@@ -286,6 +304,22 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     @Override
     public void setIngredient(ItemStack ingredient) {
         this.container.setItem(SLOT_INGREDIENT, ingredient);
+    }
+
+    @Override
+    public ItemStack getBottle(int slot) {
+        if (slot < 0 || slot > 2) {
+            throw new IndexOutOfBoundsException("Bottle slot must be 0-2, got: " + slot);
+        }
+        return this.container.getItem(slot + 1);
+    }
+
+    @Override
+    public void setBottle(int slot, ItemStack item) {
+        if (slot < 0 || slot > 2) {
+            throw new IndexOutOfBoundsException("Bottle slot must be 0-2, got: " + slot);
+        }
+        this.container.setItem(slot + 1, item);
     }
 
     @Override
@@ -301,5 +335,38 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     @Override
     public boolean isSpawnable() {
         return true;
+    }
+
+    @Override
+    public int getBrewProgress() {
+        return MAX_COOK_TIME - this.cookTime;
+    }
+
+    @Override
+    public void setBrewProgress(int ticks) {
+        int clamped = Math.max(0, Math.min(ticks, MAX_COOK_TIME));
+        this.setCookTime(MAX_COOK_TIME - clamped);
+        sendBrewTime();
+    }
+
+    @Override
+    public int getBrewDuration() {
+        return MAX_COOK_TIME;
+    }
+
+    @Override
+    public int getFuelLevel() {
+        return this.fuelAmount;
+    }
+
+    @Override
+    public void setFuelLevel(int level) {
+        this.fuelAmount = Math.max(0, level);
+        sendFuel();
+    }
+
+    @Override
+    public int getMaxFuelLevel() {
+        return 20;
     }
 }

@@ -7,6 +7,7 @@ import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.entity.EntityHuman;
@@ -37,7 +38,9 @@ public class EnchantmentThorns extends EnchantmentBehavior {
 
         int thornsLevel = 0;
 
-        for (ItemStack armor : human.getArmor().getContainer().getContents()) {
+        ArmorView armorView = human.getArmor();
+        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+            ItemStack armor = armorView.getItem(armorSlot);
             Enchantment thorns = armor.get(ItemKeys.ENCHANTMENTS).getOrDefault(EnchantmentTypes.THORNS, null);
             if (thorns != null) {
                 thornsLevel = Math.max(thorns.level(), thornsLevel);

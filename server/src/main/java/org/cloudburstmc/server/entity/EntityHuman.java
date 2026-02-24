@@ -5,6 +5,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -43,16 +44,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Abstract base class for human-shaped entities such as players.
+ * Adds skin, game type, permissions, and player inventory support.
  */
 public class EntityHuman extends EntityCreature implements Human {
 
-    protected UUID identity;
-
-    protected Skin skin;
-
     protected final CloudContainer container = new CloudContainer(36);
+    protected UUID identity;
+    protected Skin skin;
 
     public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
@@ -87,16 +86,16 @@ public class EntityHuman extends EntityCreature implements Human {
         return skin;
     }
 
+    public void setSkin(Skin skin) {
+        this.skin = skin;
+    }
+
     public UUID getServerId() {
         return identity;
     }
 
     public void setServerId(UUID uuid) {
         this.identity = uuid;
-    }
-
-    public void setSkin(Skin skin) {
-        this.skin = skin;
     }
 
     @Override
@@ -298,7 +297,9 @@ public class EntityHuman extends EntityCreature implements Human {
             int epf = 0;
             int toughness = 0;
 
-            for (ItemStack armor : getArmor().getContainer().getContents()) {
+            ArmorView armorView = getArmor();
+            for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+                ItemStack armor = armorView.getItem(armorSlot);
 //                TODO: Needs implementation
 //                armorPoints += armor.getBlockState().getBehavior().getArmorPoints(armor);
                 epf += calculateEnchantmentProtectionFactor(armor, source);

@@ -4,8 +4,11 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
-import org.cloudburstmc.api.container.ContainerListener;
-import org.cloudburstmc.api.container.ContainerViewTypes;
+import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -20,7 +23,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
+/**
+ * Block entity implementation for a chest: a 27-slot storage container. Two adjacent chests can be
+ * paired to form a double chest backed by a shared combined container.
+ */
+public class ChestBlockEntity extends ContainerBlockEntity implements Chest, BlockStorageView {
 
     private CloudContainer combinedContainer = null;
     private Vector3i pairPosition;
@@ -28,7 +35,12 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
     private boolean findable;
 
     public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(27), ContainerViewTypes.CHEST);
+        super(type, chunk, position, new CloudContainer(27));
+    }
+
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.CHEST;
     }
 
     @Override
@@ -85,7 +97,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
         if (!closed) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                    ((CloudPlayer) listener).closeInventory();
                 }
             }
 
@@ -135,8 +147,8 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest {
             if (pair.combinedContainer != null) {
                 this.combinedContainer = pair.combinedContainer;
             } else if (this.combinedContainer == null) {
-                if ((pair.pairPosition.getX() + pair.pairPosition.getZ() << 15) >
-                        (this.pairPosition.getX() + this.pairPosition.getZ() << 15)) { // Order them correctly
+                if (((pair.pairPosition.getX() + pair.pairPosition.getZ()) << 15) >
+                        ((this.pairPosition.getX() + this.pairPosition.getZ()) << 15)) {
                     this.combinedContainer = new CloudContainer(pair.container, this.container);
                 } else {
                     this.combinedContainer = new CloudContainer(this.container, pair.container);

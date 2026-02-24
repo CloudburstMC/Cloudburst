@@ -58,5 +58,6 @@ public class ArrayContainerStorage implements ContainerStorage {
             // Fill the rest with empty stacks
             Arrays.fill(contents, oldSize, this.slots.length, ItemStack.EMPTY);
         }
+        this.slots = contents;
     }
 }

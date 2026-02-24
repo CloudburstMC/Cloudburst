@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
-import org.cloudburstmc.api.container.ContainerListener;
-import org.cloudburstmc.api.container.ContainerViewType;
-import org.cloudburstmc.api.container.ContainerViewTypes;
+import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -33,9 +33,13 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
+import static org.cloudburstmc.api.block.BlockTypes.LIT_FURNACE;
 
 /**
- * @author MagicDroidX
+ * Base block entity implementation for smelting containers (furnace, blast furnace, smoker).
+ * Manages a 3-slot container (ingredient, fuel, result) with tick-based smelting logic,
+ * and fires {@link org.cloudburstmc.api.event.inventory.FurnaceBurnEvent}
+ * and {@link org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent} during processing.
  */
 public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace {
 
@@ -48,11 +52,17 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     protected short burnDuration = 0;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        this(type, chunk, position, ContainerViewTypes.FURNACE);
+        super(type, chunk, position, new CloudContainer(3));
     }
 
-    protected FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, ContainerViewType<?> viewType) {
-        super(type, chunk, position, new CloudContainer(3), viewType);
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.FURNACE;
+    }
+
+    @Override
+    public Furnace getBlockEntity() {
+        return this;
     }
 
     @Override
@@ -88,7 +98,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         if (!closed) {
             for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                    ((CloudPlayer) listener).closeInventory();
                 }
             }
             super.close();
@@ -104,7 +114,8 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public boolean isValid() {
-        return getBlockState().getType() == FURNACE;
+        BlockType type = getBlockState().getType();
+        return type == FURNACE || type == LIT_FURNACE;
     }
 
     protected float getBurnRate() {
@@ -122,7 +133,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         burnDuration = (short) (ev.getBurnTime() / getBurnRate());
         burnTime = (short) (ev.getBurnTime() / getBurnRate());
 
-        if (getBlockState().ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
+        if (getBlockState().getType() != getLitType()) {
             lightFurnace();
         }
 
@@ -200,7 +211,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             }
             ret = true;
         } else {
-            if (!state.ensureTrait(BlockTraits.IS_EXTINGUISHED)) {
+            if (state.getType() == getLitType()) {
                 extinguishFurnace();
             }
             burnTime = 0;
@@ -219,12 +230,24 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         return ret;
     }
 
+    protected BlockType getLitType() {
+        return LIT_FURNACE;
+    }
+
+    protected BlockType getUnlitType() {
+        return FURNACE;
+    }
+
     protected void extinguishFurnace() {
-        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, true), true);
+        BlockState current = getBlockState();
+        this.getLevel().setBlockState(this.getPosition(),
+                getUnlitType().getDefaultState().copyTraits(current), true);
     }
 
     protected void lightFurnace() {
-        this.getLevel().setBlockState(this.getPosition(), getBlockState().withTrait(BlockTraits.IS_EXTINGUISHED, false), true);
+        BlockState current = getBlockState();
+        this.getLevel().setBlockState(this.getPosition(),
+                getLitType().getDefaultState().copyTraits(current), true);
     }
 
     public int getBurnTime() {
@@ -246,12 +269,48 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         this.cookTime = (short) cookTime;
     }
 
+    @Override
+    public int getCookProgress() {
+        return cookTime;
+    }
+
+    @Override
+    public void setCookProgress(int ticks) {
+        this.cookTime = (short) Math.max(0, Math.min(ticks, getCookDuration()));
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_TICK_COUNT, this.cookTime);
+        }
+    }
+
+    @Override
+    public int getCookDuration() {
+        return (int) (200 / getBurnRate());
+    }
+
+    @Override
+    public int getBurnProgress() {
+        return burnTime;
+    }
+
+    @Override
+    public void setBurnProgress(int ticks) {
+        setBurnTime(Math.max(0, ticks));
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_TIME, this.burnTime);
+        }
+    }
+
+    @Override
     public int getBurnDuration() {
         return burnDuration;
     }
 
-    public void setBurnDuration(int burnDuration) {
-        this.burnDuration = (short) burnDuration;
+    @Override
+    public void setBurnDuration(int ticks) {
+        this.burnDuration = (short) Math.max(0, ticks);
+        for (ContainerListener listener : this.container.getListeners()) {
+            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_DURATION, this.burnDuration);
+        }
     }
 
     @Override

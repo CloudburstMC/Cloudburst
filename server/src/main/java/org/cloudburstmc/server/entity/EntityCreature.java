@@ -1,8 +1,9 @@
 package org.cloudburstmc.server.entity;
 
-import lombok.Getter;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.inventory.view.ArmorView;
+import org.cloudburstmc.api.inventory.view.OffhandView;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -15,15 +16,24 @@ import org.cloudburstmc.server.item.ItemUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Abstract base class for all living creatures. Provides armor (4-slot) and offhand (1-slot) containers.
+ */
 public abstract class EntityCreature extends EntityLiving implements Creature {
 
-    @Getter
     protected final CloudArmorView armor = new CloudArmorView(this, new CloudContainer(4));
-    @Getter
     protected final CloudOffhandView offhand = new CloudOffhandView(this, new CloudContainer(1));
 
     public EntityCreature(EntityType<?> type, Location location) {
         super(type, location);
+    }
+
+    public ArmorView getArmor() {
+        return armor;
+    }
+
+    public OffhandView getOffhand() {
+        return offhand;
     }
 
     @Override

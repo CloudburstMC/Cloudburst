@@ -1,8 +1,11 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.container.view.BlockContainerView;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
 
-public interface Chest extends BlockEntity, BlockContainerView {
+/**
+ * A chest block entity with 27 storage slots. Two adjacent chests can be paired to form a double chest.
+ */
+public interface Chest extends BlockEntity, BlockStorageView {
 
     boolean isFindable();
 

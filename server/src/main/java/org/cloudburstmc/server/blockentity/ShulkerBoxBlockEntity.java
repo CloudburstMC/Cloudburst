@@ -4,8 +4,11 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
-import org.cloudburstmc.api.container.ContainerListener;
-import org.cloudburstmc.api.container.ContainerViewTypes;
+import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -21,13 +24,19 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * Created by PetteriM1
+ * Block entity implementation for a shulker box: a 27-slot storage container with an associated
+ * facing direction that only accepts valid shulker box block types.
  */
-public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements ShulkerBox {
+public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements ShulkerBox, BlockStorageView {
     private byte facing;
 
     public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(27), ContainerViewTypes.SHULKER_BOX);
+        super(type, chunk, position, new CloudContainer(27));
+    }
+
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.SHULKER_BOX;
     }
 
     @Override
@@ -66,7 +75,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
         if (!closed) {
             for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
                 if (listener instanceof CloudPlayer) {
-                    ((CloudPlayer) listener).getInventoryManager().closeScreen();
+                    ((CloudPlayer) listener).closeInventory();
                 }
             }
             super.close();

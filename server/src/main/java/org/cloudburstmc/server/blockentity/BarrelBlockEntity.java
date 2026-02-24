@@ -3,8 +3,11 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
-import org.cloudburstmc.api.container.ContainerListener;
-import org.cloudburstmc.api.container.ContainerViewTypes;
+import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.api.inventory.view.SlotGroupType;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -18,12 +21,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel {
-
-    private final CloudContainer container = new CloudContainer(27);
+/**
+ * Block entity implementation for a barrel: a 27-slot storage container.
+ */
+public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, BlockStorageView {
 
     public BarrelBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(27), ContainerViewTypes.BARREL);
+        super(type, chunk, position, new CloudContainer(27));
+    }
+
+    @Override
+    public SlotGroupType<? extends SlotGroup> getSlotGroupType() {
+        return SlotGroupTypes.BARREL;
     }
 
     @Override
@@ -67,7 +76,6 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel {
         }
         this.container.clear(); // Stop items from being moved around by another player in the inventory
     }
-
 
     @Override
     public boolean isValid() {

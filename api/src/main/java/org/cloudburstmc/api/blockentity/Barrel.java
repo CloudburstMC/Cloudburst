@@ -1,7 +1,9 @@
 package org.cloudburstmc.api.blockentity;
 
-import org.cloudburstmc.api.container.view.BlockContainerView;
+import org.cloudburstmc.api.inventory.view.BlockStorageView;
 
-public interface Barrel extends BlockEntity, BlockContainerView {
-
+/**
+ * A barrel block entity with 27 storage slots.
+ */
+public interface Barrel extends BlockEntity, BlockStorageView {
 }

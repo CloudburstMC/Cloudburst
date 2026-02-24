@@ -1,30 +1,39 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.container.Container;
-import org.cloudburstmc.api.container.view.ContainerView;
+import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.TextProcessingEventOrigin;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
-import org.cloudburstmc.server.container.screen.CloudContainerScreen;
+import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
+import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
 
+/**
+ * Per-player manager for {@code ItemStackRequestPacket} processing. Queues incoming requests,
+ * manages the player's open screen stack, handles text-filter state, and dispatches each
+ * request to {@link ItemStackRequestActionHandler} for slot mutation and response construction.
+ */
 @Log4j2
 public class ItemStackNetManager {
 
+    private static final long TEXT_FILTER_TIMEOUT_TICKS = 100;
+
     private final CloudPlayer player;
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
-    private final Deque<CloudContainerScreen> screenStack = new ArrayDeque<>();
+    private final Deque<CloudInventoryScreen> screenStack = new ArrayDeque<>();
+    private final ItemStackRequestActionHandler handler;
     private TextFilterState textFilterState;
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
     private boolean currentRequestIsCrafting;
-    private final ItemStackRequestActionHandler handler;
 
     public ItemStackNetManager(CloudPlayer player) {
         this.player = player;
@@ -35,6 +44,11 @@ public class ItemStackNetManager {
         for (ItemStackRequest request : packet.getRequests()) {
             this.requests.offer(request);
         }
+        processQueue();
+    }
+
+    public void handleSingleRequest(ItemStackRequest request) {
+        this.requests.offer(request);
         processQueue();
     }
 
@@ -79,7 +93,11 @@ public class ItemStackNetManager {
     }
 
     private void filterStrings(int requestId, String[] strings, TextProcessingEventOrigin eventOrigin) {
-        // TODO: Expose API for this at some point.
+        // TODO: Expose API for this at some point. When a real async filter is wired in, set
+        //       this.textFilterState = TextFilterState.WAITING here and arm the timeout clock below.
+        //       For now, strings pass through unfiltered immediately.
+        this.textFilterRequestTick = 0;
+        this.textFilterRequestTimeout = TEXT_FILTER_TIMEOUT_TICKS;
         this.handler.addFilteredStrings(requestId, strings);
     }
 
@@ -88,7 +106,7 @@ public class ItemStackNetManager {
             return;
         }
 
-        CloudContainerScreen screen = this.screenStack.peekLast();
+        CloudInventoryScreen screen = this.screenStack.peekLast();
         if (screen == null) {
             log.debug("Received request {} with no open screen", request.getRequestId());
             return;
@@ -145,23 +163,27 @@ public class ItemStackNetManager {
         }
     }
 
-    public void pushScreen(CloudContainerScreen screen) {
+    public void pushScreen(CloudInventoryScreen screen) {
         this.screenStack.addLast(screen);
     }
 
-    public CloudContainerScreen popScreen() {
+    public CloudInventoryScreen popScreen() {
         return this.screenStack.removeLast();
     }
 
-    public CloudContainerScreen getScreen() {
+    public CloudInventoryScreen getScreen() {
         return this.screenStack.peekLast();
     }
 
     public Set<Container> getAllInventories() {
         Set<Container> inventories = new HashSet<>();
-        for (CloudContainerScreen screen : this.screenStack) {
-            for (ContainerView view : screen.getViews()) {
-                inventories.add(view.getContainer());
+        for (CloudInventoryScreen screen : this.screenStack) {
+            for (SlotGroup view : screen.getAllSlotGroups()) {
+                if (view instanceof CloudSlotGroupBase section) {
+                    inventories.add(section.getContainer());
+                } else if (view instanceof ContainerBlockEntity blockEntity) {
+                    inventories.add(blockEntity.getContainer());
+                }
             }
         }
         return inventories;
@@ -175,15 +197,12 @@ public class ItemStackNetManager {
                 break;
             case WAITING:
                 if (textFilterRequestTick >= textFilterRequestTimeout) {
-
+                    this.textFilterState = TextFilterState.TIMED_OUT;
+                    processQueue();
                 } else {
                     textFilterRequestTick++;
                 }
                 break;
         }
-    }
-
-    public void onContainerScreenOpen() {
-
     }
 }

@@ -2,12 +2,13 @@ package org.cloudburstmc.server.item.food;
 
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 
 import static org.cloudburstmc.api.item.ItemTypes.BOWL;
 
 /**
- * Created by Snake1999 on 2016/1/14.
- * Package cn.nukkit.item.food in project nukkit.
+ * Food behavior for bowl-based foods such as mushroom stew. On consumption, returns an empty bowl
+ * to the player's inventory.
  */
 public class FoodInBowl extends Food {
 
@@ -19,7 +20,7 @@ public class FoodInBowl extends Food {
     @Override
     public boolean onEatenBy(Player player) {
         super.onEatenBy(player);
-        player.getInventory().getContainer().addItem(ItemStack.from(BOWL));
+        ((CloudPlayerInventory) player.getInventory()).getContainer().addItem(ItemStack.from(BOWL));
         return true;
     }
 

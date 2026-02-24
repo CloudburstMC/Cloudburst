@@ -17,6 +17,11 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * An immutable value representing an item type, stack count, and optional metadata.
+ * Use {@link #builder()} or one of the {@code from} factory methods to create instances.
+ * {@link #EMPTY} represents the absence of an item.
+ */
 public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     public static final ItemStack EMPTY = ItemStack.builder(BlockTypes.AIR).build();
@@ -100,6 +105,9 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         if (this.count == amount) {
             return this;
         }
+        if (amount <= 0) {
+            return EMPTY;
+        }
         return toBuilder().amount(amount).build();
     }
 
@@ -140,12 +148,32 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return this.getType().getId().compareTo(other.getType().getId());
     }
 
+    /**
+     * Returns a copy of this item with the stored {@link BlockState} replaced by the block type's
+     * default state, stripping placement-specific properties (e.g. {@code axis}, {@code facing}).
+     * If this item is not a block item, or already uses the default state, returns {@code this}.
+     */
+    public ItemStack normalizeBlockState() {
+        if (!isBlock()) {
+            return this;
+        }
+        BlockState current = this.get(ItemKeys.BLOCK_STATE);
+        if (current == null) {
+            return this;
+        }
+        BlockState defaultState = current.getType().getDefaultState();
+        if (current.equals(defaultState)) {
+            return this;
+        }
+        return toBuilder().data(ItemKeys.BLOCK_STATE, defaultState).build();
+    }
+
     public boolean isSimilar(ItemStack other) {
         return this.getType().equals(other.getType());
     }
 
     public boolean isSimilarMetadata(ItemStack other) {
-        return getAllMetadata().equals(other.getAllMetadata());
+        return isSimilar(other) && getAllMetadata().equals(other.getAllMetadata());
     }
 
     public boolean isCombinable(ItemStack other) {

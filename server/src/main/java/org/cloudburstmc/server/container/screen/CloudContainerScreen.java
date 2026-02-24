@@ -1,82 +1,52 @@
 package org.cloudburstmc.server.container.screen;
 
-import com.google.common.collect.ImmutableSet;
-import org.cloudburstmc.api.container.ContainerScreenType;
-import org.cloudburstmc.api.container.ContainerViewType;
-import org.cloudburstmc.api.container.screen.ContainerScreen;
-import org.cloudburstmc.api.container.view.ContainerView;
-import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.inventory.ContainerScreen;
+import org.cloudburstmc.api.inventory.ScreenType;
+import org.cloudburstmc.api.inventory.view.CursorView;
+import org.cloudburstmc.api.inventory.view.PlayerInventoryView;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
+import org.cloudburstmc.server.container.mapping.LimitedContainerMapping;
+import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
+import org.cloudburstmc.server.container.mapping.UIContainerMapping;
+import org.cloudburstmc.server.container.view.CloudCreatedOutputView;
+import org.cloudburstmc.server.container.view.CloudCursorView;
+import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.*;
+/**
+ * Base screen implementation for all open-container screens. Extends {@link CloudInventoryScreen}
+ * with cursor and full player-inventory mappings shared by every container the player opens.
+ */
+public class CloudContainerScreen extends CloudInventoryScreen implements ContainerScreen {
 
-import static java.util.Objects.requireNonNull;
+    private static final int CREATED_OUTPUT_PROTOCOL_SLOT = 50;
 
-public abstract class CloudContainerScreen implements ContainerScreen {
+    protected final CloudCursorView cursor;
 
-    private final Map<ContainerSlotType, ContainerMapping> mappings = new HashMap<>();
-    private final Map<ContainerViewType<?>, ContainerView> views = new HashMap<>();
-    protected final CloudPlayer player;
-
-    public CloudContainerScreen(ContainerScreenType<?> type, CloudPlayer player) {
-        Objects.requireNonNull(type, "type");
-        Objects.requireNonNull(player, "player");
-        if (!type.getScreenClass().isInstance(this)) {
-            throw new IllegalArgumentException("Screen type " + type.getIdentifier() + " is not compatible with " + this.getClass().getName());
-        }
-        this.player = player;
-    }
-
-    public final void setup() {
-        this.setupMappings();
-    }
-
-    protected void addMapping(ContainerMapping mapping) {
-        this.mappings.put(mapping.getSlotType(), mapping);
-        this.views.putIfAbsent(mapping.getView().getViewType(), mapping.getView());
-    }
-
-    protected abstract void setupMappings();
-
-    public void close() {
-    }
-
-    public ItemStack getSlot(ContainerSlotType type, int slot) {
-        ContainerMapping mapping = this.mappings.get(type);
-        requireNonNull(mapping, "View for slot type " + type + " not found");
-
-        int realSlot = mapping.getInventorySlot(slot);
-        return mapping.getView().getItem(realSlot);
-    }
-
-    public void setSlot(ContainerSlotType type, int slot, ItemStack item) {
-        ContainerMapping mapping = this.mappings.get(type);
-        requireNonNull(mapping, "View for slot type " + type + " not found");
-
-        int realSlot = mapping.getInventorySlot(slot);
-        mapping.getView().setItem(realSlot, item);
+    public CloudContainerScreen(ScreenType<?> type, CloudPlayer player) {
+        super(type, player);
+        this.cursor = new CloudCursorView(player);
     }
 
     @Override
-    public ContainerScreenType<?> getType() {
-        return null;
+    public PlayerInventoryView getPlayerInventory() {
+        return getSlotsOrThrow(SlotGroupTypes.INVENTORY);
     }
 
     @Override
-    public Set<ContainerViewType<?>> getViewTypes() {
-        return ImmutableSet.copyOf(this.views.keySet());
+    public CursorView getCursor() {
+        return getSlotsOrThrow(SlotGroupTypes.CURSOR);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends ContainerView> Optional<T> getView(ContainerViewType<T> type) {
-        return Optional.ofNullable((T) this.views.get(type));
-    }
-
-    @Override
-    public Set<ContainerView> getViews() {
-        return ImmutableSet.copyOf(this.views.values());
+    protected void setupMappings() {
+        CloudPlayerInventory inventoryView = (CloudPlayerInventory) this.player.getInventory();
+        this.addMapping(SimpleContainerMapping.forPlayerInventory(inventoryView));
+        this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR, inventoryView, 9));
+        this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR_AND_INVENTORY, inventoryView, 36));
+        this.addMapping(new UIContainerMapping(ContainerSlotType.CURSOR, this.cursor));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, new CloudCreatedOutputView(this.player), 1, -CREATED_OUTPUT_PROTOCOL_SLOT));
     }
 }

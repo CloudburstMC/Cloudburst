@@ -1,15 +1,18 @@
 package org.cloudburstmc.server.container.view;
 
-import org.cloudburstmc.api.container.ContainerViewTypes;
-import org.cloudburstmc.api.container.view.ArmorView;
+import org.cloudburstmc.api.inventory.view.ArmorView;
+import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.entity.CloudEntity;
 
+/**
+ * Slot group implementation for the 4-slot armor view, backed by an entity's armor container.
+ */
 public class CloudArmorView extends CloudEntityContainerView implements ArmorView {
 
     public CloudArmorView(CloudEntity entity, CloudContainer container) {
-        super(ContainerViewTypes.ARMOR, entity, container);
+        super(SlotGroupTypes.ARMOR, entity, container);
     }
 
     @Override

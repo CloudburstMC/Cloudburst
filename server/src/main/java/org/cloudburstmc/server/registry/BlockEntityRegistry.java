@@ -19,14 +19,19 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.*;
 
+/**
+ * Singleton {@link Registry} that maps {@link BlockEntityType} tokens to their
+ * {@link BlockEntityFactory} implementations. Supports registration of custom factories by plugins
+ * and is used to create block entity instances by type or from persisted NBT data.
+ */
 public class BlockEntityRegistry implements Registry {
     private static final BlockEntityRegistry INSTANCE = new BlockEntityRegistry();
+    private static final RegistryServiceProvider<BlockEntityFactory<?>> UNKNOWN_PROVIDER = new RegistryServiceProvider<>(new RegistryProvider<>(UnknownBlockEntity::new, null, 1000));
 
     private final Map<BlockEntityType<?>, RegistryServiceProvider<BlockEntityFactory<?>>> providers = new IdentityHashMap<>();
     private final BiMap<BlockEntityType<?>, String> persistentMap = HashBiMap.create();
-    private volatile boolean closed;
 
-    private static RegistryServiceProvider<BlockEntityFactory<?>> UNKNOWN_PROVIDER = new RegistryServiceProvider<>(new RegistryProvider<>(UnknownBlockEntity::new, null, 1000));
+    private volatile boolean closed;
 
     private BlockEntityRegistry() {
         this.registerVanillaEntities();
@@ -139,31 +144,35 @@ public class BlockEntityRegistry implements Registry {
     }
 
     private void registerVanillaEntities() {
-        registerVanilla(BlockEntityTypes.CHEST, ChestBlockEntity::new, "Chest");
-        registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
-        registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
-        registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");
-//        registerVanilla(BlockEntityTypes.MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
-        registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable");
-        registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull");
-        registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");
-        registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand");
-        registerVanilla(BlockEntityTypes.DAYLIGHT_DETECTOR, DaylightDetectorBlockEntity::new, "DaylightDetector");
-        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music");
-        registerVanilla(BlockEntityTypes.ITEM_FRAME, ItemFrameBlockEntity::new, "ItemFrame");
-        registerVanilla(BlockEntityTypes.CAULDRON, CauldronBlockEntity::new, "Cauldron");
-        registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon");
-        registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm");
-        registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock");
-        registerVanilla(BlockEntityTypes.COMPARATOR, ComparatorBlockEntity::new, "Comparator");
-        registerVanilla(BlockEntityTypes.HOPPER, HopperBlockEntity::new, "Hopper");
-        registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed");
-        registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox");
-        registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox");
         registerVanilla(BlockEntityTypes.BANNER, BannerBlockEntity::new, "Banner");
-        registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire");
-        registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace");
-        registerVanilla(BlockEntityTypes.SMOKER, SmokerBlockEntity::new, "Smoker");
         registerVanilla(BlockEntityTypes.BARREL, BarrelBlockEntity::new, "Barrel");
+        registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon");
+        registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed");
+        registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace");
+        registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand");
+        registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire");
+        registerVanilla(BlockEntityTypes.CAULDRON, CauldronBlockEntity::new, "Cauldron");
+        registerVanilla(BlockEntityTypes.CHEST, ChestBlockEntity::new, "Chest");
+        registerVanilla(BlockEntityTypes.COMPARATOR, ComparatorBlockEntity::new, "Comparator");
+        registerVanilla(BlockEntityTypes.CRAFTER, CrafterBlockEntity::new, "Crafter");
+        registerVanilla(BlockEntityTypes.DAYLIGHT_DETECTOR, DaylightDetectorBlockEntity::new, "DaylightDetector");
+        registerVanilla(BlockEntityTypes.DISPENSER, DispenserBlockEntity::new, "Dispenser");
+        registerVanilla(BlockEntityTypes.DROPPER, DropperBlockEntity::new, "Dropper");
+        registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable");
+        registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
+        registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");
+        registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
+        registerVanilla(BlockEntityTypes.HOPPER, HopperBlockEntity::new, "Hopper");
+        registerVanilla(BlockEntityTypes.ITEM_FRAME, ItemFrameBlockEntity::new, "ItemFrame");
+        registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox");
+        registerVanilla(BlockEntityTypes.LECTERN, LecternBlockEntity::new, "Lectern");
+        // registerVanilla(BlockEntityTypes.MOB_SPAWNER, MobSpawnerBlockEntity::new, "MobSpawner");
+        registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock");
+        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music");
+        registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm");
+        registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox");
+        registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");
+        registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull");
+        registerVanilla(BlockEntityTypes.SMOKER, SmokerBlockEntity::new, "Smoker");
     }
 }
