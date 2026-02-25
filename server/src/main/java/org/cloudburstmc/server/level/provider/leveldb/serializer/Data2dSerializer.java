@@ -11,14 +11,18 @@ import org.iq80.leveldb.WriteBatch;
 public class Data2dSerializer {
 
     public static void serialize(WriteBatch db, CloudChunk chunk) {
-        // Write height map and biomes.
         byte[] data2d = new byte[768];
         ByteBuf buffer = Unpooled.wrappedBuffer(data2d);
         buffer.writerIndex(0);
-        int[] heightMap = chunk.getHeightMapArray();
         byte[] biomes = chunk.getBiomeArray();
-        for (int height : heightMap) {
-            buffer.writeShortLE(height);
+        for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < 16; x++) {
+                int highest = chunk.getHighestBlock(x, z);
+                if (highest < -64) {
+                    highest = -64;
+                }
+                buffer.writeShortLE(highest);
+            }
         }
         buffer.writeBytes(biomes);
 
@@ -27,7 +31,7 @@ public class Data2dSerializer {
 
     public static void deserialize(DB db, ChunkBuilder builder) {
         byte[] data2d = db.get(LevelDBKey.DATA_2D.getKey(builder.getX(), builder.getZ()));
-        int[] heightMap = new int[512];
+        int[] heightMap = new int[256];
         byte[] biomes = new byte[256];
 
         if (data2d != null) {

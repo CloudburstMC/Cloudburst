@@ -25,23 +25,21 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
 
     @Override
     public void serialize(DirectWriteBatch db, Chunk chunk) {
-        // Write chunk sections
-        for (int ySection = 0; ySection < CloudChunk.SECTION_COUNT; ySection++) {
-            CloudChunkSection section = (CloudChunkSection) chunk.getSection(ySection);
+        // LevelDB key byte is the absolute section Y
+        for (int arrayIndex = 0; arrayIndex < CloudChunk.SECTION_COUNT; arrayIndex++) {
+            CloudChunkSection section = (CloudChunkSection) chunk.getSection(arrayIndex);
             if (section == null) {
                 continue;
             }
 
+            int absoluteSectionY = arrayIndex + CloudChunk.MIN_SECTION_Y;
+
             ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
             ByteBuf keyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
             try {
-                buffer.writeByte(CloudChunkSection.CHUNK_SECTION_VERSION);
-                ChunkSectionSerializers.serialize(buffer, section.getBlockStorageArray(), CloudChunkSection.CHUNK_SECTION_VERSION);
-
-                keyBuffer.clear().writeBytes(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), ySection));
+                section.writeToDisk(buffer);
+                keyBuffer.clear().writeBytes(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), absoluteSectionY));
                 db.put(keyBuffer, buffer);
-
-                buffer.clear(); // Reset indices to prevent the buffer from constantly growing
             } finally {
                 keyBuffer.release();
                 buffer.release();
@@ -72,19 +70,27 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
 
         CloudChunkSection[] sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
 
-        for (int ySection = 0; ySection < CloudChunk.SECTION_COUNT; ySection++) {
-            ByteBuf buf = db.getZeroCopy(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, ySection)));
+        // Key byte is absolute section Y. Pre-1.18 worlds used keys 0..15, which map
+        // correctly to array indices 4..19 (world Y 0..240) under this scheme.
+        int minSectionY = CloudChunk.MIN_SECTION_Y;
+        int maxSectionY = minSectionY + CloudChunk.SECTION_COUNT - 1;
+
+        for (int absoluteSectionY = minSectionY; absoluteSectionY <= maxSectionY; absoluteSectionY++) {
+            ByteBuf buf = db.getZeroCopy(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, absoluteSectionY)));
             if (buf == null) {
-                continue; // Entry doesn't exist, skip
+                continue;
             }
+
+            int arrayIndex = absoluteSectionY - minSectionY;
 
             try {
                 if (!buf.isReadable()) {
-                    throw new ChunkException("Empty sub-chunk " + ySection);
+                    throw new ChunkException("Empty sub-chunk " + absoluteSectionY);
                 }
 
                 int subChunkVersion = buf.readUnsignedByte();
-                if (subChunkVersion < CloudChunkSection.CHUNK_SECTION_VERSION) {
+                // On-disk format uses version 8; mark dirty only if older than that
+                if (subChunkVersion < 8) {
                     chunkBuilder.dirty();
                 }
 
@@ -94,7 +100,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                     if (extraDataMap != null) {
                         for (int x = 0; x < 16; x++) {
                             for (int z = 0; z < 16; z++) {
-                                for (int y = ySection * 16, lim = y + 16; y < lim; y++) {
+                                for (int y = absoluteSectionY * 16, lim = y + 16; y < lim; y++) {
                                     int key = CloudChunk.blockKey(x, y, z);
                                     if (extraDataMap.containsKey(key)) {
                                         short value = extraDataMap.get(CloudChunk.blockKey(x, y, z));
@@ -107,9 +113,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                         }
                     }
                 }
-                sections[ySection] = new CloudChunkSection(blockStorage);
+                sections[arrayIndex] = new CloudChunkSection(blockStorage);
             } finally {
-                buf.release(); // Release buffer to avoid memory leak
+                buf.release();
             }
         }
 

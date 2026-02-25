@@ -6,7 +6,7 @@ import org.cloudburstmc.server.level.chunk.BlockStorage;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 
 public class ChunkSectionSerializers {
-    private static final ChunkSectionSerializer[] SERIALIZERS = new ChunkSectionSerializer[9];
+    private static final ChunkSectionSerializer[] SERIALIZERS = new ChunkSectionSerializer[10];
 
     static {
         SERIALIZERS[0] = ChunkSectionSerializerV7.INSTANCE;
@@ -18,6 +18,7 @@ public class ChunkSectionSerializers {
         SERIALIZERS[6] = ChunkSectionSerializerV7.INSTANCE;
         SERIALIZERS[7] = ChunkSectionSerializerV7.INSTANCE;
         SERIALIZERS[8] = ChunkSectionSerializerV8.INSTANCE;
+        SERIALIZERS[9] = ChunkSectionSerializerV9.INSTANCE;
     }
 
     public static void serialize(ByteBuf buf, BlockStorage[] storage, int version) {

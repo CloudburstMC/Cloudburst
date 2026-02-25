@@ -12,17 +12,12 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
 
-/**
- * @author Extollite
- */
 @Log4j2
 public class ResourcePackPacketHandler implements BedrockPacketHandler {
+    private static final int RESOURCE_PACK_CHUNK_SIZE = 8 * 1024; // 8KB
     private final BedrockServerSession session;
     private final CloudServer server;
-
-    private PlayerLoginData loginData;
-
-    private static final int RESOURCE_PACK_CHUNK_SIZE = 8 * 1024; // 8KB
+    private final PlayerLoginData loginData;
 
     public ResourcePackPacketHandler(BedrockServerSession session, CloudServer server, PlayerLoginData loginData) {
         this.session = session;
@@ -32,16 +27,17 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(ResourcePackClientResponsePacket packet) {
-        switch (packet.getStatus()) {
-            case REFUSED:
+        return switch (packet.getStatus()) {
+            case REFUSED -> {
                 session.disconnect("disconnectionScreen.noReason");
-                return PacketSignal.HANDLED;
-            case SEND_PACKS:
+                yield PacketSignal.HANDLED;
+            }
+            case SEND_PACKS -> {
                 for (String entry : packet.getPackIds()) {
                     Pack pack = this.server.getPackManager().getPackByIdVersion(entry);
                     if (pack == null) {
                         session.disconnect("disconnectionScreen.resourcePack");
-                        return PacketSignal.HANDLED;
+                        yield PacketSignal.HANDLED;
                     }
 
                     ResourcePackDataInfoPacket dataInfoPacket = new ResourcePackDataInfoPacket();
@@ -54,11 +50,13 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                     dataInfoPacket.setType(ResourcePackType.values()[pack.getType().ordinal()]);
                     session.sendPacket(dataInfoPacket);
                 }
-                return PacketSignal.HANDLED;
-            case HAVE_ALL_PACKS:
+                yield PacketSignal.HANDLED;
+            }
+            case HAVE_ALL_PACKS -> {
                 session.sendPacket(this.server.getPackManager().getPackStack());
-                return PacketSignal.HANDLED;
-            case COMPLETED:
+                yield PacketSignal.HANDLED;
+            }
+            case COMPLETED -> {
                 if (loginData.getPreLoginEventTask().isFinished()) {
                     try {
                         CloudPlayer player = loginData.initializePlayer();
@@ -73,15 +71,15 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
                 } else {
                     loginData.setShouldLogin(true);
                 }
-                return PacketSignal.HANDLED;
-        }
-        return PacketSignal.HANDLED;
+                yield PacketSignal.HANDLED;
+            }
+            default -> PacketSignal.HANDLED;
+        };
     }
 
     @Override
     public PacketSignal handle(ResourcePackChunkRequestPacket packet) {
-        Pack resourcePack = this.server.getPackManager().getPackByIdVersion(
-                packet.getPackId() + "_" + packet.getPackVersion());
+        Pack resourcePack = this.server.getPackManager().getPackByIdVersion(packet.getPackId() + "_" + packet.getPackVersion());
         if (resourcePack == null) {
             session.disconnect("disconnectionScreen.resourcePack");
             return PacketSignal.HANDLED;
@@ -97,4 +95,9 @@ public class ResourcePackPacketHandler implements BedrockPacketHandler {
         return PacketSignal.HANDLED;
     }
 
+    @Override
+    public PacketSignal handle(ClientCacheStatusPacket packet) {
+        loginData.setClientCacheEnabled(packet.isSupported());
+        return PacketSignal.HANDLED;
+    }
 }

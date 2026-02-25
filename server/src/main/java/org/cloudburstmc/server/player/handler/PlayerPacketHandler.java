@@ -3,6 +3,10 @@ package org.cloudburstmc.server.player.handler;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import com.google.inject.Inject;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -20,13 +24,16 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -50,7 +57,10 @@ import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -60,6 +70,9 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -67,8 +80,7 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 
 /**
- * Routes all incoming client packets to the appropriate server-side handling logic.
- * Implements {@code BedrockPacketHandler} with one visitor method per packet type.
+ * Handles all incoming packets from a connected player.
  */
 @Log4j2
 public class PlayerPacketHandler implements BedrockPacketHandler {
@@ -1269,6 +1281,141 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
             player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());
         }
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(SubChunkRequestPacket packet) {
+        Vector3i center = packet.getSubChunkPosition();
+        List<SubChunkData> responseChunks = new ArrayList<>(packet.getPositionOffsets().size());
+
+        int minSectionY = CloudChunk.MIN_SECTION_Y;
+        int maxSectionY = minSectionY + CloudChunk.SECTION_COUNT - 1;
+
+        for (Vector3i offset : packet.getPositionOffsets()) {
+            int sectionY = center.getY() + offset.getY();
+            int chunkX = center.getX() + offset.getX();
+            int chunkZ = center.getZ() + offset.getZ();
+
+            SubChunkData subChunkData = new SubChunkData();
+            subChunkData.setPosition(offset);
+
+            // Reject sections outside overworld bounds [-4, 19]
+            if (sectionY < minSectionY || sectionY > maxSectionY) {
+                subChunkData.setResult(SubChunkRequestResult.INDEX_OUT_OF_BOUNDS);
+                subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
+                subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
+                responseChunks.add(subChunkData);
+                continue;
+            }
+
+            CloudLevel level = player.getLevel();
+            CloudChunk chunk = level.getLoadedChunk(chunkX, chunkZ);
+
+            if (chunk == null) {
+                subChunkData.setResult(SubChunkRequestResult.CHUNK_NOT_FOUND);
+                subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
+                subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
+                responseChunks.add(subChunkData);
+                continue;
+            }
+
+            // Array index for this sectionY
+            int sectionIdx = sectionY - minSectionY;
+
+            // Access sections under the read lock
+            LockableChunk locked = chunk.readLockable();
+            locked.lock();
+            try {
+                CloudChunkSection section = (CloudChunkSection) locked.getSection(sectionIdx);
+
+                byte[] heightMap = new byte[256];
+                boolean allHigher = true;
+                boolean allLower = true;
+                for (int hx = 0; hx < 16; hx++) {
+                    for (int hz = 0; hz < 16; hz++) {
+                        // World Y in [-64, 319]; -1 if the column is empty
+                        int highestY = locked.getHighestBlock(hx, hz);
+                        int heightSectionCoord;
+                        if (highestY < 0) {
+                            // Empty column — treat as below all sections
+                            heightSectionCoord = minSectionY - 1;
+                        } else {
+                            heightSectionCoord = highestY >> 4;
+                        }
+                        int idx = (hz << 4) | hx;
+                        if (heightSectionCoord > sectionY) {
+                            heightMap[idx] = 16;
+                            allLower = false;
+                        } else if (heightSectionCoord < sectionY) {
+                            heightMap[idx] = 0;
+                            allHigher = false;
+                        } else {
+                            heightMap[idx] = (byte) (highestY & 0xf);
+                            allHigher = false;
+                            allLower = false;
+                        }
+                    }
+                }
+
+                HeightMapDataType hMapType;
+                ByteBuf heightMapBuf;
+                if (allHigher) {
+                    hMapType = HeightMapDataType.TOO_HIGH;
+                    heightMapBuf = Unpooled.EMPTY_BUFFER;
+                } else if (allLower) {
+                    hMapType = HeightMapDataType.TOO_LOW;
+                    heightMapBuf = Unpooled.EMPTY_BUFFER;
+                } else {
+                    hMapType = HeightMapDataType.HAS_DATA;
+                    heightMapBuf = Unpooled.copiedBuffer(heightMap);
+                }
+                subChunkData.setHeightMapType(hMapType);
+                subChunkData.setHeightMapData(heightMapBuf);
+                subChunkData.setRenderHeightMapType(hMapType);
+                subChunkData.setRenderHeightMapData(heightMapBuf);
+
+                if (section == null || section.isEmpty()) {
+                    subChunkData.setResult(SubChunkRequestResult.SUCCESS_ALL_AIR);
+                    subChunkData.setData(Unpooled.EMPTY_BUFFER);
+                } else {
+                    subChunkData.setResult(SubChunkRequestResult.SUCCESS);
+
+                    ByteBuf sectionBuf = ByteBufAllocator.DEFAULT.ioBuffer();
+                    section.writeToNetwork(sectionBuf, sectionY);
+
+                    // Append block entities in this section
+                    int minBlockY = sectionY * 16;
+                    int maxBlockY = minBlockY + 15;
+                    Set<? extends BlockEntity> tiles = locked.getBlockEntities();
+                    if (!tiles.isEmpty()) {
+                        try (ByteBufOutputStream stream = new ByteBufOutputStream(sectionBuf);
+                             NBTOutputStream nbtOut = NbtUtils.createNetworkWriter(stream)) {
+                            for (BlockEntity tile : tiles) {
+                                Vector3i pos = tile.getPosition();
+                                if (pos.getY() >= minBlockY && pos.getY() <= maxBlockY && tile instanceof BaseBlockEntity) {
+                                    nbtOut.writeTag(((BaseBlockEntity) tile).getChunkTag());
+                                }
+                            }
+                        } catch (IOException e) {
+                            log.error("Error encoding block entity in sub-chunk ({},{},{})", chunkX, sectionY, chunkZ, e);
+                        }
+                    }
+
+                    subChunkData.setData(sectionBuf);
+                }
+            } finally {
+                locked.unlock();
+            }
+
+            responseChunks.add(subChunkData);
+        }
+
+        SubChunkPacket response = new SubChunkPacket();
+        response.setDimension(packet.getDimension());
+        response.setCenterPosition(center);
+        response.setSubChunks(responseChunks);
+        player.sendPacket(response);
         return PacketSignal.HANDLED;
     }
 }

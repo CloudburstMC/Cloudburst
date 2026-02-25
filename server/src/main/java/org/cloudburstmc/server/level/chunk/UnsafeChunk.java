@@ -88,7 +88,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
     static void checkBounds(int x, int y, int z) {
-        checkElementIndex(y, 256, "y coordinate");
+        checkElementIndex(y + 64, 384, "y coordinate");
         checkBounds(x, z);
     }
 
@@ -138,7 +138,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection((y + 64) >> 4);
         BlockState blockState;
         if (section == null) {
             blockState = BlockStates.AIR;
@@ -159,13 +159,13 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection((y + 64) >> 4);
         if (section == null) {
             if (blockState.getType() == BlockTypes.AIR) {
                 // Setting air in an empty section.
                 return;
             }
-            section = this.getOrCreateSection(y >> 4);
+            section = this.getOrCreateSection((y + 64) >> 4);
         }
 
         section.setBlock(x, y & 0xf, z, layer, blockState);
@@ -192,40 +192,40 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public byte getSkyLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection((y + 64) >> 4);
         return section == null ? 0 : section.getSkyLight(x, y & 0xf, z);
     }
 
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection(y >> 4).setSkyLight(x, y & 0xf, z, (byte) level);
+        this.getOrCreateSection((y + 64) >> 4).setSkyLight(x, y & 0xf, z, (byte) level);
         setDirty();
     }
 
     @Override
     public byte getBlockLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection(y >> 4);
+        CloudChunkSection section = this.getSection((y + 64) >> 4);
         return section == null ? 0 : section.getBlockLight(x, y & 0xf, z);
     }
 
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection(y >> 4).setBlockLight(x, y & 0xf, z, (byte) level);
+        this.getOrCreateSection((y + 64) >> 4).setBlockLight(x, y & 0xf, z, (byte) level);
         setDirty();
     }
 
     @Override
     public int getHighestBlock(int x, int z) {
         checkBounds(x, z);
-        for (int sectionY = 15; sectionY >= 0; sectionY--) {
-            CloudChunkSection section = this.sections[sectionY];
+        for (int sectionIdx = CloudChunk.SECTION_COUNT - 1; sectionIdx >= 0; sectionIdx--) {
+            CloudChunkSection section = this.sections[sectionIdx];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
                     if (section.getBlock(x, y, z, 0) != BlockStates.AIR) {
-                        return (sectionY << 4) | y;
+                        return ((sectionIdx + CloudChunk.MIN_SECTION_Y) << 4) | y;
                     }
                 }
             }

@@ -47,15 +47,15 @@ public class BlockUtils {
     }
 
     public long key(int x, int y, int z) {
-        if (y < 0 || y >= 256) {
-            throw new IllegalArgumentException("Y coordinate y is out of range!");
+        if (y < -64 || y >= 320) {
+            throw new IllegalArgumentException("Y coordinate " + y + " is out of range [-64, 319]!");
         }
-        return (((long) x & (long) 0xFFFFFFF) << 36) | (((long) y & (long) 0xFF) << 28) | ((long) z & (long) 0xFFFFFFF);
+        return (((long) x & 0xFFFFFFF) << 37) | (((long) (y + 64) & 0x1FF) << 28) | ((long) z & 0xFFFFFFF);
     }
 
     public Vector3i fromKey(long key) {
-        int x = (int) ((key >>> 36) & 0xFFFFFFF);
-        int y = (int) ((key >> 27) & 0xFF);
+        int x = (int) ((key >> 37) & 0xFFFFFFF);
+        int y = (int) ((key >> 28) & 0x1FF) - 64;
         int z = (int) (key & 0xFFFFFFF);
         return Vector3i.from(x, y, z);
     }
@@ -200,11 +200,11 @@ public class BlockUtils {
                 variants.add(base);
             } else {
                 Lists.cartesianProduct(wildcart.stream().flatMap(name ->
-                        BlockPalette.INSTANCE.getVanillaTraitMap().getOrDefault(name, Collections.emptySet())
-                                .stream()
-                                .map(v -> new Tuple<>(name, v))
-                )
-                        .collect(Collectors.toList()))
+                                        BlockPalette.INSTANCE.getVanillaTraitMap().getOrDefault(name, Collections.emptySet())
+                                                .stream()
+                                                .map(v -> new Tuple<>(name, v))
+                                )
+                                .collect(Collectors.toList()))
                         .forEach(entries ->
                                 variants.add(entries.stream().collect(Collectors.toMap(Tuple::getA, Tuple::getB)))
                         );

@@ -10,7 +10,7 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 
 public class CloudChunkSection implements ChunkSection {
 
-    public static final int CHUNK_SECTION_VERSION = 8;
+    public static final int CHUNK_SECTION_VERSION = 9;
     public static final int SIZE = 4096;
 
     private final BlockStorage[] storage;
@@ -90,11 +90,30 @@ public class CloudChunkSection implements ChunkSection {
         this.blockLight.set(blockIndex(x, y, z), val);
     }
 
-    public void writeToNetwork(ByteBuf buffer) {
+    /**
+     * Writes this section to the network buffer in sub-chunk request mode.
+     *
+     * @param buffer   the buffer to write to
+     * @param sectionY the absolute section Y index (e.g. -4 for Y=-64 to -49, 0 for Y=0 to 15)
+     */
+    public void writeToNetwork(ByteBuf buffer, int sectionY) {
         buffer.writeByte(CHUNK_SECTION_VERSION);
         buffer.writeByte(this.storage.length);
+        buffer.writeByte(sectionY);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
+        }
+    }
+
+    /**
+     * Writes this section to a buffer for on-disk serialization.
+     * Uses version 8 format (no sectionY byte) so existing world saves remain compatible.
+     */
+    public void writeToDisk(ByteBuf buffer) {
+        buffer.writeByte(8);
+        buffer.writeByte(this.storage.length);
+        for (BlockStorage blockStorage : this.storage) {
+            blockStorage.writeToStorage(buffer);
         }
     }
 

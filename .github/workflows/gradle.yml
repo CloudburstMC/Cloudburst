@@ -20,4 +20,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Cloudburst
-          path: server/build/libs/
+          path: server/build/libs/Cloudburst.jar

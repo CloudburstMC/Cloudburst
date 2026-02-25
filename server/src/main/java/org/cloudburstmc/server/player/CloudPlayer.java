@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -206,6 +207,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Getter
     private int selectedHotbarSlot = 0;
     private boolean foodEnabled = true;
+    @Getter
+    @Setter
+    private boolean clientCacheEnabled = false;
     private boolean initialized;
     private byte containerIdCounter = 1;
     private int exp = 0;
@@ -1638,7 +1642,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
-        startGamePacket.setItemDefinitions(CloudItemRegistry.get().getItemEntries());
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
@@ -1649,7 +1652,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setUsingMsaGamertagsOnly(false);
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
-        startGamePacket.setVanillaVersion("1.17.40"); // Temporary hack that allows player to join by disabling the new chunk columns introduced in update 1.18
+        startGamePacket.setVanillaVersion("*");
         startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
@@ -1688,10 +1691,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
         availableEntityIdentifiersPacket.setIdentifiers(EntityRegistry.get().getEntityIdentifiersPalette());
         this.sendPacket(availableEntityIdentifiersPacket);
-
-//        UpdateBlockPropertiesPacket updateBlockPropertiesPacket = new UpdateBlockPropertiesPacket();
-//        updateBlockPropertiesPacket.setProperties(BlockRegistry.get().getPropertiesTag());
-//        this.sendPacket(updateBlockPropertiesPacket);
 
         this.loggedIn = true;
 

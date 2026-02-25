@@ -29,6 +29,7 @@ public class PlayerLoginData {
     private ClientChainData chainData;
     private boolean shouldLogin;
     private List<Consumer<Player>> loginTasks;
+    private boolean clientCacheEnabled;
 
     public PlayerLoginData(BedrockServerSession session, CloudServer server, BedrockInterface interfaz) {
         this.session = session;
@@ -54,6 +55,7 @@ public class PlayerLoginData {
         }
 
         player.processLogin();
+        player.setClientCacheEnabled(this.clientCacheEnabled);
         player.completeLoginSequence();
 
         return player;
@@ -101,5 +103,13 @@ public class PlayerLoginData {
 
     public List<Consumer<Player>> getLoginTasks() {
         return loginTasks;
+    }
+
+    public boolean isClientCacheEnabled() {
+        return clientCacheEnabled;
+    }
+
+    public void setClientCacheEnabled(boolean clientCacheEnabled) {
+        this.clientCacheEnabled = clientCacheEnabled;
     }
 }

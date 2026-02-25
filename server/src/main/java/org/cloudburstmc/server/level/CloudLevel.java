@@ -1239,11 +1239,11 @@ public class CloudLevel implements Level {
     public int getFullLight(Vector3i pos) {
         Chunk chunk = this.getChunk(pos);
 
-        int level = chunk.getSkyLight(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
+        int level = chunk.getSkyLight(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f);
         level -= this.skyLightSubtracted;
 
         if (level < 15) {
-            level = Math.max(chunk.getBlockLight(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f),
+            level = Math.max(chunk.getBlockLight(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f),
                     level);
         }
 
@@ -1257,7 +1257,7 @@ public class CloudLevel implements Level {
 
         Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
 
-        if (y < 0 || y > 255) {
+        if (y < -64 || y > 319) {
             return new CloudBlock(this, Vector3i.from(x, y, z), CloudBlock.EMPTY);
         }
 
@@ -1280,7 +1280,7 @@ public class CloudLevel implements Level {
 
         Chunk chunk = this.getChunk(chunkX, chunkZ);
 
-        if (y < 0 || y > 255) {
+        if (y < -64 || y > 319) {
             return new CloudBlock(this, Vector3i.from(x, y, z), BlockStates.EMPTY);
         }
 
@@ -1427,7 +1427,7 @@ public class CloudLevel implements Level {
     }
 
     public boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update) {
-        if (y < 0 || y >= 256) {
+        if (y < -64 || y >= 320) {
             return false;
         }
         Chunk chunk = this.getChunk(x >> 4, z >> 4);

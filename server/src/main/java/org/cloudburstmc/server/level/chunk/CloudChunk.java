@@ -4,7 +4,6 @@ import co.aikar.timings.Timing;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import lombok.NonNull;
 import lombok.Synchronized;
@@ -22,8 +21,6 @@ import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
-import org.cloudburstmc.nbt.NBTOutputStream;
-import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
@@ -34,7 +31,6 @@ import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -46,14 +42,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Log4j2
 public final class CloudChunk implements Chunk, Closeable {
 
-    public static final int SECTION_COUNT = 16;
+    public static final int SECTION_COUNT = 24;
+    public static final int MIN_SECTION_Y = -4;
 
     static final int ARRAY_SIZE = 256;
 
     private static final CloudChunkSection EMPTY = new CloudChunkSection(new BlockStorage[]{new BlockStorage(BitArrayVersion.V1),
             new BlockStorage(BitArrayVersion.V1)});
 
-    private final Lock readLock; //avoid pointer chasing and an additional interface method call
+    private final Lock readLock; // cached from ReadWriteLock to avoid interface dispatch overhead
     private final Lock writeLock;
 
     private final UnsafeChunk unsafe;
@@ -281,13 +278,13 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     public static short blockKey(int x, int y, int z) {
-        return (short) ((x & 0xf) | ((z & 0xf) << 4) | ((y & 0xff) << 9));
+        return (short) ((x & 0xf) | ((z & 0xf) << 4) | (((y + 64) & 0x1ff) << 8));
     }
 
     public static Vector3i fromKey(long chunkKey, short blockKey) {
         int x = (blockKey & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 4) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = (blockKey >>> 8) & 0xff;
+        int y = ((blockKey >>> 8) & 0x1ff) - 64;
         return Vector3i.from(x, y, z);
     }
 
@@ -355,7 +352,7 @@ public final class CloudChunk implements Chunk, Closeable {
         int layer = blockKey & 0x1;
         int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = (blockKey >>> 9) & 0xff;
+        int y = ((blockKey >>> 9) & 0x1ff) - 64;
         return Vector4i.from(x, y, z, layer);
     }
 
@@ -481,7 +478,7 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     public static int blockKey(int x, int y, int z, int layer) {
-        return (layer & 0x1) | ((x & 0xf) << 1) | ((z & 0xf) << 5) | ((y & 0xff) << 9);
+        return (layer & 0x1) | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y + 64) & 0x1ff) << 9);
     }
 
     @Override
@@ -533,7 +530,9 @@ public final class CloudChunk implements Chunk, Closeable {
                 LevelChunkPacket copy = new LevelChunkPacket();
                 copy.setChunkX(cachedPacket.getChunkX());
                 copy.setChunkZ(cachedPacket.getChunkZ());
-                copy.setSubChunksLength(cachedPacket.getSubChunksLength());
+                copy.setSubChunkLimit(cachedPacket.getSubChunkLimit());
+                copy.setRequestSubChunks(true);
+                copy.setDimension(0);
                 copy.setData(cachedPacket.getData().retainedDuplicate());
                 return copy;
             } else {
@@ -544,66 +543,52 @@ public final class CloudChunk implements Chunk, Closeable {
         LevelChunkPacket packet = new LevelChunkPacket();
         packet.setChunkX(this.getX());
         packet.setChunkZ(this.getZ());
+        packet.setRequestSubChunks(true);
+        packet.setDimension(0);
 
         this.readLock.lock();
         try {
             CloudChunkSection[] sections = unsafe.getSections();
 
-            int subChunkCount = SECTION_COUNT - 1; // index
-            while (subChunkCount >= 0 && (sections[subChunkCount] == null || sections[subChunkCount].isEmpty())) {
-                subChunkCount--;
-            }
-            subChunkCount++; // length
-
-            CloudChunkSection[] networkSections = Arrays.copyOf(sections, subChunkCount);
-            for (int i = 0; i < subChunkCount; i++) {
-                if (networkSections[i] == null) {
-                    networkSections[i] = EMPTY;
-                }
+            int highestSectionIdx = SECTION_COUNT - 1;
+            while (highestSectionIdx >= 0 && (sections[highestSectionIdx] == null || sections[highestSectionIdx].isEmpty())) {
+                highestSectionIdx--;
             }
 
-            packet.setSubChunksLength(subChunkCount);
+            int subChunkLimit = highestSectionIdx >= 0 ? highestSectionIdx : 0;
+            packet.setSubChunkLimit(subChunkLimit);
 
             ByteBuf buffer = Unpooled.buffer();
             try {
-                for (int i = 0; i < subChunkCount; i++) {
-                    networkSections[i].writeToNetwork(buffer);
+                // Biome payload for sub-chunk request mode (3D paletted format, 24 sections).
+                // Section 0: V0 singleton palette with the chunk's representative biome ID.
+                // Sections 1–23: 0xFF copy-last, inheriting section 0's palette.
+                // We store only 2D biomes, so biome[0] (column 0,0) represents the whole chunk.
+                int biomeId = unsafe.getBiomeArray()[0] & 0xFF;
+
+                buffer.writeByte(0x01); // V0 palette header (1 bit/entry, runtime IDs)
+                VarInts.writeInt(buffer, 1); // palette size
+                VarInts.writeInt(buffer, biomeId);
+
+                for (int i = 1; i < SECTION_COUNT; i++) {
+                    buffer.writeByte(0xFF); // copy-last
                 }
 
-                buffer.writeBytes(unsafe.getBiomeArray()); // Biomes - 256 bytes
-                buffer.writeByte(0); // Border blocks size - Education Edition only
-
-                // Extra Data length. Replaced by second block layer.
-                VarInts.writeUnsignedInt(buffer, 0);
-
-                Set<BaseBlockEntity> tiles = unsafe.getBlockEntities();
-                // Block entities
-                if (!tiles.isEmpty()) {
-                    try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);
-                         NBTOutputStream nbtOutputStream = NbtUtils.createNetworkWriter(stream)) {
-                        tiles.forEach(blockEntity -> {
-                            if (blockEntity.isSpawnable()) {
-                                try {
-                                    nbtOutputStream.writeTag(((BaseBlockEntity) blockEntity).getChunkTag());
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }
-                        });
-                    }
-                }
+                buffer.writeByte(0); // border blocks count (Education Edition only)
 
                 packet.setData(buffer.retainedDuplicate());
 
                 LevelChunkPacket cacheEntry = new LevelChunkPacket();
                 cacheEntry.setChunkX(this.getX());
                 cacheEntry.setChunkZ(this.getZ());
-                cacheEntry.setSubChunksLength(subChunkCount);
+                cacheEntry.setSubChunkLimit(subChunkLimit);
+                cacheEntry.setRequestSubChunks(true);
+                cacheEntry.setDimension(0);
                 cacheEntry.setData(buffer.retainedDuplicate());
                 this.cached = new SoftReference<>(cacheEntry);
 
                 return packet;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Error whilst encoding chunk", e);
                 this.cached = null;
                 throw new ChunkException("Unable to create chunk packet", e);
