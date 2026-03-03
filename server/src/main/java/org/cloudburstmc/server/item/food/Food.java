@@ -2,7 +2,6 @@ package org.cloudburstmc.server.item.food;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.player.PlayerEatFoodEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -39,7 +38,7 @@ public abstract class Food implements org.cloudburstmc.api.item.Food {
     public static final Food beetroot = registerFood(BEETROOT, new FoodNormal(1, 1.2F));
     public static final Food beetroot_soup = registerFood(BEETROOT_SOUP, new FoodInBowl(6, 7.2F));
     public static final Food bread = registerFood(BREAD, new FoodNormal(5, 6F));
-    public static final Food cake_slice = registerFood(BlockTypes.CAKE, new FoodNormal(2, 0.4F));
+    public static final Food cake_slice = registerFood(CAKE, new FoodNormal(2, 0.4F));
     public static final Food carrot = registerFood(CARROT, new FoodNormal(3, 4.8F));
     public static final Food carrot_golden = registerFood(GOLDEN_CARROT, new FoodNormal(6, 14.4F));
     public static final Food chicken_raw = registerFood(CHICKEN, new FoodEffective(2, 1.2F)

@@ -16,7 +16,7 @@ open module org.cloudburstmc.api {
 
     exports org.cloudburstmc.api;
     exports org.cloudburstmc.api.block;
-    exports org.cloudburstmc.api.block.behavior;
+    exports org.cloudburstmc.api.block.component;
     exports org.cloudburstmc.api.block.material;
     exports org.cloudburstmc.api.block.trait;
     exports org.cloudburstmc.api.blockentity;
@@ -44,7 +44,8 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.inventory;
     exports org.cloudburstmc.api.inventory.view;
     exports org.cloudburstmc.api.item;
-    exports org.cloudburstmc.api.item.behavior;
+    exports org.cloudburstmc.api.item.component;
+    exports org.cloudburstmc.api.entity.component;
     exports org.cloudburstmc.api.item.data;
     exports org.cloudburstmc.api.level;
     exports org.cloudburstmc.api.level.chunk;
@@ -60,6 +61,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.potion;
     exports org.cloudburstmc.api.registry;
     exports org.cloudburstmc.api.util;
-    exports org.cloudburstmc.api.util.behavior;
+    exports org.cloudburstmc.api.util.component;
     exports org.cloudburstmc.api.util.data;
 }

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
@@ -135,7 +135,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
             var state = getLevel().getBlockState(getPosition().getX(), y, getPosition().getZ());
-            if (!state.inCategory(BlockCategory.TRANSPARENT)) {
+            if (!state.hasTag(BlockTags.TRANSPARENT)) {
                 //There is no sky access
                 return false;
             }

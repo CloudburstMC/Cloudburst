@@ -57,8 +57,8 @@ public final class ItemStackBuilder {
     public ItemStack build() {
         checkNotNull(this.itemType, "itemType is null");
         checkArgument(this.amount > 0, "amount cannot be less than zero");
-        if((this.itemType instanceof BlockType) && !this.metadata.containsKey(BLOCK_STATE)) {
-            this.metadata.put(BLOCK_STATE, ((BlockType) this.itemType).getDefaultState());
+        if(((Object) this.itemType) instanceof BlockType blockType && !this.metadata.containsKey(BLOCK_STATE)) {
+            this.metadata.put(BLOCK_STATE, blockType.getDefaultState());
         }
 //        checkArgument(!(this.itemType instanceof BlockType) || this.metadata.containsKey(BLOCK_STATE),
 //                "ItemStack with a BlockType requires BlockState data");

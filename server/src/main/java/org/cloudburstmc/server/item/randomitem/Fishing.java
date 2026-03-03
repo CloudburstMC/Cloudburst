@@ -37,7 +37,7 @@ public final class Fishing {
     public static final Selector JUNK_WATTER_BOTTLE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.POTION), JUNKS), 0.12F);
     public static final Selector JUNK_BONE = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(ItemTypes.BONE), JUNKS), 0.12F);
     public static final Selector JUNK_INK_SAC = RandomItem.putSelector(new ConstantItemSelector(ItemStack.builder(ItemTypes.INK_SAC).amount(10).data(ItemKeys.COLOR, DyeColor.BLACK).build(), JUNKS), 0.012F);
-    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(BlockTypes.TRIPWIRE_HOOK), JUNKS), 0.12F);
+    public static final Selector JUNK_TRIPWIRE_HOOK = RandomItem.putSelector(new ConstantItemSelector(ItemStack.from(BlockTypes.TRIPWIRE_HOOK.getDefaultState()), JUNKS), 0.12F);
 
     public static ItemStack getFishingResult(ItemStack rod) {
         int fortuneLevel = 0;

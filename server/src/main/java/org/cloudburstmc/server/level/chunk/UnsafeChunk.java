@@ -70,7 +70,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         this.x = x;
         this.z = z;
         this.level = level;
-        this.sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
+        this.sections = new CloudChunkSection[level.getSectionsCount()];
         this.biomes = new byte[CloudChunk.ARRAY_SIZE];
         this.heightMap = new int[CloudChunk.ARRAY_SIZE];
     }
@@ -80,7 +80,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         this.z = z;
         this.level = level;
         Preconditions.checkNotNull(sections, "sections");
-        this.sections = Arrays.copyOf(sections, CloudChunk.SECTION_COUNT);
+        this.sections = Arrays.copyOf(sections, level.getSectionsCount());
         Preconditions.checkNotNull(biomes, "biomes");
         this.biomes = Arrays.copyOf(biomes, CloudChunk.ARRAY_SIZE);
         Preconditions.checkNotNull(heightMap, "heightMap");
@@ -88,7 +88,6 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
     static void checkBounds(int x, int y, int z) {
-        checkElementIndex(y + 64, 384, "y coordinate");
         checkBounds(x, z);
     }
 
@@ -138,7 +137,10 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public BlockState getBlock(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection((y + 64) >> 4);
+        if (this.level.isOutsideBuildHeight(y)) {
+            return BlockStates.AIR;
+        }
+        CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         BlockState blockState;
         if (section == null) {
             blockState = BlockStates.AIR;
@@ -159,13 +161,16 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection((y + 64) >> 4);
+        if (this.level.isOutsideBuildHeight(y)) {
+            return;
+        }
+        CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         if (section == null) {
             if (blockState.getType() == BlockTypes.AIR) {
                 // Setting air in an empty section.
                 return;
             }
-            section = this.getOrCreateSection((y + 64) >> 4);
+            section = this.getOrCreateSection(this.level.getSectionIndex(y));
         }
 
         section.setBlock(x, y & 0xf, z, layer, blockState);
@@ -192,40 +197,40 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public byte getSkyLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection((y + 64) >> 4);
+        CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         return section == null ? 0 : section.getSkyLight(x, y & 0xf, z);
     }
 
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection((y + 64) >> 4).setSkyLight(x, y & 0xf, z, (byte) level);
+        this.getOrCreateSection(this.level.getSectionIndex(y)).setSkyLight(x, y & 0xf, z, (byte) level);
         setDirty();
     }
 
     @Override
     public byte getBlockLight(int x, int y, int z) {
         checkBounds(x, y, z);
-        CloudChunkSection section = this.getSection((y + 64) >> 4);
+        CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         return section == null ? 0 : section.getBlockLight(x, y & 0xf, z);
     }
 
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection((y + 64) >> 4).setBlockLight(x, y & 0xf, z, (byte) level);
+        this.getOrCreateSection(this.level.getSectionIndex(y)).setBlockLight(x, y & 0xf, z, (byte) level);
         setDirty();
     }
 
     @Override
     public int getHighestBlock(int x, int z) {
         checkBounds(x, z);
-        for (int sectionIdx = CloudChunk.SECTION_COUNT - 1; sectionIdx >= 0; sectionIdx--) {
+        for (int sectionIdx = this.sections.length - 1; sectionIdx >= 0; sectionIdx--) {
             CloudChunkSection section = this.sections[sectionIdx];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
                     if (section.getBlock(x, y, z, 0) != BlockStates.AIR) {
-                        return ((sectionIdx + CloudChunk.MIN_SECTION_Y) << 4) | y;
+                        return ((sectionIdx + this.level.getMinSectionY()) << 4) | y;
                     }
                 }
             }
@@ -269,7 +274,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void addBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = CloudChunk.blockKey(blockEntity.getPosition());
+        short hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.put(hash, (BaseBlockEntity) blockEntity) != blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -278,7 +283,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void removeBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = CloudChunk.blockKey(blockEntity.getPosition());
+        short hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.remove(hash) == blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -288,7 +293,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public BlockEntity getBlockEntity(int x, int y, int z) {
         checkBounds(x, y, z);
-        return this.tiles.get(CloudChunk.blockKey(x, y, z));
+        return this.tiles.get(CloudChunk.blockKey(x, y, z, this.level.getMinHeight()));
     }
 
     @Override

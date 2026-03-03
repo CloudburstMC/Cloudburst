@@ -1,47 +1,41 @@
 package org.cloudburstmc.server.registry;
 
-import tools.jackson.core.type.TypeReference;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.material.MaterialTypes;
-import org.cloudburstmc.api.data.BehaviorKey;
+import org.cloudburstmc.api.block.component.StringTypeHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockTypeData;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
-import org.cloudburstmc.server.block.behavior.ContainerBlockBehaviors;
-import org.cloudburstmc.server.block.behavior.DefaultBlockBehaviours;
-import org.cloudburstmc.server.block.serializer.*;
+import org.cloudburstmc.server.block.component.*;
+import org.cloudburstmc.server.block.serializer.BlockSerializer;
+import org.cloudburstmc.server.block.serializer.DefaultBlockSerializer;
+import org.cloudburstmc.server.block.serializer.FluidBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.registry.behavior.CloudBehaviorCollection;
-import org.cloudburstmc.server.registry.behavior.proxy.BehaviorProxies;
+import org.cloudburstmc.server.registry.component.CloudComponentMap;
+import tools.jackson.core.type.TypeReference;
 
-import java.io.IOException;
+import java.awt.*;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -51,9 +45,9 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  * and registers all block behaviors.
  */
 @Log4j2
-public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> implements BlockRegistry {
-    public static CloudBlockRegistry REGISTRY;
+public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implements BlockRegistry {
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
+    public static CloudBlockRegistry REGISTRY;
 
     static {
         InputStream stream = RegistryUtils.getOrAssertResource("data/legacy_block_ids.json");
@@ -66,34 +60,25 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         }
     }
 
-    private final Reference2ReferenceMap<BlockType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
-    //private final HashBiMap<Identifier, Integer> idLegacyMap = HashBiMap.create();
     private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
+    private final CloudItemRegistry itemRegistry;
     private NbtMap propertiesTag;
     private volatile boolean closed;
     private transient NbtList<NbtMap> serializedPalette;
-    private final CloudItemRegistry itemRegistry;
 
     public CloudBlockRegistry(CloudItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
         BlockTraitSerializers.init();
         this.registerVanillaBehaviors();
         this.registerVanillaBlocks();
-
-        // Check legacy IDs
-        behaviorMap.forEach((bt, b) -> {
-            if (!VANILLA_LEGACY_IDS.containsKey(bt.getId())) {
-                log.debug("Unable to map legacy id for blockType: {}", bt.getId());
-            }
-        });
         REGISTRY = this; // TODO: Remove at some point
     }
 
     @Override
-    public synchronized CloudBehaviorCollection register(BlockType type) throws RegistryException {
+    public synchronized CloudComponentMap register(BlockType type) throws RegistryException {
         checkNotNull(type, "type");
-        CloudBehaviorCollection behaviors = registerVanilla(type);
+        CloudComponentMap behaviors = registerVanilla(type);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
         int legacyId = this.customIdAllocator.getAndIncrement();
@@ -101,57 +86,22 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         return behaviors;
     }
 
-    public <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior) {
-        checkArgument(!this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
-        checkArgument(!this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
-
-        //noinspection unchecked
-        this.registerBehaviorInternal(key, defaultBehavior, (context, behavior) -> behavior);
-    }
-
-    public <F, E> void registerContextBehavior(BehaviorKey<F, E> key, F defaultBehavior) {
-        checkArgument(!this.isBehaviorRegistered(key), "Behaviour '%s' already registered", key);
-        checkArgument(!this.itemRegistry.isBehaviorRegistered(key), "Item Behaviour '%s' already registered", key);
-
-        try {
-            this.registerBehaviorInternal(key, defaultBehavior, BehaviorProxies.createExecutorProxy(key.getType(), key.getExecutorType()));
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException |
-                 InstantiationException e) {
-            throw new IllegalStateException("Unable to create proxy function", e);
-        }
-    }
-
-    @Override
-    public GlobalRegistry global() {
-        return null;
-    }
-
-    @Override
-    public BehaviorCollection getBehaviors(BlockType type) {
-        return behaviorMap.get(type);
-    }
-
-    private CloudBehaviorCollection registerVanilla(BlockType type) throws RegistryException {
+    private CloudComponentMap registerVanilla(BlockType type) throws RegistryException {
         return this.registerVanilla(type, DefaultBlockSerializer.INSTANCE);
     }
 
-    private synchronized CloudBehaviorCollection registerVanilla(BlockType type, BlockSerializer serializer) throws RegistryException {
+    private synchronized CloudComponentMap registerVanilla(BlockType type, BlockSerializer serializer) throws RegistryException {
         checkNotNull(type, "type");
         checkNotNull(serializer, "serializer");
         checkClosed();
 
         this.itemRegistry.registerBlock(type);
 
-        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
-//        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
+        CloudComponentMap collection = new CloudComponentMap(this);
 
         collection.bake();
 
-        synchronized (this.behaviorMap) {
-            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
-                throw new RegistryException(type + " is already registered");
-            }
-        }
+        putComponents(type, collection);
 
         this.palette.addBlock(type, serializer);
 
@@ -341,7 +291,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ACACIA_WALL_SIGN);
         this.registerVanilla(ACACIA_WOOD);
         this.registerVanilla(ACTIVATOR_RAIL);
-        this.registerVanilla(AIR).extend(BlockBehaviors.IS_SOLID, false).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(AIR)
+                .set(BlockComponents.REPLACEABLE, () -> true)
+                .set(BlockComponents.GET_RESOURCE_COUNT, AirBlockHandlers.GET_RESOURCE_COUNT);
         this.registerVanilla(ALLIUM);
         this.registerVanilla(ALLOW);
         this.registerVanilla(AMETHYST_BLOCK);
@@ -353,8 +305,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ANDESITE_STAIRS);
         this.registerVanilla(ANDESITE_WALL);
         this.registerVanilla(ANVIL)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(AZALEA);
         this.registerVanilla(AZALEA_LEAVES);
         this.registerVanilla(AZALEA_LEAVES_FLOWERED);
@@ -381,13 +333,13 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BAMBOO_TRAPDOOR);
         this.registerVanilla(BAMBOO_WALL_SIGN);
         this.registerVanilla(BARREL)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BARREL);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.BARREL);
         this.registerVanilla(BARRIER);
         this.registerVanilla(BASALT);
         this.registerVanilla(BEACON)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BEACON);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.BEACON);
         this.registerVanilla(BED);
         this.registerVanilla(BEDROCK);
         this.registerVanilla(BEEHIVE);
@@ -425,15 +377,15 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BLACK_CONCRETE_POWDER);
         this.registerVanilla(BLACK_GLAZED_TERRACOTTA);
         this.registerVanilla(BLACK_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BLACK_STAINED_GLASS);
         this.registerVanilla(BLACK_STAINED_GLASS_PANE);
         this.registerVanilla(BLACK_TERRACOTTA);
         this.registerVanilla(BLACK_WOOL);
         this.registerVanilla(BLAST_FURNACE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BLAST_FURNACE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.BLAST_FURNACE);
         this.registerVanilla(BLUE_CANDLE);
         this.registerVanilla(BLUE_CANDLE_CAKE);
         this.registerVanilla(BLUE_CARPET);
@@ -443,8 +395,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BLUE_ICE);
         this.registerVanilla(BLUE_ORCHID);
         this.registerVanilla(BLUE_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BLUE_STAINED_GLASS);
         this.registerVanilla(BLUE_STAINED_GLASS_PANE);
         this.registerVanilla(BLUE_TERRACOTTA);
@@ -457,8 +409,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BRAIN_CORAL_FAN);
         this.registerVanilla(BRAIN_CORAL_WALL_FAN);
         this.registerVanilla(BREWING_STAND)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BREWING_STAND);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.BREWING_STAND);
         this.registerVanilla(BRICK_BLOCK);
         this.registerVanilla(BRICK_DOUBLE_SLAB);
         this.registerVanilla(BRICK_SLAB);
@@ -473,8 +425,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(BROWN_MUSHROOM);
         this.registerVanilla(BROWN_MUSHROOM_BLOCK);
         this.registerVanilla(BROWN_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BROWN_STAINED_GLASS);
         this.registerVanilla(BROWN_STAINED_GLASS_PANE);
         this.registerVanilla(BROWN_TERRACOTTA);
@@ -497,8 +449,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CANDLE_CAKE);
         this.registerVanilla(CARROTS);
         this.registerVanilla(CARTOGRAPHY_TABLE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CARTOGRAPHY_TABLE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.CARTOGRAPHY_TABLE);
         this.registerVanilla(CARVED_PUMPKIN);
         this.registerVanilla(CAULDRON);
         this.registerVanilla(CAVE_VINES);
@@ -526,11 +478,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CHERRY_WALL_SIGN);
         this.registerVanilla(CHERRY_WOOD);
         this.registerVanilla(CHEST)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CHEST);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.CHEST);
         this.registerVanilla(CHIPPED_ANVIL)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(CHISELED_BOOKSHELF);
         this.registerVanilla(CHISELED_COPPER);
         this.registerVanilla(CHISELED_DEEPSLATE);
@@ -588,11 +540,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);
         this.registerVanilla(CRACKED_STONE_BRICKS);
         this.registerVanilla(CRAFTER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CRAFTER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.CRAFTER);
         this.registerVanilla(CRAFTING_TABLE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.CRAFTING_TABLE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.CRAFTING_TABLE);
         this.registerVanilla(CREAKING_HEART);
         this.registerVanilla(CREEPER_HEAD);
         this.registerVanilla(CRIMSON_BUTTON);
@@ -631,15 +583,15 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(CYAN_CONCRETE_POWDER);
         this.registerVanilla(CYAN_GLAZED_TERRACOTTA);
         this.registerVanilla(CYAN_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(CYAN_STAINED_GLASS);
         this.registerVanilla(CYAN_STAINED_GLASS_PANE);
         this.registerVanilla(CYAN_TERRACOTTA);
         this.registerVanilla(CYAN_WOOL);
         this.registerVanilla(DAMAGED_ANVIL)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ANVIL);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(DANDELION);
         this.registerVanilla(DARKOAK_STANDING_SIGN);
         this.registerVanilla(DARKOAK_WALL_SIGN);
@@ -721,8 +673,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(DIRT);
         this.registerVanilla(DIRT_WITH_ROOTS);
         this.registerVanilla(DISPENSER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.DISPENSER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.DISPENSER);
         this.registerVanilla(DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(DRAGON_EGG);
         this.registerVanilla(DRAGON_HEAD);
@@ -730,8 +682,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(DRIED_KELP_BLOCK);
         this.registerVanilla(DRIPSTONE_BLOCK);
         this.registerVanilla(DROPPER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.DROPPER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.DROPPER);
         this.registerVanilla(ELEMENT_0);
         this.registerVanilla(ELEMENT_1);
         this.registerVanilla(ELEMENT_2);
@@ -855,11 +807,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(EMERALD_BLOCK);
         this.registerVanilla(EMERALD_ORE);
         this.registerVanilla(ENCHANTING_TABLE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ENCHANTING_TABLE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.ENCHANTING_TABLE);
         this.registerVanilla(ENDER_CHEST)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.ENDER_CHEST);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.ENDER_CHEST);
         this.registerVanilla(END_BRICKS);
         this.registerVanilla(END_BRICK_STAIRS);
         this.registerVanilla(END_GATEWAY);
@@ -888,7 +840,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(EXPOSED_LIGHTNING_ROD);
         this.registerVanilla(FARMLAND);
         this.registerVanilla(FERN);
-        this.registerVanilla(FIRE).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(FIRE);
         this.registerVanilla(FIREFLY_BUSH);
         this.registerVanilla(FIRE_CORAL);
         this.registerVanilla(FIRE_CORAL_BLOCK);
@@ -897,14 +849,18 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(FLETCHING_TABLE);
         this.registerVanilla(FLOWERING_AZALEA);
         this.registerVanilla(FLOWER_POT);
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE)
+                .set(BlockComponents.REPLACEABLE, () -> true)
+                .set(BlockComponents.LIQUID, () -> true);
+        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE)
+                .set(BlockComponents.REPLACEABLE, () -> true)
+                .set(BlockComponents.LIQUID, () -> true);
         this.registerVanilla(FRAME);
         this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(FROSTED_ICE);
         this.registerVanilla(FURNACE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.FURNACE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.FURNACE);
         this.registerVanilla(GILDED_BLACKSTONE);
         this.registerVanilla(GLASS);
         this.registerVanilla(GLASS_PANE);
@@ -930,8 +886,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(GRAY_CONCRETE_POWDER);
         this.registerVanilla(GRAY_GLAZED_TERRACOTTA);
         this.registerVanilla(GRAY_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(GRAY_STAINED_GLASS);
         this.registerVanilla(GRAY_STAINED_GLASS_PANE);
         this.registerVanilla(GRAY_TERRACOTTA);
@@ -943,15 +899,15 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(GREEN_CONCRETE_POWDER);
         this.registerVanilla(GREEN_GLAZED_TERRACOTTA);
         this.registerVanilla(GREEN_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(GREEN_STAINED_GLASS);
         this.registerVanilla(GREEN_STAINED_GLASS_PANE);
         this.registerVanilla(GREEN_TERRACOTTA);
         this.registerVanilla(GREEN_WOOL);
         this.registerVanilla(GRINDSTONE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.GRINDSTONE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.GRINDSTONE);
         this.registerVanilla(HANGING_ROOTS);
         this.registerVanilla(HARDENED_CLAY);
         this.registerVanilla(HARD_BLACK_STAINED_GLASS);
@@ -994,8 +950,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(HONEYCOMB_BLOCK);
         this.registerVanilla(HONEY_BLOCK);
         this.registerVanilla(HOPPER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.HOPPER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.HOPPER);
         this.registerVanilla(HORN_CORAL);
         this.registerVanilla(HORN_CORAL_BLOCK);
         this.registerVanilla(HORN_CORAL_FAN);
@@ -1045,29 +1001,31 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LAPIS_ORE);
         this.registerVanilla(LARGE_AMETHYST_BUD);
         this.registerVanilla(LARGE_FERN);
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE)
+                .set(BlockComponents.REPLACEABLE, () -> true)
+                .set(BlockComponents.LIQUID, () -> true);
         this.registerVanilla(LEAF_LITTER);
         this.registerVanilla(LECTERN)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.LECTERN);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.LECTERN);
         this.registerVanilla(LEVER);
         this.registerVanilla(LIGHTNING_ROD);
-        this.registerVanilla(LIGHT_BLOCK_0).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_1).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_10).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_11).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_12).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_13).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_14).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_15).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_2).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_3).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_4).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_5).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_6).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_7).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_8).extend(BlockBehaviors.IS_SOLID, false);
-        this.registerVanilla(LIGHT_BLOCK_9).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(LIGHT_BLOCK_0);
+        this.registerVanilla(LIGHT_BLOCK_1);
+        this.registerVanilla(LIGHT_BLOCK_2);
+        this.registerVanilla(LIGHT_BLOCK_3);
+        this.registerVanilla(LIGHT_BLOCK_4);
+        this.registerVanilla(LIGHT_BLOCK_5);
+        this.registerVanilla(LIGHT_BLOCK_6);
+        this.registerVanilla(LIGHT_BLOCK_7);
+        this.registerVanilla(LIGHT_BLOCK_8);
+        this.registerVanilla(LIGHT_BLOCK_9);
+        this.registerVanilla(LIGHT_BLOCK_10);
+        this.registerVanilla(LIGHT_BLOCK_11);
+        this.registerVanilla(LIGHT_BLOCK_12);
+        this.registerVanilla(LIGHT_BLOCK_13);
+        this.registerVanilla(LIGHT_BLOCK_14);
+        this.registerVanilla(LIGHT_BLOCK_15);
         this.registerVanilla(LIGHT_BLUE_CANDLE);
         this.registerVanilla(LIGHT_BLUE_CANDLE_CAKE);
         this.registerVanilla(LIGHT_BLUE_CARPET);
@@ -1075,8 +1033,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIGHT_BLUE_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_BLUE_GLAZED_TERRACOTTA);
         this.registerVanilla(LIGHT_BLUE_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS_PANE);
         this.registerVanilla(LIGHT_BLUE_TERRACOTTA);
@@ -1088,8 +1046,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIGHT_GRAY_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_GRAY_GLAZED_TERRACOTTA);
         this.registerVanilla(LIGHT_GRAY_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS_PANE);
         this.registerVanilla(LIGHT_GRAY_TERRACOTTA);
@@ -1104,29 +1062,29 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(LIME_CONCRETE_POWDER);
         this.registerVanilla(LIME_GLAZED_TERRACOTTA);
         this.registerVanilla(LIME_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIME_STAINED_GLASS);
         this.registerVanilla(LIME_STAINED_GLASS_PANE);
         this.registerVanilla(LIME_TERRACOTTA);
         this.registerVanilla(LIME_WOOL);
         this.registerVanilla(LIT_BLAST_FURNACE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.BLAST_FURNACE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.BLAST_FURNACE);
         this.registerVanilla(LIT_DEEPSLATE_REDSTONE_ORE);
         this.registerVanilla(LIT_FURNACE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.FURNACE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.FURNACE);
         this.registerVanilla(LIT_PUMPKIN);
         this.registerVanilla(LIT_REDSTONE_LAMP);
         this.registerVanilla(LIT_REDSTONE_ORE);
         this.registerVanilla(LIT_SMOKER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMOKER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SMOKER);
         this.registerVanilla(LODESTONE);
         this.registerVanilla(LOOM)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.LOOM);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.LOOM);
         this.registerVanilla(MAGENTA_CANDLE);
         this.registerVanilla(MAGENTA_CANDLE_CAKE);
         this.registerVanilla(MAGENTA_CARPET);
@@ -1134,8 +1092,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(MAGENTA_CONCRETE_POWDER);
         this.registerVanilla(MAGENTA_GLAZED_TERRACOTTA);
         this.registerVanilla(MAGENTA_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(MAGENTA_STAINED_GLASS);
         this.registerVanilla(MAGENTA_STAINED_GLASS_PANE);
         this.registerVanilla(MAGENTA_TERRACOTTA);
@@ -1233,8 +1191,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(ORANGE_CONCRETE_POWDER);
         this.registerVanilla(ORANGE_GLAZED_TERRACOTTA);
         this.registerVanilla(ORANGE_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(ORANGE_STAINED_GLASS);
         this.registerVanilla(ORANGE_STAINED_GLASS_PANE);
         this.registerVanilla(ORANGE_TERRACOTTA);
@@ -1293,8 +1251,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PINK_GLAZED_TERRACOTTA);
         this.registerVanilla(PINK_PETALS);
         this.registerVanilla(PINK_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(PINK_STAINED_GLASS);
         this.registerVanilla(PINK_STAINED_GLASS_PANE);
         this.registerVanilla(PINK_TERRACOTTA);
@@ -1366,8 +1324,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(PURPLE_CONCRETE_POWDER);
         this.registerVanilla(PURPLE_GLAZED_TERRACOTTA);
         this.registerVanilla(PURPLE_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(PURPLE_STAINED_GLASS);
         this.registerVanilla(PURPLE_STAINED_GLASS_PANE);
         this.registerVanilla(PURPLE_TERRACOTTA);
@@ -1413,8 +1371,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(RED_SANDSTONE_STAIRS);
         this.registerVanilla(RED_SANDSTONE_WALL);
         this.registerVanilla(RED_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(RED_STAINED_GLASS);
         this.registerVanilla(RED_STAINED_GLASS_PANE);
         this.registerVanilla(RED_TERRACOTTA);
@@ -1456,11 +1414,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(SMALL_AMETHYST_BUD);
         this.registerVanilla(SMALL_DRIPLEAF_BLOCK);
         this.registerVanilla(SMITHING_TABLE)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMITHING_TABLE);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SMITHING_TABLE);
         this.registerVanilla(SMOKER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SMOKER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SMOKER);
         this.registerVanilla(SMOOTH_BASALT);
         this.registerVanilla(SMOOTH_QUARTZ);
         this.registerVanilla(SMOOTH_QUARTZ_DOUBLE_SLAB);
@@ -1481,7 +1439,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(SNOW);
         this.registerVanilla(SNOW_LAYER);
         this.registerVanilla(SOUL_CAMPFIRE);
-        this.registerVanilla(SOUL_FIRE).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(SOUL_FIRE);
         this.registerVanilla(SOUL_LANTERN);
         this.registerVanilla(SOUL_SAND);
         this.registerVanilla(SOUL_SOIL);
@@ -1511,11 +1469,11 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
         this.registerVanilla(STONE);
         this.registerVanilla(STONECUTTER)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.STONECUTTER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);
         this.registerVanilla(STONECUTTER_BLOCK)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.STONECUTTER);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);
         this.registerVanilla(STONE_BRICKS);
         this.registerVanilla(STONE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(STONE_BRICK_SLAB);
@@ -1548,7 +1506,7 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(STRIPPED_WARPED_HYPHAE);
         this.registerVanilla(STRIPPED_WARPED_STEM);
         this.registerVanilla(STRUCTURE_BLOCK);
-        this.registerVanilla(STRUCTURE_VOID).extend(BlockBehaviors.IS_SOLID, false);
+        this.registerVanilla(STRUCTURE_VOID);
         this.registerVanilla(SUNFLOWER);
         this.registerVanilla(SUSPICIOUS_GRAVEL);
         this.registerVanilla(SUSPICIOUS_SAND);
@@ -1562,8 +1520,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(TORCHFLOWER);
         this.registerVanilla(TORCHFLOWER_CROP);
         this.registerVanilla(TRAPPED_CHEST)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.TRAPPED_CHEST);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.TRAPPED_CHEST);
         this.registerVanilla(TRIAL_SPAWNER);
         this.registerVanilla(TRIPWIRE_HOOK);
         this.registerVanilla(TRIP_WIRE);
@@ -1586,8 +1544,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(UNDERWATER_TNT);
         this.registerVanilla(UNDERWATER_TORCH);
         this.registerVanilla(UNDYED_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(UNKNOWN);
         this.registerVanilla(UNLIT_REDSTONE_TORCH);
         this.registerVanilla(UNPOWERED_COMPARATOR);
@@ -1616,7 +1574,9 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(WARPED_TRAPDOOR);
         this.registerVanilla(WARPED_WALL_SIGN);
         this.registerVanilla(WARPED_WART_BLOCK);
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE).extend(BlockBehaviors.IS_LIQUID, true).extend(BlockBehaviors.IS_REPLACEABLE, true);
+        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE)
+                .set(BlockComponents.REPLACEABLE, () -> true)
+                .set(BlockComponents.LIQUID, () -> true);
         this.registerVanilla(WATERLILY);
         this.registerVanilla(WAXED_CHISELED_COPPER);
         this.registerVanilla(WAXED_COPPER);
@@ -1709,8 +1669,8 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(WHITE_CONCRETE_POWDER);
         this.registerVanilla(WHITE_GLAZED_TERRACOTTA);
         this.registerVanilla(WHITE_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(WHITE_STAINED_GLASS);
         this.registerVanilla(WHITE_STAINED_GLASS_PANE);
         this.registerVanilla(WHITE_TERRACOTTA);
@@ -1726,103 +1686,110 @@ public class CloudBlockRegistry extends CloudBehaviorRegistry<BlockType> impleme
         this.registerVanilla(YELLOW_CONCRETE_POWDER);
         this.registerVanilla(YELLOW_GLAZED_TERRACOTTA);
         this.registerVanilla(YELLOW_SHULKER_BOX)
-                .overwrite(BlockBehaviors.CAN_BE_USED, ContainerBlockBehaviors.CAN_BE_USED)
-                .overwrite(BlockBehaviors.USE, ContainerBlockBehaviors.SHULKER_BOX);
+                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(YELLOW_STAINED_GLASS);
         this.registerVanilla(YELLOW_STAINED_GLASS_PANE);
         this.registerVanilla(YELLOW_TERRACOTTA);
         this.registerVanilla(YELLOW_WOOL);
         this.registerVanilla(ZOMBIE_HEAD);
+        BlockTypeData.applyAll(this);
     }
 
     private void registerVanillaBehaviors() {
-        this.registerBehavior(BlockBehaviors.IS_SOLID, true);
-        this.registerBehavior(BlockBehaviors.IS_LIQUID, false);
-        this.registerContextBehavior(BlockBehaviors.CAN_PASS_THROUGH, DefaultBlockBehaviours.CAN_PASS_THROUGH);
-        this.registerContextBehavior(BlockBehaviors.GET_BOUNDING_BOX, DefaultBlockBehaviours.GET_BOUNDING_BOX);
-        this.registerContextBehavior(BlockBehaviors.CAN_BE_SILK_TOUCHED, DefaultBlockBehaviours.CAN_BE_SILK_TOUCHED);
-        this.registerContextBehavior(BlockBehaviors.CAN_BE_USED_IN_COMMANDS, DefaultBlockBehaviours.CAN_BE_USED_IN_COMMANDS);
-        this.registerContextBehavior(BlockBehaviors.CAN_CONTAIN_LIQUID, DefaultBlockBehaviours.CAN_CONTAIN_LIQUID);
-        this.registerContextBehavior(BlockBehaviors.CAN_SPAWN_ON, DefaultBlockBehaviours.CAN_SPAWN_ON);
-        this.registerContextBehavior(BlockBehaviors.CAN_BE_USED, (behavior, block) -> false);
-        this.registerContextBehavior(BlockBehaviors.GET_FRICTION, (behavior, block) -> 0.2f);
-        this.registerContextBehavior(BlockBehaviors.GET_HARDNESS, (behavior, block) -> 1);
-        this.registerContextBehavior(BlockBehaviors.GET_BURN_ODDS, (behavior, block) -> 0);
-        this.registerContextBehavior(BlockBehaviors.GET_FLAME_ODDS, (behavior, block) -> 0);
-        this.registerContextBehavior(BlockBehaviors.GET_GRAVITY, (behavior, block) -> 0.02f);
-        this.registerContextBehavior(BlockBehaviors.GET_THICKNESS, (behavior, block) -> 0);
-        this.registerContextBehavior(BlockBehaviors.GET_DESTROY_SPEED, (behavior, block) -> 0);
-        this.registerContextBehavior(BlockBehaviors.GET_EXPERIENCE_DROP, (behavior, block, randomGenerator) -> 0);
-        this.registerContextBehavior(BlockBehaviors.GET_BLOCK_ENTITY, (behavior, block) -> Optional.empty());
-        this.registerContextBehavior(BlockBehaviors.MAY_PICK, (behavior, block) -> true);
-        this.registerContextBehavior(BlockBehaviors.MAY_PLACE, (behavior, block, direction) -> true);
-        this.registerContextBehavior(BlockBehaviors.MAY_PLACE_ON, (behavior, block) -> true);
-        this.registerContextBehavior(BlockBehaviors.ON_DESTROY, DefaultBlockBehaviours.ON_DESTROY);
-        this.registerContextBehavior(BlockBehaviors.POST_DESTROY, DefaultBlockBehaviours.POST_DESTROY);
-        this.registerContextBehavior(BlockBehaviors.ON_NEIGHBOUR_CHANGED, (behavior, block, neighbor) -> {
+        this.registerComponent(BlockComponents.HARDNESS, () -> 0f);
+        this.registerComponent(BlockComponents.RESISTANCE, () -> 0f);
+        this.registerComponent(BlockComponents.FRICTION, () -> 0.6f);
+        this.registerComponent(BlockComponents.TRANSLUCENCY, () -> 0f);
+        this.registerComponent(BlockComponents.THICKNESS, () -> 0f);
+        this.registerComponent(BlockComponents.BURN_ODDS, () -> 0);
+        this.registerComponent(BlockComponents.FLAME_ODDS, () -> 0);
+        this.registerComponent(BlockComponents.LIGHT_DAMPENING, () -> 0);
+        this.registerComponent(BlockComponents.LIGHT_EMISSION, () -> 0);
+        this.registerComponent(BlockComponents.SOLID, () -> false);
+        this.registerComponent(BlockComponents.REQUIRES_CORRECT_TOOL, () -> false);
+        this.registerComponent(BlockComponents.REPLACEABLE, () -> false);
+        this.registerComponent(BlockComponents.MAP_COLOR, () -> "#00000000");
+        this.registerComponent(BlockComponents.LIQUID, () -> false);
+        this.registerComponent(BlockComponents.TOP_SOLID, () -> true);
+        this.registerComponent(BlockComponents.STAIRS, () -> false);
+        this.registerComponent(BlockComponents.SLAB, () -> false);
+        this.registerComponent(BlockComponents.SUPER_HOT, () -> false);
+        this.registerComponent(BlockComponents.FLAMMABLE, () -> false);
+        this.registerComponent(BlockComponents.FLOODABLE, () -> false);
+        this.registerComponent(BlockComponents.CAN_INSTATICK, () -> false);
+        this.registerComponent(BlockComponents.CAN_RANDOM_TICK, () -> false);
+        this.registerComponent(BlockComponents.TICK_DELAY, () -> 0);
+        this.registerComponent(BlockComponents.CAN_DAMAGE_ITEM, () -> false);
+        this.registerComponent(BlockComponents.USES_WATERLOGGING, () -> false);
+        this.registerComponent(BlockComponents.ALWAYS_DESTROYABLE, () -> true);
+        this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
+        this.registerComponent(BlockComponents.CAN_PASS_THROUGH, DefaultBlockHandlers.CAN_PASS_THROUGH);
+        this.registerComponent(BlockComponents.GET_BOUNDING_BOX, new CollisionShapeHandler());
+        this.registerComponent(BlockComponents.CAN_BE_SILK_TOUCHED, DefaultBlockHandlers.CAN_BE_SILK_TOUCHED);
+        this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
+        this.registerComponent(BlockComponents.CAN_CONTAIN_LIQUID, DefaultBlockHandlers.CAN_CONTAIN_LIQUID);
+        this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
+        this.registerComponent(BlockComponents.CAN_BE_USED, (block) -> false);
+        this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
+        this.registerComponent(BlockComponents.GET_DESTROY_SPEED, (block) -> 0);
+        this.registerComponent(BlockComponents.GET_EXPERIENCE_DROP, (block, randomGenerator) -> 0);
+        this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
+        this.registerComponent(BlockComponents.MAY_PICK, (block) -> true);
+        this.registerComponent(BlockComponents.MAY_PLACE, (block, direction) -> true);
+        this.registerComponent(BlockComponents.MAY_PLACE_ON, (block) -> true);
+        this.registerComponent(BlockComponents.ON_DESTROY, DefaultBlockHandlers.ON_DESTROY);
+        this.registerComponent(BlockComponents.POST_DESTROY, DefaultBlockHandlers.POST_DESTROY);
+        this.registerComponent(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_FALL_ON, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.ON_FALL_ON, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_LIGHTNING_HIT, (behavior, block) -> {
+        this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, (block) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_PLACE, (behavior, blockState, player, pos, face, clickPos) -> {
-            if (player != null) {
-                return player.getLevel().setBlockState(pos, blockState, true, true);
-            }
-            return false;
+        this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler(this));
+        this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_PROJECTILE_HIT, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, (block) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_REDSTONE_UPDATE, (behavior, block) -> {
+        this.registerComponent(BlockComponents.ON_REMOVE, (block) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_REMOVE, (behavior, block) -> {
+        this.registerComponent(BlockComponents.ON_RANDOM_TICK, (block, randomGenerator) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_RANDOM_TICK, (behavior, block, randomGenerator) -> {
+        this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {
         });
-        this.registerBehavior(BlockBehaviors.CAN_RANDOM_TICK, false);
-        this.registerContextBehavior(BlockBehaviors.ON_TICK, (behavior, block, randomGenerator) -> {
+        this.registerComponent(BlockComponents.USE, (block, player, direction) -> false);
+        this.registerComponent(BlockComponents.ON_STAND_ON, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.USE, (behavior, block, player, direction) -> false);
-        this.registerContextBehavior(BlockBehaviors.ON_STAND_ON, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.ON_STEP_ON, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_STEP_ON, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.ON_STEP_OFF, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.ON_STEP_OFF, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, randomGenerator, bonusLevel) -> null);
+        this.registerComponent(BlockComponents.DROP_RESOURCE, DefaultBlockHandlers.DROP_RESOURCE);
+        this.registerComponent(BlockComponents.SPAWN_RESOURCES, DefaultBlockHandlers.SPAWN_RESOURCES);
+        this.registerComponent(BlockComponents.GET_RESOURCE, DefaultBlockHandlers.GET_RESOURCE);
+        this.registerComponent(BlockComponents.GET_RESOURCE_COUNT, DefaultBlockHandlers.GET_RESOURCE_COUNT);
+        this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
+        this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
+        this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {
         });
-        this.registerBehavior(BlockBehaviors.GET_MATERIAL, MaterialTypes.AIR);
-        this.registerContextBehavior(BlockBehaviors.GET_SILK_TOUCH_RESOURCE, (behavior, block, randomGenerator, bonusLevel) -> null);
-        this.registerContextBehavior(BlockBehaviors.DROP_RESOURCE, DefaultBlockBehaviours.DROP_RESOURCE);
-        this.registerContextBehavior(BlockBehaviors.SPAWN_RESOURCES, DefaultBlockBehaviours.SPAWN_RESOURCES);
-        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE, DefaultBlockBehaviours.GET_RESOURCE);
-        this.registerContextBehavior(BlockBehaviors.GET_RESOURCE_COUNT, DefaultBlockBehaviours.GET_RESOURCE_COUNT);
-        this.registerBehavior(BlockBehaviors.USES_WATERLOGGING, false);
-        this.registerBehavior(BlockBehaviors.IS_TOP_SOLID, true);
-        this.registerBehavior(BlockBehaviors.IS_STAIRS, false);
-        this.registerBehavior(BlockBehaviors.IS_SLAB, false);
-        this.registerBehavior(BlockBehaviors.IS_REPLACEABLE, false);
-        this.registerBehavior(BlockBehaviors.IS_SUPER_HOT, false);
-        this.registerBehavior(BlockBehaviors.IS_FLAMMABLE, false);
-        this.registerContextBehavior(BlockBehaviors.GET_COLOR, (behavior, block) -> null);
-        this.registerBehavior(BlockBehaviors.GET_LIGHT, 0);
-        this.registerBehavior(BlockBehaviors.IS_ALWAYS_DESTROYABLE, true);
-        this.registerBehavior(BlockBehaviors.GET_TICK_DELAY, 0);
-        this.registerContextBehavior(BlockBehaviors.CAN_SURVIVE, (behavior, block) -> true);
-        this.registerContextBehavior(BlockBehaviors.CHECK_ALIVE, (behavior, block) -> {
+        this.registerComponent(BlockComponents.CAN_SLIDE, (block) -> false);
+        this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
+        this.registerComponent(BlockComponents.START_FALLING, (block) -> {
         });
-        this.registerBehavior(BlockBehaviors.IS_FLOODABLE, false);
-        this.registerBehavior(BlockBehaviors.CAN_INSTATICK, false);
-        this.registerContextBehavior(BlockBehaviors.CAN_SLIDE, (behavior, block) -> false);
-        this.registerContextBehavior(BlockBehaviors.IS_FREE_TO_FALL, (behavior, block) -> false);
-        this.registerContextBehavior(BlockBehaviors.START_FALLING, (behavior, block) -> {
+        this.registerComponent(BlockComponents.GET_LIQUID_HEIGHT, (block) -> 0);
+        this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {
         });
-        this.registerContextBehavior(BlockBehaviors.GET_LIQUID_HEIGHT, (behavior, block) -> 0);
-        this.registerBehavior(BlockBehaviors.GET_RESISTANCE, 0f);
-        this.registerContextBehavior(BlockBehaviors.ON_ENTITY_COLLIDE, (behavior, block, entity) -> {
+        this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> {
+            StringTypeHandler mapColorHandler = getComponent(block.getState().getType(), BlockComponents.MAP_COLOR);
+            String hex = mapColorHandler != null ? mapColorHandler.get() : null;
+            if (hex == null || hex.length() < 9) return new Color(0, 0, 0, 0);
+            int r = Integer.parseInt(hex.substring(1, 3), 16);
+            int g = Integer.parseInt(hex.substring(3, 5), 16);
+            int b = Integer.parseInt(hex.substring(5, 7), 16);
+            int a = Integer.parseInt(hex.substring(7, 9), 16);
+            return new Color(r, g, b, a);
         });
-        this.registerBehavior(BlockBehaviors.GET_FILTERED_LIGHT, 1);
-        this.registerBehavior(BlockBehaviors.CAN_DAMAGE_ITEM, false);
-        this.registerContextBehavior(BlockBehaviors.GET_MAP_COLOR, (behavior, block) -> null);
-        this.registerContextBehavior(BlockBehaviors.IS_BREAKABLE, (behavior, block, item) -> true);
-        this.registerBehavior(BlockBehaviors.GET_TRANSLUCENCY, 0f);
+        this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
     }
 }

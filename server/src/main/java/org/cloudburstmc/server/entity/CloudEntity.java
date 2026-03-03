@@ -30,7 +30,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.GenericMath;
@@ -55,6 +55,7 @@ import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -842,13 +843,13 @@ public abstract class CloudEntity implements Entity {
         float diffY = y - j;
         float diffZ = z - k;
 
-        if (!this.level.getBlockState(i, j, k).inCategory(BlockCategory.TRANSPARENT)) {
-            boolean flag = this.level.getBlockState(i - 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag1 = this.level.getBlockState(i + 1, j, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag2 = this.level.getBlockState(i, j - 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag3 = this.level.getBlockState(i, j + 1, k).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag4 = this.level.getBlockState(i, j, k - 1).inCategory(BlockCategory.TRANSPARENT);
-            boolean flag5 = this.level.getBlockState(i, j, k + 1).inCategory(BlockCategory.TRANSPARENT);
+        if (!this.level.getBlockState(i, j, k).hasTag(BlockTags.TRANSPARENT)) {
+            boolean flag = this.level.getBlockState(i - 1, j, k).hasTag(BlockTags.TRANSPARENT);
+            boolean flag1 = this.level.getBlockState(i + 1, j, k).hasTag(BlockTags.TRANSPARENT);
+            boolean flag2 = this.level.getBlockState(i, j - 1, k).hasTag(BlockTags.TRANSPARENT);
+            boolean flag3 = this.level.getBlockState(i, j + 1, k).hasTag(BlockTags.TRANSPARENT);
+            boolean flag4 = this.level.getBlockState(i, j, k - 1).hasTag(BlockTags.TRANSPARENT);
+            boolean flag5 = this.level.getBlockState(i, j, k + 1).hasTag(BlockTags.TRANSPARENT);
 
             int direction = -1;
             float limit = 9999;
@@ -1462,9 +1463,9 @@ public abstract class CloudEntity implements Entity {
 
         float percent;
 
-        BehaviorCollection behaviors = block.getBehaviors();
-        if (behaviors.get(BlockBehaviors.IS_LIQUID)) {
-            percent = behaviors.get(BlockBehaviors.GET_LIQUID_HEIGHT).execute(state);
+        ComponentMap behaviors = block.getComponents();
+        if (CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get()) {
+            percent = behaviors.get(BlockComponents.GET_LIQUID_HEIGHT).execute(state);
         } else {
             return false;
         }
@@ -1482,11 +1483,11 @@ public abstract class CloudEntity implements Entity {
             return true;
         }
 
-        BehaviorCollection behaviors = this.server.getBlockRegistry().getBehaviors(state.getType());
-        AxisAlignedBB bb = behaviors.get(BlockBehaviors.GET_BOUNDING_BOX).execute(state)
+        ComponentMap behaviors = this.server.getBlockRegistry().getComponents(state.getType());
+        AxisAlignedBB bb = behaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(state)
                 .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
 
-        return bb != null && state.inCategory(BlockCategory.SOLID) && !state.inCategory(BlockCategory.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
+        return bb != null && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get() && !state.getType().hasTag(BlockTags.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
 
     }
 
@@ -1687,7 +1688,7 @@ public abstract class CloudEntity implements Entity {
             this.collisionBlockStates = new ArrayList<>();
 
             for (Block b : getBlocksAround()) {
-                BehaviorCollection behaviors = b.getBehaviors();
+                ComponentMap behaviors = b.getComponents();
 //                if (b.getState().getBehavior().collidesWithBB(b, this.getBoundingBox(), true)) {
 //                    this.collisionBlockStates.add(b);
 //                } // FIXME: Add method for this
@@ -1717,8 +1718,8 @@ public abstract class CloudEntity implements Entity {
                 continue;
             }
 
-            var behaviors = block.getBehaviors();
-            behaviors.get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
+            var behaviors = block.getComponents();
+            behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
 //            vector = behaviors.addVelocityToEntity(block, vector, this); FIXME
         }
 

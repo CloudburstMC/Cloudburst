@@ -1,17 +1,18 @@
 [versions]
+asm = "9.9.1"
 checker-framework = "3.53.1"
 fastutil = "8.5.13-SNAPSHOT"
-jline = "3.30.6"
-log4j = "2.25.3"
 jackson = "3.0.4"
+jline = "3.30.6"
 junit = "6.0.2"
-asm = "9.9.1"
+log4j = "2.25.3"
 
 [libraries]
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asm-commons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 
 math-immutable = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
+javapoet = { group = "com.palantir.javapoet", name = "javapoet", version = "0.11.0" }
 lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.42" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checker-framework" }
 checker = { group = "org.checkerframework", name = "checker", version.ref = "checker-framework" }

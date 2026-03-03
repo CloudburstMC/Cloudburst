@@ -55,7 +55,7 @@ import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.LoginChainData;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -107,6 +107,7 @@ import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -1025,7 +1026,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 continue;
             }
 
-            block.getBehaviors().get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
+            block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
         }
 
         if (portal) {
@@ -1169,10 +1170,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void openContainer(Block block) {
         if (!canOpenInventory()) return;
-        if (!block.getBehaviors().get(BlockBehaviors.CAN_BE_USED).execute(block)) {
+        if (!block.getComponents().get(BlockComponents.CAN_BE_USED).execute(block)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
-        block.getBehaviors().get(BlockBehaviors.USE).execute(block, this, Direction.DOWN);
+        block.getComponents().get(BlockComponents.USE).execute(block, this, Direction.DOWN);
     }
 
     @Override
@@ -1267,9 +1268,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 for (int x = minX; x <= maxX; ++x) {
                     for (int y = minY; y <= maxY; ++y) {
                         Block block = this.getLevel().getBlock(x, y, z);
-                        BehaviorCollection behavior = block.getBehaviors();
+                        ComponentMap behavior = block.getComponents();
 
-                        if (!behavior.get(BlockBehaviors.IS_SOLID) && behavior.get(BlockBehaviors.GET_BOUNDING_BOX).execute(block.getState()).addCoord(x, y, z).intersectsWith(realBB)) {
+                        if (!CloudBlockRegistry.REGISTRY.getComponent(block.getState().getType(), BlockComponents.SOLID).get() && behavior.get(BlockComponents.GET_BOUNDING_BOX).execute(block.getState()).addCoord(x, y, z).intersectsWith(realBB)) {
                             onGround = true;
                             break;
                         }
@@ -2389,8 +2390,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return false;
         }
 
-        if (item == ItemStack.EMPTY) {
-            log.debug(this.getName() + " attempted to drop a null item (" + item + ")");
+        if (item.isEmpty()) {
             return true;
         }
 
@@ -3262,7 +3262,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                             return false;
                         }
 
-                        if (item.getType() instanceof BlockType blockType && BlockCategories.inCategory(blockType, BlockCategory.LOG)) {
+                        if (((Object) item.getType()) instanceof BlockType blockType && blockType.hasTag(BlockTags.LOG)) {
                             this.awardAchievement("mineWood");
                         } else if (item.getType() == ItemTypes.DIAMOND) {
                             this.awardAchievement("diamond");

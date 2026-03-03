@@ -59,14 +59,16 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";
     private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
 
+    public static final Comparator<ItemStack> recipeComparator = Comparator
+            .comparing((ItemStack i) -> i.isEmpty() || i.getType() == null ? "" : i.getType().getId().toString())
+            .thenComparingInt(i -> i.isEmpty() || i.getType() == null ? 0 : ItemUtils.toNetwork(i).getDamage())
+            .thenComparingInt(ItemStack::getCount);
+
     private static final CloudRecipeRegistry INSTANCE;
 
     static {
         INSTANCE = new CloudRecipeRegistry(CloudItemRegistry.get()); // forces item registry to init first
     }
-
-    public static final Comparator<ItemStack> recipeComparator = Comparator.comparing((ItemStack i) -> i.getType().getId())
-            .thenComparingInt(i -> ItemUtils.toNetwork(i).getDamage()).thenComparingInt(ItemStack::getCount);
 
     private final CloudItemRegistry itemRegistry;
     private final Map<Identifier, Recipe> recipeMap = new Object2ReferenceOpenHashMap<>();
@@ -151,7 +153,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 break;
         }
         register0(recipe.getId(), id, outputHash, recipe);
-
     }
 
     private void register0(Identifier id, UUID uuid, int outputHash, Recipe recipe) {
@@ -212,6 +213,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                         inputDescriptors.add(ItemUtils.descriptorFromJson(item));
                         inputs.add(ItemUtils.fromJson(item));
                     }
+                    inputs.removeIf(ItemStack::isEmpty);
                     inputs.sort(recipeComparator);
 
                     RecipeType shapelessType = recipe.get("type").asInt() == 5 ? RecipeType.SHULKER_BOX : RecipeType.SHAPELESS;

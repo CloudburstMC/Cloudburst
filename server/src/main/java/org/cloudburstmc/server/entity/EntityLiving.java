@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
@@ -276,7 +276,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
             // Used to check collisions with magma blocks
             Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
-            if (block.getState().getType() == MAGMA) block.getBehaviors().get(BlockBehaviors.ON_ENTITY_COLLIDE).execute(block, this);
+            if (block.getState().getType() == MAGMA) block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
             return hasUpdate;
         }
     }

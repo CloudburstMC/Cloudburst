@@ -2,7 +2,7 @@ package org.cloudburstmc.server.command.defaults;
 
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -75,7 +75,7 @@ public class GiveCommand extends Command {
             return false;
         }
 
-        int maxStackSize = registry.getBehavior(type, ItemBehaviors.GET_MAX_STACK_SIZE).execute();
+        int maxStackSize = registry.getComponent(type, ItemComponents.GET_MAX_STACK_SIZE).execute(ItemStack.from(type, 1));
         ItemStack stack;
         try {
             stack = ItemStack.from(type, GenericMath.clamp(Integer.parseInt(args[2]), 1, maxStackSize));
@@ -84,7 +84,7 @@ public class GiveCommand extends Command {
         }
 
         if (player != null) {
-            if (stack == ItemStack.EMPTY) {
+            if (stack.isEmpty()) {
                 sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
                 return true;
             }

@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -13,10 +15,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
 
     private final E defaultValue;
+    private final Map<E, Integer> indexMap;
 
     private EnumBlockTrait(String name, @Nullable String vanillaName, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
         super(Identifier.parse(name), vanillaName, enumClass, possibleValues, false);
         this.defaultValue = defaultValue;
+        EnumMap<E, Integer> map = new EnumMap<>(enumClass);
+        for (int i = 0; i < possibleValues.size(); i++) {
+            map.put(possibleValues.get(i), i);
+        }
+        this.indexMap = map;
     }
 
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass) {
@@ -62,8 +70,8 @@ public final class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
     @Override
     public int getIndex(Object value) {
         checkNotNull(value, "value");
-        int index = this.possibleValues.indexOf(value);
-        checkArgument(index != -1, "Invalid block trait");
+        Integer index = this.indexMap.get(value);
+        checkArgument(index != null, "Invalid block trait");
         return index;
     }
 

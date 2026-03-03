@@ -72,7 +72,7 @@ public class ItemStackRequestActionHandler {
         ItemStack destItem = getSlot(dstSlot);
         int count = action.getCount();
 
-        if (sourceItem == ItemStack.EMPTY || sourceItem.getCount() < count) {
+        if (sourceItem.isEmpty() || sourceItem.getCount() < count) {
             throw new IllegalArgumentException("Source item is empty or has insufficient count");
         }
 
@@ -84,7 +84,7 @@ public class ItemStackRequestActionHandler {
         }
 
         ItemStack newDest;
-        if (destItem == ItemStack.EMPTY) {
+        if (destItem.isEmpty()) {
             newDest = sourceItem.withCount(count);
         } else {
             if (!destItem.isSimilarMetadata(sourceItem)) {
@@ -190,7 +190,7 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
-        if (sourceItem == ItemStack.EMPTY || sourceItem.getCount() < count) {
+        if (sourceItem.isEmpty() || sourceItem.getCount() < count) {
             throw new IllegalArgumentException("Source item is empty or has insufficient count");
         }
 
@@ -230,7 +230,7 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
-        if (sourceItem == ItemStack.EMPTY) {
+        if (sourceItem.isEmpty()) {
             throw new IllegalArgumentException("Source item is empty");
         }
 
@@ -351,7 +351,7 @@ public class ItemStackRequestActionHandler {
     }
 
     private ItemStackResponseSlot makeResponseSlot(int slot, ItemStack item) {
-        if (item == ItemStack.EMPTY) {
+        if (item.isEmpty()) {
             return new ItemStackResponseSlot(slot, slot, 0, 0, "", 0, "");
         }
 

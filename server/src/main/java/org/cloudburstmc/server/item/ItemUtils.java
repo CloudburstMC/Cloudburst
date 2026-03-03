@@ -6,7 +6,6 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -137,7 +136,7 @@ public class ItemUtils {
             builder.itemType(type);
             builder.amount(amount);
 
-            if (type instanceof BlockType) {
+            if (BlockPalette.INSTANCE.getType(id) != null) {
                 BlockState blockState = BlockStateMetaMappings.getStateFromMeta(id, damage);
 
                 if (blockState != null) {
@@ -147,12 +146,15 @@ public class ItemUtils {
 
             registry.getSerializer(type).deserialize(id, damage, builder, tag);
         } else {
-            builder.itemType(BlockTypes.AIR);
+            return ItemStack.EMPTY;
         }
         return builder.build();
     }
 
     public static ItemData toNetwork(ItemStack item) {
+        if (item == null || item.isEmpty()) {
+            return ItemData.AIR;
+        }
         return ItemUtils.toNetworkBuilder(item)
                 .netId(0)
                 .usingNetId(false)
@@ -184,6 +186,9 @@ public class ItemUtils {
     }
 
     public static ItemData toNetworkNetId(ItemStack item) {
+        if (item == null || item.isEmpty()) {
+            return ItemData.AIR;
+        }
         int netId = NetworkItemStack.getNetId(item);
 
         return ItemUtils.toNetworkBuilder(item)
@@ -271,10 +276,6 @@ public class ItemUtils {
         }
     }
 
-    public static boolean isNull(ItemStack item) {
-        return item == null || item == ItemStack.EMPTY;
-    }
-
     public static ItemStack fromJson(Map<String, Object> data) {
         String type = (String) data.get("type");
         if ("item_tag".equals(type) || "complex_alias".equals(type)) {
@@ -349,7 +350,7 @@ public class ItemUtils {
     public static UUID getMultiItemHash(List<ItemStack> items) {
         ByteBuffer buffer = ByteBuffer.allocate(items.size() * 8);
         for (ItemStack item : items) {
-            if (item != null)
+            if (item != null && !item.isEmpty())
                 buffer.putInt(getItemHash((ItemStack) item));
         }
         return UUID.nameUUIDFromBytes(buffer.array());

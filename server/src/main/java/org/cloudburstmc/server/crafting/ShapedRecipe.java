@@ -8,7 +8,6 @@ import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
@@ -224,7 +223,7 @@ public class ShapedRecipe implements CraftingRecipe {
         List<ItemStack> needItems = this.getExtraResults();
 
         for (ItemStack haveItem : new ArrayList<>(haveItems)) {
-            if (haveItem == ItemStack.EMPTY) {
+            if (haveItem.isEmpty()) {
                 haveItems.remove(haveItem);
                 continue;
             }
@@ -261,7 +260,7 @@ public class ShapedRecipe implements CraftingRecipe {
         //check if there are any items left in the grid outside of the recipe
         for (ItemStack[] items : input) {
             for (ItemStack item : items) {
-                if (!ItemUtils.isNull(item)) {
+                if (!item.isEmpty()) {
                     return false;
                 }
             }

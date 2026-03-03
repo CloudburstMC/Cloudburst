@@ -4,8 +4,10 @@ plugins {
 
 subprojects {
     apply(plugin = "java-library")
-    apply(plugin = "maven-publish")
-    apply(plugin = rootProject.libs.plugins.checkerframework.get().pluginId)
+    if (name != "codegen") {
+        apply(plugin = "maven-publish")
+        apply(plugin = rootProject.libs.plugins.checkerframework.get().pluginId)
+    }
 
     group = "org.cloudburstmc"
     version = rootProject.properties["$name.version"].toString()

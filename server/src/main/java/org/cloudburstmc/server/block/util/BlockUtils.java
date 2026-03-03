@@ -41,15 +41,11 @@ public class BlockUtils {
     private final Cached<Matcher> INT_PATTERN = Cached.regex(Pattern.compile(
             "\\d+", Pattern.CASE_INSENSITIVE));
 
-
     public long key(Vector3i position) {
         return key(position.getX(), position.getY(), position.getZ());
     }
 
     public long key(int x, int y, int z) {
-        if (y < -64 || y >= 320) {
-            throw new IllegalArgumentException("Y coordinate " + y + " is out of range [-64, 319]!");
-        }
         return (((long) x & 0xFFFFFFF) << 37) | (((long) (y + 64) & 0x1FF) << 28) | ((long) z & 0xFFFFFFF);
     }
 

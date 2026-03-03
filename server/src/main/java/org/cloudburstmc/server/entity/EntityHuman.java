@@ -6,7 +6,7 @@ import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -352,7 +352,7 @@ public class EntityHuman extends EntityCreature implements Human {
                             .data(ItemKeys.DAMAGE, damage - 1)
                             .build();
 
-                    int maxDurability = this.server.getItemRegistry().getBehavior(armor.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute();
+                    int maxDurability = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.GET_MAX_DAMAGE).execute(armor);
                     if (damage + 1 >= maxDurability) {
                         getArmor().setItem(slot, ItemStack.EMPTY);
                     } else {

@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockBehaviors;
-import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
@@ -19,6 +18,7 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.api.block.BlockComponents;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.ANVIL;
@@ -155,7 +155,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 close();
                 Block b = level.getBlock(pos);
                 BlockState blockState = b.getState();
-                if (blockState.getType() != AIR && blockState.inCategory(BlockCategory.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getBehavior(blockState.getType(), BlockBehaviors.IS_REPLACEABLE)) {
+                if (blockState.getType() != AIR && blockState.getType().hasTag(BlockTags.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.REPLACEABLE).get()) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
                         getLevel().dropItem(this.getPosition(), ItemStack.from(this.getBlock()));
                     }

@@ -66,7 +66,7 @@ public class EnchantCommand extends Command {
         }
 
         ItemStack item = player.getInventory().getSelectedItem();
-        if (item == ItemStack.EMPTY) {
+        if (item.isEmpty()) {
             sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.get(ItemKeys.CUSTOM_NAME)));
             return true;
         }

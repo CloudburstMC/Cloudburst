@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.inventory.view;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
@@ -16,6 +17,7 @@ public interface SelectedSlotAccess {
      *
      * @return the selected item, never {@code null}
      */
+    @NonNull
     ItemStack getSelectedItem();
 
     /**

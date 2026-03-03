@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public sealed interface DataKey<T, M> permits BehaviorKey, ListDataKey, SimpleDataKey, MapDataKey {
+public sealed interface DataKey<T, M> permits ListDataKey, SimpleDataKey, MapDataKey {
 
     @SuppressWarnings("unchecked")
     static <T> SimpleDataKey<T> simple(Identifier id, Class<? super T> type) {
@@ -26,18 +26,6 @@ public sealed interface DataKey<T, M> permits BehaviorKey, ListDataKey, SimpleDa
         checkNotNull(keyType, "keyType");
         checkNotNull(valueType, "valueType");
         return new MapDataKey<>(id, keyType, valueType);
-    }
-
-    static <F> BehaviorKey<F, F> behavior(Identifier id, Class<F> type) {
-        return behavior(id, type, type);
-    }
-
-    @SuppressWarnings("unchecked")
-    static <F, E> BehaviorKey<F, E> behavior(Identifier id, Class<? super F> functionType, Class<? super E> returnType) {
-        checkNotNull(id, "id");
-        checkNotNull(functionType, "functionType");
-        checkNotNull(returnType, "returnType");
-        return new BehaviorKey<>(id, (Class<F>) functionType, (Class<E>) returnType);
     }
 
     Identifier getId();

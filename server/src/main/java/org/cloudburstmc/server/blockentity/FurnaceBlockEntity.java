@@ -10,7 +10,7 @@ import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -124,7 +124,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     protected void checkFuel(ItemStack fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
-                CloudItemRegistry.get().getBehavior(fuel.getType(), ItemBehaviors.GET_FUEL_DURATION).shortValue());
+                (short) CloudItemRegistry.get().getComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get());
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -172,11 +172,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         BlockType blockType = state.getType();
         FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product == ItemStack.EMPTY || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getBehavior(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()));
+                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getComponent(product.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(product)));
 
         if (
                 burnTime <= 0 && canSmelt
-                        && CloudItemRegistry.get().getBehavior(fuel.getType(), ItemBehaviors.GET_FUEL_DURATION) > 0
+                        && CloudItemRegistry.get().getComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get() > 0
                         && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }

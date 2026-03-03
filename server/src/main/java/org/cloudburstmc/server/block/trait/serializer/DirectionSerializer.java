@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.block.trait.serializer;
 
-import org.cloudburstmc.api.block.BlockCategories;
-import org.cloudburstmc.api.block.BlockCategory;
+import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -36,7 +35,7 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
 
     @Override
     public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
-        if (BlockCategories.inCategory(type, BlockCategory.STAIRS)) {
+        if (type.hasTag(BlockTags.STAIRS)) {
             return BedrockStateTags.TAG_WEIRDO_DIRECTION;
         }
 

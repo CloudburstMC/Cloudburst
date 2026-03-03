@@ -138,7 +138,10 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
         }
 
         for (int i = 0; i < vanillaPalette.size(); i++) {
-            NbtMapBuilder builder = vanillaPalette.get(i).toBuilder();
+            NbtMap entry = vanillaPalette.get(i);
+            long blockStateHash = entry.containsKey("name_hash") ? entry.getLong("name_hash") : 0L;
+
+            NbtMapBuilder builder = entry.toBuilder();
             builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
             builder.remove("name_hash"); // Added in 1.19.20
             builder.remove("network_id"); // Added in 1.19.80
@@ -152,7 +155,15 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
                 continue;
             }
 
-            CloudBlockDefinition definition = new CloudBlockDefinition(state, nbt, i);
+            CloudBlockDefinition definition = new CloudBlockDefinition(state, nbt, i, blockStateHash);
+            if (blockStateHash != 0L) {
+                BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
+                if (shapes != null) {
+                    float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
+                    float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
+                    state.initStateData(collision, outline);
+                }
+            }
 
             this.runtimeDefinitionMap.put(i, definition);
             this.stateDefinitionMap.putIfAbsent(state, definition);
@@ -272,5 +283,4 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         return tags.stream().map(NbtMapBuilder::build).collect(Collectors.toList());
     }
-
 }

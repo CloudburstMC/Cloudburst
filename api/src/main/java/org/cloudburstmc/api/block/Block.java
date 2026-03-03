@@ -3,7 +3,7 @@ package org.cloudburstmc.api.block;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
 
@@ -19,7 +19,7 @@ public interface Block extends BlockSnapshot {
 
     Vector3i getPosition();
 
-    BehaviorCollection getBehaviors();
+    ComponentMap getComponents();
 
     int getBrightness();
 

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.scheduler;
 import com.google.common.collect.Maps;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -63,13 +63,13 @@ public class BlockUpdateScheduler {
 
                         if (entry.block.getState() == state) {
                             //TODO ???
-                            CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.ON_TICK).execute(block, null);
+                            CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.ON_TICK).execute(block, null);
 //                            state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
 
                         if (entry.block.getExtra() == extra && extra != BlockStates.AIR) {
                             //TODO ???
-                            CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.ON_TICK).execute(block, null);
+                            CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.ON_TICK).execute(block, null);
 //                            extra.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
                     } else {

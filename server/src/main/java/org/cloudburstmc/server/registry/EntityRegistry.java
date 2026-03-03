@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.registry;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -11,12 +10,18 @@ import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.component.BooleanEntityHandler;
+import org.cloudburstmc.api.entity.component.FloatEntityHandler;
+import org.cloudburstmc.api.entity.component.InteractEntityHandler;
+import org.cloudburstmc.api.entity.component.TickEntityHandler;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.component.ComponentMap;
+import org.cloudburstmc.server.registry.component.CloudComponentMap;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -44,7 +49,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.cloudburstmc.api.entity.EntityTypes.*;
 
 @Log4j2
-public class EntityRegistry implements Registry {
+public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
     private static final EntityRegistry INSTANCE;
 
     private static final BiMap<String, Identifier> LEGACY_NAMES;
@@ -88,8 +93,21 @@ public class EntityRegistry implements Registry {
     private NbtMap entityIdentifiersPalette;
 
     private EntityRegistry() {
+        this.registerVanillaEntityComponents();
         this.registerVanillaEntities();
         customEntityStart = runtimeTypeAllocator;
+    }
+
+    @Override
+    public ComponentMap getComponents(EntityType<?> type) {
+        return super.getComponents(type);
+    }
+
+    private void registerVanillaEntityComponents() {
+        this.registerComponent(EntityComponents.GET_ATTACK_DAMAGE, (FloatEntityHandler) entity -> 2f);
+        this.registerComponent(EntityComponents.ON_INTERACT, (InteractEntityHandler) (entity, player, item, clickedPos) -> false);
+        this.registerComponent(EntityComponents.ON_TICK, (TickEntityHandler) (entity, currentTick) -> true);
+        this.registerComponent(EntityComponents.CAN_BE_NAMED, (BooleanEntityHandler) entity -> true);
     }
 
     public static EntityRegistry get() {
@@ -124,6 +142,10 @@ public class EntityRegistry implements Registry {
 
             EntityData<T> entityData = new EntityData<>(hasSpawnEgg, new RegistryProvider<>(factory, plugin, priority));
             this.dataMap.put(type, entityData);
+
+            CloudComponentMap map = new CloudComponentMap(this);
+            map.bake();
+            putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
             RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
             //noinspection unchecked
@@ -142,7 +164,7 @@ public class EntityRegistry implements Registry {
     }
 
     public EntityType<?> getEntityType(Identifier identifier) {
-        Preconditions.checkArgument(this.closed, "Cannot get entity type during registration");
+        checkState(this.closed, "Cannot get entity type during registration");
         return this.identifierTypeMap.computeIfAbsent(identifier, id -> {
             log.warn("Creating unknown entity type for {}", id);
             return EntityType.from(id, UnknownEntity.class);

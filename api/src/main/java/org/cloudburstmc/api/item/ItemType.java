@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.item;
 
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -8,12 +7,12 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public sealed class ItemType permits BlockType {
+public final class ItemType {
 
     private final Identifier id;
     private final Set<DataKey<?, ?>> dataKeys;
 
-    protected ItemType(Identifier id, Set<DataKey<?, ?>> dataKeys) {
+    public ItemType(Identifier id, Set<DataKey<?, ?>> dataKeys) {
         this.id = id;
         this.dataKeys = dataKeys;
     }

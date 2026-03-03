@@ -3,20 +3,16 @@ package org.cloudburstmc.api.registry;
 import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.api.util.component.ComponentMap;
 
-public interface BlockRegistry extends BehaviorRegistry<BlockType> {
+public interface BlockRegistry extends ComponentRegistry<BlockType> {
 
-    BehaviorCollection register(BlockType type) throws RegistryException;
+    ComponentMap register(BlockType type) throws RegistryException;
 
-    BehaviorCollection getBehaviors(BlockType type);
-
-    default <T> T getBehavior(BlockType type, BehaviorKey<?, T> key) {
-        return getBehaviors(type).get(key);
-    }
+    @Override
+    ComponentMap getComponents(BlockType type);
 
     boolean isBlock(Identifier id);
 

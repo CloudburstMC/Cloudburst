@@ -9,16 +9,12 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.data.BehaviorKey;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.behavior.ItemBehavior;
-import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.behavior.BehaviorCollection;
+import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
@@ -28,11 +24,11 @@ import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.data.serializer.*;
-import org.cloudburstmc.server.item.serializer.*;
-import org.cloudburstmc.server.registry.behavior.CloudBehaviorCollection;
-import org.cloudburstmc.server.registry.behavior.proxy.BehaviorProxies;
+import org.cloudburstmc.server.item.serializer.BannerSerializer;
+import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
+import org.cloudburstmc.server.item.serializer.ItemSerializer;
+import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -41,16 +37,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<CloudItemDefinition> {
+public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<CloudItemDefinition> {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
 
-    private final Reference2ReferenceMap<ItemType, BehaviorCollection> behaviorMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
-    private int hardcodedBlockingId;
     private final ItemPalette itemPalette = new ItemPalette(this);
-
+    private int hardcodedBlockingId;
     private volatile boolean closed;
 
     private CloudItemRegistry() {
@@ -82,66 +76,12 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     @Override
-    public <F> void registerBehavior(BehaviorKey<F, F> key, F defaultBehavior) {
-        this.registerBehaviorInternal(key, defaultBehavior, (context, behavior) -> behavior);
-    }
-
-
-    @Override
-    public <F, E> void registerContextBehavior(BehaviorKey<F, E> key, F defaultBehavior) {
-        try {
-            this.registerBehaviorInternal(key, defaultBehavior, BehaviorProxies.createExecutorProxy(key.getType(), key.getExecutorType()));
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException |
-                 InstantiationException e) {
-            throw new IllegalArgumentException("Unable to create behavior proxy for " + key, e);
-        }
-    }
-
-    @Override
-    public BehaviorCollection getBehaviors(ItemType type) {
-        return behaviorMap.get(type);
-    }
-
-    @Override
-    public GlobalRegistry global() {
-        //TODO Implementation
-        return null;
+    public ComponentMap getComponents(ItemType type) {
+        return super.getComponents(type);
     }
 
     public int getHardcodedBlockingId() {
         return this.hardcodedBlockingId;
-    }
-
-    public synchronized void register(ItemType type, ItemSerializer serializer, ItemBehavior behavior, Identifier... identifiers) throws RegistryException {
-        Objects.requireNonNull(type, "type");
-        Objects.requireNonNull(behavior, "behavior");
-        checkClosed();
-
-        if (identifiers == null || identifiers.length == 0) {
-            identifiers = new Identifier[]{type.getId()};
-        }
-
-        if (this.typeMap.containsValue(type)) {
-            throw new RegistryException(type + " has already been registered");
-        }
-
-        for (Identifier identifier : identifiers) {
-            if (this.typeMap.containsKey(identifier)) {
-                throw new RegistryException(identifier + " has already been registered");
-            }
-        }
-
-        if (serializer != null) {
-            this.serializers.put(type, serializer);
-        }
-
-        for (Identifier identifier : identifiers) {
-            this.typeMap.put(identifier, type);
-            int runtimeId = itemPalette.addItem(identifier);
-            if (type == ItemTypes.SHIELD) {
-                this.hardcodedBlockingId = runtimeId;
-            }
-        }
     }
 
     protected synchronized void registerVanilla(ItemType type) throws RegistryException {
@@ -156,37 +96,33 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
             this.serializers.put(type, serializer);
         }
 
-        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+        CloudComponentMap collection = new CloudComponentMap(this);
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
         collection.bake();
 
-        synchronized (this.behaviorMap) {
-            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
-                throw new RegistryException(type + " is already registered");
-            }
-        }
+        putComponents(type, collection);
 
         this.registerType(type, type.getId());
     }
 
     protected void registerBlock(BlockType type) {
-        CloudBehaviorCollection collection = new CloudBehaviorCollection(this);
+        CloudComponentMap collection = new CloudComponentMap(this);
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
         BlockState defaultState = type.getDefaultState();
-        collection.overwrite(ItemBehaviors.GET_BLOCK, (behavior, item) -> {
+        collection.set(ItemComponents.GET_BLOCK, (item) -> {
             BlockState state = item.get(ItemKeys.BLOCK_STATE);
             return Optional.of(state != null ? state : defaultState);
         });
 
         collection.bake();
 
-        synchronized (this.behaviorMap) {
-            if (this.behaviorMap.putIfAbsent(type, collection) != null) {
-                throw new RegistryException(type + " is already registered");
-            }
-        }
+        ItemType itemType = ItemType.of(type.getId());
+        type.linkItemType(itemType);
+        this.typeMap.put(type.getId(), itemType);
+
+        putComponents(itemType, collection);
     }
 
     public ItemSerializer getSerializer(ItemType type) {
@@ -221,11 +157,6 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         return ItemUtils.deserializeItem(getIdentifier(legacyId), damage, amount, NbtMap.EMPTY);
     }
 
-    @Override
-    public void register(ItemType itemType, ItemBehavior itemBehavior, Identifier... identifiers) throws RegistryException {
-        this.register(itemType,DefaultItemSerializer.INSTANCE,itemBehavior,identifiers);
-    }
-
     public Collection<Identifier> getIdentifiers(ItemType type) {
         return this.typeMap.entrySet().stream().filter((e) -> e.getValue() == type).map(Entry::getKey).collect(Collectors.toSet());
     }
@@ -253,10 +184,10 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
         var blockType = BlockPalette.INSTANCE.getType(runtimeId);
 
         if (blockType != null) {
-            return blockType;
+            return blockType.asItem().orElse(ItemTypes.UNKNOWN);
         }
 
-        return typeMap.getOrDefault(runtimeId, BlockTypes.AIR);
+        return typeMap.getOrDefault(runtimeId, ItemTypes.UNKNOWN);
     }
 
     @Override
@@ -847,23 +778,27 @@ public class CloudItemRegistry extends CloudBehaviorRegistry<ItemType> implement
     }
 
     private void registerVanillaBehaviors() {
-        this.registerContextBehavior(ItemBehaviors.GET_MAX_STACK_SIZE, (behavior) -> 64);
-        this.registerContextBehavior(ItemBehaviors.GET_MAX_DAMAGE, (behavior) -> 0);
-        this.registerContextBehavior(ItemBehaviors.MINE_BLOCK, (behavior, item, block, owner) -> item);
-        this.registerContextBehavior(ItemBehaviors.ON_DAMAGE, (behavior, item, damage, owner) -> item);
-        this.registerContextBehavior(ItemBehaviors.CAN_DESTROY, (behavior, block) -> true);
-        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED, (behavior, item, block) -> 1);
-        this.registerContextBehavior(ItemBehaviors.GET_DESTROY_SPEED_BONUS, (behavior, item) -> 0);
-        this.registerBehavior(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, false);
-        this.registerContextBehavior(ItemBehaviors.GET_DAMAGE_CHANCE, (behavior, unbreaking) -> 0);
-        this.registerContextBehavior(ItemBehaviors.CAN_BE_USED, (behavior, item) -> false);
-        this.registerContextBehavior(ItemBehaviors.USE_ON, (behavior, item, entity, blockPos, face, clickPos) -> item);
-        this.registerBehavior(ItemBehaviors.GET_FUEL_DURATION, 0f);
-        this.registerContextBehavior(ItemBehaviors.GET_ATTACH_DAMAGE, (behavior) -> 0f);
-        this.registerContextBehavior(ItemBehaviors.IS_TOOL, (behavior, item) -> false);
-        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED, (behavior, item) -> false);
-        this.registerContextBehavior(ItemBehaviors.CAN_BE_PLACED_ON, (behavior, item, block) -> true);
-        this.registerContextBehavior(ItemBehaviors.GET_BLOCK, (behavior, item) -> Optional.empty());
+        this.registerComponent(ItemComponents.ALLOW_OFFHAND, () -> false);
+        this.registerComponent(ItemComponents.CAN_BE_CHARGED, () -> false);
+        this.registerComponent(ItemComponents.CAN_BE_DEPLETED, () -> false);
+        this.registerComponent(ItemComponents.CAN_BE_PLACED, (item) -> false);
+        this.registerComponent(ItemComponents.CAN_BE_PLACED_ON, (item, block) -> true);
+        this.registerComponent(ItemComponents.CAN_BE_USED, (item) -> false);
+        this.registerComponent(ItemComponents.CAN_DESTROY, (item, block) -> true);
+        this.registerComponent(ItemComponents.CAN_DESTROY_IN_CREATIVE, () -> true);
+        this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
+        this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);
+        this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE_BONUS, (item) -> 0f);
+        this.registerComponent(ItemComponents.GET_BLOCK, (item) -> Optional.empty());
+        this.registerComponent(ItemComponents.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
+        this.registerComponent(ItemComponents.GET_DESTROY_SPEED, (item, block) -> 1);
+        this.registerComponent(ItemComponents.GET_DESTROY_SPEED_BONUS, (item) -> 0);
+        this.registerComponent(ItemComponents.GET_MAX_DAMAGE, (item) -> 0);
+        this.registerComponent(ItemComponents.GET_MAX_STACK_SIZE, (item) -> 64);
+        this.registerComponent(ItemComponents.IS_TOOL, (item) -> false);
+        this.registerComponent(ItemComponents.MINE_BLOCK, (item, block, owner) -> item);
+        this.registerComponent(ItemComponents.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemComponents.USE_ON, (item, entity, blockPos, face, clickPos) -> item);
     }
 
     public void registerCreativeItem(ItemStack item) {

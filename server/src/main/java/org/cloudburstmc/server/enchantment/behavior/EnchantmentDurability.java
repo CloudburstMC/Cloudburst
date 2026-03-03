@@ -3,7 +3,7 @@ package org.cloudburstmc.server.enchantment.behavior;
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -30,7 +30,7 @@ public class EnchantmentDurability extends EnchantmentBehavior {
 
     @Override
     public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute() >= 0 || super.canEnchant(enchantment, item);
+        return CloudItemRegistry.get().getComponent(item.getType(), ItemComponents.GET_MAX_DAMAGE).execute(item) >= 0 || super.canEnchant(enchantment, item);
     }
 
 //    TODO Method isn't used?

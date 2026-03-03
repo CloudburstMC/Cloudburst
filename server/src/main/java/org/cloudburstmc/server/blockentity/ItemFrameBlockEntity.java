@@ -17,7 +17,7 @@ import java.util.Objects;
  */
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
-    private ItemStack item;
+    private ItemStack item = ItemStack.EMPTY;
     private float itemRotation;
     private float itemDropChance = 1.0f;
 
@@ -40,7 +40,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        if (!ItemUtils.isNull(this.item)) {
+        if (!this.item.isEmpty()) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
             tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
@@ -74,6 +74,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     @Override
     public void setItem(ItemStack item) {
         if (!Objects.equals(this.item, item)) {
+            this.item = item == null ? ItemStack.EMPTY : item;
             this.setDirty();
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
@@ -99,7 +100,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getAnalogOutput() {
-        return this.getItem() == null || this.getItem() == ItemStack.EMPTY ? 0 : this.getItemRotation() % 8 + 1;
+        return this.getItem().isEmpty() ? 0 : this.getItemRotation() % 8 + 1;
     }
 
     @Override

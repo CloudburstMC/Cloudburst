@@ -38,6 +38,10 @@ public class ChunkBuilder {
         return z;
     }
 
+    public CloudLevel getLevel() {
+        return level;
+    }
+
     public ChunkBuilder sections(CloudChunkSection[] sections) {
         this.sections = Preconditions.checkNotNull(sections, "sections");
         return this;

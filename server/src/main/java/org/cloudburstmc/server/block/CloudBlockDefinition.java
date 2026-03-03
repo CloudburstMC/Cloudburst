@@ -14,4 +14,5 @@ public class CloudBlockDefinition implements BlockDefinition {
     BlockState cloudState;
     NbtMap state;
     int runtimeId;
+    long blockStateHash;
 }

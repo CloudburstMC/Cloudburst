@@ -18,8 +18,8 @@ public class Data2dSerializer {
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
                 int highest = chunk.getHighestBlock(x, z);
-                if (highest < -64) {
-                    highest = -64;
+                if (highest < chunk.getLevel().getMinHeight()) {
+                    highest = chunk.getLevel().getMinHeight();
                 }
                 buffer.writeShortLE(highest);
             }

@@ -1,13 +1,15 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.api.block.BlockCategory;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemIds;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -42,7 +44,7 @@ public class FoodChorusFruit extends FoodNormal {
 
             if (y < 0) continue;
 
-            while (y >= 0 && !level.getBlockState(x, y + 1, z).inCategory(BlockCategory.SOLID)) {
+            while (y >= 0 && !CloudBlockRegistry.REGISTRY.getComponent(level.getBlockState(x, y + 1, z).getType(), BlockComponents.SOLID).get()) {
                 y--;
             }
             y++; // Back up to non solid
@@ -50,8 +52,8 @@ public class FoodChorusFruit extends FoodNormal {
             BlockState blockStateUp = level.getBlockState(x, y + 1, z);
             BlockState blockStateUp2 = level.getBlockState(x, y + 2, z);
 
-            if (blockStateUp.inCategory(BlockCategory.SOLID) || blockStateUp.inCategory(BlockCategory.LIQUID) ||
-                    blockStateUp2.inCategory(BlockCategory.SOLID) || blockStateUp2.inCategory(BlockCategory.LIQUID)) {
+            if (CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.SOLID).get() || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.LIQUID).get() ||
+                    CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.SOLID).get() || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.LIQUID).get()) {
                 continue;
             }
 

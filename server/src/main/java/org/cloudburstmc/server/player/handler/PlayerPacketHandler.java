@@ -76,7 +76,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 
 /**
@@ -274,7 +273,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
         if (!player.isCreative()) {
-            double breakTime = Math.ceil(CloudBlockRegistry.REGISTRY.getBehavior(targetState.getType(), BlockBehaviors.GET_DESTROY_SPEED).execute(targetState) * 20);
+            double breakTime = Math.ceil(CloudBlockRegistry.REGISTRY.getComponent(targetState.getType(), BlockComponents.GET_DESTROY_SPEED).execute(targetState) * 20);
             if (breakTime > 0) {
                 LevelEventPacket levelEvent = new LevelEventPacket();
                 levelEvent.setType(LevelEvent.BLOCK_START_BREAK);
@@ -615,7 +614,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
         if (offhand) {
-            player.getOffhand().setOffhandItem(clientItem);
+            player.getOffhand().setOffhandItem(serverItem);
         } else {
             player.setSelectedHotbarSlot(packet.getHotbarSlot());
         }
@@ -786,7 +785,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Vector3i pickPos = packet.getBlockPosition();
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
 
-        if (block.getState().getType() == AIR) {
+        if (block.getState().getType() == BlockTypes.AIR) {
             log.debug("Got block-pick request from " + player.getName() + " for air block");
             return PacketSignal.HANDLED;
         }
@@ -827,7 +826,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
 
             for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getContainer().getItem(slot) == ItemStack.EMPTY) {
+                if (player.getContainer().getItem(slot).isEmpty()) {
                     if (!itemExists && player.isCreative()) {
                         player.getInventory().setSelectedSlot(slot);
                         player.getInventory().setSelectedItem(item);
@@ -846,7 +845,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventory().setSelectedItem(item);
                 if (!player.getContainer().isFull()) {
                     for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                        if (player.getContainer().getItem(slot) == ItemStack.EMPTY) {
+                        if (player.getContainer().getItem(slot).isEmpty()) {
                             player.getContainer().setItem(slot, itemInHand);
                             break;
                         }
@@ -1032,7 +1031,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, block, itemFrame, itemDrop);
         player.getServer().getEventManager().fire(itemFrameDropItemEvent);
         if (!itemFrameDropItemEvent.isCancelled()) {
-            if (itemDrop.getType() != AIR) {
+            if (!itemDrop.isEmpty()) {
                 player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
                 itemFrame.setItem(ItemStack.EMPTY);
                 itemFrame.setItemRotation(0);
@@ -1138,7 +1137,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         int slot = containerAction.getSlot();
                         ItemStack currentItem = player.getContainer().getItem(slot);
 
-                        if (currentItem == ItemStack.EMPTY) {
+                        if (currentItem.isEmpty()) {
                             return PacketSignal.HANDLED;
                         }
 
@@ -1257,7 +1256,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     Block block = lectern.getBlock();
                     BlockState state = block.getState();
                     if (state.getType() == BlockTypes.LECTERN) {
-                        block.getBehaviors().get(BlockBehaviors.ON_REDSTONE_UPDATE).execute(block);
+                        block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
 //                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
                     }
                 }
@@ -1289,8 +1288,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Vector3i center = packet.getSubChunkPosition();
         List<SubChunkData> responseChunks = new ArrayList<>(packet.getPositionOffsets().size());
 
-        int minSectionY = CloudChunk.MIN_SECTION_Y;
-        int maxSectionY = minSectionY + CloudChunk.SECTION_COUNT - 1;
+        int minSectionY = this.player.getLevel().getMinSectionY();
+        int maxSectionY = minSectionY + this.player.getLevel().getSectionsCount() - 1;
 
         for (Vector3i offset : packet.getPositionOffsets()) {
             int sectionY = center.getY() + offset.getY();

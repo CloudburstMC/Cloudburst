@@ -26,13 +26,15 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     @Override
     public void serialize(DirectWriteBatch db, Chunk chunk) {
         // LevelDB key byte is the absolute section Y
-        for (int arrayIndex = 0; arrayIndex < CloudChunk.SECTION_COUNT; arrayIndex++) {
+        int sectionCount = chunk.getLevel().getSectionsCount();
+        int minSectionY = chunk.getLevel().getMinSectionY();
+        for (int arrayIndex = 0; arrayIndex < sectionCount; arrayIndex++) {
             CloudChunkSection section = (CloudChunkSection) chunk.getSection(arrayIndex);
             if (section == null) {
                 continue;
             }
 
-            int absoluteSectionY = arrayIndex + CloudChunk.MIN_SECTION_Y;
+            int absoluteSectionY = arrayIndex + minSectionY;
 
             ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
             ByteBuf keyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
@@ -68,12 +70,13 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             }
         }
 
-        CloudChunkSection[] sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
+        int sectionCount = chunkBuilder.getLevel().getSectionsCount();
+        int minSectionY = chunkBuilder.getLevel().getMinSectionY();
+        CloudChunkSection[] sections = new CloudChunkSection[sectionCount];
 
         // Key byte is absolute section Y. Pre-1.18 worlds used keys 0..15, which map
         // correctly to array indices 4..19 (world Y 0..240) under this scheme.
-        int minSectionY = CloudChunk.MIN_SECTION_Y;
-        int maxSectionY = minSectionY + CloudChunk.SECTION_COUNT - 1;
+        int maxSectionY = minSectionY + sectionCount - 1;
 
         for (int absoluteSectionY = minSectionY; absoluteSectionY <= maxSectionY; absoluteSectionY++) {
             ByteBuf buf = db.getZeroCopy(Unpooled.wrappedBuffer(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunkX, chunkZ, absoluteSectionY)));
@@ -101,9 +104,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                         for (int x = 0; x < 16; x++) {
                             for (int z = 0; z < 16; z++) {
                                 for (int y = absoluteSectionY * 16, lim = y + 16; y < lim; y++) {
-                                    int key = CloudChunk.blockKey(x, y, z);
+                                    int key = CloudChunk.blockKey(x, y, z, chunkBuilder.getLevel().getMinHeight());
                                     if (extraDataMap.containsKey(key)) {
-                                        short value = extraDataMap.get(CloudChunk.blockKey(x, y, z));
+                                        short value = extraDataMap.get(CloudChunk.blockKey(x, y, z, chunkBuilder.getLevel().getMinHeight()));
                                         int blockId = value & 0xff;
                                         int blockData = (value >> 8) & 0xf;
                                         blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), CloudBlockRegistry.REGISTRY.getBlock(blockId, blockData));

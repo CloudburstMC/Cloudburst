@@ -42,7 +42,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         SOUND_MAP.put(Record.PIGSTEP, SoundEvent.RECORD_PIGSTEP);
     }
 
-    private ItemStack recordItem;
+    private ItemStack recordItem = ItemStack.EMPTY;
 
     public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -61,7 +61,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        if (!ItemUtils.isNull(this.recordItem)) {
+        if (!this.recordItem.isEmpty()) {
             tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
         }
     }
@@ -91,10 +91,10 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void dropItem() {
-        if (!ItemUtils.isNull(this.recordItem)) {
+        if (!this.recordItem.isEmpty()) {
             this.stop();
             this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
-            this.recordItem = null;
+            this.recordItem = ItemStack.EMPTY;
         }
     }
 

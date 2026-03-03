@@ -15,8 +15,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import java.util.*;
 import java.util.function.ObjIntConsumer;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
-import static org.cloudburstmc.api.item.ItemBehaviors.GET_MAX_STACK_SIZE;
+import org.cloudburstmc.api.item.ItemComponents;
 
 public class CloudContainer implements Container {
 
@@ -206,7 +205,7 @@ public class CloudContainer implements Container {
     @Override
     public int firstEmpty() {
         for (int i = 0; i < this.size(); ++i) {
-            if (this.getItem(i) == ItemStack.EMPTY) {
+            if (this.getItem(i).isEmpty()) {
                 return i;
             }
         }
@@ -217,7 +216,7 @@ public class CloudContainer implements Container {
     @Override
     public int firstNonEmpty() {
         for (int i = 0; i < this.size(); ++i) {
-            if (this.getItem(i) != ItemStack.EMPTY) {
+            if (!this.getItem(i).isEmpty()) {
                 return i;
             }
         }
@@ -228,11 +227,11 @@ public class CloudContainer implements Container {
     @Override
     public int firstFit(ItemStack item, boolean single) {
         int count = single ? 1 : item.getCount();
-        int maxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
+        int maxStackSize = this.itemRegistry.getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (slot.getCount() + count <= maxStackSize && slot.equals(item)) {
+            if (slot.getCount() + count <= maxStackSize && slot.isSimilarMetadata(item)) {
                 return i;
             }
         }
@@ -253,7 +252,7 @@ public class CloudContainer implements Container {
     public void incrementCount(int slot) {
         ItemStack item = this.getItem(slot);
 
-        if (item.getType() != AIR) {
+        if (!item.isEmpty() && item.getCount() > 0) {
             this.setItem(slot, item.increaseCount());
         }
     }
@@ -268,12 +267,12 @@ public class CloudContainer implements Container {
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (item.equals(slot)) {
+            if (slot.isSimilarMetadata(item)) {
                 int diff;
-                if ((diff = this.itemRegistry.getBehavior(slot.getType(), GET_MAX_STACK_SIZE).execute() - slot.getCount()) > 0) {
+                if ((diff = this.itemRegistry.getComponent(slot.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(slot) - slot.getCount()) > 0) {
                     count -= diff;
                 }
-            } else if (slot.getType() == AIR) {
+            } else if (slot.isEmpty() || slot.getCount() == 0) {
                 count -= this.getMaxStackSize();
             }
 
@@ -296,7 +295,7 @@ public class CloudContainer implements Container {
 
         List<ItemStack> itemSlots = new ArrayList<>(slots.length);
         for (ItemStack slot : slots) {
-            if (slot != ItemStack.EMPTY) {
+            if (!slot.isEmpty()) {
                 itemSlots.add(slot);
             }
         }
@@ -305,11 +304,11 @@ public class CloudContainer implements Container {
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack item = this.getItem(i);
-            if (item == ItemStack.EMPTY) {
+            if (item.isEmpty()) {
                 emptySlots.add(i);
             }
 
-            int maxStack = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
+            int maxStack = this.itemRegistry.getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
 
             ArrayList<ItemStack> copy = new ArrayList<>(itemSlots);
             for (int j = 0; j < copy.size(); j++) {
@@ -340,7 +339,7 @@ public class CloudContainer implements Container {
             for (int slotIndex : emptySlots) {
                 if (!itemSlots.isEmpty()) {
                     ItemStack slot = itemSlots.get(0);
-                    int maxStackSize = this.itemRegistry.getBehavior(slot.getType(), GET_MAX_STACK_SIZE).execute();
+                    int maxStackSize = this.itemRegistry.getComponent(slot.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(slot);
                     int amount = Math.min(maxStackSize, slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
 
@@ -364,7 +363,7 @@ public class CloudContainer implements Container {
         int count = 0;
 
         for (int i = 0; i < this.size(); i++) {
-            if (this.getItem(i) == ItemStack.EMPTY) {
+            if (this.getItem(i).isEmpty()) {
                 count++;
             }
         }
@@ -400,14 +399,14 @@ public class CloudContainer implements Container {
     public ItemStack[] removeItem(ItemStack... slots) {
         List<ItemStack> itemSlots = new ArrayList<>();
         for (ItemStack slot : slots) {
-            if (slot != ItemStack.EMPTY) {
+            if (!slot.isEmpty()) {
                 itemSlots.add(slot);
             }
         }
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack item = this.getItem(i);
-            if (item == ItemStack.EMPTY) {
+            if (item.isEmpty()) {
                 continue;
             }
 
@@ -446,7 +445,7 @@ public class CloudContainer implements Container {
     public void clear() {
         boolean changed = false;
         for (int index = 0; index < this.size(); index++) {
-            if (this.getItem(index) != ItemStack.EMPTY) {
+            if (!this.getItem(index).isEmpty()) {
                 this.setItem(index, ItemStack.EMPTY);
                 changed = true;
             }
@@ -504,8 +503,8 @@ public class CloudContainer implements Container {
     public boolean isFull() {
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
-            if (ItemUtils.isNull(item) || item.getCount() < this.getMaxStackSize() ||
-                    item.getCount() < this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute()) {
+            if (item.isEmpty() || item.getCount() < this.getMaxStackSize() &&
+                    item.getCount() < this.itemRegistry.getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)) {
                 return false;
             }
         }
@@ -521,7 +520,7 @@ public class CloudContainer implements Container {
 
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
-            if (item != ItemStack.EMPTY) {
+            if (!item.isEmpty()) {
                 return false;
             }
         }
@@ -530,12 +529,12 @@ public class CloudContainer implements Container {
     }
 
     public int getFreeSpace(ItemStack item) {
-        int itemMaxStackSize = this.itemRegistry.getBehavior(item.getType(), GET_MAX_STACK_SIZE).execute();
+        int itemMaxStackSize = this.itemRegistry.getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
         int maxStackSize = Math.min(itemMaxStackSize, this.getMaxStackSize());
         int space = 0;
 
         for (ItemStack slot : this.getContents()) {
-            if (slot == null || slot == ItemStack.EMPTY) {
+            if (slot == null || slot.isEmpty()) {
                 space += maxStackSize;
                 continue;
             }
@@ -553,7 +552,7 @@ public class CloudContainer implements Container {
 
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
-            if (item != ItemStack.EMPTY) {
+            if (!item.isEmpty()) {
                 inventoryItems.add(ItemUtils.serializeItem(item, i));
             }
         }

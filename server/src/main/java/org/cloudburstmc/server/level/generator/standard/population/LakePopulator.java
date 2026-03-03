@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
@@ -121,13 +121,13 @@ public class LakePopulator extends ChancePopulator.Column {
 
                             if (y < 4) {
 //                                log.info("Getting behavior for {}", state.getType());
-                                boolean isSolid = CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_SOLID);
+                                boolean isSolid = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get();
                                 if (state != block && !isSolid) {
                                     return;
                                 }
                             } else {
 //                                log.info("Getting behavior for {}", state.getType());
-                                if (CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID)) {
+                                if (CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get()) {
                                     return;
                                 }
                             }
@@ -192,14 +192,16 @@ public class LakePopulator extends ChancePopulator.Column {
                                 continue;
                             }
 
-                            if (((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
+                            if ((y > 0 && points.get(((y - 1) << 8) | (x << 4) | z))
                                     || (y < 7 && points.get(((y + 1) << 8) | (x << 4) | z))
                                     || (x > 0 && points.get((y << 8) | ((x - 1) << 4) | z))
                                     || (x < 15 && points.get((y << 8) | ((x + 1) << 4) | z))
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
-                                    || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1))))
-                                    && CloudBlockRegistry.REGISTRY.getBehavior(level.getBlockState(blockX + x, blockY + y, blockZ + z, 0).getType(), BlockBehaviors.IS_SOLID)) {
-                                level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
+                                    || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
+                                BlockState stateToCheck = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0);
+                                if (CloudBlockRegistry.REGISTRY.getComponent(stateToCheck.getType(), BlockComponents.SOLID).get()) {
+                                    level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
+                                }
                             }
                         }
                     }

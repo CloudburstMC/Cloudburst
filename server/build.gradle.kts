@@ -108,6 +108,33 @@ tasks.register<JavaExec>("run") {
     systemProperty("guice_bytecode_gen_option", "DISABLED")
 }
 
+val codegenRuntime: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
+dependencies {
+    codegenRuntime(project(":codegen"))
+}
+
+val generatedBlockDataDir = layout.buildDirectory.dir("generated/sources/blockData/java")
+
+sourceSets["main"].java.srcDir(generatedBlockDataDir)
+
+tasks.register<JavaExec>("generateBlockData") {
+    group = "build"
+    classpath = codegenRuntime
+    mainClass.set("org.cloudburstmc.codegen.BlockDataGen")
+    inputs.file(layout.projectDirectory.file("src/main/resources/data/block_properties.json"))
+    inputs.file(rootProject.file("api/src/main/java/org/cloudburstmc/api/block/BlockIds.java"))
+    inputs.file(rootProject.file("api/src/main/java/org/cloudburstmc/api/block/BlockTypes.java"))
+    outputs.dir(generatedBlockDataDir)
+}
+
+tasks.compileJava {
+    dependsOn("generateBlockData")
+}
+
 abstract class GenerateGitPropertiesTask : DefaultTask() {
     @get:OutputFile
     abstract val outputFile: RegularFileProperty

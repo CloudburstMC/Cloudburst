@@ -18,16 +18,15 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
         Identifier id = state.getType().getId();
 
         return id == BlockIds.AIR ||
-                BlockCategories.inCategory(state.getType(), BlockCategory.LEAVES) ||
-                (!CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_LIQUID) &&
-                        CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE));
+                state.getType().hasTag(BlockTags.LEAVES) ||
+                (!CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get() && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.REPLACEABLE).get());
     }
 
     public boolean testOrLiquid(BlockState state) {
         BlockType type = state.getType();
-        return type == BlockTypes.AIR || 
-                BlockCategories.inCategory(type, BlockCategory.LEAVES) ||
-                CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.IS_REPLACEABLE);
+        return type == BlockTypes.AIR ||
+                type.hasTag(BlockTags.LEAVES) ||
+                CloudBlockRegistry.REGISTRY.getComponent(type, BlockComponents.REPLACEABLE).get();
     }
 
     /**

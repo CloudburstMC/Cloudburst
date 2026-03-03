@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -24,8 +23,9 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -139,21 +139,21 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
+            if (this.getItem().getCount() < CloudItemRegistry.get().getComponents(getItem().getType()).get(ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (!closeItem.isCombinable(getItem())) {
+                        if (closeItem == null || !closeItem.isCombinable(getItem())) {
                             continue;
                         }
                         if (!entity.isOnGround()) {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
-                        if (newAmount > CloudItemRegistry.get().getBehavior(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute()) {
+                        if (newAmount > CloudItemRegistry.get().getComponents(getItem().getType()).get(ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
                             continue;
                         }
                         entity.close();
@@ -208,8 +208,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                var block = this.getLevel().getBlockState(pos.add(0, -1, -1).toInt());
-                friction *= CloudBlockRegistry.REGISTRY.getBehavior(block.getType(), BlockBehaviors.GET_FRICTION).execute(block);
+                var block = this.getLevel().getBlockState(pos.add(0, -1, 0).toInt());
+                friction *= CloudBlockRegistry.REGISTRY.getComponent(block.getType(), BlockComponents.FRICTION).get();
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);

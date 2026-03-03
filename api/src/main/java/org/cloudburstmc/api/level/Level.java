@@ -16,7 +16,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import java.util.Map;
 import java.util.Set;
 
-public interface Level extends ChunkManager {
+public interface Level extends ChunkManager, LevelHeightAccessor {
     int BLOCK_UPDATE_NORMAL = 1;
     int BLOCK_UPDATE_RANDOM = 2;
     int BLOCK_UPDATE_SCHEDULED = 3;
@@ -210,7 +210,4 @@ public interface Level extends ChunkManager {
 
     Set<? extends Entity> getNearbyEntities(AxisAlignedBB bb, Entity entity, boolean loadChunks);
 
-    int getMinHeight();
-
-    int getMaxHeight();
 }

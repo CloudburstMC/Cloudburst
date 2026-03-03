@@ -14,7 +14,7 @@ import org.cloudburstmc.api.inventory.view.BlockHopperView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.AxisAlignedBB;
@@ -146,7 +146,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             for (int slot : slots) {
                 ItemStack item = containerView.getItem(slot);
 
-                if (item == ItemStack.EMPTY) {
+                if (item.isEmpty()) {
                     continue;
                 }
 
@@ -188,7 +188,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
             ItemStack item = itemEntity.getItem();
 
-            if (item == ItemStack.EMPTY) {
+            if (item.isEmpty()) {
                 continue;
             }
 
@@ -259,16 +259,16 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
             for (int i = 0; i < this.container.size(); i++) {
                 ItemStack item = this.container.getItem(i);
 
-                if (item == ItemStack.EMPTY) {
+                if (item.isEmpty()) {
                     continue;
                 }
 
-                int maxStackSize = CloudItemRegistry.get().getBehavior(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute();
+                int maxStackSize = CloudItemRegistry.get().getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
                 int firstEmpty = -1;
                 int firstPartial = -1;
                 for (int s = 0; s < container.size(); s++) {
                     ItemStack target = container.getItem(s);
-                    if (target == ItemStack.EMPTY) {
+                    if (target.isEmpty()) {
                         if (firstEmpty == -1) firstEmpty = s;
                     } else if (target.equals(item) && target.getCount() < maxStackSize) {
                         if (firstPartial == -1) firstPartial = s;
@@ -290,7 +290,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                     return false;
                 }
 
-                if (target == ItemStack.EMPTY) {
+                if (target.isEmpty()) {
                     container.setItem(slot, item);
                 } else {
                     container.incrementCount(slot);

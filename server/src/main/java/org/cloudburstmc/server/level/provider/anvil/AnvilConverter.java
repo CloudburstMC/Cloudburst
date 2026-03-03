@@ -46,7 +46,7 @@ public class AnvilConverter {
             tag = tag.getCompound("Level");
         }
 
-        CloudChunkSection[] sections = new CloudChunkSection[CloudChunk.SECTION_COUNT];
+        CloudChunkSection[] sections = new CloudChunkSection[chunkBuilder.getLevel().getSectionsCount()];
 
         // Reusable array for performance
         final int[] blockState = new int[2];

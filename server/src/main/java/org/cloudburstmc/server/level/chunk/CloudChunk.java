@@ -42,9 +42,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Log4j2
 public final class CloudChunk implements Chunk, Closeable {
 
-    public static final int SECTION_COUNT = 24;
-    public static final int MIN_SECTION_Y = -4;
-
     static final int ARRAY_SIZE = 256;
 
     private static final CloudChunkSection EMPTY = new CloudChunkSection(new BlockStorage[]{new BlockStorage(BitArrayVersion.V1),
@@ -273,18 +270,18 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    public static short blockKey(Vector3i vector) {
-        return blockKey(vector.getX(), vector.getY(), vector.getZ());
+    public static short blockKey(Vector3i vector, int minHeight) {
+        return blockKey(vector.getX(), vector.getY(), vector.getZ(), minHeight);
     }
 
-    public static short blockKey(int x, int y, int z) {
-        return (short) ((x & 0xf) | ((z & 0xf) << 4) | (((y + 64) & 0x1ff) << 8));
+    public static short blockKey(int x, int y, int z, int minHeight) {
+        return (short) ((x & 0xf) | ((z & 0xf) << 4) | (((y - minHeight) & 0x1ff) << 8));
     }
 
-    public static Vector3i fromKey(long chunkKey, short blockKey) {
+    public static Vector3i fromKey(long chunkKey, short blockKey, int minHeight) {
         int x = (blockKey & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 4) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = ((blockKey >>> 8) & 0x1ff) - 64;
+        int y = ((blockKey >>> 8) & 0x1ff) + minHeight;
         return Vector3i.from(x, y, z);
     }
 
@@ -348,12 +345,20 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    public static Vector4i fromKey(long chunkKey, int blockKey) {
+    public static Vector4i fromKey(long chunkKey, int blockKey, int minHeight) {
         int layer = blockKey & 0x1;
         int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = ((blockKey >>> 9) & 0x1ff) - 64;
+        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
         return Vector4i.from(x, y, z, layer);
+    }
+
+    /** Decode a light-queue int block key (layer=0 assumed) into a world Vector3i. */
+    public static Vector3i fromKeyLight(long chunkKey, int blockKey, int minHeight) {
+        int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
+        int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
+        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
+        return Vector3i.from(x, y, z);
     }
 
     @Override
@@ -477,8 +482,8 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    public static int blockKey(int x, int y, int z, int layer) {
-        return (layer & 0x1) | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y + 64) & 0x1ff) << 9);
+    public static int blockKeyWithLayer(int x, int y, int z, int layer, int minHeight) {
+        return (layer & 0x1) | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y - minHeight) & 0x1ff) << 9);
     }
 
     @Override
@@ -549,8 +554,9 @@ public final class CloudChunk implements Chunk, Closeable {
         this.readLock.lock();
         try {
             CloudChunkSection[] sections = unsafe.getSections();
+            int sectionCount = unsafe.getLevel().getSectionsCount();
 
-            int highestSectionIdx = SECTION_COUNT - 1;
+            int highestSectionIdx = sectionCount - 1;
             while (highestSectionIdx >= 0 && (sections[highestSectionIdx] == null || sections[highestSectionIdx].isEmpty())) {
                 highestSectionIdx--;
             }
@@ -560,9 +566,9 @@ public final class CloudChunk implements Chunk, Closeable {
 
             ByteBuf buffer = Unpooled.buffer();
             try {
-                // Biome payload for sub-chunk request mode (3D paletted format, 24 sections).
+                // Biome payload for sub-chunk request mode (3D paletted format, one section per dimension slot).
                 // Section 0: V0 singleton palette with the chunk's representative biome ID.
-                // Sections 1–23: 0xFF copy-last, inheriting section 0's palette.
+                // Sections 1–(sectionCount-1): 0xFF copy-last, inheriting section 0's palette.
                 // We store only 2D biomes, so biome[0] (column 0,0) represents the whole chunk.
                 int biomeId = unsafe.getBiomeArray()[0] & 0xFF;
 
@@ -570,7 +576,7 @@ public final class CloudChunk implements Chunk, Closeable {
                 VarInts.writeInt(buffer, 1); // palette size
                 VarInts.writeInt(buffer, biomeId);
 
-                for (int i = 1; i < SECTION_COUNT; i++) {
+                for (int i = 1; i < sectionCount; i++) {
                     buffer.writeByte(0xFF); // copy-last
                 }
 

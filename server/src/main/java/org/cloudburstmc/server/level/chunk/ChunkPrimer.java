@@ -15,18 +15,22 @@ import java.util.Arrays;
  */
 public final class ChunkPrimer {
     private static final int SECTION_SIZE = 16 * 16 * 16;
-    private static final int LAYER_SIZE = SECTION_SIZE * CloudChunk.SECTION_COUNT;
     private static final int LAYER_COUNT = 2;
-    private static final int CHUNK_SIZE = LAYER_SIZE * LAYER_COUNT;
 
-    private static int index(int x, int y, int z, int layer) {
+    private final int layerSize;
+    private final char[] data;
+
+    public ChunkPrimer(int sectionsCount) {
+        this.layerSize = SECTION_SIZE * sectionsCount;
+        this.data = new char[this.layerSize * LAYER_COUNT];
+    }
+
+    private int index(int x, int y, int z, int layer) {
         CloudChunkSection.checkBounds(x, y, z);
         Preconditions.checkArgument(layer >= 0 && layer < LAYER_COUNT, "layer (%s) is not between 0 and %s", layer, LAYER_COUNT);
 
-        return CloudChunkSection.blockIndex(x, y, z) | layer * LAYER_SIZE;
+        return CloudChunkSection.blockIndex(x, y, z) | layer * this.layerSize;
     }
-
-    private final char[] data = new char[CHUNK_SIZE];
 
     public void setBlock(int x, int y, int z, BlockState blockState) {
         this.setBlock(x, y, z, 0, blockState);

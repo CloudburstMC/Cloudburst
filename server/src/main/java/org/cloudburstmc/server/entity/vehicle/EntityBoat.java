@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import org.cloudburstmc.api.block.BlockBehaviors;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -26,6 +25,7 @@ import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var b = this.getLevel().getBlockState(this.getPosition().down().toInt());
-                friction *= CloudBlockRegistry.REGISTRY.getBehavior(b.getType(), BlockBehaviors.GET_FRICTION).execute(b);
+                friction *= CloudBlockRegistry.REGISTRY.getComponent(b.getType(), BlockComponents.FRICTION).get();
             }
 
             this.motion = motion.mul(friction, 1, friction);

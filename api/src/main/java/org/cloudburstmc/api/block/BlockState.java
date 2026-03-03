@@ -12,10 +12,20 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-public class BlockState {
+/**
+ * An immutable snapshot of a block type and its current trait values.
+ * <p>
+ * Shape data (collisionBoxes, outlineBoxes) is injected at startup by {@code BlockPalette}
+ * from {@code BlockPropertyData} for states where geometry varies by trait.
+ */
+public final class BlockState {
 
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
+
+    float[] collisionBoxes;
+    float[] outlineBoxes;
+
     private Map<BlockTrait<?>, BlockState[]> blockStates;
 
     public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
@@ -29,6 +39,38 @@ public class BlockState {
 
     public Map<BlockTrait<?>, Comparable<?>> getTraits() {
         return traits;
+    }
+
+    /**
+     * Flat array of AABB boxes {@code [minX, minY, minZ, maxX, maxY, maxZ, ...]} for collision,
+     * or {@code null} if the block uses the dynamic component ({@link BlockComponents#GET_BOUNDING_BOX}).
+     */
+    public float[] getCollisionBoxes() {
+        return collisionBoxes;
+    }
+
+    /**
+     * Flat array of AABB boxes for the outline (selection) shape,
+     * or {@code null} to fall back to {@link #getCollisionBoxes()}.
+     */
+    public float[] getOutlineBoxes() {
+        return outlineBoxes;
+    }
+
+    /**
+     * Populates the per-state shape data. Called at most once per state by
+     * {@code BlockPalette} during startup using data from {@code BlockPropertyData.BY_STATE_HASH}.
+     *
+     * @param collisionBoxes flat AABB array for collision, or {@code null} for full cube / dynamic
+     * @param outlineBoxes   flat AABB array for outline, or {@code null} to mirror collisionBoxes
+     */
+    public void initStateData(float[] collisionBoxes, float[] outlineBoxes) {
+        this.collisionBoxes = collisionBoxes;
+        this.outlineBoxes = outlineBoxes;
+    }
+
+    public boolean hasTag(BlockTag tag) {
+        return BlockTags.hasTag(this.type, tag);
     }
 
     public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
@@ -57,12 +99,9 @@ public class BlockState {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public BlockState copyTraits(BlockState from) {
         BlockState result = this;
-
-        //TODO: direct access?
         for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
             result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
         }
-
         return result;
     }
 
@@ -76,8 +115,8 @@ public class BlockState {
         return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));
     }
 
-    public boolean inCategory(BlockCategory category) {
-        return BlockCategories.inCategory(this.getType(), category);
+    public BlockState toggleTrait(BooleanBlockTrait trait) {
+        return this.blockStates.get(trait)[trait.getIndex(!((Boolean) this.traits.get(trait)))];
     }
 
     @Override
@@ -86,18 +125,13 @@ public class BlockState {
         builder.append(this.type);
         if (!this.traits.isEmpty()) {
             builder.append('{');
-            this.traits.forEach((trait, value) -> builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
+            this.traits.forEach((trait, value) ->
+                    builder.append(trait).append('=').append(value.toString().toLowerCase()).append(',').append(' '));
             builder.setLength(builder.length() - 1);
             builder.setCharAt(builder.length() - 1, '}');
         }
         return builder.toString();
     }
-
-    public BlockState toggleTrait(BooleanBlockTrait trait) {
-        return this.blockStates.get(trait)[trait.getIndex(!((Boolean) this.traits.get(trait)))];
-    }
-
-    //------------------------      INTERNAL      ------------------------
 
     void initialize(Map<Map<BlockTrait<?>, Comparable<?>>, BlockState> map) {
         checkState(this.blockStates == null, "BlockTrait states has already been built");
@@ -118,7 +152,7 @@ public class BlockState {
 
     private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {
         ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
-        this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v)); //this actually performs better than using a loop
+        this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v));
         return builder.build();
     }
 }

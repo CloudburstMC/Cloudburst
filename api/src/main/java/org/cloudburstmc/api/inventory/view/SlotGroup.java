@@ -111,7 +111,7 @@ public interface SlotGroup {
      */
     default int firstEmpty() {
         for (int i = 0; i < size(); i++) {
-            if (getItem(i) == ItemStack.EMPTY) {
+            if (getItem(i).isEmpty()) {
                 return i;
             }
         }
@@ -227,12 +227,12 @@ public interface SlotGroup {
      */
     default ItemStack[] addItem(ItemStack... items) {
         List<ItemStack> remaining = new ArrayList<>(Arrays.asList(items));
-        remaining.removeIf(s -> s == ItemStack.EMPTY || s.getCount() <= 0);
+        remaining.removeIf(s -> s.isEmpty() || s.getCount() <= 0);
 
         for (int i = 0; i < size() && !remaining.isEmpty(); i++) {
             ItemStack slot = getItem(i);
             int maxStack = getMaxStackSize(i);
-            if (slot == ItemStack.EMPTY || slot.getCount() >= maxStack) {
+            if (slot.isEmpty() || slot.getCount() >= maxStack) {
                 continue;
             }
             for (int j = 0; j < remaining.size(); j++) {
@@ -258,7 +258,7 @@ public interface SlotGroup {
         }
 
         for (int i = 0; i < size() && !remaining.isEmpty(); i++) {
-            if (getItem(i) != ItemStack.EMPTY) {
+            if (!getItem(i).isEmpty()) {
                 continue;
             }
             ItemStack toAdd = remaining.get(0);

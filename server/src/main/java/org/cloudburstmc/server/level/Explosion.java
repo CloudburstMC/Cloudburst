@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockBehaviors;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
@@ -109,7 +109,7 @@ public class Explosion {
                                     pointerY >= y ? y : y - 1,
                                     pointerZ >= z ? z : z - 1
                             );
-                            if (vBlock.getY() < 0 || vBlock.getY() > 255) {
+                            if (vBlock.getY() < -64 || vBlock.getY() > 319) {
                                 break;
                             }
                             Block block = this.level.getLoadedBlock(vBlock);
@@ -118,7 +118,10 @@ public class Explosion {
                                 var state = block.getState();
                                 BlockState layer1 = block.getExtra();
 
-                                double resistance = Math.max(CloudBlockRegistry.REGISTRY.getBehavior(state.getType(), BlockBehaviors.GET_RESISTANCE), CloudBlockRegistry.REGISTRY.getBehavior(layer1.getType(), BlockBehaviors.GET_RESISTANCE));
+                                double resistance = Math.max(
+                                        CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.RESISTANCE).get(),
+                                        CloudBlockRegistry.REGISTRY.getComponent(layer1.getType(), BlockComponents.RESISTANCE).get()
+                                );
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {
