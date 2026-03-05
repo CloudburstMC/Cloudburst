@@ -62,18 +62,15 @@ public class BlockUpdateScheduler {
                         BlockState extra = block.getExtra();
 
                         if (entry.block.getState() == state) {
-                            //TODO ???
                             CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.ON_TICK).execute(block, null);
-//                            state.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
                         }
 
                         if (entry.block.getExtra() == extra && extra != BlockStates.AIR) {
-                            //TODO ???
-                            CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.ON_TICK).execute(block, null);
-//                            extra.getBehavior().onUpdate(block, CloudLevel.BLOCK_UPDATE_SCHEDULED);
+                            CloudBlockRegistry.REGISTRY.getComponent(extra.getType(), BlockComponents.ON_TICK).execute(block, null);
                         }
                     } else {
-                        level.scheduleUpdate(entry.block, entry.pos, 0);
+                        int delay = CloudBlockRegistry.REGISTRY.getComponent(level.getBlock(entry.pos).getState().getType(), BlockComponents.TICK_DELAY).get();
+                        level.scheduleUpdate(entry.block, entry.pos, Math.max(delay, 1));
                     }
                 }
             }
