@@ -10,6 +10,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
+import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -23,6 +24,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.SpawnEggItemHandlers;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
@@ -84,11 +86,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return this.hardcodedBlockingId;
     }
 
-    protected synchronized void registerVanilla(ItemType type) throws RegistryException {
-        registerVanilla(type, null);
+    protected synchronized CloudComponentMap registerVanilla(ItemType type) throws RegistryException {
+        return registerVanilla(type, null);
     }
 
-    private synchronized void registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
+    private synchronized CloudComponentMap registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
         Objects.requireNonNull(type, "type");
         checkClosed();
 
@@ -100,10 +102,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
         collection.bake();
-
         putComponents(type, collection);
-
         this.registerType(type, type.getId());
+        return collection;
     }
 
     protected void registerBlock(BlockType type) {
@@ -246,25 +247,35 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.ACACIA_BOAT);
         registerVanilla(ItemTypes.ACACIA_CHEST_BOAT);
         registerVanilla(ItemTypes.ACACIA_SIGN);
-        registerVanilla(ItemTypes.ALLAY_SPAWN_EGG);
+        registerVanilla(ItemTypes.ALLAY_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ALLAY));
         registerVanilla(ItemTypes.AMETHYST_SHARD);
         registerVanilla(ItemTypes.ANGLER_POTTERY_SHERD);
         registerVanilla(ItemTypes.APPLE);
         registerVanilla(ItemTypes.ARCHER_POTTERY_SHERD);
         registerVanilla(ItemTypes.ARMADILLO_SCUTE);
-        registerVanilla(ItemTypes.ARMADILLO_SPAWN_EGG);
+        registerVanilla(ItemTypes.ARMADILLO_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ARMADILLO));
         registerVanilla(ItemTypes.ARMOR_STAND);
         registerVanilla(ItemTypes.ARMS_UP_POTTERY_SHERD);
         registerVanilla(ItemTypes.ARROW);
         registerVanilla(ItemTypes.AXOLOTL_BUCKET);
-        registerVanilla(ItemTypes.AXOLOTL_SPAWN_EGG);
+        registerVanilla(ItemTypes.AXOLOTL_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.AXOLOTL));
         registerVanilla(ItemTypes.BAKED_POTATO);
         registerVanilla(ItemTypes.BAMBOO_CHEST_RAFT);
         registerVanilla(ItemTypes.BAMBOO_RAFT);
         registerVanilla(ItemTypes.BAMBOO_SIGN);
         registerVanilla(ItemTypes.BANNER, new BannerSerializer());
-        registerVanilla(ItemTypes.BAT_SPAWN_EGG);
-        registerVanilla(ItemTypes.BEE_SPAWN_EGG);
+        registerVanilla(ItemTypes.BAT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BAT));
+        registerVanilla(ItemTypes.BEE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BEE));
         registerVanilla(ItemTypes.BEEF);
         registerVanilla(ItemTypes.BEETROOT_SEEDS);
         registerVanilla(ItemTypes.BEETROOT_SOUP);
@@ -277,12 +288,16 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BLADE_POTTERY_SHERD);
         registerVanilla(ItemTypes.BLAZE_POWDER);
         registerVanilla(ItemTypes.BLAZE_ROD);
-        registerVanilla(ItemTypes.BLAZE_SPAWN_EGG);
+        registerVanilla(ItemTypes.BLAZE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BLAZE));
         registerVanilla(ItemTypes.BLUE_BUNDLE);
         registerVanilla(ItemTypes.BLUE_DYE);
         registerVanilla(ItemTypes.BLUE_EGG);
         registerVanilla(ItemTypes.BLUE_HARNESS);
-        registerVanilla(ItemTypes.BOGGED_SPAWN_EGG);
+        registerVanilla(ItemTypes.BOGGED_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BOGGED));
         registerVanilla(ItemTypes.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.BONE);
         registerVanilla(ItemTypes.BONE_MEAL);
@@ -292,7 +307,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BOWL);
         registerVanilla(ItemTypes.BREAD);
         registerVanilla(ItemTypes.BREEZE_ROD);
-        registerVanilla(ItemTypes.BREEZE_SPAWN_EGG);
+        registerVanilla(ItemTypes.BREEZE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BREEZE));
         registerVanilla(ItemTypes.BREWER_POTTERY_SHERD);
         registerVanilla(ItemTypes.BRICK);
         registerVanilla(ItemTypes.BROWN_BUNDLE);
@@ -303,12 +320,20 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BUCKET);
         registerVanilla(ItemTypes.BUNDLE);
         registerVanilla(ItemTypes.BURN_POTTERY_SHERD);
-        registerVanilla(ItemTypes.CAMEL_HUSK_SPAWN_EGG);
-        registerVanilla(ItemTypes.CAMEL_SPAWN_EGG);
+        registerVanilla(ItemTypes.CAMEL_HUSK_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAMEL_HUSK));
+        registerVanilla(ItemTypes.CAMEL_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAMEL));
         registerVanilla(ItemTypes.CARROT);
         registerVanilla(ItemTypes.CARROT_ON_A_STICK);
-        registerVanilla(ItemTypes.CAT_SPAWN_EGG);
-        registerVanilla(ItemTypes.CAVE_SPIDER_SPAWN_EGG);
+        registerVanilla(ItemTypes.CAT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAT));
+        registerVanilla(ItemTypes.CAVE_SPIDER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAVE_SPIDER));
         registerVanilla(ItemTypes.CHAINMAIL_BOOTS);
         registerVanilla(ItemTypes.CHAINMAIL_CHESTPLATE);
         registerVanilla(ItemTypes.CHAINMAIL_HELMET);
@@ -319,7 +344,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CHERRY_SIGN);
         registerVanilla(ItemTypes.CHEST_MINECART);
         registerVanilla(ItemTypes.CHICKEN);
-        registerVanilla(ItemTypes.CHICKEN_SPAWN_EGG);
+        registerVanilla(ItemTypes.CHICKEN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CHICKEN));
         registerVanilla(ItemTypes.CHORUS_FRUIT);
         registerVanilla(ItemTypes.CLAY_BALL);
         registerVanilla(ItemTypes.CLOCK);
@@ -328,7 +355,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COCOA_BEANS);
         registerVanilla(ItemTypes.COD);
         registerVanilla(ItemTypes.COD_BUCKET);
-        registerVanilla(ItemTypes.COD_SPAWN_EGG);
+        registerVanilla(ItemTypes.COD_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COD));
         registerVanilla(ItemTypes.COMPARATOR);
         registerVanilla(ItemTypes.COMPASS);
         registerVanilla(ItemTypes.COOKED_BEEF);
@@ -342,7 +371,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COPPER_AXE);
         registerVanilla(ItemTypes.COPPER_BOOTS);
         registerVanilla(ItemTypes.COPPER_CHESTPLATE);
-        registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG);
+        registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COPPER_GOLEM));
         registerVanilla(ItemTypes.COPPER_HELMET);
         registerVanilla(ItemTypes.COPPER_HOE);
         registerVanilla(ItemTypes.COPPER_HORSE_ARMOR);
@@ -354,10 +385,16 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COPPER_SHOVEL);
         registerVanilla(ItemTypes.COPPER_SPEAR);
         registerVanilla(ItemTypes.COPPER_SWORD);
-        registerVanilla(ItemTypes.COW_SPAWN_EGG);
-        registerVanilla(ItemTypes.CREAKING_SPAWN_EGG);
+        registerVanilla(ItemTypes.COW_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COW));
+        registerVanilla(ItemTypes.CREAKING_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CREAKING));
         registerVanilla(ItemTypes.CREEPER_BANNER_PATTERN);
-        registerVanilla(ItemTypes.CREEPER_SPAWN_EGG);
+        registerVanilla(ItemTypes.CREEPER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CREEPER));
         registerVanilla(ItemTypes.CRIMSON_SIGN);
         registerVanilla(ItemTypes.CROSSBOW);
         registerVanilla(ItemTypes.CYAN_BUNDLE);
@@ -381,15 +418,23 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DIAMOND_SPEAR);
         registerVanilla(ItemTypes.DIAMOND_SWORD);
         registerVanilla(ItemTypes.DISC_FRAGMENT_5);
-        registerVanilla(ItemTypes.DOLPHIN_SPAWN_EGG);
-        registerVanilla(ItemTypes.DONKEY_SPAWN_EGG);
+        registerVanilla(ItemTypes.DOLPHIN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.DOLPHIN));
+        registerVanilla(ItemTypes.DONKEY_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.DONKEY));
         registerVanilla(ItemTypes.DRAGON_BREATH);
         registerVanilla(ItemTypes.DRIED_KELP);
-        registerVanilla(ItemTypes.DROWNED_SPAWN_EGG);
+        registerVanilla(ItemTypes.DROWNED_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.DROWNED));
         registerVanilla(ItemTypes.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.ECHO_SHARD);
         registerVanilla(ItemTypes.EGG);
-        registerVanilla(ItemTypes.ELDER_GUARDIAN_SPAWN_EGG);
+        registerVanilla(ItemTypes.ELDER_GUARDIAN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ELDER_GUARDIAN));
         registerVanilla(ItemTypes.ELYTRA);
         registerVanilla(ItemTypes.EMERALD);
         registerVanilla(ItemTypes.EMPTY_MAP);
@@ -398,9 +443,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.END_CRYSTAL);
         registerVanilla(ItemTypes.ENDER_EYE);
         registerVanilla(ItemTypes.ENDER_PEARL);
-        registerVanilla(ItemTypes.ENDERMAN_SPAWN_EGG);
-        registerVanilla(ItemTypes.ENDERMITE_SPAWN_EGG);
-        registerVanilla(ItemTypes.EVOKER_SPAWN_EGG);
+        registerVanilla(ItemTypes.ENDERMAN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ENDERMAN));
+        registerVanilla(ItemTypes.ENDERMITE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ENDERMITE));
+        registerVanilla(ItemTypes.EVOKER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.EVOCATION_ILLAGER));
         registerVanilla(ItemTypes.EXPERIENCE_BOTTLE);
         registerVanilla(ItemTypes.EXPLORER_POTTERY_SHERD);
         registerVanilla(ItemTypes.EYE_ARMOR_TRIM_SMITHING_TEMPLATE);
@@ -419,20 +470,30 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.FLOW_BANNER_PATTERN);
         registerVanilla(ItemTypes.FLOW_POTTERY_SHERD);
         registerVanilla(ItemTypes.FLOWER_BANNER_PATTERN);
-        registerVanilla(ItemTypes.FOX_SPAWN_EGG);
+        registerVanilla(ItemTypes.FOX_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.FOX));
         registerVanilla(ItemTypes.FRIEND_POTTERY_SHERD);
-        registerVanilla(ItemTypes.FROG_SPAWN_EGG);
-        registerVanilla(ItemTypes.GHAST_SPAWN_EGG);
+        registerVanilla(ItemTypes.FROG_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.FROG));
+        registerVanilla(ItemTypes.GHAST_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.GHAST));
         registerVanilla(ItemTypes.GHAST_TEAR);
         registerVanilla(ItemTypes.GLASS_BOTTLE);
         registerVanilla(ItemTypes.GLISTERING_MELON_SLICE);
         registerVanilla(ItemTypes.GLOBE_BANNER_PATTERN);
         registerVanilla(ItemTypes.GLOW_BERRIES);
         registerVanilla(ItemTypes.GLOW_INK_SAC);
-        registerVanilla(ItemTypes.GLOW_SQUID_SPAWN_EGG);
+        registerVanilla(ItemTypes.GLOW_SQUID_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.GLOW_SQUID));
         registerVanilla(ItemTypes.GLOWSTONE_DUST);
         registerVanilla(ItemTypes.GOAT_HORN);
-        registerVanilla(ItemTypes.GOAT_SPAWN_EGG);
+        registerVanilla(ItemTypes.GOAT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.GOAT));
         registerVanilla(ItemTypes.GOLD_INGOT);
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.GOLDEN_APPLE);
@@ -455,27 +516,39 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GREEN_BUNDLE);
         registerVanilla(ItemTypes.GREEN_DYE);
         registerVanilla(ItemTypes.GREEN_HARNESS);
-        registerVanilla(ItemTypes.GUARDIAN_SPAWN_EGG);
+        registerVanilla(ItemTypes.GUARDIAN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.GUARDIAN));
         registerVanilla(ItemTypes.GUNPOWDER);
         registerVanilla(ItemTypes.GUSTER_BANNER_PATTERN);
         registerVanilla(ItemTypes.GUSTER_POTTERY_SHERD);
-        registerVanilla(ItemTypes.HAPPY_GHAST_SPAWN_EGG);
+        registerVanilla(ItemTypes.HAPPY_GHAST_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HAPPY_GHAST));
         registerVanilla(ItemTypes.HEART_OF_THE_SEA);
         registerVanilla(ItemTypes.HEART_POTTERY_SHERD);
         registerVanilla(ItemTypes.HEARTBREAK_POTTERY_SHERD);
-        registerVanilla(ItemTypes.HOGLIN_SPAWN_EGG);
+        registerVanilla(ItemTypes.HOGLIN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HOGLIN));
         registerVanilla(ItemTypes.HONEY_BOTTLE);
         registerVanilla(ItemTypes.HONEYCOMB);
         registerVanilla(ItemTypes.HOPPER_MINECART);
-        registerVanilla(ItemTypes.HORSE_SPAWN_EGG);
+        registerVanilla(ItemTypes.HORSE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HORSE));
         registerVanilla(ItemTypes.HOST_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.HOWL_POTTERY_SHERD);
-        registerVanilla(ItemTypes.HUSK_SPAWN_EGG);
+        registerVanilla(ItemTypes.HUSK_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HUSK));
         registerVanilla(ItemTypes.INK_SAC);
         registerVanilla(ItemTypes.IRON_AXE);
         registerVanilla(ItemTypes.IRON_BOOTS);
         registerVanilla(ItemTypes.IRON_CHESTPLATE);
-        registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG);
+        registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.IRON_GOLEM));
         registerVanilla(ItemTypes.IRON_HELMET);
         registerVanilla(ItemTypes.IRON_HOE);
         registerVanilla(ItemTypes.IRON_HORSE_ARMOR);
@@ -509,13 +582,17 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LIME_DYE);
         registerVanilla(ItemTypes.LIME_HARNESS);
         registerVanilla(ItemTypes.LINGERING_POTION);
-        registerVanilla(ItemTypes.LLAMA_SPAWN_EGG);
+        registerVanilla(ItemTypes.LLAMA_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.LLAMA));
         registerVanilla(ItemTypes.MACE);
         registerVanilla(ItemTypes.MAGENTA_BUNDLE);
         registerVanilla(ItemTypes.MAGENTA_DYE);
         registerVanilla(ItemTypes.MAGENTA_HARNESS);
         registerVanilla(ItemTypes.MAGMA_CREAM);
-        registerVanilla(ItemTypes.MAGMA_CUBE_SPAWN_EGG);
+        registerVanilla(ItemTypes.MAGMA_CUBE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.MAGMA_CUBE));
         registerVanilla(ItemTypes.MANGROVE_BOAT);
         registerVanilla(ItemTypes.MANGROVE_CHEST_BOAT);
         registerVanilla(ItemTypes.MANGROVE_SIGN);
@@ -525,9 +602,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.MINECART);
         registerVanilla(ItemTypes.MINER_POTTERY_SHERD);
         registerVanilla(ItemTypes.MOJANG_BANNER_PATTERN);
-        registerVanilla(ItemTypes.MOOSHROOM_SPAWN_EGG);
+        registerVanilla(ItemTypes.MOOSHROOM_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.MOOSHROOM));
         registerVanilla(ItemTypes.MOURNER_POTTERY_SHERD);
-        registerVanilla(ItemTypes.MULE_SPAWN_EGG);
+        registerVanilla(ItemTypes.MULE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.MULE));
         registerVanilla(ItemTypes.MUSHROOM_STEW);
         registerVanilla(ItemTypes.MUSIC_DISC_11);
         registerVanilla(ItemTypes.MUSIC_DISC_13);
@@ -553,7 +634,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.MUTTON);
         registerVanilla(ItemTypes.NAME_TAG);
         registerVanilla(ItemTypes.NAUTILUS_SHELL);
-        registerVanilla(ItemTypes.NAUTILUS_SPAWN_EGG);
+        registerVanilla(ItemTypes.NAUTILUS_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NAUTILUS));
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.NETHERBRICK);
         registerVanilla(ItemTypes.NETHERITE_AXE);
@@ -575,7 +658,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.OAK_BOAT);
         registerVanilla(ItemTypes.OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.OAK_SIGN);
-        registerVanilla(ItemTypes.OCELOT_SPAWN_EGG);
+        registerVanilla(ItemTypes.OCELOT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.OCELOT));
         registerVanilla(ItemTypes.OMINOUS_BOTTLE);
         registerVanilla(ItemTypes.OMINOUS_TRIAL_KEY);
         registerVanilla(ItemTypes.ORANGE_BUNDLE);
@@ -585,24 +670,42 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.PALE_OAK_BOAT);
         registerVanilla(ItemTypes.PALE_OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.PALE_OAK_SIGN);
-        registerVanilla(ItemTypes.PANDA_SPAWN_EGG);
+        registerVanilla(ItemTypes.PANDA_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PANDA));
         registerVanilla(ItemTypes.PAPER);
-        registerVanilla(ItemTypes.PARCHED_SPAWN_EGG);
-        registerVanilla(ItemTypes.PARROT_SPAWN_EGG);
+        registerVanilla(ItemTypes.PARCHED_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PARCHED));
+        registerVanilla(ItemTypes.PARROT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PARROT));
         registerVanilla(ItemTypes.PHANTOM_MEMBRANE);
-        registerVanilla(ItemTypes.PHANTOM_SPAWN_EGG);
-        registerVanilla(ItemTypes.PIG_SPAWN_EGG);
+        registerVanilla(ItemTypes.PHANTOM_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PHANTOM));
+        registerVanilla(ItemTypes.PIG_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PIG));
         registerVanilla(ItemTypes.PIGLIN_BANNER_PATTERN);
-        registerVanilla(ItemTypes.PIGLIN_BRUTE_SPAWN_EGG);
-        registerVanilla(ItemTypes.PIGLIN_SPAWN_EGG);
-        registerVanilla(ItemTypes.PILLAGER_SPAWN_EGG);
+        registerVanilla(ItemTypes.PIGLIN_BRUTE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PIGLIN_BRUTE));
+        registerVanilla(ItemTypes.PIGLIN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PIGLIN));
+        registerVanilla(ItemTypes.PILLAGER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PILLAGER));
         registerVanilla(ItemTypes.PINK_BUNDLE);
         registerVanilla(ItemTypes.PINK_DYE);
         registerVanilla(ItemTypes.PINK_HARNESS);
         registerVanilla(ItemTypes.PITCHER_POD);
         registerVanilla(ItemTypes.PLENTY_POTTERY_SHERD);
         registerVanilla(ItemTypes.POISONOUS_POTATO);
-        registerVanilla(ItemTypes.POLAR_BEAR_SPAWN_EGG);
+        registerVanilla(ItemTypes.POLAR_BEAR_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.POLAR_BEAR));
         registerVanilla(ItemTypes.POPPED_CHORUS_FRUIT);
         registerVanilla(ItemTypes.PORKCHOP);
         registerVanilla(ItemTypes.POTATO);
@@ -613,7 +716,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.PRIZE_POTTERY_SHERD);
         registerVanilla(ItemTypes.PUFFERFISH);
         registerVanilla(ItemTypes.PUFFERFISH_BUCKET);
-        registerVanilla(ItemTypes.PUFFERFISH_SPAWN_EGG);
+        registerVanilla(ItemTypes.PUFFERFISH_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PUFFERFISH));
         registerVanilla(ItemTypes.PUMPKIN_PIE);
         registerVanilla(ItemTypes.PUMPKIN_SEEDS);
         registerVanilla(ItemTypes.PURPLE_BUNDLE);
@@ -623,10 +728,14 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.RABBIT);
         registerVanilla(ItemTypes.RABBIT_FOOT);
         registerVanilla(ItemTypes.RABBIT_HIDE);
-        registerVanilla(ItemTypes.RABBIT_SPAWN_EGG);
+        registerVanilla(ItemTypes.RABBIT_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.RABBIT));
         registerVanilla(ItemTypes.RABBIT_STEW);
         registerVanilla(ItemTypes.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.RAVAGER_SPAWN_EGG);
+        registerVanilla(ItemTypes.RAVAGER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.RAVAGER));
         registerVanilla(ItemTypes.RAW_COPPER);
         registerVanilla(ItemTypes.RAW_GOLD);
         registerVanilla(ItemTypes.RAW_IRON);
@@ -642,40 +751,62 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SADDLE);
         registerVanilla(ItemTypes.SALMON);
         registerVanilla(ItemTypes.SALMON_BUCKET);
-        registerVanilla(ItemTypes.SALMON_SPAWN_EGG);
+        registerVanilla(ItemTypes.SALMON_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SALMON));
         registerVanilla(ItemTypes.SCRAPE_POTTERY_SHERD);
         registerVanilla(ItemTypes.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SHEAF_POTTERY_SHERD);
         registerVanilla(ItemTypes.SHEARS);
-        registerVanilla(ItemTypes.SHEEP_SPAWN_EGG);
+        registerVanilla(ItemTypes.SHEEP_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SHEEP));
         registerVanilla(ItemTypes.SHELTER_POTTERY_SHERD);
         registerVanilla(ItemTypes.SHIELD);
         registerVanilla(ItemTypes.SHULKER_SHELL);
-        registerVanilla(ItemTypes.SHULKER_SPAWN_EGG);
+        registerVanilla(ItemTypes.SHULKER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SHULKER));
         registerVanilla(ItemTypes.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SILVER_GLAZED_TERRACOTTA);
-        registerVanilla(ItemTypes.SILVERFISH_SPAWN_EGG);
-        registerVanilla(ItemTypes.SKELETON_HORSE_SPAWN_EGG);
-        registerVanilla(ItemTypes.SKELETON_SPAWN_EGG);
+        registerVanilla(ItemTypes.SILVERFISH_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SILVERFISH));
+        registerVanilla(ItemTypes.SKELETON_HORSE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SKELETON_HORSE));
+        registerVanilla(ItemTypes.SKELETON_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SKELETON));
         registerVanilla(ItemTypes.SKULL_BANNER_PATTERN);
         registerVanilla(ItemTypes.SKULL_POTTERY_SHERD);
         registerVanilla(ItemTypes.SLIME_BALL);
-        registerVanilla(ItemTypes.SLIME_SPAWN_EGG);
-        registerVanilla(ItemTypes.SNIFFER_SPAWN_EGG);
+        registerVanilla(ItemTypes.SLIME_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SLIME));
+        registerVanilla(ItemTypes.SNIFFER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SNIFFER));
         registerVanilla(ItemTypes.SNORT_POTTERY_SHERD);
         registerVanilla(ItemTypes.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.SNOW_GOLEM_SPAWN_EGG);
+        registerVanilla(ItemTypes.SNOW_GOLEM_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SNOW_GOLEM));
         registerVanilla(ItemTypes.SNOWBALL);
         registerVanilla(ItemTypes.SPIDER_EYE);
-        registerVanilla(ItemTypes.SPIDER_SPAWN_EGG);
+        registerVanilla(ItemTypes.SPIDER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SPIDER));
         registerVanilla(ItemTypes.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SPLASH_POTION);
         registerVanilla(ItemTypes.SPRUCE_BOAT);
         registerVanilla(ItemTypes.SPRUCE_CHEST_BOAT);
         registerVanilla(ItemTypes.SPRUCE_SIGN);
         registerVanilla(ItemTypes.SPYGLASS);
-        registerVanilla(ItemTypes.SQUID_SPAWN_EGG);
+        registerVanilla(ItemTypes.SQUID_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SQUID));
         registerVanilla(ItemTypes.STICK);
         registerVanilla(ItemTypes.STONE_AXE);
         registerVanilla(ItemTypes.STONE_HOE);
@@ -683,36 +814,58 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.STONE_SHOVEL);
         registerVanilla(ItemTypes.STONE_SPEAR);
         registerVanilla(ItemTypes.STONE_SWORD);
-        registerVanilla(ItemTypes.STRAY_SPAWN_EGG);
-        registerVanilla(ItemTypes.STRIDER_SPAWN_EGG);
+        registerVanilla(ItemTypes.STRAY_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.STRAY));
+        registerVanilla(ItemTypes.STRIDER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.STRIDER));
         registerVanilla(ItemTypes.STRING);
         registerVanilla(ItemTypes.SUGAR);
         registerVanilla(ItemTypes.SUGAR_CANE);
         registerVanilla(ItemTypes.SUSPICIOUS_STEW);
         registerVanilla(ItemTypes.SWEET_BERRIES);
         registerVanilla(ItemTypes.TADPOLE_BUCKET);
-        registerVanilla(ItemTypes.TADPOLE_SPAWN_EGG);
+        registerVanilla(ItemTypes.TADPOLE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TADPOLE));
         registerVanilla(ItemTypes.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.TNT_MINECART);
         registerVanilla(ItemTypes.TORCHFLOWER_SEEDS);
         registerVanilla(ItemTypes.TOTEM_OF_UNDYING);
-        registerVanilla(ItemTypes.TRADER_LLAMA_SPAWN_EGG);
+        registerVanilla(ItemTypes.TRADER_LLAMA_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TRADER_LLAMA));
         registerVanilla(ItemTypes.TRAPDOOR);
         registerVanilla(ItemTypes.TRIAL_KEY);
         registerVanilla(ItemTypes.TRIDENT);
         registerVanilla(ItemTypes.TROPICAL_FISH);
         registerVanilla(ItemTypes.TROPICAL_FISH_BUCKET);
-        registerVanilla(ItemTypes.TROPICAL_FISH_SPAWN_EGG);
+        registerVanilla(ItemTypes.TROPICAL_FISH_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TROPICAL_FISH));
         registerVanilla(ItemTypes.TURTLE_HELMET);
         registerVanilla(ItemTypes.TURTLE_SCUTE);
-        registerVanilla(ItemTypes.TURTLE_SPAWN_EGG);
+        registerVanilla(ItemTypes.TURTLE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TURTLE));
         registerVanilla(ItemTypes.VEX_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.VEX_SPAWN_EGG);
-        registerVanilla(ItemTypes.VILLAGER_SPAWN_EGG);
-        registerVanilla(ItemTypes.VINDICATOR_SPAWN_EGG);
-        registerVanilla(ItemTypes.WANDERING_TRADER_SPAWN_EGG);
+        registerVanilla(ItemTypes.VEX_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.VEX));
+        registerVanilla(ItemTypes.VILLAGER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.VILLAGER));
+        registerVanilla(ItemTypes.VINDICATOR_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.VINDICATOR));
+        registerVanilla(ItemTypes.WANDERING_TRADER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WANDERING_TRADER));
         registerVanilla(ItemTypes.WARD_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.WARDEN_SPAWN_EGG);
+        registerVanilla(ItemTypes.WARDEN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WARDEN));
         registerVanilla(ItemTypes.WARPED_FUNGUS_ON_A_STICK);
         registerVanilla(ItemTypes.WARPED_SIGN);
         registerVanilla(ItemTypes.WATER_BUCKET);
@@ -723,10 +876,16 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WHITE_HARNESS);
         registerVanilla(ItemTypes.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.WIND_CHARGE);
-        registerVanilla(ItemTypes.WITCH_SPAWN_EGG);
-        registerVanilla(ItemTypes.WITHER_SKELETON_SPAWN_EGG);
+        registerVanilla(ItemTypes.WITCH_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WITCH));
+        registerVanilla(ItemTypes.WITHER_SKELETON_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WITHER_SKELETON));
         registerVanilla(ItemTypes.WOLF_ARMOR);
-        registerVanilla(ItemTypes.WOLF_SPAWN_EGG);
+        registerVanilla(ItemTypes.WOLF_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WOLF));
         registerVanilla(ItemTypes.WOODEN_AXE);
         registerVanilla(ItemTypes.WOODEN_BUTTON);
         registerVanilla(ItemTypes.WOODEN_DOOR);
@@ -740,12 +899,24 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.YELLOW_BUNDLE);
         registerVanilla(ItemTypes.YELLOW_DYE);
         registerVanilla(ItemTypes.YELLOW_HARNESS);
-        registerVanilla(ItemTypes.ZOGLIN_SPAWN_EGG);
-        registerVanilla(ItemTypes.ZOMBIE_HORSE_SPAWN_EGG);
-        registerVanilla(ItemTypes.ZOMBIE_NAUTILUS_SPAWN_EGG);
-        registerVanilla(ItemTypes.ZOMBIE_PIGMAN_SPAWN_EGG);
-        registerVanilla(ItemTypes.ZOMBIE_SPAWN_EGG);
-        registerVanilla(ItemTypes.ZOMBIE_VILLAGER_SPAWN_EGG);
+        registerVanilla(ItemTypes.ZOGLIN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOGLIN));
+        registerVanilla(ItemTypes.ZOMBIE_HORSE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOMBIE_HORSE));
+        registerVanilla(ItemTypes.ZOMBIE_NAUTILUS_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOMBIE_NAUTILUS));
+        registerVanilla(ItemTypes.ZOMBIE_PIGMAN_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOMBIE_PIGMAN));
+        registerVanilla(ItemTypes.ZOMBIE_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOMBIE));
+        registerVanilla(ItemTypes.ZOMBIE_VILLAGER_SPAWN_EGG)
+                .set(ItemComponents.CAN_BE_USED, SpawnEggItemHandlers.CAN_BE_USED)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ZOMBIE_VILLAGER));
 
         registerVanilla(ItemTypes.UNKNOWN);
     }
@@ -774,7 +945,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataSerializer(ItemKeys.FIREWORK_DATA, new FireworkSerializer());
         this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
         this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
-//        this.registerDataSerializer(EntityType.class, new EntityTypeSerializer());
+        this.registerDataSerializer(ItemKeys.SPAWN_EGG_TYPE, new EntityTypeSerializer());
     }
 
     private void registerVanillaBehaviors() {

@@ -268,10 +268,11 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     public BedrockPacket createAddEntityPacket() {
+        Vector3f pos = this.getPosition();
         AddItemEntityPacket addEntity = new AddItemEntityPacket();
         addEntity.setUniqueEntityId(this.getUniqueId());
         addEntity.setRuntimeEntityId(this.getRuntimeId());
-        addEntity.setPosition(this.getPosition());
+        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
         addEntity.setMotion(this.getMotion());
         this.data.putAllIn(addEntity.getMetadata());
         addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));

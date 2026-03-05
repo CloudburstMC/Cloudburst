@@ -39,6 +39,11 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
     }
 
     @Override
+    protected float getBaseOffset() {
+        return 0.49f;
+    }
+
+    @Override
     protected void initEntity() {
         super.initEntity();
 

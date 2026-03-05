@@ -584,6 +584,13 @@ public abstract class CloudEntity implements Entity {
         this.level = (CloudLevel) location.getLevel();
         this.server = (CloudServer) location.getLevel().getServer();
 
+        this.position = location.getPosition();
+        this.lastPosition = this.position;
+        this.yaw = location.getYaw();
+        this.pitch = location.getPitch();
+        this.lastYaw = this.yaw;
+        this.lastPitch = this.pitch;
+
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
@@ -622,7 +629,9 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void spawnTo(CloudPlayer player) {
-        if (!player.isChunkInView(this.chunk.getX(), this.chunk.getZ()) || !this.getViewers().add(player)) {
+        boolean inView = player.isChunkInView(this.chunk.getX(), this.chunk.getZ());
+        boolean added = inView && this.getViewers().add(player);
+        if (!inView || !added) {
             // out of range or already spawned
             return;
         }
@@ -641,11 +650,12 @@ public abstract class CloudEntity implements Entity {
     }
 
     protected BedrockPacket createAddEntityPacket() {
+        Vector3f pos = this.getPosition();
         AddEntityPacket addEntity = new AddEntityPacket();
         addEntity.setIdentifier(this.getType().getIdentifier().toString());
         addEntity.setUniqueEntityId(this.getUniqueId());
-        addEntity.setRuntimeEntityId(this.getUniqueId());
-        addEntity.setPosition(this.getPosition());
+        addEntity.setRuntimeEntityId(this.getRuntimeId());
+        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
         addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
         addEntity.setHeadRotation(this.yaw);
         addEntity.setMotion(this.getMotion());

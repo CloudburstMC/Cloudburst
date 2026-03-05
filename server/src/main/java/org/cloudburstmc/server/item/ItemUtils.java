@@ -40,6 +40,14 @@ public class ItemUtils {
     private static final Cache<ItemStack, NbtMap> ITEM_CACHE = CacheBuilder.newBuilder().weakKeys().softValues().build();
 
     public static NbtMap serializeItem(ItemStack item) {
+        if (item == null || item.isEmpty()) {
+            return NbtMap.builder()
+                    .putString("Name", "minecraft:air")
+                    .putByte("Count", (byte) 0)
+                    .putShort("Damage", (short) 0)
+                    .build();
+        }
+
         NbtMapBuilder nbtTag = NbtMap.builder();
 
         nbtTag.putString("Name", item.getType().getId().toString())
@@ -108,11 +116,17 @@ public class ItemUtils {
             return ItemStack.EMPTY;
         }
 
-        ItemStackBuilder builder = ItemUtils.deserializeItem(
+        ItemStack base = ItemUtils.deserializeItem(
                 Identifier.parse(tag.getString("Name")),
                 tag.getShort("Damage", (short) 0),
                 tag.getByte("Count"),
-                tag.getCompound("tag", NbtMap.EMPTY)).toBuilder();
+                tag.getCompound("tag", NbtMap.EMPTY));
+
+        if (base.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        ItemStackBuilder builder = base.toBuilder();
 
         if (tag.containsKey("CanPlaceOn", NbtType.LIST)) {
             List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
@@ -351,7 +365,7 @@ public class ItemUtils {
         ByteBuffer buffer = ByteBuffer.allocate(items.size() * 8);
         for (ItemStack item : items) {
             if (item != null && !item.isEmpty())
-                buffer.putInt(getItemHash((ItemStack) item));
+                buffer.putInt(getItemHash(item));
         }
         return UUID.nameUUIDFromBytes(buffer.array());
     }

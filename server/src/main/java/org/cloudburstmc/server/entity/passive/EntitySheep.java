@@ -53,7 +53,9 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public void initEntity() {
+        super.initEntity();
         this.setMaxHealth(8);
+        this.data.set(COLOR, (byte) randomColor());
     }
 
     @Override
