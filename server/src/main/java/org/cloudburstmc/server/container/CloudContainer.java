@@ -306,6 +306,7 @@ public class CloudContainer implements Container {
             ItemStack item = this.getItem(i);
             if (item.isEmpty()) {
                 emptySlots.add(i);
+                continue;
             }
 
             int maxStack = this.itemRegistry.getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);

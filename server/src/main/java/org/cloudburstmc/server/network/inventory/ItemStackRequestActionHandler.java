@@ -53,9 +53,16 @@ public class ItemStackRequestActionHandler {
                 case DROP -> handleDrop((DropAction) action);
                 case DESTROY -> handleDestroy((DestroyAction) action);
                 case CRAFT_CREATIVE -> handleCraftCreative((CraftCreativeAction) action);
-                case CRAFT_RESULTS_DEPRECATED, CREATE, CONSUME -> {
+                case MINE_BLOCK, CRAFT_RESULTS_DEPRECATED, CREATE, CONSUME -> {
                 }
-                default -> log.debug("Unhandled inventory action type: {}", action.getType());
+                case CRAFT_RECIPE, CRAFT_RECIPE_AUTO, CRAFT_RECIPE_OPTIONAL,
+                     CRAFT_REPAIR_AND_DISENCHANT,
+                     CRAFT_LOOM, CRAFT_NON_IMPLEMENTED_DEPRECATED,
+                     BEACON_PAYMENT, LAB_TABLE_COMBINE -> {
+                    log.debug("Unimplemented inventory action type {} for {}", action.getType(), player.getName());
+                    requestFailed = true;
+                }
+                default -> log.debug("Unknown inventory action type: {}", action.getType());
             }
         } catch (Exception e) {
             log.warn("Failed to handle inventory action {} for {}: {}",

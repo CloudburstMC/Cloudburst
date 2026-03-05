@@ -457,4 +457,11 @@ public class EntityHuman extends EntityCreature implements Human {
         this.setGliding(true);
     }
 
+    public boolean isCrawling() {
+        return this.data.getFlag(CRAWLING);
+    }
+
+    public void setCrawling(boolean value) {
+        this.data.setFlag(CRAWLING, value);
+    }
 }

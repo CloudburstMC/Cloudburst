@@ -85,16 +85,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
 
     ItemStack useBreakOn(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles);
 
-    default ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos) {
-        return this.useItemOn(vector, item, face, clickPos, null);
-    }
-
-    default ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player) {
-        return this.useItemOn(vector, item, face, clickPos, player, true);
-    }
-
-    ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound);
-
     Map<Long, ? extends Player> getPlayers();
 
     int getBiomeId(int x, int z);

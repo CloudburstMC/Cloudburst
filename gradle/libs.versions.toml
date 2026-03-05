@@ -56,7 +56,7 @@ fastutil-reference-reference-maps = { group = "org.cloudburstmc.fastutil.maps", 
 fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
 fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "short-object-maps", version.ref = "fastutil" }
 
-bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta12-20260209.180455-4" }
+bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta12-20260304.203629-5" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version = "4.1.101.Final" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version = "4.1.101.Final" }
 block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.110-SNAPSHOT" }

@@ -1723,37 +1723,17 @@ public class CloudLevel implements Level {
         }
     }
 
-    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos) {
-        return this.useItemOn(vector, item, face, clickPos, null);
-    }
-
-    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player) {
-        return this.useItemOn(vector, item, face, clickPos, player, true);
-    }
-
-
-    public ItemStack useItemOn(Vector3i vector, ItemStack item, Direction face, Vector3f clickPos, Player player, boolean playSound) {
-        if (item == null || item.isEmpty()) {
-            item = ItemStack.EMPTY;
-        }
-        Block target = this.getBlock(vector);
+    /**
+     * Attempts to interact with the target block.
+     * Does not require an item in hand.
+     *
+     * @return true if the block consumed the interaction
+     */
+    public boolean tryUseBlock(Block target, Block side, Direction face, ItemStack item, Player player) {
         ComponentMap targetBehaviors = target.getComponents();
-        Block block = target.getSide(face);
-        ComponentMap behaviors = block.getComponents();
-        Vector3i blockPos = block.getPosition();
 
-        if (blockPos.getY() >= 320 || blockPos.getY() < -64) {
-            return null;
-        }
-
-        if (target.getState().getType() == BlockTypes.AIR) {
-            return null;
-        }
-
-        ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.getComponents(item.getType());
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
-
             if (player.getGamemode() == GameMode.SPECTATOR) {
                 ev.setCancelled();
             }
@@ -1761,58 +1741,88 @@ public class CloudLevel implements Level {
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 ev.setCancelled();
             }
-
             this.server.getEventManager().fire(ev);
-            if (!ev.isCancelled()) {
-                targetBehaviors.get(BlockComponents.ON_TICK).execute(target, new Random());
 
-                boolean blockUsed = (!player.isSneaking() || player.getInventory().getSelectedItem().isEmpty()) && targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target) && targetBehaviors.get(BlockComponents.USE).execute(target, player, face);
-                if (blockUsed) { //TODO: update the item from the behavior
-                    if (this.itemRegistry.getComponent(item.getType(), ItemComponents.IS_TOOL).execute(item) && item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemComponents.GET_MAX_DAMAGE).execute(item)) {
-                        item = ItemStack.EMPTY;
-                    }
-                    return item;
+            if (ev.isCancelled()) {
+                if (!item.isEmpty() && item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
+                    sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, side.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
                 }
+                return false;
+            }
 
-                boolean itemCanBeUsed = itemBehaviors != null && itemBehaviors.get(ItemComponents.CAN_BE_USED).execute(item);
-                if (itemCanBeUsed) {
-                    var result = itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, target.getPosition(), face, clickPos);
-                    //                        if (item.getCount() <= 0) {
-                    //                            item = ItemStack.AIR;
-                    //                            return item;
-                    //                        }
-                    item = Objects.requireNonNullElse(result, ItemStack.EMPTY);
-                }
-            } else {
-                if (item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
-                    ((CloudLevel) player.getLevel()).sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, block.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                }
-                return null;
-            }
-        } else if (targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target) && targetBehaviors.get(BlockComponents.USE).execute(target, null, face)) {
-            if (this.itemRegistry.getComponent(item.getType(), ItemComponents.IS_TOOL).execute(item) &&
-                    item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemComponents.GET_MAX_DAMAGE).execute(item)) {
-                item = ItemStack.EMPTY; //TODO: update the item from the behavior
-            }
-            return item;
+            targetBehaviors.get(BlockComponents.ON_TICK).execute(target, new Random());
+
+            boolean canUse = (!player.isSneaking() || player.getInventory().getSelectedItem().isEmpty()) && targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target);
+            return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face);
+        } else {
+            return targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target) && targetBehaviors.get(BlockComponents.USE).execute(target, null, face);
         }
+    }
+
+    /**
+     * Attempts to activate the item's USE_ON handler against the target block.
+     * Requires a non-empty item.
+     *
+     * @return the updated ItemStack if the item was consumed/used, or null if not handled
+     */
+    public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
+        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
+        if (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_BE_USED).execute(item)) {
+            return null;
+        }
+
+        ItemStack result = itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, target.getPosition(), face, clickPos);
+        return Objects.requireNonNullElse(result, item);
+    }
+
+    /**
+     * Attempts to activate an item used in the air.
+     * Calls the item's {@code USE_ON} handler with the player's own position as the notional target.
+     *
+     * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
+     */
+    public ItemStack tryActivateItem(ItemStack item, Player player) {
+        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
+        if (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_BE_USED).execute(item)) {
+            return null;
+        }
+
+        Vector3i playerBlockPos = player.getPosition().toInt();
+        ItemStack result = itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, playerBlockPos, null, null);
+        return Objects.requireNonNullElse(result, item);
+    }
+
+    /**
+     * Attempts to place a block from the held item against the target block.
+     * Requires a non-empty item.
+     *
+     * @return the updated ItemStack after placement, or null if placement was rejected
+     */
+    public ItemStack tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
+        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
+        if (itemBehaviors == null) {
+            return null;
+        }
+
         @SuppressWarnings("unchecked")
         BlockState hand = ((Optional<BlockState>) itemBehaviors.get(ItemComponents.GET_BLOCK).execute(item)).orElse(null);
-
         if (hand == null) {
             return null;
         }
 
-        if (!(this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.REPLACEABLE).get()
-                || (hand.hasTag(BlockTags.SLAB) && (block.getState().hasTag(BlockTags.SLAB) || target.getState().hasTag(BlockTags.SLAB))))) {
+        Vector3i blockPos = side.getPosition();
+        if (!(this.blockRegistry.getComponent(side.getState().getType(), BlockComponents.REPLACEABLE).get()
+                || (hand.hasTag(BlockTags.SLAB) && (side.getState().hasTag(BlockTags.SLAB) || target.getState().hasTag(BlockTags.SLAB))))) {
             return null;
         }
 
+        Block block = side;
         if (this.blockRegistry.getComponent(target.getState().getType(), BlockComponents.REPLACEABLE).get()) {
             block = target;
+            blockPos = block.getPosition();
         }
 
-        var handBehaviors = this.blockRegistry.getComponents(hand.getType());
+        ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
         AxisAlignedBB handBB = handBehaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(hand);
 
         if (!handBehaviors.get(BlockComponents.CAN_PASS_THROUGH).execute(hand) && handBB != null) {
@@ -1842,7 +1852,7 @@ public class CloudLevel implements Level {
             }
 
             if (realCount > 0) {
-                return null; // Entity in block
+                return null;
             }
         }
 
@@ -1851,69 +1861,63 @@ public class CloudLevel implements Level {
             if (player.getGamemode() == GameMode.ADVENTURE && !itemRegistry.getComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON).execute(item, target)) {
                 event.setCancelled();
             }
+
             if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 event.setCancelled();
             }
+
             this.server.getEventManager().fire(event);
             if (event.isCancelled()) {
                 return null;
             }
         }
 
-//        Behavior liquidBehavior = block.getState().getBehavior();
-        var blockBehaviors = blockRegistry.getComponents(block.getState().getType());
+        ComponentMap blockBehaviors = blockRegistry.getComponents(block.getState().getType());
         BlockState air = block.getExtra();
+        Vector3i waterlogPos = null;
 
-        Vector3i pos = null;
-
-//        TODO Water logging?
-        if (air == BlockStates.AIR && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.LIQUID).get() && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.USES_WATERLOGGING).get()
-                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove this line when MCPE-33345 is resolved
+        // TODO: Water logging
+        if (air == BlockStates.AIR
+                && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.LIQUID).get()
+                && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.USES_WATERLOGGING).get()
+                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove when MCPE-33345 is resolved
         ) {
-            pos = block.getPosition();
-
+            waterlogPos = block.getPosition();
             block.set(block.getState(), 1, false, false);
             block.set(air, false, false);
-
             this.scheduleUpdate(block, 1);
         }
 
         try {
             if (!handBehaviors.get(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
-                if (pos != null) {
-                    this.setBlockState(pos, 0, block.getState(), false, false);
-                    this.setBlockState(pos, 1, air, false, false);
+                if (waterlogPos != null) {
+                    this.setBlockState(waterlogPos, 0, block.getState(), false, false);
+                    this.setBlockState(waterlogPos, 1, air, false, false);
                 }
                 return null;
             }
         } catch (Exception e) {
-            if (pos != null) {
-                this.setBlockState(pos, 0, block.getState(), false, false);
-                this.setBlockState(pos, 1, air, false, false);
+            if (waterlogPos != null) {
+                this.setBlockState(waterlogPos, 0, block.getState(), false, false);
+                this.setBlockState(waterlogPos, 1, air, false, false);
             }
             throw e;
         }
 
-        if (player != null) {
-            if (!player.isCreative()) {
-                item = item.decreaseCount();
-            }
+        if (player != null && !player.isCreative()) {
+            item = item.decreaseCount();
         }
 
         if (playSound) {
             this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, CloudBlockRegistry.REGISTRY.getRuntimeId(hand));
         }
 
-        if (item.getCount() <= 0) {
-            item = ItemStack.EMPTY;
-        }
-        return item;
+        return item.getCount() <= 0 ? ItemStack.EMPTY : item;
     }
 
     public boolean isInSpawnRadius(Vector3i vector3) {
         int distance = this.server.getSpawnRadius();
         if (distance > -1) {
-
             Vector2i t = vector3.toVector2(true);
             Vector2i s = this.getSpawnLocation().toInt().toVector2(true);
             return t.distance(s) <= distance;
