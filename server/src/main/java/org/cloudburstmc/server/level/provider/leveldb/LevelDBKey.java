@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.provider.leveldb;
 
 public enum LevelDBKey {
+    DATA_3D('+'),
+    VERSION(','),
     DATA_2D('-'),
     DATA_2D_LEGACY('.'),
     SUBCHUNK_PREFIX('/'),
@@ -11,13 +13,19 @@ public enum LevelDBKey {
     BLOCK_EXTRA_DATA('4'),
     BIOME_STATE('5'),
     STATE_FINALIZATION('6'),
-
+    CONVERTER_TAG('7'),
     BORDER_BLOCKS('8'),
     HARDCODED_SPAWNERS('9'),
-
-    FLAGS('f'),
-
-    VERSION('v');
+    PENDING_RANDOM_TICKS(':'),
+    XXHASH_CHECKSUMS(';'),
+    GENERATION_SEED('<'),
+    GENERATED_BEFORE_CNC_BLENDING('='),
+    BLENDING_BIOME_HEIGHT('>'),
+    META_DATA_HASH('?'),
+    BLENDING_DATA('@'),
+    ACTOR_DIGEST_VERSION('A'),
+    VERSION_OLD('v'),
+    AABB_VOLUMES('w');
 
     private final byte encoded;
 

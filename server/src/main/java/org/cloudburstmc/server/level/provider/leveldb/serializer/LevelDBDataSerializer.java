@@ -27,7 +27,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
 
     private static final TypeReference<Map<String, Object>> OPTIONS_TYPE = new TypeReference<Map<String, Object>>() {
     };
-    private static final int VERSION = 8;
+    private static final int STORAGE_VERSION = 10;
+    private static final int STORAGE_VERSION_MIN = 8;
 
     @Override
     public LoadState load(LevelData data, Path levelPath, String levelId) throws IOException {
@@ -71,7 +72,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 .putInt("lightningTime", data.getLightningTime())
                 .putInt("Difficulty", data.getDifficulty())
                 .putInt("GameType", data.getGameType())
-                .putInt("StorageVersion", VERSION)
+                .putInt("StorageVersion", STORAGE_VERSION)
                 .putInt("serverChunkTickRange", data.getServerChunkTickRange())
                 .putInt("NetherScale", data.getNetherScale())
                 .putLong("currentTick", data.getCurrentTick())
@@ -109,7 +110,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
 
         // Write
         try (LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(Files.newOutputStream(levelDatPath))) {
-            stream.writeInt(VERSION);
+            stream.writeInt(STORAGE_VERSION);
             stream.writeInt(tagBytes.length);
             stream.write(tagBytes);
         }
@@ -121,8 +122,8 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
              NBTInputStream nbtInputStream = new NBTInputStream(stream)) {
 
             int version = stream.readInt();
-            if (version != VERSION) {
-                throw new IOException("Incompatible level.dat version");
+            if (version < STORAGE_VERSION_MIN || version > STORAGE_VERSION + 2) {
+                throw new IOException("Incompatible level.dat version: " + version);
             }
             stream.readInt(); // Size
             tag = (NbtMap) nbtInputStream.readTag();

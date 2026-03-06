@@ -17,8 +17,10 @@ public class ChunkSerializers {
         SERIALIZERS.put(2, ChunkSerializerV1.INSTANCE);
         SERIALIZERS.put(3, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(4, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(5, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(6, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(7, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(8, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(9, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(10, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(11, ChunkSerializerV3.INSTANCE);
@@ -30,6 +32,29 @@ public class ChunkSerializers {
         SERIALIZERS.put(17, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(18, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(19, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(20, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(21, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(22, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(23, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(24, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(25, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(26, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(27, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(28, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(29, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(30, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(31, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(32, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(33, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(34, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(35, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(36, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(37, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(38, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(39, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(40, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(41, ChunkSerializerV3.INSTANCE);
+        SERIALIZERS.put(42, ChunkSerializerV3.INSTANCE);
     }
 
     private static ChunkSerializer getChunkSerializer(int version) {

@@ -49,11 +49,9 @@ public class Data2dSerializer {
                     heightMap[i] = buffer.readUnsignedShortLE();
                 }
 
-                // Legacy DATA_2D format (pre-3D biomes): 512-byte heightmap followed by
-                // a 256-byte 2D biome column (one byte per XZ column). When present,
-                // expand it into 3D biome storage via a deferred ChunkDataLoader so that
-                // the sections are guaranteed to exist. The chunk is also marked dirty
-                // so the upgraded format is persisted on the next save.
+                // Legacy DATA_2D (pre-3D biomes): 512-byte heightmap + 256-byte 2D biome column.
+                // Expand into per-section 3D biome storage via a deferred loader; return true
+                // to mark the chunk dirty so the upgraded format is written on next save.
                 if (data2d.length >= LEGACY_DATA2D_SIZE) {
                     final byte[] biomesRaw = new byte[256];
                     buffer.readerIndex(512);
@@ -72,7 +70,7 @@ public class Data2dSerializer {
                                 }
                             }
                         }
-                        return true; // mark dirty, format has been upgraded
+                        return true; // upgraded from 2D biomes; mark dirty
                     });
                 }
             } finally {

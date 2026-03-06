@@ -19,6 +19,7 @@ public class ChunkBuilder {
     private int[] heightMap;
     private boolean dirty;
     private int state = Chunk.STATE_NEW;
+    private int chunkVersion = -1;
 
     public ChunkBuilder(int x, int z, CloudLevel level) {
         this.x = x;
@@ -62,6 +63,15 @@ public class ChunkBuilder {
 
     public ChunkBuilder state(int state) {
         this.state = state;
+        return this;
+    }
+
+    public int getChunkVersion() {
+        return chunkVersion;
+    }
+
+    public ChunkBuilder chunkVersion(int chunkVersion) {
+        this.chunkVersion = chunkVersion;
         return this;
     }
 

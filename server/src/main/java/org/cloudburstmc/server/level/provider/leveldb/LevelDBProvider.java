@@ -30,6 +30,8 @@ import java.util.function.BiConsumer;
 @Log4j2
 @ParametersAreNonnullByDefault
 class LevelDBProvider implements LevelProvider {
+    private static final int CURRENT_CHUNK_VERSION = 42;
+
     private final String levelId;
     private final Path path;
     private final Executor executor;
@@ -64,6 +66,10 @@ class LevelDBProvider implements LevelProvider {
         return CompletableFuture.supplyAsync(() -> {
             byte[] versionValue = this.db.get(LevelDBKey.VERSION.getKey(x, z));
             if (versionValue == null || versionValue.length != 1) {
+                versionValue = this.db.get(LevelDBKey.VERSION_OLD.getKey(x, z));
+            }
+
+            if (versionValue == null || versionValue.length != 1) {
                 return null;
             }
 
@@ -80,7 +86,8 @@ class LevelDBProvider implements LevelProvider {
                 chunkBuilder.dirty();
             }
 
-            ChunkSerializers.deserializeChunk(this.db, chunkBuilder, chunkVersion);
+            chunkBuilder.chunkVersion(chunkVersion & 0xFF);
+            ChunkSerializers.deserializeChunk(this.db, chunkBuilder, chunkVersion & 0xFF);
             Data2dSerializer.deserialize(this.db, chunkBuilder);
 
             BlockEntitySerializer.loadBlockEntities(this.db, chunkBuilder);
@@ -96,19 +103,21 @@ class LevelDBProvider implements LevelProvider {
         final int z = chunk.getZ();
 
         return CompletableFuture.supplyAsync(() -> {
-            //we clear the dirty flag here instead of in LevelChunkManager in case there are modifications to the chunk between now and the time it was enqueued
+            // Clear the dirty flag here rather than in LevelChunkManager, in case the chunk
+            // is modified between when it was enqueued and when it is actually written.
             if (!chunk.isGenerated() || !chunk.clearDirty()) {
-                //the chunk was not dirty, do nothing
+                // the chunk was not dirty
                 return null;
             }
+
             try (DirectWriteBatch batch = this.db.createWriteBatch()) {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    ChunkSerializers.serializeChunk(batch, chunk, 19);
+                    ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
                     Data2dSerializer.serialize(batch, (CloudChunk) chunk);
 
-                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{19});
+                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
                     batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), Unpooled.buffer(4).writeIntLE(lockableChunk.getState() - 1).array());
 
                     BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
@@ -120,7 +129,7 @@ class LevelDBProvider implements LevelProvider {
                 this.db.write(batch);
                 return null;
             } catch (IOException e) {
-                //can't happen
+                // can't happen
                 throw new RuntimeException(e);
             }
         }, this.executor);
