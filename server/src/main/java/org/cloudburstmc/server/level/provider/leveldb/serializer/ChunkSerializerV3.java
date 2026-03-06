@@ -143,7 +143,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             biomeData = db.get(LevelDBKey.DATA_3D.getKey(chunkX, chunkZ));
             biomeDataOffset = 512; // skip heightmap
         }
-w
+
         if (biomeData != null) {
             ByteBuf biomeBuf = Unpooled.wrappedBuffer(biomeData);
             biomeBuf.skipBytes(Math.min(biomeDataOffset, biomeBuf.readableBytes()));
