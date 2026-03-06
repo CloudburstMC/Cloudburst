@@ -114,9 +114,9 @@ public interface Player extends Creature {
      *
      * <p><strong>This does NOT include:</strong></p>
      * <ul>
-     *   <li>Armor slots — use {@link #getArmor()}</li>
-     *   <li>Offhand slot — use {@link #getOffhand()}</li>
-     *   <li>Crafting grid (when the player's inventory screen is open) — use
+     *   <li>Armor slots: use {@link #getArmor()}</li>
+     *   <li>Offhand slot: use {@link #getOffhand()}</li>
+     *   <li>Crafting grid (when the player's inventory screen is open): use
      *       {@link #getInventoryScreen()} and access its crafting slot group</li>
      * </ul>
      *
@@ -133,7 +133,7 @@ public interface Player extends Creature {
     PlayerInventoryView getInventory();
 
     /**
-     * Returns the player's hotbar — a 9-slot section view (slots 0–8) that mirrors the
+     * Returns the player's hotbar, a 9-slot section view (slots 0-8) that mirrors the
      * first 9 slots of {@link #getInventory()}.
      *
      * <p>Use this when you need hotbar-specific semantics (selected slot, selected item)
@@ -211,7 +211,7 @@ public interface Player extends Creature {
     void setSkin(Skin newSkin);
 
     /**
-     * Returns the player's HUD screen — the always-visible hotbar and offhand slots.
+     * Returns the player's HUD screen (the always-visible hotbar and offhand slots).
      *
      * <p>This screen is open at all times, even when a container is also open.
      * Use it to access the hotbar and offhand slot groups without holding a reference
@@ -227,7 +227,7 @@ public interface Player extends Creature {
      *
      * <p>This method returns {@code null} whenever the player is looking at the normal
      * game view (i.e. only the HUD / hotbar is visible). It returns a non-{@code null}
-     * value only while an explicit container screen is open — for example a chest, furnace,
+     * value only while an explicit container screen is open (for example a chest, furnace,
      * crafting table, or a virtual inventory opened by a plugin.  The persistent
      * player-inventory screen ({@link ScreenTypes#INVENTORY}) and HUD screen
      * ({@link ScreenTypes#HUD}) are <em>not</em> returned by this method.</p>
@@ -330,7 +330,7 @@ public interface Player extends Creature {
     /**
      * Creates a new virtual single-chest (27-slot) view for this player.
      *
-     * <p>The screen is not opened automatically — call {@link #openInventory(InventoryScreen)} to show
+     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects a
      * phantom chest block above the player on the client side for the duration the screen is open.</p>
      *
@@ -342,7 +342,7 @@ public interface Player extends Creature {
     /**
      * Creates a new virtual double-chest (54-slot) screen for this player.
      *
-     * <p>The screen is not opened automatically — call {@link #openInventory(InventoryScreen)} to show
+     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects two
      * adjacent phantom chest blocks above the player on the client side.</p>
      *
@@ -354,7 +354,7 @@ public interface Player extends Creature {
     /**
      * Creates a new virtual hopper (5-slot) screen for this player.
      *
-     * <p>The screen is not opened automatically — call {@link #openInventory(InventoryScreen)} to show
+     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects a
      * phantom hopper block above the player on the client side for the duration the screen is open.</p>
      *

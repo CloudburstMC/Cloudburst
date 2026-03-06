@@ -7,7 +7,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * View-layer slot group for a crafting grid (2×2 = 4 slots).
- * Attached to a player — the crafting grid is always part of the player's UI.
+ * Attached to a player; the crafting grid is always part of the player's UI.
  */
 public class CloudCraftingView extends CloudPlayerContainerView implements CraftingView {
 

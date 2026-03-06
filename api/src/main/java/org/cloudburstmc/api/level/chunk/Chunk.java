@@ -43,9 +43,29 @@ public interface Chunk extends Comparable<Chunk> {
 
     void setBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
-    int getBiome(int x, int z);
+    int getBiome(int x, int y, int z);
 
-    void setBiome(int x, int z, int biome);
+    void setBiome(int x, int y, int z, int biome);
+
+    /**
+     * Sets the biome ID for every Y coordinate in a single XZ column,
+     * spanning the full build height of the level.
+     *
+     * <p>This is faster than calling {@link #setBiome} in a loop because
+     * implementations can delegate to section-level bulk helpers.
+     * The default implementation falls back to a plain loop.
+     *
+     * @param x       0–15 within the chunk
+     * @param z       0–15 within the chunk
+     * @param biomeId raw biome integer ID
+     */
+    default void fillColumnBiome(int x, int z, int biomeId) {
+        int minY = getLevel().getMinHeight();
+        int maxY = getLevel().getMaxHeight();
+        for (int y = minY; y < maxY; y++) {
+            setBiome(x, y, z, biomeId);
+        }
+    }
 
     byte getSkyLight(int x, int y, int z);
 
@@ -87,13 +107,6 @@ public interface Chunk extends Comparable<Chunk> {
      * @return chunk level
      */
     Level getLevel();
-
-    /**
-     * Get the copy of the biome array.
-     *
-     * @return biome array
-     */
-    byte[] getBiomeArray();
 
     /**
      * Get a copy of the height map array.

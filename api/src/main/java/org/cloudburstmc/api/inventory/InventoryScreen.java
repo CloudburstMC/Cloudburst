@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Represents an inventory screen currently open for a player — the full window being
+ * Represents an inventory screen currently open for a player (the full window being
  * displayed, which may comprise multiple {@link SlotGroup}s (for example a
  * chest's storage section alongside the player's own inventory).
  *

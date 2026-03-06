@@ -11,41 +11,58 @@ import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkException;
-import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.level.chunk.CloudChunkSection;
+import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 class ChunkSerializerV3 extends ChunkSerializerV1 {
 
-    static ChunkSerializer INSTANCE = new ChunkSerializerV3();
+    static final ChunkSerializer INSTANCE = new ChunkSerializerV3();
+    private static final BiomeStorage DEFAULT_BIOME_STORAGE = new BiomeStorage(CloudChunkSection.DEFAULT_BIOME_ID);
 
     @Override
     public void serialize(DirectWriteBatch db, Chunk chunk) {
-        // LevelDB key byte is the absolute section Y
         int sectionCount = chunk.getLevel().getSectionsCount();
         int minSectionY = chunk.getLevel().getMinSectionY();
-        for (int arrayIndex = 0; arrayIndex < sectionCount; arrayIndex++) {
-            CloudChunkSection section = (CloudChunkSection) chunk.getSection(arrayIndex);
-            if (section == null) {
-                continue;
+
+        // Write block sub-chunks and biome sections together.
+        // BIOME_STATE uses the same copy-last optimization as the network path.
+        BiomeStorage previousBiome = null;
+        ByteBuf biomeBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
+        ByteBuf biomeKeyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
+
+        try {
+            for (int arrayIndex = 0; arrayIndex < sectionCount; arrayIndex++) {
+                CloudChunkSection section = (CloudChunkSection) chunk.getSection(arrayIndex);
+                int absoluteSectionY = arrayIndex + minSectionY;
+
+                // Block storage
+                if (section != null) {
+                    ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
+                    ByteBuf keyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
+                    try {
+                        section.writeToDisk(buffer);
+                        keyBuffer.clear().writeBytes(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), absoluteSectionY));
+                        db.put(keyBuffer, buffer);
+                    } finally {
+                        keyBuffer.release();
+                        buffer.release();
+                    }
+                }
+
+                // Biome storage: write one entry per section into the BIOME_STATE buffer
+                BiomeStorage bs = (section != null) ? section.getBiomeStorage() : DEFAULT_BIOME_STORAGE;
+                bs.writeToDisk(biomeBuffer, previousBiome);
+                previousBiome = bs;
             }
 
-            int absoluteSectionY = arrayIndex + minSectionY;
-
-            ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
-            ByteBuf keyBuffer = ByteBufAllocator.DEFAULT.ioBuffer();
-            try {
-                section.writeToDisk(buffer);
-                keyBuffer.clear().writeBytes(LevelDBKey.SUBCHUNK_PREFIX.getKey(chunk.getX(), chunk.getZ(), absoluteSectionY));
-                db.put(keyBuffer, buffer);
-            } finally {
-                keyBuffer.release();
-                buffer.release();
-            }
+            // Write the full biome buffer as a single BIOME_STATE key
+            biomeKeyBuffer.clear().writeBytes(LevelDBKey.BIOME_STATE.getKey(chunk.getX(), chunk.getZ()));
+            db.put(biomeKeyBuffer, biomeBuffer);
+        } finally {
+            biomeBuffer.release();
+            biomeKeyBuffer.release();
         }
     }
 
@@ -65,7 +82,6 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             for (int i = 0; i < count; i++) {
                 int key = extraDataBuf.readIntLE();
                 short value = extraDataBuf.readShortLE();
-
                 extraDataMap.put(key, value);
             }
         }
@@ -106,10 +122,11 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                                 for (int y = absoluteSectionY * 16, lim = y + 16; y < lim; y++) {
                                     int key = CloudChunk.blockKey(x, y, z, chunkBuilder.getLevel().getMinHeight());
                                     if (extraDataMap.containsKey(key)) {
-                                        short value = extraDataMap.get(CloudChunk.blockKey(x, y, z, chunkBuilder.getLevel().getMinHeight()));
+                                        short value = extraDataMap.get(key);
                                         int blockId = value & 0xff;
                                         int blockData = (value >> 8) & 0xf;
-                                        blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y, z), CloudBlockRegistry.REGISTRY.getBlock(blockId, blockData));
+                                        blockStorage[1].setBlock(CloudChunkSection.blockIndex(x, y & 0xf, z),
+                                                CloudBlockRegistry.REGISTRY.getBlock(blockId, blockData));
                                     }
                                 }
                             }
@@ -123,10 +140,24 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
         }
 
         chunkBuilder.sections(sections);
-    }
 
-    @Override
-    protected int deserializeExtraDataKey(int key) {
-        return key;
+        byte[] biomeData = db.get(LevelDBKey.BIOME_STATE.getKey(chunkX, chunkZ));
+        if (biomeData != null) {
+            ByteBuf biomeBuf = Unpooled.wrappedBuffer(biomeData);
+            BiomeStorage previous = null;
+            for (int arrayIndex = 0; arrayIndex < sectionCount; arrayIndex++) {
+                if (!biomeBuf.isReadable()) {
+                    break;
+                }
+                BiomeStorage bs = BiomeStorage.readFromDisk(biomeBuf, previous);
+                if (sections[arrayIndex] == null) {
+                    // Section had no block data but has biome data, so create a section to hold it
+                    sections[arrayIndex] = new CloudChunkSection(new BlockStorage[]{new BlockStorage(), new BlockStorage()});
+                }
+                sections[arrayIndex].setBiomeStorage(bs);
+                previous = bs;
+            }
+        }
+        // If no BIOME_STATE key exists, sections keep their default BiomeStorage (Ocean = 0).
     }
 }

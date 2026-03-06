@@ -87,9 +87,9 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
 
     Map<Long, ? extends Player> getPlayers();
 
-    int getBiomeId(int x, int z);
+    int getBiomeId(int x, int y, int z);
 
-    void setBiomeId(int x, int z, byte biomeId);
+    void setBiomeId(int x, int y, int z, int biomeId);
 
     int getHighestBlock(int x, int z);
 

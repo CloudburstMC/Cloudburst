@@ -22,7 +22,7 @@ import org.cloudburstmc.server.registry.BlockEntityRegistry;
 /**
  * Screen implementation for the lectern.
  *
- * <p>The lectern is a book viewer — the player's own inventory is <strong>not</strong> shown
+ * <p>The lectern is a book viewer; the player's own inventory is <strong>not</strong> shown
  * alongside it. This screen therefore extends {@link CloudInventoryScreen} directly rather
  * than {@link CloudContainerScreen}, and the only slot group is the single lectern book slot.</p>
  */

@@ -19,7 +19,7 @@ import java.util.Optional;
  *
  * <p>This event extends {@link Event} directly rather than
  * {@link org.cloudburstmc.api.event.inventory.InventoryEvent}, because no player screen is
- * involved in an automated item transfer — there is no open
+ * involved in an automated item transfer; there is no open
  * {@link org.cloudburstmc.api.inventory.InventoryScreen}. Events that involve a player
  * interacting with an open screen (clicks, open/close) extend
  * {@link org.cloudburstmc.api.event.inventory.InventoryEvent} instead.</p>
@@ -45,7 +45,7 @@ public final class InventoryMoveItemEvent extends Event implements Cancellable {
     }
 
     /**
-     * Creates an {@link Action#TRANSFER} event — items moving from one slot group to another.
+     * Creates an {@link Action#TRANSFER} event (items moving from one slot group to another).
      *
      * @param source    the slot group items are moving from (must not be {@code null})
      * @param target    the slot group items are moving into (must not be {@code null})
@@ -88,7 +88,7 @@ public final class InventoryMoveItemEvent extends Event implements Cancellable {
     }
 
     /**
-     * Creates an {@link Action#DISPENSE} event — items ejected into the world with no destination.
+     * Creates an {@link Action#DISPENSE} event (items ejected into the world with no destination).
      *
      * @param source    the slot group items are dispensed from (must not be {@code null})
      * @param initiator the slot group that initiated the dispense (must not be {@code null})

@@ -1493,9 +1493,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             SubChunkData subChunkData = new SubChunkData();
             subChunkData.setPosition(offset);
 
-            // Reject sections outside overworld bounds [-4, 19]
             if (sectionY < minSectionY || sectionY > maxSectionY) {
                 subChunkData.setResult(SubChunkRequestResult.INDEX_OUT_OF_BOUNDS);
+                subChunkData.setData(Unpooled.buffer(0));
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1507,6 +1507,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
             if (chunk == null) {
                 subChunkData.setResult(SubChunkRequestResult.CHUNK_NOT_FOUND);
+                subChunkData.setData(Unpooled.buffer(0));
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1531,12 +1532,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         int highestY = locked.getHighestBlock(hx, hz);
                         int heightSectionCoord;
                         if (highestY < 0) {
-                            // Empty column — treat as below all sections
+                            // Empty column, treat as below all sections
                             heightSectionCoord = minSectionY - 1;
                         } else {
                             heightSectionCoord = highestY >> 4;
                         }
-                        int idx = (hz << 4) | hx;
+                        int idx = (hx << 4) | hz;
                         if (heightSectionCoord > sectionY) {
                             heightMap[idx] = 16;
                             allLower = false;
@@ -1566,36 +1567,43 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 subChunkData.setHeightMapType(hMapType);
                 subChunkData.setHeightMapData(heightMapBuf);
                 subChunkData.setRenderHeightMapType(hMapType);
-                subChunkData.setRenderHeightMapData(heightMapBuf);
+                subChunkData.setRenderHeightMapData(hMapType == HeightMapDataType.HAS_DATA ? Unpooled.copiedBuffer(heightMap) : Unpooled.buffer(0));
 
                 if (section == null || section.isEmpty()) {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS_ALL_AIR);
-                    subChunkData.setData(Unpooled.EMPTY_BUFFER);
+                    subChunkData.setData(Unpooled.buffer(0));
                 } else {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS);
 
                     ByteBuf sectionBuf = ByteBufAllocator.DEFAULT.ioBuffer();
-                    section.writeToNetwork(sectionBuf, sectionY);
+                    try {
+                        section.writeToNetwork(sectionBuf, sectionY);
 
-                    // Append block entities in this section
-                    int minBlockY = sectionY * 16;
-                    int maxBlockY = minBlockY + 15;
-                    Set<? extends BlockEntity> tiles = locked.getBlockEntities();
-                    if (!tiles.isEmpty()) {
-                        try (ByteBufOutputStream stream = new ByteBufOutputStream(sectionBuf);
-                             NBTOutputStream nbtOut = NbtUtils.createNetworkWriter(stream)) {
-                            for (BlockEntity tile : tiles) {
-                                Vector3i pos = tile.getPosition();
-                                if (pos.getY() >= minBlockY && pos.getY() <= maxBlockY && tile instanceof BaseBlockEntity) {
-                                    nbtOut.writeTag(((BaseBlockEntity) tile).getChunkTag());
+                        // Append block entities in this section
+                        int minBlockY = sectionY * 16;
+                        int maxBlockY = minBlockY + 15;
+                        Set<? extends BlockEntity> tiles = locked.getBlockEntities();
+                        if (!tiles.isEmpty()) {
+                            try (ByteBufOutputStream stream = new ByteBufOutputStream(sectionBuf);
+                                 NBTOutputStream nbtOut = NbtUtils.createNetworkWriter(stream)) {
+                                for (BlockEntity tile : tiles) {
+                                    Vector3i pos = tile.getPosition();
+                                    if (pos.getY() >= minBlockY && pos.getY() <= maxBlockY && tile instanceof BaseBlockEntity) {
+                                        nbtOut.writeTag(((BaseBlockEntity) tile).getChunkTag());
+                                    }
                                 }
+                            } catch (IOException e) {
+                                log.error("Error encoding block entity in sub-chunk ({},{},{})", chunkX, sectionY, chunkZ, e);
                             }
-                        } catch (IOException e) {
-                            log.error("Error encoding block entity in sub-chunk ({},{},{})", chunkX, sectionY, chunkZ, e);
+                        }
+
+                        subChunkData.setData(sectionBuf);
+                        sectionBuf = null;
+                    } finally {
+                        if (sectionBuf != null) {
+                            sectionBuf.release();
                         }
                     }
-
-                    subChunkData.setData(sectionBuf);
                 }
             } finally {
                 locked.unlock();

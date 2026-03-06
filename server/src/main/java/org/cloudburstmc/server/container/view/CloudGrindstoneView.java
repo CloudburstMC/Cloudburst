@@ -8,7 +8,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 /**
  * Server-side implementation of {@link GrindstoneView}.
  * Wraps a 3-slot ephemeral container: slot 0 = input, slot 1 = additional, slot 2 = result.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudGrindstoneView extends CloudSlotGroupBase implements GrindstoneView {
 

@@ -8,7 +8,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
  *
  * <p>The type parameter {@code E} is the specific {@link BlockEntity} type that backs this slot
  * group, or (for blocks that have no block entity at all) the marker subtype
- * {@link StatelessBlockSlotGroup} should be used instead — it always returns {@code null} from
+ * {@link StatelessBlockSlotGroup} should be used instead; it always returns {@code null} from
  * {@link #getBlockEntity()} as a default method and removes the type parameter.
  * Stateless block views include crafting table, smithing table, loom, cartography table, and
  * stonecutter. When the slot group can be backed by one of several block-entity types
@@ -35,7 +35,7 @@ public interface BlockSlotGroup<E extends BlockEntity> extends SlotGroup {
      * extends {@code BlockSlotGroup} (e.g.
      * {@link org.cloudburstmc.api.blockentity.Furnace Furnace} extends
      * {@code BlockSlotGroup<Furnace>}), the server implementation returns {@code this}.
-     * This is intentional and valid — the block entity <em>is</em> the slot group.</p>
+     * This is intentional and valid; the block entity <em>is</em> the slot group.</p>
      *
      * @return the block entity, or {@code null}
      */

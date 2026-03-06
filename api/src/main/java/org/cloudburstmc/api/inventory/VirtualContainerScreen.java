@@ -8,9 +8,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  *
  * <p>Concrete subtypes differ only in slot count and the phantom block used:</p>
  * <ul>
- *   <li>{@link VirtualChestScreen} — 27 slots, single chest, use {@link VirtualStorageScreen#getStorage()}</li>
- *   <li>{@link VirtualDoubleChestScreen} — 54 slots, double chest, use {@link VirtualStorageScreen#getStorage()}</li>
- *   <li>{@link VirtualHopperScreen} — 5 slots, hopper, use {@link VirtualHopperScreen#getHopper()}</li>
+ *   <li>{@link VirtualChestScreen}: 27 slots, single chest, use {@link VirtualStorageScreen#getStorage()}</li>
+ *   <li>{@link VirtualDoubleChestScreen}: 54 slots, double chest, use {@link VirtualStorageScreen#getStorage()}</li>
+ *   <li>{@link VirtualHopperScreen}: 5 slots, hopper, use {@link VirtualHopperScreen#getHopper()}</li>
  * </ul>
  *
  * <h2>Usage example</h2>
@@ -19,7 +19,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * VirtualChestScreen chest = player.createVirtualChestScreen();
  * chest.setTitle("My Shop");
  *
- * // 2. Populate items BEFORE opening — modifying slots while the screen is open causes a desync.
+ * // 2. Populate items BEFORE opening; modifying slots while the screen is open causes a desync.
  * StorageView storage = chest.getStorage();
  * storage.setItem(0, ItemStack.builder(ItemTypes.DIAMOND).amount(1).build());
  *

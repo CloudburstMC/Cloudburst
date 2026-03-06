@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Represents a named group of item slots within an open inventory screen.
  *
- * <p>A slot group corresponds directly to a {@code ContainerSlotType} bucket —
+ * <p>A slot group corresponds directly to a {@code ContainerSlotType} bucket;
  * for example the furnace ingredient slot, the player's 36-slot main inventory, or an armor
  * equipment section. Multiple slot groups are combined inside a single
  * {@link org.cloudburstmc.api.inventory.InventoryScreen} to form the complete window shown
@@ -55,7 +55,7 @@ public interface SlotGroup {
      * Returns the maximum number of items that can stack in the given slot.
      *
      * <p>The default implementation returns {@code 64}, which is correct for most slots.
-     * Implementations should override this when a slot has a different limit — for example,
+     * Implementations should override this when a slot has a different limit (for example,
      * a slot that only accepts tools (max-stack 1) or a slot whose limit is item-dependent.
      * When the limit depends on the item currently in the slot, implementations should
      * inspect {@link #getItem(int)} to decide.</p>

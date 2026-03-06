@@ -8,8 +8,8 @@
  * {@link org.cloudburstmc.api.inventory.view.BlockFurnaceView}) extends
  * {@link org.cloudburstmc.api.inventory.view.BlockSlotGroup} and therefore provides:</p>
  * <ul>
- *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlock()} — the world block backing this group</li>
- *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlockEntity()} — the block entity (if any)</li>
+ *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlock()}: the world block backing this group</li>
+ *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlockEntity()}: the block entity (if any)</li>
  * </ul>
  * <p>These views always correspond to a real block and block entity in the server's world.</p>
  *
@@ -22,9 +22,9 @@
  *
  * <h2>Common base types</h2>
  * <ul>
- *   <li>{@link org.cloudburstmc.api.inventory.view.SlotGroup} — root interface for all slot groups</li>
- *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup} — adds block/block-entity accessors</li>
- *   <li>{@link org.cloudburstmc.api.inventory.view.GridView} — 3×3 grid shared by dispenser, dropper, and crafter</li>
+ *   <li>{@link org.cloudburstmc.api.inventory.view.SlotGroup}: root interface for all slot groups</li>
+ *   <li>{@link org.cloudburstmc.api.inventory.view.BlockSlotGroup}: adds block/block-entity accessors</li>
+ *   <li>{@link org.cloudburstmc.api.inventory.view.GridView}: 3x3 grid shared by dispenser, dropper, and crafter</li>
  * </ul>
  */
 package org.cloudburstmc.api.inventory.view;

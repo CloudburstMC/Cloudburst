@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.ldbjni.direct.DirectDB;
@@ -24,8 +22,6 @@ class ChunkSerializerV1 implements ChunkSerializer {
 
     @Override
     public void deserialize(DirectDB db, ChunkBuilder chunkBuilder) {
-        this.deserializeExtraData(db, chunkBuilder);
-
         this.deserializeTerrain(db, chunkBuilder);
     }
 
@@ -34,25 +30,5 @@ class ChunkSerializerV1 implements ChunkSerializer {
         if (terrain == null) {
             throw new ChunkException("No terrain found in chunk");
         }
-    }
-
-    protected void deserializeExtraData(DB db, ChunkBuilder chunkBuilder) {
-        byte[] extraData = db.get(LevelDBKey.BLOCK_EXTRA_DATA.getKey(chunkBuilder.getX(), chunkBuilder.getZ()));
-        if (extraData == null) {
-            return;
-        }
-        ByteBuf buf = Unpooled.wrappedBuffer(extraData);
-
-        int count = buf.readIntLE();
-        for (int i = 0; i < count; i++) {
-            int key = deserializeExtraDataKey(buf.readIntLE());
-            short value = buf.readShortLE();
-
-            chunkBuilder.extraData(key, value);
-        }
-    }
-
-    protected int deserializeExtraDataKey(int key) {
-        return ((key & ~0x7f) << 1) | (key & 0x7f); // max world height was only 128
     }
 }

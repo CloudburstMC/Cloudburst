@@ -8,7 +8,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 /**
  * Server-side implementation of {@link StonecutterView}.
  * Wraps a 2-slot ephemeral container: slot 0 = input, slot 1 = result.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudStonecutterView extends CloudSlotGroupBase implements StonecutterView {
 

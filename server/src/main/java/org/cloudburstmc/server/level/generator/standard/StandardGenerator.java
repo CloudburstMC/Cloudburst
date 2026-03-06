@@ -231,7 +231,8 @@ public final class StandardGenerator implements Generator {
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 GenerationBiome biome = biomes[(x << 4) | z];
-                chunk.setBiome(x, z, biome.getRuntimeId());
+                int biomeId = biome.getRuntimeId();
+                chunk.fillColumnBiome(x, z, biomeId);
                 for (Decorator decorator : this.decoratorLookup.get(biome.getInternalId())) {
                     decorator.decorate(random, chunk, x, z);
                 }

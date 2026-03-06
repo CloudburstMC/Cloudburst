@@ -12,7 +12,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
  * Screen implementation for the beacon. Payment slot is ephemeral (the beacon block entity
- * has no item storage — the server processes the payment when the player submits the form).
+ * has no item storage; the server processes the payment when the player submits the form).
  */
 public class CloudBeaconContainerScreen extends CloudBlockContainerScreen implements BeaconScreen {
 

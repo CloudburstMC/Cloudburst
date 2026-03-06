@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.inventory.view;
 
 /**
- * Represents the player's hotbar — the 9-slot quick-access bar (slots 0–8).
+ * Represents the player's hotbar, the 9-slot quick-access bar (slots 0-8).
  *
  * <p>The hotbar mirrors the first 9 slots of the player's main
  * {@link PlayerInventoryView}. Use this interface when you need hotbar-specific

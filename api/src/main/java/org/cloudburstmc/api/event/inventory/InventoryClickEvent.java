@@ -122,7 +122,7 @@ public final class InventoryClickEvent extends InventoryEvent implements Cancell
      * Returns the click sub-type for this action.
      *
      * <p>While {@link #getActionType()} describes the broad category (TAKE, PLACE, SWAP, …),
-     * this value describes the precise gesture — for example whether the player took
+     * this value describes the precise gesture (for example whether the player took
      * all items or only half, or placed the full stack, a single item, or a split amount.
      * The client sends the exact count with each {@code ItemStackRequest}, so the server
      * always knows whether it was a "take half" or "take all" click.</p>
@@ -200,7 +200,7 @@ public final class InventoryClickEvent extends InventoryEvent implements Cancell
          */
         PLACE,
         /**
-         * Player swaps the contents of two slots — includes swapping with the
+         * Player swaps the contents of two slots, including swapping with the
          * off-hand slot via the dedicated off-hand button.
          */
         SWAP,

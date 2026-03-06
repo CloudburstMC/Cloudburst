@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
@@ -27,6 +27,8 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 
 public final class UnsafeChunk implements Chunk, Closeable {
 
+    static final AtomicIntegerFieldUpdater<UnsafeChunk> CLEAR_CACHE_FIELD = AtomicIntegerFieldUpdater
+            .newUpdater(UnsafeChunk.class, "clearCache");
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> DIRTY_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "dirty");
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> INITIALIZED_FIELD = AtomicIntegerFieldUpdater
@@ -35,9 +37,6 @@ public final class UnsafeChunk implements Chunk, Closeable {
             .newUpdater(UnsafeChunk.class, "state");
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> CLOSED_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "closed");
-    static final AtomicIntegerFieldUpdater<UnsafeChunk> CLEAR_CACHE_FIELD = AtomicIntegerFieldUpdater
-            .newUpdater(UnsafeChunk.class, "clearCache");
-
     private final int x;
 
     private final int z;
@@ -50,9 +49,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     private final Set<CloudEntity> entities = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    private final Short2ObjectMap<BaseBlockEntity> tiles = new Short2ObjectOpenHashMap<>();
-
-    private final byte[] biomes;
+    private final Int2ObjectMap<BaseBlockEntity> tiles = new Int2ObjectOpenHashMap<>();
 
     private final int[] heightMap;
 
@@ -71,18 +68,15 @@ public final class UnsafeChunk implements Chunk, Closeable {
         this.z = z;
         this.level = level;
         this.sections = new CloudChunkSection[level.getSectionsCount()];
-        this.biomes = new byte[CloudChunk.ARRAY_SIZE];
         this.heightMap = new int[CloudChunk.ARRAY_SIZE];
     }
 
-    UnsafeChunk(int x, int z, Level level, CloudChunkSection[] sections, byte[] biomes, int[] heightMap) {
+    UnsafeChunk(int x, int z, Level level, CloudChunkSection[] sections, int[] heightMap) {
         this.x = x;
         this.z = z;
         this.level = level;
         Preconditions.checkNotNull(sections, "sections");
         this.sections = Arrays.copyOf(sections, level.getSectionsCount());
-        Preconditions.checkNotNull(biomes, "biomes");
-        this.biomes = Arrays.copyOf(biomes, CloudChunk.ARRAY_SIZE);
         Preconditions.checkNotNull(heightMap, "heightMap");
         this.heightMap = Arrays.copyOf(heightMap, CloudChunk.ARRAY_SIZE);
     }
@@ -178,20 +172,43 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
     @Override
-    public int getBiome(int x, int z) {
+    public int getBiome(int x, int y, int z) {
         checkBounds(x, z);
-        return this.biomes[get2dIndex(x, z)] & 0xFF;
+        if (this.level.isOutsideBuildHeight(y)) {
+            return CloudChunkSection.DEFAULT_BIOME_ID;
+        }
+
+        CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
+        if (section == null) {
+            return CloudChunkSection.DEFAULT_BIOME_ID;
+        }
+
+        return section.getBiome(x, y & 0xf, z);
     }
 
     @Override
-    public void setBiome(int x, int z, int biome) {
+    public void setBiome(int x, int y, int z, int biome) {
         checkBounds(x, z);
-        int index = get2dIndex(x, z);
-        int oldBiome = this.biomes[index] & 0xf;
-        if (oldBiome != biome) {
-            this.biomes[index] = (byte) biome;
-            this.setDirty();
+        if (this.level.isOutsideBuildHeight(y)) {
+            return;
         }
+        this.getOrCreateSection(this.level.getSectionIndex(y)).setBiome(x, y & 0xf, z, biome);
+        this.setDirty();
+    }
+
+    /**
+     * Fast-path override: fills every section column at (x, z) with {@code biomeId}
+     * by delegating directly to {@link CloudChunkSection#fillColumnBiome}, avoiding
+     * per-Y section lookups and dirty-marking overhead.
+     */
+    @Override
+    public void fillColumnBiome(int x, int z, int biomeId) {
+        checkBounds(x, z);
+        int sectionCount = this.level.getSectionsCount();
+        for (int i = 0; i < sectionCount; i++) {
+            this.getOrCreateSection(i).fillColumnBiome(x, z, biomeId);
+        }
+        this.setDirty();
     }
 
     @Override
@@ -238,23 +255,10 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return -1;
     }
 
-    /*@Override
-    public int getHeightMap(int x, int z) {
-        checkBounds(x, z);
-        return this.heightMap[get2dIndex(x, z)] & 0xFF;
-    }
-
-    @Override
-    public void setHeightMap(int x, int z, int value) {
-        checkBounds(x, z);
-        this.heightMap[get2dIndex(x, z)] = (byte) value;
-        setDirty();
-    }*/
-
     @Override
     public void addEntity(@NonNull Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
-        if (entity instanceof Player) {
+        if (entity instanceof CloudPlayer) {
             this.players.add((CloudPlayer) entity);
         } else if (this.entities.add((CloudEntity) entity) && this.initialized == 1) {
             this.setDirty();
@@ -264,7 +268,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void removeEntity(Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
-        if (entity instanceof Player) {
+        if (entity instanceof CloudPlayer) {
             this.players.remove(entity);
         } else if (this.entities.remove(entity) && this.initialized == 1) {
             this.setDirty();
@@ -274,7 +278,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void addBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
+        int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.put(hash, (BaseBlockEntity) blockEntity) != blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -283,7 +287,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void removeBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
-        short hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
+        int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.remove(hash) == blockEntity && this.initialized == 1) {
             this.setDirty();
         }
@@ -310,12 +314,6 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public Level getLevel() {
         return level;
-    }
-
-    @NonNull
-    @Override
-    public byte[] getBiomeArray() {
-        return biomes;
     }
 
     @NonNull
@@ -404,8 +402,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void clear() {
         Arrays.fill(this.sections, null);
-        Arrays.fill(this.biomes, (byte) 0);
-        Arrays.fill(this.heightMap, (byte) 0);
+        Arrays.fill(this.heightMap, 0);
         this.tiles.clear();
         this.entities.clear();
         this.state = STATE_NEW;
@@ -444,11 +441,11 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     @Override
     public LockableChunk readLockable() {
-        return null;
+        throw new UnsupportedOperationException("UnsafeChunk does not support locking; use CloudChunk");
     }
 
     @Override
     public LockableChunk writeLockable() {
-        return null;
+        throw new UnsupportedOperationException("UnsafeChunk does not support locking; use CloudChunk");
     }
 }

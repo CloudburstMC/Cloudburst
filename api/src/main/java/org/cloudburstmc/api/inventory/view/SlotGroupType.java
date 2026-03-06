@@ -43,7 +43,7 @@ public final class SlotGroupType<T extends SlotGroup> {
      * <p>Every call to this method with the same {@code identifier} produces tokens that are
      * {@link #equals equal} to each other (since equality is based on the identifier). However,
      * for the built-in types prefer the pre-built constants in {@link SlotGroupTypes} and compare
-     * with {@code ==} in hot paths — that avoids an {@code equals} call entirely.</p>
+     * with {@code ==} in hot paths (that avoids an {@code equals} call entirely).</p>
      *
      * @param identifier     the namespaced identifier for this type
      * @param slotGroupClass the slot-group interface class

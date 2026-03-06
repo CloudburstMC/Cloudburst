@@ -7,7 +7,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 /**
  * Server-side implementation of {@link CraftingTableView} for the crafting table.
  * Wraps a 9-slot ephemeral container representing the 3×3 crafting grid.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudCraftingTableView extends CloudSlotGroupBase implements CraftingTableView {
 

@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.chunk.bitarray;
 
-import com.google.common.base.Preconditions;
 import org.cloudburstmc.server.math.MathHelper;
 
 import java.util.Arrays;
@@ -34,12 +33,12 @@ public class Pow2BitArray implements BitArray {
     }
 
     /**
-     * Sets the entry at the given location to the given value
+     * Sets the entry at the given location to the given value.
+     * Bounds checks are omitted intentionally. All callers are trusted to pass
+     * valid indices (0 ≤ index < size) and values (0 ≤ value ≤ maxEntryValue).
      */
+    @Override
     public void set(int index, int value) {
-        Preconditions.checkElementIndex(index, this.size);
-        Preconditions.checkArgument(value >= 0 && value <= this.version.maxEntryValue,
-                "Max value: %s. Received value", this.version.maxEntryValue, value);
         int bitIndex = index * this.version.bits;
         int arrayIndex = bitIndex >> 5;
         int offset = bitIndex & 31;
@@ -47,10 +46,12 @@ public class Pow2BitArray implements BitArray {
     }
 
     /**
-     * Gets the entry at the given index
+     * Gets the entry at the given index.
+     * Bounds checks are omitted intentionally. Callers are trusted to pass
+     * valid indices (0 ≤ index < size).
      */
+    @Override
     public int get(int index) {
-        Preconditions.checkElementIndex(index, this.size);
         int bitIndex = index * this.version.bits;
         int arrayIndex = bitIndex >> 5;
         int wordOffset = bitIndex & 31;
@@ -58,8 +59,9 @@ public class Pow2BitArray implements BitArray {
     }
 
     /**
-     * Gets the long array that is used to store the data in this BitArray. This is useful for sending packet data.
+     * Returns the number of entries in this bit array.
      */
+    @Override
     public int size() {
         return this.size;
     }
@@ -74,6 +76,7 @@ public class Pow2BitArray implements BitArray {
         return this.words;
     }
 
+    @Override
     public BitArrayVersion getVersion() {
         return version;
     }

@@ -7,7 +7,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
  * A {@link BlockSlotGroup} for blocks that have <em>no</em> persistent block entity.
  *
  * <p>Several interactive blocks (crafting table, smithing table, loom, cartography table,
- * stonecutter) open a container UI but store no data between interactions — they have no
+ * stonecutter) open a container UI but store no data between interactions; they have no
  * {@link BlockEntity} in the world. This interface makes that contract explicit at the
  * type level by overriding {@link BlockSlotGroup#getBlockEntity()} to always return
  * {@code null}.</p>
@@ -21,7 +21,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 public interface StatelessBlockSlotGroup extends BlockSlotGroup<BlockEntity> {
 
     /**
-     * Always returns {@code null} — this block has no persistent block entity.
+     * Always returns {@code null}. This block has no persistent block entity.
      *
      * @return {@code null}
      */

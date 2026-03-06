@@ -9,8 +9,8 @@ import org.cloudburstmc.api.inventory.view.StorageView;
  * treat real and virtual storage containers uniformly. Concrete subtypes differ only in slot
  * count and the phantom block used:</p>
  * <ul>
- *   <li>{@link VirtualChestScreen} — 27 slots, single chest</li>
- *   <li>{@link VirtualDoubleChestScreen} — 54 slots, double chest</li>
+ *   <li>{@link VirtualChestScreen}: 27 slots, single chest</li>
+ *   <li>{@link VirtualDoubleChestScreen}: 54 slots, double chest</li>
  * </ul>
  */
 public interface VirtualStorageScreen extends VirtualContainerScreen, StorageAccess {

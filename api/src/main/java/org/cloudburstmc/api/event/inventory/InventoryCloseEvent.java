@@ -6,7 +6,7 @@ import org.cloudburstmc.api.inventory.InventoryScreen;
  * Called when a player closes an inventory screen.
  *
  * <p>This event is <strong>not {@link org.cloudburstmc.api.event.Cancellable}</strong>.
- * In Bedrock Edition the client initiates inventory closes unilaterally — the client sends a
+ * In Bedrock Edition the client initiates inventory closes unilaterally; the client sends a
  * close packet and has already dismissed the UI before the server receives the notification.
  * Cancelling the close server-side would cause a permanent desync: the client would show the
  * game world while the server still considered the screen open, breaking all subsequent

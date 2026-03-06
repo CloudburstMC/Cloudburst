@@ -34,8 +34,8 @@ public class IceSnowFinisher implements Finisher {
 
     @Override
     public void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
-        CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, blockZ & 0xF));
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, y, blockZ & 0xF));
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
             BlockState state = level.getBlockState(blockX, y, blockZ, 0);
             if (state.getType().getId() == BlockIds.WATER) {

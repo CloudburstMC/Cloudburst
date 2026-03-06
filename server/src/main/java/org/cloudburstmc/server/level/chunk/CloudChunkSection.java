@@ -10,20 +10,22 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 
 public class CloudChunkSection implements ChunkSection {
 
+    public static final int DISK_CHUNK_SECTION_VERSION = 8;
     public static final int CHUNK_SECTION_VERSION = 9;
     public static final int SIZE = 4096;
+    public static final int DEFAULT_BIOME_ID = 0;
 
     private final BlockStorage[] storage;
     private final NibbleArray blockLight;
     private final NibbleArray skyLight;
+    private BiomeStorage biomeStorage;
 
     public CloudChunkSection() {
-        this(new BlockStorage[]{new BlockStorage(), new BlockStorage()}, new NibbleArray(SIZE),
-                new NibbleArray(SIZE));
+        this(new BlockStorage[]{new BlockStorage(), new BlockStorage()}, new NibbleArray(SIZE), new NibbleArray(SIZE), new BiomeStorage(DEFAULT_BIOME_ID));
     }
 
     public CloudChunkSection(BlockStorage[] blockStorage) {
-        this(blockStorage, new NibbleArray(SIZE), new NibbleArray(SIZE));
+        this(blockStorage, new NibbleArray(SIZE), new NibbleArray(SIZE), new BiomeStorage(DEFAULT_BIOME_ID));
     }
 
     public CloudChunkSection(BlockStorage[] storage, byte[] blockLight, byte[] skyLight) {
@@ -36,12 +38,14 @@ public class CloudChunkSection implements ChunkSection {
         this.storage = storage;
         this.blockLight = new NibbleArray(blockLight);
         this.skyLight = new NibbleArray(skyLight);
+        this.biomeStorage = new BiomeStorage(DEFAULT_BIOME_ID);
     }
 
-    private CloudChunkSection(BlockStorage[] storage, NibbleArray blockLight, NibbleArray skyLight) {
+    private CloudChunkSection(BlockStorage[] storage, NibbleArray blockLight, NibbleArray skyLight, BiomeStorage biomeStorage) {
         this.storage = storage;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
+        this.biomeStorage = biomeStorage;
     }
 
     public static int blockIndex(int x, int y, int z) {
@@ -51,6 +55,11 @@ public class CloudChunkSection implements ChunkSection {
     public static void checkBounds(int x, int y, int z) {
         Preconditions.checkArgument(x >= 0 && x < 16, "x (%s) is not between 0 and 15", x);
         Preconditions.checkArgument(y >= 0 && y < 16, "y (%s) is not between 0 and 15", y);
+        Preconditions.checkArgument(z >= 0 && z < 16, "z (%s) is not between 0 and 15", z);
+    }
+
+    private static void checkXZ(int x, int z) {
+        Preconditions.checkArgument(x >= 0 && x < 16, "x (%s) is not between 0 and 15", x);
         Preconditions.checkArgument(z >= 0 && z < 16, "z (%s) is not between 0 and 15", z);
     }
 
@@ -97,11 +106,12 @@ public class CloudChunkSection implements ChunkSection {
      * @param sectionY the absolute section Y index (e.g. -4 for Y=-64 to -49, 0 for Y=0 to 15)
      */
     public void writeToNetwork(ByteBuf buffer, int sectionY) {
+        int layerCount = effectiveLayerCount();
         buffer.writeByte(CHUNK_SECTION_VERSION);
-        buffer.writeByte(this.storage.length);
+        buffer.writeByte(layerCount);
         buffer.writeByte(sectionY);
-        for (BlockStorage blockStorage : this.storage) {
-            blockStorage.writeToNetwork(buffer);
+        for (int i = 0; i < layerCount; i++) {
+            this.storage[i].writeToNetwork(buffer);
         }
     }
 
@@ -110,11 +120,81 @@ public class CloudChunkSection implements ChunkSection {
      * Uses version 8 format (no sectionY byte) so existing world saves remain compatible.
      */
     public void writeToDisk(ByteBuf buffer) {
-        buffer.writeByte(8);
-        buffer.writeByte(this.storage.length);
+        // Compact every layer first so isEmpty() reflects the post-compact state.
         for (BlockStorage blockStorage : this.storage) {
-            blockStorage.writeToStorage(buffer);
+            blockStorage.compact();
         }
+        int layerCount = effectiveLayerCount();
+        buffer.writeByte(DISK_CHUNK_SECTION_VERSION);
+        buffer.writeByte(layerCount);
+        for (int i = 0; i < layerCount; i++) {
+            this.storage[i].writeToStorage(buffer);
+        }
+    }
+
+    /**
+     * Returns the number of layers to actually serialize. Trailing all-air layers are
+     * excluded, but the count is always at least 1 (layer 0 is always present).
+     */
+    private int effectiveLayerCount() {
+        int count = this.storage.length;
+        while (count > 1 && this.storage[count - 1].isEmpty()) {
+            count--;
+        }
+        return count;
+    }
+
+    /**
+     * Sets the biome ID for every Y position in a single XZ column within this section.
+     *
+     * @param x       0–15 within the section
+     * @param z       0–15 within the section
+     * @param biomeId raw biome integer ID
+     */
+    public void fillColumnBiome(int x, int z, int biomeId) {
+        checkXZ(x, z);
+        for (int y = 0; y < 16; y++) {
+            this.biomeStorage.setBiome(blockIndex(x, y, z), biomeId);
+        }
+    }
+
+    /**
+     * Returns the biome ID at the given intra-section coordinates.
+     *
+     * @param x 0–15 within the section
+     * @param y 0–15 within the section
+     * @param z 0–15 within the section
+     */
+    public int getBiome(int x, int y, int z) {
+        checkBounds(x, y, z);
+        return this.biomeStorage.getBiome(blockIndex(x, y, z));
+    }
+
+    /**
+     * Sets the biome ID at the given intra-section coordinates.
+     *
+     * @param x       0–15 within the section
+     * @param y       0–15 within the section
+     * @param z       0–15 within the section
+     * @param biomeId raw biome integer ID
+     */
+    public void setBiome(int x, int y, int z, int biomeId) {
+        checkBounds(x, y, z);
+        this.biomeStorage.setBiome(blockIndex(x, y, z), biomeId);
+    }
+
+    /**
+     * Returns the underlying {@link BiomeStorage} for this section.
+     */
+    public BiomeStorage getBiomeStorage() {
+        return this.biomeStorage;
+    }
+
+    /**
+     * Replaces the underlying {@link BiomeStorage} for this section.
+     */
+    public void setBiomeStorage(BiomeStorage biomeStorage) {
+        this.biomeStorage = biomeStorage;
     }
 
     public NibbleArray getSkyLightArray() {
@@ -143,6 +223,6 @@ public class CloudChunkSection implements ChunkSection {
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new CloudChunkSection(storage, skyLight.copy(), blockLight.copy());
+        return new CloudChunkSection(storage, blockLight.copy(), skyLight.copy(), this.biomeStorage.copy());
     }
 }

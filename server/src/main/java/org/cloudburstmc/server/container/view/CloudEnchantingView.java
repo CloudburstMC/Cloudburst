@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * and reagent (lapis lazuli). Tracks the three enchantment offers and the enchantment seed.
  * <p>
  * There is no separate output slot; the item is enchanted in-place in the input slot.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudEnchantingView extends CloudSlotGroupBase implements EnchantingView {
 

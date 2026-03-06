@@ -13,9 +13,9 @@ import org.cloudburstmc.server.container.CloudContainer;
  *
  * <p>Wraps the 5-slot container in the block entity's canonical internal layout:</p>
  * <ul>
- *   <li>slot 0 — ingredient (the item being brewed)</li>
- *   <li>slots 1–3 — potion bottles (bottle 0 → index 1, bottle 1 → index 2, bottle 2 → index 3)</li>
- *   <li>slot 4 — fuel (blaze powder)</li>
+ *   <li>slot 0: ingredient (the item being brewed)</li>
+ *   <li>slots 1-3: potion bottles (bottle 0 at index 1, bottle 1 at index 2, bottle 2 at index 3)</li>
+ *   <li>slot 4: fuel (blaze powder)</li>
  * </ul>
  */
 public class CloudBrewingStandView extends CloudSlotGroupBase implements BlockBrewingStandView {

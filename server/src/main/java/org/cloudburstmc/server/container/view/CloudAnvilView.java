@@ -9,7 +9,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 /**
  * View-layer slot group for the anvil. Holds three item slots (input, material, result),
  * a repair cost, a rename text, and a maximum repair cost.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudAnvilView extends CloudSlotGroupBase implements AnvilView {
 

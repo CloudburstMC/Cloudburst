@@ -101,7 +101,7 @@ public interface BrewingStandView extends SlotGroup {
      * <p><strong>Inversion warning:</strong> the underlying block entity stores this as a
      * countdown (e.g. {@code 400 → 0}), so the implementation automatically inverts the
      * value when reading and writing. Always pass and read elapsed ticks (upward) through
-     * this API — do not attempt to pass the raw countdown value directly.</p>
+     * this API; do not attempt to pass the raw countdown value directly.</p>
      *
      * @param ticks elapsed brew ticks (upward, {@code 0} = just started,
      *              {@link #getBrewDuration()} = complete)

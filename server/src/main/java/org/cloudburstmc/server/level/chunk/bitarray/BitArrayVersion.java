@@ -31,6 +31,25 @@ public enum BitArrayVersion {
         throw new IllegalArgumentException("Invalid palette version: " + version);
     }
 
+    /**
+     * Returns the smallest {@link BitArrayVersion} whose {@link #maxEntryValue} is
+     * &gt;= {@code paletteSize - 1}, i.e. the version that can hold exactly
+     * {@code paletteSize} distinct palette entries. Returns {@link #V1} for
+     * {@code paletteSize} of 0 or 1 (degenerate / singleton cases).
+     *
+     * <p>Used by {@code compact()} to downsize the bit-array after dead palette entries
+     * have been removed.
+     */
+    public static BitArrayVersion getMinimalVersion(int paletteSize) {
+        BitArrayVersion[] all = values();
+        for (int i = all.length - 1; i >= 0; i--) {
+            if (all[i].maxEntryValue >= paletteSize - 1) {
+                return all[i];
+            }
+        }
+        return V16;
+    }
+
     public BitArray createPalette(int size) {
         return this.createPalette(size, new int[this.getWordsForSize(size)]);
     }

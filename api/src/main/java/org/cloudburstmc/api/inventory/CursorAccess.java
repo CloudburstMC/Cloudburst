@@ -19,7 +19,7 @@ import org.cloudburstmc.api.item.ItemStack;
 public interface CursorAccess {
 
     /**
-     * Returns the cursor slot group — the raw {@link CursorView} backing the cursor.
+     * Returns the cursor slot group (the raw {@link CursorView} backing the cursor).
      * Prefer {@link #getCursorItem()} / {@link #setCursorItem(ItemStack)} for simple
      * item access.
      *

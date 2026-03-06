@@ -6,7 +6,7 @@ import org.cloudburstmc.api.inventory.view.OffhandView;
 import org.cloudburstmc.api.inventory.view.PlayerInventoryView;
 
 /**
- * Represents the player's own inventory screen — the 2×2 crafting grid, armor slots,
+ * Represents the player's own inventory screen (the 2×2 crafting grid, armor slots,
  * offhand slot, and main inventory that the player sees when they open their own inventory.
  *
  * <p>This screen is NOT a {@link ContainerScreen}: it is the player's own inventory, not a
@@ -14,7 +14,7 @@ import org.cloudburstmc.api.inventory.view.PlayerInventoryView;
  * {@code getPlayerInventory()} (there is no "container" half) and extends
  * {@link InventoryScreen} directly.</p>
  *
- * <p>Like {@link ContainerScreen}, this screen implements {@link CursorAccess} — plugins
+ * <p>Like {@link ContainerScreen}, this screen implements {@link CursorAccess}; plugins
  * can use {@code instanceof CursorAccess} to access the cursor without knowing the concrete
  * screen type:</p>
  * <pre>{@code

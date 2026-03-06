@@ -12,7 +12,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 
 /**
  * View-layer slot group for the beacon. Holds one slot: the payment item.
- * This is an ephemeral section — the beacon block entity has no item storage.
+ * This is an ephemeral section; the beacon block entity has no item storage.
  */
 public class CloudBeaconView extends CloudSlotGroupBase implements BlockBeaconView {
 

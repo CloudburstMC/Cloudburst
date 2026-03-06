@@ -2011,7 +2011,9 @@ public class CloudLevel implements Level {
 
     @Override
     public int getMaxHeight() {
-        return this.getDimension() == DIMENSION_NETHER ? 128 : 320;
+        if (this.getDimension() == DIMENSION_NETHER) return 128;
+        if (this.getDimension() == DIMENSION_THE_END) return 256;
+        return 320; // Overworld
     }
 
     public Set<BlockEntity> getBlockEntities() {
@@ -2074,12 +2076,12 @@ public class CloudLevel implements Level {
         return chunk.getBlock(x & 0x0f, y, z & 0x0f, layer);
     }
 
-    public int getBiomeId(int x, int z) {
-        return this.getChunk(x >> 4, z >> 4).getBiome(x & 0xF, z & 0xF);
+    public int getBiomeId(int x, int y, int z) {
+        return this.getChunk(x >> 4, z >> 4).getBiome(x & 0xF, y, z & 0xF);
     }
 
-    public void setBiomeId(int x, int z, byte biomeId) {
-        this.getChunk(x >> 4, z >> 4).setBiome(x & 0xF, z & 0xF, biomeId);
+    public void setBiomeId(int x, int y, int z, int biomeId) {
+        this.getChunk(x >> 4, z >> 4).setBiome(x & 0xF, y, z & 0xF, biomeId);
     }
 
     public int getSkyLightAt(int x, int y, int z) {

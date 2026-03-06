@@ -61,7 +61,7 @@ public final class ContainerTypeRegistry {
      * {@code ContainerOpenPacket} type for their screen.</p>
      *
      * <p>If a mapping for the given {@code screenType} already exists it will be silently
-     * overwritten — last writer wins.</p>
+     * overwritten (last writer wins).</p>
      *
      * @param screenType    the screen type token (must be non-null, identity-keyed)
      * @param containerType the container type to send in the open packet

@@ -9,7 +9,7 @@ import org.cloudburstmc.server.container.CloudContainer;
  * Server-side implementation of {@link LoomView}.
  * Wraps a 4-slot ephemeral container:
  * slot 0 = banner, slot 1 = dye, slot 2 = pattern, slot 3 = result.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudLoomView extends CloudSlotGroupBase implements LoomView {
 

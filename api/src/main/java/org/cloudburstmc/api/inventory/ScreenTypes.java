@@ -6,16 +6,16 @@ import org.cloudburstmc.api.util.Identifier;
 /**
  * Registry of all built-in {@link ScreenType} constants.
  *
- * <h2>Type checking — always use {@code ==}, never {@code instanceof}</h2>
+ * <h2>Type checking: always use {@code ==}, never {@code instanceof}</h2>
  * <p>{@link ScreenType} uses <em>identity equality</em>. Every constant in this class is a unique
  * object. Because several screen types share the same Java interface (see below), you cannot use
- * {@code instanceof} to distinguish e.g. a barrel from a chest — both are {@code StorageScreen}.
+ * {@code instanceof} to distinguish e.g. a barrel from a chest; both are {@code StorageScreen}.
  * Always compare the screen's type token with {@code ==}:</p>
  * <pre>{@code
- * // CORRECT — uniquely identifies the barrel screen type
+ * // CORRECT: uniquely identifies the barrel screen type
  * if (event.getScreen().getType() == ScreenTypes.BARREL) { ... }
  *
- * // WRONG — also matches CHEST, DOUBLE_CHEST, and SHULKER_BOX
+ * // WRONG: also matches CHEST, DOUBLE_CHEST, and SHULKER_BOX
  * if (event.getScreen() instanceof StorageScreen) { ... }
  * }</pre>
  *
@@ -24,9 +24,9 @@ import org.cloudburstmc.api.util.Identifier;
  * behave identically from a slot-access perspective:</p>
  * <ul>
  *   <li>{@link #CHEST}, {@link #DOUBLE_CHEST}, {@link #BARREL}, and {@link #SHULKER_BOX} all use
- *       {@link StorageScreen} — use {@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlock()}
+ *       {@link StorageScreen}; use {@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlock()}
  *       or {@link org.cloudburstmc.api.inventory.view.SlotGroup#size()} (27 vs 54) to distinguish at runtime.</li>
- *   <li>{@link #FURNACE}, {@link #BLAST_FURNACE}, and {@link #SMOKER} all use {@link FurnaceScreen} —
+ *   <li>{@link #FURNACE}, {@link #BLAST_FURNACE}, and {@link #SMOKER} all use {@link FurnaceScreen};
  *       use {@link org.cloudburstmc.api.inventory.view.BlockSlotGroup#getBlock()} to
  *       distinguish them at runtime.</li>
  * </ul>

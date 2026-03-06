@@ -9,7 +9,7 @@ import org.cloudburstmc.server.container.CloudContainer;
  * Server-side implementation of {@link SmithingView}.
  * Wraps a 4-slot ephemeral container:
  * slot 0 = template, slot 1 = base, slot 2 = addition, slot 3 = result.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudSmithingView extends CloudSlotGroupBase implements SmithingView {
 

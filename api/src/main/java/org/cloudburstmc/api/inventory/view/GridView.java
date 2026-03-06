@@ -8,9 +8,9 @@ package org.cloudburstmc.api.inventory.view;
  * 3×3 grid to the player, regardless of how the block behaves mechanically.
  * Currently implemented by:</p>
  * <ul>
- *   <li>{@link DispenserView} — a dispenser block that fires or uses the dispensed item</li>
- *   <li>{@link DropperView} — a dropper block that always drops items as entities</li>
- *   <li>{@link CrafterView} — a crafter block that auto-crafts via redstone signal</li>
+ *   <li>{@link DispenserView}: a dispenser block that fires or uses the dispensed item</li>
+ *   <li>{@link DropperView}: a dropper block that always drops items as entities</li>
+ *   <li>{@link CrafterView}: a crafter block that auto-crafts via redstone signal</li>
  * </ul>
  *
  * <p>Use this type when writing plugin code that treats any 3×3 storage block

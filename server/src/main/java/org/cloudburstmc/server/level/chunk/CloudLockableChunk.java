@@ -63,13 +63,18 @@ public final class CloudLockableChunk extends LockableChunk {
     }
 
     @Override
-    public int getBiome(int x, int z) {
-        return this.unsafe.getBiome(x, z);
+    public int getBiome(int x, int y, int z) {
+        return this.unsafe.getBiome(x, y, z);
     }
 
     @Override
-    public void setBiome(int x, int z, int biome) {
-        this.unsafe.setBiome(x, z, biome);
+    public void setBiome(int x, int y, int z, int biome) {
+        this.unsafe.setBiome(x, y, z, biome);
+    }
+
+    @Override
+    public void fillColumnBiome(int x, int z, int biomeId) {
+        this.unsafe.fillColumnBiome(x, z, biomeId);
     }
 
     @Override
@@ -140,12 +145,6 @@ public final class CloudLockableChunk extends LockableChunk {
 
     @NonNull
     @Override
-    public byte[] getBiomeArray() {
-        return this.unsafe.getBiomeArray().clone();
-    }
-
-    @NonNull
-    @Override
     public int[] getHeightMapArray() {
         return this.unsafe.getHeightMapArray().clone();
     }
@@ -205,12 +204,12 @@ public final class CloudLockableChunk extends LockableChunk {
 
     @Override
     public LockableChunk readLockable() {
-        return this;
+        throw new UnsupportedOperationException("Use CloudChunk.readLockable()");
     }
 
     @Override
     public LockableChunk writeLockable() {
-        return this;
+        throw new UnsupportedOperationException("Use CloudChunk.writeLockable()");
     }
 
     @Override

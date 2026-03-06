@@ -7,9 +7,9 @@ import org.cloudburstmc.api.inventory.view.GrindstoneView;
  *
  * <p>The grindstone has two input slots and one output slot:</p>
  * <ul>
- *   <li>{@link GrindstoneView#getInput()} — the primary (left) item input slot</li>
- *   <li>{@link GrindstoneView#getAdditional()} — the secondary (right) item input slot</li>
- *   <li>{@link GrindstoneView#getResult()} — the result output slot</li>
+ *   <li>{@link GrindstoneView#getInput()}: the primary (left) item input slot</li>
+ *   <li>{@link GrindstoneView#getAdditional()}: the secondary (right) item input slot</li>
+ *   <li>{@link GrindstoneView#getResult()}: the result output slot</li>
  * </ul>
  */
 public interface GrindstoneScreen extends ContainerScreen {

@@ -97,7 +97,18 @@ public class AnvilConverter {
         } else {
             biomes = tag.getByteArray("Biomes");
         }
-        chunkBuilder.biomes(biomes);
+        // Convert legacy 2D biome array (one entry per XZ column) to 3D per-section biome storage
+        if (biomes != null && biomes.length >= 256) {
+            for (CloudChunkSection section : sections) {
+                if (section == null) continue;
+                for (int x = 0; x < 16; x++) {
+                    for (int z = 0; z < 16; z++) {
+                        int biomeId = biomes[z * 16 + x] & 0xFF;
+                        section.fillColumnBiome(x, z, biomeId);
+                    }
+                }
+            }
+        }
 
         int[] anvilHeightMap = tag.getIntArray("HeightMap");
         int[] heightMap = new int[256];

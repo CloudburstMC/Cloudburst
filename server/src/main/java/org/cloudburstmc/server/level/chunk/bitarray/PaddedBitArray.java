@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.chunk.bitarray;
 
-import com.google.common.base.Preconditions;
 import org.cloudburstmc.server.math.MathHelper;
 
 import java.util.Arrays;
@@ -33,20 +32,26 @@ public class PaddedBitArray implements BitArray {
         }
     }
 
+    /**
+     * Sets the entry at the given location to the given value.
+     * Bounds checks are omitted intentionally. All callers are trusted to pass
+     * valid indices (0 ≤ index < size) and values (0 ≤ value ≤ maxEntryValue).
+     */
     @Override
     public void set(int index, int value) {
-        Preconditions.checkElementIndex(index, this.size);
-        Preconditions.checkArgument(value >= 0 && value <= this.version.maxEntryValue,
-                "Max value: %s. Received value", this.version.maxEntryValue, value);
         int arrayIndex = index / this.version.entriesPerWord;
         int offset = (index % this.version.entriesPerWord) * this.version.bits;
 
         this.words[arrayIndex] = this.words[arrayIndex] & ~(this.version.maxEntryValue << offset) | (value & this.version.maxEntryValue) << offset;
     }
 
+    /**
+     * Gets the entry at the given index.
+     * Bounds checks are omitted intentionally. Callers are trusted to pass
+     * valid indices (0 ≤ index < size).
+     */
     @Override
     public int get(int index) {
-        Preconditions.checkElementIndex(index, this.size);
         int arrayIndex = index / this.version.entriesPerWord;
         int offset = (index % this.version.entriesPerWord) * this.version.bits;
 

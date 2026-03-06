@@ -7,9 +7,9 @@ import org.cloudburstmc.api.inventory.view.StorageView;
  *
  * <p>Two concrete subtypes exist:</p>
  * <ul>
- *   <li>{@link StorageScreen} — a real container backed by a block entity in the world;
+ *   <li>{@link StorageScreen}: a real container backed by a block entity in the world;
  *       its {@link #getStorage()} narrows the return type to {@link org.cloudburstmc.api.inventory.view.BlockStorageView}.</li>
- *   <li>{@link VirtualStorageScreen} — a plugin-defined container with no block entity;
+ *   <li>{@link VirtualStorageScreen}: a plugin-defined container with no block entity;
  *       its {@link #getStorage()} returns a plain {@link StorageView}.</li>
  * </ul>
  *

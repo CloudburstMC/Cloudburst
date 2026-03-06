@@ -9,7 +9,7 @@ import org.cloudburstmc.server.container.CloudContainer;
  * Server-side implementation of {@link CartographyView}.
  * Wraps a 3-slot ephemeral container:
  * slot 0 = map input, slot 1 = paper (additional), slot 2 = result.
- * This is an ephemeral section — it has no block entity backing.
+ * This is an ephemeral section with no block entity backing.
  */
 public class CloudCartographyView extends CloudSlotGroupBase implements CartographyView {
 

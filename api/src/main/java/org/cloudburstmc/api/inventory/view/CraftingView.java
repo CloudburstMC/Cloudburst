@@ -5,7 +5,7 @@ import org.cloudburstmc.api.item.ItemStack;
 /**
  * Represents the player's 2×2 crafting grid slots inside the player inventory screen.
  *
- * <p>This slot group is always attached to a player, not a block — the 2×2 crafting
+ * <p>This slot group is always attached to a player, not a block; the 2×2 crafting
  * grid is part of the player's own inventory UI.</p>
  *
  * <p>Slot layout (row-major order):

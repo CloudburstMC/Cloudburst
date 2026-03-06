@@ -18,16 +18,13 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkException;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
-import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.Closeable;
@@ -43,26 +40,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class CloudChunk implements Chunk, Closeable {
 
     static final int ARRAY_SIZE = 256;
-
-    private static final CloudChunkSection EMPTY = new CloudChunkSection(new BlockStorage[]{new BlockStorage(BitArrayVersion.V1),
-            new BlockStorage(BitArrayVersion.V1)});
+    private static final BiomeStorage defaultBiomeStorage = new BiomeStorage(CloudChunkSection.DEFAULT_BIOME_ID);
 
     private final Lock readLock; // cached from ReadWriteLock to avoid interface dispatch overhead
     private final Lock writeLock;
 
     private final UnsafeChunk unsafe;
-
     private final Set<ChunkLoader> loaders = Collections.newSetFromMap(new IdentityHashMap<>());
-
     private final Set<CloudPlayer> playerLoaders = Collections.newSetFromMap(new IdentityHashMap<>());
-
-    private SoftReference<LevelChunkPacket> cached = null;
 
     private final CloudLockableChunk readLockable;
     private final CloudLockableChunk writeLockable;
 
+    private SoftReference<LevelChunkPacket> cached = null;
     private Collection<ChunkDataLoader> chunkDataLoaders;
-
     private List<BlockUpdate> blockUpdates;
 
     public CloudChunk(int x, int z, Level level) {
@@ -105,12 +96,6 @@ public final class CloudChunk implements Chunk, Closeable {
                 ((CloudLevel) this.unsafe.getLevel()).scheduleUpdate(update);
             }
             this.blockUpdates = null;
-
-//            if(getX() == 0 && getZ() == 0) {
-//                for (BlockEntity blockEntity : this.getBlockEntities()) {
-//                    log.info(NbtUtils.toString(blockEntity.getServerTag()));
-//                }
-//            }
         }
     }
 
@@ -181,20 +166,20 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @Override
-    public int getBiome(int x, int z) {
+    public int getBiome(int x, int y, int z) {
         this.readLock.lock();
         try {
-            return unsafe.getBiome(x, z);
+            return unsafe.getBiome(x, y, z);
         } finally {
             this.readLock.unlock();
         }
     }
 
     @Override
-    public synchronized void setBiome(int x, int z, int biome) {
+    public void setBiome(int x, int y, int z, int biome) {
         this.writeLock.lock();
         try {
-            unsafe.setBiome(x, z, biome);
+            unsafe.setBiome(x, y, z, biome);
         } finally {
             this.writeLock.unlock();
         }
@@ -270,15 +255,15 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    public static short blockKey(Vector3i vector, int minHeight) {
+    public static int blockKey(Vector3i vector, int minHeight) {
         return blockKey(vector.getX(), vector.getY(), vector.getZ(), minHeight);
     }
 
-    public static short blockKey(int x, int y, int z, int minHeight) {
-        return (short) ((x & 0xf) | ((z & 0xf) << 4) | (((y - minHeight) & 0x1ff) << 8));
+    public static int blockKey(int x, int y, int z, int minHeight) {
+        return (x & 0xf) | ((z & 0xf) << 4) | (((y - minHeight) & 0x1ff) << 8);
     }
 
-    public static Vector3i fromKey(long chunkKey, short blockKey, int minHeight) {
+    public static Vector3i fromBlockKey(long chunkKey, int blockKey, int minHeight) {
         int x = (blockKey & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 4) & 0xf) | (fromKeyZ(chunkKey) << 4);
         int y = ((blockKey >>> 8) & 0x1ff) + minHeight;
@@ -299,17 +284,6 @@ public final class CloudChunk implements Chunk, Closeable {
     @Override
     public Level getLevel() {
         return unsafe.getLevel();
-    }
-
-    @NonNull
-    @Override
-    public byte[] getBiomeArray() {
-        this.readLock.lock();
-        try {
-            return this.unsafe.getBiomeArray().clone();
-        } finally {
-            this.readLock.unlock();
-        }
     }
 
     @NonNull
@@ -394,7 +368,7 @@ public final class CloudChunk implements Chunk, Closeable {
     public void removeLoader(ChunkLoader chunkLoader) {
         Preconditions.checkNotNull(chunkLoader, "chunkLoader");
         this.loaders.remove(chunkLoader);
-        if (chunkLoader instanceof Player) {
+        if (chunkLoader instanceof CloudPlayer) {
             this.playerLoaders.remove(chunkLoader);
         }
     }
@@ -443,7 +417,9 @@ public final class CloudChunk implements Chunk, Closeable {
         this.writeLock.lock();
         try {
             unsafe.clear();
-            this.blockUpdates.clear();
+            if (this.blockUpdates != null) {
+                this.blockUpdates.clear();
+            }
             this.chunkDataLoaders = null;
         } finally {
             this.writeLock.unlock();
@@ -529,6 +505,8 @@ public final class CloudChunk implements Chunk, Closeable {
         if (UnsafeChunk.CLEAR_CACHE_FIELD.compareAndSet(unsafe, 1, 0)) {
             this.clearCache();
         }
+
+        int dimension = ((CloudLevel) unsafe.getLevel()).getDimension();
         if (this.cached != null) {
             LevelChunkPacket cachedPacket = this.cached.get();
             if (cachedPacket != null) {
@@ -537,7 +515,7 @@ public final class CloudChunk implements Chunk, Closeable {
                 copy.setChunkZ(cachedPacket.getChunkZ());
                 copy.setSubChunkLimit(cachedPacket.getSubChunkLimit());
                 copy.setRequestSubChunks(true);
-                copy.setDimension(0);
+                copy.setDimension(dimension);
                 copy.setData(cachedPacket.getData().retainedDuplicate());
                 return copy;
             } else {
@@ -549,7 +527,7 @@ public final class CloudChunk implements Chunk, Closeable {
         packet.setChunkX(this.getX());
         packet.setChunkZ(this.getZ());
         packet.setRequestSubChunks(true);
-        packet.setDimension(0);
+        packet.setDimension(dimension);
 
         this.readLock.lock();
         try {
@@ -566,22 +544,15 @@ public final class CloudChunk implements Chunk, Closeable {
 
             ByteBuf buffer = Unpooled.buffer();
             try {
-                // Biome payload for sub-chunk request mode (3D paletted format, one section per dimension slot).
-                // Section 0: V0 singleton palette with the chunk's representative biome ID.
-                // Sections 1–(sectionCount-1): 0xFF copy-last, inheriting section 0's palette.
-                // We store only 2D biomes, so biome[0] (column 0,0) represents the whole chunk.
-                int biomeId = unsafe.getBiomeArray()[0] & 0xFF;
-
-                buffer.writeByte(0x01); // V0 palette header (1 bit/entry, runtime IDs)
-                VarInts.writeInt(buffer, 1); // palette size
-                VarInts.writeInt(buffer, biomeId);
-
-                for (int i = 1; i < sectionCount; i++) {
-                    buffer.writeByte(0xFF); // copy-last
+                BiomeStorage previous = null;
+                for (int i = 0; i < sectionCount; i++) {
+                    CloudChunkSection section = sections[i];
+                    BiomeStorage bs = (section != null) ? section.getBiomeStorage() : defaultBiomeStorage;
+                    bs.writeToNetwork(buffer, previous);
+                    previous = bs;
                 }
 
                 buffer.writeByte(0); // border blocks count (Education Edition only)
-
                 packet.setData(buffer.retainedDuplicate());
 
                 LevelChunkPacket cacheEntry = new LevelChunkPacket();
@@ -589,7 +560,7 @@ public final class CloudChunk implements Chunk, Closeable {
                 cacheEntry.setChunkZ(this.getZ());
                 cacheEntry.setSubChunkLimit(subChunkLimit);
                 cacheEntry.setRequestSubChunks(true);
-                cacheEntry.setDimension(0);
+                cacheEntry.setDimension(dimension);
                 cacheEntry.setData(buffer.retainedDuplicate());
                 this.cached = new SoftReference<>(cacheEntry);
 
