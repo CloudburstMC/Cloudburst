@@ -18,23 +18,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Singleton
 public class LevelManager implements Closeable {
-    private final ExecutorService chunkExecutor = new ForkJoinPool(
-            Runtime.getRuntime().availableProcessors(),
-            pool -> {
-                ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
-                thread.setDaemon(true);
-                thread.setName("chunk-worker-" + thread.getPoolIndex());
-                return thread;
-            },
-            null, true
-    );
+    private final ExecutorService ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final CloudServer server;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
@@ -119,14 +109,14 @@ public class LevelManager implements Closeable {
             }
         }
 
-        this.chunkExecutor.shutdown();
+        this.ioExecutor.shutdown();
         try {
-            if (!this.chunkExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                log.warn("Chunk executor did not terminate in time, forcing shutdown");
-                this.chunkExecutor.shutdownNow();
+            if (!this.ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                log.warn("I/O executor did not terminate in time, forcing shutdown");
+                this.ioExecutor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            this.chunkExecutor.shutdownNow();
+            this.ioExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
     }
@@ -168,7 +158,7 @@ public class LevelManager implements Closeable {
         }
     }
 
-    public ExecutorService getChunkExecutor() {
-        return chunkExecutor;
+    public ExecutorService getIoExecutor() {
+        return ioExecutor;
     }
 }

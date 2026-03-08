@@ -30,6 +30,9 @@ public class BlockStorage {
     private final List<BlockState> palette;
     private final Reference2IntOpenHashMap<BlockState> paletteIndex;
     private BitArray bitArray;
+    private int nonAirCount;
+    private boolean needsCompact;
+    private boolean dirty;
 
     public BlockStorage() {
         this(BitArrayVersion.V1);
@@ -42,6 +45,8 @@ public class BlockStorage {
         this.paletteIndex.defaultReturnValue(-1);
         this.palette.add(AIR);
         this.paletteIndex.put(AIR, 0);
+        this.nonAirCount = 0;
+        this.dirty = true;
     }
 
     private BlockStorage(BitArray bitArray, List<BlockState> palette) {
@@ -52,6 +57,8 @@ public class BlockStorage {
         for (int i = 0; i < palette.size(); i++) {
             this.paletteIndex.put(palette.get(i), i);
         }
+        this.nonAirCount = countNonAir();
+        this.dirty = true;
     }
 
     private static BitArrayVersion getVersionFromHeader(byte header) {
@@ -68,8 +75,15 @@ public class BlockStorage {
 
     public void setBlock(int index, BlockState blockState) {
         try {
+            BlockState old = this.blockFor(this.bitArray.get(index));
             int idx = this.idFor(blockState);
             this.bitArray.set(index, idx);
+            if (old == AIR && blockState != AIR) {
+                this.nonAirCount++;
+            } else if (old != AIR && blockState == AIR) {
+                this.nonAirCount--;
+            }
+            this.dirty = true;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unable to set block: " + blockState + ", palette: " + palette, e);
         }
@@ -144,6 +158,8 @@ public class BlockStorage {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            this.nonAirCount = (this.palette.size() == 1 && this.palette.get(0) == AIR) ? 0 : SIZE;
+            this.dirty = false;
             return;
         }
 
@@ -184,6 +200,9 @@ public class BlockStorage {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        this.nonAirCount = countNonAir();
+        this.dirty = false;
     }
 
     private void onResize(BitArrayVersion version) {
@@ -211,6 +230,7 @@ public class BlockStorage {
         }
         this.palette.add(blockState);
         this.paletteIndex.put(blockState, index);
+        this.needsCompact = true;
         return index;
     }
 
@@ -219,15 +239,7 @@ public class BlockStorage {
     }
 
     public boolean isEmpty() {
-        if (this.palette.size() == 1) {
-            return true;
-        }
-        for (int word : this.bitArray.getWords()) {
-            if (Integer.toUnsignedLong(word) != 0L) {
-                return false;
-            }
-        }
-        return true;
+        return this.nonAirCount == 0;
     }
 
     /**
@@ -239,14 +251,11 @@ public class BlockStorage {
         List<BlockState> newPalette = new ReferenceArrayList<>(this.palette.size());
         newPalette.add(AIR);
 
-        // Maps old palette index to new palette index.
         int[] indexMap = new int[this.palette.size()];
 
-        // Scan every block slot and collect live palette entries.
         for (int i = 0; i < SIZE; i++) {
             int oldIdx = this.bitArray.get(i);
             if (indexMap[oldIdx] == 0 && oldIdx != 0) {
-                // Not yet mapped; assign next slot in the new palette.
                 BlockState state = this.palette.get(oldIdx);
                 int newIdx = newPalette.size();
                 newPalette.add(state);
@@ -254,11 +263,9 @@ public class BlockStorage {
             }
         }
 
-        // Pick the smallest BitArrayVersion that accommodates newPalette.size() entries.
         int liveCount = newPalette.size();
         BitArrayVersion minVersion = BitArrayVersion.getMinimalVersion(liveCount);
 
-        // Re-index all blocks into the new bit-array.
         BitArray newBitArray = minVersion.createPalette(SIZE);
         for (int i = 0; i < SIZE; i++) {
             newBitArray.set(i, indexMap[this.bitArray.get(i)]);
@@ -271,9 +278,53 @@ public class BlockStorage {
         for (int i = 0; i < this.palette.size(); i++) {
             this.paletteIndex.put(this.palette.get(i), i);
         }
+
+        this.nonAirCount = countNonAir();
+        this.needsCompact = false;
+    }
+
+    /**
+     * Returns true if the palette has grown since the last compact().
+     */
+    public boolean isCompactNeeded() {
+        return this.needsCompact;
+    }
+
+    /**
+     * Returns true if this storage has been written to since it was last loaded from or saved to disk.
+     */
+    public boolean isDirty() {
+        return this.dirty;
+    }
+
+    /**
+     * Clears the dirty flag after the storage has been successfully persisted.
+     */
+    public void clearDirty() {
+        this.dirty = false;
     }
 
     public BlockStorage copy() {
         return new BlockStorage(this.bitArray.copy(), new ReferenceArrayList<>(this.palette));
+    }
+
+    private int countNonAir() {
+        if (this.palette.size() == 1) {
+            return this.palette.getFirst() == AIR ? 0 : SIZE;
+        }
+
+        int airIndex = this.paletteIndex.getInt(AIR);
+        if (airIndex == -1) {
+            return SIZE;
+        }
+
+        int count = 0;
+        for (int i = 0; i < SIZE; i++) {
+            if (this.bitArray.get(i) != airIndex) {
+                count++;
+            }
+        }
+
+        return count;
     }
 }

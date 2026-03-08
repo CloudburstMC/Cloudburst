@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.scheduler;
 
-import com.google.common.collect.Maps;
+import java.util.*;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
@@ -13,8 +13,6 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
-import java.util.*;
-
 @Log4j2
 public class BlockUpdateScheduler {
     private final CloudLevel level;
@@ -24,7 +22,7 @@ public class BlockUpdateScheduler {
     private Set<BlockUpdateEntry> pendingUpdates;
 
     public BlockUpdateScheduler(CloudLevel level, long currentTick) {
-        queuedUpdates = Maps.newHashMap(); // Change to ConcurrentHashMap if this needs to be concurrent
+        queuedUpdates = new HashMap<>();
         lastTick = currentTick;
         this.level = level;
     }
@@ -79,7 +77,7 @@ public class BlockUpdateScheduler {
         }
     }
 
-    public Set<BlockUpdateEntry> getPendingBlockUpdates(AxisAlignedBB boundingBox) {
+    public synchronized Set<BlockUpdateEntry> getPendingBlockUpdates(AxisAlignedBB boundingBox) {
         Set<BlockUpdateEntry> set = null;
 
         for (Map.Entry<Long, LinkedHashSet<BlockUpdateEntry>> tickEntries : this.queuedUpdates.entrySet()) {
@@ -110,17 +108,13 @@ public class BlockUpdateScheduler {
         return Math.max(entry.delay, lastTick + 1);
     }
 
-    public void add(BlockUpdateEntry entry) {
+    public synchronized void add(BlockUpdateEntry entry) {
         long time = getMinTime(entry);
-        LinkedHashSet<BlockUpdateEntry> updateSet = queuedUpdates.get(time);
-        if (updateSet == null) {
-            LinkedHashSet<BlockUpdateEntry> tmp = queuedUpdates.putIfAbsent(time, updateSet = new LinkedHashSet<>());
-            if (tmp != null) updateSet = tmp;
-        }
+        LinkedHashSet<BlockUpdateEntry> updateSet = queuedUpdates.computeIfAbsent(time, k -> new LinkedHashSet<>());
         updateSet.add(entry);
     }
 
-    public boolean contains(BlockUpdateEntry entry) {
+    public synchronized boolean contains(BlockUpdateEntry entry) {
         for (Map.Entry<Long, LinkedHashSet<BlockUpdateEntry>> tickUpdateSet : queuedUpdates.entrySet()) {
             if (tickUpdateSet.getValue().contains(entry)) {
                 return true;
@@ -129,7 +123,7 @@ public class BlockUpdateScheduler {
         return false;
     }
 
-    public boolean remove(BlockUpdateEntry entry) {
+    public synchronized boolean remove(BlockUpdateEntry entry) {
         for (Map.Entry<Long, LinkedHashSet<BlockUpdateEntry>> tickUpdateSet : queuedUpdates.entrySet()) {
             if (tickUpdateSet.getValue().remove(entry)) {
                 return true;
@@ -138,7 +132,7 @@ public class BlockUpdateScheduler {
         return false;
     }
 
-    public boolean remove(Vector4i pos) {
+    public synchronized boolean remove(Vector4i pos) {
         for (Map.Entry<Long, LinkedHashSet<BlockUpdateEntry>> tickUpdateSet : queuedUpdates.entrySet()) {
             if (tickUpdateSet.getValue().remove(pos)) {
                 return true;

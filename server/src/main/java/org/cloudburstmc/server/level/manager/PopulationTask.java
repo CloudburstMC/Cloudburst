@@ -13,7 +13,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.function.BiFunction;
 import java.util.random.RandomGenerator;
 
@@ -40,15 +39,18 @@ public final class PopulationTask implements BiFunction<CloudChunk, List<CloudCh
                 .peek(populationChunk -> Preconditions.checkState(populationChunk.isGenerated(), "Chunk %d,%d was used for population before being generated!", populationChunk.getX(), populationChunk.getZ()))
                 .map(Chunk::writeLockable)
                 .sorted()
-                .peek(Lock::lock)
                 .toArray(LockableChunk[]::new);
+        int lockedCount = 0;
+        for (; lockedCount < lockableChunks.length; lockedCount++) {
+            lockableChunks[lockedCount].lock();
+        }
         try {
             ((CloudLevel) chunk.getLevel()).getGenerator().populate(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
             chunk.setState(Chunk.STATE_POPULATED);
             chunk.setDirty();
         } finally {
-            for (LockableChunk lockableChunk : lockableChunks) {
-                lockableChunk.unlock();
+            for (int k = 0; k < lockedCount; k++) {
+                lockableChunks[k].unlock();
             }
         }
         return chunk;

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -412,14 +411,18 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void close() {
         if (CLOSED_FIELD.compareAndSet(this, 0, 1)) {
-            for (Entity entity : ImmutableList.copyOf(this.entities)) {
+            Entity[] entitySnapshot = this.entities.toArray(new Entity[0]);
+            for (Entity entity : entitySnapshot) {
                 if (entity instanceof Player) {
                     continue;
                 }
                 entity.close();
             }
 
-            ImmutableList.copyOf(this.tiles.values()).forEach(BlockEntity::close);
+            BaseBlockEntity[] tileSnapshot = this.tiles.values().toArray(new BaseBlockEntity[0]);
+            for (BaseBlockEntity tile : tileSnapshot) {
+                tile.close();
+            }
             clear();
         }
     }

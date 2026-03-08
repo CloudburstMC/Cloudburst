@@ -77,7 +77,7 @@ public class LevelBuilder {
             }
         }
 
-        final Executor executor = this.server.getLevelManager().getChunkExecutor();
+        final Executor executor = this.server.getLevelManager().getIoExecutor();
 
         // Load chunk provider
         CompletableFuture<LevelProvider> providerFuture = CompletableFuture.supplyAsync(() -> {

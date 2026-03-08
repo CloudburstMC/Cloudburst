@@ -51,12 +51,11 @@ public class BlockEntitySerializer {
 
     public static void saveBlockEntities(WriteBatch db, CloudChunk chunk) {
         byte[] key = LevelDBKey.BLOCK_ENTITIES.getKey(chunk.getX(), chunk.getZ());
-        if (chunk.getBlockEntities().isEmpty()) {
+        Set<BaseBlockEntity> entities = chunk.getBlockEntities();
+        if (entities.isEmpty()) {
             db.delete(key);
             return;
         }
-
-        Set<BaseBlockEntity> entities = chunk.getBlockEntities();
 
         byte[] value;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();

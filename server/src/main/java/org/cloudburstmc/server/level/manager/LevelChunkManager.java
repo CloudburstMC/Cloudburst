@@ -4,11 +4,6 @@ import co.aikar.timings.Timing;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.spotify.futures.CompletableFutures;
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
@@ -26,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -36,12 +32,11 @@ public final class LevelChunkManager {
     private static final AtomicIntegerFieldUpdater<LoadingChunk> GENERATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "generationRunning");
     private static final AtomicIntegerFieldUpdater<LoadingChunk> POPULATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "populationRunning");
     private static final AtomicIntegerFieldUpdater<LoadingChunk> FINISH_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "finishRunning");
+    private static final AtomicIntegerFieldUpdater<LoadingChunk> CLOSED_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "closed");
 
     private final CloudLevel level;
     private final LevelProvider provider;
-    private final Long2ObjectMap<LoadingChunk> chunks = new Long2ObjectOpenHashMap<>();
-    private final Long2LongMap chunkLoadedTimes = new Long2LongOpenHashMap();
-    private final Long2LongMap chunkLastAccessTimes = new Long2LongOpenHashMap();
+    private final ConcurrentHashMap<Long, LoadingChunk> chunks = new ConcurrentHashMap<>();
     private final Executor executor;
 
     public LevelChunkManager(CloudLevel level) {
@@ -60,18 +55,18 @@ public final class LevelChunkManager {
      * @return chunks
      */
     @NonNull
-    public synchronized Set<CloudChunk> getLoadedChunks() {
+    public Set<CloudChunk> getLoadedChunks() {
         ImmutableSet.Builder<CloudChunk> chunks = ImmutableSet.builder();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
-            Chunk chunk = loadingChunk.getChunk();
+            CloudChunk chunk = loadingChunk.getChunk();
             if (chunk != null) {
-                chunks.add((CloudChunk) chunk);
+                chunks.add(chunk);
             }
         }
         return chunks.build();
     }
 
-    public synchronized int getLoadedCount() {
+    public int getLoadedCount() {
         return this.chunks.size();
     }
 
@@ -82,7 +77,7 @@ public final class LevelChunkManager {
      * @return chunk or null
      */
     @Nullable
-    public synchronized Chunk getLoadedChunk(long key) {
+    public CloudChunk getLoadedChunk(long key) {
         LoadingChunk chunk = this.chunks.get(key);
         return chunk == null ? null : chunk.getChunk();
     }
@@ -95,7 +90,7 @@ public final class LevelChunkManager {
      * @return chunk or null
      */
     @Nullable
-    public synchronized Chunk getLoadedChunk(int x, int z) {
+    public CloudChunk getLoadedChunk(int x, int z) {
         return getLoadedChunk(CloudChunk.key(x, z));
     }
 
@@ -107,8 +102,12 @@ public final class LevelChunkManager {
      * @return chunk
      */
     @NonNull
-    public Chunk getChunk(int x, int z) {
-        Chunk chunk = getLoadedChunk(x, z);
+    public CloudChunk getChunk(int x, int z) {
+        if (Thread.currentThread() instanceof java.util.concurrent.ForkJoinWorkerThread) {
+            log.warn("getChunk() called from ForkJoinWorkerThread - potential deadlock", new Exception("stack trace"));
+        }
+
+        CloudChunk chunk = getLoadedChunk(x, z);
         if (chunk == null) {
             chunk = this.getChunkFuture(x, z).join();
         }
@@ -129,32 +128,33 @@ public final class LevelChunkManager {
     }
 
     @NonNull
-    private synchronized CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
+    private CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, boolean generate, boolean populate, boolean finish) {
         final long chunkKey = CloudChunk.key(chunkX, chunkZ);
-        this.chunkLastAccessTimes.put(chunkKey, System.currentTimeMillis());
         LoadingChunk chunk = this.chunks.computeIfAbsent(chunkKey, key -> new LoadingChunk(key, true));
+        chunk.lastAccessTime = System.currentTimeMillis();
 
-        if (finish) {
-            chunk.finish();
-        } else if (populate) {
-            chunk.populate();
-        } else if (generate) {
-            chunk.generate();
+        synchronized (chunk) {
+            if (finish) {
+                chunk.finish();
+            } else if (populate) {
+                chunk.populate();
+            } else if (generate) {
+                chunk.generate();
+            }
+            return chunk.getFuture();
         }
-
-        return chunk.getFuture();
     }
 
-    public synchronized boolean isChunkLoaded(long hash) {
+    public boolean isChunkLoaded(long hash) {
         LoadingChunk chunk = this.chunks.get(hash);
         return chunk != null && chunk.getChunk() != null;
     }
 
-    public synchronized boolean isChunkLoaded(int x, int z) {
+    public boolean isChunkLoaded(int x, int z) {
         return this.isChunkLoaded(CloudChunk.key(x, z));
     }
 
-    public synchronized boolean unloadChunk(long hash) {
+    public boolean unloadChunk(long hash) {
         return this.unloadChunk(hash, true, true);
     }
 
@@ -168,32 +168,30 @@ public final class LevelChunkManager {
 
     public boolean unloadChunk(CloudChunk chunk, boolean save, boolean safe) {
         Preconditions.checkNotNull(chunk, "chunk");
-        Preconditions.checkArgument(chunk.getLevel() == this.level,
-                "Chunk is not from this level");
+        Preconditions.checkArgument(chunk.getLevel() == this.level, "Chunk is not from this level");
         return this.unloadChunk(CloudChunk.key(chunk.getX(), chunk.getZ()), save, safe);
     }
 
     public boolean unloadChunk(long chunkKey, boolean save, boolean safe) {
-        boolean result = unloadChunk0(chunkKey, save, safe);
-        if (result) {
-            this.chunks.remove(chunkKey);
-        }
-        return result;
-    }
-
-    private synchronized boolean unloadChunk0(long chunkKey, boolean save, boolean safe) {
         LoadingChunk loadingChunk = this.chunks.get(chunkKey);
         if (loadingChunk == null) {
             return false;
         }
-        Chunk chunk = loadingChunk.getChunk();
+        if (tryUnload(chunkKey, loadingChunk, save, safe)) {
+            this.chunks.remove(chunkKey, loadingChunk);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryUnload(long chunkKey, LoadingChunk loadingChunk, boolean save, boolean safe) {
+        CloudChunk chunk = loadingChunk.getChunk();
         if (chunk == null) {
             return false;
         }
-        if (!chunk.getLoaders().isEmpty()) {
+        if (chunk.hasLoaders()) {
             return false;
         }
-
 
         try (Timing ignored = this.level.timings.doChunkUnload.startTiming()) {
             ChunkUnloadEvent chunkUnloadEvent = new ChunkUnloadEvent(chunk);
@@ -202,38 +200,34 @@ public final class LevelChunkManager {
                 return false;
             }
 
-            if (save) {
-                this.saveChunk(chunk);
-            }
-
             if (safe && !this.level.getChunkPlayers(chunk.getX(), chunk.getZ()).isEmpty()) {
                 return false;
             }
 
-            this.chunkLastAccessTimes.remove(chunkKey);
-            this.chunkLoadedTimes.remove(chunkKey);
+            if (!CLOSED_UPDATER.compareAndSet(loadingChunk, 0, 1)) {
+                return false;
+            }
 
-            chunk.close();
+            CompletableFuture<?> saveFuture = save ? this.saveChunk(chunk) : COMPLETED_VOID_FUTURE;
+            saveFuture.whenComplete((r, ex) -> chunk.close());
             return true;
         }
     }
 
-    public synchronized CompletableFuture<Void> saveChunks() {
+    public CompletableFuture<Void> saveChunks() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (LoadingChunk loadingChunk : this.chunks.values()) {
-            Chunk chunk = loadingChunk.getChunk();
+            CloudChunk chunk = loadingChunk.getChunk();
             if (chunk != null) {
                 futures.add(saveChunk(chunk));
             }
         }
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     public CompletableFuture<Void> saveChunk(Chunk chunk) {
         Preconditions.checkNotNull(chunk, "chunk");
-        Preconditions.checkArgument(chunk.getLevel() == this.level,
-                "Chunk is not from this ChunkManager's Level");
+        Preconditions.checkArgument(chunk.getLevel() == this.level, "Chunk is not from this ChunkManager's Level");
         if (chunk.isDirty()) {
             return this.provider.saveChunk(chunk).exceptionally(throwable -> {
                 log.warn("Unable to save chunk", throwable);
@@ -243,53 +237,46 @@ public final class LevelChunkManager {
         return COMPLETED_VOID_FUTURE;
     }
 
-    public synchronized void tick() {
+    public void tick() {
         if (this.chunks.isEmpty()) {
             return;
         }
 
         long time = System.currentTimeMillis();
 
-        // Spawn chunk
         final int spawnX = this.level.getSafeSpawn().getChunkX();
         final int spawnZ = this.level.getSafeSpawn().getChunkZ();
-        final int spawnRadius = 4;//server.getConfiguration().getAdvanced().getSpawnChunkRadius();
+        final int spawnRadius = 4;
 
         ServerConfig serverConfig = this.level.getServer().getConfig();
 
-        // Do chunk garbage collection
         try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {
-            ObjectIterator<Long2ObjectMap.Entry<LoadingChunk>> iterator = this.chunks.long2ObjectEntrySet().iterator();
-            while (iterator.hasNext()) {
-                Long2ObjectMap.Entry<LoadingChunk> entry = iterator.next();
-                long chunkKey = entry.getLongKey();
+            for (var iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
+                var entry = iter.next();
+                long chunkKey = entry.getKey();
                 LoadingChunk loadingChunk = entry.getValue();
-                Chunk chunk = loadingChunk.getChunk();
+                CloudChunk chunk = loadingChunk.getChunk();
                 if (chunk == null) {
-                    continue; // Chunk hasn't loaded
+                    continue;
                 }
 
                 if ((Math.abs(chunk.getX() - spawnX) <= spawnRadius && Math.abs(chunk.getZ() - spawnZ) <= spawnRadius) ||
-                        !chunk.getLoaders().isEmpty()) {
-                    continue; // Spawn protection or is loaded
-                }
-
-                long loadedTime = this.chunkLoadedTimes.get(chunkKey);
-                if ((time - loadedTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLoad())) {
+                        chunk.hasLoaders()) {
                     continue;
                 }
 
-                long lastAccessTime = this.chunkLastAccessTimes.get(chunkKey);
-                if ((time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLastAccess())) {
+                long loadedTime = loadingChunk.loadedTime;
+                if (loadedTime == 0 || (time - loadedTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLoad())) {
                     continue;
                 }
 
-                if (this.unloadChunk0(chunkKey, true, true)) {
-                    iterator.remove();
+                long lastAccessTime = loadingChunk.lastAccessTime;
+                if (lastAccessTime == 0 || (time - lastAccessTime) <= TimeUnit.SECONDS.toMillis(serverConfig.getLevelSettings().getChunkTimeoutAfterLastAccess())) {
+                    continue;
+                }
 
-//                    if (log.isTraceEnabled()) {
-//                        log.trace("Cleared chunk ({},{}) from {}", chunk.getX(), chunk.getZ(), level.getId());
-//                    }
+                if (tryUnload(chunkKey, loadingChunk, true, true)) {
+                    iter.remove();
                 }
             }
         }
@@ -301,10 +288,13 @@ public final class LevelChunkManager {
         private final int x;
         private final int z;
         private CompletableFuture<CloudChunk> future;
+        private volatile CloudChunk chunk;
         volatile int generationRunning;
         volatile int populationRunning;
         volatile int finishRunning;
-        private Chunk chunk;
+        volatile int closed;
+        volatile long loadedTime;
+        volatile long lastAccessTime;
 
         public LoadingChunk(long key, boolean load) {
             this.x = CloudChunk.fromKeyX(key);
@@ -323,14 +313,9 @@ public final class LevelChunkManager {
                     if (throwable != null) {
                         log.warn(new ParameterizedMessage("Unable to load chunk ({}, {}) in level {} ",
                                 this.x, this.z, LevelChunkManager.this.level.getId()), throwable);
-                        synchronized (LevelChunkManager.this) {
-                            LevelChunkManager.this.chunks.remove(key);
-                        }
+                        LevelChunkManager.this.chunks.remove(key, this);
                     } else {
-                        long currentTime = System.currentTimeMillis();
-                        synchronized (LevelChunkManager.this) {
-                            LevelChunkManager.this.chunkLoadedTimes.put(key, currentTime);
-                        }
+                        this.loadedTime = System.currentTimeMillis();
                     }
                 });
             } else {
@@ -340,28 +325,28 @@ public final class LevelChunkManager {
         }
 
         public CompletableFuture<CloudChunk> getFuture() {
-            return future;
+            return this.future;
         }
 
         @Nullable
-        private Chunk getChunk() {
-            if (this.chunk != null && this.chunk.isGenerated() && this.chunk.isPopulated() && this.chunk.isFinished()) {
-                return this.chunk;
+        private CloudChunk getChunk() {
+            CloudChunk c = this.chunk;
+            if (c != null && c.isGenerated() && c.isPopulated() && c.isFinished()) {
+                return c;
             }
             return null;
         }
 
         private void generate() {
             if ((this.chunk == null || !this.chunk.isGenerated()) && GENERATION_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
-                future = future.thenApplyAsync(GenerationTask.INSTANCE, LevelChunkManager.this.executor);
-                future.thenRun(() -> GENERATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
+                this.future = this.future.thenApplyAsync(GenerationTask.INSTANCE, LevelChunkManager.this.executor);
+                this.future.whenComplete((r, ex) -> GENERATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
             }
         }
 
         private void populate() {
             this.generate();
             if ((this.chunk == null || !this.chunk.isPopulated()) && POPULATION_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
-                // Load and generate chunks around the chunk to be populated.
                 List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>(8);
                 for (int z = this.z - 1, maxZ = this.z + 1; z <= maxZ; z++) {
                     for (int x = this.x - 1, maxX = this.x + 1; x <= maxX; x++) {
@@ -370,9 +355,8 @@ public final class LevelChunkManager {
                     }
                 }
                 CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
-
-                future = future.thenCombineAsync(aroundFuture, PopulationTask.INSTANCE, LevelChunkManager.this.executor);
-                future.thenRun(() -> POPULATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
+                this.future = this.future.thenCombineAsync(aroundFuture, PopulationTask.INSTANCE, LevelChunkManager.this.executor);
+                this.future.whenComplete((r, ex) -> POPULATION_RUNNING_UPDATER.compareAndSet(this, 1, 0));
             }
         }
 
@@ -387,14 +371,13 @@ public final class LevelChunkManager {
                     }
                 }
                 CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
-
-                future = future.thenCombineAsync(aroundFuture, FinishingTask.INSTANCE, LevelChunkManager.this.executor);
-                future.thenRun(() -> FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0));
+                this.future = this.future.thenCombineAsync(aroundFuture, FinishingTask.INSTANCE, LevelChunkManager.this.executor);
+                this.future.whenComplete((r, ex) -> FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0));
             }
         }
 
         private void clear() {
-            this.future = future.thenApply(chunk -> {
+            this.future = this.future.thenApply(chunk -> {
                 chunk.clear();
                 GENERATION_RUNNING_UPDATER.set(this, 0);
                 POPULATION_RUNNING_UPDATER.set(this, 0);

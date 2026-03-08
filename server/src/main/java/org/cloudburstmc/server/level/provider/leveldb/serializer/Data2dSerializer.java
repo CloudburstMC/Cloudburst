@@ -3,39 +3,14 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.iq80.leveldb.DB;
-import org.iq80.leveldb.WriteBatch;
 
 public class Data2dSerializer {
 
-    /**
-     * Legacy DATA_2D size: 512-byte heightmap + 256-byte 2D biome column (pre-3D biomes).
-     */
+    // 512-byte heightmap + 256-byte 2D biome column (pre-3D biomes)
     private static final int LEGACY_DATA2D_SIZE = 768;
-
-    public static void serialize(WriteBatch db, CloudChunk chunk) {
-        byte[] data2d = new byte[512];
-        ByteBuf buffer = Unpooled.wrappedBuffer(data2d);
-        try {
-            buffer.writerIndex(0);
-            for (int z = 0; z < 16; z++) {
-                for (int x = 0; x < 16; x++) {
-                    int highest = chunk.getHighestBlock(x, z);
-                    if (highest < chunk.getLevel().getMinHeight()) {
-                        highest = chunk.getLevel().getMinHeight();
-                    }
-                    buffer.writeShortLE(highest);
-                }
-            }
-        } finally {
-            buffer.release();
-        }
-
-        db.put(LevelDBKey.DATA_2D.getKey(chunk.getX(), chunk.getZ()), data2d);
-    }
 
     public static void deserialize(DB db, ChunkBuilder builder) {
         byte[] data2d = db.get(LevelDBKey.DATA_2D.getKey(builder.getX(), builder.getZ()));

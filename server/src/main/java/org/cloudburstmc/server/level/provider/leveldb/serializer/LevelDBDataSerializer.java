@@ -86,7 +86,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 .putInt("rainTime", data.getRainTime())
                 .putFloat("rainLevel", data.getRainLevel())
                 .putFloat("lightningLevel", data.getLightningLevel())
-                .putBoolean("hardcore", data.isHardcore());
+                .putBoolean("Hardcore", data.isHardcore());
 
         // Gamerules - No idea why these aren't in a separate tag
         GameRuleMap gameRules = data.getGameRules();
@@ -96,7 +96,7 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 tag.putBoolean(name, (boolean) o);
             } else if (gameRule.getValueClass() == Integer.class) {
                 tag.putInt(name, (int) o);
-            } else if (gameRule.getValueClass() == Boolean.class) {
+            } else if (gameRule.getValueClass() == Float.class) {
                 tag.putFloat(name, (float) o);
             }
         });

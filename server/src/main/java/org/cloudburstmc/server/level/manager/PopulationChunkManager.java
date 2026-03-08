@@ -99,34 +99,34 @@ public final class PopulationChunkManager implements ChunkManager {
     @NonNull
     @Override
     public Chunk getChunk(long key) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Nullable
     @Override
     public Chunk getLoadedChunk(long key) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @NonNull
     @Override
     public CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @NonNull
     @Override
     public Set<? extends Chunk> getChunks() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<? extends Player> getChunkPlayers(int chunkX, int chunkZ) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<? extends ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

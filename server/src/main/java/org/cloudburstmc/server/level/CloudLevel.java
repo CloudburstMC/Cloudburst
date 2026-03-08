@@ -627,9 +627,7 @@ public class CloudLevel implements Level {
             }
 
             try (Timing ignored2 = this.timings.tickChunks.startTiming()) {
-                try (Timing ignored3 = this.timings.tickChunks.startTiming()) {
-                    this.tickChunks();
-                }
+                this.tickChunks();
 
                 synchronized (changedBlocks) {
                     ConcurrentMap<Long, IntSet> changedBlocks = this.changedBlocks.asMap();
@@ -1488,14 +1486,12 @@ public class CloudLevel implements Level {
     }
 
     private void addBlockChange(long index, int x, int y, int z, int layer) {
-        IntSet current;
-        try {
-            current = this.changedBlocks.get(index, IntOpenHashSet::new);
-        } catch (ExecutionException e) {
-            throw new IllegalStateException("Unable to get block changes", e);
-        }
         synchronized (changedBlocks) {
-            current.add(CloudChunk.blockKeyWithLayer(x, y, z, layer, this.getMinHeight()));
+            try {
+                this.changedBlocks.get(index, IntOpenHashSet::new).add(CloudChunk.blockKeyWithLayer(x, y, z, layer, this.getMinHeight()));
+            } catch (ExecutionException e) {
+                throw new IllegalStateException("Unable to get block changes", e);
+            }
         }
     }
 
@@ -2106,12 +2102,12 @@ public class CloudLevel implements Level {
 
     @Override
     public CloudChunk getLoadedChunk(long chunkKey) {
-        return (CloudChunk) this.chunkManager.getLoadedChunk(chunkKey);
+        return this.chunkManager.getLoadedChunk(chunkKey);
     }
 
     @Override
     public CloudChunk getLoadedChunk(int chunkX, int chunkZ) {
-        return (CloudChunk) this.chunkManager.getLoadedChunk(chunkX, chunkZ);
+        return this.chunkManager.getLoadedChunk(chunkX, chunkZ);
     }
 
     @Override

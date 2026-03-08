@@ -4,7 +4,7 @@ import co.aikar.timings.Timing;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
@@ -379,6 +379,11 @@ public final class CloudChunk implements Chunk, Closeable {
         return ImmutableSet.copyOf(loaders);
     }
 
+    @Synchronized("loaders")
+    public boolean hasLoaders() {
+        return !loaders.isEmpty();
+    }
+
     @NonNull
     @Synchronized("loaders")
     public Set<CloudPlayer> getPlayerLoaders() {
@@ -386,7 +391,7 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
 
-    private synchronized void clearCache() {
+    private void clearCache() {
         if (this.cached != null) {
             LevelChunkPacket packet = this.cached.get();
             if (packet != null) {
@@ -421,21 +426,21 @@ public final class CloudChunk implements Chunk, Closeable {
                 this.blockUpdates.clear();
             }
             this.chunkDataLoaders = null;
+            clearCache();
         } finally {
             this.writeLock.unlock();
         }
-        this.clearCache();
     }
 
     @Override
-    public synchronized void close() {
+    public void close() {
         this.writeLock.lock();
         try {
             unsafe.close();
+            clearCache();
         } finally {
             this.writeLock.unlock();
         }
-        this.clearCache();
     }
 
     @Override
@@ -477,7 +482,7 @@ public final class CloudChunk implements Chunk, Closeable {
     public Set<BaseBlockEntity> getBlockEntities() {
         this.readLock.lock();
         try {
-            return new HashSet<>(unsafe.getBlockEntities());
+            return unsafe.getBlockEntities();
         } finally {
             this.readLock.unlock();
         }
@@ -500,37 +505,36 @@ public final class CloudChunk implements Chunk, Closeable {
         unsafe.setDirty(dirty);
     }
 
-    @NonNull
-    public synchronized LevelChunkPacket createChunkPacket() {
-        if (UnsafeChunk.CLEAR_CACHE_FIELD.compareAndSet(unsafe, 1, 0)) {
-            this.clearCache();
-        }
-
-        int dimension = ((CloudLevel) unsafe.getLevel()).getDimension();
-        if (this.cached != null) {
-            LevelChunkPacket cachedPacket = this.cached.get();
-            if (cachedPacket != null) {
-                LevelChunkPacket copy = new LevelChunkPacket();
-                copy.setChunkX(cachedPacket.getChunkX());
-                copy.setChunkZ(cachedPacket.getChunkZ());
-                copy.setSubChunkLimit(cachedPacket.getSubChunkLimit());
-                copy.setRequestSubChunks(true);
-                copy.setDimension(dimension);
-                copy.setData(cachedPacket.getData().retainedDuplicate());
-                return copy;
-            } else {
-                this.cached = null;
-            }
-        }
-
-        LevelChunkPacket packet = new LevelChunkPacket();
-        packet.setChunkX(this.getX());
-        packet.setChunkZ(this.getZ());
-        packet.setRequestSubChunks(true);
-        packet.setDimension(dimension);
-
-        this.readLock.lock();
+    public LevelChunkPacket createChunkPacket() {
+        this.writeLock.lock();
         try {
+            if (UnsafeChunk.CLEAR_CACHE_FIELD.compareAndSet(unsafe, 1, 0)) {
+                this.clearCache();
+            }
+
+            int dimension = ((CloudLevel) unsafe.getLevel()).getDimension();
+            if (this.cached != null) {
+                LevelChunkPacket cachedPacket = this.cached.get();
+                if (cachedPacket != null) {
+                    LevelChunkPacket copy = new LevelChunkPacket();
+                    copy.setChunkX(cachedPacket.getChunkX());
+                    copy.setChunkZ(cachedPacket.getChunkZ());
+                    copy.setSubChunkLimit(cachedPacket.getSubChunkLimit());
+                    copy.setRequestSubChunks(true);
+                    copy.setDimension(dimension);
+                    copy.setData(cachedPacket.getData().retainedDuplicate());
+                    return copy;
+                } else {
+                    this.cached = null;
+                }
+            }
+
+            LevelChunkPacket packet = new LevelChunkPacket();
+            packet.setChunkX(this.getX());
+            packet.setChunkZ(this.getZ());
+            packet.setRequestSubChunks(true);
+            packet.setDimension(dimension);
+
             CloudChunkSection[] sections = unsafe.getSections();
             int sectionCount = unsafe.getLevel().getSectionsCount();
 
@@ -542,7 +546,7 @@ public final class CloudChunk implements Chunk, Closeable {
             int subChunkLimit = highestSectionIdx >= 0 ? highestSectionIdx : 0;
             packet.setSubChunkLimit(subChunkLimit);
 
-            ByteBuf buffer = Unpooled.buffer();
+            ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
             try {
                 BiomeStorage previous = null;
                 for (int i = 0; i < sectionCount; i++) {
@@ -573,7 +577,7 @@ public final class CloudChunk implements Chunk, Closeable {
                 buffer.release();
             }
         } finally {
-            this.readLock.unlock();
+            this.writeLock.unlock();
         }
     }
 }

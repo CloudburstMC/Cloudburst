@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.level.chunk;
 
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -14,7 +15,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Per-section 3D biome storage backed by a paletted {@link BitArray}.
  * <p>
  * The index mapping is identical to {@link CloudChunkSection#blockIndex(int, int, int)}:
- * {@code index = (x << 8) | (z << 4) | y}, where x, y, z are each 0–15 within the section.
+ * {@code index = (x << 8) | (z << 4) | y}, where x, y, z are each 0-15 within the section.
  * <p>
  * Wire and disk format mirrors the {@link BlockStorage} paletted format, but uses raw
  * integer biome IDs in the palette rather than NBT. The copy-last optimization is
@@ -28,7 +29,9 @@ public class BiomeStorage {
     static final int SIZE = 4096;
 
     private final IntList palette;
+    private final Int2IntOpenHashMap paletteIndex;
     private BitArray bitArray;
+    private boolean singleValue;
 
     /**
      * Create a new storage defaulting every position to biome ID {@code defaultBiomeId}.
@@ -38,12 +41,22 @@ public class BiomeStorage {
     public BiomeStorage(int defaultBiomeId) {
         this.bitArray = null;
         this.palette = new IntArrayList(4);
+        this.paletteIndex = new Int2IntOpenHashMap(4);
+        this.paletteIndex.defaultReturnValue(-1);
         this.palette.add(defaultBiomeId);
+        this.paletteIndex.put(defaultBiomeId, 0);
+        this.singleValue = true;
     }
 
     private BiomeStorage(BitArray bitArray, IntList palette) {
         this.bitArray = bitArray;
         this.palette = palette;
+        this.paletteIndex = new Int2IntOpenHashMap(palette.size());
+        this.paletteIndex.defaultReturnValue(-1);
+        for (int i = 0; i < palette.size(); i++) {
+            this.paletteIndex.put(palette.getInt(i), i);
+        }
+        this.singleValue = (palette.size() == 1);
     }
 
     /**
@@ -65,12 +78,13 @@ public class BiomeStorage {
      * @param biomeId raw biome integer ID
      */
     public void setBiome(int index, int biomeId) {
-        int paletteIdx = this.palette.indexOf(biomeId);
+        int paletteIdx = this.paletteIndex.get(biomeId);
         if (paletteIdx == -1) {
             paletteIdx = this.palette.size();
             if (this.bitArray == null) {
                 // Promote from 0-bit singleton to V1 now that we have a second value
                 this.bitArray = BitArrayVersion.V1.createPalette(SIZE);
+                this.singleValue = false;
             } else {
                 BitArrayVersion version = this.bitArray.getVersion();
                 if (paletteIdx > version.getMaxEntryValue()) {
@@ -80,6 +94,7 @@ public class BiomeStorage {
                     }
                 }
             }
+            this.paletteIndex.put(biomeId, paletteIdx);
             this.palette.add(biomeId);
         }
 
@@ -277,20 +292,6 @@ public class BiomeStorage {
      * Returns {@code true} if all positions share the same single palette entry.
      */
     public boolean isSingleValue() {
-        if (this.bitArray == null) {
-            return true;
-        }
-
-        if (this.palette.size() == 1) {
-            return true;
-        }
-
-        for (int word : this.bitArray.getWords()) {
-            if (Integer.toUnsignedLong(word) != 0L) {
-                return false;
-            }
-        }
-
-        return true;
+        return this.singleValue;
     }
 }
