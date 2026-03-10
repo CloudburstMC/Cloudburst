@@ -61,7 +61,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter, Direction except) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            if (face != except && !filter.test(level.getBlockState(x + face.getXOffset(), y, z + face.getZOffset(), 0))) {
+            if (face != except && !filter.test(level.getBlockState(x + face.getStepX(), y, z + face.getStepZ(), 0))) {
                 return false;
             }
         }

@@ -340,7 +340,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BEACON)
                 .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BEACON);
-        this.registerVanilla(BED);
+        this.registerVanilla(BED)
+                .set(BlockComponents.CAN_BE_USED, BedBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, BedBlockHandlers.BED)
+                .set(BlockComponents.ON_PLACE, BedBlockHandlers.PLACE)
+                .set(BlockComponents.ON_DESTROY, BedBlockHandlers.ON_DESTROY)
+                .set(BlockComponents.GET_RESOURCE, BedBlockHandlers.GET_RESOURCE)
+                .set(BlockComponents.GET_PICK_BLOCK, BedBlockHandlers.GET_PICK_BLOCK);
         this.registerVanilla(BEDROCK);
         this.registerVanilla(BEEHIVE);
         this.registerVanilla(BEETROOT);
@@ -1389,7 +1395,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RESIN_BRICK_STAIRS);
         this.registerVanilla(RESIN_BRICK_WALL);
         this.registerVanilla(RESIN_CLUMP);
-        this.registerVanilla(RESPAWN_ANCHOR);
+        this.registerVanilla(RESPAWN_ANCHOR)
+                .set(BlockComponents.CAN_BE_USED, RespawnAnchorBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, RespawnAnchorBlockHandlers.RESPAWN_ANCHOR);
         this.registerVanilla(ROSE_BUSH);
         this.registerVanilla(SAND);
         this.registerVanilla(SANDSTONE);
@@ -1730,7 +1738,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
         this.registerComponent(BlockComponents.CAN_CONTAIN_LIQUID, DefaultBlockHandlers.CAN_CONTAIN_LIQUID);
         this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
-        this.registerComponent(BlockComponents.CAN_BE_USED, (block) -> false);
+        this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
         this.registerComponent(BlockComponents.GET_DESTROY_SPEED, (block) -> 0);
         this.registerComponent(BlockComponents.GET_EXPERIENCE_DROP, (block, randomGenerator) -> 0);
@@ -1757,7 +1765,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         });
         this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {
         });
-        this.registerComponent(BlockComponents.USE, (block, player, direction) -> false);
+        this.registerComponent(BlockComponents.USE, (block, player, direction, item) -> false);
         this.registerComponent(BlockComponents.ON_STAND_ON, (block, entity) -> {
         });
         this.registerComponent(BlockComponents.ON_STEP_ON, (block, entity) -> {
@@ -1769,6 +1777,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.SPAWN_RESOURCES, DefaultBlockHandlers.SPAWN_RESOURCES);
         this.registerComponent(BlockComponents.GET_RESOURCE, DefaultBlockHandlers.GET_RESOURCE);
         this.registerComponent(BlockComponents.GET_RESOURCE_COUNT, DefaultBlockHandlers.GET_RESOURCE_COUNT);
+        this.registerComponent(BlockComponents.GET_PICK_BLOCK, (block) -> ItemStack.from(block.getState()));
         this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
         this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
         this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {

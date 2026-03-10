@@ -957,14 +957,14 @@ public class CloudLevel implements Level {
                 continue;
             }
 
-            Block block = this.getBlock(side.getOffset(pos));
+            Block block = this.getBlock(side.relative(pos));
             block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
         }
     }
 
     public void updateComparatorOutputLevel(Vector3i v) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            Vector3i pos = face.getOffset(v);
+            Vector3i pos = face.relative(v);
 
             if (this.isChunkLoaded(pos)) {
                 Block block = this.getBlock(pos);
@@ -1748,10 +1748,10 @@ public class CloudLevel implements Level {
 
             targetBehaviors.get(BlockComponents.ON_TICK).execute(target, new Random());
 
-            boolean canUse = (!player.isSneaking() || player.getInventory().getSelectedItem().isEmpty()) && targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target);
-            return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face);
+            boolean canUse = targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, player);
+            return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face, item);
         } else {
-            return targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target) && targetBehaviors.get(BlockComponents.USE).execute(target, null, face);
+            return targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, null) && targetBehaviors.get(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY);
         }
     }
 
@@ -2028,13 +2028,13 @@ public class CloudLevel implements Level {
 
     public BlockEntity getBlockEntity(Vector3i pos) {
         Chunk chunk = this.getChunk(pos);
-        return chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
+        return chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f);
     }
 
     @Nullable
     public BlockEntity getLoadedBlockEntity(Vector3i pos) {
         Chunk chunk = this.getLoadedChunk(pos);
-        return chunk == null ? null : chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY() & 0xff, pos.getZ() & 0x0f);
+        return chunk == null ? null : chunk.getBlockEntity(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f);
     }
 
     @NonNull
@@ -2131,12 +2131,12 @@ public class CloudLevel implements Level {
 
     @Override
     public CloudChunk getChunk(Vector3i pos) {
-        return getChunk(pos.getX(), pos.getZ());
+        return getChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     @Override
     public CloudChunk getChunk(Vector3f pos) {
-        return getChunk(pos.getFloorX(), pos.getFloorZ());
+        return getChunk(pos.getFloorX() >> 4, pos.getFloorZ() >> 4);
     }
 
     @Override
@@ -2281,42 +2281,138 @@ public class CloudLevel implements Level {
         }
 
         Vector3f v = pos.getPosition();
-        Chunk chunk = this.getLoadedChunk(v);
-        int x = v.getFloorX() & 0x0f;
-        int z = v.getFloorZ() & 0x0f;
-        if (chunk != null) {
-            int y = NukkitMath.clamp(v.getFloorY(), 0, 254);
-            BlockState blockState = chunk.getBlock(x, y + 1, z);
+        int originX = v.getFloorX();
+        int originZ = v.getFloorZ();
 
-            boolean wasAir = CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.CAN_PASS_THROUGH).execute(this.getBlockState(x, y + 1, z));
-//            boolean wasAir = blockState.getBehavior().canPassThrough(blockState);
-            for (; y > 0; --y) {
-                blockState = chunk.getBlock(x, y, z);
-                if (CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.CAN_PASS_THROUGH).execute(this.getBlockState(x, y, z))) {
-                    if (wasAir) {
-                        y++;
-                        break;
-                    } else {
-                        wasAir = true;
+        int spawnRadius = Math.max(0, this.getGameRules().get(GameRules.SPAWN_RADIUS));
+
+        // Search in expanding rings from the origin outward so the closest dry-land
+        // column is preferred. This guarantees every column within the radius is
+        // checked exactly once.
+        for (int r = 0; r <= spawnRadius; r++) {
+            if (r == 0) {
+                Integer safeY = getOverworldRespawnY(originX, originZ);
+                if (safeY != null) {
+                    return Location.from(originX + 0.5f, safeY, originZ + 0.5f, pos.getYaw(), pos.getPitch(), this);
+                }
+            } else {
+                // Walk the perimeter of the ring at distance r.
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dz = -r; dz <= r; dz++) {
+                        if (Math.abs(dx) != r && Math.abs(dz) != r) {
+                            continue; // only the perimeter
+                        }
+
+                        int cx = originX + dx;
+                        int cz = originZ + dz;
+                        Integer safeY = getOverworldRespawnY(cx, cz);
+                        if (safeY != null) {
+                            return Location.from(cx + 0.5f, safeY, cz + 0.5f, pos.getYaw(), pos.getPitch(), this);
+                        }
                     }
                 }
             }
-
-            for (; y >= 0 && y < 255; y++) {
-                blockState = chunk.getBlock(x, y + 1, z);
-                if (CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.CAN_PASS_THROUGH).execute(this.getBlockState(x, y + 1, z))) {
-                    blockState = chunk.getBlock(x, y, z);
-                    if (CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.CAN_PASS_THROUGH).execute(this.getBlockState(x, y, z))) {
-                        return Location.from(pos.getX(), y, pos.getZ(), pos.getYaw(), pos.getPitch(), this);
-                    }
-                }
-            }
-
-            v = Vector3f.from(pos.getX(), y, pos.getZ());
         }
 
-        return Location.from(v.getX(), v.getY(), v.getZ(), pos.getYaw(), pos.getPitch(), this);
+        // Fallback: entire search area is liquid. Place on top of the water surface.
+        int fallbackY = fixupSpawnHeight(originX, v.getFloorY(), originZ);
+        return Location.from(originX + 0.5f, fallbackY, originZ + 0.5f, pos.getYaw(), pos.getPitch(), this);
+    }
 
+    /**
+     * Returns the Y coordinate the player should stand at in column (x,z), or
+     * {@code null} if the column is unsuitable (over liquid, no solid floor found).
+     */
+    private Integer getOverworldRespawnY(int x, int z) {
+        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        if (chunk == null) {
+            return null;
+        }
+
+        int lx = x & 0x0f;
+        int lz = z & 0x0f;
+
+        int motionBlockingY = chunk.getHighestBlock(lx, lz);
+        if (motionBlockingY < 0) {
+            return null;
+        }
+
+        BlockState topBlock = chunk.getBlock(lx, motionBlockingY, lz);
+        if (topBlock.getType().hasTag(BlockTags.LIQUID)) {
+            return null;
+        }
+
+        for (int y = motionBlockingY; y >= getMinHeight(); y--) {
+            BlockState state = chunk.getBlock(lx, y, lz);
+            if (state.getType().hasTag(BlockTags.LIQUID)) {
+                break;
+            }
+
+            boolean solid = !CloudBlockRegistry.REGISTRY
+                    .getComponent(state.getType(), BlockComponents.CAN_PASS_THROUGH)
+                    .execute(state);
+
+            if (solid) {
+                int standY = y + 1;
+                if (standY + 1 <= 255) {
+                    BlockState feet = chunk.getBlock(lx, standY, lz);
+                    BlockState head = chunk.getBlock(lx, standY + 1, lz);
+                    boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                            .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH)
+                            .execute(feet);
+                    boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                            .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH)
+                            .execute(head);
+                    if (feetClear && headClear) {
+                        return standY;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Scans up until a clear 2-block gap is found, then walks back down to the floor.
+     * Used as a last-resort fallback when the entire search area is liquid.
+     */
+    private int fixupSpawnHeight(int x, int startY, int z) {
+        Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        if (chunk == null) {
+            return startY;
+        }
+
+        int lx = x & 0x0f;
+        int lz = z & 0x0f;
+        int y = NukkitMath.clamp(startY, getMinHeight(), 254);
+
+        while (y < 254) {
+            BlockState feet = chunk.getBlock(lx, y, lz);
+            BlockState head = chunk.getBlock(lx, y + 1, lz);
+            boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                    .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH).execute(feet);
+            boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                    .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH).execute(head);
+            if (feetClear && headClear) {
+                break;
+            }
+            y++;
+        }
+
+        while (y > getMinHeight()) {
+            BlockState feet = chunk.getBlock(lx, y - 1, lz);
+            BlockState head = chunk.getBlock(lx, y, lz);
+            boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                    .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH).execute(feet);
+            boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
+                    .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH).execute(head);
+            if (!feetClear || !headClear) {
+                break;
+            }
+            y--;
+        }
+
+        return y;
     }
 
     public int getTime() {

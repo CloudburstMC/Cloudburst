@@ -31,7 +31,7 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
-        tag.putByte("color", (byte) this.getColor().getDyeData());
+        tag.putByte("color", (byte) this.getColor().getWoolData());
     }
 
     @Override
@@ -45,7 +45,7 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
     }
 
     private void setColor(int color) {
-        this.color = DyeColor.getByDyeData(color);
+        this.color = DyeColor.getByWoolData(color);
     }
 
     @Override

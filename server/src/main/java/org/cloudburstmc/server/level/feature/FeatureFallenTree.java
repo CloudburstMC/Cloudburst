@@ -33,8 +33,8 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
         final int size = this.size.rand(random);
         final Direction direction = Direction.Plane.HORIZONTAL.random((Random) random);
         for (int i = 0; i < size; i++) {
-            if (!this.test(level.getBlockState(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0))
-                    || this.testOrLiquid(level.getBlockState(x + direction.getXOffset() * i, y - 1, z + direction.getZOffset() * i, 0))) {
+            if (!this.test(level.getBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, 0))
+                    || this.testOrLiquid(level.getBlockState(x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i, 0))) {
                 return false;
             }
         }
@@ -43,13 +43,13 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
 
         BlockState log = this.log.withTrait(BlockTraits.AXIS, direction.getAxis());
         for (int i = random.nextInt(2) + 2; i < size; i++) {
-            level.setBlockState(x + direction.getXOffset() * i, y, z + direction.getZOffset() * i, 0, log);
+            level.setBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, 0, log);
 
-            if (random.nextInt(10) == 0 && this.test(level.getBlockState(x + direction.getXOffset() * i, y + 1, z + direction.getZOffset() * i, 0))) {
-                level.setBlockState(x + direction.getXOffset() * i, y + 1, z + direction.getZOffset() * i, 0, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
+            if (random.nextInt(10) == 0 && this.test(level.getBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i, 0))) {
+                level.setBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i, 0, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
             }
 
-            this.replaceGrassWithDirt(level, x + direction.getXOffset() * i, y - 1, z + direction.getZOffset() * i);
+            this.replaceGrassWithDirt(level, x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i);
         }
 
         if (this.vineChance > 0.0d) {

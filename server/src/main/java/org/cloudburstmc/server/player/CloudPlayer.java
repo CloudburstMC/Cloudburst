@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
@@ -86,9 +87,11 @@ import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
@@ -198,6 +201,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     //TODO: better handling server settings?
     protected CustomForm serverSettings = null;
     protected Location spawnLocation = null;
+    protected RespawnConfig respawnConfig = null;
     protected Map<Integer, Form<?>> formWindows = new Int2ObjectOpenHashMap<>();
     protected Map<Long, DummyBossBar> dummyBossBars = new Long2ObjectLinkedOpenHashMap<>();
     protected Vector3f forceMovement = null;
@@ -748,19 +752,351 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public Location getSpawn() {
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
+            if (this.respawnConfig != null && !this.respawnConfig.forced()) {
+                CloudLevel spawnLevel = this.respawnConfig.level();
+                Vector3i pos = this.respawnConfig.pos();
+                Block block = spawnLevel.getBlock(pos);
+                BlockType type = block.getState().getType();
+                if (type != BlockTypes.BED && type != BlockTypes.RESPAWN_ANCHOR) {
+                    this.spawnLocation = null;
+                    this.respawnConfig = null;
+                    return this.getServer().getDefaultLevel().getSafeSpawn();
+                }
+            }
             return this.spawnLocation;
         } else {
             return this.getServer().getDefaultLevel().getSafeSpawn();
         }
     }
 
+    /**
+     * Returns the player's current respawn configuration, or {@code null} if they have no personal spawn set.
+     */
+    @Nullable
+    public RespawnConfig getRespawnConfig() {
+        return this.respawnConfig;
+    }
+
+    @Override
     public void setSpawn(Location location) {
+        setSpawn(location, PlayerSetSpawnEvent.Cause.PLUGIN);
+    }
+
+    public void setSpawn(Location location, PlayerSetSpawnEvent.Cause cause) {
         checkNotNull(location, "location");
-        this.spawnLocation = location;
+        Location previous = this.spawnLocation;
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, cause, previous, location,
+                false, false, null);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        Location finalLocation = event.getNewSpawn();
+        if (finalLocation == null) {
+            this.spawnLocation = null;
+            this.respawnConfig = null;
+            return;
+        }
+
+        this.spawnLocation = finalLocation;
         SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
         packet.setSpawnType(SetSpawnPositionPacket.Type.PLAYER_SPAWN);
         packet.setBlockPosition(this.spawnLocation.getPosition().toInt());
+        packet.setDimensionId(((CloudLevel) this.spawnLocation.getLevel()).getDimension());
         this.sendPacket(packet);
+    }
+
+    /**
+     * Clears the player's personal spawn point (resets to world spawn).
+     */
+    public void clearSpawn() {
+        if (this.spawnLocation == null) {
+            return;
+        }
+
+        Location previous = this.spawnLocation;
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnEvent.Cause.RESET, previous, null,
+                false, false, null);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        this.spawnLocation = null;
+        this.respawnConfig = null;
+    }
+
+    /**
+     * Attempts to resolve the player's personal spawn point into a safe stand-up position.
+     *
+     * <p>The block at the stored respawn coordinate is validated:
+     * <ul>
+     *   <li>For {@link RespawnConfig.SpawnType#BED}: the block must be {@link BlockTypes#BED}.</li>
+     *   <li>For {@link RespawnConfig.SpawnType#RESPAWN_ANCHOR}: the block must be
+     *       {@link BlockTypes#RESPAWN_ANCHOR} with a charge &gt; 0.</li>
+     * </ul>
+     * If the block is missing or invalid the personal spawn is cleared and {@code null} is returned,
+     * signaling that the caller must fall back to world spawn.</p>
+     *
+     * @return a safe {@link Location} to teleport the player to, or {@code null} if no valid
+     * personal spawn block exists
+     */
+    @Nullable
+    public Location findRespawnPosition() {
+        if (this.respawnConfig == null) {
+            return null;
+        }
+
+        CloudLevel spawnLevel = this.respawnConfig.level();
+        Vector3i pos = this.respawnConfig.pos();
+        Block block = spawnLevel.getBlock(pos);
+        BlockType type = block.getState().getType();
+
+        if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
+            if (type != BlockTypes.BED) {
+                this.spawnLocation = null;
+                this.respawnConfig = null;
+                return null;
+            }
+        } else if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.RESPAWN_ANCHOR) {
+            if (type != BlockTypes.RESPAWN_ANCHOR) {
+                this.spawnLocation = null;
+                this.respawnConfig = null;
+                return null;
+            }
+            int charge = block.getState().ensureTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE);
+            if (charge <= 0) {
+                this.spawnLocation = null;
+                this.respawnConfig = null;
+                return null;
+            }
+        }
+
+        Location standUp = findStandUpPosition(spawnLevel, pos);
+        if (standUp == null) {
+            this.spawnLocation = null;
+            this.respawnConfig = null;
+            return null;
+        }
+
+        if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.RESPAWN_ANCHOR) {
+            int currentCharge = block.getState().ensureTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE);
+            int newCharge = currentCharge - 1;
+
+            BlockState newAnchorState = block.getState().withTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE, newCharge);
+            spawnLevel.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, newAnchorState, false, true);
+
+            LevelSoundEventPacket depleteSound = new LevelSoundEventPacket();
+            depleteSound.setSound(SoundEvent.RESPAWN_ANCHOR_DEPLETE);
+            depleteSound.setExtraData(-1);
+            depleteSound.setIdentifier("");
+            depleteSound.setPosition(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f));
+            depleteSound.setRelativeVolumeDisabled(false);
+            depleteSound.setBabySound(false);
+            this.sendPacket(depleteSound);
+
+            if (newCharge <= 0) {
+                this.spawnLocation = null;
+                this.respawnConfig = null;
+            }
+        }
+
+        return standUp;
+    }
+
+    /**
+     * Searches candidate positions around {@code pos} for a safe 2-block-tall standing spot.
+     *
+     * <p>For {@link RespawnConfig.SpawnType#BED}: offsets are computed dynamically from the
+     * bed's {@code FACING} direction and the player's yaw (clockwise vs counter-clockwise side).
+     * The 12 candidates = 10 "surround" + 2 "above" are all tested at head-block Y.</p>
+     *
+     * <p>For {@link RespawnConfig.SpawnType#RESPAWN_ANCHOR}: 25 offsets comprising the 8
+     * horizontal neighbours, those 8 shifted one below, those 8 shifted one above, plus
+     * {@code {0,1,0}}.</p>
+     *
+     * <p>Both types do a first pass with {@code avoidDanger=true} (prefer non-dangerous floors)
+     * then a second pass with {@code avoidDanger=false}.</p>
+     *
+     * @param level the level containing the block
+     * @param pos   the spawn block position (bed head or anchor)
+     * @return a safe {@link Location} or {@code null} if none found
+     */
+    @Nullable
+    private Location findStandUpPosition(CloudLevel level, Vector3i pos) {
+        if (this.respawnConfig != null && this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
+            return findBedStandUpPosition(level, pos);
+        } else {
+            return findAnchorStandUpPosition(level, pos);
+        }
+    }
+
+    /**
+     * Bed respawn stand-up position search.
+     *
+     * <p>All 12 offsets are 2-D XZ relative to the HEAD block and iterated at head-block Y.</p>
+     */
+    @Nullable
+    private Location findBedStandUpPosition(CloudLevel level, Vector3i headPos) {
+        Block headBlock = level.getBlock(headPos);
+        Direction facing;
+        try {
+            facing = headBlock.getState().ensureTrait(BlockTraits.DIRECTION);
+        } catch (Exception e) {
+            facing = Direction.NORTH;
+        }
+
+        // sideFacing: clockwise of facing, flipped based on player yaw.
+        Direction clockwise = facing.rotateClockwise();
+        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
+        Direction sideFacing = clockwise.isFacing(yaw) ? clockwise.rotateCounterClockwise() : clockwise;
+
+        // bedStandUpOffsets = bedSurroundStandUpOffsets(facing, sideFacing) + bedAboveStandUpOffsets(facing)
+        // All offsets are [xOff, zOff] relative to headPos (Y stays at headPos.Y).
+        int[][] offsets = bedStandUpOffsets(facing, sideFacing);
+
+        // First pass: avoidDanger=true, then avoidDanger=false
+        Location loc = findSafePositionBed(level, headPos, offsets, true);
+        if (loc != null) return loc;
+        return findSafePositionBed(level, headPos, offsets, false);
+    }
+
+    /**
+     * Computes the 12 bed stand-up offsets from facing and side directions.
+     * Returns {@code int[12][2]} where each entry is {@code [xOff, zOff]}.
+     */
+    private static int[][] bedStandUpOffsets(Direction f, Direction s) {
+        // bedSurroundStandUpOffsets (10) + bedAboveStandUpOffsets (2) = 12
+        return new int[][]{
+            // surround
+            { s.getStepX(),                           s.getStepZ()                           },
+            { s.getStepX() - f.getStepX(),            s.getStepZ() - f.getStepZ()            },
+            { s.getStepX() - f.getStepX() * 2,        s.getStepZ() - f.getStepZ() * 2        },
+            { -f.getStepX() * 2,                      -f.getStepZ() * 2                      },
+            { -s.getStepX() - f.getStepX() * 2,       -s.getStepZ() - f.getStepZ() * 2       },
+            { -s.getStepX() - f.getStepX(),            -s.getStepZ() - f.getStepZ()           },
+            { -s.getStepX(),                           -s.getStepZ()                          },
+            { -s.getStepX() + f.getStepX(),            -s.getStepZ() + f.getStepZ()           },
+            { f.getStepX(),                            f.getStepZ()                           },
+            { s.getStepX() + f.getStepX(),             s.getStepZ() + f.getStepZ()            },
+            // above
+            { 0,                                       0                                      },
+            { -f.getStepX(),                           -f.getStepZ()                          },
+        };
+    }
+
+    /**
+     * Iterates 2-D XZ {@code offsets} relative to {@code headPos} (all at {@code headPos.Y}) and
+     * returns the first position that passes {@link #isSafeDismountLocation}.
+     */
+    @Nullable
+    private Location findSafePositionBed(CloudLevel level, Vector3i headPos, int[][] offsets, boolean avoidDanger) {
+        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
+        for (int[] off : offsets) {
+            int cx = headPos.getX() + off[0];
+            int cy = headPos.getY();   // Y stays at head block level
+            int cz = headPos.getZ() + off[1];
+            if (isSafeDismountLocation(level, Vector3i.from(cx, cy, cz), avoidDanger)) {
+                return Location.from(cx + 0.5f, cy, cz + 0.5f, yaw, 0f, level);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Anchor respawn stand-up position search.
+     *
+     * <p>Uses 25 offsets: 8 horizontal neighbours, those 8 shifted -1Y, those 8 shifted +1Y,
+     * plus {@code {0,1,0}}.  Two passes: avoidDanger=true then false.</p>
+     */
+    @Nullable
+    private Location findAnchorStandUpPosition(CloudLevel level, Vector3i pos) {
+        // 8 horizontal neighbours (cardinal + diagonal)
+        int[][] horizontal = {
+            { 0, 0, -1}, {-1, 0,  0}, { 0, 0,  1}, { 1, 0,  0},
+            {-1, 0, -1}, { 1, 0, -1}, {-1, 0,  1}, { 1, 0,  1},
+        };
+        // Build all 25 offsets: horizontal, horizontal-1Y, horizontal+1Y, then {0,1,0}
+        int[][] all = new int[25][3];
+        for (int i = 0; i < 8; i++) {
+            all[i]      = new int[]{ horizontal[i][0], 0,  horizontal[i][2] };  // same Y
+            all[8  + i] = new int[]{ horizontal[i][0], -1, horizontal[i][2] };  // one below
+            all[16 + i] = new int[]{ horizontal[i][0], +1, horizontal[i][2] };  // one above
+        }
+        all[24] = new int[]{ 0, 1, 0 }; // directly above anchor
+
+        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
+        for (int[] off : all) {
+            Vector3i candidate = Vector3i.from(pos.getX() + off[0], pos.getY() + off[1], pos.getZ() + off[2]);
+            if (isSafeDismountLocation(level, candidate, true)) {
+                return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
+            }
+        }
+        for (int[] off : all) {
+            Vector3i candidate = Vector3i.from(pos.getX() + off[0], pos.getY() + off[1], pos.getZ() + off[2]);
+            if (isSafeDismountLocation(level, candidate, false)) {
+                return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns {@code true} if a player can safely stand at {@code pos}.
+     *
+     * <p>A position is safe when:
+     * <ol>
+     *   <li>The candidate block itself is passable (feet level).</li>
+     *   <li>The block directly above is also passable (head level).</li>
+     *   <li>The block below is solid (there is a floor to stand on).</li>
+     *   <li>If {@code avoidDanger=true}: neither the candidate block nor the floor block is a
+     *       "dangerous" block (fire, lava, cactus, etc.).</li>
+     * </ol></p>
+     *
+     * @param level       the level to check in
+     * @param pos         the candidate feet-level position
+     * @param avoidDanger if {@code true}, reject positions with dangerous blocks
+     * @return {@code true} if the position is safe to respawn at
+     */
+    private static boolean isSafeDismountLocation(CloudLevel level, Vector3i pos, boolean avoidDanger) {
+        Block feetBlock  = level.getBlock(pos);
+        Block headBlock  = level.getBlock(Vector3i.from(pos.getX(), pos.getY() + 1, pos.getZ()));
+        Block floorBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() - 1, pos.getZ()));
+
+        // Both the feet and head blocks must be passable (open space)
+        if (!isPassable(level, feetBlock) || !isPassable(level, headBlock)) {
+            return false;
+        }
+        // There must be a solid floor to stand on
+        if (isPassable(level, floorBlock)) {
+            return false;
+        }
+        // If avoiding danger, reject positions with dangerous blocks (fire, lava, cactus, …)
+        if (avoidDanger && (isDangerous(feetBlock) || isDangerous(floorBlock))) {
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isPassable(CloudLevel level, Block block) {
+        return CloudBlockRegistry.REGISTRY
+                .getComponent(block.getState().getType(), BlockComponents.CAN_PASS_THROUGH)
+                .execute(block.getState());
+    }
+
+    /**
+     * Returns {@code true} if standing in or on this block would immediately harm the player.
+     */
+    private static boolean isDangerous(Block block) {
+        BlockType type = block.getState().getType();
+        return type == BlockTypes.FIRE
+                || type == BlockTypes.SOUL_FIRE
+                || type == BlockTypes.LAVA
+                || type == BlockTypes.FLOWING_LAVA
+                || type == BlockTypes.CACTUS
+                || type == BlockTypes.MAGMA
+                || type == BlockTypes.WITHER_ROSE;
     }
 
     protected void doFirstSpawn() {
@@ -778,17 +1114,26 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         setTimePacket.setTime(this.getLevel().getTime());
         this.sendPacket(setTimePacket);
 
-        Location loc = this.getLevel().getSafeSpawn(this.getLocation());
+        Location loc = this.findRespawnPosition();
+        Set<PlayerRespawnEvent.RespawnFlag> flags = EnumSet.of(PlayerRespawnEvent.RespawnFlag.FIRST_SPAWN);
+        if (loc != null) {
+            // Personal spawn block was valid
+            if (this.respawnConfig != null) {
+                if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
+                    flags.add(PlayerRespawnEvent.RespawnFlag.BED_SPAWN);
+                } else {
+                    flags.add(PlayerRespawnEvent.RespawnFlag.ANCHOR_SPAWN);
+                }
+            }
+        } else {
+            loc = this.getServer().getDefaultLevel().getSafeSpawn();
+        }
 
-        PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, true);
-
+        PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, flags);
         this.server.getEventManager().fire(respawnEvent);
-
         loc = respawnEvent.getRespawnLocation();
 
         if (this.getHealth() <= 0) {
-            loc = this.getSpawn();
-
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setPosition(loc.getPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_SEARCHING);
@@ -853,7 +1198,55 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return false;
         }
 
-        for (Entity p : this.getLevel().getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
+        CloudLevel level = this.getLevel();
+        int dim = level.getDimension();
+
+        if (dim != CloudLevel.DIMENSION_OVERWORLD) {
+            BlockState headState = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+            Direction facing = Direction.NORTH;
+            try {
+                facing = headState.ensureTrait(BlockTraits.DIRECTION);
+            } catch (Exception ignored) {
+            }
+
+            Vector3i footPos = Vector3i.from(
+                    pos.getX() - facing.getStepX(),
+                    pos.getY(),
+                    pos.getZ() - facing.getStepZ()
+            );
+
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, BlockStates.AIR, false, true);
+            BlockState footState = level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ());
+            if (footState.getType() == headState.getType()) {
+                level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0,
+                        BlockStates.AIR, false, true);
+            }
+
+            Explosion explosion = new Explosion(level,
+                    Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
+                    5, this);
+            explosion.explodeA();
+            explosion.explodeB();
+            return true;
+        }
+
+        int time = level.getTime() % Level.TIME_FULL;
+        boolean canSleep = level.isThundering() || (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        if (!canSleep) {
+            sendMessage(new TranslationContainer("tile.bed.noSleep"));
+            return true;
+        }
+
+        Block bedBlock = level.getBlock(pos);
+        try {
+            if (bedBlock.getState().ensureTrait(BlockTraits.IS_OCCUPIED)) {
+                sendMessage(new TranslationContainer("tile.bed.occupied"));
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+
+        for (Entity p : level.getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
             if (p instanceof CloudPlayer) {
                 if (((CloudPlayer) p).sleeping != null && pos.distance(((CloudPlayer) p).sleeping) <= 0.1) {
                     return false;
@@ -862,27 +1255,132 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         PlayerBedEnterEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, this.getLevel().getBlock(pos)));
+        this.server.getEventManager().fire(ev = new PlayerBedEnterEvent(this, level.getBlock(pos)));
         if (ev.isCancelled()) {
             return false;
         }
 
+        try {
+            BlockState occupied = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, true);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, occupied, false, true);
+        } catch (Exception ignored) {
+        }
+
         this.sleeping = pos.clone();
-        this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), this.getLevel()), null);
-
+        this.teleport(Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), level), null);
         this.data.set(BED_POSITION, pos);
-        //this.data.setBoolean(CAN_START_SLEEP, true); todo what did this change to?
 
-        this.setSpawn(Location.from(pos.toFloat(), this.getLevel()));
+        Location bedSpawnLoc = Location.from(pos.toFloat(), this.getYaw(), 0f, level);
+        setSpawnFromBed(pos, bedSpawnLoc);
 
-        this.getLevel().sleepTicks = 60;
+        level.sleepTicks = 60;
+
+        return true;
+    }
+
+    /**
+     * Sets the player's spawn to a bed position.
+     */
+    private void setSpawnFromBed(Vector3i blockPos, Location location) {
+        Location previous = this.spawnLocation;
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnEvent.Cause.BED, previous, location,
+                false, true, new TranslationContainer("tile.bed.respawnSet"));
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        Location finalLocation = event.getNewSpawn();
+        if (finalLocation == null) {
+            this.spawnLocation = null;
+            this.respawnConfig = null;
+            return;
+        }
+
+        this.spawnLocation = finalLocation;
+        this.respawnConfig = new RespawnConfig(
+                (CloudLevel) finalLocation.getLevel(),
+                blockPos,
+                finalLocation.getYaw(),
+                false,
+                RespawnConfig.SpawnType.BED
+        );
+
+        SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
+        packet.setSpawnType(SetSpawnPositionPacket.Type.PLAYER_SPAWN);
+        packet.setBlockPosition(blockPos);
+        packet.setDimensionId(((CloudLevel) finalLocation.getLevel()).getDimension());
+        this.sendPacket(packet);
+
+        if (event.willNotifyPlayer() && event.getNotification() != null) {
+            this.sendMessage(event.getNotification());
+        }
+    }
+
+    /**
+     * Called when the player right-clicks a charged respawn anchor in the Nether.
+     *
+     * @param blockPos position of the anchor block
+     * @param location location to store as the spawn point
+     * @return {@code true} if the spawn was updated (event not canceled and location changed)
+     */
+    public boolean setSpawnFromAnchor(Vector3i blockPos, Location location) {
+        if (this.respawnConfig != null
+                && this.respawnConfig.spawnType() == RespawnConfig.SpawnType.RESPAWN_ANCHOR
+                && this.respawnConfig.pos().equals(blockPos)
+                && this.respawnConfig.level() == location.getLevel()) {
+            return false;
+        }
+
+        Location previous = this.spawnLocation;
+        PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(
+                this, PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR, previous, location,
+                false, true, new TranslationContainer("tile.respawn_anchor.respawnSet"));
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        Location finalLocation = event.getNewSpawn();
+        if (finalLocation == null) {
+            this.spawnLocation = null;
+            this.respawnConfig = null;
+            return false;
+        }
+
+        this.spawnLocation = finalLocation;
+        this.respawnConfig = new RespawnConfig(
+                (CloudLevel) finalLocation.getLevel(),
+                blockPos,
+                0f,
+                false,
+                RespawnConfig.SpawnType.RESPAWN_ANCHOR
+        );
+
+        SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
+        packet.setSpawnType(SetSpawnPositionPacket.Type.PLAYER_SPAWN);
+        packet.setBlockPosition(blockPos);
+        packet.setDimensionId(((CloudLevel) finalLocation.getLevel()).getDimension());
+        this.sendPacket(packet);
+
+        if (event.willNotifyPlayer() && event.getNotification() != null) {
+            this.sendMessage(event.getNotification());
+        }
 
         return true;
     }
 
     public void stopSleep() {
         if (this.sleeping != null) {
-            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, this.getLevel().getBlock(this.sleeping)));
+            Block bedBlock = this.getLevel().getBlock(this.sleeping);
+            this.server.getEventManager().fire(new PlayerBedLeaveEvent(this, bedBlock));
+
+            try {
+                BlockState clearedState = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, false);
+                this.getLevel().setBlockState(
+                        this.sleeping.getX(), this.sleeping.getY(), this.sleeping.getZ(), 0, clearedState, false, true);
+            } catch (Exception ignored) {
+            }
 
             this.sleeping = null;
             this.data.set(BED_POSITION, Vector3i.ZERO);
@@ -1170,10 +1668,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void openContainer(Block block) {
         if (!canOpenInventory()) return;
-        if (!block.getComponents().get(BlockComponents.CAN_BE_USED).execute(block)) {
+        if (!block.getComponents().get(BlockComponents.CAN_BE_USED).execute(block, this)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
-        block.getComponents().get(BlockComponents.USE).execute(block, this, Direction.DOWN);
+        block.getComponents().get(BlockComponents.USE).execute(block, this, Direction.DOWN, ItemStack.EMPTY);
     }
 
     @Override
@@ -2205,6 +2703,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                     reason));
             this.hasSpawned.clear();
             this.spawnLocation = null;
+            this.respawnConfig = null;
 
             if (!passengers.isEmpty()) {
                 passengers.forEach(entity -> entity.dismount(this));
@@ -2460,6 +2959,23 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 this.getEnderChestContainer().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
             }
         });
+
+        String spawnLevelId = this.playerData.getSpawnLevel();
+        Vector3i spawnPos = this.playerData.getSpawnLocation();
+        if (spawnLevelId != null && spawnPos != null) {
+            CloudLevel spawnLevel = this.server.getLevel(spawnLevelId);
+            if (spawnLevel != null) {
+                float spawnYaw = this.playerData.getSpawnYaw();
+                this.respawnConfig = new RespawnConfig(
+                        spawnLevel,
+                        spawnPos,
+                        spawnYaw,
+                        false,
+                        RespawnConfig.SpawnType.BED
+                );
+                this.spawnLocation = Location.from(spawnPos.toFloat(), spawnYaw, 0f, spawnLevel);
+            }
+        }
     }
 
     @Override
@@ -2470,6 +2986,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
             this.playerData.setSpawnLevel(this.spawnLocation.getLevel().getId());
             this.playerData.setSpawnLocation(this.spawnLocation.getPosition().toInt());
+            this.playerData.setSpawnYaw(this.spawnLocation.getYaw());
         }
 
         this.playerData.saveData(tag);
@@ -2671,15 +3188,22 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             this.server.broadcast(ev.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
         }
 
+        boolean hadPersonalSpawn = this.respawnConfig != null;
+        Location respawnLocation = this.findRespawnPosition();
+        if (respawnLocation == null) {
+            if (hadPersonalSpawn && this.respawnConfig != null) {
+                this.respawnConfig.level().addLevelSoundEvent(this.respawnConfig.pos(), SoundEvent.RESPAWN_ANCHOR_AMBIENT);
+            }
+            respawnLocation = this.getServer().getDefaultLevel().getSafeSpawn();
+        }
 
         RespawnPacket packet = new RespawnPacket();
-        Location location = this.getSpawn();
-        packet.setPosition(location.getPosition());
+        packet.setPosition(respawnLocation.getPosition());
         packet.setState(RespawnPacket.State.SERVER_SEARCHING);
 
         //this is a dirty hack to prevent dying in a different level than the respawn point from breaking everything
-        if (this.getLevel() != location.getLevel()) {
-            this.teleport(location, null);
+        if (this.getLevel() != respawnLocation.getLevel()) {
+            this.teleport(respawnLocation, null);
         }
 
         this.extinguish();

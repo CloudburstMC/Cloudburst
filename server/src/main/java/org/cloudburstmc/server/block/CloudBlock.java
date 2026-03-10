@@ -58,7 +58,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public Block getSide(Direction face, int step) {
-        return this.level.getBlock(face.getOffset(this.position, step));
+        return this.level.getBlock(face.relative(this.position, step));
     }
 
     @Override
@@ -69,9 +69,9 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public BlockState getSideState(Direction face, int step, int layer) {
         return this.level.getBlockState(
-                getX() + face.getXOffset() * step,
-                getY() + face.getYOffset() * step,
-                getZ() + face.getZOffset() * step,
+                getX() + face.getStepX() * step,
+                getY() + face.getStepY() * step,
+                getZ() + face.getStepZ() * step,
                 layer
         );
     }

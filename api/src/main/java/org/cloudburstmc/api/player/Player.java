@@ -5,6 +5,7 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.level.Level;
@@ -204,7 +205,25 @@ public interface Player extends Creature {
 
     Location getSpawn();
 
+    /**
+     * Sets the player's personal spawn point.
+     *
+     * @param spawn the new spawn location, or {@code null} to clear
+     */
     void setSpawn(Location spawn);
+
+    /**
+     * Sets the player's personal spawn point with an explicit cause.
+     *
+     * @param spawn the new spawn location, or {@code null} to clear
+     * @param cause the reason for the change (used as the event cause)
+     */
+    void setSpawn(@Nullable Location spawn, PlayerSetSpawnEvent.Cause cause);
+
+    /**
+     * Clears the player's personal spawn point so they will respawn at the world spawn.
+     */
+    void clearSpawn();
 
     Skin getSkin();
 

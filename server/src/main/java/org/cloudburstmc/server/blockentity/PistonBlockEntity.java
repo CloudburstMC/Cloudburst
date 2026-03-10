@@ -74,9 +74,9 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
 
     private void pushEntities() {
         float lastProgress = this.getExtendedProgress(this.lastProgress);
-        float x = lastProgress * this.facing.getXOffset();
-        float y = lastProgress * this.facing.getYOffset();
-        float z = lastProgress * this.facing.getZOffset();
+        float x = lastProgress * this.facing.getStepX();
+        float y = lastProgress * this.facing.getStepY();
+        float z = lastProgress * this.facing.getStepZ();
         AxisAlignedBB bb = new SimpleAxisAlignedBB(x, y, z, x + 1f, y + 1f, z + 1f);
         Set<Entity> entities = this.getLevel().getCollidingEntities(bb);
         if (!entities.isEmpty()) {

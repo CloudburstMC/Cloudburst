@@ -11,7 +11,7 @@ public final class BlockComponents {
     public static final ComponentType<BooleanTypeHandler> ALWAYS_DESTROYABLE = ComponentType.of("always_destroyable", BooleanTypeHandler.class);
     public static final ComponentType<IntTypeHandler> BURN_ODDS = ComponentType.of("burn_odds", IntTypeHandler.class);
     public static final ComponentType<BooleanBlockHandler> CAN_BE_SILK_TOUCHED = ComponentType.of("can_be_silk_touched", BooleanBlockHandler.class);
-    public static final ComponentType<BooleanBlockHandler> CAN_BE_USED = ComponentType.of("can_be_used", BooleanBlockHandler.class);
+    public static final ComponentType<UseCheckHandler> CAN_BE_USED = ComponentType.of("can_be_used", UseCheckHandler.class);
     public static final ComponentType<BooleanBlockHandler> CAN_BE_USED_IN_COMMANDS = ComponentType.of("can_be_used_in_commands", BooleanBlockHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_DAMAGE_ITEM = ComponentType.of("can_damage_item", BooleanTypeHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_INSTATICK = ComponentType.of("can_instatick", BooleanTypeHandler.class);
@@ -38,6 +38,7 @@ public final class BlockComponents {
     public static final ComponentType<MapColorHandler> GET_MAP_COLOR = ComponentType.of("get_map_color", MapColorHandler.class);
     public static final ComponentType<ResourceBlockHandler> GET_RESOURCE = ComponentType.of("get_resource", ResourceBlockHandler.class);
     public static final ComponentType<ResourceCountBlockHandler> GET_RESOURCE_COUNT = ComponentType.of("get_resource_count", ResourceCountBlockHandler.class);
+    public static final ComponentType<PickBlockHandler> GET_PICK_BLOCK = ComponentType.of("get_pick_block", PickBlockHandler.class);
     public static final ComponentType<ResourceBlockHandler> GET_SILK_TOUCH_RESOURCE = ComponentType.of("get_silk_touch_resource", ResourceBlockHandler.class);
     public static final ComponentType<FloatTypeHandler> HARDNESS = ComponentType.of("hardness", FloatTypeHandler.class);
     public static final ComponentType<BooleanBlockHandler> IS_FREE_TO_FALL = ComponentType.of("is_free_to_fall", BooleanBlockHandler.class);

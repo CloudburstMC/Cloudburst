@@ -54,8 +54,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
 
         for (int dy = 0; dy < height; dy++) {
             if (dy >= bendHeight && bendSize > 0) {
-                dx += direction.getXOffset();
-                dz += direction.getZOffset();
+                dx += direction.getStepX();
+                dz += direction.getStepZ();
                 bendSize--;
             }
 
@@ -76,8 +76,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
 
         dx = dz = 0;
         for (; secondBendHeight < height && secondBendSize > 0; secondBendHeight++, secondBendSize--) {
-            dx += secondDirection.getXOffset();
-            dz += secondDirection.getZOffset();
+            dx += secondDirection.getStepX();
+            dz += secondDirection.getStepZ();
 
             if (this.test(level.getBlockState(x + dx, y + secondBendHeight, z + dz, 0))) {
                 level.setBlockState(x + dx, y + secondBendHeight, z + dz, 0, log);

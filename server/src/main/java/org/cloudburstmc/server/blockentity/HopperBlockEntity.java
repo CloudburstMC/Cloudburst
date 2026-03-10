@@ -248,7 +248,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         }
 
         Direction direction = getBlockState().ensureTrait(BlockTraits.FACING_DIRECTION);
-        BlockEntity be = this.getLevel().getBlockEntity(direction.getOffset(this.getPosition()));
+        BlockEntity be = this.getLevel().getBlockEntity(direction.relative(this.getPosition()));
 
         if (be instanceof Hopper && direction == Direction.DOWN || !(be instanceof ContainerBlockEntity))
             return false;

@@ -2,8 +2,8 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.component.BooleanBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
+import org.cloudburstmc.api.block.component.UseCheckHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.blockentity.LecternBlockEntity;
@@ -15,7 +15,8 @@ import java.util.function.BiFunction;
 @UtilityClass
 public class ContainerBlockHandlers {
 
-    public static final BooleanBlockHandler CAN_BE_USED = (block) -> true;
+    public static final UseCheckHandler CAN_BE_USED = (block, player) ->
+            !player.isSneaking() || player.getInventory().getSelectedItem().isEmpty();
 
     public static final UseBlockHandler ANVIL = open(CloudAnvilContainerScreen::new);
     public static final UseBlockHandler BARREL = open(CloudChestContainerScreen::barrel);
@@ -40,7 +41,7 @@ public class ContainerBlockHandlers {
     public static final UseBlockHandler STONECUTTER = open(CloudStonecutterContainerScreen::new);
     public static final UseBlockHandler TRAPPED_CHEST = open(CloudChestContainerScreen::chest);
 
-    public static final UseBlockHandler LECTERN = (block, player, direction) -> {
+    public static final UseBlockHandler LECTERN = (block, player, direction, item) -> {
         if (!(player instanceof CloudPlayer cloudPlayer)) {
             return false;
         }
@@ -51,13 +52,12 @@ public class ContainerBlockHandlers {
         }
 
         if (!lectern.hasBook()) {
-            ItemStack held = cloudPlayer.getInventory().getSelectedItem();
-            if (held.isEmpty() || held.getType() != ItemTypes.WRITABLE_BOOK) {
+            if (item.isEmpty() || item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return false;
             }
-            lectern.setBook(held);
+            lectern.setBook(item);
             if (!cloudPlayer.isCreative()) {
-                cloudPlayer.getInventory().setSelectedItem(held.withCount(held.getCount() - 1));
+                cloudPlayer.getInventory().setSelectedItem(item.withCount(item.getCount() - 1));
             }
             return true;
         }
@@ -66,7 +66,7 @@ public class ContainerBlockHandlers {
     };
 
     private static UseBlockHandler open(BiFunction<CloudPlayer, Block, ? extends CloudInventoryScreen> factory) {
-        return (block, player, direction) -> {
+        return (block, player, direction, item) -> {
             if (!(player instanceof CloudPlayer cloudPlayer)) {
                 return false;
             }

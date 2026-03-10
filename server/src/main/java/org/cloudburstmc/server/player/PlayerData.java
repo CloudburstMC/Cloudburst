@@ -20,6 +20,7 @@ public class PlayerData {
     private static final String TAG_SPAWN_X = "SpawnX";
     private static final String TAG_SPAWN_Y = "SpawnY";
     private static final String TAG_SPAWN_Z = "SpawnZ";
+    private static final String TAG_SPAWN_YAW = "SpawnYaw";
     private static final String TAG_ACHIEVEMENTS = "Achievements";
     private static final String TAG_GAME_TYPE = "playerGameType";
     private final Set<String> achievements = new HashSet<>();
@@ -28,6 +29,7 @@ public class PlayerData {
     private String level;
     private String spawnLevel;
     private Vector3i spawnLocation;
+    private float spawnYaw;
     private GameMode gamemode;
     private InetAddress lastAddress;
 
@@ -44,6 +46,7 @@ public class PlayerData {
                     tag.getInt(TAG_SPAWN_Z)
             ));
         }
+        tag.listenForFloat(TAG_SPAWN_YAW, yaw -> this.spawnYaw = yaw);
         tag.listenForInt(TAG_GAME_TYPE, gm -> setGamemode(GameMode.from(gm)));
         tag.listenForString(TAG_LAST_ADDRESS, this::setLastAddress);
         /*tag.listenForCompound(TAG_ACHIEVEMENTS, achievementsTag -> {
@@ -67,7 +70,8 @@ public class PlayerData {
             tag.putString(TAG_SPAWN_LEVEL, this.spawnLevel)
                     .putInt(TAG_SPAWN_X, this.spawnLocation.getX())
                     .putInt(TAG_SPAWN_Y, this.spawnLocation.getY())
-                    .putInt(TAG_SPAWN_Z, this.spawnLocation.getZ());
+                    .putInt(TAG_SPAWN_Z, this.spawnLocation.getZ())
+                    .putFloat(TAG_SPAWN_YAW, this.spawnYaw);
         }
 
     }
@@ -110,6 +114,14 @@ public class PlayerData {
 
     public void setSpawnLocation(Vector3i spawnLocation) {
         this.spawnLocation = spawnLocation;
+    }
+
+    public float getSpawnYaw() {
+        return spawnYaw;
+    }
+
+    public void setSpawnYaw(float spawnYaw) {
+        this.spawnYaw = spawnYaw;
     }
 
     public GameMode getGamemode() {

@@ -1079,7 +1079,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public Direction getHorizontalDirection() {
-        return Direction.fromHorizontalIndex(NukkitMath.floorDouble((this.yaw * 4.0F / 360.0F) + 0.5D) & 3);
+        return Direction.fromYaw(this.yaw);
     }
 
     public CardinalDirection getCardinalDirection() {

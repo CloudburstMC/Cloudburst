@@ -15,6 +15,6 @@ public class DefaultDispenseBehavior implements DispenseBehavior {
     }
 
     private int getParticleMetadataForFace(Direction face) {
-        return face.getXOffset() + 1 + (face.getZOffset() + 1) * 3;
+        return face.getStepX() + 1 + (face.getStepZ() + 1) * 3;
     }
 }

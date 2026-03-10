@@ -9,6 +9,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
@@ -645,6 +646,16 @@ public class OfflinePlayer implements Player {
 
     @Override
     public void setSpawn(Location spawn) {
+
+    }
+
+    @Override
+    public void setSpawn(Location spawn, PlayerSetSpawnEvent.Cause cause) {
+
+    }
+
+    @Override
+    public void clearSpawn() {
 
     }
 

@@ -71,6 +71,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.TextFormat;
@@ -79,9 +80,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
@@ -773,10 +772,29 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 player.closeInventory();
 
-                PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, player.getSpawn());
-                player.getServer().getEventManager().fire(playerRespawnEvent);
+                Location respawnLoc = player.findRespawnPosition();
+                boolean isBedSpawn = false;
+                boolean isAnchorSpawn = false;
 
-                Location respawnLoc = playerRespawnEvent.getRespawnLocation();
+                Set<PlayerRespawnEvent.RespawnFlag> respawnFlags = EnumSet.noneOf(PlayerRespawnEvent.RespawnFlag.class);
+                if (respawnLoc != null) {
+                    RespawnConfig cfg = player.getRespawnConfig();
+                    if (cfg != null) {
+                        if (cfg.spawnType() == RespawnConfig.SpawnType.BED) {
+                            respawnFlags.add(PlayerRespawnEvent.RespawnFlag.BED_SPAWN);
+                            isBedSpawn = true;
+                        } else {
+                            respawnFlags.add(PlayerRespawnEvent.RespawnFlag.ANCHOR_SPAWN);
+                            isAnchorSpawn = true;
+                        }
+                    }
+                } else {
+                    respawnLoc = player.getServer().getDefaultLevel().getSafeSpawn();
+                }
+
+                PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, respawnLoc, respawnFlags);
+                player.getServer().getEventManager().fire(playerRespawnEvent);
+                respawnLoc = playerRespawnEvent.getRespawnLocation();
 
                 player.teleport(respawnLoc, null);
 
@@ -800,6 +818,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 player.spawnToAll();
                 player.scheduleUpdate();
+
+                PlayerPostRespawnEvent postRespawnEvent = new PlayerPostRespawnEvent(player, respawnLoc, isBedSpawn, isAnchorSpawn);
+                player.getServer().getEventManager().fire(postRespawnEvent);
                 break;
             case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK:
             default:
@@ -910,8 +931,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        ItemStack item = ItemStack.from(block.getState());
-
+        ItemStack item = CloudBlockRegistry.REGISTRY
+                .getComponent(block.getState().getType(), BlockComponents.GET_PICK_BLOCK)
+                .execute(block);
         if (packet.isAddUserData()) {
             BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
                     Vector3i.from(pickPos.getX(), pickPos.getY(), pickPos.getZ()));
@@ -934,7 +956,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             boolean itemExists = false;
             int itemSlot = -1;
             for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                if (player.getContainer().getItem(slot).isSimilar(item)) {
+                if (pickBlockMatchesDamage(player.getContainer().getItem(slot), item)) {
                     if (slot < player.getInventory().getHotbarSize()) {
                         player.setSelectedHotbarSlot(slot);
                     } else {
@@ -1420,8 +1442,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
         if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
+            Location respawnPos = player.findRespawnPosition();
+            if (respawnPos == null) {
+                respawnPos = player.getServer().getDefaultLevel().getSafeSpawn();
+            }
             RespawnPacket respawn1 = new RespawnPacket();
-            respawn1.setPosition(player.getSpawn().getPosition());
+            respawn1.setPosition(respawnPos.getPosition());
             respawn1.setState(RespawnPacket.State.SERVER_READY);
             player.sendPacket(respawn1);
         }
@@ -1618,5 +1644,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         response.setSubChunks(responseChunks);
         player.sendPacket(response);
         return PacketSignal.HANDLED;
+    }
+
+    /**
+     * Returns {@code true} if {@code inventoryItem} has the same type as
+     * {@code pickedItem} and carries the same {@link ItemKeys#DAMAGE} value.
+     */
+    private static boolean pickBlockMatchesDamage(ItemStack inventoryItem, ItemStack pickedItem) {
+        if (!inventoryItem.isSimilar(pickedItem)) {
+            return false;
+        }
+        return Objects.equals(inventoryItem.get(ItemKeys.DAMAGE), pickedItem.get(ItemKeys.DAMAGE));
     }
 }

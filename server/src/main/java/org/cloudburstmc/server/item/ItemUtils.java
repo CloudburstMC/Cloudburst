@@ -156,6 +156,10 @@ public class ItemUtils {
                 if (blockState != null) {
                     builder.data(ItemKeys.BLOCK_STATE, blockState);
                 }
+
+                if (damage != 0) {
+                    builder.data(ItemKeys.DAMAGE, (int) damage);
+                }
             }
 
             registry.getSerializer(type).deserialize(id, damage, builder, tag);
@@ -266,7 +270,7 @@ public class ItemUtils {
 
         parseBreakPlaceData(data, tag);
 
-        return ItemUtils.deserializeItem(id, (short) 0, data.getCount(), tag);
+        return ItemUtils.deserializeItem(id, (short) data.getDamage(), data.getCount(), tag);
     }
 
     private static void parseBreakPlaceData(ItemData data, NbtMap tag) {
@@ -356,7 +360,6 @@ public class ItemUtils {
         return new ItemDescriptorWithCount(new DefaultDescriptor(definition, auxValue), count);
     }
 
-    // -- Used by recipes and crafting
     public static int getItemHash(ItemStack item) {
         return Objects.hash(System.identityHashCode(item.getType().getId()), item.getCount());
     }
