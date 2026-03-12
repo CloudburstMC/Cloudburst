@@ -127,3 +127,6 @@ worlds:
   nether:
     generator: cloudburst:standard
     options: nether
+  the_end:
+    generator: cloudburst:standard
+    options: the_end

@@ -88,6 +88,9 @@ public class ServerProperties {
     private boolean allowNether = true;
 
     @Builder.Default
+    private boolean allowEnd = true;
+
+    @Builder.Default
     private boolean enableQuery = true;
 
     @Builder.Default

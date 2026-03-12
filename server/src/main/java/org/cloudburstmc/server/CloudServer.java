@@ -212,6 +212,7 @@ public class CloudServer implements Server {
     private String predefinedLanguage;
 
     private boolean allowNether;
+    private boolean allowEnd;
 
     private final Thread currentThread;
 
@@ -420,8 +421,8 @@ public class CloudServer implements Server {
             serverProperties = ServerProperties.fromFile(serverPropPath);
         }
 
-        // Allow Nether? (determines if we create a nether world if one doesn't exist on startup)
         this.allowNether = this.serverProperties.isAllowNether();
+        this.allowEnd = this.serverProperties.isAllowEnd();
 
         this.forceLanguage = getConfig().getSettings().isForceLanguage();
         this.localeManager.setLocaleOrFallback(getConfig().getSettings().getLanguage());
@@ -1827,6 +1828,10 @@ public class CloudServer implements Server {
 
     public boolean isNetherAllowed() {
         return this.allowNether;
+    }
+
+    public boolean isEndAllowed() {
+        return this.allowEnd;
     }
 
     public PlayerDataSerializer getPlayerDataSerializer() {

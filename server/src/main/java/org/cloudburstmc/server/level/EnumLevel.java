@@ -9,8 +9,7 @@ import org.cloudburstmc.server.CloudServer;
 public enum EnumLevel {
     OVERWORLD,
     NETHER,
-    //THE_END
-    ;
+    THE_END;
 
     private static final double MAX_COORD = 29_999_984.0;
     private static final double NETHER_SCALE = 8.0;
@@ -26,6 +25,14 @@ public enum EnumLevel {
             NETHER.level.setDimension(CloudLevel.DIMENSION_NETHER);
         } else {
             log.warn("No level called \"nether\" found or nether is disabled in server properties! Nether functionality will be disabled.");
+        }
+
+        CloudLevel endLevel = CloudServer.getInstance().getLevelByName("the_end");
+        if (endLevel != null && CloudServer.getInstance().isEndAllowed()) {
+            THE_END.level = endLevel;
+            THE_END.level.setDimension(CloudLevel.DIMENSION_THE_END);
+        } else {
+            log.warn("No level called \"the_end\" found or The End is disabled in server properties! The End functionality will be disabled.");
         }
     }
 
