@@ -219,7 +219,7 @@ public class TimingsHistory {
                 totalPing += player.getPing();
             }
 
-            this.avg = onlinePlayers.isEmpty() ? 0 : (float) totalPing / onlinePlayers.size();
+            this.avg = onlinePlayers.isEmpty() ? 0 : (double) totalPing / onlinePlayers.size();
         }
     }
 }

@@ -193,6 +193,13 @@ public interface Player extends Creature {
 
     boolean isConnected();
 
+    /**
+     * Returns the current round-trip latency of this player's connection in milliseconds.
+     *
+     * @return ping in milliseconds, or 0 if the connection is not yet established
+     */
+    int getPing();
+
     default void save() {
         save(false);
     }

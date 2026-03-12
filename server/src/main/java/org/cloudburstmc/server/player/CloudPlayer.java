@@ -15,8 +15,6 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.server.container.Container;
-import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -40,6 +38,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -64,6 +63,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
@@ -82,22 +83,23 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
+import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
-import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -751,6 +753,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
     }
 
+    /**
+     * Returns the player's current respawn configuration, or {@code null} if they have no personal spawn set.
+     */
+    @Nullable
+    public RespawnConfig getRespawnConfig() {
+        return this.respawnConfig;
+    }
+
     public Location getSpawn() {
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
             if (this.respawnConfig != null && !this.respawnConfig.forced()) {
@@ -768,14 +778,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         } else {
             return this.getServer().getDefaultLevel().getSafeSpawn();
         }
-    }
-
-    /**
-     * Returns the player's current respawn configuration, or {@code null} if they have no personal spawn set.
-     */
-    @Nullable
-    public RespawnConfig getRespawnConfig() {
-        return this.respawnConfig;
     }
 
     @Override
@@ -914,7 +916,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
      * The 12 candidates = 10 "surround" + 2 "above" are all tested at head-block Y.</p>
      *
      * <p>For {@link RespawnConfig.SpawnType#RESPAWN_ANCHOR}: 25 offsets comprising the 8
-     * horizontal neighbours, those 8 shifted one below, those 8 shifted one above, plus
+     * horizontal neighbors, those 8 shifted one below, those 8 shifted one above, plus
      * {@code {0,1,0}}.</p>
      *
      * <p>Both types do a first pass with {@code avoidDanger=true} (prefer non-dangerous floors)
@@ -968,22 +970,21 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
      * Returns {@code int[12][2]} where each entry is {@code [xOff, zOff]}.
      */
     private static int[][] bedStandUpOffsets(Direction f, Direction s) {
-        // bedSurroundStandUpOffsets (10) + bedAboveStandUpOffsets (2) = 12
         return new int[][]{
-            // surround
-            { s.getStepX(),                           s.getStepZ()                           },
-            { s.getStepX() - f.getStepX(),            s.getStepZ() - f.getStepZ()            },
-            { s.getStepX() - f.getStepX() * 2,        s.getStepZ() - f.getStepZ() * 2        },
-            { -f.getStepX() * 2,                      -f.getStepZ() * 2                      },
-            { -s.getStepX() - f.getStepX() * 2,       -s.getStepZ() - f.getStepZ() * 2       },
-            { -s.getStepX() - f.getStepX(),            -s.getStepZ() - f.getStepZ()           },
-            { -s.getStepX(),                           -s.getStepZ()                          },
-            { -s.getStepX() + f.getStepX(),            -s.getStepZ() + f.getStepZ()           },
-            { f.getStepX(),                            f.getStepZ()                           },
-            { s.getStepX() + f.getStepX(),             s.getStepZ() + f.getStepZ()            },
-            // above
-            { 0,                                       0                                      },
-            { -f.getStepX(),                           -f.getStepZ()                          },
+                // surround
+                {s.getStepX(), s.getStepZ()},
+                {s.getStepX() - f.getStepX(), s.getStepZ() - f.getStepZ()},
+                {s.getStepX() - f.getStepX() * 2, s.getStepZ() - f.getStepZ() * 2},
+                {-f.getStepX() * 2, -f.getStepZ() * 2},
+                {-s.getStepX() - f.getStepX() * 2, -s.getStepZ() - f.getStepZ() * 2},
+                {-s.getStepX() - f.getStepX(), -s.getStepZ() - f.getStepZ()},
+                {-s.getStepX(), -s.getStepZ()},
+                {-s.getStepX() + f.getStepX(), -s.getStepZ() + f.getStepZ()},
+                {f.getStepX(), f.getStepZ()},
+                {s.getStepX() + f.getStepX(), s.getStepZ() + f.getStepZ()},
+                // above
+                {0, 0},
+                {-f.getStepX(), -f.getStepZ()},
         };
     }
 
@@ -996,7 +997,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
         for (int[] off : offsets) {
             int cx = headPos.getX() + off[0];
-            int cy = headPos.getY();   // Y stays at head block level
+            int cy = headPos.getY(); // Y stays at head block level
             int cz = headPos.getZ() + off[1];
             if (isSafeDismountLocation(level, Vector3i.from(cx, cy, cz), avoidDanger)) {
                 return Location.from(cx + 0.5f, cy, cz + 0.5f, yaw, 0f, level);
@@ -1008,24 +1009,25 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     /**
      * Anchor respawn stand-up position search.
      *
-     * <p>Uses 25 offsets: 8 horizontal neighbours, those 8 shifted -1Y, those 8 shifted +1Y,
-     * plus {@code {0,1,0}}.  Two passes: avoidDanger=true then false.</p>
+     * <p>Uses 25 offsets: 8 horizontal neighbors, those 8 shifted -1Y, those 8 shifted +1Y,
+     * plus {@code {0,1,0}}. Two passes: avoidDanger=true then false.</p>
      */
     @Nullable
     private Location findAnchorStandUpPosition(CloudLevel level, Vector3i pos) {
         // 8 horizontal neighbours (cardinal + diagonal)
         int[][] horizontal = {
-            { 0, 0, -1}, {-1, 0,  0}, { 0, 0,  1}, { 1, 0,  0},
-            {-1, 0, -1}, { 1, 0, -1}, {-1, 0,  1}, { 1, 0,  1},
+                {0, 0, -1}, {-1, 0, 0}, {0, 0, 1}, {1, 0, 0},
+                {-1, 0, -1}, {1, 0, -1}, {-1, 0, 1}, {1, 0, 1},
         };
+
         // Build all 25 offsets: horizontal, horizontal-1Y, horizontal+1Y, then {0,1,0}
         int[][] all = new int[25][3];
         for (int i = 0; i < 8; i++) {
-            all[i]      = new int[]{ horizontal[i][0], 0,  horizontal[i][2] };  // same Y
-            all[8  + i] = new int[]{ horizontal[i][0], -1, horizontal[i][2] };  // one below
-            all[16 + i] = new int[]{ horizontal[i][0], +1, horizontal[i][2] };  // one above
+            all[i] = new int[]{horizontal[i][0], 0, horizontal[i][2]}; // same Y
+            all[8 + i] = new int[]{horizontal[i][0], -1, horizontal[i][2]}; // one below
+            all[16 + i] = new int[]{horizontal[i][0], +1, horizontal[i][2]}; // one above
         }
-        all[24] = new int[]{ 0, 1, 0 }; // directly above anchor
+        all[24] = new int[]{0, 1, 0}; // directly above anchor
 
         float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
         for (int[] off : all) {
@@ -1034,12 +1036,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
             }
         }
+
         for (int[] off : all) {
             Vector3i candidate = Vector3i.from(pos.getX() + off[0], pos.getY() + off[1], pos.getZ() + off[2]);
             if (isSafeDismountLocation(level, candidate, false)) {
                 return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
             }
         }
+
         return null;
     }
 
@@ -1061,26 +1065,22 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
      * @return {@code true} if the position is safe to respawn at
      */
     private static boolean isSafeDismountLocation(CloudLevel level, Vector3i pos, boolean avoidDanger) {
-        Block feetBlock  = level.getBlock(pos);
-        Block headBlock  = level.getBlock(Vector3i.from(pos.getX(), pos.getY() + 1, pos.getZ()));
+        Block feetBlock = level.getBlock(pos);
+        Block headBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() + 1, pos.getZ()));
         Block floorBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() - 1, pos.getZ()));
 
-        // Both the feet and head blocks must be passable (open space)
-        if (!isPassable(level, feetBlock) || !isPassable(level, headBlock)) {
+        if (!isPassable(feetBlock) || !isPassable(headBlock)) {
             return false;
         }
-        // There must be a solid floor to stand on
-        if (isPassable(level, floorBlock)) {
+
+        if (isPassable(floorBlock)) {
             return false;
         }
-        // If avoiding danger, reject positions with dangerous blocks (fire, lava, cactus, …)
-        if (avoidDanger && (isDangerous(feetBlock) || isDangerous(floorBlock))) {
-            return false;
-        }
-        return true;
+
+        return !avoidDanger || (!isDangerous(feetBlock) && !isDangerous(floorBlock));
     }
 
-    private static boolean isPassable(CloudLevel level, Block block) {
+    private static boolean isPassable(Block block) {
         return CloudBlockRegistry.REGISTRY
                 .getComponent(block.getState().getType(), BlockComponents.CAN_PASS_THROUGH)
                 .execute(block.getState());
@@ -1191,8 +1191,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
     }
 
-    public long getPing() {
-        return -1; // FIXME: Needs to be added to the protocol lib & RakNet
+    @Override
+    public int getPing() {
+        if (!this.isConnected()) {
+            return 0;
+        }
+
+        RakSessionCodec session = ((RakChildChannel) this.session.getPeer().getChannel())
+                .rakPipeline()
+                .get(RakSessionCodec.class);
+        if (session == null) {
+            return 0;
+        }
+
+        return (int) session.getPing();
     }
 
     public boolean sleepOn(Vector3i pos) {

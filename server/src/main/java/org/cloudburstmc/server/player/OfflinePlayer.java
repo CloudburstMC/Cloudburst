@@ -625,6 +625,11 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
+    public int getPing() {
+        return 0;
+    }
+
+    @Override
     public void save(boolean async) {
 
     }
