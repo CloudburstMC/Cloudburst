@@ -17,7 +17,6 @@ public class ItemComponents {
     public static final ComponentType<CanBePlacedOnHandler> CAN_BE_PLACED_ON = ComponentType.of("can_be_placed_on", CanBePlacedOnHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_BE_CHARGED = ComponentType.of("can_be_charged", BooleanTypeHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_BE_DEPLETED = ComponentType.of("can_be_depleted", BooleanTypeHandler.class);
-    public static final ComponentType<BooleanItemHandler> CAN_BE_USED = ComponentType.of("can_be_used", BooleanItemHandler.class);
     public static final ComponentType<CanDestroyHandler> CAN_DESTROY = ComponentType.of("can_destroy", CanDestroyHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_DESTROY_IN_CREATIVE = ComponentType.of("can_destroy_in_creative", BooleanTypeHandler.class);
     public static final ComponentType<BooleanTypeHandler> DAMAGEABLE = ComponentType.of("damageable", BooleanTypeHandler.class);
@@ -32,5 +31,6 @@ public class ItemComponents {
     public static final ComponentType<BooleanItemHandler> IS_TOOL = ComponentType.of("is_tool", BooleanItemHandler.class);
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
     public static final ComponentType<DamageItemHandler> ON_DAMAGE = ComponentType.of("on_damage", DamageItemHandler.class);
+    public static final ComponentType<UseHandler> USE = ComponentType.of("use", UseHandler.class);
     public static final ComponentType<UseOnHandler> USE_ON = ComponentType.of("use_on", UseOnHandler.class);
 }

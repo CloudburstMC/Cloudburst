@@ -1307,7 +1307,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POLISHED_TUFF_STAIRS);
         this.registerVanilla(POLISHED_TUFF_WALL);
         this.registerVanilla(POPPY);
-        this.registerVanilla(PORTAL);
+        this.registerVanilla(PORTAL)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PortalBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.CAN_RANDOM_TICK, () -> true)
+                .set(BlockComponents.ON_RANDOM_TICK, PortalBlockHandlers.ON_RANDOM_TICK);
         this.registerVanilla(POTATOES);
         this.registerVanilla(POWDER_SNOW);
         this.registerVanilla(POWERED_COMPARATOR);

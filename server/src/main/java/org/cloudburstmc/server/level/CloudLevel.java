@@ -35,10 +35,13 @@ import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.UseHandler;
+import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
@@ -988,6 +991,7 @@ public class CloudLevel implements Level {
     public void updateAround(int posX, int posY, int posZ) {
         BlockUpdateEvent ev;
         Block block;
+        Block changed = this.getBlock(posX, posY, posZ);
 
         for (int x = posX - 1; x <= posX + 1; x++) {
             for (int y = posY - 1; y <= posY + 1; y++) {
@@ -999,6 +1003,10 @@ public class CloudLevel implements Level {
                                 ev = new BlockUpdateEvent(block));
                         if (!ev.isCancelled()) {
                             normalUpdateQueue.add(block);
+                            NeighborBlockHandler handler = block.getComponents().get(BlockComponents.ON_NEIGHBOUR_CHANGED);
+                            if (handler != null) {
+                                handler.execute(block, changed);
+                            }
                         }
                     }
                 }
@@ -1668,7 +1676,6 @@ public class CloudLevel implements Level {
 
         ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.getComponents(item.getType());
         if (itemBehaviors != null) {
-            itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, target.getPosition(), null, null);
             if (itemBehaviors.get(ItemComponents.IS_TOOL).execute(item) &&
                     item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemComponents.GET_MAX_DAMAGE).execute(item)) {
                 item = ItemStack.EMPTY;
@@ -1763,28 +1770,37 @@ public class CloudLevel implements Level {
      */
     public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_BE_USED).execute(item)) {
+        if (itemBehaviors == null) {
             return null;
         }
 
-        ItemStack result = itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, target.getPosition(), face, clickPos);
+        UseOnHandler useOnHandler = itemBehaviors.get(ItemComponents.USE_ON);
+        if (useOnHandler == null) {
+            return null;
+        }
+
+        ItemStack result = useOnHandler.execute(item, player, target.getPosition(), face, clickPos);
         return Objects.requireNonNullElse(result, item);
     }
 
     /**
      * Attempts to activate an item used in the air.
-     * Calls the item's {@code USE_ON} handler with the player's own position as the notional target.
+     * Requires the item to have a {@code USE} component; items that only have {@code USE_ON} are not applicable here.
      *
      * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
      */
     public ItemStack tryActivateItem(ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_BE_USED).execute(item)) {
+        if (itemBehaviors == null) {
             return null;
         }
 
-        Vector3i playerBlockPos = player.getPosition().toInt();
-        ItemStack result = itemBehaviors.get(ItemComponents.USE_ON).execute(item, player, playerBlockPos, null, null);
+        UseHandler useHandler = itemBehaviors.get(ItemComponents.USE);
+        if (useHandler == null) {
+            return null;
+        }
+
+        ItemStack result = useHandler.execute(item, player);
         return Objects.requireNonNullElse(result, item);
     }
 
@@ -2614,6 +2630,14 @@ public class CloudLevel implements Level {
 
     public int getDimension() {
         return this.levelData.getDimension();
+    }
+
+    public void setDimension(int dimension) {
+        this.levelData.setDimension(dimension);
+    }
+
+    public int getDifficulty() {
+        return this.levelData.getDifficulty();
     }
 
     public boolean canBlockSeeSky(Vector3f pos) {

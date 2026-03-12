@@ -20,7 +20,7 @@ public class Skin {
     private String playFabId;
     private String skinResourcePatch = GEOMETRY_CUSTOM;
     private ImageData skinData;
-    private List<SkinAnimation> animations;
+    private final List<SkinAnimation> animations = new ArrayList<>();
     private final List<PersonaPiece> personaPieces = new ArrayList<>();
     private final List<PersonaPieceTint> tintColors = new ArrayList<>();
     private ImageData capeData;

@@ -1656,4 +1656,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         return Objects.equals(inventoryItem.get(ItemKeys.DAMAGE), pickedItem.get(ItemKeys.DAMAGE));
     }
+
+    @Override
+    public PacketSignal handle(ServerboundLoadingScreenPacket packet) {
+        if (packet.getType() == ServerboundLoadingScreenPacketType.END_LOADING_SCREEN) {
+            player.setChangingDimension(false);
+        }
+        return PacketSignal.HANDLED;
+    }
 }

@@ -4,7 +4,6 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
-import com.spotify.futures.CompletableFutures;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -48,6 +47,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EnumLevel;
+import org.cloudburstmc.server.level.NetherPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.math.NukkitMath;
@@ -72,6 +72,9 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
  */
 @Log4j2
 public abstract class CloudEntity implements Entity {
+
+    protected static final int PORTAL_TRANSFER_TICKS = 80;
+    protected static final int PORTAL_COOLDOWN_TICKS = 300;
 
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
@@ -109,6 +112,9 @@ public abstract class CloudEntity implements Entity {
     public int maxFireTicks;
     public int fireTicks = 0;
     public int inPortalTicks = 0;
+    public int portalCooldown = 0;
+    public boolean pendingPortalTransfer = false;
+    public Vector3i portalEntryBlock = null;
     public float scale = 1;
     protected AxisAlignedBB boundingBox;
     public boolean isCollided = false;
@@ -176,6 +182,26 @@ public abstract class CloudEntity implements Entity {
 
     protected float getBaseOffset() {
         return 0;
+    }
+
+    /**
+     * Returns the number of ticks this entity must wait after a portal transfer
+     * before it can use another portal.
+     */
+    public int getPortalCooldownTicks() {
+        return PORTAL_COOLDOWN_TICKS;
+    }
+
+    /**
+     * Returns the number of ticks the entity must spend inside a portal before
+     * being transferred.
+     */
+    protected int getPortalTransitionTicks() {
+        return PORTAL_TRANSFER_TICKS;
+    }
+
+    protected void tickPortalCooldown() {
+        this.portalCooldown--;
     }
 
     protected void initEntity() {
@@ -997,28 +1023,21 @@ public abstract class CloudEntity implements Entity {
                 }
             }
 
-            if (this.inPortalTicks == 80) {
-                EntityPortalEnterEvent ev = new EntityPortalEnterEvent(this, EntityPortalEnterEvent.PortalType.NETHER);
-                getServer().getEventManager().fire(ev);
+            if (this.portalCooldown > 0) {
+                tickPortalCooldown();
+            } else {
+                int portalThreshold = getPortalTransitionTicks();
+                if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
+                    EntityPortalEnterEvent ev = new EntityPortalEnterEvent(this, EntityPortalEnterEvent.PortalType.NETHER);
+                    getServer().getEventManager().fire(ev);
 
-                if (!ev.isCancelled()) {
-                    Location newLoc = EnumLevel.moveToNether(this.getLocation());
-                    if (newLoc != null) {
-                        List<CompletableFuture<CloudChunk>> chunksToLoad = new ArrayList<>();
-                        for (int x = -1; x < 2; x++) {
-                            for (int z = -1; z < 2; z++) {
-                                int chunkX = (newLoc.getChunkX()) + x, chunkZ = (newLoc.getChunkZ()) + z;
-                                chunksToLoad.add(((CloudLevel) newLoc.getLevel()).getChunkFuture(chunkX, chunkZ));
-                            }
+                    if (!ev.isCancelled()) {
+                        this.portalCooldown = getPortalCooldownTicks();
+                        this.inPortalTicks = 0;
+                        Location newLoc = EnumLevel.moveToNether(this.getX(), this.getY(), this.getZ(), this.getYaw(), this.getPitch(), this.getLevel());
+                        if (newLoc != null) {
+                            NetherPortals.handlePortalTransfer(this, newLoc);
                         }
-                        CompletableFutures.allAsList(chunksToLoad).whenComplete((chunks, throwable) -> {
-                            if (chunks == null || throwable != null) {
-                                return;
-                            }
-
-                            this.teleport(newLoc.add(1.5f, 1, 0.5f));
-//                            BlockBehaviorNetherPortal.spawnPortal(newLoc.getPosition(), newLoc.getLevel());
-                        });
                     }
                 }
             }
@@ -1697,11 +1716,26 @@ public abstract class CloudEntity implements Entity {
         if (this.collisionBlockStates == null) {
             this.collisionBlockStates = new ArrayList<>();
 
-            for (Block b : getBlocksAround()) {
-                ComponentMap behaviors = b.getComponents();
-//                if (b.getState().getBehavior().collidesWithBB(b, this.getBoundingBox(), true)) {
-//                    this.collisionBlockStates.add(b);
-//                } // FIXME: Add method for this
+            for (Block block : getBlocksAround()) {
+                BlockState state = block.getState();
+                if (state == BlockStates.AIR) {
+                    continue;
+                }
+
+                ComponentMap components = block.getComponents();
+                if (components.get(BlockComponents.CAN_PASS_THROUGH).execute(state)) {
+                    continue;
+                }
+
+                Vector3i pos = block.getPosition();
+                AxisAlignedBB blockBB = components
+                        .get(BlockComponents.GET_BOUNDING_BOX)
+                        .execute(state)
+                        .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
+
+                if (blockBB.intersectsWith(this.getBoundingBox())) {
+                    this.collisionBlockStates.add(block);
+                }
             }
         }
 
@@ -1721,26 +1755,39 @@ public abstract class CloudEntity implements Entity {
         Vector3f vector = Vector3f.ZERO;
         boolean portal = false;
 
-        for (Block block : this.getCollisionBlocks()) {
-            var state = block.getState();
+        for (Block block : this.getBlocksAround()) {
+            BlockState state = block.getState();
             if (state.getType() == PORTAL) {
-                portal = true;
-                continue;
+                Vector3i pos = block.getPosition();
+                AxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+                if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
+                    portal = true;
+                    this.portalEntryBlock = pos;
+                }
             }
+        }
 
-            var behaviors = block.getComponents();
+        for (Block block : this.getCollisionBlocks()) {
+            ComponentMap behaviors = block.getComponents();
             behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
 //            vector = behaviors.addVelocityToEntity(block, vector, this); FIXME
         }
 
         if (portal) {
-            if (this.inPortalTicks < 80) {
-                this.inPortalTicks = 80;
-            } else {
-                this.inPortalTicks++;
+            if (this.getVehicle() == null) {
+                if (this.portalCooldown > 0) {
+                    this.portalCooldown = getPortalCooldownTicks();
+                } else {
+                    this.inPortalTicks = PORTAL_TRANSFER_TICKS;
+                }
             }
         } else {
-            this.inPortalTicks = 0;
+            if (this.portalCooldown <= 0) {
+                this.inPortalTicks = Math.max(0, this.inPortalTicks - 4);
+                if (this.inPortalTicks == 0) {
+                    this.portalEntryBlock = null;
+                }
+            }
         }
 
         if (vector.lengthSquared() > 0) {

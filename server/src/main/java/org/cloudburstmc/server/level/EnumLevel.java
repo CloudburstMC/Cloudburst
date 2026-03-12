@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.math.NukkitMath;
 
 @Log4j2
 public enum EnumLevel {
@@ -13,59 +12,92 @@ public enum EnumLevel {
     //THE_END
     ;
 
-    CloudLevel level;
+    private static final double MAX_COORD = 29_999_984.0;
+    private static final double NETHER_SCALE = 8.0;
 
-    public CloudLevel getLevel() {
-        return level;
-    }
+    CloudLevel level;
 
     public static void initLevels() {
         OVERWORLD.level = CloudServer.getInstance().getDefaultLevel();
 
         CloudLevel netherLevel = CloudServer.getInstance().getLevelByName("nether");
-        // attempt to load the nether world if it is allowed in server properties
         if (netherLevel != null && CloudServer.getInstance().isNetherAllowed()) {
             NETHER.level = netherLevel;
+            NETHER.level.setDimension(CloudLevel.DIMENSION_NETHER);
         } else {
-            // Nether is not found or disabled
             log.warn("No level called \"nether\" found or nether is disabled in server properties! Nether functionality will be disabled.");
         }
     }
 
+    /**
+     * Returns the paired overworld/nether level for the given level.
+     * Returns {@code null} if the pair is unavailable (nether disabled or
+     * overworld not yet loaded), rather than throwing.
+     *
+     * @param current the level to look up the pair for
+     * @return the paired level, or {@code null} if unavailable
+     * @throws IllegalArgumentException if {@code current} is neither the
+     *                                  overworld nor the nether
+     */
     public static CloudLevel getOtherNetherPair(CloudLevel current) {
         if (current == OVERWORLD.level) {
             return NETHER.level;
         } else if (current == NETHER.level) {
             return OVERWORLD.level;
         } else {
-            throw new IllegalArgumentException("Neither overworld nor nether given!");
+            throw new IllegalArgumentException("Neither overworld nor nether given: " + current);
         }
     }
 
-    public static Location moveToNether(Location current) {
-        if (NETHER.level == null) {
+    /**
+     * Compute the portal destination for an entity at the given world coordinates.
+     * Scales X and Z by the 1:8 overworld/nether ratio, clamps the result to
+     * {@link #MAX_COORD} on each axis, and clamps Y to the destination
+     * dimension's valid build range.
+     *
+     * <p>Returns {@code null} if the nether is unavailable (disabled or not yet
+     * loaded), or if {@code currentLevel} is not the overworld or nether.
+     *
+     * @param x            entity X position in the source level
+     * @param y            entity Y position in the source level
+     * @param z            entity Z position in the source level
+     * @param yaw          entity yaw
+     * @param pitch        entity pitch
+     * @param currentLevel the level the entity is currently in
+     * @return scaled destination Location, or {@code null} if unavailable
+     */
+    public static Location moveToNether(double x, double y, double z, float yaw, float pitch, CloudLevel currentLevel) {
+        if (NETHER.level == null || OVERWORLD.level == null) {
             return null;
-        } else {
-            int x, y, z;
-            CloudLevel level;
-            if (current.getLevel() == OVERWORLD.level) {
-                x = mRound(current.getFloorX() >> 3, 128);
-                y = NukkitMath.clamp(mRound(current.getFloorY(), 32), 70, 128 - 10);
-                z = mRound(current.getFloorZ() >> 3, 128);
-                level = NETHER.level;
-            } else if (current.getLevel() == NETHER.level) {
-                x = mRound(current.getFloorX() << 3, 1024);
-                y = NukkitMath.clamp(mRound(current.getFloorY(), 32), 70, 256 - 10);
-                z = mRound(current.getFloorZ() << 3, 1024);
-                level = OVERWORLD.level;
-            } else {
-                throw new IllegalArgumentException("Neither overworld nor nether given!");
-            }
-            return Location.from(Vector3f.from(x, y, z), current.getYaw(), current.getPitch(), level);
         }
+
+        CloudLevel destLevel;
+        double destX;
+        double destZ;
+
+        if (currentLevel == OVERWORLD.level) {
+            destX = x / NETHER_SCALE;
+            destZ = z / NETHER_SCALE;
+            destLevel = NETHER.level;
+        } else if (currentLevel == NETHER.level) {
+            destX = x * NETHER_SCALE;
+            destZ = z * NETHER_SCALE;
+            destLevel = OVERWORLD.level;
+        } else {
+            return null;
+        }
+
+        destX = Math.max(-MAX_COORD, Math.min(MAX_COORD, destX));
+        destZ = Math.max(-MAX_COORD, Math.min(MAX_COORD, destZ));
+
+        int minY = destLevel.getMinHeight();
+        int maxY = destLevel.getMaxHeight() - 1;
+        double destY = Math.max(minY, Math.min(maxY, Math.floor(y)));
+
+        return Location.from(Vector3f.from((float) destX, (float) destY, (float) destZ), yaw, pitch, destLevel);
     }
 
-    private static final int mRound(int value, int factor) {
-        return Math.round((float) value / factor) * factor;
+    public CloudLevel getLevel() {
+        return level;
     }
 }

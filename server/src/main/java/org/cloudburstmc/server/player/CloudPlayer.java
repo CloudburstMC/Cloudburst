@@ -216,6 +216,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Setter
     private boolean clientCacheEnabled = false;
     private boolean initialized;
+    private boolean changingDimension = false;
     private byte containerIdCounter = 1;
     private int exp = 0;
     private int expLevel = 0;
@@ -1126,7 +1127,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 }
             }
         } else {
-            loc = this.getServer().getDefaultLevel().getSafeSpawn();
+            CloudLevel spawnLevel = this.getLevel();
+            loc = spawnLevel == this.getServer().getDefaultLevel() ? spawnLevel.getSafeSpawn() : Location.from(this.getPosition(), this.getYaw(), this.getPitch(), spawnLevel);
         }
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, flags);
@@ -1515,26 +1517,62 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     @Override
+    public int getPortalCooldownTicks() {
+        return 10;
+    }
+
+    public boolean isChangingDimension() {
+        return changingDimension;
+    }
+
+    public void setChangingDimension(boolean changingDimension) {
+        this.changingDimension = changingDimension;
+    }
+
+    @Override
+    protected void tickPortalCooldown() {
+        if (!changingDimension) {
+            super.tickPortalCooldown();
+        }
+    }
+
+    @Override
+    protected int getPortalTransitionTicks() {
+        return isCreative() ? 0 : PORTAL_TRANSFER_TICKS;
+    }
+
+    @Override
     protected void checkBlockCollision() {
         boolean portal = false;
 
-        for (Block block : this.getCollisionBlocks()) {
+        for (Block block : this.getBlocksAround()) {
             if (block.getState().getType() == BlockTypes.PORTAL) {
-                portal = true;
-                continue;
+                Vector3i pos = block.getPosition();
+                SimpleAxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+                if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
+                    portal = true;
+                    this.portalEntryBlock = pos;
+                }
             }
+        }
 
+        for (Block block : this.getCollisionBlocks()) {
             block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
         }
 
-        if (portal) {
-            if (this.isCreative() && this.inPortalTicks < 80) {
-                this.inPortalTicks = 80;
+        if (portal && !this.isSpectator() && this.getVehicle() == null) {
+            if (this.portalCooldown > 0) {
+                this.portalCooldown = getPortalCooldownTicks();
             } else {
                 this.inPortalTicks++;
             }
         } else {
-            this.inPortalTicks = 0;
+            if (this.portalCooldown <= 0) {
+                this.inPortalTicks = Math.max(0, this.inPortalTicks - 4);
+                if (this.inPortalTicks == 0) {
+                    this.portalEntryBlock = null;
+                }
+            }
         }
     }
 
@@ -2125,7 +2163,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setPlayerPosition(pos);
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1L);
-        startGamePacket.setDimensionId(0);
+        startGamePacket.setDimensionId(this.getLevel().getDimension());
         startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
@@ -3697,6 +3735,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public boolean switchLevel(CloudLevel level) {
         CloudLevel oldLevel = this.getLevel();
+        int newDimension = level.getDimension();
+        boolean dimensionChanged = newDimension != oldLevel.getDimension();
+
+        if (dimensionChanged) {
+            ChangeDimensionPacket changeDim = new ChangeDimensionPacket();
+            changeDim.setDimension(newDimension);
+            changeDim.setPosition(this.getPosition().add(0, this.getEyeHeight(), 0));
+            changeDim.setRespawn(false);
+            this.sendPacketImmediately(changeDim);
+        }
+
         if (super.switchLevel(level)) {
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
@@ -3713,6 +3762,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
             NetworkUtils.gameRulesToNetwork(level.getGameRules(), gameRulesChanged.getGameRules());
             this.sendPacket(gameRulesChanged);
+
+            if (dimensionChanged) {
+                PlayerActionPacket ack = new PlayerActionPacket();
+                ack.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
+                ack.setRuntimeEntityId(this.getRuntimeId());
+                ack.setBlockPosition(org.cloudburstmc.math.vector.Vector3i.ZERO);
+                ack.setResultPosition(org.cloudburstmc.math.vector.Vector3i.ZERO);
+                ack.setFace(0);
+                this.sendPacket(ack);
+            }
+
             return true;
         }
 

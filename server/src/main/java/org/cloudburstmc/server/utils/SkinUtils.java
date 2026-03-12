@@ -97,7 +97,7 @@ public class SkinUtils {
             for (JsonNode element : array) {
                 animations.add(getAnimation(element));
             }
-            newSkin.setAnimations(animations);
+            newSkin.getAnimations().addAll(animations);
         }
 
         if (skinToken.has("PersonaSkin")) {
