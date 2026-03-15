@@ -10,6 +10,8 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -2504,11 +2506,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void sendMessage(Component message) {
         TextPacket packet = new TextPacket();
-        packet.setType(TextPacket.Type.SYSTEM);
+        if (message instanceof TranslatableComponent) {
+            packet.setType(TextPacket.Type.TRANSLATION);
+            packet.setNeedsTranslation(true);
+        } else {
+            packet.setType(TextPacket.Type.SYSTEM);
+            packet.setNeedsTranslation(false);
+        }
         packet.setPlatformChatId("");
         packet.setSourceName("");
         packet.setXuid("");
-        packet.setNeedsTranslation(false);
         packet.setMessage(new BedrockComponent(message));
         this.sendPacket(packet);
     }
@@ -2747,7 +2754,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getSocketAddress(),
                     "",
-                    reason));
+                    this.getServer().getLanguage().translate(reason)));
             this.hasSpawned.clear();
             this.spawnLocation = null;
             this.respawnConfig = null;
