@@ -1,4 +1,5 @@
 [versions]
+adventure = "4.26.1"
 asm = "9.9.1"
 checker-framework = "3.53.1"
 fastutil = "8.5.13-SNAPSHOT"
@@ -6,8 +7,16 @@ jackson = "3.0.4"
 jline = "3.30.6"
 junit = "6.0.2"
 log4j = "2.25.3"
+protocol = "3.0.0.Beta12-20260315.153225-9"
 
 [libraries]
+adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }
+adventure-text-minimessage = { group = "net.kyori", name = "adventure-text-minimessage", version.ref = "adventure" }
+adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text-serializer-legacy", version.ref = "adventure" }
+adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
+adventure-text-serializer-gson = { group = "net.kyori", name = "adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-logger-slf4j = { group = "net.kyori", name = "adventure-text-logger-slf4j", version.ref = "adventure" }
+
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asm-commons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 
@@ -56,7 +65,8 @@ fastutil-reference-reference-maps = { group = "org.cloudburstmc.fastutil.maps", 
 fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
 fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "short-object-maps", version.ref = "fastutil" }
 
-bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version = "3.0.0.Beta12-20260304.203629-5" }
+bedrock-adventure = { group = "org.cloudburstmc.protocol", name = "adventure", version.ref = "protocol" }
+bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version = "4.1.101.Final" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version = "4.1.101.Final" }
 block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.110-SNAPSHOT" }

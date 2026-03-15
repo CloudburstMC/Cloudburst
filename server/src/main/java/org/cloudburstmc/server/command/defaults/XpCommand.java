@@ -1,18 +1,14 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created by Snake1999 on 2016/1/22.
- * Package cn.nukkit.command.defaults in project nukkit.
- */
 public class XpCommand extends Command {
     public XpCommand() {
         super("xp", CommandData.builder("xp")
@@ -57,7 +53,7 @@ public class XpCommand extends Command {
         }
 
         if (player == null) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             return true;
         }
 
@@ -84,9 +80,9 @@ public class XpCommand extends Command {
                 player.setExperience(player.getExperience(), newLevel);
             }
             if (amount > 0) {
-                sender.sendMessage(new TranslationContainer("commands.xp.success.levels", amount, player.getName()));
+                sender.sendMessage(Component.translatable("commands.xp.success.levels", Component.text(amount), Component.text(player.getName())));
             } else {
-                sender.sendMessage(new TranslationContainer("commands.xp.success.negative.levels", -amount, player.getName()));
+                sender.sendMessage(Component.translatable("commands.xp.success.negative.levels", Component.text(-amount), Component.text(player.getName())));
             }
             return true;
         } else {
@@ -94,7 +90,7 @@ public class XpCommand extends Command {
                 return false;
             }
             player.addExperience(amount);
-            sender.sendMessage(new TranslationContainer("commands.xp.success", amount, player.getName()));
+            sender.sendMessage(Component.translatable("commands.xp.success", Component.text(amount), Component.text(player.getName())));
             return true;
         }
     }

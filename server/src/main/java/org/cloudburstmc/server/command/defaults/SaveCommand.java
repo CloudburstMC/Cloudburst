@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
@@ -28,7 +28,7 @@ public class SaveCommand extends Command {
             return true;
         }
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.save.start"));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.start"));
 
         for (CloudPlayer player : ((CloudServer) sender.getServer()).getOnlinePlayers().values()) {
             player.save();
@@ -38,7 +38,7 @@ public class SaveCommand extends Command {
             level.save(true);
         }
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.save.success"));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.success"));
         return true;
     }
 }

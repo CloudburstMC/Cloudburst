@@ -1,15 +1,11 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class StopCommand extends Command {
 
     public StopCommand() {
@@ -25,7 +21,7 @@ public class StopCommand extends Command {
             return true;
         }
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.stop.start"));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.stop.start"));
 
         sender.getServer().shutdown();
 

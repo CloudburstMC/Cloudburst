@@ -15,6 +15,9 @@ dependencies {
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
     }
+    api(libs.bedrock.adventure)
+    implementation(libs.adventure.text.logger.slf4j)
+    implementation(libs.adventure.text.serializer.plain)
     compileOnly(libs.netty.transport.native.epoll)
     compileOnly(libs.netty.transport.native.kqueue)
     runtimeOnly(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }

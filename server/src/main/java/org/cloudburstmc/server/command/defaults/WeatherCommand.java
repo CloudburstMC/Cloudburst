@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
@@ -7,13 +8,8 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 public class WeatherCommand extends Command {
 
     public WeatherCommand() {
@@ -61,25 +57,21 @@ public class WeatherCommand extends Command {
                 level.setThundering(false);
                 level.setRainTime(seconds * 20);
                 level.setThunderTime(seconds * 20);
-                CommandUtils.broadcastCommandMessage(sender,
-                        new TranslationContainer("%commands.weather.clear"));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.weather.clear"));
                 return true;
             case "rain":
                 level.setRaining(true);
                 level.setRainTime(seconds * 20);
-                CommandUtils.broadcastCommandMessage(sender,
-                        new TranslationContainer("%commands.weather.rain"));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.weather.rain"));
                 return true;
             case "thunder":
                 level.setThundering(true);
                 level.setRainTime(seconds * 20);
                 level.setThunderTime(seconds * 20);
-                CommandUtils.broadcastCommandMessage(sender,
-                        new TranslationContainer("%commands.weather.thunder"));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.weather.thunder"));
                 return true;
             default:
                 return false;
         }
-
     }
 }

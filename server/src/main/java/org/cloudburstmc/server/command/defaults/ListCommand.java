@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.StringJoiner;
@@ -32,14 +32,15 @@ public class ListCommand extends Command {
         int onlineCount = 0;
         for (CloudPlayer player : ((CloudServer) sender.getServer()).getOnlinePlayers().values()) {
             if (player.isOnline() && (!(sender instanceof CloudPlayer) || ((CloudPlayer) sender).canSee(player))) {
-                online.add(player.getDisplayName());
+                online.add(player.getName());
                 ++onlineCount;
             }
         }
 
-        sender.sendMessage(new TranslationContainer("commands.players.list",
-                onlineCount, sender.getServer().getMaxPlayers()));
-        sender.sendMessage(online.toString());
+        sender.sendMessage(Component.translatable("commands.players.list",
+                Component.text(onlineCount),
+                Component.text(sender.getServer().getMaxPlayers())));
+        sender.sendMessage(Component.text(online.toString()));
         return true;
     }
 }

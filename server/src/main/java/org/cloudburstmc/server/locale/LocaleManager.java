@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.locale;
 
-import tools.jackson.databind.JsonNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.locale.TextContainer;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.TranslationStore;
 import org.cloudburstmc.server.Bootstrap;
+import tools.jackson.databind.JsonNode;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +35,7 @@ public class LocaleManager {
     private final Properties texts = new Properties();
     private final Path[] textPaths;
     private Locale locale;
+    private TranslationStore.StringBased<MessageFormat> adventureRegistry;
 
     private LocaleManager(Set<Locale> availableLocales, Path[] textPaths) {
         this.availableLocales = availableLocales;
@@ -90,7 +94,7 @@ public class LocaleManager {
         try (InputStream stream = Files.newInputStream(path)) {
             JsonNode array = Bootstrap.JSON_MAPPER.readTree(stream);
             for (JsonNode element : array) {
-                builder.add(getLocaleFromString(element.textValue()));
+                builder.add(getLocaleFromString(element.asString()));
             }
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load language list", e);
@@ -141,10 +145,6 @@ public class LocaleManager {
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load transforms", e);
         }
-    }
-
-    public String translate(TextContainer textContainer) {
-        return this.translate(textContainer.getText());
     }
 
     public String translate(String string, Object... objects) {
@@ -250,5 +250,22 @@ public class LocaleManager {
         }
 
         this.texts.setProperty("language", locale.toString());
+
+        if (this.adventureRegistry != null) {
+            GlobalTranslator.translator().removeSource(this.adventureRegistry);
+        }
+
+        this.adventureRegistry = TranslationStore.messageFormat(Key.key("cloudburst", "locale"));
+
+        for (String key : this.texts.stringPropertyNames()) {
+            String value = this.texts.getProperty(key);
+            try {
+                this.adventureRegistry.register(key, locale, new MessageFormat(value, locale));
+            } catch (IllegalArgumentException ignored) {
+                this.adventureRegistry.register(key, locale, new MessageFormat(value.replace("'", "''").replace("{", "'{'").replace("}", "'}'"), locale));
+            }
+        }
+
+        GlobalTranslator.translator().addSource(this.adventureRegistry);
     }
 }

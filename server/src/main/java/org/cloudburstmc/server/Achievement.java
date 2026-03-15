@@ -1,14 +1,12 @@
 package org.cloudburstmc.server;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.HashMap;
 
-/**
- * Created by CreeperFace on 9. 11. 2016.
- */
-public class Achievement {
+public record Achievement(String message, String... requires) {
 
     public static final HashMap<String, Achievement> achievements = new HashMap<String, Achievement>() {
         {
@@ -30,12 +28,13 @@ public class Achievement {
         if (!achievements.containsKey(achievementId)) {
             return false;
         }
-        String translation = CloudServer.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + achievements.get(achievementId).getMessage() + TextFormat.RESET);
+        Component achievementName = Component.text(achievements.get(achievementId).message()).color(NamedTextColor.GREEN);
+        Component message = Component.translatable("chat.type.achievement", player.displayName(), achievementName);
 
         if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            CloudServer.getInstance().broadcastMessage(translation);
+            CloudServer.getInstance().broadcastMessage(message);
         } else {
-            player.sendMessage(translation);
+            player.sendMessage(message);
         }
         return true;
     }
@@ -49,25 +48,14 @@ public class Achievement {
         return true;
     }
 
-    public final String message;
-    public final String[] requires;
-
-    public Achievement(String message, String... requires) {
-        this.message = message;
-        this.requires = requires;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
     public void broadcast(CloudPlayer player) {
-        String translation = CloudServer.getInstance().getLanguage().translate("chat.type.achievement", player.getDisplayName(), TextFormat.GREEN + this.getMessage(), null);
+        Component achievementName = Component.text(this.message()).color(NamedTextColor.GREEN);
+        Component message = Component.translatable("chat.type.achievement", player.displayName(), achievementName);
 
         if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            CloudServer.getInstance().broadcastMessage(translation);
+            CloudServer.getInstance().broadcastMessage(message);
         } else {
-            player.sendMessage(translation);
+            player.sendMessage(message);
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
@@ -8,16 +9,12 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
     private static final String[] LEGACY_TEXT_TAGS = {"Text1", "Text2", "Text3", "Text4"};
@@ -71,6 +68,10 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
         return blockType == BlockTypes.OAK_STANDING_SIGN || blockType == BlockTypes.OAK_WALL_SIGN;
     }
 
+    public String[] getText() {
+        return Arrays.copyOf(text, text.length);
+    }
+
     public void setText(String... lines) {
         for (int i = 0; i < 4; i++) {
             if (i < lines.length)
@@ -81,10 +82,6 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
         this.spawnToAll();
         this.setDirty();
-    }
-
-    public String[] getText() {
-        return Arrays.copyOf(text, text.length);
     }
 
     public String getTextOwner() {
@@ -117,7 +114,8 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
         if (player.getRemoveFormat()) {
             for (int i = 0; i < 4; i++) {
-                text[i] = TextFormat.clean(text[i]);
+                text[i] = PlainTextComponentSerializer.plainText().serialize(
+                        BedrockLegacyTextSerializer.getInstance().deserialize(text[i]));
             }
         }
 

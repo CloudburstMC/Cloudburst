@@ -23,16 +23,17 @@
  */
 package co.aikar.timings;
 
-import tools.jackson.databind.node.ObjectNode;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.timings.JsonUtil;
-import org.cloudburstmc.server.utils.TextFormat;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -74,7 +75,7 @@ public class TimingsExport extends Thread {
 
         if (!Timings.isPrivacy()) {
             out.put("server", CloudServer.getInstance().getName());
-            out.put("motd", CloudServer.getInstance().getMotd());
+            out.put("motd", LegacyComponentSerializer.legacySection().serialize(CloudServer.getInstance().motd()));
             out.put("online-mode", CloudServer.getInstance().getConfig().isXboxAuth());
             out.put("icon", ""); //"data:image/png;base64,"
         }
@@ -186,7 +187,7 @@ public class TimingsExport extends Thread {
 
     @Override
     public void run() {
-        this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.uploadStart"));
+        this.sender.sendMessage(Component.translatable("cloudburst.command.timings.uploadStart"));
         this.out.set("data", JsonUtil.mapToArray(this.history, TimingsHistory::export));
 
         String response = null;
@@ -204,7 +205,8 @@ public class TimingsExport extends Thread {
             response = getResponse(con);
 
             if (con.getResponseCode() != 302) {
-                this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.uploadError", String.valueOf(con.getResponseCode()), con.getResponseMessage()));
+                this.sender.sendMessage(Component.translatable("cloudburst.command.timings.uploadError",
+                        Component.text(con.getResponseCode()), Component.text(con.getResponseMessage())));
                 if (response != null) {
                     log.warn(response);
                 }
@@ -212,7 +214,8 @@ public class TimingsExport extends Thread {
             }
 
             String location = con.getHeaderField("Location");
-            this.sender.sendMessage(new TranslationContainer("cloudburst.command.timings.timingsLocation", location));
+            this.sender.sendMessage(Component.translatable("cloudburst.command.timings.timingsLocation",
+                    Component.text(location)));
             if (!(this.sender instanceof ConsoleCommandSender)) {
                 log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location));
             }
@@ -232,7 +235,7 @@ public class TimingsExport extends Thread {
 
             log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsWrite", fileName));
         } catch (IOException exception) {
-            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("cloudburst.command.timings.reportError"));
+            this.sender.sendMessage(Component.translatable("cloudburst.command.timings.reportError").color(NamedTextColor.RED));
             if (response != null) {
                 log.warn(response);
             }
@@ -252,7 +255,7 @@ public class TimingsExport extends Thread {
             return bos.toString();
 
         } catch (IOException exception) {
-            this.sender.sendMessage(TextFormat.RED + "" + new TranslationContainer("cloudburst.command.timings.reportError"));
+            this.sender.sendMessage(Component.translatable("cloudburst.command.timings.reportError").color(NamedTextColor.RED));
             log.warn(con.getResponseMessage(), exception);
             return null;
         }

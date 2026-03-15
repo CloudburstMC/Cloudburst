@@ -2,21 +2,21 @@ package org.cloudburstmc.server.command;
 
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.permission.PermissibleBase;
 
 import java.util.Map;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Represents the server console as a command sender.
  */
 @Log4j2
 @Singleton
@@ -88,25 +88,22 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public void sendMessage(String message) {
-        message = this.getServer().getLanguage().translate(message);
-        for (String line : message.trim().split("\n")) {
+    public void sendMessage(Component message) {
+        Component rendered = GlobalTranslator.render(message, CloudServer.getInstance().getLanguage().getLocale());
+        String text = LegacyComponentSerializer.legacySection().serialize(rendered);
+        for (String line : text.trim().split("\n")) {
             log.info(line);
         }
     }
 
     @Override
-    public void sendMessage(TextContainer message) {
-        Object[] args = null;
-        if (message instanceof TranslationContainer) {
-            args = ((TranslationContainer) message).getParameters();
-        }
-        this.sendMessage(this.getServer().getLanguage().translate(message.getText(), args));
+    public String getName() {
+        return "CONSOLE";
     }
 
     @Override
-    public String getName() {
-        return "CONSOLE";
+    public Component name() {
+        return Component.text("CONSOLE");
     }
 
     @Override
@@ -116,6 +113,5 @@ public class ConsoleCommandSender implements CommandSender {
 
     @Override
     public void setOp(boolean value) {
-
     }
 }

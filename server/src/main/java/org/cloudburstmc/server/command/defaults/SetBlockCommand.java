@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.command.CommandSender;
@@ -12,8 +14,6 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 public class SetBlockCommand extends Command {
 
@@ -35,7 +35,7 @@ public class SetBlockCommand extends Command {
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
             return true;
         }
 
@@ -51,7 +51,7 @@ public class SetBlockCommand extends Command {
         }
 
         if (pos.getY() < 0 || pos.getY() > 255) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.setblock.outOfWorld"));
+            sender.sendMessage(Component.translatable("commands.setblock.outOfWorld").color(NamedTextColor.RED));
             return true;
         }
 
@@ -70,7 +70,7 @@ public class SetBlockCommand extends Command {
         BlockState state = BlockStateMetaMappings.getStateFromMeta(id, meta);
 
         if (state == null) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.setblock.notFound", args[3]));
+            sender.sendMessage(Component.translatable("commands.setblock.notFound", Component.text(args[3])).color(NamedTextColor.RED));
             return true;
         }
 
@@ -93,14 +93,14 @@ public class SetBlockCommand extends Command {
                 if (setType == SetType.DESTROY) {
                     p.getLevel().useBreakOn(pos);
                 } else {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.setblock.noChange"));
+                    sender.sendMessage(Component.translatable("commands.setblock.noChange").color(NamedTextColor.RED));
                     return true;
                 }
             }
         }
 
         p.getLevel().setBlockState(pos, state);
-        sender.sendMessage(new TranslationContainer("%commands.setblock.success"));
+        sender.sendMessage(Component.translatable("commands.setblock.success"));
 
         return true;
     }

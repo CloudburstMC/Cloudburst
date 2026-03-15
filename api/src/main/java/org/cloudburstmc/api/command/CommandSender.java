@@ -1,46 +1,40 @@
 package org.cloudburstmc.api.command;
 
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.Server;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
 
 /**
  * Represents the sender of a command.
  */
-public interface CommandSender extends Permissible {
+public interface CommandSender extends Audience, Permissible {
 
     /**
-     * Sends a message to the command sender.
+     * Returns the server instance associated with this command sender.
      *
-     * @param message The message to send
-     */
-    void sendMessage(String message);
-
-    /**
-     * Sends a message to the command sender.
-     *
-     * @param message The message to send.
-     */
-    void sendMessage(TextContainer message);
-
-    /**
-     * Returns the server instance of the command sender.
-     *
-     * @return The server instance
+     * @return the server instance
      */
     Server getServer();
 
     /**
-     * Returns the name of the command sender.
+     * Returns the name of this command sender.
      *
-     * @return The name of the command sender.
+     * @return the name
      */
     String getName();
 
     /**
-     * Checks if this command sender is a player.
+     * Returns the display name of this command sender.
      *
-     * @return true if the sender is a player
+     * @return the display name component
+     */
+    Component name();
+
+    /**
+     * Returns whether this command sender represents an online player.
+     *
+     * @return true if this sender is a player
      */
     boolean isPlayer();
 }

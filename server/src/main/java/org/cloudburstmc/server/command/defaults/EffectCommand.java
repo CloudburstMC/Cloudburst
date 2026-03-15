@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.potion.Effect;
@@ -10,16 +12,10 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created by Snake1999 and Pub4Game on 2016/1/23.
- * Package cn.nukkit.command.defaults in project nukkit.
- */
 public class EffectCommand extends Command {
     public EffectCommand() {
         super("effect", CommandData.builder("effect")
@@ -29,7 +25,7 @@ public class EffectCommand extends Command {
                 .setParameters(
                         new CommandParameter[]{
                                 new CommandParameter("player", CommandParamType.TARGET, false),
-                                new CommandParameter("effect", CommandParamType.STRING, false), //Do not use Enum here because of buggy behavior
+                                new CommandParameter("effect", CommandParamType.STRING, false),
                                 new CommandParameter("seconds", CommandParamType.INT, true),
                                 new CommandParameter("amplifier", true),
                                 new CommandParameter("hideParticle", true, new String[]{"true", "false"})
@@ -50,14 +46,14 @@ public class EffectCommand extends Command {
         }
         CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         if (player == null) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             return true;
         }
         if (args[1].equalsIgnoreCase("clear")) {
             for (Effect effect : player.getEffects().values()) {
                 player.removeEffect(effect.getType());
             }
-            sender.sendMessage(new TranslationContainer("%commands.effect.success.removed.all", player.getDisplayName()));
+            sender.sendMessage(Component.translatable("commands.effect.success.removed.all", player.displayName()));
             return true;
         }
         CloudEffect effect;
@@ -67,7 +63,7 @@ public class EffectCommand extends Command {
             try {
                 effect = new CloudEffect(EffectType.byName(args[1]));
             } catch (Exception e) {
-                sender.sendMessage(new TranslationContainer("%commands.effect.notFound", args[1]));
+                sender.sendMessage(Component.translatable("commands.effect.notFound", Component.text(args[1])));
                 return true;
             }
         }
@@ -100,19 +96,21 @@ public class EffectCommand extends Command {
         }
         if (duration == 0) {
             if (!player.hasEffect(effect.getType())) {
-                if (player.getEffects().size() == 0) {
-                    sender.sendMessage(new TranslationContainer("%commands.effect.failure.notActive.all", player.getDisplayName()));
+                if (player.getEffects().isEmpty()) {
+                    sender.sendMessage(Component.translatable("commands.effect.failure.notActive.all", player.displayName()));
                 } else {
-                    sender.sendMessage(new TranslationContainer("%commands.effect.failure.notActive", effect.getName(), player.getDisplayName()));
+                    sender.sendMessage(Component.translatable("commands.effect.failure.notActive", Component.text(effect.getName()), player.displayName()));
                 }
                 return true;
             }
             player.removeEffect(effect.getType());
-            sender.sendMessage(new TranslationContainer("%commands.effect.success.removed", effect.getName(), player.getDisplayName()));
+            sender.sendMessage(Component.translatable("commands.effect.success.removed", Component.text(effect.getName()), player.displayName()));
         } else {
             effect.setDuration(duration).setAmplifier(amplification);
             player.addEffect(effect);
-            CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.effect.success", effect.getName(), effect.getAmplifier(), player.getDisplayName(), effect.getDuration() / 20));
+            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.effect.success",
+                    Component.text(effect.getName()), Component.text(effect.getAmplifier()),
+                    player.displayName(), Component.text(effect.getDuration() / 20)));
         }
         return true;
     }

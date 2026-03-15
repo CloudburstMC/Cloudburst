@@ -16,6 +16,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
@@ -224,7 +225,7 @@ public class EntityHuman extends EntityCreature implements Human {
             }
 
             if (this instanceof CloudPlayer)
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), ((CloudPlayer) this).getDisplayName(), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
+                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(((CloudPlayer) this).displayName()), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
             else
                 this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(this.skin), new CloudPlayer[]{player});
 

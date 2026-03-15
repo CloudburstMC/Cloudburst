@@ -1,20 +1,16 @@
 package org.cloudburstmc.server.command;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 public class FormattedCommandAlias extends Command {
 
@@ -34,9 +30,9 @@ public class FormattedCommandAlias extends Command {
                 commands.add(buildCommand(formatString, args));
             } catch (Exception e) {
                 if (e instanceof IllegalArgumentException) {
-                    sender.sendMessage(TextFormat.RED + e.getMessage());
+                    sender.sendMessage(Component.text(e.getMessage()).color(NamedTextColor.RED));
                 } else {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
+                    sender.sendMessage(Component.translatable("commands.generic.exception").color(NamedTextColor.RED));
                     log.throwing(Level.ERROR, e);
                 }
                 return false;
@@ -116,7 +112,7 @@ public class FormattedCommandAlias extends Command {
                 replacement.append(args[position]);
             }
 
-            formatString = formatString.substring(0, start) + replacement.toString() + formatString.substring(end);
+            formatString = formatString.substring(0, start) + replacement + formatString.substring(end);
             // Move index past the replaced data so we don't process it again
             index = start + replacement.length();
 

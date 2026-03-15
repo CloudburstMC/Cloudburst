@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -8,13 +9,8 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * Created on 2015/12/13 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class SetWorldSpawnCommand extends Command {
     public SetWorldSpawnCommand() {
         super("setworldspawn", CommandData.builder("setworldspawn")
@@ -39,7 +35,7 @@ public class SetWorldSpawnCommand extends Command {
                 level = ((CloudPlayer) sender).getLevel();
                 pos = ((CloudPlayer) sender).getPosition();
             } else {
-                sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
                 return true;
             }
         } else if (args.length == 3) {
@@ -54,8 +50,8 @@ public class SetWorldSpawnCommand extends Command {
         }
         level.setSpawnLocation(pos);
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.setworldspawn.success", pos.getFloorX(),
-                pos.getFloorY(), pos.getFloorZ()));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.setworldspawn.success",
+                Component.text(pos.getFloorX()), Component.text(pos.getFloorY()), Component.text(pos.getFloorZ())));
         return true;
     }
 }

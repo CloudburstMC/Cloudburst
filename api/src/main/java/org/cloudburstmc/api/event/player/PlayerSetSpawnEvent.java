@@ -1,10 +1,10 @@
 package org.cloudburstmc.api.event.player;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
 /**
@@ -29,7 +29,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
     private boolean forced;
     private boolean notifyPlayer;
     @Nullable
-    private TextContainer notification;
+    private Component notification;
 
     public PlayerSetSpawnEvent(
             @NonNull Player player,
@@ -38,7 +38,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
             @Nullable Location newSpawn,
             boolean forced,
             boolean notifyPlayer,
-            @Nullable TextContainer notification
+            @Nullable Component notification
     ) {
         super(player);
         this.cause = cause;
@@ -118,7 +118,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
      * @return the notification message, or {@code null} for no message
      */
     @Nullable
-    public TextContainer getNotification() {
+    public Component getNotification() {
         return notification;
     }
 
@@ -127,7 +127,7 @@ public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellabl
      *
      * @param notification the message, or {@code null} to suppress the notification
      */
-    public void setNotification(@Nullable TextContainer notification) {
+    public void setNotification(@Nullable Component notification) {
         this.notification = notification;
     }
 

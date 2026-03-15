@@ -12,13 +12,12 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
@@ -34,8 +33,6 @@ import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -92,21 +89,17 @@ import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 import org.cloudburstmc.server.utils.Hash;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.*;
 import java.util.List;
 import java.util.Queue;
-import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * author: MagicDroidX Nukkit Project
- */
 @Log4j2
 public class CloudLevel implements Level {
 
@@ -241,8 +234,7 @@ public class CloudLevel implements Level {
 //            }
 //        }
 
-        log.info(this.server.getLanguage().translate("cloudburst.level.preparing",
-                TextFormat.GREEN + getId() + TextFormat.WHITE));
+        log.info(this.server.getLanguage().translate("cloudburst.level.preparing", "§a" + getId() + "§r"));
 
         this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
@@ -466,13 +458,12 @@ public class CloudLevel implements Level {
             return false;
         }
 
-        log.info(this.server.getLanguage().translate("cloudburst.level.unloading",
-                TextFormat.GREEN + this.getName() + TextFormat.WHITE));
+        log.info(this.server.getLanguage().translate("cloudburst.level.unloading", "§a" + this.getName() + "§r"));
         CloudLevel defaultLevel = this.server.getDefaultLevel();
 
         for (Player player : new ArrayList<>(this.getPlayers().values())) {
             if (this == defaultLevel || defaultLevel == null) {
-                ((CloudPlayer) player).close(((CloudPlayer) player).getLeaveMessage(), "Forced default level unload");
+                ((CloudPlayer) player).close(((CloudPlayer) player).leaveMessage(), "Forced default level unload");
             } else {
                 player.teleport(this.server.getDefaultLevel().getSafeSpawn());
             }
@@ -2162,7 +2153,7 @@ public class CloudLevel implements Level {
 
     @Override
     public CloudChunk getChunk(int chunkX, int chunkZ) {
-        return (CloudChunk) this.chunkManager.getChunk(chunkX, chunkZ);
+        return this.chunkManager.getChunk(chunkX, chunkZ);
     }
 
     @Override

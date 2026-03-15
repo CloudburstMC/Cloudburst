@@ -1,67 +1,57 @@
 package org.cloudburstmc.api.event.player;
 
-import org.cloudburstmc.api.locale.TextContainer;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.player.Player;
 
+/**
+ * Fired when a player disconnects from the server. The quit message is broadcast to all online
+ * players after the event is processed; set it to {@code null} to suppress the broadcast.
+ */
 public final class PlayerQuitEvent extends PlayerEvent {
 
-    protected TextContainer quitMessage;
-    protected boolean autoSave = true;
-    protected String reason;
+    private final String reason;
 
-    public PlayerQuitEvent(Player player, TextContainer quitMessage, String reason) {
+    @Nullable
+    private Component quitMessage;
+    private boolean autoSave = true;
+
+    public PlayerQuitEvent(Player player, @Nullable Component quitMessage, String reason) {
         this(player, quitMessage, true, reason);
     }
 
-    public PlayerQuitEvent(Player player, TextContainer quitMessage) {
-        this(player, quitMessage, true);
+    public PlayerQuitEvent(Player player, @Nullable Component quitMessage) {
+        this(player, quitMessage, true, "No reason");
     }
 
-    public PlayerQuitEvent(Player player, String quitMessage, String reason) {
-        this(player, quitMessage, true, reason);
-    }
-
-    public PlayerQuitEvent(Player player, String quitMessage) {
-        this(player, quitMessage, true);
-    }
-
-    public PlayerQuitEvent(Player player, String quitMessage, boolean autoSave, String reason) {
-        this(player, new TextContainer(quitMessage), autoSave, reason);
-    }
-
-    public PlayerQuitEvent(Player player, String quitMessage, boolean autoSave) {
-        this(player, new TextContainer(quitMessage), autoSave);
-    }
-
-    public PlayerQuitEvent(Player player, TextContainer quitMessage, boolean autoSave) {
-        this(player, quitMessage, autoSave, "No reason");
-    }
-
-    public PlayerQuitEvent(Player player, TextContainer quitMessage, boolean autoSave, String reason) {
+    public PlayerQuitEvent(Player player, @Nullable Component quitMessage, boolean autoSave, String reason) {
         super(player);
         this.quitMessage = quitMessage;
         this.autoSave = autoSave;
         this.reason = reason;
     }
 
-    public TextContainer getQuitMessage() {
+    /**
+     * Returns the quit message that will be broadcast, or {@code null} if suppressed.
+     *
+     * @return the quit message component, or {@code null}
+     */
+    @Nullable
+    public Component getQuitMessage() {
         return quitMessage;
     }
 
-    public void setQuitMessage(TextContainer quitMessage) {
+    /**
+     * Sets the quit message to broadcast. Pass {@code null} to suppress the message entirely.
+     *
+     * @param quitMessage the new quit message, or {@code null}
+     */
+    public void setQuitMessage(@Nullable Component quitMessage) {
         this.quitMessage = quitMessage;
-    }
-
-    public void setQuitMessage(String quitMessage) {
-        this.setQuitMessage(new TextContainer(quitMessage));
     }
 
     public boolean getAutoSave() {
         return this.autoSave;
-    }
-
-    public void setAutoSave() {
-        this.setAutoSave(true);
     }
 
     public void setAutoSave(boolean autoSave) {

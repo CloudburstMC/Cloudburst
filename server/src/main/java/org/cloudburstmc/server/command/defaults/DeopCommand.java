@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -8,14 +10,8 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class DeopCommand extends Command {
     public DeopCommand() {
         super("deop", CommandData.builder("deop")
@@ -39,14 +35,14 @@ public class DeopCommand extends Command {
         }
 
         String playerName = args[0];
-        Player player = ((CloudServer) sender.getServer()).getPlayer(playerName);
+        Player player = sender.getServer().getPlayer(playerName);
         player.setOp(false);
 
         if (player instanceof CloudPlayer) {
-            ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%commands.deop.message"));
+            ((CloudPlayer) player).sendMessage(Component.translatable("commands.deop.message").color(NamedTextColor.GRAY));
         }
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.deop.success", player.getName()));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.deop.success", Component.text(player.getName())));
 
         return true;
     }

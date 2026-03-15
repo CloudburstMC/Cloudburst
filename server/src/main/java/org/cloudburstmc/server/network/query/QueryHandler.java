@@ -16,10 +16,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 public class QueryHandler {
 
@@ -35,16 +31,14 @@ public class QueryHandler {
 
     public QueryHandler() {
         this.server = CloudServer.getInstance();
-        log.info(this.server.getLanguage().translate("cloudburst.server.query.start"));
         String ip = this.server.getIp();
         String addr = (!ip.isEmpty()) ? ip : "0.0.0.0";
         int port = this.server.getPort();
-        log.info(this.server.getLanguage().translate("cloudburst.server.query.info", String.valueOf(port)));
 
         this.regenerateToken();
         this.lastToken = this.token;
         this.regenerateInfo();
-        log.info(this.server.getLanguage().translate("cloudburst.server.query.running", addr, String.valueOf(port)));
+        log.info(this.server.getLanguage().translate("cloudburst.server.query.running", "§b" + addr + "§r", "§b" + port + "§r"));
     }
 
     public void regenerateInfo() {

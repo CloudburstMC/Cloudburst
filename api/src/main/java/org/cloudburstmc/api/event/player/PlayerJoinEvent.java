@@ -1,31 +1,39 @@
 package org.cloudburstmc.api.event.player;
 
-import org.cloudburstmc.api.locale.TextContainer;
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.player.Player;
 
+/**
+ * Fired when a player joins the server. The join message is broadcast to all online players
+ * after the event is processed; set it to {@code null} to suppress the broadcast entirely.
+ */
 public final class PlayerJoinEvent extends PlayerEvent {
 
-    protected TextContainer joinMessage;
+    @Nullable
+    private Component joinMessage;
 
-    public PlayerJoinEvent(Player player, TextContainer joinMessage) {
+    public PlayerJoinEvent(Player player, @Nullable Component joinMessage) {
         super(player);
         this.joinMessage = joinMessage;
     }
 
-    public PlayerJoinEvent(Player player, String joinMessage) {
-        super(player);
-        this.joinMessage = new TextContainer(joinMessage);
-    }
-
-    public TextContainer getJoinMessage() {
+    /**
+     * Returns the join message that will be broadcast, or {@code null} if suppressed.
+     *
+     * @return the join message component, or {@code null}
+     */
+    @Nullable
+    public Component getJoinMessage() {
         return joinMessage;
     }
 
-    public void setJoinMessage(TextContainer joinMessage) {
+    /**
+     * Sets the join message to broadcast. Pass {@code null} to suppress the message entirely.
+     *
+     * @param joinMessage the new join message, or {@code null}
+     */
+    public void setJoinMessage(@Nullable Component joinMessage) {
         this.joinMessage = joinMessage;
-    }
-
-    public void setJoinMessage(String joinMessage) {
-        this.setJoinMessage(new TextContainer(joinMessage));
     }
 }

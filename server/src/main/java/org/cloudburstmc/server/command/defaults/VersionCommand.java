@@ -1,21 +1,17 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginDescription;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.List;
 import java.util.StringJoiner;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class VersionCommand extends Command {
 
     public VersionCommand() {
@@ -32,11 +28,12 @@ public class VersionCommand extends Command {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(new TranslationContainer("cloudburst.server.info.extended", sender.getServer().getName(),
-                    sender.getServer().getImplementationVersion(),
-                    sender.getServer().getApiVersion(),
-                    sender.getServer().getVersion(),
-                    String.valueOf(ProtocolInfo.getDefaultProtocolVersion())));
+            sender.sendMessage(Component.translatable("cloudburst.server.info.extended",
+                    Component.text(sender.getServer().getName()),
+                    Component.text(sender.getServer().getImplementationVersion()),
+                    Component.text(sender.getServer().getApiVersion()),
+                    Component.text(sender.getServer().getVersion()),
+                    Component.text(ProtocolInfo.getDefaultProtocolVersion())));
         } else {
             StringJoiner pluginName = new StringJoiner(" ");
             for (String arg : args) pluginName.add(arg);
@@ -48,26 +45,25 @@ public class VersionCommand extends Command {
                         return container;
                     }
                 }
-
                 return null;
             });
 
             if (exactPlugin != null) {
                 PluginDescription description = exactPlugin.getDescription();
-                sender.sendMessage(TextFormat.DARK_GREEN + description.getName() + TextFormat.WHITE + " version " + TextFormat.DARK_GREEN + description.getVersion());
-                description.getDescription().ifPresent(sender::sendMessage);
-
-                description.getUrl().ifPresent(url -> sender.sendMessage("Website: " + url));
+                sender.sendMessage(Component.text(description.getName()).color(NamedTextColor.DARK_GREEN)
+                        .append(Component.text(" version ").color(NamedTextColor.WHITE))
+                        .append(Component.text(description.getVersion()).color(NamedTextColor.DARK_GREEN)));
+                description.getDescription().ifPresent(d -> sender.sendMessage(Component.text(d)));
+                description.getUrl().ifPresent(url -> sender.sendMessage(Component.text("Website: " + url)));
 
                 List<String> authors = description.getAuthors();
-
                 if (authors.size() == 1) {
-                    sender.sendMessage("Author: " + authors.get(0));
+                    sender.sendMessage(Component.text("Author: " + authors.get(0)));
                 } else if (authors.size() >= 2) {
-                    sender.sendMessage("Authors: " + String.join(", ", authors));
+                    sender.sendMessage(Component.text("Authors: " + String.join(", ", authors)));
                 }
             } else {
-                sender.sendMessage(new TranslationContainer("cloudburst.command.version.noSuchPlugin"));
+                sender.sendMessage(Component.translatable("cloudburst.command.version.noSuchPlugin"));
             }
         }
         return true;

@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.cloudburstmc.protocol.adventure.AdventureTextConverter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
@@ -64,6 +65,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
                 .childHandler(new BedrockServerInitializer() {
                     @Override
                     protected void initSession(BedrockServerSession session) {
+                        session.getPeer().getCodecHelper().setTextConverter(new AdventureTextConverter());
                         session.setLogging(false);
                         session.setPacketHandler(new LoginPacketHandler(session, server, BedrockInterface.this));
                     }

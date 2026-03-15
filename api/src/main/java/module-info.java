@@ -7,6 +7,9 @@ open module org.cloudburstmc.api {
     requires jakarta.inject;
     requires java.desktop;
     requires java.sql;
+    requires net.kyori.adventure.text.serializer.legacy;
+    requires net.kyori.adventure;
+    requires net.kyori.examination.api;
     requires org.cloudburstmc.math.immutable;
     requires org.slf4j;
     requires tools.jackson.core;
@@ -50,7 +53,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.level;
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
-    exports org.cloudburstmc.api.locale;
     exports org.cloudburstmc.api.pack;
     exports org.cloudburstmc.api.pack.loader;
     exports org.cloudburstmc.api.permission;

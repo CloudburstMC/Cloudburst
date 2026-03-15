@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -9,14 +11,9 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EnchantmentRegistry;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created by Pub4Game on 23.01.2016.
- */
 public class EnchantCommand extends Command {
 
     public EnchantCommand() {
@@ -47,7 +44,7 @@ public class EnchantCommand extends Command {
         }
         CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
         if (player == null) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             return true;
         }
         short enchantId;
@@ -61,13 +58,13 @@ public class EnchantCommand extends Command {
         var registry = EnchantmentRegistry.get();
         var enchantment = registry.getEnchantment(registry.getType(enchantId), enchantLevel);
         if (enchantment == null) {
-            sender.sendMessage(new TranslationContainer("%commands.enchant.notFound", enchantId));
+            sender.sendMessage(Component.translatable("commands.enchant.notFound", Component.text(enchantId)));
             return true;
         }
 
         ItemStack item = player.getInventory().getSelectedItem();
         if (item.isEmpty()) {
-            sender.sendMessage(new TranslationContainer("%commands.enchant.noItem", item.get(ItemKeys.CUSTOM_NAME)));
+            sender.sendMessage(Component.translatable("commands.enchant.noItem", Component.text(String.valueOf(item.get(ItemKeys.CUSTOM_NAME)))));
             return true;
         }
 
@@ -75,82 +72,47 @@ public class EnchantCommand extends Command {
         item.get(ItemKeys.ENCHANTMENTS).put(registry.getType(enchantId), new Enchantment(registry.getType(enchantId), enchantLevel));
 
         player.getInventory().setSelectedItem(item);
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.enchant.success", sender.getName()));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.enchant.success", Component.text(sender.getName())));
         return true;
     }
 
     public short getIdByName(String value) throws NumberFormatException {
         value = value.toLowerCase();
-        switch (value) {
-            case "protection":
-                return 0;
-            case "fire_protection":
-                return 1;
-            case "feather_falling":
-                return 2;
-            case "blast_protection":
-                return 3;
-            case "projectile_projection":
-                return 4;
-            case "thorns":
-                return 5;
-            case "respiration":
-                return 6;
-            case "aqua_affinity":
-                return 7;
-            case "depth_strider":
-                return 8;
-            case "sharpness":
-                return 9;
-            case "smite":
-                return 10;
-            case "bane_of_arthropods":
-                return 11;
-            case "knockback":
-                return 12;
-            case "fire_aspect":
-                return 13;
-            case "looting":
-                return 14;
-            case "efficiency":
-                return 15;
-            case "silk_touch":
-                return 16;
-            case "durability":
-            case "unbreaking":
-                return 17;
-            case "fortune":
-                return 18;
-            case "power":
-                return 19;
-            case "punch":
-                return 20;
-            case "flame":
-                return 21;
-            case "infinity":
-                return 22;
-            case "luck_of_the_sea":
-                return 23;
-            case "lure":
-                return 24;
-            case "frost_walker":
-                return 25;
-            case "mending":
-                return 26;
-            case "binding_curse":
-                return 27;
-            case "vanishing_curse":
-                return 28;
-            case "impaling":
-                return 29;
-            case "riptide":
-                return 30;
-            case "loyalty":
-                return 31;
-            case "channeling":
-                return 32;
-            default:
-                return Short.parseShort(value);
-        }
+        return switch (value) {
+            case "protection" -> 0;
+            case "fire_protection" -> 1;
+            case "feather_falling" -> 2;
+            case "blast_protection" -> 3;
+            case "projectile_projection" -> 4;
+            case "thorns" -> 5;
+            case "respiration" -> 6;
+            case "aqua_affinity" -> 7;
+            case "depth_strider" -> 8;
+            case "sharpness" -> 9;
+            case "smite" -> 10;
+            case "bane_of_arthropods" -> 11;
+            case "knockback" -> 12;
+            case "fire_aspect" -> 13;
+            case "looting" -> 14;
+            case "efficiency" -> 15;
+            case "silk_touch" -> 16;
+            case "durability", "unbreaking" -> 17;
+            case "fortune" -> 18;
+            case "power" -> 19;
+            case "punch" -> 20;
+            case "flame" -> 21;
+            case "infinity" -> 22;
+            case "luck_of_the_sea" -> 23;
+            case "lure" -> 24;
+            case "frost_walker" -> 25;
+            case "mending" -> 26;
+            case "binding_curse" -> 27;
+            case "vanishing_curse" -> 28;
+            case "impaling" -> 29;
+            case "riptide" -> 30;
+            case "loyalty" -> 31;
+            case "channeling" -> 32;
+            default -> Short.parseShort(value);
+        };
     }
 }

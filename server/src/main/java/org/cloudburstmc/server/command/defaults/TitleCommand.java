@@ -1,23 +1,20 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * @author Tee7even
- */
 public class TitleCommand extends Command {
     public TitleCommand() {
         super("title", CommandData.builder("title")
                 .setDescription("commands.title.description")
-                .setUsageMessage("/title <player> <clear|reset>\n/title <player> <|title|subtitle|actionbar> <text>\n/title <player> <times> <fadein> <stay> <fadeOut>")
+                .setUsageMessage("/title <player> <clear|reset>\n/title <player> <title|subtitle|actionbar> <text>\n/title <player> <times> <fadein> <stay> <fadeOut>")
                 .setPermissions("cloudburst.command.title")
                 .addParameters(new CommandParameter[]{
                         new CommandParameter("player", CommandParamType.TARGET, false),
@@ -57,7 +54,7 @@ public class TitleCommand extends Command {
 
         CloudPlayer player = CloudServer.getInstance().getPlayerExact(args[0]);
         if (player == null) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             return true;
         }
 
@@ -65,11 +62,11 @@ public class TitleCommand extends Command {
             switch (args[1].toLowerCase()) {
                 case "clear":
                     player.clearTitle();
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.clear", player.getName()));
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.clear", Component.text(player.getName())));
                     break;
                 case "reset":
                     player.resetTitleSettings();
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.reset", player.getName()));
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.reset", Component.text(player.getName())));
                     break;
                 default:
                     return false;
@@ -77,31 +74,30 @@ public class TitleCommand extends Command {
         } else if (args.length == 3) {
             switch (args[1].toLowerCase()) {
                 case "title":
-                    player.sendTitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.title",
-                            TextFormat.clean(args[2]), player.getName()));
+                    player.sendTitle(Component.text(args[2]));
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.title", Component.text(args[2]), Component.text(player.getName())));
                     break;
                 case "subtitle":
-                    player.setSubtitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.subtitle", TextFormat.clean(args[2]), player.getName()));
+                    player.setSubtitle(Component.text(args[2]));
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.subtitle", Component.text(args[2]), Component.text(player.getName())));
                     break;
-                /*case "actionbar":
-                    player.sendActionBarTitle(args[2]);
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.actionbar", new String[]{TextFormat.clean(args[2]), player.getName()}));
-                    break;*/
+                case "actionbar":
+                    player.sendActionBar(Component.text(args[2]));
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.actionbar", Component.text(args[2]), Component.text(player.getName())));
+                    break;
                 default:
                     return false;
             }
         } else if (args.length == 5) {
-            if (args[1].toLowerCase().equals("times")) {
+            if (args[1].equalsIgnoreCase("times")) {
                 try {
-                    /*player.setTitleAnimationTimes(Integer.valueOf(args[2]), //fadeIn
-                            Integer.valueOf(args[3]), //stay
-                            Integer.valueOf(args[4])); //fadeOut*/
-                    sender.sendMessage(new TranslationContainer("cloudburst.command.title.times.success",
-                            args[2], args[3], args[4], player.getName()));
+                    int fadeIn = Integer.parseInt(args[2]);
+                    int stay = Integer.parseInt(args[3]);
+                    int fadeOut = Integer.parseInt(args[4]);
+                    player.sendTitle(Component.empty(), Component.empty(), fadeIn, stay, fadeOut);
+                    sender.sendMessage(Component.translatable("cloudburst.command.title.times.success", Component.text(args[2]), Component.text(args[3]), Component.text(args[4]), Component.text(player.getName())));
                 } catch (NumberFormatException exception) {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
+                    sender.sendMessage(Component.translatable("commands.generic.exception").color(NamedTextColor.RED));
                 }
             } else {
                 return false;

@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
@@ -7,9 +9,7 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.registry.CommandRegistry;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -70,12 +70,14 @@ public class HelpCommand extends Command {
                 pageNumber = 1;
             }
 
-            sender.sendMessage(new TranslationContainer("commands.help.header", pageNumber, totalPage));
+            sender.sendMessage(Component.translatable("commands.help.header",
+                    Component.text(pageNumber), Component.text(totalPage)));
             int i = 1;
             for (Command command1 : commands.values()) {
                 if (i >= (pageNumber - 1) * pageHeight + 1 && i <= Math.min(commands.size(), pageNumber * pageHeight)) {
-                    sender.sendMessage(TextFormat.DARK_GREEN + "/" + command1.getName() + ": "
-                            + TextFormat.WHITE + ((CloudServer) sender.getServer()).getLanguage().translate(command1.getDescription()));
+                    String desc = ((CloudServer) sender.getServer()).getLanguage().translate(command1.getDescription());
+                    sender.sendMessage(Component.text("/" + command1.getName() + ": ").color(NamedTextColor.DARK_GREEN)
+                            .append(Component.text(desc).color(NamedTextColor.WHITE)));
                 }
                 i++;
             }
@@ -84,14 +86,15 @@ public class HelpCommand extends Command {
             if (cmd != null) {
                 if (cmd.testPermissionSilent(sender)) {
                     String desc = ((CloudServer) sender.getServer()).getLanguage().translate(cmd.getDescription());
-                    String message = TextFormat.YELLOW + "--------- " + TextFormat.WHITE + " Help: /" + cmd.getName() + TextFormat.YELLOW + " ---------\n";
-                    message += TextFormat.GOLD + "Description: " + TextFormat.WHITE + desc + "\n";
-                    message += TextFormat.GOLD + "Usage: " + TextFormat.WHITE + cmd.getUsage() + "\n";
-                    sender.sendMessage(message);
+                    sender.sendMessage(Component.text(" Help: /" + cmd.getName() + " ").color(NamedTextColor.WHITE)
+                            .append(Component.text("\nDescription: ").color(NamedTextColor.GOLD))
+                            .append(Component.text(desc).color(NamedTextColor.WHITE))
+                            .append(Component.text("\nUsage: ").color(NamedTextColor.GOLD))
+                            .append(Component.text(cmd.getUsage()).color(NamedTextColor.WHITE)));
                     return true;
                 }
             }
-            sender.sendMessage(TextFormat.RED + "No help for " + command);
+            sender.sendMessage(Component.text("No help for " + command).color(NamedTextColor.RED));
         }
         return true;
     }

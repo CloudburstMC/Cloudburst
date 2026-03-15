@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
@@ -8,14 +10,8 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created on 2015/11/11 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class TimeCommand extends Command {
 
     public TimeCommand() {
@@ -50,8 +46,7 @@ public class TimeCommand extends Command {
 
         if ("start".equals(args[0])) {
             if (!sender.hasPermission("cloudburst.command.time.start")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
             for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
@@ -59,25 +54,23 @@ public class TimeCommand extends Command {
                 level.startTime();
                 level.checkTime();
             }
-            CommandUtils.broadcastCommandMessage(sender, "Restarted the time");
+            CommandUtils.broadcastCommandMessage(sender, Component.text("Restarted the time"));
             return true;
         } else if ("stop".equals(args[0])) {
             if (!sender.hasPermission("cloudburst.command.time.stop")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
             for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
                 level.checkTime();
                 level.stopTime();
                 level.checkTime();
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.stop", level.getTime()));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.time.stop", Component.text(level.getTime())));
             }
             return true;
         } else if ("query".equals(args[0])) {
             if (!sender.hasPermission("cloudburst.command.time.query")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
             CloudLevel level;
@@ -86,10 +79,9 @@ public class TimeCommand extends Command {
             } else {
                 level = (CloudLevel) sender.getServer().getDefaultLevel();
             }
-            sender.sendMessage(new TranslationContainer("commands.time.query.gametime", level.getTime()));
+            sender.sendMessage(Component.translatable("commands.time.query.gametime", Component.text(level.getTime())));
             return true;
         }
-
 
         if (args.length < 2) {
             return false;
@@ -97,29 +89,24 @@ public class TimeCommand extends Command {
 
         if ("set".equals(args[0])) {
             if (!sender.hasPermission("cloudburst.command.time.set")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
 
             int value;
-            if ("day".equals(args[1])) {
-                value = CloudLevel.TIME_DAY;
-            } else if ("night".equals(args[1])) {
-                value = CloudLevel.TIME_NIGHT;
-            } else if ("midnight".equals(args[1])) {
-                value = CloudLevel.TIME_MIDNIGHT;
-            } else if ("noon".equals(args[1])) {
-                value = CloudLevel.TIME_NOON;
-            } else if ("sunrise".equals(args[1])) {
-                value = CloudLevel.TIME_SUNRISE;
-            } else if ("sunset".equals(args[1])) {
-                value = CloudLevel.TIME_SUNSET;
-            } else {
-                try {
-                    value = Math.max(0, Integer.parseInt(args[1]));
-                } catch (Exception e) {
-                    return false;
+            switch (args[1]) {
+                case "day" -> value = CloudLevel.TIME_DAY;
+                case "night" -> value = CloudLevel.TIME_NIGHT;
+                case "midnight" -> value = CloudLevel.TIME_MIDNIGHT;
+                case "noon" -> value = CloudLevel.TIME_NOON;
+                case "sunrise" -> value = CloudLevel.TIME_SUNRISE;
+                case "sunset" -> value = CloudLevel.TIME_SUNSET;
+                case null, default -> {
+                    try {
+                        value = Math.max(0, Integer.parseInt(args[1]));
+                    } catch (Exception e) {
+                        return false;
+                    }
                 }
             }
 
@@ -128,11 +115,10 @@ public class TimeCommand extends Command {
                 level.setTime(value);
                 level.checkTime();
             }
-            CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.set", value));
+            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.time.set", Component.text(value)));
         } else if ("add".equals(args[0])) {
             if (!sender.hasPermission("cloudburst.command.time.add")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
 
@@ -148,7 +134,7 @@ public class TimeCommand extends Command {
                 level.setTime(level.getTime() + value);
                 level.checkTime();
             }
-            CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.time.added", value));
+            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.time.added", Component.text(value)));
         } else {
             return false;
         }

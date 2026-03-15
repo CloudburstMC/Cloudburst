@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -8,9 +10,7 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -44,11 +44,13 @@ public class OpCommand extends Command {
         String name = args[0];
         Optional<UUID> uuid = ((CloudServer) sender.getServer()).lookupName(name);
 
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.op.success", name));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.op.success",
+                Component.text(name)));
         if (uuid.isPresent()) {
             Player player = ((CloudServer) sender.getServer()).getOfflinePlayer(uuid.get());
             if (player instanceof CloudPlayer) {
-                ((CloudPlayer) player).sendMessage(new TranslationContainer(TextFormat.GRAY + "%commands.op.message"));
+                ((CloudPlayer) player).sendMessage(
+                        Component.translatable("commands.op.message").color(NamedTextColor.GRAY));
             }
             player.setOp(true);
         } else {

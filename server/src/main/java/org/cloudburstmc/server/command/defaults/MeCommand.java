@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.command.defaults;
 
-import org.cloudburstmc.api.command.CommandSender;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
+import org.cloudburstmc.api.command.CommandSender;
 
 
 /**
@@ -38,15 +37,16 @@ public class MeCommand extends Command {
             return false;
         }
 
-        String name;
+        Component senderName;
         if (sender instanceof CloudPlayer) {
-            name = ((CloudPlayer) sender).getDisplayName();
+            senderName = ((CloudPlayer) sender).displayName();
         } else {
-            name = sender.getName();
+            senderName = sender.name();
         }
 
         String msg = String.join(" ", args);
-        ((CloudServer) sender.getServer()).broadcastMessage(new TranslationContainer("chat.type.emote", name, TextFormat.WHITE + msg));
+        ((CloudServer) sender.getServer()).broadcastMessage(
+                Component.translatable("chat.type.emote", senderName, Component.text(msg)));
 
         return true;
     }

@@ -156,7 +156,7 @@ public class PackManager implements Closeable, ResourcePackRegistry {
         }
 
         log.info(CloudServer.getInstance().getLanguage()
-                .translate("cloudburst.resources.success", String.valueOf(manifestMap.size())));
+                .translate("cloudburst.resources.success", "§a" + manifestMap.size() + "§r"));
     }
 
     public void loadPack(Path packPath) throws IOException {

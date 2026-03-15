@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -7,9 +9,7 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.StringJoiner;
 
@@ -51,13 +51,14 @@ public class KickCommand extends Command {
         if (player != null) {
             player.kick(PlayerKickEvent.Reason.KICKED_BY_ADMIN, reason.toString());
             if (reason.length() >= 1) {
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kick.success.reason", player.getName(), reason.toString())
-                );
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kick.success.reason",
+                        Component.text(player.getName()), Component.text(reason.toString())));
             } else {
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kick.success", player.getName()));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kick.success",
+                        Component.text(player.getName())));
             }
         } else {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
         }
 
         return true;

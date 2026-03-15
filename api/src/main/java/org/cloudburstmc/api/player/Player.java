@@ -1,10 +1,12 @@
 package org.cloudburstmc.api.player;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
@@ -187,11 +189,38 @@ public interface Player extends Creature {
 
     GameMode getGamemode();
 
-    String getDisplayName();
+    /**
+     * Returns the display name of this player.
+     *
+     * @return the display name component
+     */
+    Component displayName();
+
+    /**
+     * Sets the display name of this player.
+     *
+     * @param displayName the new display name component
+     */
+    void displayName(Component displayName);
 
     String getXuid();
 
     boolean isConnected();
+
+    /**
+     * Kicks this player with the given reason displayed on their screen.
+     *
+     * @param reason the disconnect message shown to the player
+     */
+    void kick(Component reason);
+
+    /**
+     * Kicks this player with the given reason and kick-event cause.
+     *
+     * @param reason the disconnect message shown to the player
+     * @param cause  the kick cause reported to {@link org.cloudburstmc.api.event.player.PlayerKickEvent}
+     */
+    void kick(Component reason, PlayerKickEvent.Reason cause);
 
     /**
      * Returns the current round-trip latency of this player's connection in milliseconds.
@@ -363,7 +392,7 @@ public interface Player extends Creature {
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualChestScreen} bound to this player
      */
-    VirtualChestScreen createVirtualChest(String title);
+    VirtualChestScreen createVirtualChest(Component title);
 
     /**
      * Creates a new virtual double-chest (54-slot) screen for this player.
@@ -375,7 +404,7 @@ public interface Player extends Creature {
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualDoubleChestScreen} bound to this player
      */
-    VirtualDoubleChestScreen createVirtualDoubleChest(String title);
+    VirtualDoubleChestScreen createVirtualDoubleChest(Component title);
 
     /**
      * Creates a new virtual hopper (5-slot) screen for this player.
@@ -387,5 +416,5 @@ public interface Player extends Creature {
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualHopperScreen} bound to this player
      */
-    VirtualHopperScreen createVirtualHopper(String title);
+    VirtualHopperScreen createVirtualHopper(Component title);
 }

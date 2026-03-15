@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.registry;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
@@ -29,11 +27,9 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.ContainerMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
@@ -42,7 +38,8 @@ import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.container.ContainerRecipe;
 import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.utils.TextFormat;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.net.URI;
@@ -55,15 +52,14 @@ import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 @Log4j2
 public class CloudRecipeRegistry implements RecipeRegistry {
 
-    private static final String UNLABELED_PREFIX = "minecraft:crafting_recipe_";
-    private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";
-    private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
-
     public static final Comparator<ItemStack> recipeComparator = Comparator
             .comparing((ItemStack i) -> i.isEmpty() || i.getType() == null ? "" : i.getType().getId().toString())
             .thenComparingInt(i -> i.isEmpty() || i.getType() == null ? 0 : ItemUtils.toNetwork(i).getDamage())
             .thenComparingInt(ItemStack::getCount);
 
+    private static final String UNLABELED_PREFIX = "minecraft:crafting_recipe_";
+    private static final String UNLABELED_POTION_PREFIX = "minecraft:potion_";
+    private static final String UNLABELED_CONTAINER_PREFIX = "minecraft:container_";
     private static final CloudRecipeRegistry INSTANCE;
 
     static {
@@ -80,10 +76,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private boolean closed;
     private CraftingDataPacket cached;
 
-    public static CloudRecipeRegistry get() {
-        return INSTANCE;
-    }
-
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = (CloudItemRegistry) registry;
         try {
@@ -93,6 +85,10 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
     }
 
+    public static CloudRecipeRegistry get() {
+        return INSTANCE;
+    }
+
     @Override
     public void close() throws RegistryException {
         if (this.closed) {
@@ -100,7 +96,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
         this.closed = true;
         rebuildPacket();
-        log.info("Loaded {}{}{} recipes.", TextFormat.GREEN, recipeMap.size(), TextFormat.RESET);
+        log.info("Loaded §a{}§r recipes.", recipeMap.size());
     }
 
     @Override
@@ -114,7 +110,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         if (this.closed) {
             throw new RegistryException("Unable to unregister recipes after registry closes");
         }
-        int outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
+        int outputHash = ItemUtils.getItemHash(recipe.getResult());
         UUID id = getInputHash(recipe);
         var hashMap = recipeHashMap.get(outputHash);
         if (hashMap.size() <= 1) {
@@ -132,7 +128,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     @Override
     public void register(Recipe recipe) throws RegistryException {
         if (recipeMap.containsKey(recipe.getId())) {
-            log.warn("Recipe with Identifier {} already registered! Skipping.", recipe.getId());
+            log.debug("Recipe with Identifier §e{}§r already registered! Skipping.", recipe.getId());
         }
 
         int outputHash;
@@ -148,7 +144,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 id = UUID.nameUUIDFromBytes(recipe.getId().toString().getBytes());
                 break;
             default:
-                outputHash = ItemUtils.getItemHash((ItemStack) recipe.getResult());
+                outputHash = ItemUtils.getItemHash(recipe.getResult());
                 id = getInputHash(recipe);
                 break;
         }
@@ -165,7 +161,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public void loadFromFile(URI file) {
-        log.info("Loading recipes from {}...", file);
         JsonNode json;
         int unlabeled = 0;
 
@@ -291,7 +286,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             Identifier id = Identifier.parse(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
             this.register(new ContainerRecipe(id, input, reagent, output));
         }
-        log.info("Loaded {} recipes.", recipeMap.size());
     }
 
     @NonNull
@@ -329,7 +323,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     @Override
     public Recipe matchRecipe(ItemStack[][] inputMap, ItemStack output, ItemStack[][] extraOutputMap, Identifier craftingBlock) {
-        int key = ItemUtils.getItemHash((ItemStack) output);
+        int key = ItemUtils.getItemHash(output);
         if (!recipeHashMap.containsKey(key)) {
             return null;
         }
@@ -370,7 +364,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public FurnaceRecipe matchFurnaceRecipe(ItemStack input, ItemStack output, Identifier craftingBlock) {
-        int hash = ItemUtils.getItemHash((ItemStack) output);
+        int hash = ItemUtils.getItemHash(output);
 
         if (craftingBlock == BlockIds.LIT_SMOKER) {
             craftingBlock = BlockIds.SMOKER;
@@ -414,7 +408,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     public MixRecipe matchBrewingRecipe(ItemStack input, ItemStack potion) {
-        int hash = ItemUtils.getItemHash((ItemStack) potion);
+        int hash = ItemUtils.getItemHash(potion);
         if (!recipeHashMap.containsKey(hash)) return null;
 
         Map<UUID, Identifier> map = recipeHashMap.get(hash);

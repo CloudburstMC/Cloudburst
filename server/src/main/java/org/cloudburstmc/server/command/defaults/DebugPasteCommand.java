@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
@@ -79,7 +80,7 @@ public class DebugPasteCommand extends Command {
                     b.append("os.version: '").append(System.getProperty("os.version")).append("'\n\n");
                     b.append("\n# Create a ticket: https://github.com/CloudburstMC/Server/issues/new");
                     String link = HastebinUtility.upload(b.toString());
-                    sender.sendMessage(link);
+                    sender.sendMessage(Component.text(link));
                 } catch (IOException e) {
                     log.error("Error creating debug paste", e);
                 }

@@ -2,13 +2,16 @@ package org.cloudburstmc.server.player;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -42,7 +45,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
@@ -65,6 +67,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
+import org.cloudburstmc.protocol.adventure.BedrockComponent;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
@@ -103,7 +107,6 @@ import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -118,7 +121,6 @@ import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
-import org.cloudburstmc.server.utils.TextFormat;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -195,7 +197,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     protected int viewDistance;
     protected float stepHeight = 0.6f;
     protected long randomClientId;
-    protected String displayName;
+    protected Component displayName;
     protected String iusername;
     protected String username;
     protected AtomicInteger formWindowCount = new AtomicInteger(0);
@@ -251,9 +253,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
         this.randomClientId = chainData.getClientId();
         this.identity = chainData.getClientUUID();
-        this.username = TextFormat.clean(chainData.getUsername());
+        this.username = PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(chainData.getUsername()));
         this.iusername = username.toLowerCase();
-        this.setDisplayName(this.username);
+        this.displayName(Component.text(this.username));
         this.setNameTag(this.username);
 
         this.creationTime = System.currentTimeMillis();
@@ -335,8 +337,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.invManager.openScreen(screen);
     }
 
-    public TranslationContainer getLeaveMessage() {
-        return new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.left", this.getDisplayName());
+    public Component leaveMessage() {
+        return Component.translatable("multiplayer.player.left", displayName()).color(NamedTextColor.YELLOW);
     }
 
     public String getClientSecret() {
@@ -668,14 +670,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         return connected;
     }
 
-    public String getDisplayName() {
+    @Override
+    public Component displayName() {
         return this.displayName;
     }
 
-    public void setDisplayName(String displayName) {
+    @Override
+    public void displayName(Component displayName) {
         this.displayName = displayName;
         if (this.spawned) {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName), this.getSerializedSkin(), this.getXuid());
         }
     }
 
@@ -692,7 +696,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void setSkin(Skin skin) {
         this.loginChainData.setSkin(skin);
         if (this.spawned) {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
         }
     }
 
@@ -700,7 +704,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         ((ClientChainData) this.loginChainData).setSkin(skin);
         super.setSkin(this.getSkin());
         if (this.spawned) {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getDisplayName(), this.getSerializedSkin(), this.getXuid());
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
         }
     }
 
@@ -1247,14 +1251,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         int time = level.getTime() % Level.TIME_FULL;
         boolean canSleep = level.isThundering() || (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
         if (!canSleep) {
-            sendMessage(new TranslationContainer("tile.bed.noSleep"));
+            sendMessage(Component.translatable("tile.bed.noSleep"));
             return true;
         }
 
         Block bedBlock = level.getBlock(pos);
         try {
             if (bedBlock.getState().ensureTrait(BlockTraits.IS_OCCUPIED)) {
-                sendMessage(new TranslationContainer("tile.bed.occupied"));
+                sendMessage(Component.translatable("tile.bed.occupied"));
                 return true;
             }
         } catch (Exception ignored) {
@@ -1298,7 +1302,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private void setSpawnFromBed(Vector3i blockPos, Location location) {
         Location previous = this.spawnLocation;
         PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(this, PlayerSetSpawnEvent.Cause.BED, previous, location,
-                false, true, new TranslationContainer("tile.bed.respawnSet"));
+                false, true, Component.translatable("tile.bed.respawnSet"));
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
@@ -1349,7 +1353,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         Location previous = this.spawnLocation;
         PlayerSetSpawnEvent event = new PlayerSetSpawnEvent(
                 this, PlayerSetSpawnEvent.Cause.RESPAWN_ANCHOR, previous, location,
-                false, true, new TranslationContainer("tile.respawn_anchor.respawnSet"));
+                false, true, Component.translatable("tile.respawn_anchor.respawnSet"));
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
@@ -1421,7 +1425,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return false;
         }
 
-        for (String id : achievement.requires) {
+        for (String id : achievement.requires()) {
             if (!this.hasAchievement(id)) {
                 return false;
             }
@@ -1731,18 +1735,18 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     @Override
-    public VirtualChestScreen createVirtualChest(String title) {
-        return new CloudVirtualChestScreen(this, title);
+    public VirtualChestScreen createVirtualChest(Component title) {
+        return new CloudVirtualChestScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
     }
 
     @Override
-    public VirtualDoubleChestScreen createVirtualDoubleChest(String title) {
-        return new CloudVirtualDoubleChestScreen(this, title);
+    public VirtualDoubleChestScreen createVirtualDoubleChest(Component title) {
+        return new CloudVirtualDoubleChestScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
     }
 
     @Override
-    public VirtualHopperScreen createVirtualHopper(String title) {
-        return new CloudVirtualHopperScreen(this, title);
+    public VirtualHopperScreen createVirtualHopper(Component title) {
+        return new CloudVirtualHopperScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
     }
 
     public void handleClientContainerClose(ContainerClosePacket packet) {
@@ -2162,7 +2166,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         PlayerLoginEvent ev;
         this.server.getEventManager().fire(ev = new PlayerLoginEvent(this, "Plugin reason"));
         if (ev.isCancelled()) {
-            this.close(this.getLeaveMessage(), ev.getKickMessage());
+            this.close(ev.kickMessage(), "login");
             return;
         }
 
@@ -2252,7 +2256,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.setCanClimb(true);
 
         log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
-                TextFormat.AQUA + this.username + TextFormat.WHITE,
+                "§b" + this.username + "§r",
                 "",
                 this.getSocketAddress(),
                 this.getUniqueId(),
@@ -2343,7 +2347,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         if (nbt == null) {
-            this.close(this.getLeaveMessage(), "Invalid data");
+            this.close(this.leaveMessage(), "Invalid data");
             return;
         }
 
@@ -2397,17 +2401,21 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         if (this.removeFormat) {
-            message = TextFormat.clean(message, true);
+            message = PlainTextComponentSerializer.plainText().serialize(
+                    BedrockLegacyTextSerializer.getInstance().deserialize(message));
         }
 
         for (String msg : message.split("\n")) {
             if (!msg.trim().isEmpty() && msg.length() <= 255 && this.messageCounter-- > 0) {
-                PlayerChatEvent chatEvent = new PlayerChatEvent(this, msg, "chat.type.text",
-                        //TODO this is way to hacky
+                PlayerChatEvent chatEvent = new PlayerChatEvent(this, Component.text(msg),
+                        ChatRenderer.defaultRenderer(),
                         new HashSet<>(this.getServer().getOnlinePlayers().values()));
                 this.server.getEventManager().fire(chatEvent);
                 if (!chatEvent.isCancelled()) {
-                    this.server.broadcastMessage(this.getServer().getLanguage().translate(chatEvent.getFormat(), chatEvent.getPlayer().getDisplayName(), chatEvent.getMessage()), chatEvent.getRecipients());
+                    for (Audience viewer : chatEvent.viewers()) {
+                        Component rendered = chatEvent.renderer().render(this, this.displayName(), chatEvent.message(), viewer);
+                        viewer.sendMessage(rendered);
+                    }
                 }
             }
         }
@@ -2441,7 +2449,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
         PlayerKickEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, this.getLeaveMessage()));
+        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, this.leaveMessage()));
         if (!ev.isCancelled()) {
             String message;
             if (isAdmin) {
@@ -2466,6 +2474,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         return false;
     }
 
+    @Override
+    public void kick(Component reason) {
+        this.kick(reason, PlayerKickEvent.Reason.UNKNOWN);
+    }
+
+    @Override
+    public void kick(Component reason, PlayerKickEvent.Reason cause) {
+        String reasonString = PlainTextComponentSerializer.plainText().serialize(reason);
+        this.kick(cause, reasonString, true);
+    }
+
     public void handleDataPacket(BedrockPacket packet) {
         this.inboundQueue.offer(packet);
     }
@@ -2483,74 +2502,48 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(Component message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.SYSTEM);
         packet.setPlatformChatId("");
         packet.setSourceName("");
         packet.setXuid("");
         packet.setNeedsTranslation(false);
-        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
+        packet.setMessage(new BedrockComponent(message));
         this.sendPacket(packet);
     }
 
-    @Override
-    public void sendMessage(TextContainer message) {
-        if (message instanceof TranslationContainer) {
-            this.sendTranslation(message.getText(), ((TranslationContainer) message).getParameters());
-            return;
-        }
-        this.sendMessage(message.getText());
-    }
-
-    public void sendTranslation(String message, Object... parameters) {
-        if (parameters == null) parameters = new Object[0];
-        TextPacket packet = new TextPacket();
-        packet.setPlatformChatId("");
-        packet.setSourceName("");
-        packet.setXuid("");
-        packet.setNeedsTranslation(false);
-        // Always use SYSTEM type and pre-translate the message server-side
-        packet.setType(TextPacket.Type.SYSTEM);
-        packet.setMessage(this.server.getLanguage().translate(message, parameters));
-        this.sendPacket(packet);
-    }
-
-    public void sendChat(String message) {
+    public void sendChat(Component message) {
         this.sendChat("", message);
     }
 
-    public void sendChat(String source, String message) {
+    public void sendChat(String source, Component message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.CHAT);
         packet.setPlatformChatId("");
         packet.setSourceName(source);
         packet.setXuid("");
-        packet.setMessage(this.server.getLanguage().translateOnly("cloudburst.", message));
+        packet.setMessage(new BedrockComponent(message));
         this.sendPacket(packet);
     }
 
-    public void sendPopup(String message) {
-        this.sendPopup(message, "");
-    }
-
-    public void sendPopup(String message, String subtitle) {
+    public void sendPopup(Component message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.POPUP);
         packet.setPlatformChatId("");
         packet.setSourceName("");
         packet.setXuid("");
-        packet.setMessage(message);
+        packet.setMessage(new BedrockComponent(message));
         this.sendPacket(packet);
     }
 
-    public void sendTip(String message) {
+    public void sendTip(Component message) {
         TextPacket packet = new TextPacket();
         packet.setType(TextPacket.Type.TIP);
         packet.setPlatformChatId("");
         packet.setSourceName("");
         packet.setXuid("");
-        packet.setMessage(message);
+        packet.setMessage(new BedrockComponent(message));
         this.sendPacket(packet);
     }
 
@@ -2571,10 +2564,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
-    public void setSubtitle(String subtitle) {
+    public void setSubtitle(Component subtitle) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.SUBTITLE);
-        packet.setText(subtitle);
+        packet.setText(new BedrockComponent(subtitle));
         this.sendPacket(packet);
     }
 
@@ -2588,41 +2581,40 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
-    private void setTitle(String text) {
+    private void setTitle(Component text) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.TITLE);
-        packet.setText(text);
+        packet.setText(new BedrockComponent(text));
         this.sendPacket(packet);
     }
 
-    public void sendTitle(String title) {
+    public void sendTitle(Component title) {
         this.sendTitle(title, null, 20, 20, 5);
     }
 
-    public void sendTitle(String title, String subtitle) {
+    public void sendTitle(Component title, Component subtitle) {
         this.sendTitle(title, subtitle, 20, 20, 5);
     }
 
-    public void sendTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+    public void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
         this.setTitleAnimationTimes(fadeIn, stay, fadeOut);
-        if (!Strings.isNullOrEmpty(subtitle)) {
+        if (subtitle != null) {
             this.setSubtitle(subtitle);
         }
-        // title won't send if an empty string is used.
-        this.setTitle(Strings.isNullOrEmpty(title) ? " " : title);
+        this.setTitle(title != null ? title : Component.text(" "));
     }
 
-    public void sendActionBar(String title) {
+    public void sendActionBar(Component title) {
         this.sendActionBar(title, 1, 0, 1);
     }
 
-    public void sendActionBar(String title, int fadein, int duration, int fadeout) {
+    public void sendActionBar(Component title, int fadein, int duration, int fadeout) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.ACTIONBAR);
-        packet.setText(title);
+        packet.setText(new BedrockComponent(title));
         packet.setFadeInTime(fadein);
         packet.setStayTime(duration);
-        packet.setFadeInTime(fadeout);
+        packet.setFadeOutTime(fadeout);
         this.sendPacket(packet);
     }
 
@@ -2640,14 +2632,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     public void close(String message, String reason, boolean notify) {
-        this.close(new TextContainer(message), reason, notify);
+        this.close(message.isEmpty() ? null : Component.text(message), reason, notify);
     }
 
-    public void close(TextContainer message) {
+    public void close(Component message) {
         this.close(message, "generic");
     }
 
-    public void close(TextContainer message, String reason) {
+    public void close(Component message, String reason) {
         this.close(message, reason, true);
     }
 
@@ -2661,6 +2653,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public String getName() {
         return this.username;
+    }
+
+    @Override
+    public Component name() {
+        return Component.text(this.username);
     }
 
     public Vector3f getTeleportPosition() {
@@ -2687,7 +2684,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.newPosition = newPosition;
     }
 
-    public void close(TextContainer message, String reason, boolean notify) {
+    public void close(@Nullable Component message, String reason, boolean notify) {
         if (this.connected && !this.closed) {
             if (notify && reason.length() > 0) {
                 DisconnectPacket packet = new DisconnectPacket();
@@ -2740,14 +2737,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
             this.loggedIn = false;
 
-            if (ev != null && !Objects.equals(this.username, "") && this.spawned && !Objects.equals(ev.getQuitMessage().toString(), "")) {
+            if (ev != null && !Objects.equals(this.username, "") && this.spawned && ev.getQuitMessage() != null) {
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
             this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
-                    TextFormat.AQUA + (this.getName() == null ? "" : this.getName()) + TextFormat.WHITE,
+                    "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getSocketAddress(),
                     "",
                     reason));
@@ -3077,8 +3074,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         boolean showMessages = this.getLevel().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
         String message = "death.attack.generic";
 
-        List<String> params = new ArrayList<>();
-        params.add(this.getDisplayName());
+        List<Component> params = new ArrayList<>();
+        params.add(this.displayName());
         if (showMessages) {
 
             EntityDamageEvent cause = this.getLastDamageCause();
@@ -3090,14 +3087,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                         killer = e;
                         if (e instanceof CloudPlayer) {
                             message = "death.attack.player";
-                            params.add(((CloudPlayer) e).getDisplayName());
+                            params.add(((CloudPlayer) e).displayName());
                             break;
                         } else if (e instanceof EntityLiving) {
                             message = "death.attack.mob";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? e.getNameTag() : e.getName());
+                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
                             break;
                         } else {
-                            params.add("Unknown");
+                            params.add(Component.text("Unknown"));
                         }
                     }
                     break;
@@ -3107,13 +3104,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                         killer = e;
                         if (e instanceof CloudPlayer) {
                             message = "death.attack.arrow";
-                            params.add(((CloudPlayer) e).getDisplayName());
+                            params.add(((CloudPlayer) e).displayName());
                         } else if (e instanceof EntityLiving) {
                             message = "death.attack.arrow";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? e.getNameTag() : e.getName());
+                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
                             break;
                         } else {
-                            params.add("Unknown");
+                            params.add(Component.text("Unknown"));
                         }
                     }
                     break;
@@ -3173,10 +3170,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                         killer = e;
                         if (e instanceof CloudPlayer) {
                             message = "death.attack.explosion.player";
-                            params.add(((CloudPlayer) e).getDisplayName());
+                            params.add(((CloudPlayer) e).displayName());
                         } else if (e instanceof EntityLiving) {
                             message = "death.attack.explosion.player";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? e.getNameTag() : e.getName());
+                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
                             break;
                         }
                     } else {
@@ -3211,8 +3208,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.health = 0;
         this.scheduleUpdate();
 
-        PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), new TranslationContainer(message, params.toArray()), this.getExperienceLevel());
-
+        PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), message.isEmpty() ? null : Component.translatable(message, params), this.getExperienceLevel());
         ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
         this.server.getEventManager().fire(ev);
@@ -3234,7 +3230,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             this.setExperience(0, 0);
         }
 
-        if (showMessages && !ev.getDeathMessage().toString().isEmpty()) {
+        if (showMessages && ev.getDeathMessage() != null) {
             this.server.broadcast(ev.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
         }
 

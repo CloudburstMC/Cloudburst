@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -7,14 +9,8 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created on 2015/11/13 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class GamemodeCommand extends Command {
 
     public GamemodeCommand() {
@@ -51,7 +47,7 @@ public class GamemodeCommand extends Command {
 
         GameMode gameMode = GameMode.from(args[0].toLowerCase());
         if (gameMode == null) {
-            sender.sendMessage("Unknown game mode"); //TODO: translate?
+            sender.sendMessage(Component.text("Unknown game mode")); //TODO: translate?
             return true;
         }
 
@@ -60,11 +56,11 @@ public class GamemodeCommand extends Command {
             if (sender.hasPermission("cloudburst.command.gamemode.other")) {
                 target = (CommandSender) sender.getServer().getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+                    sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
                     return true;
                 }
             } else {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
         } else if (!(sender instanceof CloudPlayer)) {
@@ -72,18 +68,18 @@ public class GamemodeCommand extends Command {
         }
 
         if (!sender.hasPermission("cloudburst.command.gamemode." + gameMode.getName())) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+            sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
             return true;
         }
 
         if (!((CloudPlayer) target).setGamemode(gameMode)) {
-            sender.sendMessage("Game mode update for " + target.getName() + " failed");
+            sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
         } else {
             if (target.equals(sender)) {
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.gamemode.success.self", gameMode.getTranslation()));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.self", Component.translatable(gameMode)));
             } else {
-                target.sendMessage(new TranslationContainer("gameMode.changed"));
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.gamemode.success.other", target.getName(), gameMode.getTranslation()));
+                target.sendMessage(Component.translatable("gameMode.changed"));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.other", Component.text(target.getName()), Component.translatable(gameMode)));
             }
         }
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.event.server;
 
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginContainer;
@@ -14,10 +15,6 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public final class QueryRegenerateEvent extends ServerEvent {
     //alot todo
 
@@ -48,7 +45,7 @@ public final class QueryRegenerateEvent extends ServerEvent {
 
     public QueryRegenerateEvent(Server server, int timeout) {
         this.timeout = timeout;
-        this.serverName = server.getMotd();
+        this.serverName = LegacyComponentSerializer.legacySection().serialize(server.motd());
         //this.listPlugins = server.getConfig().getSettings().isQueryPlugins();
         this.plugins = server.getPluginManager().getAllPlugins().toArray(new PluginContainer[0]);
         this.players = server.getOnlinePlayers().values().toArray(new Player[0]);

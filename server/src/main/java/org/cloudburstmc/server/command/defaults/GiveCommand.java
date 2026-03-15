@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.command.defaults;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -13,15 +15,9 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.TextFormat;
 
-/**
- * Created on 2015/12/9 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 @Log4j2
 public class GiveCommand extends Command {
     public GiveCommand() {
@@ -64,7 +60,6 @@ public class GiveCommand extends Command {
         ItemType type;
 
         try {
-            Identifier id;
             try {
                 type = registry.getType(Integer.parseInt(args[1]));
             } catch (NumberFormatException e) {
@@ -85,21 +80,23 @@ public class GiveCommand extends Command {
 
         if (player != null) {
             if (stack.isEmpty()) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.give.item.invalid", args[1]));
+                sender.sendMessage(Component.translatable("commands.give.item.invalid",
+                        Component.text(args[1])).color(NamedTextColor.RED));
                 return true;
             }
             player.getContainer().addItem(stack);
         } else {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
-
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             return true;
         }
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer(
-                "%commands.give.success",
-                stack.get(ItemKeys.CUSTOM_NAME) == null ? type.getId() : stack.get(ItemKeys.CUSTOM_NAME) +
-                        " (" + type.getId() /*+ ":" + ((ItemStack) item).get()*/ + ")",
-                stack.getCount(),
-                player.getName()));
+        Object customName = stack.get(ItemKeys.CUSTOM_NAME);
+        String itemDisplay = customName == null
+                ? type.getId().toString()
+                : customName + " (" + type.getId() + ")";
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.give.success",
+                Component.text(itemDisplay),
+                Component.text(stack.getCount()),
+                Component.text(player.getName())));
         return true;
     }
 }

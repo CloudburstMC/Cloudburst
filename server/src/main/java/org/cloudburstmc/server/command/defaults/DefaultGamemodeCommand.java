@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
@@ -7,12 +8,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class DefaultGamemodeCommand extends Command {
 
     public DefaultGamemodeCommand() {
@@ -40,10 +36,10 @@ public class DefaultGamemodeCommand extends Command {
         try {
             GameMode gameMode = GameMode.from(args[0].toLowerCase());
 
-            ((CloudServer)sender.getServer()).getConfig().setGamemode(gameMode);
-            sender.sendMessage(new TranslationContainer("commands.defaultgamemode.success", gameMode.getTranslation()));
+            ((CloudServer) sender.getServer()).getConfig().setGamemode(gameMode);
+            sender.sendMessage(Component.translatable("commands.defaultgamemode.success", Component.translatable(gameMode)));
         } catch (IllegalArgumentException e) {
-            sender.sendMessage("Unknown game mode"); //TODO: translate?
+            sender.sendMessage(Component.text("Unknown game mode")); //TODO: translate?
         }
         return true;
     }

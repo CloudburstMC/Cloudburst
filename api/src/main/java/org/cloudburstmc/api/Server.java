@@ -1,5 +1,6 @@
 package org.cloudburstmc.api;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Difficulty;
@@ -42,7 +43,33 @@ public interface Server {
 
     PermissionManager getPermissionManager();
 
-    String getMotd();
+    /**
+     * Returns the server's MOTD (message of the day) as shown in the server list.
+     *
+     * @return the MOTD component
+     */
+    Component motd();
+
+    /**
+     * Sets the server's MOTD.
+     *
+     * @param motd the new MOTD component
+     */
+    void motd(Component motd);
+
+    /**
+     * Returns the server's sub-MOTD as shown in the server list.
+     *
+     * @return the sub-MOTD component
+     */
+    Component subMotd();
+
+    /**
+     * Sets the server's sub-MOTD.
+     *
+     * @param subMotd the new sub-MOTD component
+     */
+    void subMotd(Component subMotd);
 
     Map<UUID, ? extends Player> getOnlinePlayers();
 

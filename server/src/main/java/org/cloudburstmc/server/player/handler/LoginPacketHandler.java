@@ -1,8 +1,10 @@
 package org.cloudburstmc.server.player.handler;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
@@ -16,15 +18,11 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
 import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Extollite
- */
 @Log4j2
 public class LoginPacketHandler implements BedrockPacketHandler {
 
@@ -85,7 +83,7 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        this.loginData.setName(TextFormat.clean(username));
+        this.loginData.setName(PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(username)));
 
         if (!this.loginData.getChainData().getSerializedSkin().isValid()) {
             session.disconnect("disconnectionScreen.invalidSkin");

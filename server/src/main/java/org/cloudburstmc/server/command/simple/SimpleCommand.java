@@ -1,20 +1,17 @@
 package org.cloudburstmc.server.command.simple;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.ConsoleCommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-/**
- * @author Tee7even
- */
 @Log4j2
 public class SimpleCommand extends Command {
     private final Object object;
@@ -48,7 +45,7 @@ public class SimpleCommand extends Command {
     }
 
     public void sendInGameMessage(CommandSender sender) {
-        sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+        sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
     }
 
     @Override

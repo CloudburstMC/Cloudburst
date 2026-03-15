@@ -2,20 +2,18 @@ package org.cloudburstmc.server.command;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CommandRegistry;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.List;
 
 /**
  * Base class for Commands. Plugins should extend {@link PluginCommand} and not this class.
- *
- * @author MagicDroidX
  */
 public abstract class Command {
 
@@ -62,9 +60,9 @@ public abstract class Command {
         }
 
         if (this.commandData.getPermissionMessage().equals("")) {
-            target.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.unknown", this.name));
+            target.sendMessage(Component.translatable("commands.generic.unknown", Component.text(this.name)).color(NamedTextColor.RED));
         } else {
-            target.sendMessage(this.commandData.getPermissionMessage());
+            target.sendMessage(Component.text(this.commandData.getPermissionMessage()));
         }
 
         return false;

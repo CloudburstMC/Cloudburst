@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
@@ -31,7 +31,7 @@ public class SeedCommand extends Command {
             seed = sender.getServer().getDefaultLevel().getSeed();
         }
 
-        sender.sendMessage(new TranslationContainer("commands.seed.success", String.valueOf(seed)));
+        sender.sendMessage(Component.translatable("commands.seed.success", Component.text(seed)));
 
         return true;
     }

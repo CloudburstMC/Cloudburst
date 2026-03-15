@@ -13,6 +13,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
@@ -21,7 +23,6 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
@@ -32,6 +33,7 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
@@ -47,7 +49,6 @@ import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
@@ -66,7 +67,10 @@ import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.registry.*;
 import org.cloudburstmc.server.scheduler.ServerScheduler;
 import org.cloudburstmc.server.scheduler.Task;
-import org.cloudburstmc.server.utils.*;
+import org.cloudburstmc.server.utils.Config;
+import org.cloudburstmc.server.utils.DefaultPlayerDataSerializer;
+import org.cloudburstmc.server.utils.Utils;
+import org.cloudburstmc.server.utils.Watchdog;
 import org.cloudburstmc.server.utils.bugreport.ExceptionHandler;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
@@ -270,15 +274,29 @@ public class CloudServer implements Server {
         CloudServer.getInstance().batchPackets(players, new BedrockPacket[]{packet});
     }
 
-    public int broadcastMessage(String message) {
+    public static void broadcastPacket(Set<CloudPlayer> players, BedrockPacket packet) {
+        broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
+    }
+
+    private static Color parseSkinColor(String skinColor) {
+        if (skinColor != null && skinColor.startsWith("#") && skinColor.length() == 7) {
+            try {
+                return Color.decode(skinColor);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return Color.WHITE;
+    }
+
+    public static CloudServer getInstance() {
+        return instance;
+    }
+
+    public int broadcastMessage(Component message) {
         return this.broadcast(message, BROADCAST_CHANNEL_USERS);
     }
 
-    public int broadcastMessage(TextContainer message) {
-        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
-    }
-
-    public int broadcastMessage(String message, CommandSender[] recipients) {
+    public int broadcastMessage(Component message, CommandSender[] recipients) {
         for (CommandSender recipient : recipients) {
             recipient.sendMessage(message);
         }
@@ -286,7 +304,7 @@ public class CloudServer implements Server {
         return recipients.length;
     }
 
-    public int broadcastMessage(String message, Collection<? extends CommandSender> recipients) {
+    public int broadcastMessage(Component message, Collection<? extends CommandSender> recipients) {
         for (CommandSender recipient : recipients) {
             recipient.sendMessage(message);
         }
@@ -294,15 +312,7 @@ public class CloudServer implements Server {
         return recipients.size();
     }
 
-    public int broadcastMessage(TextContainer message, Collection<? extends CommandSender> recipients) {
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.size();
-    }
-
-    public int broadcast(String message, String permissions) {
+    public int broadcast(Component message, String permissions) {
         Set<CommandSender> recipients = new HashSet<>();
 
         for (String permission : permissions.split(";")) {
@@ -318,28 +328,6 @@ public class CloudServer implements Server {
         }
 
         return recipients.size();
-    }
-
-    public int broadcast(TextContainer message, String permissions) {
-        Set<CommandSender> recipients = new HashSet<>();
-
-        for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.permissionManager.getPermissionSubscriptions(permission)) {
-                if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
-                    recipients.add((CommandSender) permissible);
-                }
-            }
-        }
-
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-
-        return recipients.size();
-    }
-
-    public static void broadcastPacket(Set<CloudPlayer> players, BedrockPacket packet) {
-        broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
     }
 
     public void boot() throws IOException {
@@ -356,7 +344,7 @@ public class CloudServer implements Server {
         Path configPath = dataPath.resolve("cloudburst.yml");
 
         if (Files.notExists(configPath)) {
-            log.info(TextFormat.GREEN + "Welcome! Please choose a language first!");
+            log.info("Welcome! Please choose a language first!");
 
             for (Locale locale : localeManager.getAvailableLocales()) {
                 log.info("{}: {}", locale.toString(), locale.getDisplayName(locale));
@@ -393,7 +381,7 @@ public class CloudServer implements Server {
 
         this.console.setExecutingCommands(true);
 
-        log.info("Loading {} ...", TextFormat.GREEN + "cloudburst.yml" + TextFormat.WHITE);
+        log.info("Loading {} ...", "§acloudburst.yml§r");
         this.cloudburstYaml = CloudburstYaml.fromFile(configPath);
 
         ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
@@ -411,7 +399,7 @@ public class CloudServer implements Server {
         }
         log.debug("DataPath Directory: {}", this.dataPath);
 
-        log.info("Loading {} ...", TextFormat.GREEN + "server.properties" + TextFormat.WHITE);
+        log.info("Loading {} ...", "§aserver.properties§r");
         Path serverPropPath = this.dataPath.resolve("server.properties");
         if (!Files.exists(serverPropPath)) {
             serverProperties = new ServerProperties();
@@ -427,8 +415,8 @@ public class CloudServer implements Server {
         this.forceLanguage = getConfig().getSettings().isForceLanguage();
         this.localeManager.setLocaleOrFallback(getConfig().getSettings().getLanguage());
         Locale locale = this.getLanguage().getLocale();
-        log.info(this.getLanguage().translate("cloudburst.language.selected", locale.getDisplayCountry(locale), locale));
-        log.info(this.getLanguage().translate("cloudburst.server.start", TextFormat.AQUA + this.getVersion() + TextFormat.RESET));
+        log.info(this.getLanguage().translate("cloudburst.language.selected", "§b" + locale.getDisplayCountry(locale) + "§r", locale));
+        log.info(this.getLanguage().translate("cloudburst.server.start", "§b" + this.getVersion() + "§r"));
 
         Object poolSize = getConfig().getSettings().getAsyncWorkers();
         if (!(poolSize instanceof Integer)) {
@@ -472,7 +460,7 @@ public class CloudServer implements Server {
             ExceptionHandler.registerExceptionHandler();
         }
 
-        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), TextFormat.YELLOW + this.getImplementationVersion() + TextFormat.WHITE, TextFormat.AQUA + "" + TextFormat.WHITE, this.getApiVersion()));
+        log.info(this.getLanguage().translate("cloudburst.server.info", this.getName(), "§e" + this.getImplementationVersion() + "§r", "", this.getApiVersion()));
         log.info(this.getLanguage().translate("cloudburst.server.license", this.getName()));
 
         // Convert legacy data before plugins get the chance to mess with it.
@@ -553,12 +541,12 @@ public class CloudServer implements Server {
 
         //TODO: event
 
-        log.info(this.getLanguage().translate("cloudburst.server.networkStart", this.getIp().equals("") ? "*" : this.getIp(), this.getPort()));
+        log.info(this.getLanguage().translate("cloudburst.server.networkStart", "§b" + (this.getIp().equals("") ? "*" : this.getIp()) + "§r", "§b" + this.getPort() + "§r"));
         this.serverID = UUID.randomUUID();
 
         this.network = new Network(this);
-        this.network.setName(this.getMotd());
-        this.network.setSubName(this.getSubMotd());
+        this.network.setName(BedrockLegacyTextSerializer.getInstance().serialize(motd()));
+        this.network.setSubName(BedrockLegacyTextSerializer.getInstance().serialize(subMotd()));
 
         try {
             this.network.registerInterface(new BedrockInterface(this));
@@ -581,7 +569,7 @@ public class CloudServer implements Server {
                     log.info(this.getLanguage().translate("cloudburst.server.upnp.success", getPort()));
                 } else {
                     this.upnpEnabled = false;
-                    log.warn("cloudburst.server.upnp.fail");
+                    log.warn(this.getLanguage().translate("cloudburst.server.upnp.fail"));
                 }
             } else {
                 this.upnpEnabled = false;
@@ -632,7 +620,7 @@ public class CloudServer implements Server {
             return true;
         }
 
-        sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.unknown", commandLine));
+        sender.sendMessage(Component.translatable("commands.generic.unknown", Component.text(commandLine)).color(NamedTextColor.RED));
 
         return false;
     }
@@ -658,7 +646,7 @@ public class CloudServer implements Server {
 
             for (CloudPlayer player : new ArrayList<>(this.players.values())) {
                 try {
-                    player.close(player.getLeaveMessage(), this.getConfig().getSettings().getShutdownMessage());
+                    player.close(player.leaveMessage(), this.getConfig().getSettings().getShutdownMessage());
                 } catch (Exception e) {
                     log.error("Error closing player " + player.getName(), e);
                 }
@@ -722,9 +710,9 @@ public class CloudServer implements Server {
         //todo send usage setting
         this.tickCounter = 0;
 
-        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", this.getGamemode().getTranslation()));
+        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + this.getLanguage().translate(this.getGamemode().translationKey()) + "§r"));
 
-        log.info(this.getLanguage().translate("cloudburst.server.startFinished", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", "§a" + (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d + "§r"));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -750,8 +738,6 @@ public class CloudServer implements Server {
             this.network.blockAddress(address.getAddress());
         }
     }
-
-    private int lastLevelGC;
 
     public void tickProcessor() {
         this.nextTick = System.currentTimeMillis();
@@ -796,7 +782,7 @@ public class CloudServer implements Server {
 
     public void addOnlinePlayer(Player player) {
         this.playerList.put(player.getServerId(), (CloudPlayer) player);
-        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), player.getDisplayName(), ((CloudPlayer) player).getSerializedSkin(), player.getXuid());
+        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(player.displayName()), ((CloudPlayer) player).getSerializedSkin(), player.getXuid());
     }
 
     public void removeOnlinePlayer(Player player) {
@@ -866,7 +852,7 @@ public class CloudServer implements Server {
                 .map(p -> {
                     PlayerListPacket.Entry entry = new PlayerListPacket.Entry(p.getServerId());
                     entry.setEntityId(p.getUniqueId());
-                    entry.setName(p.getDisplayName());
+                    entry.setName(BedrockLegacyTextSerializer.getInstance().serialize(p.displayName()));
                     entry.setSkin(p.getSerializedSkin());
                     entry.setXuid(p.getXuid());
                     entry.setPlatformChatId("");
@@ -879,16 +865,6 @@ public class CloudServer implements Server {
 
     public void sendRecipeList(Player player) {
         this.craftingManager.sendRecipesTo((CloudPlayer) player);
-    }
-
-    private static Color parseSkinColor(String skinColor) {
-        if (skinColor != null && skinColor.startsWith("#") && skinColor.length() == 7) {
-            try {
-                return Color.decode(skinColor);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return Color.WHITE;
     }
 
     private void checkTickUpdates(int currentTick, long tickTime) {
@@ -1162,16 +1138,24 @@ public class CloudServer implements Server {
         return this.defaultGamemode;
     }
 
-    public String getMotd() {
-        return this.serverProperties.getMotd();
+    @Override
+    public Component motd() {
+        return Component.text(this.serverProperties.getMotd());
     }
 
-    public String getSubMotd() {
-        return this.serverProperties.getSubMotd();
+    @Override
+    public void motd(Component motd) {
+        this.serverProperties.modifyMotd(BedrockLegacyTextSerializer.getInstance().serialize(motd));
     }
 
-    public boolean getForceResources() {
-        return this.serverProperties.isForceResources();
+    @Override
+    public Component subMotd() {
+        return Component.text(this.serverProperties.getSubMotd());
+    }
+
+    @Override
+    public void subMotd(Component subMotd) {
+        this.serverProperties.modifySubMotd(BedrockLegacyTextSerializer.getInstance().serialize(subMotd));
     }
 
 /*    public EntityMetadataStore getEntityMetadata() {
@@ -1185,6 +1169,10 @@ public class CloudServer implements Server {
     public LevelMetadataStore getLevelMetadata() {
         return levelMetadata;
     }*/
+
+    public boolean getForceResources() {
+        return this.serverProperties.isForceResources();
+    }
 
     public CloudEventManager getEventManager() {
         return eventManager;
@@ -1453,7 +1441,7 @@ public class CloudServer implements Server {
                 tag = tag.toBuilder().putString("NameTag", name).build();
             }
 
-            if (new File(getDataPath() + "players/" + uuid.toString() + ".dat").exists()) {
+            if (new File(getDataPath() + "players/" + uuid + ".dat").exists()) {
                 // We don't want to overwrite existing data.
                 continue;
             }
@@ -1744,7 +1732,7 @@ public class CloudServer implements Server {
         } catch (Exception e) {
             log.error("Can't load plugins", e);
         }
-        log.info("Loaded {} plugins.", pluginManager.getAllPlugins().size());
+        log.info("Loaded §a{}§r plugins.", pluginManager.getAllPlugins().size());
     }
 
     private void loadPacks() {
@@ -1787,7 +1775,7 @@ public class CloudServer implements Server {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
-                    log.warn("World \"{}\" does not have a seed! Using a the name as the seed", name);
+                    log.warn("World \"§a{}§r\" does not have a seed! Using the name as the seed", name);
                 }
 
                 //this internally generates an MD5 hash of the seed string
@@ -1888,10 +1876,6 @@ public class CloudServer implements Server {
 
     public boolean isAutoTickRate() {
         return autoTickRate;
-    }
-
-    public static CloudServer getInstance() {
-        return instance;
     }
 
     public boolean isIgnoredPacket(Class<? extends BedrockPacket> clazz) {

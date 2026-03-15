@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.locale.TranslationContainer;
 
 /**
  * Created on 2015/11/13 by xtypr.
@@ -25,7 +25,7 @@ public class SaveOffCommand extends Command {
             return true;
         }
         sender.getServer().setAutoSave(false);
-        CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.save.disabled"));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.disabled"));
         return true;
     }
 }

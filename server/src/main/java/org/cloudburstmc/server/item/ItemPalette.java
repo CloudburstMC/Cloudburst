@@ -339,7 +339,7 @@ public class ItemPalette {
                 creativeGroups.add(new CreativeItemGroup(category, name, icon));
             }
 
-            log.info("Loaded {} creative items in {} groups", creativeItems.size(), creativeGroups.size());
+            log.info("Loaded §a{}§r creative items in §a{}§r groups", creativeItems.size(), creativeGroups.size());
         } catch (IOException | NumberFormatException e) {
             throw new RegistryException("Error loading Vanilla Creative Items", e);
         }

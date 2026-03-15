@@ -1,4 +1,7 @@
 dependencies {
+    api(libs.adventure.api)
+    api(libs.adventure.text.minimessage)
+    api(libs.adventure.text.serializer.legacy)
     api(libs.slf4j.api)
     api(libs.jackson.core)
     api(libs.jackson.annotations)

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
@@ -9,7 +10,6 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class GameruleCommand extends Command {
         }
 
         if (!(sender instanceof CloudPlayer)) {
-            sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
             return true;
         }
         GameRuleMap rules = ((CloudPlayer) sender).getLevel().getGameRules();
@@ -48,31 +48,35 @@ public class GameruleCommand extends Command {
                 for (String rule : registry.getRuleNames()) {
                     rulesJoiner.add(rule.toLowerCase());
                 }
-                sender.sendMessage(rulesJoiner.toString());
+                sender.sendMessage(Component.text(rulesJoiner.toString()));
                 return true;
             case 1:
                 GameRule gameRule = registry.fromString(args[0]);
                 if (gameRule == null || !rules.contains(gameRule)) {
-                    sender.sendMessage(new TranslationContainer("commands.generic.syntax", "/gamerule", args[0]));
+                    sender.sendMessage(Component.translatable("commands.generic.syntax",
+                            Component.text("/gamerule"), Component.text(args[0])));
                     return true;
                 }
 
-                sender.sendMessage(gameRule.getName() + " = " + rules.get(gameRule).toString());
+                sender.sendMessage(Component.text(gameRule.getName() + " = " + rules.get(gameRule).toString()));
                 return true;
             default:
                 gameRule = registry.fromString(args[0]);
 
                 if (gameRule == null) {
-                    sender.sendMessage(new TranslationContainer("commands.generic.syntax",
-                            "/gamerule ", args[0], " " + String.join(" ", Arrays.copyOfRange(args, 1, args.length))));
+                    sender.sendMessage(Component.translatable("commands.generic.syntax",
+                            Component.text("/gamerule "), Component.text(args[0]),
+                            Component.text(" " + String.join(" ", Arrays.copyOfRange(args, 1, args.length)))));
                     return true;
                 }
 
                 try {
                     rules.put(gameRule, gameRule.parse(args[1]));
-                    sender.sendMessage(new TranslationContainer("commands.gamerule.success", gameRule.getName(), args[1]));
+                    sender.sendMessage(Component.translatable("commands.gamerule.success", Component.text(gameRule.getName()), Component.text(args[1])));
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(new TranslationContainer("commands.generic.syntax", "/gamerule " + args[0] + " ", args[1], " " + String.join(" ", Arrays.copyOfRange(args, 2, args.length))));
+                    sender.sendMessage(Component.translatable("commands.generic.syntax",
+                            Component.text("/gamerule " + args[0] + " "), Component.text(args[1]),
+                            Component.text(" " + String.join(" ", Arrays.copyOfRange(args, 2, args.length)))));
                 }
                 return true;
         }

@@ -1,21 +1,17 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class TellCommand extends Command {
 
     public TellCommand() {
@@ -45,12 +41,12 @@ public class TellCommand extends Command {
 
         CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(name);
         if (player == null) {
-            sender.sendMessage(new TranslationContainer("commands.generic.player.notFound"));
+            sender.sendMessage(Component.translatable("commands.generic.player.notFound"));
             return true;
         }
 
         if (Objects.equals(player, sender)) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.message.sameTarget"));
+            sender.sendMessage(Component.translatable("commands.message.sameTarget").color(NamedTextColor.RED));
             return true;
         }
 
@@ -59,10 +55,10 @@ public class TellCommand extends Command {
             msg.add(args[i]);
         }
 
-        String displayName = (sender instanceof CloudPlayer ? ((CloudPlayer) sender).getDisplayName() : sender.getName());
+        Component senderDisplayName = (sender instanceof CloudPlayer) ? ((CloudPlayer) sender).displayName() : sender.name();
 
-        sender.sendMessage(new TranslationContainer("commands.message.display.outgoing", player.getDisplayName(), msg));
-        player.sendMessage(new TranslationContainer("commands.message.display.incoming", displayName, msg));
+        sender.sendMessage(Component.translatable("commands.message.display.outgoing", player.displayName(), Component.text(msg.toString())));
+        player.sendMessage(Component.translatable("commands.message.display.incoming", senderDisplayName, Component.text(msg.toString())));
 
         return true;
     }

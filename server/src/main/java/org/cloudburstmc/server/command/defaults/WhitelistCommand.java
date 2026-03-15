@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
@@ -7,15 +9,9 @@ import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.StringJoiner;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class WhitelistCommand extends Command {
 
     public WhitelistCommand() {
@@ -37,7 +33,6 @@ public class WhitelistCommand extends Command {
                 .build());
     }
 
-
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
         if (!this.testPermission(sender)) {
@@ -57,18 +52,15 @@ public class WhitelistCommand extends Command {
             switch (args[0].toLowerCase()) {
                 case "reload":
                     server.reloadWhitelist();
-                    CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.reloaded"));
-
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.reloaded"));
                     return true;
                 case "on":
                     server.getConfig().setWhitelist(true);
-                    CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.enabled"));
-
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
                     return true;
                 case "off":
                     server.getConfig().setWhitelist(false);
-                    CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.disabled"));
-
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
                     return true;
                 case "list":
                     StringJoiner result = new StringJoiner(", ");
@@ -77,9 +69,8 @@ public class WhitelistCommand extends Command {
                         result.add(player);
                         ++count;
                     }
-                    sender.sendMessage(new TranslationContainer("commands.whitelist.list", count, count));
-                    sender.sendMessage(result.toString());
-
+                    sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
+                    sender.sendMessage(Component.text(result.toString()));
                     return true;
                 case "add":
                 case "remove":
@@ -92,13 +83,11 @@ public class WhitelistCommand extends Command {
             switch (args[0].toLowerCase()) {
                 case "add":
                     server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(true);
-                    CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.add.success", args[1]));
-
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(args[1])));
                     return true;
                 case "remove":
                     server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(false);
-                    CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.whitelist.remove.success", args[1]));
-
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(args[1])));
                     return true;
             }
         }
@@ -108,11 +97,9 @@ public class WhitelistCommand extends Command {
 
     private boolean badPerm(CommandSender sender, String perm) {
         if (!sender.hasPermission("cloudburst.command.whitelist." + perm)) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
-
+            sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
             return true;
         }
-
         return false;
     }
 }

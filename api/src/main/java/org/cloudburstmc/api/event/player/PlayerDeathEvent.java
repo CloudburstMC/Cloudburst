@@ -1,27 +1,29 @@
 package org.cloudburstmc.api.event.player;
 
+import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.player.Player;
 
+/**
+ * Fired when a player dies. Cancelling this event prevents the death from being processed.
+ * The death message is broadcast to all online players if non-null.
+ */
 public final class PlayerDeathEvent extends EntityDeathEvent implements Cancellable {
 
-    private TextContainer deathMessage;
+    @Nullable
+    private Component deathMessage;
     private boolean keepInventory = false;
     private boolean keepExperience = false;
     private int experience;
 
-    public PlayerDeathEvent(Player player, ItemStack[] drops, TextContainer deathMessage, int experience) {
+    public PlayerDeathEvent(Player player, ItemStack[] drops, @Nullable Component deathMessage, int experience) {
         super((Living) player, drops);
         this.deathMessage = deathMessage;
         this.experience = experience;
-    }
-
-    public PlayerDeathEvent(Player player, ItemStack[] drops, String deathMessage, int experience) {
-        this(player, drops, new TextContainer(deathMessage), experience);
     }
 
     @Override
@@ -29,16 +31,23 @@ public final class PlayerDeathEvent extends EntityDeathEvent implements Cancella
         return (Player) super.getEntity();
     }
 
-    public TextContainer getDeathMessage() {
+    /**
+     * Returns the death message that will be broadcast, or {@code null} if suppressed.
+     *
+     * @return the death message component, or {@code null}
+     */
+    @Nullable
+    public Component getDeathMessage() {
         return deathMessage;
     }
 
-    public void setDeathMessage(TextContainer deathMessage) {
+    /**
+     * Sets the death message to broadcast. Pass {@code null} to suppress the message entirely.
+     *
+     * @param deathMessage the new death message, or {@code null}
+     */
+    public void setDeathMessage(@Nullable Component deathMessage) {
         this.deathMessage = deathMessage;
-    }
-
-    public void setDeathMessage(String deathMessage) {
-        this.deathMessage = new TextContainer(deathMessage);
     }
 
     public boolean getKeepInventory() {

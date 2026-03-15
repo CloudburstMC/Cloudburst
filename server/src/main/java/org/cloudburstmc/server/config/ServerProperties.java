@@ -113,6 +113,16 @@ public class ServerProperties {
     public void setPath(Path path) { this.path = path; }
 
 
+    public void modifyMotd(String motd) {
+        this.motd = motd;
+        this.save();
+    }
+
+    public void modifySubMotd(String subMotd) {
+        this.subMotd = subMotd;
+        this.save();
+    }
+
     public void modifyWhitelist(boolean b) {
         this.whiteList = b;
         this.save();

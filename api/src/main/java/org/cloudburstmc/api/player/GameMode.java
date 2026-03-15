@@ -2,11 +2,13 @@ package org.cloudburstmc.api.player;
 
 import com.google.common.collect.Sets;
 import lombok.Getter;
+import net.kyori.adventure.translation.Translatable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 @Getter
-public class GameMode {
+public class GameMode implements Translatable {
 
     private static final Map<String, GameMode> nameMap = new HashMap<>();
 
@@ -50,8 +52,9 @@ public class GameMode {
         this.aliases = aliases;
     }
 
-    public String getTranslation() {
-        return "%gameMode." + name;
+    @Override
+    public @NotNull String translationKey() {
+        return "gameMode." + this.name;
     }
 
     public static GameMode from(String name) {
@@ -59,16 +62,12 @@ public class GameMode {
     }
 
     public static GameMode from(int id) {
-        switch (id & 0x03) {
-            case 0:
-                return SURVIVAL;
-            case 1:
-                return CREATIVE;
-            case 2:
-                return ADVENTURE;
-            default:
-                return SPECTATOR;
-        }
+        return switch (id & 0x03) {
+            case 0 -> SURVIVAL;
+            case 1 -> CREATIVE;
+            case 2 -> ADVENTURE;
+            default -> SPECTATOR;
+        };
     }
 
     public static Builder builder(int vanillaId, String name, String... aliases) {

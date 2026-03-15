@@ -1,13 +1,13 @@
 package org.cloudburstmc.server.command;
 
 import lombok.experimental.UtilityClass;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.locale.TextContainer;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.locale.TranslationContainer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.Optional;
 import java.util.Set;
@@ -56,62 +56,32 @@ public class CommandUtils {
         return position;
     }
 
-    public static void broadcastCommandMessage(CommandSender source, String message) {
+    public static void broadcastCommandMessage(CommandSender source, Component message) {
         broadcastCommandMessage(source, message, true);
     }
 
-    public static void broadcastCommandMessage(CommandSender source, String message, boolean sendToSource) {
+    public static void broadcastCommandMessage(CommandSender source, Component message, boolean sendToSource) {
         Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE);
 
-        TranslationContainer result = new TranslationContainer("chat.type.admin", source.getName(), message);
-
-        TranslationContainer colored = new TranslationContainer(TextFormat.GRAY + "" + TextFormat.ITALIC + "%chat.type.admin", source.getName(), message);
+        Component adminMessage = Component.text("[")
+                .append(source.name())
+                .append(Component.text(": "))
+                .append(message)
+                .append(Component.text("]"));
+        Component coloredMessage = adminMessage.color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC);
 
         if (sendToSource && !(source instanceof ConsoleCommandSender)) {
             source.sendMessage(message);
         }
 
         for (Permissible user : users) {
-            if (user instanceof CommandSender) {
+            if (user instanceof CommandSender commandSender) {
                 if (user instanceof ConsoleCommandSender) {
-                    ((ConsoleCommandSender) user).sendMessage(result);
+                    commandSender.sendMessage(adminMessage);
                 } else if (!user.equals(source)) {
-                    ((CommandSender) user).sendMessage(colored);
+                    commandSender.sendMessage(coloredMessage);
                 }
             }
         }
     }
-
-    public static void broadcastCommandMessage(CommandSender source, TextContainer message) {
-        broadcastCommandMessage(source, message, true);
-    }
-
-    public static void broadcastCommandMessage(CommandSender source, TextContainer message, boolean sendToSource) {
-        TextContainer m = message.clone();
-        String resultStr = "[" + source.getName() + ": " + m.getText() + "]";
-
-        Set<Permissible> users = source.getServer().getPermissionManager().getPermissionSubscriptions(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE);
-
-        String coloredStr = TextFormat.GRAY + "" + TextFormat.ITALIC + resultStr;
-
-        m.setText(resultStr);
-        TextContainer result = m.clone();
-        m.setText(coloredStr);
-        TextContainer colored = m.clone();
-
-        if (sendToSource && !(source instanceof ConsoleCommandSender)) {
-            source.sendMessage(message);
-        }
-
-        for (Permissible user : users) {
-            if (user instanceof CommandSender) {
-                if (user instanceof ConsoleCommandSender) {
-                    ((ConsoleCommandSender) user).sendMessage(result);
-                } else if (!user.equals(source)) {
-                    ((CommandSender) user).sendMessage(colored);
-                }
-            }
-        }
-    }
-
 }

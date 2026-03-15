@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.player;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
@@ -9,6 +10,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.inventory.*;
@@ -610,7 +612,7 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public String getDisplayName() {
+    public Component displayName() {
         return null;
     }
 
@@ -859,17 +861,32 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public VirtualChestScreen createVirtualChest(String title) {
+    public VirtualChestScreen createVirtualChest(Component title) {
         throw new UnsupportedOperationException("Cannot create virtual views for offline players");
     }
 
     @Override
-    public VirtualDoubleChestScreen createVirtualDoubleChest(String title) {
+    public VirtualDoubleChestScreen createVirtualDoubleChest(Component title) {
         throw new UnsupportedOperationException("Cannot create virtual views for offline players");
     }
 
     @Override
-    public VirtualHopperScreen createVirtualHopper(String title) {
+    public VirtualHopperScreen createVirtualHopper(Component title) {
         throw new UnsupportedOperationException("Cannot create virtual views for offline players");
+    }
+
+    @Override
+    public void kick(Component reason) {
+        throw new UnsupportedOperationException("Cannot kick an offline player");
+    }
+
+    @Override
+    public void kick(Component reason, PlayerKickEvent.Reason cause) {
+        throw new UnsupportedOperationException("Cannot kick an offline player");
+    }
+
+    @Override
+    public void displayName(Component displayName) {
+        // Offline players do not have a live display name
     }
 }

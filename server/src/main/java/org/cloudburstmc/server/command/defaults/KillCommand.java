@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -10,9 +12,7 @@ import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 
 import java.util.StringJoiner;
 
@@ -44,7 +44,7 @@ public class KillCommand extends Command {
         }
         if (args.length == 1) {
             if (!sender.hasPermission("cloudburst.command.kill.other")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
             CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
@@ -56,7 +56,8 @@ public class KillCommand extends Command {
                 }
                 player.setLastDamageCause(ev);
                 player.setHealth(0);
-                CommandUtils.broadcastCommandMessage(sender, new TranslationContainer("%commands.kill.successful", player.getName()));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful",
+                        Component.text(player.getName())));
             } else if (args[0].equals("@e")) {
                 StringJoiner joiner = new StringJoiner(", ");
                 for (CloudLevel level : CloudServer.getInstance().getLevels()) {
@@ -68,14 +69,15 @@ public class KillCommand extends Command {
                     }
                 }
                 String entities = joiner.toString();
-                sender.sendMessage(new TranslationContainer("commands.kill.successful", entities.isEmpty() ? "0" : entities));
+                sender.sendMessage(Component.translatable("commands.kill.successful",
+                        Component.text(entities.isEmpty() ? "0" : entities)));
             } else if (args[0].equals("@s")) {
                 if (!sender.hasPermission("cloudburst.command.kill.self")) {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+                    sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                     return true;
                 }
                 if (!(sender instanceof CloudPlayer)) {
-                    sender.sendMessage(new TranslationContainer("commands.locate.fail.noplayer"));
+                    sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
                     return true;
                 }
                 EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
@@ -85,28 +87,30 @@ public class KillCommand extends Command {
                 }
                 ((CloudPlayer) sender).setLastDamageCause(ev);
                 ((CloudPlayer) sender).setHealth(0);
-                sender.sendMessage(new TranslationContainer("commands.kill.successful", sender.getName()));
+                sender.sendMessage(Component.translatable("commands.kill.successful",
+                        Component.text(sender.getName())));
             } else if (args[0].equals("@a")) {
                 if (!sender.hasPermission("cloudburst.command.kill.other")) {
-                    sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+                    sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                     return true;
                 }
                 for (CloudLevel level : CloudServer.getInstance().getLevels()) {
                     for (Entity entity : level.getEntities()) {
                         if (entity instanceof CloudPlayer) {
                             entity.setHealth(0);
-                            sender.sendMessage(new TranslationContainer(TextFormat.GOLD + "%commands.kill.successful", entity.getName()));
+                            sender.sendMessage(Component.translatable("commands.kill.successful",
+                                    Component.text(entity.getName())).color(NamedTextColor.GOLD));
                         }
                     }
                 }
             } else {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.player.notFound"));
+                sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
             }
             return true;
         }
         if (sender instanceof CloudPlayer) {
             if (!sender.hasPermission("cloudburst.command.kill.self")) {
-                sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.permission"));
+                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
             EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
@@ -116,7 +120,8 @@ public class KillCommand extends Command {
             }
             ((CloudPlayer) sender).setLastDamageCause(ev);
             ((CloudPlayer) sender).setHealth(0);
-            sender.sendMessage(new TranslationContainer("commands.kill.successful", sender.getName()));
+            sender.sendMessage(Component.translatable("commands.kill.successful",
+                    Component.text(sender.getName())));
         } else {
             return false;
         }

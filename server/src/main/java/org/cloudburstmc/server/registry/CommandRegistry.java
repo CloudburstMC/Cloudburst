@@ -3,6 +3,8 @@ package org.cloudburstmc.server.registry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.registry.Registry;
@@ -10,14 +12,12 @@ import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.*;
+import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.command.defaults.*;
 import org.cloudburstmc.server.command.simple.*;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.utils.TextFormat;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -40,8 +40,8 @@ import java.util.regex.Pattern;
  */
 @Log4j2
 public class CommandRegistry implements Registry {
-    private final Matcher NAME_MATCHER = Pattern.compile("^[a-z0-9_\\-/.]+$").matcher("");
     private static final CommandRegistry INSTANCE = new CommandRegistry();
+    private final Matcher NAME_MATCHER = Pattern.compile("^[a-z0-9_\\-/.]+$").matcher("");
     private Map<String, Command> registeredCommands = new HashMap<>();
     private Map<String, String> knownAliases = new HashMap<>();
 
@@ -51,11 +51,6 @@ public class CommandRegistry implements Registry {
 
     }
 
-    public void registerVanilla() {
-        registerDefaults();
-        registerBuiltIn();
-    }
-
     /**
      * Gets the instance of the CommandRegistry.
      *
@@ -63,6 +58,11 @@ public class CommandRegistry implements Registry {
      */
     public static CommandRegistry get() {
         return INSTANCE;
+    }
+
+    public void registerVanilla() {
+        registerDefaults();
+        registerBuiltIn();
     }
 
     /**
@@ -98,10 +98,9 @@ public class CommandRegistry implements Registry {
         }
         this.registeredCommands.put(cmdName, command);
         this.knownAliases.put(cmdName, cmdName);
-        if (command.getAliases().length > 0) {
-            for (String alias : command.getAliases()) {
-                registerAlias(cmdName, alias);
-            }
+        command.getAliases();
+        for (String alias : command.getAliases()) {
+            registerAlias(cmdName, alias);
         }
     }
 
@@ -377,10 +376,10 @@ public class CommandRegistry implements Registry {
         try {
             boolean success = target.execute(sender, sentCmd, args);
             if (!success && target.getUsage().length() > 0) {
-                sender.sendMessage(new TranslationContainer("commands.generic.usage", target.getUsage()));
+                sender.sendMessage(Component.translatable("commands.generic.usage", Component.text(target.getUsage())));
             }
         } catch (Exception e) {
-            sender.sendMessage(new TranslationContainer(TextFormat.RED + "%commands.generic.exception"));
+            sender.sendMessage(Component.translatable("commands.generic.exception").color(NamedTextColor.RED));
             log.error(CloudServer.getInstance().getLanguage().translate("cloudburst.command.exception", commandLine,
                     target.toString(), Utils.getExceptionMessage(e)));
         }

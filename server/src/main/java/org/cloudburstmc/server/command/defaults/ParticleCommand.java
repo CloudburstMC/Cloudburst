@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.command.defaults;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -12,7 +13,6 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Random;
@@ -112,7 +112,8 @@ public class ParticleCommand extends Command {
             return true;
         }
 
-        sender.sendMessage(new TranslationContainer("commands.particle.success", name, count));
+        sender.sendMessage(Component.translatable("commands.particle.success",
+                Component.text(name), Component.text(count)));
 
         Random random = new Random(System.currentTimeMillis());
 
@@ -193,25 +194,6 @@ public class ParticleCommand extends Command {
             case "forcefield":
                 return new BlockForceFieldParticle(pos);
         }
-
-//        TODO Just ignore it and pretent it doesn't exist
-//        if (name.startsWith("iconcrack_")) {
-//            String[] d = name.split("_");
-//            if (d.length == 3) {
-//                return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(ItemTypes.byId(Identifier.fromString(d[1])), Integer.parseInt(d[2])));
-//            }
-//        } else if (name.startsWith("blockcrack_")) {
-//            String[] d = name.split("_");
-//            if (d.length == 2) {
-//                return new TerrainParticle(pos, CloudBlockRegistry.get().getBlock(Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[1]) >> 12));
-//            }
-//        } else if (name.startsWith("blockdust_")) {
-//            String[] d = name.split("_");
-//            if (d.length >= 4) {
-//                return new DustParticle(pos, Integer.parseInt(d[1]) & 0xff, Integer.parseInt(d[2]) & 0xff,
-//                        Integer.parseInt(d[3]) & 0xff, d.length >= 5 ? Integer.parseInt(d[4]) & 0xff : 255);
-//            }
-//        }
 
         return null;
     }

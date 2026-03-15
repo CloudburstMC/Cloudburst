@@ -8,6 +8,8 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -69,12 +71,10 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
-import org.cloudburstmc.server.locale.TranslationContainer;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.utils.TextFormat;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -1156,7 +1156,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 return PacketSignal.HANDLED;
             }
             player.setGamemode(GameMode.from(packet.getGamemode()), true);
-            CommandUtils.broadcastCommandMessage(player, new TranslationContainer("%commands.gamemode.success.self", player.getGamemode().getTranslation()));
+            CommandUtils.broadcastCommandMessage(player, Component.translatable("commands.gamemode.success.self", Component.translatable(player.getGamemode())));
         }
         return PacketSignal.HANDLED;
     }
@@ -1492,12 +1492,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         player.setInitialized(true);
         PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(player,
-                new TranslationContainer(TextFormat.YELLOW + "%multiplayer.player.joined", player.getDisplayName())
+                Component.translatable("multiplayer.player.joined", player.displayName()).color(NamedTextColor.YELLOW)
         );
 
         player.getServer().getEventManager().fire(playerJoinEvent);
 
-        if (playerJoinEvent.getJoinMessage().toString().trim().length() > 0) {
+        if (playerJoinEvent.getJoinMessage() != null) {
             player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());
         }
         return PacketSignal.HANDLED;
