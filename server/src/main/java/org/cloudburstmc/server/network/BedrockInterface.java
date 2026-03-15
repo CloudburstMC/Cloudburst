@@ -16,7 +16,13 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.event.server.QueryRegenerateEvent;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
+import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
+import org.cloudburstmc.netty.channel.raknet.RakState;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
+import org.cloudburstmc.netty.channel.raknet.config.RakServerMetrics;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.adventure.AdventureTextConverter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
@@ -40,6 +46,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
     private final EventLoopGroup eventLoopGroup;
     private final List<Channel> channels = new ArrayList<>();
     private final BedrockPong advertisement = new BedrockPong();
+    private Network network;
 
     public BedrockInterface(CloudServer server) {
         this.server = server;
@@ -59,9 +66,57 @@ public class BedrockInterface implements AdvancedSourceInterface {
             log.debug("Using NIO transport");
         }
 
+        RakServerMetrics metrics = new RakServerMetrics() {
+            @Override
+            public void invalidCookie(InetSocketAddress address) {
+                log.debug("[{}] Rejected connection: invalid or expired stateless cookie (possible IP spoofing / DDoS)", address);
+            }
+
+            @Override
+            public void channelOpen(InetSocketAddress address) {
+                log.trace("[{}] RakNet channel opened", address);
+            }
+
+            @Override
+            public void channelClose(InetSocketAddress address) {
+                log.trace("[{}] RakNet channel closed", address);
+            }
+
+            @Override
+            public void addressBlocked(InetAddress address) {
+                log.debug("[{}] Address blocked", address);
+            }
+
+            @Override
+            public void addressUnblocked(InetAddress address) {
+                log.debug("[{}] Address unblocked", address);
+            }
+
+            @Override
+            public void bytesIn(RakChildChannel channel, int count) {
+                if (BedrockInterface.this.network != null) {
+                    BedrockInterface.this.network.addStatistics(0, count);
+                }
+            }
+
+            @Override
+            public void bytesOut(RakChildChannel channel, int count) {
+                if (BedrockInterface.this.network != null) {
+                    BedrockInterface.this.network.addStatistics(count, 0);
+                }
+            }
+
+            @Override
+            public void stateChange(RakChildChannel channel, RakState state) {
+                log.trace("[{}] RakNet state -> {}", channel.remoteAddress(), state);
+            }
+        };
+
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(datagramChannelClass))
                 .group(this.eventLoopGroup)
+                .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, RakServerCookieMode.ACTIVE)
+                .option(RakChannelOption.RAK_SERVER_METRICS, metrics)
                 .childHandler(new BedrockServerInitializer() {
                     @Override
                     protected void initSession(BedrockServerSession session) {
@@ -79,19 +134,37 @@ public class BedrockInterface implements AdvancedSourceInterface {
 
     @Override
     public void blockAddress(InetAddress address) {
+        for (Channel channel : this.channels) {
+            if (channel instanceof RakServerChannel) {
+                ((RakServerChannel) channel).tryBlockAddress(address, -1, TimeUnit.MILLISECONDS);
+            }
+        }
     }
 
     @Override
     public void blockAddress(InetAddress address, long timeout, TimeUnit unit) {
+        for (Channel channel : this.channels) {
+            if (channel instanceof RakServerChannel) {
+                ((RakServerChannel) channel).tryBlockAddress(address, timeout, unit);
+            }
+        }
     }
 
     @Override
     public void unblockAddress(InetAddress address) {
+        for (Channel channel : this.channels) {
+            if (channel instanceof RakServerChannel) {
+                RakServerRateLimiter rateLimiter = channel.pipeline().get(RakServerRateLimiter.class);
+                if (rateLimiter != null) {
+                    rateLimiter.unblockAddress(address);
+                }
+            }
+        }
     }
 
     @Override
     public void setNetwork(Network network) {
-        // no-op
+        this.network = network;
     }
 
     @Override
