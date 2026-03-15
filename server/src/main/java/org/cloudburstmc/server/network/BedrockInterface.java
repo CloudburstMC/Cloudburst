@@ -115,6 +115,8 @@ public class BedrockInterface implements AdvancedSourceInterface {
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .channelFactory(RakChannelFactory.server(datagramChannelClass))
                 .group(this.eventLoopGroup)
+                .option(RakChannelOption.RAK_GUID, server.getServerUniqueId().getMostSignificantBits())
+                .option(RakChannelOption.RAK_MAX_CONNECTIONS, server.getMaxPlayers())
                 .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, RakServerCookieMode.ACTIVE)
                 .option(RakChannelOption.RAK_SERVER_METRICS, metrics)
                 .childHandler(new BedrockServerInitializer() {
