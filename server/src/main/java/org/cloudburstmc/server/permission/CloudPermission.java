@@ -1,124 +1,250 @@
 package org.cloudburstmc.server.permission;
 
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.permission.Permission;
+import org.cloudburstmc.api.permission.PermissionDefault;
 import org.cloudburstmc.server.CloudServer;
 
 import java.util.*;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Server-side {@link Permission} implementation that delegates the reactive methods
+ * ({@link #getPermissibles}, {@link #recalculatePermissibles}, {@link #addParent}) to the
+ * server's {@link CloudPermissionManager}.
  */
+@Log4j2
 public class CloudPermission extends Permission {
 
     public CloudPermission(String name) {
-        this(name, null, null, new HashMap<>());
+        super(name);
     }
 
     public CloudPermission(String name, String description) {
-        this(name, description, null, new HashMap<>());
+        super(name, description);
     }
 
-    public CloudPermission(String name, String description, String defualtValue) {
-        this(name, description, defualtValue, new HashMap<>());
+    public CloudPermission(String name, PermissionDefault defaultValue) {
+        super(name, defaultValue);
     }
 
-    public CloudPermission(String name, String description, String defualtValue, Map<String, Boolean> children) {
-        super(name, description, defualtValue, children);
+    public CloudPermission(String name, Map<String, Boolean> children) {
+        super(name, children);
     }
 
-    public Set<Permissible> getPermissibles() {
-        return CloudServer.getInstance().getPermissionManager().getPermissionSubscriptions(this.getName());
+    public CloudPermission(String name, String description, PermissionDefault defaultValue) {
+        super(name, description, defaultValue);
     }
 
-    public void recalculatePermissibles() {
-        Set<Permissible> perms = this.getPermissibles();
+    public CloudPermission(String name, PermissionDefault defaultValue, Map<String, Boolean> children) {
+        super(name, defaultValue, children);
+    }
 
-        CloudServer.getInstance().getPermissionManager().recalculatePermissionDefaults(this);
+    public CloudPermission(String name, String description, PermissionDefault defaultValue, Map<String, Boolean> children) {
+        super(name, description, defaultValue, children);
+    }
 
-        for (Permissible p : perms) {
-            p.recalculatePermissions();
+    /**
+     * Parses a list of {@link CloudPermission}s from a YAML-style map, using
+     * {@link Permission#DEFAULT_PERMISSION} as the fallback default.
+     *
+     * <p>Malformed entries are logged and skipped; they do not abort the rest of the list.</p>
+     */
+    public static List<CloudPermission> loadPermissions(Map<?, ?> data) {
+        return loadPermissions(data, Permission.DEFAULT_PERMISSION);
+    }
+
+    /**
+     * Parses a list of {@link CloudPermission}s from a YAML-style map using the given fallback default.
+     *
+     * <p>Malformed entries are logged and skipped; they do not abort the rest of the list.</p>
+     */
+    public static List<CloudPermission> loadPermissions(Map<?, ?> data, PermissionDefault defaultValue) {
+        return loadPermissions(data, "Could not load permission '%s'", defaultValue);
+    }
+
+    /**
+     * Parses a list of {@link CloudPermission}s from a YAML-style map.
+     *
+     * <p>The {@code errorTemplate} may contain a single {@code %s} placeholder that is
+     * replaced with the name of the failing permission.</p>
+     *
+     * <p>Malformed entries are logged at ERROR level and skipped.</p>
+     */
+    public static List<CloudPermission> loadPermissions(Map<?, ?> data, String errorTemplate, PermissionDefault defaultValue) {
+        if (errorTemplate == null) {
+            throw new IllegalArgumentException("errorTemplate cannot be null");
         }
-    }
 
-    public void addParent(Permission permission, boolean value) {
-        this.getChildren().put(this.getName(), value);
-        permission.recalculatePermissibles();
-    }
-
-    public Permission addParent(String name, boolean value) {
-        Permission perm = CloudServer.getInstance().getPermissionManager().getPermission(name).orElseGet(() -> {
-            Permission p = new CloudPermission(name);
-            CloudServer.getInstance().getPermissionManager().addPermission(p);
-
-            return p;
-        });
-
-        this.addParent(perm, value);
-
-        return perm;
-    }
-
-    public static List<CloudPermission> loadPermissions(Map<String, Object> data) {
-        return loadPermissions(data, DEFAULT_OP);
-    }
-
-    public static List<CloudPermission> loadPermissions(Map<String, Object> data, String defaultValue) {
         List<CloudPermission> result = new ArrayList<>();
-        if (data != null) {
-            for (Map.Entry e : data.entrySet()) {
-                String key = (String) e.getKey();
-                Map<String, Object> entry = (Map<String, Object>) e.getValue();
-                result.add(loadPermission(key, entry, defaultValue, result));
+        if (data == null) {
+            return result;
+        }
+
+        for (Map.Entry<?, ?> entry : data.entrySet()) {
+            if (entry.getKey() == null) {
+                log.error("Skipping permission entry with null key");
+                continue;
+            }
+
+            try {
+                Object raw = entry.getValue();
+                if (!(raw instanceof Map<?, ?> value)) {
+                    log.error(
+                            "{}: expected a map but found {}",
+                            String.format(errorTemplate, entry.getKey()),
+                            raw == null ? "null" : raw.getClass().getSimpleName()
+                    );
+                    continue;
+                }
+
+                result.add(loadPermission(entry.getKey().toString(), value, defaultValue, result));
+            } catch (Exception ex) {
+                log.error("{}",
+                        String.format(errorTemplate, entry.getKey()),
+                        ex
+                );
             }
         }
+
         return result;
     }
 
-    public static CloudPermission loadPermission(String name, Map<String, Object> data) {
-        return loadPermission(name, data, DEFAULT_OP, new ArrayList<>());
+    /**
+     * Parses a single {@link CloudPermission} from a YAML-style map using {@link Permission#DEFAULT_PERMISSION}.
+     */
+    public static CloudPermission loadPermission(String name, Map<?, ?> data) {
+        return loadPermission(name, data, Permission.DEFAULT_PERMISSION, null);
     }
 
-    public static CloudPermission loadPermission(String name, Map<String, Object> data, String defaultValue) {
-        return loadPermission(name, data, defaultValue, new ArrayList<>());
+    /**
+     * Parses a single {@link CloudPermission} from a YAML-style map using the given fallback default.
+     */
+    public static CloudPermission loadPermission(String name, Map<?, ?> data, PermissionDefault defaultValue) {
+        return loadPermission(name, data, defaultValue, null);
     }
 
-    public static CloudPermission loadPermission(String name, Map<String, Object> data, String defaultValue, List<CloudPermission> output) {
+    /**
+     * Parses a single {@link CloudPermission} from a YAML-style data map.
+     *
+     * <p>The {@code children} node may be either a {@code Map} (map-style) or an
+     * {@code Iterable} (list-style). Map values may be {@code Boolean} grant flags or nested
+     * {@code Map}s describing a child permission inline. List entries are always granted as
+     * {@code true}; null list entries are silently skipped.</p>
+     *
+     * @param name         permission node name (lowercased before use)
+     * @param data         map containing optional keys: {@code default}, {@code children}, {@code description}
+     * @param defaultValue fallback default when {@code default} key is absent or null in YAML
+     * @param output       list to append recursively discovered child permissions to; may be {@code null}
+     * @throws IllegalArgumentException if {@code data} is null, {@code default} is unrecognized,
+     *                                  {@code children} is the wrong type, or a child value is neither
+     *                                  a {@code Boolean} nor a nested map
+     */
+    public static CloudPermission loadPermission(String name, Map<?, ?> data, PermissionDefault defaultValue, List<CloudPermission> output) {
+        if (name == null) {
+            throw new IllegalArgumentException("Permission name cannot be null");
+        }
+        if (data == null) {
+            throw new IllegalArgumentException("Data map cannot be null for permission '" + name + "'");
+        }
+
+        name = name.toLowerCase(Locale.ROOT);
+
         String desc = null;
-        Map<String, Boolean> children = new HashMap<>();
+        Map<String, Boolean> children = new LinkedHashMap<>();
+
         if (data.containsKey("default")) {
-            String value = CloudPermission.getByName(String.valueOf(data.get("default")));
-            if (value != null) {
-                defaultValue = value;
-            } else {
-                throw new IllegalStateException("'default' key contained unknown value");
+            Object rawDefault = data.get("default");
+            if (rawDefault != null) {
+                PermissionDefault parsed = PermissionDefault.getByName(rawDefault.toString());
+                if (parsed == null) {
+                    throw new IllegalArgumentException("'default' key contained unknown value '" + rawDefault + "' for permission '" + name + "'");
+                }
+                defaultValue = parsed;
             }
         }
 
         if (data.containsKey("children")) {
-            if (data.get("children") instanceof Map) {
-                for (Map.Entry entry : ((Map<String, Object>) data.get("children")).entrySet()) {
-                    String k = (String) entry.getKey();
-                    Object v = entry.getValue();
-                    if (v instanceof Map) {
-                        CloudPermission permission = loadPermission(k, (Map<String, Object>) v, defaultValue, output);
-                        if (permission != null) {
-                            output.add(permission);
-                        }
+            Object childrenNode = data.get("children");
+
+            if (childrenNode instanceof Map<?, ?> childMap) {
+                for (Map.Entry<?, ?> entry : childMap.entrySet()) {
+                    if (entry.getKey() == null) {
+                        throw new IllegalArgumentException("Child key cannot be null in permission '" + name + "'");
                     }
-                    children.put(k, true);
+                    String childName = entry.getKey().toString().toLowerCase(Locale.ROOT);
+                    Object childValue = entry.getValue();
+                    if (childValue instanceof Map<?, ?>) {
+                        try {
+                            CloudPermission child = loadPermission(childName, (Map<?, ?>) childValue, defaultValue, output);
+                            if (output != null) {
+                                output.add(child);
+                            }
+                            children.put(child.getName(), true);
+                        } catch (Exception ex) {
+                            throw new IllegalArgumentException(
+                                    "Permission node '" + childName + "' in child of '" + name + "' is invalid", ex);
+                        }
+                    } else if (childValue instanceof Boolean grant) {
+                        children.put(childName, grant);
+                    } else {
+                        throw new IllegalArgumentException(
+                                "Child '" + childName + "' of permission '" + name + "' has an invalid value type: expected Boolean or Map, got "
+                                        + (childValue == null ? "null" : childValue.getClass().getName()));
+                    }
+                }
+            } else if (childrenNode instanceof Iterable<?> childList) {
+                for (Object entry : childList) {
+                    if (entry != null) {
+                        children.put(entry.toString().toLowerCase(Locale.ROOT), true);
+                    }
                 }
             } else {
-                throw new IllegalStateException("'children' key is of wrong type");
+                throw new IllegalArgumentException("'children' key is of wrong type for permission '" + name + "'");
             }
         }
 
         if (data.containsKey("description")) {
-            desc = (String) data.get("description");
+            Object rawDesc = data.get("description");
+            if (rawDesc != null) {
+                desc = rawDesc.toString();
+            }
         }
 
         return new CloudPermission(name, desc, defaultValue, children);
     }
 
+    @Override
+    public Set<Permissible> getPermissibles() {
+        return CloudServer.getInstance().getPermissionManager().getPermissionSubscriptions(getName());
+    }
+
+    @Override
+    public void recalculatePermissibles() {
+        Set<Permissible> perms = getPermissibles();
+        CloudServer.getInstance().getPermissionManager().recalculatePermissionDefaults(this);
+        for (Permissible p : perms) {
+            p.recalculatePermissions();
+        }
+    }
+
+    @Override
+    public void addParent(Permission permission, boolean value) {
+        permission.getMutableChildren().put(getName(), value);
+        permission.recalculatePermissibles();
+    }
+
+    @Override
+    public Permission addParent(String name, boolean value) {
+        String normalised = name.toLowerCase(Locale.ROOT);
+        Permission perm = CloudServer.getInstance().getPermissionManager()
+                .getPermission(normalised)
+                .orElseGet(() -> {
+                    Permission p = new CloudPermission(normalised);
+                    CloudServer.getInstance().getPermissionManager().addPermission(p);
+                    return p;
+                });
+        addParent(perm, value);
+        return perm;
+    }
 }

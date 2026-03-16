@@ -1,22 +1,28 @@
 package org.cloudburstmc.server.command;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
+import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.permission.PermissibleBase;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents the server console as a command sender.
+ *
+ * <p>The console is always an operator and its op status cannot be changed.</p>
  */
 @Log4j2
 @Singleton
@@ -24,8 +30,9 @@ public class ConsoleCommandSender implements CommandSender {
 
     private final PermissibleBase perm;
 
-    public ConsoleCommandSender() {
-        this.perm = new PermissibleBase(this);
+    @Inject
+    public ConsoleCommandSender(PermissionManager permissionManager) {
+        this.perm = new PermissibleBase(permissionManager, this);
     }
 
     @Override
@@ -59,8 +66,18 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value) {
         return this.perm.addAttachment(plugin, name, value);
+    }
+
+    @Override
+    public @Nullable PermissionAttachment addAttachment(PluginContainer plugin, long ticks) {
+        return this.perm.addAttachment(plugin, ticks);
+    }
+
+    @Override
+    public @Nullable PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value, long ticks) {
+        return this.perm.addAttachment(plugin, name, value, ticks);
     }
 
     @Override
@@ -74,10 +91,11 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public Map<String, PermissionAttachmentInfo> getEffectivePermissions() {
+    public Set<PermissionAttachmentInfo> getEffectivePermissions() {
         return this.perm.getEffectivePermissions();
     }
 
+    @Override
     public boolean isPlayer() {
         return false;
     }
@@ -88,10 +106,10 @@ public class ConsoleCommandSender implements CommandSender {
     }
 
     @Override
-    public void sendMessage(Component message) {
+    public void sendMessage(@NotNull Component message) {
         Component rendered = GlobalTranslator.render(message, CloudServer.getInstance().getLanguage().getLocale());
-        String text = LegacyComponentSerializer.legacySection().serialize(rendered);
-        for (String line : text.trim().split("\n")) {
+        String text = PlainTextComponentSerializer.plainText().serialize(rendered);
+        for (String line : text.split("\\R")) {
             log.info(line);
         }
     }
@@ -113,5 +131,6 @@ public class ConsoleCommandSender implements CommandSender {
 
     @Override
     public void setOp(boolean value) {
+        throw new UnsupportedOperationException("Cannot change op status of the console");
     }
 }

@@ -224,7 +224,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private byte containerIdCounter = 1;
     private int exp = 0;
     private int expLevel = 0;
-    private int hash;
     private int loaderId;
     private Entity killer = null;
     private LoginChainData loginChainData;
@@ -237,7 +236,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
         session.setPacketHandler(new Handler());
-        this.perm = new PermissibleBase(this);
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
         this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
@@ -257,6 +255,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.iusername = username.toLowerCase();
         this.displayName(Component.text(this.username));
         this.setNameTag(this.username);
+
+        this.perm = new PermissibleBase(this.server.getPermissionManager(), this);
 
         this.creationTime = System.currentTimeMillis();
 
@@ -557,54 +557,72 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public boolean isPermissionSet(String name) {
+        if (this.perm == null) return false;
         return this.perm.isPermissionSet(name);
     }
 
     @Override
     public boolean isPermissionSet(Permission permission) {
+        if (this.perm == null) return false;
         return this.perm.isPermissionSet(permission);
     }
 
     @Override
     public boolean hasPermission(String name) {
-        return this.perm != null && this.perm.hasPermission(name);
+        if (this.perm == null) return false;
+        return this.perm.hasPermission(name);
     }
 
     @Override
     public boolean hasPermission(Permission permission) {
+        if (this.perm == null) return false;
         return this.perm.hasPermission(permission);
     }
 
     @Override
     public PermissionAttachment addAttachment(PluginContainer plugin) {
-        return this.addAttachment(plugin, null);
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
+        return this.perm.addAttachment(plugin);
     }
 
     @Override
     public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
-        return this.addAttachment(plugin, name, null);
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
+        return this.perm.addAttachment(plugin, name);
     }
 
     @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, String name, Boolean value) {
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value) {
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
         return this.perm.addAttachment(plugin, name, value);
     }
 
     @Override
+    public PermissionAttachment addAttachment(PluginContainer plugin, long ticks) {
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
+        return this.perm.addAttachment(plugin, ticks);
+    }
+
+    @Override
+    public PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value, long ticks) {
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
+        return this.perm.addAttachment(plugin, name, value, ticks);
+    }
+
+    @Override
     public void removeAttachment(PermissionAttachment attachment) {
+        if (this.perm == null) throw new IllegalStateException("Player is offline");
         this.perm.removeAttachment(attachment);
     }
 
     @Override
     public void recalculatePermissions() {
+        PermissibleBase localPerm = this.perm;
+        if (localPerm == null) return;
+        localPerm.recalculatePermissions();
+
         this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
         this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
-
-        if (this.perm == null) {
-            return;
-        }
-
-        this.perm.recalculatePermissions();
 
         if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_USERS)) {
             this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
@@ -640,7 +658,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     @Override
-    public Map<String, PermissionAttachmentInfo> getEffectivePermissions() {
+    public Set<PermissionAttachmentInfo> getEffectivePermissions() {
+        if (this.perm == null) return Set.of();
         return this.perm.getEffectivePermissions();
     }
 
@@ -2266,7 +2285,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 GenericMath.round(pos.getZ(), 4)
         ));
 
-        if (this.isOp() || this.hasPermission("cloudburst.textcolor")) {
+        if (this.hasPermission("cloudburst.textcolor")) {
             this.setRemoveFormat(false);
         }
 
@@ -2309,13 +2328,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         } else if (this.server.isIPBanned(this)) {
             this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned");
             return;
-        }
-
-        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
-        }
-        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
         }
 
         CloudPlayer oldPlayer = null;
@@ -2746,7 +2758,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
-            this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
@@ -2766,7 +2777,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         if (this.perm != null) {
-            this.perm.clearPermissions();
+            this.perm.invalidate();
             this.perm = null;
         }
 
@@ -3655,19 +3666,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public int hashCode() {
-        if ((this.hash == 0) || (this.hash == 485)) {
-            this.hash = (485 + (getServerId() != null ? getServerId().hashCode() : 0));
-        }
-
-        return this.hash;
+        return Long.hashCode(this.getRuntimeId());
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof CloudPlayer other)) {
-            return false;
-        }
-        return Objects.equals(this.getServerId(), other.getServerId()) && this.getUniqueId() == other.getUniqueId();
+        if (this == obj) return true;
+        if (!(obj instanceof CloudPlayer other)) return false;
+        return this.getRuntimeId() == other.getRuntimeId();
     }
 
     public boolean isBreakingBlock() {

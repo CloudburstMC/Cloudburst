@@ -62,6 +62,7 @@ import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
+import org.cloudburstmc.server.permission.DefaultPermissions;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
@@ -384,6 +385,8 @@ public class CloudServer implements Server {
         log.info("Loading {} ...", "§acloudburst.yml§r");
         this.cloudburstYaml = CloudburstYaml.fromFile(configPath);
 
+        Timings.init(getConfig().getTimings());
+
         ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
 
         Bootstrap.DEBUG = Math.max(getConfig().getDebug().getLevel(), 1);
@@ -477,6 +480,9 @@ public class CloudServer implements Server {
         this.commandRegistry.registerVanilla();
 
         this.convertLegacyPlayerData();
+
+        DefaultPermissions.registerCorePermissions();
+        this.consoleSender.recalculatePermissions();
 
         this.permissionManager.subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
 

@@ -30,8 +30,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.server.config.ServerConfig;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -45,6 +45,7 @@ public final class Timings {
     private static boolean timingsEnabled = false;
     private static boolean verboseEnabled = false;
     private static boolean privacy = false;
+    private static boolean bypassMax = false;
     private static Set<String> ignoredConfigSections = new HashSet<>();
 
     private static final int MAX_HISTORY_FRAMES = 12;
@@ -85,20 +86,6 @@ public final class Timings {
     public static final Timing permissionDefaultTimer;
 
     static {
-        setTimingsEnabled(CloudServer.getInstance().getConfig().getTimings().isEnabled());
-        setVerboseEnabled(CloudServer.getInstance().getConfig().getTimings().isVerbose());
-        setHistoryInterval(CloudServer.getInstance().getConfig().getTimings().getHistoryInterval());
-        setHistoryLength(CloudServer.getInstance().getConfig().getTimings().getHistoryLength());
-
-        privacy = CloudServer.getInstance().getConfig().getTimings().isPrivacy();
-        ignoredConfigSections.addAll(CloudServer.getInstance().getConfig().getTimings().getIgnore());
-
-        log.debug("Timings: \n" +
-                "Enabled - " + isTimingsEnabled() + "\n" +
-                "Verbose - " + isVerboseEnabled() + "\n" +
-                "History Interval - " + getHistoryInterval() + "\n" +
-                "History Length - " + getHistoryLength());
-
         fullServerTickTimer = new FullServerTickTiming();
         timingsTickTimer = TimingsManager.getTiming(DEFAULT_GROUP.name, "Timings Tick", fullServerTickTimer);
         pluginEventTimer = TimingsManager.getTiming("Plugin Events");
@@ -133,6 +120,23 @@ public final class Timings {
         permissionDefaultTimer = TimingsManager.getTiming("Default Permission Calculation");
     }
 
+    public static void init(ServerConfig.Timings config) {
+        setTimingsEnabled(config.isEnabled());
+        setVerboseEnabled(config.isVerbose());
+        setHistoryInterval(config.getHistoryInterval());
+        setHistoryLength(config.getHistoryLength());
+
+        privacy = config.isPrivacy();
+        bypassMax = config.isBypassMax();
+        ignoredConfigSections.addAll(config.getIgnore());
+
+        log.debug("Timings: \n" +
+                "Enabled - " + isTimingsEnabled() + "\n" +
+                "Verbose - " + isVerboseEnabled() + "\n" +
+                "History Interval - " + getHistoryInterval() + "\n" +
+                "History Length - " + getHistoryLength());
+    }
+
     public static boolean isTimingsEnabled() {
         return timingsEnabled;
     }
@@ -165,7 +169,7 @@ public final class Timings {
 
     public static void setHistoryInterval(int interval) {
         historyInterval = Math.max(20 * 60, interval);
-        //Recheck the history length with the new Interval
+        // Recheck history length with the new interval.
         if (historyLength != -1) {
             setHistoryLength(historyLength);
         }
@@ -176,19 +180,19 @@ public final class Timings {
     }
 
     public static void setHistoryLength(int length) {
-        //Cap at 12 History Frames, 1 hour at 5 minute frames.
+        // Cap at 12 history frames (1 hour at 5-minute frames).
+        // Servers with special permission from Aikar may bypass this via the bypassMax flag.
         int maxLength = historyInterval * MAX_HISTORY_FRAMES;
-        //For special cases of servers with special permission to bypass the max.
-        //This max helps keep data file sizes reasonable for processing on Aikar's Timing parser side.
-        //Setting this will not help you bypass the max unless Aikar has added an exception on the API side.
-        if (CloudServer.getInstance().getConfig().getTimings().isBypassMax()) {
+        if (maxLength <= 0) {
+            // historyInterval hasn't been initialised yet; accept the value as-is.
+            historyLength = length;
+            return;
+        }
+
+        if (bypassMax) {
             maxLength = Integer.MAX_VALUE;
         }
 
-        historyLength = Math.max(Math.min(maxLength, length), historyInterval);
-
-        Queue<TimingsHistory> oldQueue = TimingsManager.HISTORY;
-        int frames = (getHistoryLength() / getHistoryInterval());
         if (length > maxLength) {
             log.warn("Timings Length too high. Requested " + length + ", max is " + maxLength
                     + ". To get longer history, you must increase your interval. Set Interval to "
@@ -196,6 +200,10 @@ public final class Timings {
                     + " to achieve this length.");
         }
 
+        historyLength = Math.max(Math.min(maxLength, length), historyInterval);
+
+        Queue<TimingsHistory> oldQueue = TimingsManager.HISTORY;
+        int frames = (getHistoryLength() / getHistoryInterval());
         TimingsManager.HISTORY = new TimingsManager.BoundedQueue<>(frames);
         TimingsManager.HISTORY.addAll(oldQueue);
     }
