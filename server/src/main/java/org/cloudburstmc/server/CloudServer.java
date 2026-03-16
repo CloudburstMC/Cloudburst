@@ -51,7 +51,7 @@ import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
-import org.cloudburstmc.server.math.NukkitMath;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.Network;
@@ -1004,16 +1004,16 @@ public class CloudServer implements Server {
         }
 
         Runtime runtime = Runtime.getRuntime();
-        double used = NukkitMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
-        double max = NukkitMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
+        double used = GenericMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
+        double max = GenericMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         String usage = Math.round(used / max * 100) + "%";
         String title = (char) 0x1b + "]0;" + this.getName() + " "
                 + this.getImplementationVersion()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
         if (!Bootstrap.shortTitle) {
-            title += " | U " + NukkitMath.round((this.network.getUpload() / 1024 * 1000), 2)
-                    + " D " + NukkitMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
+            title += " | U " + GenericMath.round((this.network.getUpload() / 1024 * 1000), 2)
+                    + " D " + GenericMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
         }
         title += " | TPS " + this.getTicksPerSecond()
                 + " | Load " + this.getTickUsage() + "%" + (char) 0x07;
@@ -1217,11 +1217,11 @@ public class CloudServer implements Server {
         for (float aTickAverage : this.tickAverage) {
             sum += aTickAverage;
         }
-        return (float) NukkitMath.round(sum / count, 2);
+        return (float) GenericMath.round(sum / count, 2);
     }
 
     public float getTickUsage() {
-        return (float) NukkitMath.round(this.maxUse * 100, 2);
+        return (float) GenericMath.round(this.maxUse * 100, 2);
     }
 
     public float getTickUsageAverage() {

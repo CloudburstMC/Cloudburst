@@ -3,17 +3,13 @@ package org.cloudburstmc.server.command.defaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.ThreadCache;
 
-/**
- * Created on 2015/11/11 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class GarbageCollectorCommand extends Command {
 
     public GarbageCollectorCommand() {
@@ -58,7 +54,7 @@ public class GarbageCollectorCommand extends Command {
         sender.sendMessage(Component.text("Block Entities: ").color(NamedTextColor.GOLD)
                 .append(Component.text(tilesCollected).color(NamedTextColor.RED)));
         sender.sendMessage(Component.text("Memory freed: ").color(NamedTextColor.GOLD)
-                .append(Component.text(NukkitMath.round((freedMemory / 1024d / 1024d), 2) + " MB").color(NamedTextColor.RED)));
+                .append(Component.text(GenericMath.round((freedMemory / 1024d / 1024d), 2) + " MB").color(NamedTextColor.RED)));
         return true;
     }
 }

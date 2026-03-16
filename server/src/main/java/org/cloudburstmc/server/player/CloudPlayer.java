@@ -10,7 +10,6 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -110,7 +109,6 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.PermissibleBase;
@@ -2263,9 +2261,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 this.getSocketAddress(),
                 this.getUniqueId(),
                 this.getLevel().getName(),
-                NukkitMath.round(pos.getX(), 4),
-                NukkitMath.round(pos.getY(), 4),
-                NukkitMath.round(pos.getZ(), 4)
+                GenericMath.round(pos.getX(), 4),
+                GenericMath.round(pos.getY(), 4),
+                GenericMath.round(pos.getZ(), 4)
         ));
 
         if (this.isOp() || this.hasPermission("cloudburst.textcolor")) {

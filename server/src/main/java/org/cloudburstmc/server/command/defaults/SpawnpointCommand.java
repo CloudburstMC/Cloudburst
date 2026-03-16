@@ -4,13 +4,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class SpawnpointCommand extends Command {
@@ -75,9 +75,9 @@ public class SpawnpointCommand extends Command {
                 target.setSpawn(pos);
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.spawnpoint.success.single",
                         Component.text(target.getName()),
-                        Component.text(NukkitMath.round(pos.getX(), 2)),
-                        Component.text(NukkitMath.round(pos.getY(), 2)),
-                        Component.text(NukkitMath.round(pos.getZ(), 2))));
+                        Component.text(GenericMath.round(pos.getX(), 2)),
+                        Component.text(GenericMath.round(pos.getY(), 2)),
+                        Component.text(GenericMath.round(pos.getZ(), 2))));
                 return true;
             } else {
                 sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));

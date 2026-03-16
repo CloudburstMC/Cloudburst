@@ -4,16 +4,14 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
@@ -203,7 +201,7 @@ public class PlayerChunkManager {
     }
 
     public void setChunkRadius(int chunkRadius) {
-        chunkRadius = NukkitMath.clamp(chunkRadius, 8,
+        chunkRadius = GenericMath.clamp(chunkRadius, 8,
                 this.player.getServer().getConfig().getChunkSending().getMaxChunkRadius());
         this.setRadius(chunkRadius << 4);
     }
@@ -247,22 +245,22 @@ public class PlayerChunkManager {
     }
 
     private record AroundPlayerChunkComparator(CloudPlayer player) implements LongComparator {
-            public static int distance(int centerX, int centerZ, int x, int z) {
-                int dx = centerX - x;
-                int dz = centerZ - z;
-                return dx * dx + dz * dz;
-            }
-
-            @Override
-            public int compare(long o1, long o2) {
-                int x1 = CloudChunk.fromKeyX(o1);
-                int z1 = CloudChunk.fromKeyZ(o1);
-                int x2 = CloudChunk.fromKeyX(o2);
-                int z2 = CloudChunk.fromKeyZ(o2);
-                int spawnX = this.player.getPosition().getFloorX() >> 4;
-                int spawnZ = this.player.getPosition().getFloorZ() >> 4;
-
-                return Integer.compare(distance(spawnX, spawnZ, x1, z1), distance(spawnX, spawnZ, x2, z2));
-            }
+        public static int distance(int centerX, int centerZ, int x, int z) {
+            int dx = centerX - x;
+            int dz = centerZ - z;
+            return dx * dx + dz * dz;
         }
+
+        @Override
+        public int compare(long o1, long o2) {
+            int x1 = CloudChunk.fromKeyX(o1);
+            int z1 = CloudChunk.fromKeyZ(o1);
+            int x2 = CloudChunk.fromKeyX(o2);
+            int z2 = CloudChunk.fromKeyZ(o2);
+            int spawnX = this.player.getPosition().getFloorX() >> 4;
+            int spawnZ = this.player.getPosition().getFloorZ() >> 4;
+
+            return Integer.compare(distance(spawnX, spawnZ, x1, z1), distance(spawnX, spawnZ, x2, z2));
+        }
+    }
 }

@@ -8,8 +8,8 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.Closeable;
@@ -140,10 +140,10 @@ public class LevelManager implements Closeable {
                     } else if (tickMs >= 50) {
                         if (level.getTickRate() == server.getBaseTickRate()) {
                             level.setTickRate(Math.max(server.getBaseTickRate() + 1, Math.min(server.getAutoTickRateLimit(), tickMs / 50)));
-                            log.debug("Level \"" + level.getName() + "\" took " + NukkitMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
+                            log.debug("Level \"" + level.getName() + "\" took " + GenericMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
                         } else if ((tickMs / level.getTickRate()) >= 50 && level.getTickRate() < server.getAutoTickRateLimit()) {
                             level.setTickRate(level.getTickRate() + 1);
-                            log.debug("Level \"" + level.getName() + "\" took " + NukkitMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
+                            log.debug("Level \"" + level.getName() + "\" took " + GenericMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
                         }
                         level.tickRateCounter = level.getTickRate();
                     }

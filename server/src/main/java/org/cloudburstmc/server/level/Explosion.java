@@ -17,11 +17,11 @@ import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
@@ -32,10 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
 import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
-/**
- * author: Angelic47
- * Nukkit Project
- */
 @Log4j2
 public class Explosion {
 
@@ -43,12 +39,11 @@ public class Explosion {
     private final CloudLevel level;
     private final Vector3f source;
     private final double size;
-    private boolean doesDamage = true;
-
-    private List<Block> affectedBlockStates = new ArrayList<>();
     private final double stepLen = 0.3d;
-
     private final Object what;
+
+    private boolean doesDamage = true;
+    private List<Block> affectedBlockStates = new ArrayList<>();
 
     public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
         this.level = level;
@@ -160,12 +155,12 @@ public class Explosion {
         }
 
         double explosionSize = this.size * 2d;
-        float minX = NukkitMath.floorDouble(this.source.getX() - explosionSize - 1);
-        float maxX = NukkitMath.ceilDouble(this.source.getX() + explosionSize + 1);
-        float minY = NukkitMath.floorDouble(this.source.getY() - explosionSize - 1);
-        float maxY = NukkitMath.ceilDouble(this.source.getY() + explosionSize + 1);
-        float minZ = NukkitMath.floorDouble(this.source.getZ() - explosionSize - 1);
-        float maxZ = NukkitMath.ceilDouble(this.source.getZ() + explosionSize + 1);
+        float minX = GenericMath.floor(this.source.getX() - explosionSize - 1);
+        float maxX = GenericMath.ceil(this.source.getX() + explosionSize + 1);
+        float minY = GenericMath.floor(this.source.getY() - explosionSize - 1);
+        float maxY = GenericMath.ceil(this.source.getY() + explosionSize + 1);
+        float minZ = GenericMath.floor(this.source.getZ() - explosionSize - 1);
+        float maxZ = GenericMath.ceil(this.source.getZ() + explosionSize + 1);
 
         AxisAlignedBB explosionBB = new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -23,18 +24,13 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * Created by yescallop on 2016/2/13.
- */
 public class EntityBoat extends EntityVehicle implements Boat {
 
     public static final Vector3f RIDER_PLAYER_OFFSET = Vector3f.from(0, 1.02001f, 0);
@@ -383,7 +379,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             double diffX = entity.getX() - this.getX();
             double diffZ = entity.getZ() - this.getZ();
 
-            double direction = NukkitMath.getDirection(diffX, diffZ);
+            double direction = Math.max(Math.abs(diffX), Math.abs(diffZ));
 
             if (direction >= 0.009999999776482582D) {
                 direction = Math.sqrt(direction);

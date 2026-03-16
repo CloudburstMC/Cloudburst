@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils;
 
-import org.cloudburstmc.server.math.NukkitMath;
+import org.cloudburstmc.math.GenericMath;
 
 public abstract class TickingThread extends Thread {
 
@@ -96,11 +96,11 @@ public abstract class TickingThread extends Thread {
         for (float aTickAverage : this.tickAverage) {
             sum += aTickAverage;
         }
-        return (float) NukkitMath.round(sum / count, 2);
+        return (float) GenericMath.round(sum / count, 2);
     }
 
     public float getTickUsage() {
-        return (float) NukkitMath.round(this.maxUse * 100, 2);
+        return (float) GenericMath.round(this.maxUse * 100, 2);
     }
 
     public float getTickUsageAverage() {

@@ -50,15 +50,13 @@ import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.NetherPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -255,7 +253,7 @@ public abstract class CloudEntity implements Entity {
         return yaw;
     }
 
-   // @Override
+    // @Override
     public void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
@@ -293,7 +291,7 @@ public abstract class CloudEntity implements Entity {
         tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
     }
 
-   // @Override
+    // @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         if (this.tag != null && !this.tag.isEmpty()) {
             tag.putAll(this.tag);
@@ -336,7 +334,7 @@ public abstract class CloudEntity implements Entity {
         if (!this.effects.isEmpty()) {
             List<NbtMap> list = new ArrayList<>();
             for (Effect effect : this.effects.values()) {
-                list.add(((CloudEffect)effect).createTag());
+                list.add(((CloudEffect) effect).createTag());
             }
 
             tag.putList("ActiveEffects", NbtType.COMPOUND, list);
@@ -797,7 +795,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void heal(EntityRegainHealthEvent source) {
-        ((CloudServer)this.server).getEventManager().fire(source);
+        this.server.getEventManager().fire(source);
         if (source.isCancelled()) {
             return;
         }
@@ -871,9 +869,9 @@ public abstract class CloudEntity implements Entity {
         float motionY = this.motion.getY();
         float motionZ = this.motion.getZ();
 
-        int i = NukkitMath.floorDouble(x);
-        int j = NukkitMath.floorDouble(y);
-        int k = NukkitMath.floorDouble(z);
+        int i = GenericMath.floor(x);
+        int j = GenericMath.floor(y);
+        int k = GenericMath.floor(z);
 
         float diffX = x - i;
         float diffY = y - j;
@@ -963,7 +961,7 @@ public abstract class CloudEntity implements Entity {
                 return false;
             }
             if (vehicle != null && !vehicle.isAlive() && vehicle instanceof Rideable) {
-                this.mount((Rideable) vehicle);
+                this.mount(vehicle);
             }
 
             updatePassengers();
@@ -986,8 +984,7 @@ public abstract class CloudEntity implements Entity {
             this.checkBlockCollision();
 
             if (this.position.getY() <= -16 && this.isAlive()) {
-                if (this instanceof CloudPlayer) {
-                    CloudPlayer player = (CloudPlayer) this;
+                if (this instanceof CloudPlayer player) {
                     if (player.getGamemode() != GameMode.CREATIVE)
                         this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));
                 } else {
@@ -1102,7 +1099,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public CardinalDirection getCardinalDirection() {
-        return CardinalDirection.values()[NukkitMath.floorDouble((((this.yaw + 180) % 360) / 22.5))];
+        return CardinalDirection.values()[GenericMath.floor((((this.yaw + 180) % 360) / 22.5))];
     }
 
     public boolean onUpdate(int currentTick) {
@@ -1154,7 +1151,7 @@ public abstract class CloudEntity implements Entity {
 
         // Entity entering a vehicle
         EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(this, (Vehicle) vehicle);
-        ((CloudServer)server).getEventManager().fire(ev);
+        server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return false;
         }
@@ -1178,7 +1175,7 @@ public abstract class CloudEntity implements Entity {
 
         // Run the events
         EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, (Vehicle) vehicle);
-        ((CloudServer)server).getEventManager().fire(event);
+        server.getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -1378,7 +1375,7 @@ public abstract class CloudEntity implements Entity {
                 Event ev;
 
                 if (this instanceof CloudPlayer) {
-                    ev = new PlayerInteractEvent((Player)this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
+                    ev = new PlayerInteractEvent((Player) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
                 } else {
                     ev = new EntityInteractEvent(this, down);
                 }
@@ -1405,7 +1402,7 @@ public abstract class CloudEntity implements Entity {
         if (entity.getVehicle() != this && !entity.getPassengers().contains(this)) {
             double dx = entity.getX() - this.getX();
             double dy = entity.getZ() - this.getZ();
-            double dz = NukkitMath.getDirection(dx, dy);
+            double dz = Math.max(Math.abs(dx), Math.abs(dy));
 
             if (dz >= 0.009999999776482582D) {
                 dz = MathHelper.sqrt((float) dz);
@@ -1481,7 +1478,7 @@ public abstract class CloudEntity implements Entity {
 
     public boolean isInsideOfWater() {
         float y = this.getY() + this.getEyeHeight();
-        Block block = this.level.getLoadedBlock(this.position.getFloorX(), NukkitMath.floorFloat(y), this.position.getFloorZ());
+        Block block = this.level.getLoadedBlock(this.position.getFloorX(), GenericMath.floor(y), this.position.getFloorZ());
 
         if (block == null) {
             return false;
@@ -1691,12 +1688,12 @@ public abstract class CloudEntity implements Entity {
 
     public List<Block> getBlocksAround() {
         if (this.blocksAround == null) {
-            int minX = NukkitMath.floorDouble(this.boundingBox.getMinX());
-            int minY = NukkitMath.floorDouble(this.boundingBox.getMinY());
-            int minZ = NukkitMath.floorDouble(this.boundingBox.getMinZ());
-            int maxX = NukkitMath.ceilDouble(this.boundingBox.getMaxX());
-            int maxY = NukkitMath.ceilDouble(this.boundingBox.getMaxY());
-            int maxZ = NukkitMath.ceilDouble(this.boundingBox.getMaxZ());
+            int minX = GenericMath.floor(this.boundingBox.getMinX());
+            int minY = GenericMath.floor(this.boundingBox.getMinY());
+            int minZ = GenericMath.floor(this.boundingBox.getMinZ());
+            int maxX = GenericMath.ceil(this.boundingBox.getMaxX());
+            int maxY = GenericMath.ceil(this.boundingBox.getMaxY());
+            int maxZ = GenericMath.ceil(this.boundingBox.getMaxZ());
 
             this.blocksAround = new ArrayList<>();
 

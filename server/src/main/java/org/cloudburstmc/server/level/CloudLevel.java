@@ -57,6 +57,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.component.ComponentMap;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -79,7 +80,6 @@ import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -1069,12 +1069,12 @@ public class CloudLevel implements Level {
     }
 
     public Block[] getCollisionBlocks(AxisAlignedBB bb, boolean targetFirst) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = GenericMath.floor(bb.getMinX());
+        int minY = GenericMath.floor(bb.getMinY());
+        int minZ = GenericMath.floor(bb.getMinZ());
+        int maxX = GenericMath.ceil(bb.getMaxX());
+        int maxY = GenericMath.ceil(bb.getMaxY());
+        int maxZ = GenericMath.ceil(bb.getMaxZ());
 
         List<Block> collides = new ArrayList<>();
 
@@ -1126,12 +1126,12 @@ public class CloudLevel implements Level {
     }
 
     public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb, boolean entities, boolean solidEntities) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = GenericMath.floor(bb.getMinX());
+        int minY = GenericMath.floor(bb.getMinY());
+        int minZ = GenericMath.floor(bb.getMinZ());
+        int maxX = GenericMath.ceil(bb.getMaxX());
+        int maxY = GenericMath.ceil(bb.getMaxY());
+        int maxZ = GenericMath.ceil(bb.getMaxZ());
 
         List<AxisAlignedBB> collides = new ArrayList<>();
 
@@ -1174,12 +1174,12 @@ public class CloudLevel implements Level {
     }
 
     public boolean hasCollision(Entity entity, AxisAlignedBB bb, boolean entities) {
-        int minX = NukkitMath.floorDouble(bb.getMinX());
-        int minY = NukkitMath.floorDouble(bb.getMinY());
-        int minZ = NukkitMath.floorDouble(bb.getMinZ());
-        int maxX = NukkitMath.ceilDouble(bb.getMaxX());
-        int maxY = NukkitMath.ceilDouble(bb.getMaxY());
-        int maxZ = NukkitMath.ceilDouble(bb.getMaxZ());
+        int minX = GenericMath.floor(bb.getMinX());
+        int minY = GenericMath.floor(bb.getMinY());
+        int minZ = GenericMath.floor(bb.getMinZ());
+        int maxX = GenericMath.ceil(bb.getMaxX());
+        int maxY = GenericMath.ceil(bb.getMaxY());
+        int maxZ = GenericMath.ceil(bb.getMaxZ());
 
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
@@ -1948,10 +1948,10 @@ public class CloudLevel implements Level {
         ImmutableSet.Builder<Entity> entities = null;
 
         if (entity == null || entity.canCollide()) {
-            int minX = NukkitMath.floorDouble((bb.getMinX() - 2) / 16);
-            int maxX = NukkitMath.ceilDouble((bb.getMaxX() + 2) / 16);
-            int minZ = NukkitMath.floorDouble((bb.getMinZ() - 2) / 16);
-            int maxZ = NukkitMath.ceilDouble((bb.getMaxZ() + 2) / 16);
+            int minX = GenericMath.floor((bb.getMinX() - 2) / 16);
+            int maxX = GenericMath.ceil((bb.getMaxX() + 2) / 16);
+            int minZ = GenericMath.floor((bb.getMinZ() - 2) / 16);
+            int maxZ = GenericMath.ceil((bb.getMaxZ() + 2) / 16);
 
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
@@ -1982,10 +1982,10 @@ public class CloudLevel implements Level {
     }
 
     public Set<Entity> getNearbyEntities(AxisAlignedBB bb, Entity entity, boolean loadChunks) {
-        int minX = NukkitMath.floorDouble((bb.getMinX() - 2) * 0.0625);
-        int maxX = NukkitMath.ceilDouble((bb.getMaxX() + 2) * 0.0625);
-        int minZ = NukkitMath.floorDouble((bb.getMinZ() - 2) * 0.0625);
-        int maxZ = NukkitMath.ceilDouble((bb.getMaxZ() + 2) * 0.0625);
+        int minX = GenericMath.floor((bb.getMinX() - 2) * 0.0625);
+        int maxX = GenericMath.ceil((bb.getMaxX() + 2) * 0.0625);
+        int minZ = GenericMath.floor((bb.getMinZ() - 2) * 0.0625);
+        int maxZ = GenericMath.ceil((bb.getMaxZ() + 2) * 0.0625);
 
         ImmutableSet.Builder<Entity> entities = null;
 
@@ -2391,7 +2391,7 @@ public class CloudLevel implements Level {
 
         int lx = x & 0x0f;
         int lz = z & 0x0f;
-        int y = NukkitMath.clamp(startY, getMinHeight(), 254);
+        int y = GenericMath.clamp(startY, getMinHeight(), 254);
 
         while (y < 254) {
             BlockState feet = chunk.getBlock(lx, y, lz);
@@ -2648,10 +2648,10 @@ public class CloudLevel implements Level {
         if (bb.getMaxY() < -64 || bb.getMinY() >= 320) {
             return false;
         }
-        int minX = NukkitMath.floorDouble(bb.getMinX()) >> 4;
-        int minZ = NukkitMath.floorDouble(bb.getMinZ()) >> 4;
-        int maxX = NukkitMath.floorDouble(bb.getMaxX()) >> 4;
-        int maxZ = NukkitMath.floorDouble(bb.getMaxZ()) >> 4;
+        int minX = GenericMath.floor(bb.getMinX()) >> 4;
+        int minZ = GenericMath.floor(bb.getMinZ()) >> 4;
+        int maxX = GenericMath.floor(bb.getMaxX()) >> 4;
+        int maxZ = GenericMath.floor(bb.getMaxZ()) >> 4;
 
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {

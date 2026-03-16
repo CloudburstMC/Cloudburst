@@ -5,13 +5,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Arrays;
@@ -103,9 +103,9 @@ public class TeleportCommand extends Command {
             ((CloudPlayer) target).teleport(Location.from(position, yaw, pitch, ((CloudPlayer) target).getLevel()), PlayerTeleportEvent.TeleportCause.COMMAND);
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success.coordinates",
                     Component.text(target.getName()),
-                    Component.text(String.valueOf(NukkitMath.round(position.getX(), 2))),
-                    Component.text(String.valueOf(NukkitMath.round(position.getY(), 2))),
-                    Component.text(String.valueOf(NukkitMath.round(position.getZ(), 2)))));
+                    Component.text(String.valueOf(GenericMath.round(position.getX(), 2))),
+                    Component.text(String.valueOf(GenericMath.round(position.getY(), 2))),
+                    Component.text(String.valueOf(GenericMath.round(position.getZ(), 2)))));
             if (target != sender) {
                 target.sendMessage(Component.translatable("commands.tp.successVictim", Component.text(position.toString())));
             }

@@ -12,6 +12,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -31,7 +32,6 @@ import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
@@ -311,7 +311,7 @@ public class EntityHuman extends EntityCreature implements Human {
                 source.setDamage(-source.getFinalDamage() * armorPoints * 0.04f, EntityDamageEvent.DamageModifier.ARMOR);
             }
 
-            source.setDamage(-source.getFinalDamage() * Math.min(NukkitMath.ceilFloat(Math.min(epf, 25) * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f,
+            source.setDamage(-source.getFinalDamage() * Math.min(GenericMath.ceil(Math.min(epf, 25) * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f,
                     EntityDamageEvent.DamageModifier.ARMOR_ENCHANTMENTS);
 
             source.setDamage(-Math.min(this.getAbsorption(), source.getFinalDamage()), EntityDamageEvent.DamageModifier.ABSORPTION);

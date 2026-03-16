@@ -3,12 +3,12 @@ package org.cloudburstmc.server.command.defaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.math.NukkitMath;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -46,20 +46,20 @@ public class StatusCommand extends Command {
         }
 
         sender.sendMessage(Component.text("Current TPS: ").color(NamedTextColor.YELLOW)
-                .append(Component.text(NukkitMath.round(tps, 2)).color(tpsColor)));
+                .append(Component.text(GenericMath.round(tps, 2)).color(tpsColor)));
         sender.sendMessage(Component.text("Load: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(server.getTickUsage() + "%").color(tpsColor)));
         sender.sendMessage(Component.text("Network upload: ").color(NamedTextColor.YELLOW)
-                .append(Component.text(NukkitMath.round((server.getNetwork().getUpload() / 1024 * 1000), 2) + " kB/s").color(NamedTextColor.GREEN)));
+                .append(Component.text(GenericMath.round((server.getNetwork().getUpload() / 1024 * 1000), 2) + " kB/s").color(NamedTextColor.GREEN)));
         sender.sendMessage(Component.text("Network download: ").color(NamedTextColor.YELLOW)
-                .append(Component.text(NukkitMath.round((server.getNetwork().getDownload() / 1024 * 1000), 2) + " kB/s").color(NamedTextColor.GREEN)));
+                .append(Component.text(GenericMath.round((server.getNetwork().getDownload() / 1024 * 1000), 2) + " kB/s").color(NamedTextColor.GREEN)));
         sender.sendMessage(Component.text("Thread count: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(Thread.getAllStackTraces().size()).color(NamedTextColor.GREEN)));
 
         Runtime runtime = Runtime.getRuntime();
-        double totalMB = NukkitMath.round(((double) runtime.totalMemory()) / 1024 / 1024, 2);
-        double usedMB = NukkitMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
-        double maxMB = NukkitMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
+        double totalMB = GenericMath.round(((double) runtime.totalMemory()) / 1024 / 1024, 2);
+        double usedMB = GenericMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
+        double maxMB = GenericMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
         double usage = usedMB / maxMB * 100;
         NamedTextColor usageColor = NamedTextColor.GREEN;
         if (usage > 85) {
@@ -67,7 +67,7 @@ public class StatusCommand extends Command {
         }
 
         sender.sendMessage(Component.text("Used memory: ").color(NamedTextColor.YELLOW)
-                .append(Component.text(usedMB + " MB. (" + NukkitMath.round(usage, 2) + "%)").color(usageColor)));
+                .append(Component.text(usedMB + " MB. (" + GenericMath.round(usage, 2) + "%)").color(usageColor)));
 
         sender.sendMessage(Component.text("Total memory: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(totalMB + " MB.").color(NamedTextColor.RED)));
@@ -101,7 +101,7 @@ public class StatusCommand extends Command {
                     .append(Component.text(" entities, ").color(NamedTextColor.GREEN))
                     .append(Component.text(level.getBlockEntities().size()).color(NamedTextColor.RED))
                     .append(Component.text(" blockEntities. Time ").color(NamedTextColor.GREEN))
-                    .append(Component.text(NukkitMath.round(level.getTickRateTime(), 2) + "ms" + tickRateInfo)
+                    .append(Component.text(GenericMath.round(level.getTickRateTime(), 2) + "ms" + tickRateInfo)
                             .color(slowTick ? NamedTextColor.RED : NamedTextColor.YELLOW)));
         }
 

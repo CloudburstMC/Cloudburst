@@ -8,26 +8,22 @@ import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.MovingObjectPosition;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
-import org.cloudburstmc.server.math.NukkitMath;
 
 import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityProjectile extends CloudEntity implements Projectile {
 
-    protected float damage;
     public boolean hadCollision = false;
     public boolean closeOnCollide = true;
+    protected float damage;
 
     public EntityProjectile(EntityType<?> type, Location location) {
         super(type, location);
@@ -48,7 +44,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     public int getResultDamage() {
-        return NukkitMath.ceilFloat(this.motion.length() * getDamage());
+        return GenericMath.ceil(this.motion.length() * getDamage());
     }
 
     public float getDamage() {
