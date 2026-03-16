@@ -1,0 +1,95 @@
+name: Bug Report
+description: File a bug report for Cloudburst.
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting**, please make sure:
+        - The bug is reproducible on the **latest build** of Cloudburst
+        - You are running a **clean server** (no plugins, unless the bug is plugin-related)
+        - There is no existing issue for this bug
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Reliable steps someone can follow to reproduce the issue. Do not submit reports for non-reproducible bugs.
+      placeholder: |
+        1. Start the server with...
+        2. Connect a client and...
+        3. Observe that...
+    validations:
+      required: true
+
+  - type: input
+    id: cloudburst-version
+    attributes:
+      label: Cloudburst Version
+      description: Run `/version` in the Cloudburst console. Do not write "latest".
+      placeholder: 'This server is running Cloudburst git-caa5dcb implementing API version 2.0.0 for Minecraft: Bedrock Edition 1.26.0 (protocol version 924)'
+    validations:
+      required: true
+
+  - type: textarea
+    id: java-version
+    attributes:
+      label: Java Version
+      description: Run `java -version` in your terminal and paste the full output here.
+      placeholder: |
+        java version "21.0.10" 2026-01-20 LTS
+        Java(TM) SE Runtime Environment (build 21.0.10+8-LTS-217)
+        Java HotSpot(TM) 64-Bit Server VM (build 21.0.10+8-LTS-217, mixed mode, sharing)
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: debug-paste
+    attributes:
+      label: Debug Paste
+      description: Run `/debugpaste` in the Cloudburst console and paste the link here.
+      placeholder: 'https://hastebin.com/aBcDeFgHiJ'
+    validations:
+      required: true
+
+  - type: input
+    id: timings
+    attributes:
+      label: Timings Paste
+      description: If the bug is performance-related (lag, TPS drops, slow startup), run `/timings paste` and paste the link here.
+      placeholder: 'http://timings.aikar.co/aBcDeFgHiJ'
+    validations:
+      required: false
+
+  - type: textarea
+    id: crashdump
+    attributes:
+      label: Crashdump, Backtrace or Other Files
+      description: Paste any relevant crash dumps, stack traces, or logs. Use https://gist.github.com for large files and paste the link here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched for existing issues and this is not a duplicate
+          required: true

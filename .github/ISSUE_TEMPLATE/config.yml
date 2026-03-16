@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Cloudburst Community Forums
+    url: https://cloudburstmc.org/forums
+    about: Ask questions and discuss here instead of opening an issue.
+  - name: Cloudburst Discord
+    url: https://cloudburstmc.org/discord
+    about: Ask questions and discuss here instead of opening an issue.

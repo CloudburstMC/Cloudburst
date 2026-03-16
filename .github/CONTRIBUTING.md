@@ -22,7 +22,7 @@ Cloudburst will create a bug report for EVERY exception and error detected, and 
 
 In the report, you can see if the error is caused by Cloudburst or a plugin. However, when "PLUGIN ERROR" is "false" and there are plugins running, it does not necessarily indicates that the error is caused by Cloudburst.
 
-To sumbit bugs and problems, please upload the automaticly generated report. Make sure you have filled in all blanks in the template. Please provide **as much information as you could**, or our developers might got stuck or confused when looking into your issue.
+To submit bugs and problems, please upload the automatically generated report. Make sure you have filled in all blanks in the template. Please provide **as much information as you could**, or our developers might get stuck or confused when looking into your issue.
 
 To submit feature requests and suggestions, please explicitly describe the feature you want or your suggestion.
 
@@ -111,5 +111,4 @@ Java HotSpot(TM) 64-Bit Server VM (build 9+175, mixed mode)
 |:----:|:-----:|
 | Client Edition | Android | <!--- Windows 10? Android? iOS? Simulators with x86 platform? -->
 | Client Version | 1.0.4 | <!--- Client Version, such as 1.1.2, 0.15.90 or 0.15 build 1 and so on -->
-
 ```

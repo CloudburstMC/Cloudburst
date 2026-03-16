@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest a new feature or improvement for Cloudburst.
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting**, please make sure:
+        - This feature does not already exist in the latest build of Cloudburst
+        - This is your own original idea (not a copy of another request)
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Clearly and concisely describe the feature you are requesting.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / Use Case
+      description: Why is this feature needed? What problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched for existing feature requests and this is not a duplicate
+          required: true
