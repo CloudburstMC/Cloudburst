@@ -1,9 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
-import java.util.Properties
 
 plugins {
-    alias(libs.plugins.shadow)
     alias(libs.plugins.extra.java.module.info)
+    alias(libs.plugins.git.properties)
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -86,8 +86,16 @@ publishing {
     publications {
         withType<MavenPublication> {
             artifactId = "cloudburst-server"
+            artifact(tasks.generateGitProperties) {
+                extension = "properties"
+            }
         }
     }
+}
+
+gitProperties {
+    failOnNoGitDirectory = false
+    customProperty("github.repo", "CloudburstMC/Cloudburst")
 }
 
 tasks.shadowJar {
@@ -144,50 +152,4 @@ tasks.register<JavaExec>("generateBlockData") {
 
 tasks.compileJava {
     dependsOn("generateBlockData")
-}
-
-abstract class GenerateGitPropertiesTask : DefaultTask() {
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
-
-    @get:Inject
-    abstract val providers: ProviderFactory
-
-    @TaskAction
-    fun generate() {
-        val file = outputFile.get().asFile
-        file.parentFile.mkdirs()
-        val properties = Properties()
-
-        try {
-            val gitCommit = providers.exec {
-                commandLine("git", "rev-parse", "--short", "HEAD")
-            }.standardOutput.asText.get().trim()
-            properties["git.commit.id.abbrev"] = gitCommit
-
-            val gitBranch = providers.exec {
-                commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
-            }.standardOutput.asText.get().trim()
-            properties["git.branch"] = gitBranch
-
-            val gitCommitTime = providers.exec {
-                commandLine("git", "log", "-1", "--format=%ct")
-            }.standardOutput.asText.get().trim()
-            properties["git.commit.time"] = gitCommitTime
-        } catch (e: Exception) {
-            println("Warning: Could not retrieve git information: ${e.message}")
-            properties["git.commit.id.abbrev"] = "unknown"
-        }
-
-        file.outputStream().use { properties.store(it, "Git Information") }
-    }
-}
-
-tasks.register<GenerateGitPropertiesTask>("generateGitProperties") {
-    outputFile.set(layout.buildDirectory.file("resources/main/git.properties"))
-    notCompatibleWithConfigurationCache("Executes git commands at runtime")
-}
-
-tasks.processResources {
-    dependsOn("generateGitProperties")
 }
