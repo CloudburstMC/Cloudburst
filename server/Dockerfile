@@ -1,51 +1,51 @@
-# This Dockerfile uses Docker Multi-Stage Builds
-# See https://docs.docker.com/engine/userguide/eng-image/multistage-build/
-# Requires Docker v17.05
+FROM eclipse-temurin:21-jdk-alpine AS build
 
-# Use OpenJDK JDK image for intermiediate build
-FROM openjdk:8-jdk-slim AS build
+RUN apk add --no-cache git
 
-# Install packages required for build
-RUN apt update && apt install -y \
-        build-essential \
-        git \
-        maven
-
-# Build from source and create artifact
 WORKDIR /src
-COPY ./ /src
-RUN git submodule update --init
-RUN mvn clean package
 
-# Use OpenJDK JRE image for runtime
-FROM openjdk:8-jre-slim AS run
-LABEL maintainer="Micheal Waltz <dockerfiles@ecliptik.com>"
+# Gradle wrapper and build scripts copied first so dependency layers cache
+# independently from source changes
+COPY gradlew gradlew.bat gradle.properties settings.gradle.kts build.gradle.kts ./
+COPY gradle ./gradle
+COPY api ./api
+COPY codegen ./codegen
+COPY server ./server
+COPY vanilla ./vanilla
 
-# Copy artifact from build image
-COPY --from=build /src/target/nukkit-1.0-SNAPSHOT.jar /app/nukkit.jar
+# Required so generateGitProperties can embed the commit hash and branch
+COPY .git ./.git
 
-# Create minecraft user
-RUN useradd --user-group \
-            --no-create-home \
-            --home-dir /data \
-            --shell /usr/sbin/nologin \
-            minecraft
+RUN chmod +x gradlew
 
-# Volumes
-VOLUME /data /home/minecraft
+# Cache mount keeps the Gradle distribution and all dependencies between builds
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew :server:shadowJar --no-daemon
 
-# Ports
-EXPOSE 19132
+FROM eclipse-temurin:21-jre-alpine AS run
 
-# Make app owned by minecraft user
-RUN chown -R minecraft:minecraft /app
+ARG VERSION=dev
 
-# User and group to run as
-USER minecraft:minecraft
+LABEL org.opencontainers.image.title="Cloudburst" \
+      org.opencontainers.image.description="Cloudburst Minecraft: Bedrock Edition server" \
+      org.opencontainers.image.source="https://github.com/CloudburstMC/Server" \
+      org.opencontainers.image.licenses="LGPL-3.0" \
+      org.opencontainers.image.version="${VERSION}"
 
-# Set runtime workdir
+RUN mkdir /app \
+    && addgroup -S cloudburst && adduser -S -G cloudburst \
+        -h /data -s /sbin/nologin cloudburst \
+    && chown cloudburst:cloudburst /app
+
+COPY --from=build /src/server/build/libs/Cloudburst.jar /app/cloudburst.jar
+
+EXPOSE 19132/udp
+
+USER cloudburst:cloudburst
+
 WORKDIR /data
 
-# Run app
-ENTRYPOINT ["java"]
-CMD [ "-jar", "/app/nukkit.jar" ]
+VOLUME /data
+
+ENTRYPOINT ["java", "-jar", "/app/cloudburst.jar"]
+CMD ["--language", "en_US"]

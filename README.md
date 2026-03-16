@@ -5,29 +5,26 @@
 ![Tests](https://img.shields.io/jenkins/t/https/ci.nukkitx.com/job/NukkitX/job/Server/job/master.svg)
 [![Discord](https://img.shields.io/discord/393465748535640064.svg)](https://discord.gg/5PzMkyK)
 
-Introduction
--------------
+## Introduction
 
 Cloudburst is a server software for Minecraft: Bedrock Edition.
 It has a few key advantages over other server software:
 
-* Written in Java, Cloudburst is faster and more stable.
-* Having a friendly structure, it's easy to contribute to Cloudburst's development and rewrite plugins from other platforms into Cloudburst plugins.
+- Written in Java, Cloudburst is faster and more stable.
+- Having a friendly structure, it's easy to contribute to Cloudburst's development and rewrite plugins from other platforms into Cloudburst plugins.
 
-Cloudburst is **under improvement**, yet we welcome contributions. 
+Cloudburst is **under improvement**, yet we welcome contributions.
 
-Links
---------------------
+## Links
 
-* __[News](https://cloudburstmc.org)__
-* __[Forums](https://cloudburstmc.org/forums)__
-* __[Discord](https://discord.gg/5PzMkyK)__
-* __[Download](https://ci.opencollab.dev/job/NukkitX/job/Server/job/bleeding/)__
-* __[Plugins](https://cloudburstmc.org/resources/categories/cloudburst-plugins.19/)__
-* __[Wiki](https://cloudburstmc.org/wiki/cloudburst)__
+- **[News](https://cloudburstmc.org)**
+- **[Forums](https://cloudburstmc.org/forums)**
+- **[Discord](https://discord.gg/5PzMkyK)**
+- **[Download](https://ci.opencollab.dev/job/NukkitX/job/Server/job/bleeding/)**
+- **[Plugins](https://cloudburstmc.org/resources/categories/cloudburst-plugins.19/)**
+- **[Wiki](https://cloudburstmc.org/wiki/cloudburst)**
 
-Build JAR file
--------------
+## Build JAR file
 
 - `git clone https://github.com/CloudburstMC/Cloudburst.git`
 - `cd Cloudburst`
@@ -36,37 +33,30 @@ Build JAR file
 
 The compiled JAR can be found in the `server/build/libs` directory.
 
-Running
--------------
+## Running
+
 Simply run `java -jar Cloudburst.jar`.
 
-Plugin API
--------------
+## Plugin API
+
 Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.org/wiki/cloudburst/).
 
-Docker
--------------
+## Docker
 
-Running Nukkit in [Docker](https://www.docker.com/) (17.05+ or higher).
-
-Build image from source,
+Run from the repo root:
 
 ```
-docker build -t nukkit .
+docker compose -f server/docker-compose.yml up -d
 ```
 
-Run once to generate the `/data` volume, default settings, and choose language,
+The default language is `en_US`. To change it, append `--language <locale>` to the command.
+
+Server data is persisted in the `cloudburst-data` named volume. To access the interactive console after starting:
 
 ```
-docker run -it --rm -p 19132:19132 nukkit
+docker attach cloudburst
 ```
 
-Use [docker-compose](https://docs.docker.com/compose/overview/) to start server on port `19132` and with `./data` volume,
+## Contributing
 
-```
-docker-compose up -d
-```
-
-Contributing
-------------
 Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) guide before submitting any issue. Issues with insufficient information or in the wrong format will be closed and will not be reviewed.

@@ -1,1 +1,27 @@
-data
+# Build artifacts and caches
+.gradle/
+build/
+**/build/
+out/
+
+# IDE files
+.idea/
+.settings/
+.classpath
+.project
+.factorypath
+*.iml
+*.iws
+*.ipr
+
+# Server runtime data not part of the image
+server/run/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# .git is intentionally NOT excluded because generateGitProperties reads it to
+# embed the commit hash and branch into the built jar.

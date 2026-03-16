@@ -1,11 +1,17 @@
-version: '3'
 services:
-  nukkit:
-    build: ./
+  cloudburst:
+    build:
+      context: ../
+      dockerfile: server/Dockerfile
+    image: cloudburstmc/server:latest
+    container_name: cloudburst
     ports:
-      - "19132:19132"
       - "19132:19132/udp"
     volumes:
-      - ./data:/data
+      - cloudburst-data:/data
     stdin_open: true
     tty: true
+    restart: unless-stopped
+
+volumes:
+  cloudburst-data:
