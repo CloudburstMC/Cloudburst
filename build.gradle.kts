@@ -7,6 +7,19 @@ subprojects {
     if (name != "codegen") {
         apply(plugin = "maven-publish")
         apply(plugin = rootProject.libs.plugins.checkerframework.get().pluginId)
+
+        configure<PublishingExtension> {
+            repositories {
+                maven {
+                    name = "opencollab"
+                    url = uri("https://repo.opencollab.dev/maven-snapshots")
+                    credentials {
+                        username = System.getenv("DEPLOY_USERNAME")
+                        password = System.getenv("DEPLOY_PASSWORD")
+                    }
+                }
+            }
+        }
     }
 
     group = "org.cloudburstmc"
