@@ -117,7 +117,7 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
         final Vector3i anchorPos = fakePosA;
         final byte windowId = player.assignContainerId(backingContainer);
 
-        player.getServer().getScheduler().scheduleDelayedTask(null, () -> {
+        player.getServer().getGlobalScheduler().runDelayed(null, t -> {
             if (!player.isConnected()) {
                 return;
             }
@@ -145,7 +145,7 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
         originalStatesA = null;
         originalStatesB = null;
 
-        player.getServer().getScheduler().scheduleDelayedTask(null, () -> {
+        player.getServer().getGlobalScheduler().runDelayed(null, t -> {
             if (!player.isConnected()) return;
             CloudLevel level = player.getLevel();
             level.sendBlocks(
@@ -155,7 +155,7 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
             );
         }, CLOSE_RESTORE_DELAY_TICKS);
 
-        player.getServer().getScheduler().scheduleDelayedTask(null, () -> {
+        player.getServer().getGlobalScheduler().runDelayed(null, t -> {
             if (!player.isConnected()) return;
             CloudLevel level = player.getLevel();
             level.sendBlocks(

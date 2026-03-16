@@ -32,8 +32,6 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.scheduler.PluginTask;
-import org.cloudburstmc.server.scheduler.TaskHandler;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -209,24 +207,6 @@ public final class Timings {
 
     public static Timing getCommandTiming(Command command) {
         return TimingsManager.getTiming(DEFAULT_GROUP.name, "Command: " + command.getLabel(), commandTimer);
-    }
-
-    public static Timing getTaskTiming(TaskHandler handler, long period) {
-        String repeating = " ";
-        if (period > 0) {
-            repeating += "(interval:" + period + ")";
-        } else {
-            repeating += "(Single)";
-        }
-
-        if (handler.getTask() instanceof PluginTask) {
-            String owner = ((PluginTask<?>) handler.getTask()).getContainer().getDescription().getName();
-            return TimingsManager.getTiming(owner, "PluginTask: " + handler.getTaskId() + repeating, schedulerSyncTimer);
-        } else if (!handler.isAsynchronous()) {
-            return TimingsManager.getTiming(DEFAULT_GROUP.name, "Task: " + handler.getTaskId() + repeating, schedulerSyncTimer);
-        } else {
-            return null;
-        }
     }
 
     public static Timing getPluginEventTiming(Class<? extends Event> event, Object listener, Method method, PluginContainer plugin) {

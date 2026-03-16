@@ -8,7 +8,6 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.scheduler.FileWriteTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -268,7 +267,14 @@ public class Config {
                 }
             }
             if (async) {
-                CloudServer.getInstance().getScheduler().scheduleAsyncTask(new FileWriteTask(this.file, content));
+                final String asyncContent = content;
+                CloudServer.getInstance().getAsyncScheduler().runNow(null, t -> {
+                    try {
+                        Utils.writeFile(this.file, asyncContent);
+                    } catch (IOException e) {
+                        log.throwing(Level.ERROR, e);
+                    }
+                });
 
             } else {
                 try {

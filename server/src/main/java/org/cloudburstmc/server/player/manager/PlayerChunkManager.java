@@ -15,6 +15,7 @@ import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacke
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.NukkitMath;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
@@ -54,10 +55,6 @@ public class PlayerChunkManager {
             Long2ObjectMap.Entry<LevelChunkPacket> entry = sendQueueIterator.next();
             long key = entry.getLongKey();
             if (!this.loadedChunks.contains(key)) {
-//                LevelChunkPacket packet = entry.getValue();
-//                if (packet != null) {
-//                    packet.release();
-//                }
                 sendQueueIterator.remove();
 
                 CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
@@ -160,9 +157,9 @@ public class PlayerChunkManager {
 
             if (this.sendQueue.putIfAbsent(key, null) == null) {
                 this.player.getLevel().getChunkFuture(cx, cz).thenApply(chunk -> {
-                    chunk.addLoader(this.player);
-                    return chunk;
-                }).thenApplyAsync(CloudChunk::createChunkPacket, this.player.getServer().getScheduler().getAsyncPool())
+                            chunk.addLoader(this.player);
+                            return chunk;
+                        }).thenApplyAsync(CloudChunk::createChunkPacket, ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor())
                         .whenComplete((packet, throwable) -> {
                             synchronized (PlayerChunkManager.this) {
                                 if (throwable != null) {
@@ -176,7 +173,6 @@ public class PlayerChunkManager {
                                         log.warn("Chunk ({},{}) already loaded for {}, value {}", cx, cz,
                                                 this.player.getName(), this.sendQueue.get(key));
                                     }
-//                                    packet.release();
                                 }
                             }
                         });
@@ -244,38 +240,29 @@ public class PlayerChunkManager {
     }
 
     public synchronized void clear() {
-        // Release all chunks that are loading.
-//        this.sendQueue.values().forEach(levelChunkPacket -> {
-//            if (levelChunkPacket != null) {
-//                levelChunkPacket.release();
-//            }
-//        });
         this.sendQueue.clear();
 
         this.loadedChunks.forEach(this.removeChunkLoader);
         this.loadedChunks.clear();
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    private static class AroundPlayerChunkComparator implements LongComparator {
-        private final CloudPlayer player;
+    private record AroundPlayerChunkComparator(CloudPlayer player) implements LongComparator {
+            public static int distance(int centerX, int centerZ, int x, int z) {
+                int dx = centerX - x;
+                int dz = centerZ - z;
+                return dx * dx + dz * dz;
+            }
 
-        public static int distance(int centerX, int centerZ, int x, int z) {
-            int dx = centerX - x;
-            int dz = centerZ - z;
-            return dx * dx + dz * dz;
+            @Override
+            public int compare(long o1, long o2) {
+                int x1 = CloudChunk.fromKeyX(o1);
+                int z1 = CloudChunk.fromKeyZ(o1);
+                int x2 = CloudChunk.fromKeyX(o2);
+                int z2 = CloudChunk.fromKeyZ(o2);
+                int spawnX = this.player.getPosition().getFloorX() >> 4;
+                int spawnZ = this.player.getPosition().getFloorZ() >> 4;
+
+                return Integer.compare(distance(spawnX, spawnZ, x1, z1), distance(spawnX, spawnZ, x2, z2));
+            }
         }
-
-        @Override
-        public int compare(long o1, long o2) {
-            int x1 = CloudChunk.fromKeyX(o1);
-            int z1 = CloudChunk.fromKeyZ(o1);
-            int x2 = CloudChunk.fromKeyX(o2);
-            int z2 = CloudChunk.fromKeyZ(o2);
-            int spawnX = this.player.getPosition().getFloorX() >> 4;
-            int spawnZ = this.player.getPosition().getFloorZ() >> 4;
-
-            return Integer.compare(distance(spawnX, spawnZ, x1, z1), distance(spawnX, spawnZ, x2, z2));
-        }
-    }
 }

@@ -30,6 +30,8 @@ import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.scheduler.AsyncScheduler;
+import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 import org.cloudburstmc.nbt.*;
@@ -65,8 +67,8 @@ import org.cloudburstmc.server.player.OfflinePlayer;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.registry.*;
-import org.cloudburstmc.server.scheduler.ServerScheduler;
-import org.cloudburstmc.server.scheduler.Task;
+import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
+import org.cloudburstmc.server.scheduler.CloudGlobalScheduler;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.DefaultPlayerDataSerializer;
 import org.cloudburstmc.server.utils.Utils;
@@ -94,10 +96,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * @author MagicDroidX
- * @author Box
- */
 @Log4j2
 public class CloudServer implements Server {
 
@@ -123,7 +121,8 @@ public class CloudServer implements Server {
 
     private final int profilingTickrate = 20;
 
-    private ServerScheduler scheduler;
+    private GlobalScheduler globalScheduler;
+    private AsyncScheduler asyncScheduler;
 
     private int tickCounter;
 
@@ -254,7 +253,8 @@ public class CloudServer implements Server {
         this.levelManager = injector.getInstance(LevelManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(PackManager.class);
-        this.scheduler = injector.getInstance(ServerScheduler.class);
+        this.globalScheduler = injector.getInstance(CloudGlobalScheduler.class);
+        this.asyncScheduler = injector.getInstance(CloudAsyncScheduler.class);
 
 /*        this.playerMetadata = injector.getInstance(PlayerMetadataStore.class);
         this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
@@ -428,7 +428,6 @@ public class CloudServer implements Server {
         }
         int parallelism = (int) poolSize;
         System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(parallelism));
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.exceptionHandler", "org.cloudburstmc.server.scheduler.ServerScheduler.ExceptionHandler");
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
@@ -657,8 +656,8 @@ public class CloudServer implements Server {
             this.pluginManager.deregisterLoader(JavaPluginLoader.class);
 
             log.debug("Stopping all tasks");
-            this.scheduler.cancelAllTasks();
-            this.scheduler.mainThreadHeartbeat(Integer.MAX_VALUE);
+            this.globalScheduler.cancelAllTasks();
+            this.asyncScheduler.cancelAllTasks();
 
             log.debug("Unloading all levels");
             this.levelManager.close();
@@ -922,7 +921,7 @@ public class CloudServer implements Server {
             }
 
             try (Timing ignored2 = Timings.schedulerTimer.startTiming()) {
-                this.scheduler.mainThreadHeartbeat(this.tickCounter);
+                this.globalScheduler.tick(this.tickCounter);
             }
 
             this.checkTickUpdates(this.tickCounter, tickTime);
@@ -1194,8 +1193,14 @@ public class CloudServer implements Server {
         return packManager;
     }
 
-    public ServerScheduler getScheduler() {
-        return scheduler;
+    @Override
+    public GlobalScheduler getGlobalScheduler() {
+        return globalScheduler;
+    }
+
+    @Override
+    public AsyncScheduler getAsyncScheduler() {
+        return asyncScheduler;
     }
 
     public int getTick() {
@@ -1380,23 +1385,13 @@ public class CloudServer implements Server {
                 eventManager.fire(event);
             }
 
-            this.getScheduler().scheduleTask(new Task() {
-                boolean hasRun = false;
-
-                @Override
-                public void onRun(int currentTick) {
-                    this.onCancel();
-                }
-
-                //doing it like this ensures that the playerdata will be saved in a server shutdown
-                @Override
-                public void onCancel() {
-                    if (!this.hasRun) {
-                        this.hasRun = true;
-                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null));
-                    }
-                }
-            }, async);
+            if (async) {
+                this.asyncScheduler.runNow(null, t ->
+                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null)));
+            } else {
+                this.globalScheduler.run(null, t ->
+                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null)));
+            }
         }
     }
 

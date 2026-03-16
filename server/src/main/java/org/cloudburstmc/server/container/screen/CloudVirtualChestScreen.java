@@ -132,7 +132,7 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
         fakePos = null;
         originalStates = null;
 
-        player.getServer().getScheduler().scheduleDelayedTask(null, () -> {
+        player.getServer().getGlobalScheduler().runDelayed(null, t -> {
             if (!player.isConnected()) {
                 return;
             }

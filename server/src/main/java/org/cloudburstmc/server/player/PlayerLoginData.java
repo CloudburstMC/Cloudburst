@@ -7,7 +7,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.event.player.PlayerCreationEvent;
 import org.cloudburstmc.server.network.BedrockInterface;
-import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
 
 import java.lang.reflect.Constructor;
@@ -15,19 +14,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * @author Extollite
- */
 @Log4j2
 public class PlayerLoginData {
     private final BedrockServerSession session;
     private final CloudServer server;
     private final BedrockInterface interfaz;
 
-    private AsyncTask preLoginEventTask;
+    private Runnable preLoginEventTask;
     private String username;
     private ClientChainData chainData;
     private boolean shouldLogin;
+    private volatile boolean preLoginDone;
     private List<Consumer<Player>> loginTasks;
     private boolean clientCacheEnabled;
 
@@ -49,7 +46,8 @@ public class PlayerLoginData {
             Constructor<? extends CloudPlayer> constructor = clazz.getConstructor(BedrockServerSession.class, ClientChainData.class);
             player = constructor.newInstance(session, chainData);
             this.server.addPlayer(session.getSocketAddress(), player);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
             log.throwing(Level.ERROR, e);
             return null;
         }
@@ -61,11 +59,11 @@ public class PlayerLoginData {
         return player;
     }
 
-    public AsyncTask getPreLoginEventTask() {
+    public Runnable getPreLoginEventTask() {
         return preLoginEventTask;
     }
 
-    public void setPreLoginEventTask(AsyncTask preLoginEventTask) {
+    public void setPreLoginEventTask(Runnable preLoginEventTask) {
         this.preLoginEventTask = preLoginEventTask;
     }
 
@@ -85,6 +83,14 @@ public class PlayerLoginData {
         this.shouldLogin = shouldLogin;
     }
 
+    public boolean isPreLoginDone() {
+        return preLoginDone;
+    }
+
+    public void setPreLoginDone(boolean preLoginDone) {
+        this.preLoginDone = preLoginDone;
+    }
+
     public BedrockServerSession getSession() {
         return session;
     }
@@ -97,12 +103,12 @@ public class PlayerLoginData {
         this.username = username;
     }
 
-    public void setLoginTasks(List<Consumer<Player>> tasks) {
-        this.loginTasks = tasks;
-    }
-
     public List<Consumer<Player>> getLoginTasks() {
         return loginTasks;
+    }
+
+    public void setLoginTasks(List<Consumer<Player>> tasks) {
+        this.loginTasks = tasks;
     }
 
     public boolean isClientCacheEnabled() {

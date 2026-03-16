@@ -16,7 +16,6 @@ import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.ProtocolInfo;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.PlayerLoginData;
-import org.cloudburstmc.server.scheduler.AsyncTask;
 import org.cloudburstmc.server.utils.ClientChainData;
 
 import java.util.function.Consumer;
@@ -99,41 +98,34 @@ public class LoginPacketHandler implements BedrockPacketHandler {
         session.setPacketHandler(new ResourcePackPacketHandler(session, server, loginData));
 
         PlayerLoginData loginDataInstance = loginData;
-        loginData.setPreLoginEventTask(new AsyncTask() {
+        loginData.setPreLoginEventTask(() ->
+                server.getAsyncScheduler().runNow(null, asyncTask -> {
+                    PlayerAsyncPreLoginEvent e = new PlayerAsyncPreLoginEvent(loginDataInstance.getChainData());
+                    server.getEventManager().fire(e);
 
-            private PlayerAsyncPreLoginEvent e;
-
-            @Override
-            public void onRun() {
-                e = new PlayerAsyncPreLoginEvent(loginDataInstance.getChainData());
-                server.getEventManager().fire(e);
-            }
-
-            @Override
-            public void onCompletion(CloudServer server) {
-                if (loginDataInstance.getSession().getPeer().isConnected()) {
-                    if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
-                        loginDataInstance.getSession().disconnect(e.getKickMessage());
-                    } else if (loginDataInstance.isShouldLogin()) {
-                        try {
-                            CloudPlayer player = loginDataInstance.initializePlayer();
-
-                            for (Consumer<Player> action : e.getScheduledActions()) {
-                                action.accept(player);
+                    server.getGlobalScheduler().run(null, mainTask -> {
+                        loginDataInstance.setPreLoginDone(true);
+                        if (loginDataInstance.getSession().getPeer().isConnected()) {
+                            if (e.getLoginResult() == PlayerAsyncPreLoginEvent.LoginResult.KICK) {
+                                loginDataInstance.getSession().disconnect(e.getKickMessage());
+                            } else if (loginDataInstance.isShouldLogin()) {
+                                try {
+                                    CloudPlayer player = loginDataInstance.initializePlayer();
+                                    for (Consumer<Player> action : e.getScheduledActions()) {
+                                        action.accept(player);
+                                    }
+                                } catch (Exception ex) {
+                                    log.debug("Error in player initialization: {}", ex.getMessage());
+                                }
+                            } else {
+                                loginDataInstance.setLoginTasks(e.getScheduledActions());
                             }
-                        } catch (Exception e) {
-                            //This will at least notify us of exceptions that were eaten in the network/protocol level
-                            log.debug("Error in player initialization: {}", e.getMessage());
                         }
-                    } else {
-                        // Finished this before the resouce pack packets finished
-                        loginDataInstance.setLoginTasks(e.getScheduledActions());
-                    }
-                }
-            }
-        });
+                    });
+                })
+        );
 
-        this.server.getScheduler().scheduleAsyncTask(null, loginData.getPreLoginEventTask());
+        loginData.getPreLoginEventTask().run();
 
         PlayStatusPacket statusPacket = new PlayStatusPacket();
         statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);

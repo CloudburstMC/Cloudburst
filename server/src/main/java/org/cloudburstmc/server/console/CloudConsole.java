@@ -33,7 +33,7 @@ public class CloudConsole extends SimpleTerminalConsole {
                     server.getEventManager().fire(event);
                 }
                 if (!event.isCancelled()) {
-                    CloudServer.getInstance().getScheduler().scheduleTask(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
+                    CloudServer.getInstance().getGlobalScheduler().execute(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
                 }
             }
         } else {

@@ -10,6 +10,8 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.api.scheduler.AsyncScheduler;
+import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
@@ -131,4 +133,14 @@ public interface Server {
     void setAutoSave(boolean autoSave);
 
     String getApiVersion();
+
+    /**
+     * Returns the main-thread, tick-bound global scheduler.
+     */
+    GlobalScheduler getGlobalScheduler();
+
+    /**
+     * Returns the off-thread, real-time async scheduler.
+     */
+    AsyncScheduler getAsyncScheduler();
 }

@@ -16,6 +16,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
+import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public final class LevelChunkManager {
 
     public LevelChunkManager(CloudLevel level, LevelProvider provider) {
         this.level = level;
-        this.executor = this.level.getServer().getScheduler().getAsyncPool();
+        this.executor = ((CloudAsyncScheduler) this.level.getServer().getAsyncScheduler()).getExecutor();
         this.provider = provider;
     }
 

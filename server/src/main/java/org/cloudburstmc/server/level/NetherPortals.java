@@ -17,7 +17,6 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.scheduler.Task;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -413,93 +412,90 @@ public final class NetherPortals {
                 return;
             }
 
-            entity.getServer().getScheduler().scheduleTask(new Task() {
-                @Override
-                public void onRun(int currentTick) {
-                    if (!entity.isAlive() || entity.closed) {
-                        entity.pendingPortalTransfer = false;
-                        return;
-                    }
-
-                    int destX = scaledLoc.getFloorX();
-                    int destY = scaledLoc.getFloorY();
-                    int destZ = scaledLoc.getFloorZ();
-                    Vector3i destPos = Vector3i.from(destX, destY, destZ);
-
-                    Optional<Vector3i> existingPortal = findNearestPortal(targetLevel, destPos, searchRadius);
-
-                    Vector3f spawnPos;
-                    Direction.Axis destAxis;
-                    if (existingPortal.isPresent()) {
-                        Vector3i portalPos = existingPortal.get();
-                        BlockState portalBlock = targetLevel.getBlockState(portalPos);
-                        destAxis = portalBlock.getType() == BlockTypes.PORTAL ? portalBlock.ensureTrait(BlockTraits.PORTAL_AXIS) : sourceAxis;
-
-                        int bottomY = portalPos.getY();
-                        int minY = targetLevel.getMinHeight();
-                        while (bottomY > minY && targetLevel.getBlockState(portalPos.getX(), bottomY - 1, portalPos.getZ()).getType() == BlockTypes.PORTAL) {
-                            bottomY--;
-                        }
-
-                        PortalExtents dest = findPortalExtents(targetLevel, portalPos.getX(), bottomY, portalPos.getZ(), destAxis);
-                        float[] rel = PortalFrame.computeRelativePositionFor(entity, sourceAxis);
-                        float relX = rel[0];
-                        float relY = rel[1];
-                        float perpendicularOffset = rel[2];
-
-                        float entityWidth = entity.getWidth();
-                        float entityHeight = entity.getHeight();
-                        boolean destAxisX = destAxis == Direction.Axis.X;
-
-                        double offsetAlongAxis = entityWidth / 2.0 + (dest.width() - entityWidth) * relX;
-                        double offsetY = dest.height() > entityHeight ? (dest.height() - entityHeight) * relY : 0.0;
-
-                        double ex = dest.leftX() + (destAxisX ? offsetAlongAxis : 0.5 + perpendicularOffset);
-                        double ez = dest.leftZ() + (destAxisX ? 0.5 + perpendicularOffset : offsetAlongAxis);
-                        double ey = bottomY + offsetY;
-                        spawnPos = Vector3f.from((float) ex, (float) ey, (float) ez);
-                    } else {
-                        destAxis = sourceAxis;
-                        int safeY = findSafeY(targetLevel, destX, destY, destZ, destAxis);
-                        Vector3i origin = Vector3i.from(destX, safeY, destZ);
-                        createPortal(targetLevel, origin, destAxis);
-
-                        PortalExtents dest = findPortalExtents(targetLevel, origin.getX(), origin.getY(), origin.getZ(), destAxis);
-                        float[] rel = PortalFrame.computeRelativePositionFor(entity, sourceAxis);
-                        float relX = rel[0];
-                        float relY = rel[1];
-                        float perpendicularOffset = rel[2];
-
-                        float entityWidth = entity.getWidth();
-                        float entityHeight = entity.getHeight();
-                        boolean destAxisX = destAxis == Direction.Axis.X;
-
-                        double offsetAlongAxis = entityWidth / 2.0 + (dest.width() - entityWidth) * relX;
-                        double offsetY = dest.height() > entityHeight ? (dest.height() - entityHeight) * relY : 0.0;
-
-                        double ex = dest.leftX() + (destAxisX ? offsetAlongAxis : 0.5 + perpendicularOffset);
-                        double ez = dest.leftZ() + (destAxisX ? 0.5 + perpendicularOffset : offsetAlongAxis);
-                        double ey = origin.getY() + offsetY;
-                        spawnPos = Vector3f.from((float) ex, (float) ey, (float) ez);
-                    }
-
-                    float exitYaw = entity.getYaw();
-                    if (sourceAxis != destAxis) {
-                        exitYaw += 90.0f;
-                    }
-
-                    spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
-                    targetLevel.addSound(spawnPos, Sound.PORTAL_TRAVEL);
-                    entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
-                    if (entity instanceof CloudPlayer player) {
-                        player.setChangingDimension(true);
-                    }
-
-                    entity.setMotion(Vector3f.ZERO);
-                    entity.portalCooldown = entity.getPortalCooldownTicks();
-                    entity.inPortalTicks = 0;
+            entity.getServer().getGlobalScheduler().run(null, scheduledTask -> {
+                if (!entity.isAlive() || entity.closed) {
                     entity.pendingPortalTransfer = false;
+                    return;
                 }
+
+                int destX = scaledLoc.getFloorX();
+                int destY = scaledLoc.getFloorY();
+                int destZ = scaledLoc.getFloorZ();
+                Vector3i destPos = Vector3i.from(destX, destY, destZ);
+
+                Optional<Vector3i> existingPortal = findNearestPortal(targetLevel, destPos, searchRadius);
+
+                Vector3f spawnPos;
+                Direction.Axis destAxis;
+                if (existingPortal.isPresent()) {
+                    Vector3i portalPos = existingPortal.get();
+                    BlockState portalBlock = targetLevel.getBlockState(portalPos);
+                    destAxis = portalBlock.getType() == BlockTypes.PORTAL ? portalBlock.ensureTrait(BlockTraits.PORTAL_AXIS) : sourceAxis;
+
+                    int bottomY = portalPos.getY();
+                    int minY = targetLevel.getMinHeight();
+                    while (bottomY > minY && targetLevel.getBlockState(portalPos.getX(), bottomY - 1, portalPos.getZ()).getType() == BlockTypes.PORTAL) {
+                        bottomY--;
+                    }
+
+                    PortalExtents dest = findPortalExtents(targetLevel, portalPos.getX(), bottomY, portalPos.getZ(), destAxis);
+                    float[] rel = PortalFrame.computeRelativePositionFor(entity, sourceAxis);
+                    float relX = rel[0];
+                    float relY = rel[1];
+                    float perpendicularOffset = rel[2];
+
+                    float entityWidth = entity.getWidth();
+                    float entityHeight = entity.getHeight();
+                    boolean destAxisX = destAxis == Direction.Axis.X;
+
+                    double offsetAlongAxis = entityWidth / 2.0 + (dest.width() - entityWidth) * relX;
+                    double offsetY = dest.height() > entityHeight ? (dest.height() - entityHeight) * relY : 0.0;
+
+                    double ex = dest.leftX() + (destAxisX ? offsetAlongAxis : 0.5 + perpendicularOffset);
+                    double ez = dest.leftZ() + (destAxisX ? 0.5 + perpendicularOffset : offsetAlongAxis);
+                    double ey = bottomY + offsetY;
+                    spawnPos = Vector3f.from((float) ex, (float) ey, (float) ez);
+                } else {
+                    destAxis = sourceAxis;
+                    int safeY = findSafeY(targetLevel, destX, destY, destZ, destAxis);
+                    Vector3i origin = Vector3i.from(destX, safeY, destZ);
+                    createPortal(targetLevel, origin, destAxis);
+
+                    PortalExtents dest = findPortalExtents(targetLevel, origin.getX(), origin.getY(), origin.getZ(), destAxis);
+                    float[] rel = PortalFrame.computeRelativePositionFor(entity, sourceAxis);
+                    float relX = rel[0];
+                    float relY = rel[1];
+                    float perpendicularOffset = rel[2];
+
+                    float entityWidth = entity.getWidth();
+                    float entityHeight = entity.getHeight();
+                    boolean destAxisX = destAxis == Direction.Axis.X;
+
+                    double offsetAlongAxis = entityWidth / 2.0 + (dest.width() - entityWidth) * relX;
+                    double offsetY = dest.height() > entityHeight ? (dest.height() - entityHeight) * relY : 0.0;
+
+                    double ex = dest.leftX() + (destAxisX ? offsetAlongAxis : 0.5 + perpendicularOffset);
+                    double ez = dest.leftZ() + (destAxisX ? 0.5 + perpendicularOffset : offsetAlongAxis);
+                    double ey = origin.getY() + offsetY;
+                    spawnPos = Vector3f.from((float) ex, (float) ey, (float) ez);
+                }
+
+                float exitYaw = entity.getYaw();
+                if (sourceAxis != destAxis) {
+                    exitYaw += 90.0f;
+                }
+
+                spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
+                targetLevel.addSound(spawnPos, Sound.PORTAL_TRAVEL);
+                entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
+                if (entity instanceof CloudPlayer player) {
+                    player.setChangingDimension(true);
+                }
+
+                entity.setMotion(Vector3f.ZERO);
+                entity.portalCooldown = entity.getPortalCooldownTicks();
+                entity.inPortalTicks = 0;
+                entity.pendingPortalTransfer = false;
             });
         });
     }

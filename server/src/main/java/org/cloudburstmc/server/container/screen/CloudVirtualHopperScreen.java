@@ -131,7 +131,7 @@ public class CloudVirtualHopperScreen extends CloudContainerScreen implements Vi
         fakePos = null;
         originalStates = null;
 
-        player.getServer().getScheduler().scheduleDelayedTask(null, () -> {
+        player.getServer().getGlobalScheduler().runDelayed(null, t -> {
             if (!player.isConnected()) {
                 return;
             }
