@@ -1,3 +1,11 @@
+publishing {
+    publications {
+        withType<MavenPublication> {
+            artifactId = "cloudburst-api"
+        }
+    }
+}
+
 dependencies {
     api(libs.adventure.api)
     api(libs.adventure.text.minimessage)

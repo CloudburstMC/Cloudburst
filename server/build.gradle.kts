@@ -82,6 +82,14 @@ extraJavaModuleInfo {
     automaticModule("org.osgi:org.osgi.service.serviceloader", "org.osgi.service.serviceloader")
 }
 
+publishing {
+    publications {
+        withType<MavenPublication> {
+            artifactId = "cloudburst-server"
+        }
+    }
+}
+
 tasks.shadowJar {
     archiveBaseName.set("Cloudburst")
     archiveVersion.set("")
