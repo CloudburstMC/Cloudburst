@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Publish
+        run: ./gradlew publish
+        env:
+          DEPLOY_USERNAME: ${{ vars.OPENCOLLAB_USERNAME }}
+          DEPLOY_PASSWORD: ${{ secrets.OPENCOLLAB_PASSWORD }}

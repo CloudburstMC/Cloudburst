@@ -1,0 +1,28 @@
+name: Pull Request
+
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Build
+        run: ./gradlew shadowJar
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: Cloudburst
+          path: server/build/libs/Cloudburst.jar
