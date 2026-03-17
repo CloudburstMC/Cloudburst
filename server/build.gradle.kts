@@ -94,6 +94,10 @@ publishing {
     }
 }
 
+tasks.jar {
+    archiveClassifier.set("dev")
+}
+
 gitProperties {
     failOnNoGitDirectory = false
     customProperty("github.repo", "CloudburstMC/Cloudburst")
