@@ -71,6 +71,7 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
+import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -165,6 +166,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        player.setClientTick(packet.getTick());
+
         Set<PlayerAuthInputData> inputData = packet.getInputData();
 
         processMovement(packet);
@@ -188,26 +191,42 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     private void processMovement(PlayerAuthInputPacket packet) {
         if (player.getTeleportPosition() != null) {
+            if (packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT)) {
+                player.setTeleportPosition(null);
+            } else {
+                return;
+            }
+        }
+
+        Vector3f rawPos = packet.getPosition();
+        Vector3f rawRot = packet.getRotation();
+
+        if (!Float.isFinite(rawPos.getX()) || !Float.isFinite(rawPos.getY()) || !Float.isFinite(rawPos.getZ())
+                || !Float.isFinite(rawRot.getX()) || !Float.isFinite(rawRot.getY()) || !Float.isFinite(rawRot.getZ())) {
+            log.debug("PlayerAuthInput contains non-finite values, dropping packet");
             return;
         }
 
-        Vector3f newPos = packet.getPosition().sub(0, player.getEyeHeight(), 0);
+        Vector3f newPos = rawPos.sub(0, player.getEyeHeight(), 0);
         Vector3f currentPos = player.getPosition();
 
-        float yaw = packet.getRotation().getY() % 360;
-        float pitch = packet.getRotation().getX() % 360;
+        float yaw = rawRot.getY() % 360;
+        float pitch = rawRot.getX() % 360;
 
         if (yaw < 0) {
             yaw += 360;
         }
 
-        if (newPos.distanceSquared(currentPos) < 0.01 && yaw == player.getYaw() && pitch == player.getPitch()) {
+        final float ROT_EPSILON = 0.001f;
+        if (newPos.distanceSquared(currentPos) < 0.01 && Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON) {
             return;
         }
 
-        if (currentPos.distance(newPos) > 50) {
-            log.debug("PlayerAuthInput packet too far, REVERTING");
-            player.sendPosition(currentPos, yaw, pitch, MovePlayerPacket.Mode.RESPAWN);
+        ServerConfig.Movement movementConfig = player.getServer().getConfig().getMovement();
+        Vector3f distanceOrigin = player.getForceMovement() != null ? player.getForceMovement() : currentPos;
+        if (distanceOrigin.distance(newPos) > movementConfig.getMaxPositionDelta()) {
+            log.debug("[{}] position too far: claimed {} authoritative {} - correcting", player.getName(), newPos, currentPos);
+            player.sendMovementCorrection(currentPos, player.getClientTick());
             return;
         }
 
@@ -217,16 +236,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             player.setForceMovement(currentPos);
         }
 
-        if (player.getForceMovement() != null && (newPos.distanceSquared(player.getForceMovement()) > 0.1 || revert)) {
-            log.debug("PlayerAuthInput forceMovement {} REVERTING {}", player.getForceMovement(), newPos);
-            player.sendPosition(player.getForceMovement(), yaw, pitch, MovePlayerPacket.Mode.RESPAWN);
+        if (player.getForceMovement() != null && (newPos.distanceSquared(player.getForceMovement()) > movementConfig.getPositionAcceptanceThreshold() || revert)) {
+            log.debug("[{}] position does not match forced position: claimed {} forced {} - correcting", player.getName(), newPos, player.getForceMovement());
+            player.sendMovementCorrection(player.getForceMovement(), player.getClientTick());
         } else {
             player.setRotation(yaw, pitch);
             player.setNewPosition(newPos);
             player.setForceMovement(null);
-        }
 
-        if (player.getVehicle() != null) {
             if (player.getVehicle() instanceof EntityBoat) {
                 player.getVehicle().setPositionAndRotation(newPos.sub(0, 1, 0), (yaw + 90) % 360, 0);
             }

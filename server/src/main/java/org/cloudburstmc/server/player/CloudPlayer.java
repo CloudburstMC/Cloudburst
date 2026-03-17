@@ -212,6 +212,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     protected Vector3f newPosition = null;
     protected Vector3f teleportPosition = null;
     protected Vector3i sleeping = null;
+    protected long clientTick = 0;
 
     @Getter
     private int selectedHotbarSlot = 0;
@@ -1879,14 +1880,23 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         float distanceSquared = newPosition.distanceSquared(currentPos);
 
         boolean revert = false;
-        if ((distanceSquared / ((float) (tickDiff * tickDiff))) > 100 && (newPosition.getY() - currentPos.getY()) > -5) {
-            log.debug("{} moved too fast!", this.getName());
+        String revertReason = null;
+
+        float tickDiffSq = (float) tickDiff * (float) tickDiff;
+        float maxSpeedThreshold = this.server.getConfig().getMovement().getMaxSpeedThreshold();
+
+        // Gliding and significant downward freefall legitimately exceed the sprint speed cap.
+        boolean speedExempt = this.isGliding() || (newPosition.getY() - currentPos.getY()) < -3.0f;
+        if ((distanceSquared / tickDiffSq) > maxSpeedThreshold && !speedExempt) {
+            log.debug("[{}] moved too fast: {} blocks/tick - correcting", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)));
             revert = true;
+            revertReason = "speed";
         } else {
             if (this.chunk == null) {
                 CloudChunk chunk = this.getLevel().getLoadedChunk(newPosition);
                 if (chunk == null) {
                     revert = true;
+                    revertReason = "chunk not loaded";
                 } else {
                     this.chunk = chunk;
                 }
@@ -1912,7 +1922,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             double diffZ = currentPos.getZ() - newPosition.getZ();
 
             double yS = 0.5 + this.ySize;
-            if (diffY >= -yS || diffY <= yS) {
+            if (diffY > -yS && diffY < yS) {
                 diffY = 0;
             }
 
@@ -1927,7 +1937,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         Location from = Location.from(this.lastPosition, this.lastYaw, this.lastPitch, this.getLevel());
         Location to = this.getLocation();
 
-        double delta = Math.pow(this.lastPosition.getX() - to.getX(), 2) + Math.pow(this.lastPosition.getY() - to.getY(), 2) + Math.pow(this.position.getZ() - to.getZ(), 2);
+        double delta = Math.pow(this.lastPosition.getX() - to.getX(), 2) + Math.pow(this.lastPosition.getY() - to.getY(), 2) + Math.pow(this.lastPosition.getZ() - to.getZ(), 2);
         double deltaAngle = Math.abs(this.lastYaw - to.getYaw()) + Math.abs(this.lastPitch - to.getPitch());
 
         if (!revert && (delta > 0.0001d || deltaAngle > 1d)) {
@@ -1940,8 +1950,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             this.lastPitch = to.getPitch();
 
             if (!isFirst) {
-                List<Block> blocksAround = new ArrayList<>(this.blocksAround);
-                List<Block> collidingBlockStates = new ArrayList<>(this.collisionBlockStates);
+                List<Block> blocksAround = this.blocksAround != null ? new ArrayList<>(this.blocksAround) : new ArrayList<>();
+                List<Block> collidingBlockStates = this.collisionBlockStates != null ? new ArrayList<>(this.collisionBlockStates) : new ArrayList<>();
 
                 PlayerMoveEvent ev = new PlayerMoveEvent(this, from, to);
 
@@ -1957,6 +1967,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                         this.addMovement(this.getX(), this.getY() + getBaseOffset(), this.getZ(), this.getYaw(), this.getPitch(), this.getYaw());
                     }
                 } else {
+                    revertReason = "PlayerMoveEvent cancelled";
                     this.blocksAround = blocksAround;
                     this.collisionBlockStates = collidingBlockStates;
                 }
@@ -1991,17 +2002,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         if (revert) {
-
             this.lastPosition = from.getPosition();
-
             this.lastYaw = from.getYaw();
             this.lastPitch = from.getPitch();
 
-            // We have to send slightly above otherwise the player will fall into the ground.
             Location location = from.add(0, 0.00001, 0);
-            log.debug("processMovement REVERTING");
-            this.sendPosition(location.getPosition(), from.getYaw(), from.getPitch(), MovePlayerPacket.Mode.RESPAWN); // TODO Check this
-            //this.sendSettings();
+            log.debug("[{}] movement corrected to {} (reason: {})", this.getName(), location.getPosition(), revertReason);
+            sendMovementCorrection(location.getPosition(), this.clientTick);
             this.forceMovement = location.getPosition();
         } else {
             this.forceMovement = null;
@@ -2013,6 +2020,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
         this.sendPosition(Vector3f.from(x, y - getBaseOffset() /*TODO: find better solution */, z), yaw, pitch, MovePlayerPacket.Mode.NORMAL, getViewers());
+    }
+
+    public void sendMovementCorrection(Vector3f authoritativePos, long tick) {
+        CorrectPlayerMovePredictionPacket correction = new CorrectPlayerMovePredictionPacket();
+        correction.setPredictionType(PredictionType.PLAYER);
+        correction.setPosition(authoritativePos.add(0, getEyeHeight(), 0));
+        correction.setDelta(Vector3f.ZERO);
+        correction.setOnGround(this.isOnGround());
+        correction.setTick(tick);
+        this.sendPacket(correction);
     }
 
     @Override
@@ -2231,9 +2248,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);
-        startGamePacket.setRewindHistorySize(0);
+        startGamePacket.setRewindHistorySize(this.server.getConfig().getMovement().getRewindHistorySize());
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setServerEngine("");
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(UUID.randomUUID());
@@ -2683,6 +2699,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public void setTeleportPosition(Vector3f teleportPosition) {
         this.teleportPosition = teleportPosition;
+    }
+
+    public long getClientTick() {
+        return clientTick;
+    }
+
+    public void setClientTick(long tick) {
+        this.clientTick = tick;
     }
 
     public Vector3f getForceMovement() {

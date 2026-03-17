@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.config;
 
-import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.annotation.JsonNaming;
 import lombok.*;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.player.GameMode;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +15,194 @@ import java.util.Map;
  * so you don't have to care about where the config actually lies
  */
 public class ServerConfig {
+    private final ServerProperties properties;
+    private final CloudburstYaml cloudburstYaml;
+
+    public ServerConfig(ServerProperties properties, CloudburstYaml cloudburstYaml) {
+        this.properties = properties;
+        this.cloudburstYaml = cloudburstYaml;
+    }
+
+    public String getMotd() {
+        return properties.getMotd();
+    }
+
+    public int getServerPort() {
+        return properties.getServerPort();
+    }
+
+    public String getSubMotd() {
+        return properties.getSubMotd();
+    }
+
+    public String getServerIp() {
+        return properties.getServerIp();
+    }
+
+    public int getViewDistance() {
+        return properties.getViewDistance();
+    }
+
+    public boolean isAchievements() {
+        return properties.isAchievements();
+    }
+
+    public boolean isAnnouncePlayerAchievements() {
+        return properties.isAnnouncePlayerAchievements();
+    }
+
+    public int getMaxPlayers() {
+        return properties.getMaxPlayers();
+    }
+
+    public boolean isHardcore() {
+        return properties.isHardcore();
+    }
+
+    public boolean isSpawnAnimals() {
+        return properties.isSpawnAnimals();
+    }
+
+    public boolean isSpawnMobs() {
+        return properties.isSpawnMobs();
+    }
+
+    public boolean isAllowFlight() {
+        return properties.isAllowFlight();
+    }
+
+    public void setWhitelist(boolean b) {
+        properties.modifyWhitelist(b);
+    }
+
+    public String getDefaultLevel() {
+        return properties.getDefaultLevel();
+    }
+
+    public void setDefaultLevel(String name) {
+        properties.modifyDefaultLevel(name);
+    }
+
+    public boolean isWhiteList() {
+        return properties.isWhiteList();
+    }
+
+    public int getSpawnProtection() {
+        return properties.getSpawnProtection();
+    }
+
+    public boolean isForceGamemode() {
+        return properties.isForceGamemode();
+    }
+
+    public boolean isPVP() {
+        return properties.isPvp();
+    }
+
+    public boolean isGenerateStructures() {
+        return properties.isGenerateStructures();
+    }
+
+    public boolean isAllowNether() {
+        return properties.isAllowNether();
+    }
+
+    public boolean isEnableQuery() {
+        return properties.isEnableQuery();
+    }
+
+    public boolean isAutoSave() {
+        return properties.isAutoSave();
+    }
+
+    public boolean isForceResources() {
+        return properties.isForceResources();
+    }
+
+    public boolean isXboxAuth() {
+        return properties.isXboxAuth();
+    }
+
+    public GameMode getGamemode() {
+        return GameMode.from(properties.getGamemode());
+    }
+
+    public void setGamemode(GameMode gameMode) {
+        properties.modifyGamemode(gameMode.getVanillaId());
+    }
+
+    public Difficulty getDifficulty() {
+        return Difficulty.values()[properties.getDifficulty()];
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        properties.modifyDifficulty(difficulty);
+    }
+
+    public Map<String, List<String>> getCommandAliases() {
+        return cloudburstYaml.getAliases();
+    }
+
+    public Timings getTimings() {
+        return cloudburstYaml.getTimings();
+    }
+
+    public Settings getSettings() {
+        return cloudburstYaml.getSettings();
+    }
+
+    public Network getNetwork() {
+        return cloudburstYaml.getNetwork();
+    }
+
+    public LevelSettings getLevelSettings() {
+        return cloudburstYaml.getLevelSettings();
+    }
+
+    public ChunkSending getChunkSending() {
+        return cloudburstYaml.getChunkSending();
+    }
+
+    public ChunkTicking getChunkTicking() {
+        return cloudburstYaml.getChunkTicking();
+    }
+
+    public ChunkGeneration getChunkGeneration() {
+        return cloudburstYaml.getChunkGeneration();
+    }
+
+    public Player getPlayer() {
+        return cloudburstYaml.getPlayer();
+    }
+
+    public Map<String, World> getWorlds() {
+        return cloudburstYaml.getWorlds();
+    }
+
+    public SpawnLimits getSpawnLimits() {
+        return cloudburstYaml.getSpawnLimits();
+    }
+
+    public TicksPer getTicksPer() {
+        return cloudburstYaml.getTicksPer();
+    }
+
+    public Debug getDebug() {
+        return cloudburstYaml.getDebug();
+    }
+
+    public Movement getMovement() {
+        return cloudburstYaml.getMovement();
+    }
+
+    public ServerProperties getServerProperties() {
+        return properties;
+    }
+
+    public CloudburstYaml getCloudburstYaml() {
+        return cloudburstYaml;
+    }
+
     @Data
     @Setter(AccessLevel.PRIVATE)
     @Builder
@@ -31,6 +219,7 @@ public class ServerConfig {
         @Builder.Default
         private int batchThreshold = 256;
     }
+
     @Data
     @Setter(AccessLevel.PRIVATE)
     @Builder
@@ -119,6 +308,37 @@ public class ServerConfig {
 
         @Builder.Default
         private int chunkTimeoutAfterLastAccess = 120;
+
+    }
+
+    @Data
+    @Setter(AccessLevel.PRIVATE)
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class Movement {
+
+        // Ticks of movement history the client keeps for server-side rewind corrections.
+        // Must cover the worst-case round-trip latency: 40 = 2 s, 100 = 5 s at 20 tps.
+        @Builder.Default
+        private int rewindHistorySize = 40;
+
+        // Maximum linear distance (blocks) a player may claim to have moved in one input
+        // packet before the position is rejected outright.
+        @Builder.Default
+        private float maxPositionDelta = 50.0f;
+
+        // Squared distance tolerance (blocks²) between the client position and the
+        // server-forced position before a correction packet is sent.
+        // Lower = stricter. Higher = more tolerant.
+        @Builder.Default
+        private float positionAcceptanceThreshold = 0.25f;
+
+        // Maximum squared speed (blocks²/tick²) before a move is rejected.
+        // Gliding and significant downward freefall are exempt.
+        @Builder.Default
+        private float maxSpeedThreshold = 20.0f;
 
     }
 
@@ -284,195 +504,4 @@ public class ServerConfig {
         private String options = null;
 
     }
-
-
-    private final ServerProperties properties;
-
-    private final CloudburstYaml cloudburstYaml;
-
-    public ServerConfig(ServerProperties properties, CloudburstYaml cloudburstYaml) {
-        this.properties = properties;
-        this.cloudburstYaml = cloudburstYaml;
-    }
-
-    // forwarding server.properties //
-
-    public String getMotd() {
-        return properties.getMotd();
-    }
-
-    public int getServerPort() {
-        return properties.getServerPort();
-    }
-
-    public String getSubMotd() {
-        return properties.getSubMotd();
-    }
-
-    public String getServerIp() {
-        return properties.getServerIp();
-    }
-
-    public int getViewDistance() {
-        return properties.getViewDistance();
-    }
-
-    public boolean isAchievements() {
-        return properties.isAchievements();
-    }
-
-    public boolean isAnnouncePlayerAchievements() {
-        return properties.isAnnouncePlayerAchievements();
-    }
-
-    public int getMaxPlayers() {
-        return properties.getMaxPlayers();
-    }
-
-    public boolean isHardcore() {
-        return properties.isHardcore();
-    }
-
-    public boolean isSpawnAnimals() {
-        return properties.isSpawnAnimals();
-    }
-
-    public boolean isSpawnMobs() {
-        return properties.isSpawnMobs();
-    }
-
-    public boolean isAllowFlight() {
-        return properties.isAllowFlight();
-    }
-
-    public void setWhitelist(boolean b) {
-        properties.modifyWhitelist(b);
-    }
-
-    public void setDefaultLevel(String name) {
-        properties.modifyDefaultLevel(name);
-    }
-
-    public String getDefaultLevel() {
-        return properties.getDefaultLevel();
-    }
-
-    public boolean isWhiteList() {
-        return properties.isWhiteList();
-    }
-
-    public int getSpawnProtection() {
-        return properties.getSpawnProtection();
-    }
-
-    public boolean isForceGamemode() {
-        return properties.isForceGamemode();
-    }
-
-    public boolean isPVP() {
-        return properties.isPvp();
-    }
-
-    public boolean isGenerateStructures() {
-        return properties.isGenerateStructures();
-    }
-
-    public boolean isAllowNether() {
-        return properties.isAllowNether();
-    }
-
-    public boolean isEnableQuery() {
-        return properties.isEnableQuery();
-    }
-
-    public boolean isAutoSave() {
-        return properties.isAutoSave();
-    }
-
-    public boolean isForceResources() {
-        return properties.isForceResources();
-    }
-
-    public boolean isXboxAuth() {
-        return properties.isXboxAuth();
-    }
-
-    public GameMode getGamemode() {
-        return GameMode.from(properties.getGamemode());
-    }
-
-    public void setGamemode(GameMode gameMode) {
-        properties.modifyGamemode(gameMode.getVanillaId());
-    }
-
-    public Difficulty getDifficulty() {
-        return Difficulty.values()[properties.getDifficulty()];
-    }
-
-    public void setDifficulty(Difficulty difficulty) {
-        properties.modifyDifficulty(difficulty);
-    }
-
-    // forwarding cloudburst.yml //
-
-    public Map<String, List<String>> getCommandAliases() {
-        return cloudburstYaml.getAliases();
-    }
-
-    public Timings getTimings() {
-        return cloudburstYaml.getTimings();
-    }
-
-    public Settings getSettings() {
-        return cloudburstYaml.getSettings();
-    }
-
-    public Network getNetwork() {
-        return cloudburstYaml.getNetwork();
-    }
-
-    public LevelSettings getLevelSettings() {
-        return cloudburstYaml.getLevelSettings();
-    }
-
-    public ChunkSending getChunkSending() {
-        return cloudburstYaml.getChunkSending();
-    }
-
-    public ChunkTicking getChunkTicking() {
-        return cloudburstYaml.getChunkTicking();
-    }
-
-    public ChunkGeneration getChunkGeneration() {
-        return cloudburstYaml.getChunkGeneration();
-    }
-
-    public Player getPlayer() {
-        return cloudburstYaml.getPlayer();
-    }
-
-    public Map<String, World> getWorlds() {
-        return cloudburstYaml.getWorlds();
-    }
-
-    public SpawnLimits getSpawnLimits() {
-        return cloudburstYaml.getSpawnLimits();
-    }
-
-    public TicksPer getTicksPer() {
-        return cloudburstYaml.getTicksPer();
-    }
-
-    public Debug getDebug() {
-        return cloudburstYaml.getDebug();
-    }
-
-    // escape hatch //
-
-    public ServerProperties getServerProperties() {
-        return properties;
-    }
-
-    public CloudburstYaml getCloudburstYaml() { return cloudburstYaml; }
-
 }

@@ -44,6 +44,7 @@ public class CloudburstYaml {
                         mapped.ticksPer,
                         mapped.debug,
                         mapped.player,
+                        mapped.movement,
                         mapped.worlds
                 );
             }
@@ -88,6 +89,9 @@ public class CloudburstYaml {
 
     @Builder.Default
     private ServerConfig.Player player = new ServerConfig.Player();
+
+    @Builder.Default
+    private ServerConfig.Movement movement = new ServerConfig.Movement();
 
     @Builder.Default
     @JsonDeserialize(using=WorldConfigDeserializer.class)

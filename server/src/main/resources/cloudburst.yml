@@ -114,6 +114,20 @@ player:
   # %player.skin-change-cooldown
   skin-change-cooldown: 30
 
+movement:
+  # Ticks of movement history the client keeps for server-side rewind corrections.
+  # 40 covers 2 s round-trip at 20 tps; increase for high-latency players.
+  rewind-history-size: 40
+  # Maximum linear distance (blocks) a player may claim to have moved in one input
+  # packet before the position is rejected outright.
+  max-position-delta: 50.0
+  # Squared distance tolerance (blocks^2) between the client position and the
+  # server-forced position before a correction packet is sent.
+  position-acceptance-threshold: 0.25
+  # Maximum squared speed (blocks^2/tick^2) before a move is rejected.
+  # Gliding and significant downward freefall are exempt.
+  max-speed-threshold: 20.0
+
 # %aliases
 aliases:
 #  showtheversion: version
