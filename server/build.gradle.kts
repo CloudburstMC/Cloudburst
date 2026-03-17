@@ -84,8 +84,9 @@ extraJavaModuleInfo {
 
 publishing {
     publications {
-        withType<MavenPublication> {
+        create<MavenPublication>("maven") {
             artifactId = "cloudburst-server"
+            from(components["java"])
             artifact(tasks.generateGitProperties) {
                 extension = "properties"
             }

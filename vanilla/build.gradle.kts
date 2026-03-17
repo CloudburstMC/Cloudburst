@@ -1,7 +1,8 @@
 publishing {
     publications {
-        withType<MavenPublication> {
+        create<MavenPublication>("maven") {
             artifactId = "cloudburst-vanilla"
+            from(components["java"])
         }
     }
 }
