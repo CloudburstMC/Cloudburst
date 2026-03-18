@@ -2,8 +2,11 @@ package org.cloudburstmc.server.level.chunk;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
@@ -18,14 +21,36 @@ public class CloudChunkSection implements ChunkSection {
     private final BlockStorage[] storage;
     private final NibbleArray blockLight;
     private final NibbleArray skyLight;
+    /**
+     * Compact position index of all randomly-ticking blocks in this section.
+     * Kept in sync with {@link #tickingBlockCount} by {@link #setBlock}.
+     * Used by the random-tick loop for O(1) rejection of non-ticking rolls.
+     */
+    private final SectionTickList tickingList;
     private BiomeStorage biomeStorage;
+    /**
+     * Number of blocks in layer 0 of this section that have the
+     * {@code CAN_RANDOM_TICK} component set to {@code true}.
+     * Maintained incrementally in {@link #setBlock}.
+     */
+    private short tickingBlockCount;
 
     public CloudChunkSection() {
-        this(new BlockStorage[]{new BlockStorage(), new BlockStorage()}, new NibbleArray(SIZE), new NibbleArray(SIZE), new BiomeStorage(DEFAULT_BIOME_ID));
+        this(
+                new BlockStorage[]{new BlockStorage(), new BlockStorage()},
+                new NibbleArray(SIZE),
+                new NibbleArray(SIZE),
+                new BiomeStorage(DEFAULT_BIOME_ID)
+        );
     }
 
     public CloudChunkSection(BlockStorage[] blockStorage) {
-        this(blockStorage, new NibbleArray(SIZE), new NibbleArray(SIZE), new BiomeStorage(DEFAULT_BIOME_ID));
+        this(
+                blockStorage,
+                new NibbleArray(SIZE),
+                new NibbleArray(SIZE),
+                new BiomeStorage(DEFAULT_BIOME_ID)
+        );
     }
 
     public CloudChunkSection(BlockStorage[] storage, byte[] blockLight, byte[] skyLight) {
@@ -39,13 +64,24 @@ public class CloudChunkSection implements ChunkSection {
         this.blockLight = new NibbleArray(blockLight);
         this.skyLight = new NibbleArray(skyLight);
         this.biomeStorage = new BiomeStorage(DEFAULT_BIOME_ID);
+        this.tickingList = new SectionTickList();
+        this.tickingBlockCount = 0;
+        recalcTickingBlocks();
     }
 
-    private CloudChunkSection(BlockStorage[] storage, NibbleArray blockLight, NibbleArray skyLight, BiomeStorage biomeStorage) {
+    private CloudChunkSection(
+            BlockStorage[] storage,
+            NibbleArray blockLight,
+            NibbleArray skyLight,
+            BiomeStorage biomeStorage
+    ) {
         this.storage = storage;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
         this.biomeStorage = biomeStorage;
+        this.tickingList = new SectionTickList();
+        this.tickingBlockCount = 0;
+        recalcTickingBlocks();
     }
 
     public static int blockIndex(int x, int y, int z) {
@@ -63,6 +99,20 @@ public class CloudChunkSection implements ChunkSection {
         Preconditions.checkArgument(z >= 0 && z < 16, "z (%s) is not between 0 and 15", z);
     }
 
+    /**
+     * Returns {@code true} when {@code state} has the {@code CAN_RANDOM_TICK}
+     * component set to {@code true}. Air always returns {@code false}.
+     */
+    private static boolean canRandomTick(BlockState state) {
+        if (state == BlockStates.AIR) {
+            return false;
+        }
+
+        return CloudBlockRegistry.REGISTRY
+                .getComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK)
+                .get();
+    }
+
     void checkLayer(int layer) {
         checkElementIndex(layer, this.storage.length, "Invalid block layer");
     }
@@ -73,10 +123,52 @@ public class CloudChunkSection implements ChunkSection {
         return this.storage[layer].getBlock(blockIndex(x, y, z));
     }
 
+    /**
+     * Sets the block at the given intra-section coordinates and maintains the
+     * {@link #tickingBlockCount} counter and {@link #tickingList} index
+     * incrementally for layer 0 only.
+     */
     public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
         checkLayer(layer);
-        this.storage[layer].setBlock(blockIndex(x, y, z), blockState);
+        int idx = blockIndex(x, y, z);
+
+        if (layer == 0) {
+            BlockState old = this.storage[0].getBlock(idx);
+            boolean oldTicks = canRandomTick(old);
+            boolean newTicks = canRandomTick(blockState);
+
+            if (oldTicks && !newTicks) {
+                tickingBlockCount--;
+                tickingList.remove(x, y, z);
+            } else if (!oldTicks && newTicks) {
+                tickingBlockCount++;
+                tickingList.add(x, y, z, blockState);
+            } else if (oldTicks) {
+                tickingList.remove(x, y, z);
+                tickingList.add(x, y, z, blockState);
+            }
+        }
+
+        this.storage[layer].setBlock(idx, blockState);
+    }
+
+    /**
+     * Returns {@code true} when this section contains at least one block
+     * that has the {@code CAN_RANDOM_TICK} component set to {@code true}.
+     */
+    public boolean isRandomlyTicking() {
+        return tickingBlockCount > 0;
+    }
+
+    /**
+     * Returns the compact position index of all randomly-ticking blocks in
+     * this section. Use {@link SectionTickList#size()} as the modulus for the
+     * probability-rejection loop; never iterate it when
+     * {@link #isRandomlyTicking()} is {@code false}.
+     */
+    public SectionTickList getTickingList() {
+        return tickingList;
     }
 
     public byte getSkyLight(int x, int y, int z) {
@@ -103,7 +195,7 @@ public class CloudChunkSection implements ChunkSection {
      * Writes this section to the network buffer in sub-chunk request mode.
      *
      * @param buffer   the buffer to write to
-     * @param sectionY the absolute section Y index (e.g. -4 for Y=-64 to -49, 0 for Y=0 to 15)
+     * @param sectionY the absolute section Y index
      */
     public void writeToNetwork(ByteBuf buffer, int sectionY) {
         int layerCount = effectiveLayerCount();
@@ -150,10 +242,6 @@ public class CloudChunkSection implements ChunkSection {
 
     /**
      * Sets the biome ID for every Y position in a single XZ column within this section.
-     *
-     * @param x       0–15 within the section
-     * @param z       0–15 within the section
-     * @param biomeId raw biome integer ID
      */
     public void fillColumnBiome(int x, int z, int biomeId) {
         checkXZ(x, z);
@@ -164,10 +252,6 @@ public class CloudChunkSection implements ChunkSection {
 
     /**
      * Returns the biome ID at the given intra-section coordinates.
-     *
-     * @param x 0–15 within the section
-     * @param y 0–15 within the section
-     * @param z 0–15 within the section
      */
     public int getBiome(int x, int y, int z) {
         checkBounds(x, y, z);
@@ -176,11 +260,6 @@ public class CloudChunkSection implements ChunkSection {
 
     /**
      * Sets the biome ID at the given intra-section coordinates.
-     *
-     * @param x       0–15 within the section
-     * @param y       0–15 within the section
-     * @param z       0–15 within the section
-     * @param biomeId raw biome integer ID
      */
     public void setBiome(int x, int y, int z, int biomeId) {
         checkBounds(x, y, z);
@@ -213,6 +292,9 @@ public class CloudChunkSection implements ChunkSection {
         return storage;
     }
 
+    /**
+     * Returns {@code true} when all block storage layers are empty.
+     */
     public boolean isEmpty() {
         for (BlockStorage blockStorage : this.storage) {
             if (!blockStorage.isEmpty()) {
@@ -227,6 +309,32 @@ public class CloudChunkSection implements ChunkSection {
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new CloudChunkSection(storage, blockLight.copy(), skyLight.copy(), this.biomeStorage.copy());
+        return new CloudChunkSection(
+                storage,
+                blockLight.copy(),
+                skyLight.copy(),
+                this.biomeStorage.copy()
+        );
+    }
+
+    /**
+     * Rebuilds {@link #tickingBlockCount} and {@link #tickingList} from
+     * scratch by scanning layer 0.
+     */
+    private void recalcTickingBlocks() {
+        tickingList.clear();
+        int count = 0;
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 16; y++) {
+                    BlockState state = this.storage[0].getBlock(blockIndex(x, y, z));
+                    if (canRandomTick(state)) {
+                        tickingList.add(x, y, z, state);
+                        count++;
+                    }
+                }
+            }
+        }
+        tickingBlockCount = (short) count;
     }
 }

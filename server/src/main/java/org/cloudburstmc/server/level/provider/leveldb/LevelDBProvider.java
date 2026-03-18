@@ -27,7 +27,13 @@ import java.util.function.BiConsumer;
 @Log4j2
 @ParametersAreNonnullByDefault
 class LevelDBProvider implements LevelProvider {
+
     private static final int CURRENT_CHUNK_VERSION = 42;
+
+    /**
+     * Maximum number of attempts when a chunk write fails transiently.
+     */
+    private static final int SAVE_MAX_ATTEMPTS = 5;
 
     private final String levelId;
     private final Path path;
@@ -93,6 +99,7 @@ class LevelDBProvider implements LevelProvider {
 
             BlockEntitySerializer.loadBlockEntities(this.db, chunkBuilder);
             EntitySerializer.loadEntities(this.db, chunkBuilder);
+            PendingTickSerializer.loadPendingTicks(this.db, chunkBuilder);
 
             return chunkBuilder.build();
         }, this.executor);
@@ -104,13 +111,16 @@ class LevelDBProvider implements LevelProvider {
         final int z = chunk.getZ();
 
         return CompletableFuture.supplyAsync(() -> {
-            // Clear the dirty flag here rather than in LevelChunkManager, in case the chunk
-            // is modified between when it was enqueued and when it is actually written.
-            if (!chunk.isGenerated() || !chunk.clearDirty()) {
+            if (!chunk.isGenerated() || !chunk.isDirty()) {
                 return null;
             }
 
-            try (DirectWriteBatch batch = this.db.createWriteBatch()) {
+            // Serialize once while holding the chunk read lock.
+            // Re-serializing on retry is unnecessary because the batch is immutable
+            // once the lock is released.
+            Runnable onSuccess;
+            DirectWriteBatch batch = this.db.createWriteBatch();
+            try {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
@@ -128,16 +138,114 @@ class LevelDBProvider implements LevelProvider {
 
                     BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
                     EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
+                    onSuccess = PendingTickSerializer.savePendingTicks(batch, (CloudChunk) chunk);
                 } finally {
                     lockableChunk.unlock();
                 }
-
-                this.db.write(batch);
+            } catch (Exception e) {
+                try {
+                    batch.close();
+                } catch (IOException ignored) {
+                }
+                log.error("Failed to serialize chunk ({}, {}): {}", x, z, e.getMessage(), e);
                 return null;
-            } catch (IOException e) {
-                // can't happen
-                throw new RuntimeException(e);
             }
+
+            // Attempt the write with retries. The dirty flag and the scheduler
+            // save-timestamp are only updated after a confirmed successful write.
+            Exception lastFailure = null;
+            for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
+                try {
+                    this.db.write(batch);
+                    chunk.clearDirty();
+                    if (onSuccess != null) {
+                        onSuccess.run();
+                    }
+                    try {
+                        batch.close();
+                    } catch (IOException ignored) {
+                    }
+                    return null;
+                } catch (Exception e) {
+                    lastFailure = e;
+                    log.warn("Chunk ({}, {}) write attempt {}/{} failed: {}", x, z, attempt, SAVE_MAX_ATTEMPTS, e.getMessage());
+                    if (attempt < SAVE_MAX_ATTEMPTS) {
+                        try {
+                            Thread.sleep(50L * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            try {
+                batch.close();
+            } catch (IOException ignored) {
+            }
+            log.error("Failed to save chunk ({}, {}) after {} attempts", x, z, SAVE_MAX_ATTEMPTS, lastFailure);
+            return null;
+        }, this.executor);
+    }
+
+    @Override
+    public CompletableFuture<Void> savePendingTicks(CloudChunk chunk) {
+        final int x = chunk.getX();
+        final int z = chunk.getZ();
+
+        return CompletableFuture.supplyAsync(() -> {
+            Runnable onSuccess;
+            DirectWriteBatch batch = this.db.createWriteBatch();
+            try {
+                onSuccess = PendingTickSerializer.savePendingTicks(batch, chunk);
+            } catch (Exception e) {
+                try {
+                    batch.close();
+                } catch (IOException ignored) {
+                }
+                log.error("Failed to serialize pending ticks for chunk ({}, {}): {}", x, z, e.getMessage(), e);
+                return null;
+            }
+
+            if (onSuccess == null) {
+                try {
+                    batch.close();
+                } catch (IOException ignored) {
+                }
+                return null;
+            }
+
+            Exception lastFailure = null;
+            for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
+                try {
+                    this.db.write(batch);
+                    onSuccess.run();
+                    try {
+                        batch.close();
+                    } catch (IOException ignored) {
+                    }
+                    return null;
+                } catch (Exception e) {
+                    lastFailure = e;
+                    log.warn("Pending-tick write for chunk ({}, {}) attempt {}/{} failed: {}", x, z, attempt, SAVE_MAX_ATTEMPTS, e.getMessage());
+                    if (attempt < SAVE_MAX_ATTEMPTS) {
+                        try {
+                            Thread.sleep(50L * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            try {
+                batch.close();
+            } catch (IOException ignored) {
+            }
+            log.error("Failed to save pending ticks for chunk ({}, {}) after {} attempts", x, z, SAVE_MAX_ATTEMPTS, lastFailure);
+            return null;
         }, this.executor);
     }
 

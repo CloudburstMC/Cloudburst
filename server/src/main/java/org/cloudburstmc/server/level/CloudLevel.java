@@ -18,6 +18,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
@@ -74,6 +75,8 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
+import org.cloudburstmc.server.level.chunk.SectionTickList;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -94,7 +97,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -148,10 +150,14 @@ public class CloudLevel implements Level {
 
 
     private final BlockUpdateScheduler updateQueue;
-    private final Queue<Block> normalUpdateQueue = new ConcurrentLinkedDeque<>();
-//    private final TreeSet<BlockUpdateEntry> updateQueue = new TreeSet<>();
-//    private final List<BlockUpdateEntry> nextTickUpdates = Lists.newArrayList();
-    //private final Map<BlockVector3, Integer> updateQueueIndex = new HashMap<>();
+
+    /**
+     * Per-thread depth counter for recursive neighbor-update chains.
+     * Using a single-element int array avoids boxing on every increment.
+     * The counter is reset to zero after each top-level updateAround() call
+     * completes, so it is always 0 when the tick thread is idle.
+     */
+    private static final ThreadLocal<int[]> NEIGHBOR_UPDATE_DEPTH = ThreadLocal.withInitial(() -> new int[1]);
 
     private boolean autoSave;
 
@@ -246,7 +252,7 @@ public class CloudLevel implements Level {
             setThunderTime(ThreadLocalRandom.current().nextInt(168000) + 12000);
         }
 
-        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick());
+        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(), this.chunkTickList::containsKey);
 
         this.chunkTickRadius = Math.min(this.server.getViewDistance(),
                 Math.max(1, this.server.getConfig().getChunkTicking().getTickRadius()));
@@ -599,12 +605,8 @@ public class CloudLevel implements Level {
             this.levelData.tick();
 
             try (Timing ignored2 = timings.doTickPending.startTiming()) {
-                this.updateQueue.tick(this.getCurrentTick());
-            }
-
-            Block block;
-            while ((block = this.normalUpdateQueue.poll()) != null) {
-                block.getComponents().get(BlockComponents.ON_TICK).execute(block, ThreadLocalRandom.current());
+                int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
+                this.updateQueue.tick(this.getCurrentTick(), maxBlockTicks);
             }
 
             TimingsHistory.entityTicks += this.updateEntities.size();
@@ -882,8 +884,6 @@ public class CloudLevel implements Level {
             }
         }
 
-        int blockTest = 0;
-
         if (!chunkTickList.isEmpty()) {
             ObjectIterator<Long2IntMap.Entry> iter = chunkTickList.long2IntEntrySet().iterator();
             while (iter.hasNext()) {
@@ -913,27 +913,55 @@ public class CloudLevel implements Level {
 
                 if (tickSpeed > 0) {
                     ChunkSection[] sections = chunk.getSections();
-                    for (int sectionY = 0; sectionY < sections.length; sectionY++) {
-                        ChunkSection section = sections[sectionY];
-                        if (section != null) {
-                            for (int i = 0; i < tickSpeed; ++i) {
-                                int lcg = this.getUpdateLCG();
-                                int x = lcg & 0x0f;
-                                int y = lcg >>> 8 & 0x0f;
-                                int z = lcg >>> 16 & 0x0f;
+                    int minHeight = this.getMinHeight();
+                    int baseWorldX = chunkX << 4;
+                    int baseWorldZ = chunkZ << 4;
+                    ThreadLocalRandom rng = ThreadLocalRandom.current();
 
-                                BlockState state = section.getBlock(x, y, z, 0);
-                                ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
-                                if (this.blockRegistry.getComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK).get()) {
-                                    Block block = new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
-                                            state,
-                                            section.getBlock(x, y, z, 1)
-                                    });
+                    for (int sectionIdx = 0; sectionIdx < sections.length; sectionIdx++) {
+                        ChunkSection section = sections[sectionIdx];
+                        if (section == null) {
+                            continue;
+                        }
 
-                                    behaviors.get(BlockComponents.ON_RANDOM_TICK)
-                                            .execute(block, ThreadLocalRandom.current());
-                                }
+                        CloudChunkSection cs = (CloudChunkSection) section;
+                        if (!cs.isRandomlyTicking()) {
+                            continue;
+                        }
+
+                        SectionTickList tickList = cs.getTickingList();
+                        int tickingBlocks = tickList.size();
+
+                        int sectionBaseY = (sectionIdx << 4) + minHeight;
+                        for (int i = 0; i < tickSpeed; ++i) {
+                            if (rng.nextInt(4096) >= tickingBlocks) {
+                                continue;
                             }
+
+                            int idx = rng.nextInt(tickingBlocks);
+
+                            BlockState state = tickList.getState(idx);
+                            int lx = tickList.getX(idx);
+                            int ly = tickList.getY(idx);
+                            int lz = tickList.getZ(idx);
+
+                            int worldX = baseWorldX + lx;
+                            int worldY = sectionBaseY + ly;
+                            int worldZ = baseWorldZ + lz;
+
+                            ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
+                            TickBlockHandler randomTick = behaviors.get(BlockComponents.ON_RANDOM_TICK);
+                            if (randomTick == null) {
+                                continue;
+                            }
+
+                            Block block = new CloudBlock(
+                                    this,
+                                    Vector3i.from(worldX, worldY, worldZ),
+                                    new BlockState[]{state, section.getBlock(lx, ly, lz, 1)}
+                            );
+
+                            randomTick.execute(block, rng);
                         }
                     }
                 }
@@ -980,28 +1008,40 @@ public class CloudLevel implements Level {
     }
 
     public void updateAround(int posX, int posY, int posZ) {
-        BlockUpdateEvent ev;
-        Block block;
-        Block changed = this.getBlock(posX, posY, posZ);
+        int[] depth = NEIGHBOR_UPDATE_DEPTH.get();
+        int cap = this.server.getConfig().getLevel().getMaxChainedNeighborUpdates();
 
-        for (int x = posX - 1; x <= posX + 1; x++) {
-            for (int y = posY - 1; y <= posY + 1; y++) {
-                for (int z = posZ - 1; z <= posZ + 1; z++) {
-                    if (x == posX && y == posY && z == posZ) continue;
-                    block = this.getBlock(x, y, z);
-                    if (block.getState().getType() != BlockTypes.AIR) {
-                        this.getServer().getEventManager().fire(
-                                ev = new BlockUpdateEvent(block));
-                        if (!ev.isCancelled()) {
-                            normalUpdateQueue.add(block);
-                            NeighborBlockHandler handler = block.getComponents().get(BlockComponents.ON_NEIGHBOUR_CHANGED);
-                            if (handler != null) {
-                                handler.execute(block, changed);
-                            }
+        if (cap >= 0 && depth[0] >= cap) {
+            if (depth[0] == cap) {
+                log.error(
+                        "Neighbor-update chain exceeded {} updates starting near ({}, {}, {}). "
+                                + "Skipping remaining updates. Likely a runaway block interaction.",
+                        cap, posX, posY, posZ);
+            }
+            depth[0]++;
+            return;
+        }
+
+        depth[0]++;
+        try {
+            BlockUpdateEvent ev;
+            Vector3i centre = Vector3i.from(posX, posY, posZ);
+            Block changed = this.getBlock(centre);
+
+            for (Direction face : Direction.values()) {
+                Block block = this.getBlock(face.relative(centre));
+                if (block.getState().getType() != BlockTypes.AIR) {
+                    this.getServer().getEventManager().fire(ev = new BlockUpdateEvent(block));
+                    if (!ev.isCancelled()) {
+                        NeighborBlockHandler handler = block.getComponents().get(BlockComponents.ON_NEIGHBOUR_CHANGED);
+                        if (handler != null) {
+                            handler.execute(block, changed);
                         }
                     }
                 }
             }
+        } finally {
+            depth[0]--;
         }
     }
 
@@ -1009,8 +1049,12 @@ public class CloudLevel implements Level {
         scheduleUpdate(getBlock(pos), delay);
     }
 
+    public BlockUpdateScheduler getUpdateQueue() {
+        return updateQueue;
+    }
+
     public void scheduleUpdate(Block block, int delay) {
-        this.scheduleUpdate(block, block.getPosition(), delay, 0, true);
+        this.scheduleUpdate(block, block.getPosition(), delay, true);
     }
 
     public void updateAround(Vector3i pos) {
@@ -1018,37 +1062,33 @@ public class CloudLevel implements Level {
     }
 
     public void scheduleUpdate(Block block, Vector3i pos, int delay) {
-        this.scheduleUpdate(block, pos, delay, 0, true);
+        this.scheduleUpdate(block, pos, delay, true);
     }
 
     public void scheduleUpdate(BlockUpdate blockUpdate) {
-        this.scheduleUpdate(blockUpdate.getBlock(), blockUpdate.getPos(), blockUpdate.getDelay(),
-                blockUpdate.getPriority(), blockUpdate.shouldCheckArea());
+        this.scheduleUpdate(
+                blockUpdate.getBlock(),
+                blockUpdate.getPos(),
+                blockUpdate.getDelay(),
+                blockUpdate.shouldCheckArea());
     }
 
-    public void scheduleUpdate(Block block, Vector3i pos, int delay, int priority) {
-        this.scheduleUpdate(block, pos, delay, priority, true);
-    }
-
-    public void scheduleUpdate(Block block, Vector3i pos, int delay, int priority, boolean checkArea) {
+    private void scheduleUpdate(Block block, Vector3i pos, int delay, boolean checkArea) {
         if (block.getState().getType() == BlockTypes.AIR || (checkArea && !this.isChunkLoaded(pos))) {
             return;
         }
 
-        BlockUpdateEntry entry = new BlockUpdateEntry(pos, block, ((long) delay) + getCurrentTick(), priority);
-
-        if (!this.updateQueue.contains(entry)) {
-            this.updateQueue.add(entry);
-        }
+        BlockUpdateEntry entry = BlockUpdateEntry.of(pos, block, ((long) delay) + getCurrentTick());
+        this.updateQueue.add(entry);
     }
 
     @Override
     public boolean cancelScheduledUpdate(Vector3i pos) {
-        return this.updateQueue.remove(new BlockUpdateEntry(pos, getBlock(pos)));
+        return this.updateQueue.remove(BlockUpdateEntry.probe(pos, getBlock(pos)));
     }
 
     public boolean isUpdateScheduled(Vector3i pos) {
-        return this.updateQueue.contains(new BlockUpdateEntry(pos, getBlock(pos)));
+        return this.updateQueue.contains(BlockUpdateEntry.probe(pos, getBlock(pos)));
     }
 
     public Set<BlockUpdateEntry> getPendingBlockUpdates(CloudChunk chunk) {
@@ -1057,11 +1097,19 @@ public class CloudLevel implements Level {
         int minZ = (chunk.getZ() << 4) - 2;
         int maxZ = minZ + 16 + 2;
 
-        return this.getPendingBlockUpdates(new SimpleAxisAlignedBB(minX, 0, minZ, maxX, 256, maxZ));
+        return this.getPendingBlockUpdates(new SimpleAxisAlignedBB(minX, getMinHeight(), minZ, maxX, getMaxHeight(), maxZ));
     }
 
     public Set<BlockUpdateEntry> getPendingBlockUpdates(AxisAlignedBB boundingBox) {
         return updateQueue.getPendingBlockUpdates(boundingBox);
+    }
+
+    public void clearPendingBlockUpdates(AxisAlignedBB boundingBox) {
+        updateQueue.clearArea(boundingBox);
+    }
+
+    public void copyPendingBlockUpdates(AxisAlignedBB boundingBox, Vector3i offset) {
+        updateQueue.copyArea(boundingBox, offset);
     }
 
     public Block[] getCollisionBlocks(AxisAlignedBB bb) {
@@ -1114,7 +1162,7 @@ public class CloudLevel implements Level {
     }
 
     public boolean isBlockTickPending(Vector3i pos, Block block) {
-        return this.updateQueue.isBlockTickPending(pos, block);
+        return this.updateQueue.willTickThisTick(pos, block);
     }
 
     public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb) {

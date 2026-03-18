@@ -65,9 +65,6 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
-/**
- * @author MagicDroidX
- */
 @Log4j2
 public abstract class CloudEntity implements Entity {
 
@@ -653,10 +650,10 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void spawnTo(CloudPlayer player) {
-        boolean inView = player.isChunkInView(this.chunk.getX(), this.chunk.getZ());
-        boolean added = inView && this.getViewers().add(player);
-        if (!inView || !added) {
-            // out of range or already spawned
+        boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
+        boolean added = sent && this.getViewers().add(player);
+        if (!sent || !added) {
+            // chunk not yet received by client, or entity already spawned
             return;
         }
 

@@ -115,18 +115,48 @@ player:
   skin-change-cooldown: 30
 
 movement:
-  # Ticks of movement history the client keeps for server-side rewind corrections.
-  # 40 covers 2 s round-trip at 20 tps; increase for high-latency players.
+  # How many ticks of movement history to retain for server-side rewind
+  # corrections. 40 ticks covers a 2-second round trip at 20 tps.
   rewind-history-size: 40
-  # Maximum linear distance (blocks) a player may claim to have moved in one input
-  # packet before the position is rejected outright.
+  # Maximum distance (blocks) a player may claim to have moved in a single
+  # input packet before the position is rejected outright.
   max-position-delta: 50.0
-  # Squared distance tolerance (blocks^2) between the client position and the
-  # server-forced position before a correction packet is sent.
-  position-acceptance-threshold: 0.25
-  # Maximum squared speed (blocks^2/tick^2) before a move is rejected.
-  # Gliding and significant downward freefall are exempt.
+  # Speed cap in blocks squared per tick squared. Moves exceeding this
+  # rate are reverted. Gliding and active flight are exempt.
   max-speed-threshold: 20.0
+  # When true, the speed cap is halved and corrections are sent more
+  # frequently. Useful for stricter anti-cheat at the cost of more
+  # corrections on high-latency connections.
+  strict-movement: false
+  # Distance (blocks) the player position may differ from the authoritative
+  # position before a correction is sent. Values above 1.0 increase the
+  # risk of accepting invalid positions.
+  position-acceptance-threshold: 0.5
+  # When true, the player dismount position is strictly corrected on
+  # high-latency connections.
+  strict-dismount: false
+
+interaction:
+  # When true, entity interaction packets are validated more strictly.
+  strict-entity-interactions: false
+  # Maximum angle difference (0 to 1) between look direction and attack
+  # direction. 0 allows up to 90 degrees of divergence; 1 requires an
+  # exact match.
+  attack-direction-threshold: 0.85
+  # Multiplier applied to the server-side block-breaking reach distance.
+  # Values above 1.0 give players extra reach tolerance.
+  block-break-reach-scalar: 1.5
+
+level:
+  # Maximum number of scheduled block ticks executed per game tick.
+  # Capping this prevents TPS spikes during heavy redstone while still ensuring
+  # all delayed ticks fire; excess ticks carry over to the next game tick.
+  max-block-ticks: 65536
+  # Maximum number of chained neighbor-update callbacks that may fire from a
+  # single block change before the chain is cut and a warning is logged.
+  # Prevents runaway update loops from overflowing the call stack.
+  # Set to -1 to disable the cap.
+  max-chained-neighbor-updates: 1000000
 
 # %aliases
 aliases:

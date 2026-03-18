@@ -30,6 +30,14 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 @Log4j2
 public final class LevelChunkManager {
     private static final CompletableFuture<Void> COMPLETED_VOID_FUTURE = CompletableFuture.completedFuture(null);
+
+    /**
+     * How often dirty pending-tick containers are flushed to disk
+     * for chunks that remain loaded. This is independent of the full
+     * chunk autosave interval and ensures a server crash does not discard
+     * more than this many ticks worth of scheduled block updates.
+     */
+    private static final int PENDING_TICK_SAVE_INTERVAL = 300;
     private static final AtomicIntegerFieldUpdater<LoadingChunk> GENERATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "generationRunning");
     private static final AtomicIntegerFieldUpdater<LoadingChunk> POPULATION_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "populationRunning");
     private static final AtomicIntegerFieldUpdater<LoadingChunk> FINISH_RUNNING_UPDATER = AtomicIntegerFieldUpdater.newUpdater(LoadingChunk.class, "finishRunning");
@@ -39,6 +47,11 @@ public final class LevelChunkManager {
     private final LevelProvider provider;
     private final ConcurrentHashMap<Long, LoadingChunk> chunks = new ConcurrentHashMap<>();
     private final Executor executor;
+
+    /**
+     * Counts server ticks to gate the periodic pending-tick flush.
+     */
+    private int pendingTickSaveTicker = 0;
 
     public LevelChunkManager(CloudLevel level) {
         this(level, level.getProvider());
@@ -209,8 +222,13 @@ public final class LevelChunkManager {
                 return false;
             }
 
+            LevelChunkManager.this.level.getUpdateQueue().unregisterTickContainer(chunkKey);
             CompletableFuture<?> saveFuture = save ? this.saveChunk(chunk) : COMPLETED_VOID_FUTURE;
-            saveFuture.whenComplete((r, ex) -> chunk.close());
+
+            saveFuture.whenComplete((r, ex) -> {
+                LevelChunkManager.this.level.getUpdateQueue().removeTickContainer(chunkKey);
+                LevelChunkManager.this.level.getServer().getGlobalScheduler().execute(null, chunk::close);
+            });
             return true;
         }
     }
@@ -251,6 +269,11 @@ public final class LevelChunkManager {
 
         ServerConfig serverConfig = this.level.getServer().getConfig();
 
+        boolean doTickSave = (++pendingTickSaveTicker >= PENDING_TICK_SAVE_INTERVAL);
+        if (doTickSave) {
+            pendingTickSaveTicker = 0;
+        }
+
         try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {
             for (var iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
                 var entry = iter.next();
@@ -259,6 +282,13 @@ public final class LevelChunkManager {
                 CloudChunk chunk = loadingChunk.getChunk();
                 if (chunk == null) {
                     continue;
+                }
+
+                if (doTickSave && this.level.getUpdateQueue().isDirty(chunkKey, this.level.getCurrentTick())) {
+                    this.provider.savePendingTicks(chunk).exceptionally(throwable -> {
+                        log.warn("Failed to incrementally save pending ticks for chunk ({}, {})", chunk.getX(), chunk.getZ(), throwable);
+                        return null;
+                    });
                 }
 
                 if ((Math.abs(chunk.getX() - spawnX) <= spawnRadius && Math.abs(chunk.getZ() - spawnZ) <= spawnRadius) ||
@@ -288,14 +318,14 @@ public final class LevelChunkManager {
 
         private final int x;
         private final int z;
-        private CompletableFuture<CloudChunk> future;
-        private volatile CloudChunk chunk;
         volatile int generationRunning;
         volatile int populationRunning;
         volatile int finishRunning;
         volatile int closed;
         volatile long loadedTime;
         volatile long lastAccessTime;
+        private CompletableFuture<CloudChunk> future;
+        private volatile CloudChunk chunk;
 
         public LoadingChunk(long key, boolean load) {
             this.x = CloudChunk.fromKeyX(key);
@@ -371,9 +401,17 @@ public final class LevelChunkManager {
                         chunksToLoad.add(LevelChunkManager.this.getChunkFuture(x, z, true, true, false));
                     }
                 }
+
                 CompletableFuture<List<CloudChunk>> aroundFuture = CompletableFutures.allAsList(chunksToLoad);
                 this.future = this.future.thenCombineAsync(aroundFuture, FinishingTask.INSTANCE, LevelChunkManager.this.executor);
-                this.future.whenComplete((r, ex) -> FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0));
+                this.future.whenComplete((chunk, ex) -> {
+                    FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0);
+                    if (ex == null && chunk != null) {
+                        long key = CloudChunk.key(this.x, this.z);
+                        LevelChunkManager.this.level.getUpdateQueue().registerTickContainer(key);
+                        chunk.replayDeferredUpdates();
+                    }
+                });
             }
         }
 

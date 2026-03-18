@@ -247,7 +247,7 @@ public class PermissibleBase implements Permissible {
      * and clears the attachment list. Intended for permanent shutdown of a permissible
      * (e.g. player disconnect).
      *
-     * <p><strong>This is a one-way teardown — call only from the player disconnect handler.</strong>
+     * <p><strong>This is a one-way teardown; call only from the player disconnect handler.</strong>
      * After calling this method no other mutating methods should be invoked. Clearing the
      * attachment list ensures that any plugin retaining a stale {@link PermissionAttachment}
      * reference and later calling {@link PermissionAttachment#remove()} cannot re-enter this

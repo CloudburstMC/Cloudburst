@@ -45,6 +45,8 @@ public class CloudburstYaml {
                         mapped.debug,
                         mapped.player,
                         mapped.movement,
+                        mapped.interaction,
+                        mapped.level,
                         mapped.worlds
                 );
             }
@@ -92,6 +94,12 @@ public class CloudburstYaml {
 
     @Builder.Default
     private ServerConfig.Movement movement = new ServerConfig.Movement();
+
+    @Builder.Default
+    private ServerConfig.Interaction interaction = new ServerConfig.Interaction();
+
+    @Builder.Default
+    private ServerConfig.Level level = new ServerConfig.Level();
 
     @Builder.Default
     @JsonDeserialize(using=WorldConfigDeserializer.class)

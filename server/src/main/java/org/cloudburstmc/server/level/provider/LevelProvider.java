@@ -39,6 +39,24 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
     CompletableFuture<Void> saveChunk(Chunk chunk);
 
     /**
+     * Writes only the pending-tick record for {@code chunk} without touching
+     * block data, entities, or the chunk dirty flag.
+     *
+     * <p>This is called periodically for live chunks that have accumulated
+     * pending ticks since the last full save, ensuring that a crash does not
+     * silently discard scheduled ticks for long-lived loaded chunks.
+     *
+     * <p>The default implementation is a no-op; providers that do not use a
+     * dedicated pending-tick record may ignore this call.
+     *
+     * @param chunk the chunk whose pending ticks should be persisted
+     * @return a future that completes when the write has been attempted
+     */
+    default CompletableFuture<Void> savePendingTicks(CloudChunk chunk) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
      * Iterate over all chunks that the provider has.
      *
      * @param consumer

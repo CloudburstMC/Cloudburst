@@ -7,6 +7,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -71,9 +73,9 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
-import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
+import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
@@ -201,9 +203,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Vector3f rawPos = packet.getPosition();
         Vector3f rawRot = packet.getRotation();
 
-        if (!Float.isFinite(rawPos.getX()) || !Float.isFinite(rawPos.getY()) || !Float.isFinite(rawPos.getZ())
-                || !Float.isFinite(rawRot.getX()) || !Float.isFinite(rawRot.getY()) || !Float.isFinite(rawRot.getZ())) {
-            log.debug("PlayerAuthInput contains non-finite values, dropping packet");
+        if (!Float.isFinite(rawPos.getX()) || !Float.isFinite(rawPos.getY()) || !Float.isFinite(rawPos.getZ()) || !Float.isFinite(rawRot.getX()) || !Float.isFinite(rawRot.getY()) || !Float.isFinite(rawRot.getZ())) {
+            log.debug("[{}] movement packet dropped: non-finite position/rotation {}/{}", player.getName(), rawPos, rawRot);
             return;
         }
 
@@ -212,41 +213,37 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         float yaw = rawRot.getY() % 360;
         float pitch = rawRot.getX() % 360;
-
         if (yaw < 0) {
             yaw += 360;
         }
 
         final float ROT_EPSILON = 0.001f;
-        if (newPos.distanceSquared(currentPos) < 0.01 && Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON) {
+        boolean posUnchanged = newPos.distanceSquared(currentPos) < 0.01f;
+        boolean rotUnchanged = Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON;
+        if (posUnchanged && rotUnchanged) {
             return;
         }
 
-        ServerConfig.Movement movementConfig = player.getServer().getConfig().getMovement();
-        Vector3f distanceOrigin = player.getForceMovement() != null ? player.getForceMovement() : currentPos;
-        if (distanceOrigin.distance(newPos) > movementConfig.getMaxPositionDelta()) {
-            log.debug("[{}] position too far: claimed {} authoritative {} - correcting", player.getName(), newPos, currentPos);
+        float maxDelta = player.getServer().getConfig().getMovement().getMaxPositionDelta();
+        float distance = currentPos.distance(newPos);
+        if (distance > maxDelta) {
+            log.debug("[{}] movement corrected: claimed {} is {} blocks from current {}, exceeds max {}", player.getName(), newPos, String.format("%.2f", distance), currentPos, maxDelta);
             player.sendMovementCorrection(currentPos, player.getClientTick());
             return;
         }
 
-        boolean revert = false;
         if (!player.isAlive() || !player.spawned) {
-            revert = true;
-            player.setForceMovement(currentPos);
+            log.debug("[{}] movement packet dropped: player not alive or not spawned (alive={} spawned={})", player.getName(), player.isAlive(), player.spawned);
+            player.sendMovementCorrection(currentPos, player.getClientTick());
+            return;
         }
 
-        if (player.getForceMovement() != null && (newPos.distanceSquared(player.getForceMovement()) > movementConfig.getPositionAcceptanceThreshold() || revert)) {
-            log.debug("[{}] position does not match forced position: claimed {} forced {} - correcting", player.getName(), newPos, player.getForceMovement());
-            player.sendMovementCorrection(player.getForceMovement(), player.getClientTick());
-        } else {
-            player.setRotation(yaw, pitch);
-            player.setNewPosition(newPos);
-            player.setForceMovement(null);
+        player.setRotation(yaw, pitch);
+        player.setNewPosition(newPos);
+        player.setForceMovement(null);
 
-            if (player.getVehicle() instanceof EntityBoat) {
-                player.getVehicle().setPositionAndRotation(newPos.sub(0, 1, 0), (yaw + 90) % 360, 0);
-            }
+        if (player.getVehicle() instanceof EntityBoat) {
+            player.getVehicle().setPositionAndRotation(newPos.sub(0, 1, 0), (yaw + 90) % 360, 0);
         }
     }
 
@@ -714,7 +711,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
         if (packet.getRuntimeEntityId() != player.getRuntimeId()) {
-            log.warn(player.getName() + " sent EmotePacket with invalid entity id: " + packet.getRuntimeEntityId() + " != " + player.getRuntimeId());
+            log.warn("{} sent EmotePacket with invalid entity id: {} != {}", player.getName(), packet.getRuntimeEntityId(), player.getRuntimeId());
             return PacketSignal.HANDLED;
         }
         for (CloudPlayer p : this.player.getViewers()) {
@@ -725,7 +722,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(PacketViolationWarningPacket packet) {
-        log.warn("Recived Packet Violation Warning: {}", packet.toString());
+        log.warn("Received packet violation warning: {}", packet.toString());
         return PacketSignal.HANDLED;
     }
 
@@ -745,7 +742,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStack clientItem = ItemUtils.fromNetwork(packet.getItem());
 
         if (!serverItem.isSimilar(clientItem)) {
-            log.debug("Tried to equip " + clientItem + " but have " + serverItem + " in target slot");
+            log.debug("Tried to equip {} but have {} in target slot", clientItem, serverItem);
             player.getInventoryManager().sendAllInventories();
             return PacketSignal.HANDLED;
         }
@@ -936,7 +933,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public PacketSignal handle(BlockPickRequestPacket packet) {
         if (player.isSpectator()) {
-            log.debug("Got block-pick request from " + player.getName() + " when in spectator mode");
+            log.debug("Got block-pick request from {} when in spectator mode", player.getName());
             return PacketSignal.HANDLED;
         }
 
@@ -944,7 +941,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
 
         if (block.getState().getType() == BlockTypes.AIR) {
-            log.debug("Got block-pick request from " + player.getName() + " for air block");
+            log.debug("Got block-pick request from {} for air block", player.getName());
             return PacketSignal.HANDLED;
         }
 
@@ -1528,6 +1525,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         int minSectionY = this.player.getLevel().getMinSectionY();
         int maxSectionY = minSectionY + this.player.getLevel().getSectionsCount() - 1;
 
+        Long2IntMap servedPerColumn = new Long2IntOpenHashMap();
         for (Vector3i offset : packet.getPositionOffsets()) {
             int sectionY = center.getY() + offset.getY();
             int chunkX = center.getX() + offset.getX();
@@ -1652,6 +1650,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 locked.unlock();
             }
 
+            SubChunkRequestResult result = subChunkData.getResult();
+            if (result == SubChunkRequestResult.SUCCESS || result == SubChunkRequestResult.SUCCESS_ALL_AIR) {
+                long columnKey = CloudChunk.key(chunkX, chunkZ);
+                servedPerColumn.mergeInt(columnKey, 1, Integer::sum);
+            }
+
             responseChunks.add(subChunkData);
         }
 
@@ -1660,6 +1664,23 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         response.setCenterPosition(center);
         response.setSubChunks(responseChunks);
         player.sendPacket(response);
+
+        PlayerChunkManager chunkManager = player.getChunkManager();
+        servedPerColumn.long2IntEntrySet().forEach(entry -> {
+            long key = entry.getLongKey();
+            int chunkX2 = CloudChunk.fromKeyX(key);
+            int chunkZ2 = CloudChunk.fromKeyZ(key);
+            chunkManager.recordSubChunkServed(chunkX2, chunkZ2, entry.getIntValue());
+        });
+
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(ServerboundLoadingScreenPacket packet) {
+        if (packet.getType() == ServerboundLoadingScreenPacketType.END_LOADING_SCREEN) {
+            player.setChangingDimension(false);
+        }
         return PacketSignal.HANDLED;
     }
 
@@ -1672,13 +1693,5 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return false;
         }
         return Objects.equals(inventoryItem.get(ItemKeys.DAMAGE), pickedItem.get(ItemKeys.DAMAGE));
-    }
-
-    @Override
-    public PacketSignal handle(ServerboundLoadingScreenPacket packet) {
-        if (packet.getType() == ServerboundLoadingScreenPacketType.END_LOADING_SCREEN) {
-            player.setChangingDimension(false);
-        }
-        return PacketSignal.HANDLED;
     }
 }

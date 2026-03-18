@@ -195,6 +195,14 @@ public class ServerConfig {
         return cloudburstYaml.getMovement();
     }
 
+    public Interaction getInteraction() {
+        return cloudburstYaml.getInteraction();
+    }
+
+    public Level getLevel() {
+        return cloudburstYaml.getLevel();
+    }
+
     public ServerProperties getServerProperties() {
         return properties;
     }
@@ -319,26 +327,63 @@ public class ServerConfig {
     @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Movement {
 
-        // Ticks of movement history the client keeps for server-side rewind corrections.
-        // Must cover the worst-case round-trip latency: 40 = 2 s, 100 = 5 s at 20 tps.
+        // How many ticks of movement history to retain for server-side rewind
+        // corrections. 40 ticks covers a 2-second round trip at 20 tps.
         @Builder.Default
         private int rewindHistorySize = 40;
 
-        // Maximum linear distance (blocks) a player may claim to have moved in one input
-        // packet before the position is rejected outright.
+        // Maximum distance (blocks) a player may claim to have moved in a
+        // single input packet before the position is rejected outright.
         @Builder.Default
         private float maxPositionDelta = 50.0f;
 
-        // Squared distance tolerance (blocks²) between the client position and the
-        // server-forced position before a correction packet is sent.
-        // Lower = stricter. Higher = more tolerant.
-        @Builder.Default
-        private float positionAcceptanceThreshold = 0.25f;
-
-        // Maximum squared speed (blocks²/tick²) before a move is rejected.
-        // Gliding and significant downward freefall are exempt.
+        // Speed cap in blocks squared per tick squared. Moves exceeding this
+        // rate are reverted. Gliding and active flight are exempt.
         @Builder.Default
         private float maxSpeedThreshold = 20.0f;
+
+        // When true, the speed cap is halved and corrections are sent more
+        // frequently. Useful for stricter anti-cheat at the cost of more
+        // corrections on high-latency connections.
+        @Builder.Default
+        private boolean strictMovement = false;
+
+        // Distance (blocks) the player position may differ from the server
+        // authoritative position before a correction is sent. Higher values
+        // reduce correction noise for honest players. Values above 1.0 increase
+        // the risk of accepting invalid positions.
+        @Builder.Default
+        private float positionAcceptanceThreshold = 0.5f;
+
+        // When true, the player dismount position is strictly corrected on
+        // high-latency connections.
+        @Builder.Default
+        private boolean strictDismount = false;
+
+    }
+
+    @Data
+    @Setter(AccessLevel.PRIVATE)
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class Interaction {
+
+        // When true, entity interaction packets are validated more strictly.
+        @Builder.Default
+        private boolean strictEntityInteractions = false;
+
+        // Maximum angle difference (0 to 1) between look direction and attack
+        // direction. 0 allows up to 90 degrees of divergence; 1 requires an
+        // exact match.
+        @Builder.Default
+        private float attackDirectionThreshold = 0.85f;
+
+        // Multiplier applied to the server-side block-breaking reach distance.
+        // Values above 1.0 give players extra reach tolerance.
+        @Builder.Default
+        private float blockBreakReachScalar = 1.5f;
 
     }
 
@@ -502,6 +547,29 @@ public class ServerConfig {
 
         @Builder.Default
         private String options = null;
+
+    }
+
+    @Data
+    @Setter(AccessLevel.PRIVATE)
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class Level {
+
+        // Maximum number of scheduled block ticks executed per game tick.
+        // Capping this prevents TPS spikes during redstone storms while ensuring
+        // delayed ticks still fire; they just carry over to the next tick.
+        @Builder.Default
+        private int maxBlockTicks = 65536;
+
+        // Maximum number of chained neighbor-update callbacks that may fire
+        // from a single block-change event before the chain is cut and a
+        // warning is logged. Prevents infinite or runaway update loops from
+        // overflowing the call stack. Set to -1 to disable the cap.
+        @Builder.Default
+        private int maxChainedNeighborUpdates = 1_000_000;
 
     }
 }
