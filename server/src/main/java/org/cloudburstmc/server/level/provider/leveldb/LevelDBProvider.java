@@ -84,7 +84,7 @@ class LevelDBProvider implements LevelProvider {
                         | ((finalizationState[1] & 0xFF) << 8)
                         | ((finalizationState[2] & 0xFF) << 16)
                         | ((finalizationState[3] & 0xFF) << 24);
-                chunkBuilder.state(stateValue + 1);
+                chunkBuilder.state(Math.min(stateValue + 1, Chunk.STATE_FINISHED));
             }
 
             byte chunkVersion = versionValue[0];

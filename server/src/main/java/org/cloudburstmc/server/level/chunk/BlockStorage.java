@@ -194,7 +194,9 @@ public class BlockStorage {
                     this.paletteIndex.put(state, this.palette.size());
                     this.palette.add(state);
                 } catch (Exception e) {
-                    log.throwing(e);
+                    log.warn("Failed to deserialize palette entry {}, substituting air", i, e);
+                    this.paletteIndex.put(AIR, this.palette.size());
+                    this.palette.add(AIR);
                 }
             }
         } catch (IOException e) {
