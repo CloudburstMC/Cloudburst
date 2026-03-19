@@ -180,31 +180,66 @@ public class BlockStorage {
                 "Palette is too large. Max size %s. Actual size %s", version.getMaxEntryValue(),
                 paletteSize);
 
+        // Tracks index remapping when multiple raw palette entries resolve to the same state,
+        // for example when unknown blocks are substituted with air.
+        int[] indexRemap = null;
+
         try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
              NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
             for (int i = 0; i < paletteSize; i++) {
+                NbtMap tag = null;
+                BlockState state;
                 try {
-                    NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(tag);
-
-                    if (this.paletteIndex.containsKey(state)) {
-                        log.warn("Palette contains block state ({}) twice! ({}) (palette: {})", state, tag, this.palette);
-                    }
-
-                    this.paletteIndex.put(state, this.palette.size());
-                    this.palette.add(state);
+                    tag = (NbtMap) nbtInputStream.readTag();
+                    state = CloudBlockRegistry.REGISTRY.getBlock(tag);
                 } catch (Exception e) {
-                    log.warn("Failed to deserialize palette entry {}, substituting air", i, e);
-                    this.paletteIndex.put(AIR, this.palette.size());
-                    this.palette.add(AIR);
+                    String blockName = tag != null ? tag.getString("name", "unknown") : "unknown";
+                    log.warn("Unknown block '{}' at palette entry {}, substituting air", blockName, i);
+                    state = AIR;
                 }
+                indexRemap = addPaletteEntry(state, i, paletteSize, indexRemap);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        this.nonAirCount = countNonAir();
+        // Rewrite any bitarray slots that pointed to a collapsed duplicate, and count non-air
+        // blocks in the same pass to avoid scanning twice.
+        if (indexRemap != null) {
+            int airIndex = this.paletteIndex.getInt(AIR);
+            int count = 0;
+            for (int i = 0; i < SIZE; i++) {
+                int remapped = indexRemap[this.bitArray.get(i)];
+                this.bitArray.set(i, remapped);
+                if (remapped != airIndex) count++;
+            }
+            this.nonAirCount = count;
+        } else {
+            this.nonAirCount = countNonAir();
+        }
         this.dirty = false;
+    }
+
+    /**
+     * Inserts a palette entry during deserialization. If the state is already present,
+     * the raw index is remapped to the first occurrence instead of being appended again.
+     * Returns the (possibly newly allocated) indexRemap array.
+     */
+    private int[] addPaletteEntry(BlockState state, int rawIndex, int paletteSize, int[] indexRemap) {
+        int existing = this.paletteIndex.getInt(state);
+        if (existing != -1) {
+            if (indexRemap == null) {
+                indexRemap = new int[paletteSize];
+                for (int j = 0; j < rawIndex; j++) indexRemap[j] = j;
+            }
+            indexRemap[rawIndex] = existing;
+        } else {
+            int newIdx = this.palette.size();
+            if (indexRemap != null) indexRemap[rawIndex] = newIdx;
+            this.paletteIndex.put(state, newIdx);
+            this.palette.add(state);
+        }
+        return indexRemap;
     }
 
     private void onResize(BitArrayVersion version) {
