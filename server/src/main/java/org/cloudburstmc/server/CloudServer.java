@@ -430,7 +430,6 @@ public class CloudServer implements Server {
             }
         }
         int parallelism = (int) poolSize;
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", String.valueOf(parallelism));
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
 //        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);

@@ -14,6 +14,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 
@@ -281,16 +282,17 @@ public class PlayerChunkManager {
             final int cz = CloudChunk.fromKeyZ(key);
 
             if (this.sendQueue.putIfAbsent(key, null) == null) {
+                Executor asyncExecutor = ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor();
                 this.player.getLevel().getChunkFuture(cx, cz)
-                        .thenApply(chunk -> {
+                        .thenApplyAsync(chunk -> {
                             chunk.addLoader(this.player);
                             return chunk;
-                        })
+                        }, asyncExecutor)
                         .thenApplyAsync(
                                 CloudChunk::createChunkPacket,
-                                ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor()
+                                asyncExecutor
                         )
-                        .whenComplete((packet, throwable) -> {
+                        .whenCompleteAsync((packet, throwable) -> {
                             synchronized (PlayerChunkManager.this) {
                                 if (throwable != null) {
                                     if (this.sendQueue.remove(key, null)) {
@@ -311,7 +313,7 @@ public class PlayerChunkManager {
                                     }
                                 }
                             }
-                        });
+                        }, asyncExecutor);
             }
         }
 

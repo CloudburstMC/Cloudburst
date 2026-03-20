@@ -116,7 +116,7 @@ public class CloudLevel implements Level {
 
     private final Long2ObjectOpenHashMap<CloudPlayer> players = new Long2ObjectOpenHashMap<>();
 
-    private final Long2ObjectOpenHashMap<Entity> entities = new Long2ObjectOpenHashMap<>();
+    private final ConcurrentHashMap<Long, Entity> entities = new ConcurrentHashMap<>();
     private static final RemovalListener<Long, ByteBuf> cacheRemover = notification -> notification.getValue().release();
 
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
@@ -1516,7 +1516,7 @@ public class CloudLevel implements Level {
                 for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
-                behaviors.get(BlockComponents.ON_TICK).execute(newBlock, new Random()); // TODO: Use level specific Random
+                behaviors.get(BlockComponents.ON_TICK).execute(newBlock, ThreadLocalRandom.current()); // TODO: Use level specific Random
                 this.updateAround(x, y, z);
             }
         }
@@ -1556,8 +1556,10 @@ public class CloudLevel implements Level {
 
                 motion = Vector3f.from(-MathHelper.sin(f1) * f, 0.2, MathHelper.cos(f1) * f);
             } else {
-                motion = Vector3f.from(new java.util.Random().nextDouble() * 0.2 - 0.1, 0.2,
-                        new java.util.Random().nextDouble() * 0.2 - 0.1);
+                motion = Vector3f.from(
+                        ThreadLocalRandom.current().nextDouble() * 0.2 - 0.1, 0.2,
+                        ThreadLocalRandom.current().nextDouble() * 0.2 - 0.1
+                );
             }
         }
 
@@ -1607,7 +1609,7 @@ public class CloudLevel implements Level {
         Block target = this.getBlock(pos);
         ItemStack[] drops;
         ComponentMap targetBehaviors = target.getComponents();
-        int dropExp = targetBehaviors.get(BlockComponents.GET_EXPERIENCE_DROP).execute(target.getState(), new Random()); // TODO: Use global level RNG
+        int dropExp = targetBehaviors.get(BlockComponents.GET_EXPERIENCE_DROP).execute(target.getState(), ThreadLocalRandom.current()); // TODO: Use global level RNG
 
         boolean isSilkTouch = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null;
 
@@ -1646,11 +1648,11 @@ public class CloudLevel implements Level {
             if (!player.isSurvival()) {
                 eventDrops = new ItemStack[0];
             } else if (isSilkTouch && targetBehaviors.get(BlockComponents.CAN_BE_SILK_TOUCHED).execute(target)) {
-                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
                 eventDrops = new ItemStack[]{itemStack};
             } else {
-                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
-                int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, new Random(), 0);
+                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+                int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
                 eventDrops = new ItemStack[count];
                 Arrays.fill(eventDrops, itemStack);
             }
@@ -1681,11 +1683,11 @@ public class CloudLevel implements Level {
         } else if (!targetBehaviors.get(BlockComponents.IS_BREAKABLE).execute(target, item)) {
             return null;
         } else if (item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null) {
-            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
+            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
             drops = new ItemStack[]{itemStack};
         } else {
-            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, new Random(), 0); // TODO: Use global level RNG & implement bonus level
-            int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, new Random(), 0);
+            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+            int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
             drops = new ItemStack[count];
             Arrays.fill(drops, itemStack);
         }
@@ -1792,7 +1794,7 @@ public class CloudLevel implements Level {
                 return false;
             }
 
-            targetBehaviors.get(BlockComponents.ON_TICK).execute(target, new Random());
+            targetBehaviors.get(BlockComponents.ON_TICK).execute(target, ThreadLocalRandom.current());
 
             boolean canUse = targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, player);
             return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face, item);
@@ -1977,15 +1979,11 @@ public class CloudLevel implements Level {
     }
 
     public Entity getEntity(long entityId) {
-        synchronized (entities) {
-            return this.entities.containsKey(entityId) ? this.entities.get(entityId) : null;
-        }
+        return this.entities.get(entityId);
     }
 
     public Entity[] getEntities() {
-        synchronized (entities) {
-            return entities.values().toArray(new Entity[0]);
-        }
+        return entities.values().toArray(new Entity[0]);
     }
 
     public Set<Entity> getCollidingEntities(AxisAlignedBB bb) {
@@ -2280,9 +2278,7 @@ public class CloudLevel implements Level {
             entity.close();
         }
 
-        synchronized (entities) {
-            this.entities.remove(entity.getUniqueId());
-        }
+        this.entities.remove(entity.getUniqueId());
         this.updateEntities.remove(entity);
     }
 
@@ -2294,9 +2290,7 @@ public class CloudLevel implements Level {
         if (entity instanceof CloudPlayer) {
             this.players.put(entity.getUniqueId(), (CloudPlayer) entity);
         }
-        synchronized (entities) {
-            this.entities.put(entity.getUniqueId(), entity);
-        }
+        this.entities.put(entity.getUniqueId(), entity);
     }
 
     public void addBlockEntity(BlockEntity blockEntity) {

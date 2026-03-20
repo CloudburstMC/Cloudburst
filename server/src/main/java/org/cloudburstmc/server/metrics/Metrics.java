@@ -27,7 +27,7 @@ import java.util.zip.GZIPOutputStream;
 public class Metrics {
     public static final int B_STATS_VERSION = 1;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, r -> {
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "bStats-Metrics");
         t.setDaemon(true);
         return t;

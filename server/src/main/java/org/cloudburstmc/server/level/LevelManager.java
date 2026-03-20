@@ -17,14 +17,28 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2
 @Singleton
 public class LevelManager implements Closeable {
+
+    /**
+     * Virtual-thread executor for LevelDB reads and writes.
+     */
     private final ExecutorService ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
+
+    /**
+     * Bounded pool for CPU-bound chunk generation, population, and finishing.
+     */
+    private final ForkJoinPool generationExecutor = new ForkJoinPool(
+            Runtime.getRuntime().availableProcessors(),
+            new GenerationThreadFactory(),
+            (thread, ex) -> log.error("Uncaught exception on generation thread {}", thread.getName(), ex),
+            false
+    );
+
     private final CloudServer server;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
@@ -100,12 +114,14 @@ public class LevelManager implements Closeable {
     }
 
     @Override
-    public synchronized void close() {
-        for (CloudLevel level : this.levels) {
-            try {
-                level.close();
-            } catch (Exception e) {
-                log.error("Error closing level " + level.getId(), e);
+    public void close() {
+        synchronized (this) {
+            for (CloudLevel level : this.levels) {
+                try {
+                    level.close();
+                } catch (Exception e) {
+                    log.error("Error closing level " + level.getId(), e);
+                }
             }
         }
 
@@ -117,6 +133,17 @@ public class LevelManager implements Closeable {
             }
         } catch (InterruptedException e) {
             this.ioExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        this.generationExecutor.shutdown();
+        try {
+            if (!this.generationExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                log.warn("Generation executor did not terminate in time, forcing shutdown");
+                this.generationExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            this.generationExecutor.shutdownNow();
             Thread.currentThread().interrupt();
         }
     }
@@ -160,5 +187,31 @@ public class LevelManager implements Closeable {
 
     public ExecutorService getIoExecutor() {
         return ioExecutor;
+    }
+
+    /**
+     * Returns the bounded pool used for CPU-bound chunk generation work.
+     * Callers should submit generation, population, and finishing tasks here
+     * rather than to a virtual-thread pool.
+     */
+    public ForkJoinPool getGenerationExecutor() {
+        return generationExecutor;
+    }
+
+    /**
+     * Names worker threads in the generation pool for easy identification
+     * in thread dumps and profiler output.
+     */
+    private static final class GenerationThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+
+        private final AtomicInteger counter = new AtomicInteger();
+
+        @Override
+        public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+            thread.setName("Cloudburst Chunk Generation #" + counter.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
     }
 }

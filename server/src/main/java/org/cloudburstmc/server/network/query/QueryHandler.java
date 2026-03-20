@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Log4j2
@@ -51,9 +50,7 @@ public class QueryHandler {
     public void regenerateToken() {
         this.lastToken = this.token;
         byte[] token = new byte[16];
-        for (int i = 0; i < 16; i++) {
-            token[i] = (byte) new Random().nextInt(255);
-        }
+        ThreadLocalRandom.current().nextBytes(token);
         this.token = token;
     }
 

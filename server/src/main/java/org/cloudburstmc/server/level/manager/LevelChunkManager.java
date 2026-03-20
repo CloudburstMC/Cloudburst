@@ -16,15 +16,11 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
-import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 @Log4j2
@@ -59,7 +55,7 @@ public final class LevelChunkManager {
 
     public LevelChunkManager(CloudLevel level, LevelProvider provider) {
         this.level = level;
-        this.executor = ((CloudAsyncScheduler) this.level.getServer().getAsyncScheduler()).getExecutor();
+        this.executor = level.getServer().getLevelManager().getGenerationExecutor();
         this.provider = provider;
     }
 
@@ -110,6 +106,10 @@ public final class LevelChunkManager {
 
     /**
      * Get chunk at specified coordinate. This will block the current thread until the chunk is loaded.
+     * <p>
+     * Must not be called from a generation pool thread. Doing so would block
+     * a CPU-bound worker while waiting for a future that may itself require
+     * a free worker to complete, causing a deadlock.
      *
      * @param x chunk x
      * @param z chunk z
@@ -117,8 +117,8 @@ public final class LevelChunkManager {
      */
     @NonNull
     public CloudChunk getChunk(int x, int z) {
-        if (Thread.currentThread() instanceof java.util.concurrent.ForkJoinWorkerThread) {
-            log.warn("getChunk() called from ForkJoinWorkerThread - potential deadlock", new Exception("stack trace"));
+        if (Thread.currentThread() instanceof ForkJoinWorkerThread) {
+            throw new IllegalStateException("getChunk() must not be called from a generation pool thread");
         }
 
         CloudChunk chunk = getLoadedChunk(x, z);

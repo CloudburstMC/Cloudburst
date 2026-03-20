@@ -40,6 +40,7 @@ public class BugReportGenerator extends Thread {
 
     BugReportGenerator(Throwable throwable) {
         this.throwable = throwable;
+        this.setDaemon(true);
     }
 
     @Override
