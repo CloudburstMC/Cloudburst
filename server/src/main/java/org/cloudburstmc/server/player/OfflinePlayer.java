@@ -21,6 +21,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.player.PlayerAbilities;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
@@ -582,21 +583,6 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public boolean isSpectator() {
-        return false;
-    }
-
-    @Override
-    public boolean isCreative() {
-        return false;
-    }
-
-    @Override
-    public boolean isSurvival() {
-        return false;
-    }
-
-    @Override
     public void resetInAirTicks() {
 
     }
@@ -607,7 +593,17 @@ public class OfflinePlayer implements Player {
     }
 
     @Override
-    public GameMode getGamemode() {
+    public GameMode getGameMode() {
+        return null;
+    }
+
+    @Override
+    public void setGameMode(GameMode gameMode) {
+        throw new UnsupportedOperationException("Cannot set game mode for offline players");
+    }
+
+    @Override
+    public GameMode getPreviousGameMode() {
         return null;
     }
 
@@ -888,5 +884,10 @@ public class OfflinePlayer implements Player {
     @Override
     public void displayName(Component displayName) {
         // Offline players do not have a live display name
+    }
+
+    @Override
+    public PlayerAbilities getAbilities() {
+        throw new UnsupportedOperationException("Offline player has no abilities");
     }
 }

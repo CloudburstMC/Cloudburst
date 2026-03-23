@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.player.CloudPlayerAbilities;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -260,11 +261,11 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
         packet.setHand(ItemUtils.toNetwork(ItemStack.EMPTY));
 //        packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem())); TODO: Fix this
-        packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
-        packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
+        packet.setCommandPermission(CommandPermission.ANY);
+        packet.setPlayerPermission(PlayerPermission.MEMBER);
         packet.setDeviceId("");
         packet.setGameType(GameType.SURVIVAL); // TODO
-        // TODO: Set ability layers
+        packet.getAbilityLayers().add(CloudPlayerAbilities.defaultBaseLayer());
         this.getData().putAllIn(packet.getMetadata());
         return packet;
     }

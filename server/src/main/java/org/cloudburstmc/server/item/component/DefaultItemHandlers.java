@@ -2,15 +2,18 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+
+import java.util.List;
 
 @Slf4j
 @UtilityClass
@@ -80,5 +83,23 @@ public class DefaultItemHandlers {
 
     public static final UseOnHandler USE_ON = (itemStack, entity, blockPosition, face, clickPosition) -> {
         return itemStack;
+    };
+
+    /**
+     * Allows placement only on blocks explicitly listed in the item's {@code CAN_PLACE_ON} data.
+     * Items with an empty or absent list cannot be placed on any block.
+     */
+    public static final CanBePlacedOnHandler CAN_BE_PLACED_ON = (item, block) -> {
+        List<BlockType> whitelist = item.get(ItemKeys.CAN_PLACE_ON);
+        return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
+    };
+
+    /**
+     * Allows breaking only blocks explicitly listed in the item's {@code CAN_DESTROY} data.
+     * Items with an empty or absent list cannot break any block.
+     */
+    public static final CanDestroyHandler CAN_DESTROY = (item, block) -> {
+        List<BlockType> whitelist = item.get(ItemKeys.CAN_DESTROY);
+        return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
     };
 }

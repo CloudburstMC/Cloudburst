@@ -403,8 +403,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     /**
-     * Returns {@code true} if the item the client claims to be holding does not match what the server has
-     * in the selected hotbar slot. When this occurs the interaction must be rejected and the client's
+     * Returns {@code true} if the item the player's game claims to be holding does not match what the server has
+     * in the selected hotbar slot. When this occurs the interaction must be rejected and the player's
      * inventory resynchronized to avoid ghost items.
      */
     private boolean isHeldItemDesynced(@Nullable ItemUseTransaction transaction) {
@@ -606,8 +606,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                     }
 
-                    if (player.getAdventureSettings().get(org.cloudburstmc.api.player.AdventureSetting.FLYING)) {
-                        player.getAdventureSettings().set(org.cloudburstmc.api.player.AdventureSetting.FLYING, false);
+                    if (player.getAbilities().get(org.cloudburstmc.api.player.Ability.FLYING)) {
+                        player.getAbilities().set(org.cloudburstmc.api.player.Ability.FLYING, false);
+                        player.getAbilities().update();
                     }
 
                     PlayerToggleGlideEvent glideEvent = new PlayerToggleGlideEvent(player, true);
@@ -660,15 +661,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, Identifier.parse("minecraft:player"), false, false);
                     break;
                 case START_FLYING:
-                    if (!player.getServer().getAllowFlight() && !player.getAdventureSettings().get(org.cloudburstmc.api.player.AdventureSetting.ALLOW_FLIGHT)) {
+                    if (!player.getServer().getAllowFlight() && !player.getAbilities().get(org.cloudburstmc.api.player.Ability.MAY_FLY)) {
                         player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
                     } else {
                         PlayerToggleFlightEvent flightEvent = new PlayerToggleFlightEvent(player, true);
                         player.getServer().getEventManager().fire(flightEvent);
                         if (flightEvent.isCancelled()) {
-                            player.getAdventureSettings().update();
+                            player.getAbilities().update();
                         } else {
-                            player.getAdventureSettings().set(org.cloudburstmc.api.player.AdventureSetting.FLYING, true);
+                            player.getAbilities().set(org.cloudburstmc.api.player.Ability.FLYING, true);
+                            player.getAbilities().update();
                         }
                     }
                     break;
@@ -676,9 +678,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     PlayerToggleFlightEvent flightEvent = new PlayerToggleFlightEvent(player, false);
                     player.getServer().getEventManager().fire(flightEvent);
                     if (flightEvent.isCancelled()) {
-                        player.getAdventureSettings().update();
+                        player.getAbilities().update();
                     } else {
-                        player.getAdventureSettings().set(org.cloudburstmc.api.player.AdventureSetting.FLYING, false);
+                        player.getAbilities().set(org.cloudburstmc.api.player.Ability.FLYING, false);
+                        player.getAbilities().update();
                     }
                     break;
                 default:
@@ -689,19 +692,37 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(AdventureSettingsPacket packet) {
-        Set<AdventureSetting> flags = packet.getSettings();
-        if (!player.getServer().getAllowFlight() && flags.contains(AdventureSetting.FLYING) && !player.getAdventureSettings().get(org.cloudburstmc.api.player.AdventureSetting.ALLOW_FLIGHT)) {
-            player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
+    public PacketSignal handle(RequestAbilityPacket packet) {
+        if (packet.getType() != org.cloudburstmc.protocol.bedrock.data.Ability.Type.BOOLEAN) {
             return PacketSignal.HANDLED;
         }
-        PlayerToggleFlightEvent playerToggleFlightEvent = new PlayerToggleFlightEvent(player, flags.contains(AdventureSetting.FLYING));
-        player.getServer().getEventManager().fire(playerToggleFlightEvent);
-        if (playerToggleFlightEvent.isCancelled()) {
-            player.getAdventureSettings().update();
-        } else {
-            player.getAdventureSettings().set(org.cloudburstmc.api.player.AdventureSetting.FLYING, playerToggleFlightEvent.isFlying());
+
+        org.cloudburstmc.protocol.bedrock.data.Ability requested = packet.getAbility();
+        if (requested == org.cloudburstmc.protocol.bedrock.data.Ability.FLYING) {
+            boolean wantsToFly = packet.isBoolValue();
+            if (wantsToFly && !player.getAbilities().get(org.cloudburstmc.api.player.Ability.MAY_FLY)) {
+                player.getAbilities().update();
+                return PacketSignal.HANDLED;
+            }
+
+            PlayerToggleFlightEvent event = new PlayerToggleFlightEvent(player, wantsToFly);
+            player.getServer().getEventManager().fire(event);
+            if (event.isCancelled()) {
+                player.getAbilities().update();
+            } else {
+                player.getAbilities().set(org.cloudburstmc.api.player.Ability.FLYING, event.isFlying());
+                player.getAbilities().update();
+            }
+            return PacketSignal.HANDLED;
         }
+
+        if (requested == org.cloudburstmc.protocol.bedrock.data.Ability.NO_CLIP) {
+            if (!player.getAbilities().get(org.cloudburstmc.api.player.Ability.NO_CLIP)) {
+                player.getAbilities().update();
+            }
+            return PacketSignal.HANDLED;
+        }
+
         return PacketSignal.HANDLED;
     }
 
@@ -827,7 +848,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
                 player.setMovementSpeed(DEFAULT_SPEED);
 
-                player.getAdventureSettings().update();
+                player.getAbilities().update();
                 player.getInventoryManager().sendAllInventories();
 
                 player.spawnToAll();
@@ -1161,17 +1182,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(SetPlayerGameTypePacket packet) {
-        if (packet.getGamemode() != player.getGamemode().getVanillaId()) {
-            if (!player.hasPermission("cloudburst.command.gamemode")) {
-                SetPlayerGameTypePacket packet1 = new SetPlayerGameTypePacket();
-                packet1.setGamemode(player.getGamemode().getVanillaId());
-                player.sendPacket(packet1);
-                player.getAdventureSettings().update();
-                return PacketSignal.HANDLED;
-            }
-            player.setGamemode(GameMode.from(packet.getGamemode()), true);
-            CommandUtils.broadcastCommandMessage(player, Component.translatable("commands.gamemode.success.self", Component.translatable(player.getGamemode())));
-        }
+        SetPlayerGameTypePacket correction = new SetPlayerGameTypePacket();
+        correction.setGamemode(player.getGameMode().getVanillaId());
+        player.sendPacket(correction);
+        player.getAbilities().update();
         return PacketSignal.HANDLED;
     }
 

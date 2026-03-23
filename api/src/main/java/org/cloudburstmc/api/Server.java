@@ -75,7 +75,7 @@ public interface Server {
 
     Map<UUID, ? extends Player> getOnlinePlayers();
 
-    GameMode getGamemode();
+    GameMode getGameMode();
 
     Level getDefaultLevel();
 

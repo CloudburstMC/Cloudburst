@@ -11,6 +11,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.player.CloudPlayerAbilities;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -20,10 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * Created on 2015/11/21 by xtypr.
- * Package cn.nukkit.level.particle in project Nukkit .
- */
 public class FloatingTextParticle extends Particle {
     private static final SerializedSkin EMPTY_SKIN;
     private static final ImageData SKIN_DATA = ImageData.of(new byte[8192]);
@@ -154,8 +151,9 @@ public class FloatingTextParticle extends Particle {
             packet.setHand(ItemData.AIR);
             packet.setPlatformChatId("");
             packet.setDeviceId("");
-            packet.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
-            packet.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
+            packet.setCommandPermission(CommandPermission.ANY);
+            packet.setPlayerPermission(PlayerPermission.MEMBER);
+            packet.getAbilityLayers().add(CloudPlayerAbilities.defaultBaseLayer());
             packets.add(packet);
 
             PlayerListPacket playerRemove = new PlayerListPacket();

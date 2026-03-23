@@ -982,7 +982,7 @@ public abstract class CloudEntity implements Entity {
 
             if (this.position.getY() <= -16 && this.isAlive()) {
                 if (this instanceof CloudPlayer player) {
-                    if (player.getGamemode() != GameMode.CREATIVE)
+                    if (player.getGameMode() != GameMode.CREATIVE)
                         this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));
                 } else {
                     this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));

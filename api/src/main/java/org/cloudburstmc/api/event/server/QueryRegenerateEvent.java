@@ -2,6 +2,7 @@ package org.cloudburstmc.api.event.server;
 
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginContainer;
 
@@ -49,7 +50,7 @@ public final class QueryRegenerateEvent extends ServerEvent {
         //this.listPlugins = server.getConfig().getSettings().isQueryPlugins();
         this.plugins = server.getPluginManager().getAllPlugins().toArray(new PluginContainer[0]);
         this.players = server.getOnlinePlayers().values().toArray(new Player[0]);
-        this.gameType = server.getGamemode().isSurvival() ? "SMP" : "CMP";
+        this.gameType = server.getGameMode() == GameMode.SURVIVAL ? "SMP" : "CMP";
         this.version = server.getVersion();
         this.server_engine = server.getName() + " " + server.getImplementationVersion();
         this.map = server.getDefaultLevel() == null ? "unknown" : server.getDefaultLevel().getName();

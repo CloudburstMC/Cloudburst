@@ -24,6 +24,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 import org.cloudburstmc.server.item.component.FireChargeItemHandlers;
 import org.cloudburstmc.server.item.component.FlintAndSteelItemHandlers;
 import org.cloudburstmc.server.item.component.SpawnEggItemHandlers;
@@ -872,8 +873,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemComponents.CAN_BE_CHARGED, () -> false);
         this.registerComponent(ItemComponents.CAN_BE_DEPLETED, () -> false);
         this.registerComponent(ItemComponents.CAN_BE_PLACED, (item) -> false);
-        this.registerComponent(ItemComponents.CAN_BE_PLACED_ON, (item, block) -> true);
-        this.registerComponent(ItemComponents.CAN_DESTROY, (item, block) -> true);
+        this.registerComponent(ItemComponents.CAN_BE_PLACED_ON, DefaultItemHandlers.CAN_BE_PLACED_ON);
+        this.registerComponent(ItemComponents.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
         this.registerComponent(ItemComponents.CAN_DESTROY_IN_CREATIVE, () -> true);
         this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
         this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);

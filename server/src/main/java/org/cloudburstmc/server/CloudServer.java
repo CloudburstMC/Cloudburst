@@ -714,7 +714,7 @@ public class CloudServer implements Server {
         //todo send usage setting
         this.tickCounter = 0;
 
-        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + this.getLanguage().translate(this.getGamemode().translationKey()) + "§r"));
+        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + this.getLanguage().translate(this.getGameMode().translationKey()) + "§r"));
 
         log.info(this.getLanguage().translate("cloudburst.server.startFinished", "§a" + (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d + "§r"));
 
@@ -1101,7 +1101,7 @@ public class CloudServer implements Server {
         return this.serverProperties.isGenerateStructures();
     }
 
-    public GameMode getGamemode() {
+    public GameMode getGameMode() {
         return GameMode.from(this.serverProperties.getGamemode());
     }
 
@@ -1137,7 +1137,7 @@ public class CloudServer implements Server {
 
     public GameMode getDefaultGamemode() {
         if (this.defaultGamemode == null) {
-            this.defaultGamemode = this.getGamemode();
+            this.defaultGamemode = this.getGameMode();
         }
         return this.defaultGamemode;
     }
@@ -1353,7 +1353,7 @@ public class CloudServer implements Server {
                             spawn.getPosition().getZ()
                     ))
                     .putString("Level", this.getDefaultLevel().getName())
-                    .putInt("playerGameType", this.getGamemode().getVanillaId())
+                    .putInt("playerGameType", this.getGameMode().getVanillaId())
                     .putList("Rotation", NbtType.FLOAT, Arrays.asList(
                             spawn.getYaw(),
                             spawn.getPitch()

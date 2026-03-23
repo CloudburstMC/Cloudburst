@@ -175,19 +175,68 @@ public interface Player extends Creature {
 
     void setMovementSpeed(float speed);
 
+    /**
+     * Returns the player's current abilities. Call {@link PlayerAbilities#update()} after
+     * making changes for them to take effect.
+     */
+    PlayerAbilities getAbilities();
+
     Level getLevel();
-
-    boolean isSpectator();
-
-    boolean isCreative();
-
-    boolean isSurvival();
 
     void resetInAirTicks();
 
     boolean isSpawned();
 
-    GameMode getGamemode();
+    /**
+     * Returns the player's current game mode.
+     *
+     * @return the current {@link GameMode}
+     */
+    GameMode getGameMode();
+
+    /**
+     * Sets the player's game mode.
+     *
+     * @param gameMode the new {@link GameMode}
+     */
+    void setGameMode(GameMode gameMode);
+
+    /**
+     * Returns the game mode this player was in before their current one, or
+     * {@code null} if the game mode has never been changed since login.
+     *
+     * @return the previous {@link GameMode}, or {@code null}
+     */
+    @Nullable
+    GameMode getPreviousGameMode();
+
+    /**
+     * Returns {@code true} if the player is currently in {@link GameMode#SURVIVAL}.
+     */
+    default boolean isSurvival() {
+        return getGameMode() == GameMode.SURVIVAL;
+    }
+
+    /**
+     * Returns {@code true} if the player is currently in {@link GameMode#CREATIVE}.
+     */
+    default boolean isCreative() {
+        return getGameMode() == GameMode.CREATIVE;
+    }
+
+    /**
+     * Returns {@code true} if the player is currently in {@link GameMode#ADVENTURE}.
+     */
+    default boolean isAdventure() {
+        return getGameMode() == GameMode.ADVENTURE;
+    }
+
+    /**
+     * Returns {@code true} if the player is currently in {@link GameMode#SPECTATOR}.
+     */
+    default boolean isSpectator() {
+        return getGameMode() == GameMode.SPECTATOR;
+    }
 
     /**
      * Returns the display name of this player.
@@ -236,8 +285,6 @@ public interface Player extends Creature {
     void save(boolean async);
 
     CardinalDirection getCardinalDirection();
-
-    boolean isAdventure();
 
     Location getSpawn();
 
@@ -358,7 +405,7 @@ public interface Player extends Creature {
     /**
      * Closes the player's currently open inventory/container screen.
      * If the player has no screen open, this method does nothing.
-     * This method is server-initiated and will notify the client to close the UI.
+     * This method is server-initiated and will notify the player's game to close the UI.
      */
     void closeInventory();
 
@@ -387,7 +434,7 @@ public interface Player extends Creature {
      *
      * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects a
-     * phantom chest block above the player on the client side for the duration the screen is open.</p>
+     * phantom chest block above the player for the duration the screen is open.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualChestScreen} bound to this player
@@ -399,7 +446,7 @@ public interface Player extends Creature {
      *
      * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects two
-     * adjacent phantom chest blocks above the player on the client side.</p>
+     * adjacent phantom chest blocks above the player.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualDoubleChestScreen} bound to this player
@@ -411,7 +458,7 @@ public interface Player extends Creature {
      *
      * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
      * it. A virtual inventory has no backing block in the world; the server temporarily injects a
-     * phantom hopper block above the player on the client side for the duration the screen is open.</p>
+     * phantom hopper block above the player for the duration the screen is open.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualHopperScreen} bound to this player

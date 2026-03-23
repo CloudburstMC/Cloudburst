@@ -49,7 +49,7 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
-import org.cloudburstmc.api.player.AdventureSetting;
+import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
@@ -74,6 +74,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -83,7 +84,6 @@ import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
-import org.cloudburstmc.server.CloudAdventureSettings;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
@@ -201,7 +201,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     protected String iusername;
     protected String username;
     protected AtomicInteger formWindowCount = new AtomicInteger(0);
-    protected CloudAdventureSettings adventureSettings;
+    protected CloudPlayerAbilities abilities;
     //TODO: better handling server settings?
     protected CustomForm serverSettings = null;
     protected Location spawnLocation = null;
@@ -217,6 +217,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Getter
     private int selectedHotbarSlot = 0;
     private boolean foodEnabled = true;
+    private GameMode previousGameMode = null;
     @Getter
     @Setter
     private boolean clientCacheEnabled = false;
@@ -242,7 +243,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
         this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
-        this.playerData.setGamemode(this.server.getGamemode());
+        this.playerData.setGamemode(this.server.getGameMode());
         this.viewDistance = this.server.getViewDistance();
         //this.newPosition = new Vector3(0, 0, 0);
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
@@ -399,58 +400,33 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         return this.playerData.getFirstPlayed();
     }
 
-    public CloudAdventureSettings getAdventureSettings() {
-        return adventureSettings;
+    @Override
+    public CloudPlayerAbilities getAbilities() {
+        return abilities;
     }
 
-    public void setAdventureSettings(CloudAdventureSettings adventureSettings) {
-        this.adventureSettings = adventureSettings.clone(this);
-        this.adventureSettings.update();
+    /**
+     * Sets a boolean ability flag on this player and fires {@link PlayerAbilityChangeEvent}.
+     * If the event is cancelled the ability is not changed. If a plugin redirects the value
+     * via {@link PlayerAbilityChangeEvent#setNewValue}, that redirected value is applied instead.
+     *
+     * @param ability the ability flag to change
+     * @param value   the desired new value
+     */
+    public void setAbility(Ability ability, boolean value) {
+        boolean oldValue = this.abilities.get(ability);
+        PlayerAbilityChangeEvent event = new PlayerAbilityChangeEvent(this, ability, oldValue, value);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            this.abilities.update();
+            return;
+        }
+        this.abilities.set(ability, event.getNewValue());
+        this.abilities.update();
     }
 
     public void resetInAirTicks() {
         this.inAirTicks = 0;
-    }
-
-    @Deprecated
-    public boolean getAllowFlight() {
-        return this.getAdventureSettings().get(AdventureSetting.ALLOW_FLIGHT);
-    }
-
-    @Deprecated
-    public void setAllowFlight(boolean value) {
-        this.getAdventureSettings().set(AdventureSetting.ALLOW_FLIGHT, value);
-        this.getAdventureSettings().update();
-    }
-
-    public void setAllowModifyWorld(boolean value) {
-        this.getAdventureSettings().set(AdventureSetting.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(AdventureSetting.BUILD, value);
-        this.getAdventureSettings().set(AdventureSetting.MINE, value);
-        this.getAdventureSettings().set(AdventureSetting.WORLD_BUILDER, value);
-        this.getAdventureSettings().update();
-    }
-
-    public void setAllowInteract(boolean value) {
-        setAllowInteract(value, value);
-    }
-
-    public void setAllowInteract(boolean value, boolean containers) {
-        this.getAdventureSettings().set(AdventureSetting.WORLD_IMMUTABLE, !value);
-        this.getAdventureSettings().set(AdventureSetting.DOORS_AND_SWITCHES, value);
-        this.getAdventureSettings().set(AdventureSetting.OPEN_CONTAINERS, containers);
-        this.getAdventureSettings().update();
-    }
-
-    @Deprecated
-    public void setAutoJump(boolean value) {
-        this.getAdventureSettings().set(AdventureSetting.AUTO_JUMP, value);
-        this.getAdventureSettings().update();
-    }
-
-    @Deprecated
-    public boolean hasAutoJump() {
-        return this.getAdventureSettings().get(AdventureSetting.AUTO_JUMP);
     }
 
     @Override
@@ -518,8 +494,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
-        packet.getAdventureSettings().setCommandPermission((this.isOp() ? CommandPermission.ADMIN : CommandPermission.ANY));
-        packet.getAdventureSettings().setPlayerPermission((this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER));
+        packet.setGameType(GameType.from(this.getGameMode().getVanillaId()));
+        packet.setCommandPermission(this.isOp() ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY);
+        packet.setPlayerPermission(this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+        packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
         this.getData().putAllIn(packet.getMetadata());
         return packet;
     }
@@ -547,7 +525,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         this.recalculatePermissions();
-        this.getAdventureSettings().update();
+        this.abilities = buildAbilitiesForGameMode(this.getGameMode());
+        this.abilities.update();
         this.sendCommandData();
     }
 
@@ -1129,7 +1108,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
         this.setEnableClientCommand(true);
 
-        this.getAdventureSettings().update();
+        this.abilities.update();
 
         this.sendPotionEffects(this);
         this.sendData(this);
@@ -1462,12 +1441,14 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         return true;
     }
 
-    public GameMode getGamemode() {
+    @Override
+    public GameMode getGameMode() {
         return this.playerData.getGamemode();
     }
 
-    public boolean setGamemode(GameMode gamemode) {
-        return this.setGamemode(gamemode, false);
+    @Override
+    public void setGameMode(GameMode gameMode) {
+        this.setGamemode(gameMode, PlayerGameModeChangeEvent.Cause.PLUGIN);
     }
 
     /**
@@ -1501,27 +1482,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         try (Timing ignored = Timings.getSendDataPacketTiming(packet).startTiming()) {
             this.session.sendPacket(packet);
         }
-    }
-
-    @Deprecated
-    public void sendSettings() {
-        this.getAdventureSettings().update();
-    }
-
-    public boolean isSurvival() {
-        return this.getGamemode() == GameMode.SURVIVAL;
-    }
-
-    public boolean isCreative() {
-        return this.getGamemode() == GameMode.CREATIVE;
-    }
-
-    public boolean isSpectator() {
-        return this.getGamemode() == GameMode.SPECTATOR;
-    }
-
-    public boolean isAdventure() {
-        return this.getGamemode() == GameMode.ADVENTURE;
     }
 
     @Override
@@ -1624,40 +1584,54 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
     }
 
-    public boolean setGamemode(GameMode gamemode, boolean clientSide) {
-        if (this.getGamemode() == gamemode) {
+    @Override
+    public GameMode getPreviousGameMode() {
+        return this.previousGameMode;
+    }
+
+    public boolean setGamemode(GameMode gamemode, PlayerGameModeChangeEvent.Cause cause) {
+        if (this.getGameMode() == gamemode) {
             return false;
         }
 
         PlayerGameModeChangeEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerGameModeChangeEvent(this, gamemode));
+        this.server.getEventManager().fire(ev = new PlayerGameModeChangeEvent(this, gamemode, cause, null));
 
         if (ev.isCancelled()) {
             return false;
         }
 
+        this.previousGameMode = this.getGameMode();
         this.playerData.setGamemode(gamemode);
 
-        if (this.isSpectator()) {
-            this.keepMovement = true;
-            this.despawnFromAll();
-        } else {
-            this.keepMovement = false;
-            this.spawnToAll();
+        if (gamemode == GameMode.CREATIVE || gamemode == GameMode.SPECTATOR) {
+            this.foodData.reset();
+            this.setAir((short) 400);
         }
 
-        this.playerData.setGamemode(this.getGamemode());
+        this.keepMovement = this.isSpectator();
 
-        if (!clientSide) {
-            SetPlayerGameTypePacket pk = new SetPlayerGameTypePacket();
-            pk.setGamemode(gamemode.getVanillaId());
-            this.sendPacket(pk);
+        this.abilities = buildAbilitiesForGameMode(gamemode);
+
+        UpdatePlayerGameTypePacket gameTypePk = new UpdatePlayerGameTypePacket();
+        gameTypePk.setGameType(GameType.from(gamemode.getVanillaId()));
+        gameTypePk.setEntityId(this.getUniqueId());
+        gameTypePk.setTick(this.clientTick);
+        if (this.spawned) {
+            this.sendPacket(gameTypePk);
+            CloudServer.broadcastPacket(this.getViewers(), gameTypePk);
         }
 
-        this.setAdventureSettings(new CloudAdventureSettings(this, gamemode.getAdventureSettings()));
-
-        if (this.isSpectator()) {
-            this.teleport(this.getPosition().add(0, 0.1, 0));
+        boolean collisionAfter = gamemode != GameMode.SPECTATOR;
+        boolean collisionChanged = this.data.getFlag(EntityFlag.HAS_COLLISION) != collisionAfter;
+        this.data.setFlag(EntityFlag.HAS_COLLISION, collisionAfter);
+        if (this.spawned && collisionChanged) {
+            SetEntityDataPacket entityDataPk = new SetEntityDataPacket();
+            entityDataPk.setRuntimeEntityId(this.getRuntimeId());
+            entityDataPk.setTick(this.clientTick);
+            this.data.putFlagsIn(entityDataPk.getMetadata());
+            this.sendPacket(entityDataPk);
+            CloudServer.broadcastPacket(this.getViewers(), entityDataPk);
         }
 
         this.resetFallDistance();
@@ -1890,7 +1864,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         // TODO: Better way of getting max speed and when exempt
-        boolean speedExempt = this.isGliding() || this.getAdventureSettings().get(AdventureSetting.FLYING) || (newPosition.getY() - currentPos.getY()) < -3.0f;
+        boolean speedExempt = this.isGliding() || this.isCreative() || this.isSpectator() || (newPosition.getY() - currentPos.getY()) < -3.0f;
         if ((distanceSquared / tickDiffSq) > maxSpeedThreshold && !speedExempt) {
             log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
             revert = true;
@@ -2219,13 +2193,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(this.getUniqueId());
         startGamePacket.setRuntimeEntityId(this.getRuntimeId());
-        startGamePacket.setPlayerGameType(GameType.from(this.getGamemode().getVanillaId()));
+        startGamePacket.setPlayerGameType(GameType.from(this.getGameMode().getVanillaId()));
         startGamePacket.setPlayerPosition(pos);
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(this.getLevel().getDimension());
         startGamePacket.setTrustingPlayers(false);
-        startGamePacket.setLevelGameType(GameType.from(this.getGamemode().getVanillaId()));
+        startGamePacket.setLevelGameType(GameType.from(this.getGameMode().getVanillaId()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
         startGamePacket.setAchievementsDisabled(true);
@@ -2241,7 +2215,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
+        startGamePacket.setDefaultPlayerPermission(this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
         startGamePacket.setServerChunkTickRange(4);
         startGamePacket.setBehaviorPackLocked(false);
         startGamePacket.setResourcePackLocked(false);
@@ -2394,15 +2368,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.loadAdditionalData(nbt);
 
         if (this.server.getForceGamemode()) {
-            this.playerData.setGamemode(this.server.getGamemode());
+            this.setGamemode(this.server.getGameMode(), PlayerGameModeChangeEvent.Cause.DEFAULT_GAMEMODE);
         }
 
-        this.adventureSettings = new CloudAdventureSettings(this)
-                .set(AdventureSetting.WORLD_IMMUTABLE, isAdventure() || isSpectator())
-                .set(AdventureSetting.WORLD_BUILDER, !isAdventure() && !isSpectator())
-                .set(AdventureSetting.AUTO_JUMP, true)
-                .set(AdventureSetting.ALLOW_FLIGHT, isCreative())
-                .set(AdventureSetting.NO_CLIP, isSpectator());
+        this.abilities = buildAbilitiesForGameMode(this.getGameMode());
 
         CloudLevel level;
         if ((level = this.server.getLevelByName(this.playerData.getLevel())) == null || !isAlive()) {
@@ -2925,11 +2894,21 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         if (this.spawned && send) {
             Attribute attribute = Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(speed);
             this.setAttribute(attribute);
+            this.abilities.setWalkSpeed(speed);
+            this.abilities.update();
         }
     }
 
     public Entity getKiller() {
         return killer;
+    }
+
+    private CloudPlayerAbilities buildAbilitiesForGameMode(GameMode mode) {
+        CloudPlayerAbilities abilities = new CloudPlayerAbilities(this);
+        abilities.setAll(mode.getDefaultAbilities());
+        abilities.set(Ability.OPERATOR_COMMANDS, this.isOp());
+        abilities.set(Ability.TELEPORT, this.isOp());
+        return abilities;
     }
 
     @Override
@@ -2941,7 +2920,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         if (this.isSpectator() || (this.isCreative() && source.getCause() != EntityDamageEvent.DamageCause.SUICIDE)) {
             //source.setCancelled();
             return false;
-        } else if (this.getAdventureSettings().get(AdventureSetting.ALLOW_FLIGHT) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
+        } else if (this.abilities.get(Ability.MAY_FLY) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
             //source.setCancelled();
             return false;
         } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
@@ -3087,7 +3066,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
         this.playerData.saveData(tag);
 
-        tag.putInt("GameType", this.getGamemode().getVanillaId());
+        tag.putInt("GameType", this.getGameMode().getVanillaId());
 
         tag.putInt("EXP", this.getExperience());
         tag.putInt("expLevel", this.getExperienceLevel());
@@ -3821,7 +3800,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     public boolean pickupEntity(Entity entity, boolean near) {
-        if (!this.spawned || !this.isAlive() || !this.isOnline() || this.getGamemode() == GameMode.SPECTATOR || entity.isClosed()) {
+        if (!this.spawned || !this.isAlive() || !this.isOnline() || this.getGameMode() == GameMode.SPECTATOR || entity.isClosed()) {
             return false;
         }
 

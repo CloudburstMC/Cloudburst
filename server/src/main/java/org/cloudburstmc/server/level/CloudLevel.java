@@ -1600,7 +1600,7 @@ public class CloudLevel implements Level {
     }
 
     public ItemStack useBreakOn(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles) {
-        if (player != null && player.getGamemode() == GameMode.SPECTATOR) {
+        if (player != null && player.getGameMode() == GameMode.SPECTATOR) {
             return null;
         }
         if (item == null || item.isEmpty()) {
@@ -1615,7 +1615,7 @@ public class CloudLevel implements Level {
 
         if (player != null) {
             ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.getComponents(item.getType());
-            if (player.getGamemode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_DESTROY).execute(item, target))) {
+            if (player.getGameMode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_DESTROY).execute(item, target))) {
                 return null;
             }
 
@@ -1778,7 +1778,7 @@ public class CloudLevel implements Level {
 
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
-            if (player.getGamemode() == GameMode.SPECTATOR) {
+            if (player.getGameMode() == GameMode.SPECTATOR) {
                 ev.setCancelled();
             }
 
@@ -1911,7 +1911,7 @@ public class CloudLevel implements Level {
 
         if (player != null) {
             BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
-            if (player.getGamemode() == GameMode.ADVENTURE && !itemRegistry.getComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON).execute(item, target)) {
+            if (player.getGameMode() == GameMode.ADVENTURE && !itemRegistry.getComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON).execute(item, target)) {
                 event.setCancelled();
             }
 

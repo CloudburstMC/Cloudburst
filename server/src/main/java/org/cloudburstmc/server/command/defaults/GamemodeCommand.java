@@ -3,7 +3,9 @@ package org.cloudburstmc.server.command.defaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.event.player.PlayerGameModeChangeEvent;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -63,7 +65,7 @@ public class GamemodeCommand extends Command {
                 sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
-        } else if (!(sender instanceof CloudPlayer)) {
+        } else if (!(sender instanceof Player)) {
             return false;
         }
 
@@ -72,10 +74,14 @@ public class GamemodeCommand extends Command {
             return true;
         }
 
-        if (!((CloudPlayer) target).setGamemode(gameMode)) {
+        Player targetPlayer = (Player) target;
+        if (targetPlayer.getGameMode() == gameMode) {
             sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
         } else {
-            if (target.equals(sender)) {
+            boolean changed = ((CloudPlayer) targetPlayer).setGamemode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
+            if (!changed) {
+                sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
+            } else if (target.equals(sender)) {
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.self", Component.translatable(gameMode)));
             } else {
                 target.sendMessage(Component.translatable("gameMode.changed"));
