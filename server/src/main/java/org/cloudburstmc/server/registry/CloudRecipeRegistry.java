@@ -16,7 +16,7 @@ import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.MixRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.crafting.RecipeType;
-import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.Smithing
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.container.ContainerRecipe;
 import org.cloudburstmc.server.crafting.*;
@@ -72,9 +73,12 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private final Reference2IntMap<Identifier> netIdMap = new Reference2IntOpenHashMap<>();
     private final Int2ReferenceMap<Identifier> idNetMap = new Int2ReferenceOpenHashMap<>();
     private final AtomicInteger netIdAllocator = new AtomicInteger();
+    private final List<TrimPattern> trimPatterns = new ArrayList<>();
+    private final List<TrimMaterial> trimMaterials = new ArrayList<>();
 
     private boolean closed;
     private CraftingDataPacket cached;
+    private TrimDataPacket trimData;
 
     public CloudRecipeRegistry(ItemRegistry registry) {
         this.itemRegistry = (CloudItemRegistry) registry;
@@ -83,6 +87,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         } catch (URISyntaxException | NullPointerException e) {
             throw new RegistryException("Unable to load data/recipes.json", e);
         }
+        registerVanillaTrimData();
     }
 
     public static CloudRecipeRegistry get() {
@@ -434,6 +439,69 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         return cached;
     }
 
+    public TrimDataPacket getTrimData() {
+        if (trimData != null) {
+            return trimData;
+        }
+        rebuildPacket();
+        return trimData;
+    }
+
+    @Override
+    public void registerTrimPattern(TrimPattern pattern) {
+        trimPatterns.add(pattern);
+        trimData = null;
+    }
+
+    @Override
+    public void registerTrimMaterial(TrimMaterial material) {
+        trimMaterials.add(material);
+        trimData = null;
+    }
+
+    @Override
+    public Collection<TrimPattern> getTrimPatterns() {
+        return ImmutableList.copyOf(trimPatterns);
+    }
+
+    @Override
+    public Collection<TrimMaterial> getTrimMaterials() {
+        return ImmutableList.copyOf(trimMaterials);
+    }
+
+    private void registerVanillaTrimData() {
+        trimPatterns.add(TrimPatterns.BOLT);
+        trimPatterns.add(TrimPatterns.COAST);
+        trimPatterns.add(TrimPatterns.DUNE);
+        trimPatterns.add(TrimPatterns.EYE);
+        trimPatterns.add(TrimPatterns.FLOW);
+        trimPatterns.add(TrimPatterns.HOST);
+        trimPatterns.add(TrimPatterns.RAISER);
+        trimPatterns.add(TrimPatterns.RIB);
+        trimPatterns.add(TrimPatterns.SENTRY);
+        trimPatterns.add(TrimPatterns.SHAPER);
+        trimPatterns.add(TrimPatterns.SILENCE);
+        trimPatterns.add(TrimPatterns.SNOUT);
+        trimPatterns.add(TrimPatterns.SPIRE);
+        trimPatterns.add(TrimPatterns.TIDE);
+        trimPatterns.add(TrimPatterns.VEX);
+        trimPatterns.add(TrimPatterns.WARD);
+        trimPatterns.add(TrimPatterns.WAYFINDER);
+        trimPatterns.add(TrimPatterns.WILD);
+
+        trimMaterials.add(TrimMaterials.AMETHYST);
+        trimMaterials.add(TrimMaterials.COPPER);
+        trimMaterials.add(TrimMaterials.DIAMOND);
+        trimMaterials.add(TrimMaterials.EMERALD);
+        trimMaterials.add(TrimMaterials.GOLD);
+        trimMaterials.add(TrimMaterials.IRON);
+        trimMaterials.add(TrimMaterials.LAPIS);
+        trimMaterials.add(TrimMaterials.NETHERITE);
+        trimMaterials.add(TrimMaterials.QUARTZ);
+        trimMaterials.add(TrimMaterials.REDSTONE);
+        trimMaterials.add(TrimMaterials.RESIN);
+    }
+
     private void rebuildPacket() {
         CraftingDataPacket packet = new CraftingDataPacket();
         packet.setCleanRecipes(true);
@@ -550,6 +618,19 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         this.cached = packet;
+        this.trimData = buildTrimDataPacket();
+    }
+
+    private TrimDataPacket buildTrimDataPacket() {
+        TrimDataPacket packet = new TrimDataPacket();
+        for (TrimPattern p : trimPatterns) {
+            packet.getPatterns().add(new org.cloudburstmc.protocol.bedrock.data.TrimPattern(p.itemId().toString(), p.patternId()));
+        }
+
+        for (TrimMaterial m : trimMaterials) {
+            packet.getMaterials().add(new org.cloudburstmc.protocol.bedrock.data.TrimMaterial(m.materialId(), m.color().legacyCode(), m.itemId().toString()));
+        }
+        return packet;
     }
 
     private UUID getInputHash(Recipe recipe) {

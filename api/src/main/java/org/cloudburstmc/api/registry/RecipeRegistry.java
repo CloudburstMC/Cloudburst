@@ -3,6 +3,8 @@ package org.cloudburstmc.api.registry;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.TrimMaterial;
+import org.cloudburstmc.api.item.TrimPattern;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.net.URI;
@@ -31,4 +33,12 @@ public interface RecipeRegistry extends Registry<RecipeType> {
      * @param recipe instance of the recipe to remove (i.e. as returned by {@link RecipeRegistry#matchRecipe(ItemStack[][], ItemStack, ItemStack[][], Identifier)}
      */
     void unregister(Recipe recipe);
+
+    void registerTrimPattern(TrimPattern pattern);
+
+    void registerTrimMaterial(TrimMaterial material);
+
+    Collection<TrimPattern> getTrimPatterns();
+
+    Collection<TrimMaterial> getTrimMaterials();
 }
