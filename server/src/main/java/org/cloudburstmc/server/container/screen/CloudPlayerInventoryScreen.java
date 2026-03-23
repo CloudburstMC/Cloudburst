@@ -37,7 +37,7 @@ public class CloudPlayerInventoryScreen extends CloudInventoryScreen implements 
         this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR_AND_INVENTORY, inventoryView, 36));
         this.addMapping(new UIContainerMapping(ContainerSlotType.CURSOR, this.cursor));
         this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, new CloudCreatedOutputView(this.player), 1, -50));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CRAFTING_INPUT, this.craftingGrid, 4, 0));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CRAFTING_INPUT, this.craftingGrid, 4, -28));
         this.addMapping(SimpleContainerMapping.armorView(this.player.getArmor()));
         this.addMapping(SimpleContainerMapping.offhandView(this.player.getOffhand()));
     }
