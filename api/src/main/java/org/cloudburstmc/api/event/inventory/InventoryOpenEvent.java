@@ -7,7 +7,7 @@ import org.cloudburstmc.api.inventory.InventoryScreen;
 /**
  * Called when a player opens an inventory screen.
  *
- * <p>Plugins may call {@link #setTitleOverride(String)} to replace the title shown
+ * <p>Call {@link #setTitleOverride(String)} to replace the title shown
  * to the player without modifying the underlying screen.</p>
  */
 public final class InventoryOpenEvent extends InventoryEvent implements Cancellable {

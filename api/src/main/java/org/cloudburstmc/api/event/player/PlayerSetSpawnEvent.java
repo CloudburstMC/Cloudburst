@@ -15,7 +15,7 @@ import org.cloudburstmc.api.player.Player;
  * <p>This event is {@link Cancellable}. Cancelling it prevents the spawn point from being
  * updated; the player will not receive a {@code SetSpawnPositionPacket}.</p>
  *
- * <p>Plugins may also redirect the spawn to a different location by calling
+ * <p>Redirect the spawn to a different location by calling
  * {@link #setNewSpawn(Location)}.</p>
  */
 public final class PlayerSetSpawnEvent extends PlayerEvent implements Cancellable {

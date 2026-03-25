@@ -347,6 +347,17 @@ public class ItemUtils {
             return new ItemDescriptorWithCount(new ComplexAliasDescriptor(""), count);
         }
 
+        if (data.containsKey("id")) {
+            Identifier id = Identifier.parse(data.get("id").toString());
+            int auxValue = Utils.toInt(data.getOrDefault("auxValue", 0));
+            ItemDefinition definition = registry.getDefinition(id);
+            if (definition == null) {
+                log.warn("Unknown item '{}' in recipe descriptor", id);
+                return ItemDescriptorWithCount.EMPTY;
+            }
+            return new ItemDescriptorWithCount(new DefaultDescriptor(definition, auxValue), count);
+        }
+
         int auxValue = Utils.toInt(data.getOrDefault("auxValue", 0));
         int itemId = Utils.toInt(data.get("itemId"));
 

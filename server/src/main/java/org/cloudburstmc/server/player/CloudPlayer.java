@@ -76,7 +76,9 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -167,6 +169,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private final PlayerPacketHandler packetHandler;
     private final Map<Container, Byte> containerToWindowId = new HashMap<>();
     private final Map<Byte, Container> windowIdToContainer = new HashMap<>();
+    private Container uiContainer;
+    private ContainerSlotType uiContainerSlotType;
+    private int uiContainerSlotOffset;
     private final CloudEnderChestView enderChest = new CloudEnderChestView(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
     private final Queue<BedrockPacket> inboundQueue = new ConcurrentLinkedQueue<>();
@@ -3942,6 +3947,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return;
         }
 
+        if (inventory == this.uiContainer) {
+            sendUISlot(slot, inventory.getItem(slot));
+            return;
+        }
+
         int containerId = getContainerId(inventory);
         if (containerId == ContainerId.NONE) {
             return;
@@ -3961,6 +3971,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return;
         }
 
+        if (inventory == this.uiContainer) {
+            for (int i = 0; i < inventory.size(); i++) {
+                sendUISlot(i, inventory.getItem(i));
+            }
+            return;
+        }
+
         int containerId = getContainerId(inventory);
         if (containerId == ContainerId.NONE) {
             return;
@@ -3977,6 +3994,15 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
+    private void sendUISlot(int localSlot, ItemStack item) {
+        InventorySlotPacket packet = new InventorySlotPacket();
+        packet.setContainerId(ContainerId.UI);
+        packet.setSlot(localSlot + this.uiContainerSlotOffset);
+        packet.setContainerNameData(new FullContainerName(this.uiContainerSlotType, null));
+        packet.setItem(ItemUtils.toNetworkNetId(item));
+        this.sendPacket(packet);
+    }
+
     private int getContainerId(Container inventory) {
         if (inventory == this.container) {
             return ContainerId.INVENTORY;
@@ -3984,6 +4010,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return ContainerId.ARMOR;
         } else if (inventory == this.offhand.getContainer()) {
             return ContainerId.OFFHAND;
+        } else if (inventory == this.uiContainer) {
+            return ContainerId.UI;
         }
         Byte dynamic = this.containerToWindowId.get(inventory);
         return dynamic != null ? dynamic : ContainerId.NONE;
@@ -3995,6 +4023,24 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.windowIdToContainer.put(id, inventory);
         this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
         return id;
+    }
+
+    public byte nextContainerId() {
+        byte id = this.containerIdCounter;
+        this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
+        return id;
+    }
+
+    public void registerUIContainer(Container container, ContainerSlotType slotType, int slotOffset) {
+        this.uiContainer = container;
+        this.uiContainerSlotType = slotType;
+        this.uiContainerSlotOffset = slotOffset;
+    }
+
+    public void clearUIContainer() {
+        this.uiContainer = null;
+        this.uiContainerSlotType = null;
+        this.uiContainerSlotOffset = 0;
     }
 
     private void unregisterContainerId(Container inventory) {

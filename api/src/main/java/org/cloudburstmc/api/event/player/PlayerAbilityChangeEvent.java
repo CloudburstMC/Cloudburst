@@ -7,7 +7,7 @@ import org.cloudburstmc.api.player.Player;
 /**
  * Fired when a boolean ability flag on a player is about to change.
  *
- * <p>Plugins may redirect the outcome to a different value by calling
+ * <p>Redirect the outcome to a different value by calling
  * {@link #setNewValue(boolean)}.</p>
  */
 public final class PlayerAbilityChangeEvent extends PlayerEvent implements Cancellable {

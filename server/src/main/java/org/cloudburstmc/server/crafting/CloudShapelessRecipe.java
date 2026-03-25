@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.crafting;
 
-import org.cloudburstmc.api.crafting.CraftingRecipe;
+import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
+import org.cloudburstmc.api.crafting.ShapelessRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
@@ -12,11 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class ShapelessRecipe implements CraftingRecipe {
+public class CloudShapelessRecipe implements ShapelessRecipe {
 
     private final Identifier recipeId;
     private final ItemStack output;
@@ -27,13 +24,12 @@ public class ShapelessRecipe implements CraftingRecipe {
     private final List<ItemStack> extraOutputs = new ArrayList<>();
     private final RecipeType type;
 
-    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock, RecipeType type) {
+    public CloudShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock, RecipeType type) {
         this(recipeId, priority, outputs, ingredients, null, craftingBlock, type);
     }
 
-    public ShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients,
-                           List<ItemDescriptorWithCount> inputDescriptors, Identifier craftingBlock, RecipeType type) {
-        this.output = outputs.remove(0);
+    public CloudShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, List<ItemDescriptorWithCount> inputDescriptors, Identifier craftingBlock, RecipeType type) {
+        this.output = outputs.removeFirst();
         this.extraOutputs.addAll(outputs);
         this.type = type;
         this.recipeId = recipeId;
@@ -65,14 +61,26 @@ public class ShapelessRecipe implements CraftingRecipe {
         return this.output;
     }
 
+    @Override
     public List<ItemStack> getIngredientList() {
-        return this.ingredients;
+        return Collections.unmodifiableList(this.ingredients);
     }
 
     public List<ItemDescriptorWithCount> getInputDescriptors() {
         return this.inputDescriptors;
     }
 
+    @Override
+    public List<RecipeIngredient> getIngredientChoices() {
+        if (inputDescriptors == null) return List.of();
+        List<RecipeIngredient> choices = new ArrayList<>(inputDescriptors.size());
+        for (ItemDescriptorWithCount descriptor : inputDescriptors) {
+            choices.add(CloudShapedRecipe.descriptorToIngredient(descriptor));
+        }
+        return Collections.unmodifiableList(choices);
+    }
+
+    @Override
     public int getIngredientCount() {
         return ingredients.size();
     }
@@ -94,7 +102,7 @@ public class ShapelessRecipe implements CraftingRecipe {
 
     @Override
     public List<ItemStack> getAllResults() {
-        if(this.extraOutputs.size() == 0) {
+        if (this.extraOutputs.isEmpty()) {
             return Collections.singletonList(this.getResult());
         }
         List<ItemStack> list = new ArrayList<>();
@@ -108,10 +116,8 @@ public class ShapelessRecipe implements CraftingRecipe {
         return this.priority;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    @Override
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
-        List haveInputs = new ArrayList<>();
+        List<ItemStack> haveInputs = new ArrayList<>();
         for (ItemStack[] items : input) {
             haveInputs.addAll(Arrays.asList(items));
         }
@@ -123,7 +129,7 @@ public class ShapelessRecipe implements CraftingRecipe {
             return false;
         }
 
-        List haveOutputs = new ArrayList<>();
+        List<ItemStack> haveOutputs = new ArrayList<>();
         for (ItemStack[] items : output) {
             haveOutputs.addAll(Arrays.asList(items));
         }
@@ -133,10 +139,8 @@ public class ShapelessRecipe implements CraftingRecipe {
         return this.matchItemList(haveOutputs, needOutputs);
     }
 
-
     private boolean matchItemList(List<ItemStack> haveItems, List<ItemStack> needItems) {
-        // Remove any air blocks that may have gotten through.
-        haveItems.removeIf(item -> item.isEmpty());
+        haveItems.removeIf(ItemStack::isEmpty);
 
         if (haveItems.size() != needItems.size()) {
             return false;

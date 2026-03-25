@@ -231,8 +231,7 @@ public final class InventoryMoveItemEvent extends Event implements Cancellable {
     /**
      * Replaces the item stack to be transferred.
      *
-     * <p>Plugins can call this to change the item that will be moved or dispensed.
-     * Setting a different amount lets plugins partially block transfers.</p>
+     * <p>Setting a different amount lets you partially block transfers.</p>
      *
      * @param item the replacement item stack (must not be {@code null})
      */

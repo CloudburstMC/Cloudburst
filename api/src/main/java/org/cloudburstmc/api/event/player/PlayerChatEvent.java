@@ -13,7 +13,7 @@ import java.util.Set;
  * as well as a mutable rendered component and a mutable set of recipient audiences.
  *
  * <p>A {@link ChatRenderer} controls how the final rendered component is built from the player's
- * name and message. Plugins can replace the renderer with a custom implementation to change the
+ * name and message. Replace the renderer with a custom implementation to change the
  * format of chat messages.</p>
  */
 public final class PlayerChatEvent extends PlayerEvent implements Cancellable {
@@ -50,7 +50,7 @@ public final class PlayerChatEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Returns the current message component. Plugins may call {@link #message(Component)} to
+     * Returns the current message component. Call {@link #message(Component)} to
      * replace this before the message is passed to the renderer.
      *
      * @return the current message component
@@ -88,7 +88,7 @@ public final class PlayerChatEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Returns the mutable set of audiences that will receive the rendered chat message.
-     * Plugins may add or remove entries to control who sees the message.
+     * Add or remove entries to control who sees the message.
      *
      * @return the mutable viewer set
      */

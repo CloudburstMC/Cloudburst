@@ -7,7 +7,6 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
-import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -24,8 +23,9 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.container.ContainerRecipe;
-import org.cloudburstmc.server.crafting.BrewingRecipe;
+import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.server.crafting.CloudBrewingRecipe;
+import org.cloudburstmc.server.crafting.CloudContainerRecipe;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -200,24 +200,30 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
             this.cookTime--;
 
             if (this.cookTime <= 0) { //20 seconds
-                BrewFinishEvent e = new BrewFinishEvent(this);
+                ItemStack[] results = new ItemStack[3];
+                for (int i = 1; i <= 3; i++) {
+                    ItemStack potion = this.container.getItem(i);
+                    ItemStack brewed = null;
+
+                    CloudContainerRecipe containerRecipe = (CloudContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
+                    if (containerRecipe != null) {
+                        brewed = containerRecipe.getResult();
+                    } else {
+                        CloudBrewingRecipe brewingRecipe = (CloudBrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
+                        if (brewingRecipe != null) {
+                            brewed = brewingRecipe.getResult();
+                        }
+                    }
+
+                    results[i - 1] = brewed != null ? brewed : potion;
+                }
+
+                BrewFinishEvent e = new BrewFinishEvent(this, results);
                 this.server.getEventManager().fire(e);
 
                 if (!e.isCancelled()) {
                     for (int i = 1; i <= 3; i++) {
-                        ItemStack potion = this.container.getItem(i);
-
-                        ContainerRecipe containerRecipe = (ContainerRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
-                        if (containerRecipe != null) {
-                            ItemStack result = containerRecipe.getResult();
-//                            result.setMeta(potion.getMeta()); //TODO: check
-                            this.setItem(i, result);
-                        } else {
-                            BrewingRecipe recipe = (BrewingRecipe) CloudRecipeRegistry.get().matchBrewingRecipe(ingredient, potion);
-                            if (recipe != null) {
-                                this.container.setItem(i, recipe.getResult());
-                            }
-                        }
+                        this.container.setItem(i, e.getPotion(i - 1));
                     }
                     this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.POTION_BREWED);
                     this.container.decrementCount(SLOT_INGREDIENT);

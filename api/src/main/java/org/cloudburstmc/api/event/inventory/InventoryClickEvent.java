@@ -14,7 +14,7 @@ import java.util.Objects;
  *
  * <p>For transfer and swap actions, {@link #getDestinationSlot()} and
  * {@link #getDestinationSlotGroup()} indicate where the item is going.
- * Plugins may override the resulting item placed in the destination slot via
+ * Override the resulting item placed in the destination slot via
  * {@link #setResultItem(ItemStack)}; the source slot reduction is unaffected.
  * For non-transfer actions (DROP, DESTROY, CRAFT_CREATIVE) the destination
  * fields are {@code -1} / {@code null} and {@code resultItem} is ignored.</p>
@@ -162,7 +162,7 @@ public final class InventoryClickEvent extends InventoryEvent implements Cancell
      * Returns the item that will be placed into the destination slot after this action.
      *
      * <p>For TAKE/PLACE, this is the merged or moved item. For SWAP, this is the item
-     * that will land in the destination slot. Plugins may call {@link #setResultItem(ItemStack)}
+     * that will land in the destination slot. Call {@link #setResultItem(ItemStack)}
      * to override what ends up in the destination.
      * Returns {@code null} for actions with no destination (DROP, DESTROY, CRAFT_CREATIVE).</p>
      *

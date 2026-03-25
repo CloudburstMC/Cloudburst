@@ -5,7 +5,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
 /**
- * Called early in the login sequence. Plugins may cancel this event to prevent
+ * Called early in the login sequence. Cancel this event to prevent
  * the player from completing login, optionally providing a kick message.
  */
 public final class PlayerLoginEvent extends PlayerEvent implements Cancellable {

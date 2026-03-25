@@ -1134,6 +1134,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
+    public PacketSignal handle(InventoryContentPacket packet) {
+        // Clients must not be allowed to overwrite server inventory state.
+        // Re-sync all inventories so the client reflects the authoritative state.
+        if (player.spawned) {
+            player.getInventoryManager().sendAllInventories();
+        }
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
     public PacketSignal handle(CraftingEventPacket packet) {
 //        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
 //        if (recipe != null) {

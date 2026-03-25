@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.crafting;
 
-import org.cloudburstmc.api.crafting.Recipe;
+import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
+import org.cloudburstmc.api.crafting.SmithingTransformRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 
-public class SmithingTransformRecipe implements Recipe {
+public class CloudSmithingTransformRecipe implements SmithingTransformRecipe {
     private final Identifier id;
     private final ItemDescriptorWithCount template;
     private final ItemDescriptorWithCount base;
@@ -14,9 +15,7 @@ public class SmithingTransformRecipe implements Recipe {
     private final ItemStack result;
     private final Identifier block;
 
-    public SmithingTransformRecipe(Identifier id, ItemDescriptorWithCount template,
-                                   ItemDescriptorWithCount base, ItemDescriptorWithCount addition,
-                                   ItemStack result, Identifier block) {
+    public CloudSmithingTransformRecipe(Identifier id, ItemDescriptorWithCount template, ItemDescriptorWithCount base, ItemDescriptorWithCount addition, ItemStack result, Identifier block) {
         this.id = id;
         this.template = template;
         this.base = base;
@@ -45,15 +44,30 @@ public class SmithingTransformRecipe implements Recipe {
         return block;
     }
 
-    public ItemDescriptorWithCount getTemplate() {
+    public ItemDescriptorWithCount getTemplateDescriptor() {
         return template;
     }
 
-    public ItemDescriptorWithCount getBase() {
+    public ItemDescriptorWithCount getBaseDescriptor() {
         return base;
     }
 
-    public ItemDescriptorWithCount getAddition() {
+    public ItemDescriptorWithCount getAdditionDescriptor() {
         return addition;
+    }
+
+    @Override
+    public RecipeIngredient getTemplate() {
+        return CloudShapedRecipe.descriptorToIngredient(template);
+    }
+
+    @Override
+    public RecipeIngredient getBase() {
+        return CloudShapedRecipe.descriptorToIngredient(base);
+    }
+
+    @Override
+    public RecipeIngredient getAddition() {
+        return CloudShapedRecipe.descriptorToIngredient(addition);
     }
 }

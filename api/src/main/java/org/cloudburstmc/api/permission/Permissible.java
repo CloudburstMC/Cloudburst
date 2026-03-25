@@ -118,7 +118,7 @@ public interface Permissible extends ServerOperator {
      * Recalculates all effective permissions by replaying defaults and all attachments.
      *
      * <p>This is called automatically when attachments are added or removed, or when
-     * permission defaults change. Plugins do not normally need to call this directly.</p>
+     * permission defaults change. Does not normally need to be called directly.</p>
      */
     void recalculatePermissions();
 

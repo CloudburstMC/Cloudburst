@@ -1,48 +1,29 @@
 package org.cloudburstmc.api.crafting;
 
-import lombok.ToString;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.util.Identifier;
 
-@ToString
-public abstract class MixRecipe implements Recipe {
+/**
+ * A brewing stand recipe where one input item and one reagent combine to produce one output item.
+ *
+ * <p>Used for two distinct recipe categories, distinguished by {@link #getType()}:
+ * <ul>
+ *   <li>{@link RecipeType#POTION}: potion brewing, combining a base potion with a reagent item.
+ *   <li>{@link RecipeType#POTION_CONTAINER}: container transformation, changing the container type of the potion
+ *       (e.g. converting a regular potion into a splash potion).
+ * </ul>
+ * Both use the brewing stand as their station.
+ */
+public interface MixRecipe extends Recipe {
 
-    private final ItemStack input;
-    private final ItemStack ingredient;
-    private final ItemStack output;
-    private final Identifier recipeId;
+    /**
+     * Returns the base input item for this recipe.
+     * Always a specific item stack rather than a tag-based ingredient.
+     */
+    ItemStack getInput();
 
-    public MixRecipe(Identifier id, ItemStack input, ItemStack ingredient, ItemStack output) {
-        this.recipeId = id;
-        this.input = input;
-        this.ingredient = ingredient;
-        this.output = output;
-    }
-
-    @Override
-    public Identifier getId() {
-        return this.recipeId;
-    }
-
-    public ItemStack getIngredient() {
-        return ingredient;
-    }
-
-    public ItemStack getInput() {
-        return input;
-    }
-
-    public ItemStack getResult() {
-        return output;
-    }
-
-    @Override
-    public RecipeType getType() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Identifier getBlock() {
-        throw new UnsupportedOperationException();
-    }
+    /**
+     * Returns the reagent item placed in the top slot of the brewing stand.
+     * Always a specific item stack rather than a tag-based ingredient.
+     */
+    ItemStack getIngredient();
 }

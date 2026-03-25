@@ -23,7 +23,8 @@ public final class PlayerRespawnEvent extends PlayerEvent {
     }
 
     /**
-     * The location the player will be teleported to. Plugins may change this.
+     * Returns the location the player will be teleported to on respawn.
+     * Override this via {@link #setRespawnLocation(Location)} to redirect the player.
      */
     public Location getRespawnLocation() {
         return location;

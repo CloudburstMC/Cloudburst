@@ -1,6 +1,9 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -14,6 +17,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
+import org.cloudburstmc.server.container.screen.CloudBlockContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -154,6 +158,18 @@ public class ItemStackRequestActionHandler {
 
         setSlot(srcSlot, newSource);
         setSlot(dstSlot, resolvedDest);
+
+        if (srcSlot.getContainerName().getContainer() == ContainerSlotType.FURNACE_RESULT
+                && screen instanceof CloudBlockContainerScreen blockScreen) {
+            BlockEntity be = blockScreen.getBlock().getLevel().getBlockEntity(blockScreen.getBlock().getPosition());
+            if (be instanceof Furnace furnace) {
+                FurnaceExtractEvent extractEvent = new FurnaceExtractEvent(player, furnace, sourceItem, 0);
+                player.getServer().getEventManager().fire(extractEvent);
+                if (extractEvent.getExperience() != 0) {
+                    player.addExperience(extractEvent.getExperience());
+                }
+            }
+        }
     }
 
     private void handleSwap(SwapAction action) {

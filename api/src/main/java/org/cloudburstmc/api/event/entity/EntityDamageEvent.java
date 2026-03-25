@@ -8,17 +8,12 @@ import org.cloudburstmc.api.event.EventException;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntityDamageEvent extends EntityEvent implements Cancellable {
 
-    private int attackCooldown = 10;
     private final DamageCause cause;
-
     private final Map<DamageModifier, Float> modifiers;
     private final Map<DamageModifier, Float> originals;
+    private int attackCooldown = 10;
 
     public EntityDamageEvent(Entity entity, DamageCause cause, float damage) {
         this(entity, cause, new EnumMap<DamageModifier, Float>(DamageModifier.class) {
@@ -64,16 +59,16 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
         return this.getDamage(DamageModifier.BASE);
     }
 
+    public void setDamage(float damage) {
+        this.setDamage(damage, DamageModifier.BASE);
+    }
+
     public float getDamage(DamageModifier type) {
         if (this.modifiers.containsKey(type)) {
             return this.modifiers.get(type);
         }
 
         return 0;
-    }
-
-    public void setDamage(float damage) {
-        this.setDamage(damage, DamageModifier.BASE);
     }
 
     public void setDamage(float damage, DamageModifier type) {
@@ -207,7 +202,7 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
          */
         MAGIC,
         /**
-         * Plugins
+         * Damage applied programmatically rather than by a built-in game mechanic.
          */
         CUSTOM,
         /**

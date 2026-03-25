@@ -3,20 +3,18 @@ package org.cloudburstmc.server.crafting;
 import com.google.common.collect.ImmutableList;
 import io.netty.util.collection.CharObjectHashMap;
 import io.netty.util.collection.CharObjectMap;
-import org.cloudburstmc.api.crafting.CraftingRecipe;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
+import org.cloudburstmc.api.crafting.ShapedRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.*;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class ShapedRecipe implements CraftingRecipe {
+public class CloudShapedRecipe implements ShapedRecipe {
 
     private final Identifier recipeId;
     private final ItemStack primaryResult;
@@ -26,30 +24,13 @@ public class ShapedRecipe implements CraftingRecipe {
     private final String[] shape;
     private final int priority;
     private final Identifier block;
+    private final boolean assumeSymmetry;
 
-    /**
-     * Constructs a ShapedRecipe instance.
-     *
-     * @param primaryResult    Primary result of the recipe
-     * @param shape<br>        Array of 1, 2, or 3 strings representing the rows of the recipe.
-     *                         This accepts an array of 1, 2 or 3 strings. Each string should be of the same length and must be at most 3
-     *                         characters long. Each character represents a unique type of ingredient. Spaces are interpreted as air.
-     * @param ingredients<br>  Char =&gt; Item map of items to be set into the shape.
-     *                         This accepts an array of Items, indexed by character. Every unique character (except space) in the shape
-     *                         array MUST have a corresponding item in this list. Space character is automatically treated as air.
-     * @param extraResults<br> List of additional result items to leave in the crafting grid afterwards. Used for things like cake recipe
-     *                         empty buckets.
-     *                         <p>
-     *                         Note: Recipes **do not** need to be square. Do NOT add padding for empty rows/columns.
-     */
-    public ShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape,
-                        CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
+    public CloudShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape, CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
         this(recipeId, priority, primaryResult, shape, ingredients, null, extraResults, block);
     }
 
-    public ShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape,
-                        CharObjectMap<ItemStack> ingredients, CharObjectMap<ItemDescriptorWithCount> descriptors,
-                        List<ItemStack> extraResults, Identifier block) {
+    public CloudShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape, CharObjectMap<ItemStack> ingredients, CharObjectMap<ItemDescriptorWithCount> descriptors, List<ItemStack> extraResults, Identifier block) {
         this.recipeId = recipeId;
         this.priority = priority;
         int rowCount = shape.length;
@@ -61,7 +42,6 @@ public class ShapedRecipe implements CraftingRecipe {
         if (columnCount > 3 || columnCount <= 0) {
             throw new RuntimeException("Shaped recipes may only have 1, 2 or 3 columns, not " + columnCount);
         }
-
 
         for (String row : shape) {
             if (row.length() != columnCount) {
@@ -81,6 +61,7 @@ public class ShapedRecipe implements CraftingRecipe {
         this.extraResults = ImmutableList.copyOf(extraResults);
         this.block = block;
         this.shape = shape;
+        this.assumeSymmetry = false;
 
         for (Map.Entry<Character, ItemStack> entry : ingredients.entrySet()) {
             this.setIngredient(entry.getKey(), entry.getValue());
@@ -93,10 +74,28 @@ public class ShapedRecipe implements CraftingRecipe {
         }
     }
 
+    /**
+     * Converts a protocol descriptor to a {@link RecipeIngredient}.
+     * Returns {@code null} for invalid/empty descriptors.
+     */
+    @Nullable
+    static RecipeIngredient descriptorToIngredient(ItemDescriptorWithCount descriptor) {
+        return switch (descriptor.getDescriptor()) {
+            case DefaultDescriptor d -> new RecipeIngredient.Exact(Identifier.parse(d.getItemId().getIdentifier()));
+            case ItemTagDescriptor t -> new RecipeIngredient.Tag(Identifier.parse(t.getItemTag()));
+            case DeferredDescriptor d -> new RecipeIngredient.Exact(Identifier.parse(d.getFullName()));
+            case ComplexAliasDescriptor c -> new RecipeIngredient.Tag(Identifier.parse(c.getName()));
+            case MolangDescriptor m -> new RecipeIngredient.Tag(Identifier.parse(m.getTagExpression()));
+            default -> null;
+        };
+    }
+
+    @Override
     public int getWidth() {
         return this.shape[0].length();
     }
 
+    @Override
     public int getHeight() {
         return this.shape.length;
     }
@@ -111,11 +110,11 @@ public class ShapedRecipe implements CraftingRecipe {
         return this.recipeId;
     }
 
-    public ShapedRecipe setIngredient(String key, ItemStack item) {
+    public CloudShapedRecipe setIngredient(String key, ItemStack item) {
         return this.setIngredient(key.charAt(0), item);
     }
 
-    public ShapedRecipe setIngredient(char key, ItemStack item) {
+    public CloudShapedRecipe setIngredient(char key, ItemStack item) {
         if (String.join("", this.shape).indexOf(key) < 0) {
             throw new RuntimeException("Symbol does not appear in the shape: " + key);
         }
@@ -124,12 +123,15 @@ public class ShapedRecipe implements CraftingRecipe {
         return this;
     }
 
+    @Override
     public List<ItemStack> getIngredientList() {
         List<ItemStack> items = new ArrayList<>();
         for (int y = 0, y2 = getHeight(); y < y2; ++y) {
             for (int x = 0, x2 = getWidth(); x < x2; ++x) {
-                if (getIngredient(x, y) != null)
-                    items.add(getIngredient(x, y));
+                ItemStack ingredient = getIngredient(x, y);
+                if (!ingredient.isEmpty()) {
+                    items.add(ingredient);
+                }
             }
         }
         return items;
@@ -150,8 +152,8 @@ public class ShapedRecipe implements CraftingRecipe {
         return descriptors;
     }
 
-    public Map<Integer, Map<Integer, ItemStack>> getIngredientMap() {
-        Map<Integer, Map<Integer, ItemStack>> ingredients = new LinkedHashMap<>();
+    Map<Integer, Map<Integer, ItemStack>> getIngredientMap() {
+        Map<Integer, Map<Integer, ItemStack>> ingredientMap = new LinkedHashMap<>();
 
         for (int y = 0, y2 = getHeight(); y < y2; ++y) {
             Map<Integer, ItemStack> m = new LinkedHashMap<>();
@@ -160,20 +162,36 @@ public class ShapedRecipe implements CraftingRecipe {
                 m.put(x, getIngredient(x, y));
             }
 
-            ingredients.put(y, m);
+            ingredientMap.put(y, m);
         }
 
-        return ingredients;
+        return ingredientMap;
     }
 
+    @Override
     public ItemStack getIngredient(int x, int y) {
         ItemStack item = this.ingredients.get(this.shape[y].charAt(x));
 
         return item != null ? item : ItemStack.EMPTY;
     }
 
+    @Override
+    public RecipeIngredient getIngredientChoice(int x, int y) {
+        char c = this.shape[y].charAt(x);
+        if (c == ' ') return null;
+        ItemDescriptorWithCount descriptor = this.ingredientDescriptors.get(c);
+        if (descriptor == null) return null;
+        return descriptorToIngredient(descriptor);
+    }
+
+    @Override
     public String[] getShape() {
         return shape;
+    }
+
+    @Override
+    public boolean isAssumeSymmetry() {
+        return this.assumeSymmetry;
     }
 
     @Override
@@ -199,7 +217,6 @@ public class ShapedRecipe implements CraftingRecipe {
         return this.priority;
     }
 
-    @Override
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
         if (!matchInputMap(Utils.clone2dArray(input))) {
 
@@ -214,7 +231,6 @@ public class ShapedRecipe implements CraftingRecipe {
             }
         }
 
-        //and then, finally, check that the output items are good:
         List<ItemStack> haveItems = new ArrayList<>();
         for (ItemStack[] items : output) {
             haveItems.addAll(Arrays.asList(items));
@@ -243,13 +259,12 @@ public class ShapedRecipe implements CraftingRecipe {
     private boolean matchInputMap(ItemStack[][] input) {
         Map<Integer, Map<Integer, ItemStack>> map = this.getIngredientMap();
 
-        //match the given items to the requested items
         for (int y = 0, y2 = this.getHeight(); y < y2; ++y) {
             for (int x = 0, x2 = this.getWidth(); x < x2; ++x) {
                 ItemStack given = input[y][x];
                 ItemStack required = map.get(y).get(x);
 
-                if (given == null || !required.equals(given) || required.getCount() != given.getCount()) {
+                if (!required.equals(given) || required.getCount() != given.getCount()) {
                     return false;
                 }
 
@@ -257,7 +272,6 @@ public class ShapedRecipe implements CraftingRecipe {
             }
         }
 
-        //check if there are any items left in the grid outside of the recipe
         for (ItemStack[] items : input) {
             for (ItemStack item : items) {
                 if (!item.isEmpty()) {

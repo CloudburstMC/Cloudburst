@@ -4,9 +4,9 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
-import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
+import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -22,7 +22,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.crafting.FurnaceRecipe;
+import org.cloudburstmc.server.container.ContainerListener;
+import org.cloudburstmc.server.crafting.CloudFurnaceRecipe;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -50,6 +51,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     protected short burnTime = 0;
     protected short cookTime = 0;
     protected short burnDuration = 0;
+    protected int currentCookDuration;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(3));
@@ -170,7 +172,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         ItemStack product = this.getResult();
         BlockState state = getBlockState();
         BlockType blockType = state.getType();
-        FurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
+        CloudFurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = smelt != null && raw.getCount() > 0 &&
                 (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getComponent(product.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(product)));
 
@@ -185,8 +187,19 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             burnTime--;
 
             if (smelt != null && canSmelt) {
-                cookTime++;
-                if (cookTime >= (200 / getBurnRate())) {
+                if (cookTime == 0) {
+                    int defaultDuration = (int) (200 / getBurnRate());
+                    FurnaceStartSmeltEvent startEv = new FurnaceStartSmeltEvent(this, smelt, defaultDuration);
+                    this.server.getEventManager().fire(startEv);
+                    if (!startEv.isCancelled()) {
+                        currentCookDuration = startEv.getCookTime();
+                        cookTime++;
+                    }
+                } else {
+                    cookTime++;
+                }
+
+                if (cookTime > 0 && cookTime >= currentCookDuration) {
                     product = smelt.getResult().increaseCount();
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
@@ -201,7 +214,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
                         this.setSmelting(raw);
                     }
 
-                    cookTime -= (200 / getBurnRate());
+                    cookTime -= currentCookDuration;
                 }
             } else if (burnTime <= 0) {
                 burnTime = 0;
