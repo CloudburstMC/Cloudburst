@@ -1,17 +1,19 @@
 package org.cloudburstmc.server.container.screen;
 
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.ScreenType;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerTypeRegistry;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
@@ -75,14 +77,14 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
 
     @Override
     @Nullable
-    public String getTitle() {
+    public Component getTitle() {
         String override = getTitleOverride();
         if (override != null) {
-            return override;
+            return BedrockLegacyTextSerializer.getInstance().deserialize(override);
         }
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
         if (be instanceof BaseBlockEntity base && base.hasCustomName()) {
-            return base.getCustomName();
+            return BedrockLegacyTextSerializer.getInstance().deserialize(base.getCustomName());
         }
         return null;
     }

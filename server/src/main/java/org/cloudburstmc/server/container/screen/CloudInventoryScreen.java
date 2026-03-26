@@ -1,12 +1,14 @@
 package org.cloudburstmc.server.container.screen;
 
 import com.google.common.collect.ImmutableSet;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.inventory.InventoryScreen;
 import org.cloudburstmc.api.inventory.ScreenType;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -116,8 +118,8 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
 
     @Override
     @Nullable
-    public String getTitle() {
-        return titleOverride;
+    public Component getTitle() {
+        return titleOverride != null ? BedrockLegacyTextSerializer.getInstance().deserialize(titleOverride) : null;
     }
 
     @Nullable
@@ -125,7 +127,7 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
         return titleOverride;
     }
 
-    public void setTitleOverride(@Nullable String titleOverride) {
-        this.titleOverride = titleOverride;
+    public void setTitleOverride(@Nullable Component component) {
+        this.titleOverride = component != null ? BedrockLegacyTextSerializer.getInstance().serialize(component) : null;
     }
 }

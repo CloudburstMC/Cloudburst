@@ -40,12 +40,6 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-//        tag.listenForList("Inventory", NbtType.COMPOUND, items -> {
-//            for (NbtMap itemTag : items) {
-//                getContainer().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-//            }
-//        });
-
         tag.listenForList("Offhand", NbtType.COMPOUND, items -> {
             this.offhand.setOffhandItem(ItemUtils.deserializeItem(items.get(0)));
         });

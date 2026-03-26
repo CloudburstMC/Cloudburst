@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.container.screen;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -11,6 +12,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -37,11 +39,11 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
     private final CloudContainer backingContainer;
     private final CloudVirtualStorageSection storageSection;
 
-    private String title;
+    private Component title;
     private Vector3i fakePos;
     private BlockState[] originalStates;
 
-    public CloudVirtualChestScreen(CloudPlayer player, String title) {
+    public CloudVirtualChestScreen(CloudPlayer player, Component title) {
         super(ScreenTypes.VIRTUAL_CHEST, player);
         this.title = title;
         this.backingContainer = new CloudContainer(CHEST_SIZE);
@@ -54,12 +56,12 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
     }
 
     @Override
-    public String getTitle() {
+    public Component getTitle() {
         return title;
     }
 
     @Override
-    public void setTitle(String title) {
+    public void setTitle(Component title) {
         this.title = title;
     }
 
@@ -102,7 +104,7 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
                 .putInt("x", fakePos.getX())
                 .putInt("y", fakePos.getY())
                 .putInt("z", fakePos.getZ())
-                .putString("CustomName", title != null ? title : "Chest")
+                .putString("CustomName", title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Chest")
                 .build();
 
         BlockEntityDataPacket beData = new BlockEntityDataPacket();

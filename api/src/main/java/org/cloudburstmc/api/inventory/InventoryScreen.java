@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.inventory;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
@@ -38,14 +39,14 @@ public interface InventoryScreen {
      *
      * <p>For virtual container screens the title is set at construction time and can be
      * changed before opening via
-     * {@link org.cloudburstmc.api.inventory.VirtualContainerScreen#setTitle(String)}.</p>
+     * {@link org.cloudburstmc.api.inventory.VirtualContainerScreen#setTitle(Component)}.</p>
      *
      * <p>For HUD and player-inventory screens this always returns {@code null}.</p>
      *
      * @return the title of this screen, or {@code null} if this screen has no title
      */
     @Nullable
-    String getTitle();
+    Component getTitle();
 
     /**
      * Retrieves the type of this inventory screen.

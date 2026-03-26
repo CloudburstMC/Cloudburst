@@ -112,9 +112,14 @@ public class EntityHuman extends EntityCreature implements Human {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
+        tag.listenForList("Inventory", NbtType.COMPOUND, items -> {
+            for (NbtMap itemTag : items) {
+                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+            }
+        });
+
         if (!(this instanceof CloudPlayer)) {
             tag.listenForString("NameTag", this::setNameTag);
-
 
             if (tag.containsKey("Skin") && tag.get("Skin") instanceof NbtMap) {
                 NbtMap skinTag = tag.getCompound("Skin");

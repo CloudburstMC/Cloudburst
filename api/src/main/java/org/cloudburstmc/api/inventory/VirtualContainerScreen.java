@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.inventory;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
@@ -17,7 +18,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * <pre>{@code
  * // 1. Obtain a virtual screen from the player (server creates it lazily per player)
  * VirtualChestScreen chest = player.createVirtualChestScreen();
- * chest.setTitle("My Shop");
+ * chest.setTitle(Component.text("My Shop"));
  *
  * // 2. Populate items BEFORE opening; modifying slots while the screen is open causes a desync.
  * StorageView storage = chest.getStorage();
@@ -45,7 +46,7 @@ public interface VirtualContainerScreen extends ContainerScreen {
      * @return the current title (never {@code null})
      */
     @NonNull
-    String getTitle();
+    Component getTitle();
 
     /**
      * Sets the title displayed in the GUI title bar.
@@ -61,6 +62,6 @@ public interface VirtualContainerScreen extends ContainerScreen {
      *
      * @param title the title to display when the screen is next opened
      */
-    void setTitle(String title);
+    void setTitle(Component title);
 }
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.event.inventory;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.inventory.InventoryScreen;
@@ -7,13 +8,13 @@ import org.cloudburstmc.api.inventory.InventoryScreen;
 /**
  * Called when a player opens an inventory screen.
  *
- * <p>Call {@link #setTitleOverride(String)} to replace the title shown
+ * <p>Call {@link #setTitleOverride(Component)} to replace the title shown
  * to the player without modifying the underlying screen.</p>
  */
 public final class InventoryOpenEvent extends InventoryEvent implements Cancellable {
 
     @Nullable
-    private String titleOverride;
+    private Component titleOverride;
 
     public InventoryOpenEvent(InventoryScreen screen) {
         super(screen);
@@ -26,7 +27,7 @@ public final class InventoryOpenEvent extends InventoryEvent implements Cancella
      * @return the title override, or {@code null}
      */
     @Nullable
-    public String getTitleOverride() {
+    public Component getTitleOverride() {
         return titleOverride;
     }
 
@@ -36,7 +37,7 @@ public final class InventoryOpenEvent extends InventoryEvent implements Cancella
      *
      * @param title the title to display, or {@code null} to clear the override
      */
-    public void setTitleOverride(@Nullable String title) {
+    public void setTitleOverride(@Nullable Component title) {
         this.titleOverride = title;
     }
 }

@@ -4,18 +4,15 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
 import java.util.function.ObjIntConsumer;
-
-import org.cloudburstmc.api.item.ItemComponents;
 
 public class CloudContainer implements Container {
 
@@ -548,17 +545,17 @@ public class CloudContainer implements Container {
         return space;
     }
 
-    public void saveInventory(NbtMapBuilder tag) {
-        List<NbtMap> inventoryItems = new ArrayList<>();
+    public List<NbtMap> toNbt() {
+        List<NbtMap> items = new ArrayList<>();
 
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
             if (!item.isEmpty()) {
-                inventoryItems.add(ItemUtils.serializeItem(item, i));
+                items.add(ItemUtils.serializeItem(item, i));
             }
         }
 
-        tag.putList("Inventory", NbtType.COMPOUND, inventoryItems);
+        return items;
     }
 
     public void close() {

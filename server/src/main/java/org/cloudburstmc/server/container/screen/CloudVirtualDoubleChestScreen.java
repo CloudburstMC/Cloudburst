@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.container.screen;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -12,6 +13,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -38,13 +40,13 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
     private final CloudContainer backingContainer;
     private final CloudVirtualStorageSection storageSection;
 
-    private String title;
+    private Component title;
     private Vector3i fakePosA;
     private Vector3i fakePosB;
     private BlockState[] originalStatesA;
     private BlockState[] originalStatesB;
 
-    public CloudVirtualDoubleChestScreen(CloudPlayer player, String title) {
+    public CloudVirtualDoubleChestScreen(CloudPlayer player, Component title) {
         super(ScreenTypes.VIRTUAL_DOUBLE_CHEST, player);
         this.title = title;
         this.backingContainer = new CloudContainer(DOUBLE_CHEST_SIZE);
@@ -57,12 +59,12 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
     }
 
     @Override
-    public String getTitle() {
+    public Component getTitle() {
         return title;
     }
 
     @Override
-    public void setTitle(String title) {
+    public void setTitle(Component title) {
         this.title = title;
     }
 
@@ -106,7 +108,7 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
                 UpdateBlockPacket.FLAG_ALL_PRIORITY
         );
 
-        String customName = title != null ? title : "Chest";
+        String customName = title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Chest";
 
         player.sendPacket(buildChestNbtPacket(fakePosA, customName, null));
         player.sendPacket(buildChestNbtPacket(fakePosB, customName, null));

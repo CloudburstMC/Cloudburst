@@ -483,7 +483,19 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
                 player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator()) {
             super.spawnTo(player);
+            player.sendPacket(buildArmorEquipmentPacket());
         }
+    }
+
+    private MobArmorEquipmentPacket buildArmorEquipmentPacket() {
+        MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setHelmet(ItemUtils.toNetwork(this.armor.getHelmet()));
+        packet.setChestplate(ItemUtils.toNetwork(this.armor.getChestplate()));
+        packet.setLeggings(ItemUtils.toNetwork(this.armor.getLeggings()));
+        packet.setBoots(ItemUtils.toNetwork(this.armor.getBoots()));
+        packet.setBody(ItemData.AIR);
+        return packet;
     }
 
     @Override
@@ -1118,6 +1130,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPotionEffects(this);
         this.sendData(this);
         this.invManager.sendAllInventories();
+        this.onInventoryContentsChange(this.armor.getContainer());
 
         SetTimePacket setTimePacket = new SetTimePacket();
         setTimePacket.setTime(this.getLevel().getTime());
@@ -1722,17 +1735,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public VirtualChestScreen createVirtualChest(Component title) {
-        return new CloudVirtualChestScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
+        return new CloudVirtualChestScreen(this, title);
     }
 
     @Override
     public VirtualDoubleChestScreen createVirtualDoubleChest(Component title) {
-        return new CloudVirtualDoubleChestScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
+        return new CloudVirtualDoubleChestScreen(this, title);
     }
 
     @Override
     public VirtualHopperScreen createVirtualHopper(Component title) {
-        return new CloudVirtualHopperScreen(this, BedrockLegacyTextSerializer.getInstance().serialize(title));
+        return new CloudVirtualHopperScreen(this, title);
     }
 
     public void handleClientContainerClose(ContainerClosePacket packet) {
@@ -3066,8 +3079,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         tag.putInt("foodLevel", this.getFoodData().getLevel());
         tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
 
-//        this.invManager.getEnderChest().saveInventory(tag); TODO:
-
+        tag.putList("Inventory", NbtType.COMPOUND, this.getContainer().toNbt());
+        tag.putList("EnderChestInventory", NbtType.COMPOUND, this.enderChestContainer.toNbt());
     }
 
     public void save(boolean async) {
@@ -3950,6 +3963,13 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         packet.setItem(ItemUtils.toNetworkNetId(itemStack));
         packet.setContainerId(containerId);
         this.sendPacket(packet);
+
+        if (inventory == this.armor.getContainer()) {
+            MobArmorEquipmentPacket armorPacket = buildArmorEquipmentPacket();
+            for (CloudPlayer viewer : this.getViewers()) {
+                viewer.sendPacket(armorPacket);
+            }
+        }
     }
 
     @Override

@@ -133,7 +133,7 @@ public class ItemUtils {
         NbtMap map = serializeItem(item);
 
         if (slot >= 0) {
-            map.toBuilder().putByte("Slot", (byte) slot).build();
+            return map.toBuilder().putByte("Slot", (byte) slot).build();
         }
 
         return map;
