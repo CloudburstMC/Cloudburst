@@ -13,11 +13,11 @@ import java.util.List;
 public class FireworkData {
 
     private final ImmutableList<FireworkExplosion> explosions;
-    private final boolean flight;
+    private final byte flightLevel;
 
-    public static FireworkData of(List<FireworkExplosion> explosions, boolean flight) {
+    public static FireworkData of(List<FireworkExplosion> explosions, byte flightLevel) {
         Preconditions.checkNotNull(explosions, "explosions");
-        return new FireworkData(ImmutableList.copyOf(explosions), flight);
+        return new FireworkData(ImmutableList.copyOf(explosions), flightLevel);
     }
 
     @Getter
@@ -29,12 +29,13 @@ public class FireworkData {
         private final boolean flicker;
         private final boolean trail;
         private final ExplosionType type;
+        private final int customColor;
 
-        public static FireworkExplosion of(List<DyeColor> colors, List<DyeColor> fades, boolean flicker, boolean trail, ExplosionType type) {
+        public static FireworkExplosion of(List<DyeColor> colors, List<DyeColor> fades, boolean flicker, boolean trail, ExplosionType type, int customColor) {
             Preconditions.checkNotNull(colors, "colors");
             Preconditions.checkNotNull(fades, "fades");
             Preconditions.checkNotNull(type, "type");
-            return new FireworkExplosion(ImmutableList.copyOf(colors), ImmutableList.copyOf(fades), flicker, trail, type);
+            return new FireworkExplosion(ImmutableList.copyOf(colors), ImmutableList.copyOf(fades), flicker, trail, type, customColor);
         }
 
         public enum ExplosionType {

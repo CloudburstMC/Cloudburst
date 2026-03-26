@@ -21,14 +21,16 @@ public class CloudFurnaceRecipe implements CookingRecipe {
     private final ItemDescriptorWithCount inputDescriptor;
     private final Identifier block;
     private final int priority;
+    private final int inputDamage;
 
-    public CloudFurnaceRecipe(Identifier id, ItemStack result, ItemStack inputItem, ItemDescriptorWithCount inputDescriptor, Identifier block, int priority) {
+    public CloudFurnaceRecipe(Identifier id, ItemStack result, ItemStack inputItem, ItemDescriptorWithCount inputDescriptor, Identifier block, int priority, int inputDamage) {
         this.recipeId = id;
         this.output = result;
         this.inputItem = inputItem;
         this.inputDescriptor = inputDescriptor;
         this.block = block;
         this.priority = priority;
+        this.inputDamage = inputDamage;
     }
 
     @Override
@@ -71,13 +73,8 @@ public class CloudFurnaceRecipe implements CookingRecipe {
     }
 
     public FurnaceRecipeData toNetwork() {
-        ItemData ingredientData = ItemUtils.toNetwork(inputItem);
-        ItemData outputData = ItemUtils.toNetwork(output);
-
-        if (ingredientData.getDamage() >= 0) {
-            return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), ingredientData.getDamage(), outputData, block.getName());
-        } else {
-            return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), outputData, block.getName());
-        }
+        ItemData ingredientData = ItemUtils.toNetworkRecipe(inputItem);
+        ItemData outputData = ItemUtils.toNetworkRecipe(output);
+        return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), inputDamage, outputData, block.getName());
     }
 }

@@ -36,6 +36,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
     //Runtime ID mappings
     private final Reference2ReferenceMap<BlockState, CloudBlockDefinition> stateDefinitionMap = new Reference2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<CloudBlockDefinition> runtimeDefinitionMap = new Int2ReferenceOpenHashMap<>();
+    private final Reference2ReferenceMap<Identifier, CloudBlockDefinition> identifierFirstDefinitionMap = new Reference2ReferenceOpenHashMap<>();
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
 
     //NBT Mappings
@@ -70,7 +71,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
-        var typeIdentifiers = new ReferenceOpenHashSet<Identifier>();
+        ReferenceOpenHashSet<Identifier> typeIdentifiers = new ReferenceOpenHashSet<>();
         type.getStates().forEach(state -> {
             List<NbtMap> tags = (List<NbtMap>) serialize(type, serializer, state.getTraits());
             for (NbtMap nbt : tags) {
@@ -82,19 +83,19 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
                     nbt = nbt.toBuilder().putString("name", id.toString()).build();
                 }
 
-                var statesTag = nbt.getCompound("states");
-                var traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
+                NbtMap statesTag = nbt.getCompound("states");
+                Object2ReferenceMap<NbtMap, BlockState> traitMap = stateTraitMap.computeIfAbsent(id, v -> new Object2ReferenceOpenHashMap<>());
                 traitMap.put(statesTag, state);
 
                 if (id != type.getId()) {
                     defaultStateMap.putIfAbsent(id, state);
                 }
 
-                var paletteEntry = sortedPalette.computeIfAbsent(id.toString(), (v) -> new LinkedHashSet<>());
+                Set<NbtMap> paletteEntry = sortedPalette.computeIfAbsent(id.toString(), (v) -> new LinkedHashSet<>());
                 paletteEntry.add(nbt);
 
                 statesTag.forEach((traitName, traitValue) -> {
-                    var traitValues = vanillaTraitMap.computeIfAbsent(traitName, k -> new LinkedHashSet<>());
+                    Set<Object> traitValues = vanillaTraitMap.computeIfAbsent(traitName, k -> new LinkedHashSet<>());
                     traitValues.add(traitValue);
                 });
 
@@ -167,6 +168,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
             this.runtimeDefinitionMap.put(i, definition);
             this.stateDefinitionMap.putIfAbsent(state, definition);
+            this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(entry.getString("name")), definition);
         }
     }
 
@@ -179,8 +181,7 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
     }
 
     public Set<Identifier> getTypeIdentifiers(BlockType type) {
-        var identifiers = type2identifierMap.get(type);
-
+        ReferenceSet<Identifier> identifiers = type2identifierMap.get(type);
         if (identifiers == null) {
             return Collections.emptySet();
         }
@@ -223,6 +224,26 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
             throw new IllegalArgumentException("Invalid runtime ID: " + runtimeId);
         }
         return definition;
+    }
+
+    @Nullable
+    public CloudBlockDefinition getFirstDefinition(Identifier id) {
+        return this.identifierFirstDefinitionMap.get(id);
+    }
+
+    @Nullable
+    public CloudBlockDefinition getDefinitionByStates(Identifier id, NbtMap states) {
+        Object2ReferenceMap<NbtMap, BlockState> traitMap = this.stateTraitMap.get(id);
+        if (traitMap == null) {
+            return null;
+        }
+
+        BlockState state = traitMap.get(states);
+        if (state == null) {
+            return null;
+        }
+
+        return this.stateDefinitionMap.get(state);
     }
 
     @Override

@@ -71,15 +71,16 @@ public class PlayerInventoryManager {
             }
         }
 
-        try {
-            screen.setup();
-            screen.open();
-        } catch (Exception e) {
-            log.error("Failed to open screen {} for player {}", screen.getClass().getSimpleName(), player.getName(), e);
-            return;
-        }
+        screen.setup();
         this.currentScreen = screen;
         this.player.getItemStackNetManager().pushScreen(screen);
+        try {
+            screen.open();
+        } catch (Exception e) {
+            this.player.getItemStackNetManager().popScreen();
+            this.currentScreen = null;
+            log.error("Failed to open screen {} for player {}", screen.getClass().getSimpleName(), player.getName(), e);
+        }
     }
 
     @NonNull

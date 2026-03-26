@@ -53,4 +53,9 @@ public class CloudItemDefinition implements ItemDefinition {
     public NbtMap getComponentData() {
         return componentData;
     }
+
+    @Override
+    public String toString() {
+        return "CloudItemDefinition(identifier=" + identifier + ", runtimeId=" + runtimeId + ", version=" + version + ", componentBased=" + componentBased + ")";
+    }
 }

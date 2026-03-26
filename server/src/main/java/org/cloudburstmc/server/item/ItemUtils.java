@@ -13,6 +13,7 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ComplexAliasDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
@@ -38,6 +39,33 @@ public class ItemUtils {
 
     private static final CloudItemRegistry registry = CloudItemRegistry.get();
     private static final Cache<ItemStack, NbtMap> ITEM_CACHE = CacheBuilder.newBuilder().weakKeys().softValues().build();
+
+    private static final Map<String, NbtMap> RECIPE_BLOCK_STATES;
+
+    static {
+        NbtMap north = NbtMap.builder().putString("minecraft:cardinal_direction", "north").build();
+        NbtMap facingUp = NbtMap.builder().putInt("facing_direction", 1).build();
+        NbtMap facingSouth = NbtMap.builder()
+                .putInt("facing_direction", 3)
+                .putByte("triggered_bit", (byte) 0)
+                .build();
+
+        RECIPE_BLOCK_STATES = Map.ofEntries(
+                Map.entry("minecraft:chest", north),
+                Map.entry("minecraft:copper_chest", north),
+                Map.entry("minecraft:ender_chest", north),
+                Map.entry("minecraft:trapped_chest", north),
+                Map.entry("minecraft:stonecutter_block", north),
+                Map.entry("minecraft:waxed_copper_chest", north),
+                Map.entry("minecraft:waxed_exposed_copper_chest", north),
+                Map.entry("minecraft:waxed_oxidized_copper_chest", north),
+                Map.entry("minecraft:waxed_weathered_copper_chest", north),
+                Map.entry("minecraft:piston", facingUp),
+                Map.entry("minecraft:sticky_piston", facingUp),
+                Map.entry("minecraft:dispenser", facingSouth),
+                Map.entry("minecraft:dropper", facingSouth)
+        );
+    }
 
     public static NbtMap serializeItem(ItemStack item) {
         if (item == null || item.isEmpty()) {
@@ -203,6 +231,106 @@ public class ItemUtils {
         return ItemDescriptorWithCount.fromItem(toNetwork(item));
     }
 
+    public static ItemData toNetworkRecipe(ItemStack item) {
+        if (item == null || item.isEmpty()) {
+            return ItemData.AIR;
+        }
+
+        return toNetworkRecipeBuilder(item)
+                .netId(0)
+                .usingNetId(false)
+                .build();
+    }
+
+    public static List<ItemData> toNetworkRecipe(Collection<ItemStack> items) {
+        List<ItemData> data = new ArrayList<>();
+        for (ItemStack item : items) {
+            data.add(toNetworkRecipe(item));
+        }
+        return data;
+    }
+
+    public static List<ItemDescriptorWithCount> toDescriptorsRecipe(Collection<ItemStack> items) {
+        List<ItemDescriptorWithCount> data = new ArrayList<>();
+        for (ItemStack item : items) {
+            data.add(ItemDescriptorWithCount.fromItem(toNetworkRecipe(item)));
+        }
+        return data;
+    }
+
+    public static List<ItemDescriptorWithCount> toRecipeDescriptors(List<ItemDescriptorWithCount> descriptors) {
+        List<ItemDescriptorWithCount> result = new ArrayList<>(descriptors.size());
+        for (ItemDescriptorWithCount desc : descriptors) {
+            if (desc.getDescriptor() instanceof DefaultDescriptor dd && !(dd.getItemId() instanceof SimpleItemDefinition)) {
+                ItemDefinition raw = dd.getItemId();
+                ItemDefinition plain = new SimpleItemDefinition(raw.getIdentifier(), raw.getRuntimeId(), false);
+                result.add(new ItemDescriptorWithCount(new DefaultDescriptor(plain, dd.getAuxValue()), desc.getCount()));
+            } else {
+                result.add(desc);
+            }
+        }
+        return result;
+    }
+
+    private static ItemData.Builder toNetworkRecipeBuilder(ItemStack item) {
+        Identifier identifier = item.getType().getId();
+        int damage = item.get(ItemKeys.DAMAGE) != null ? item.get(ItemKeys.DAMAGE) : 0;
+        ItemDefinition rawDefinition = registry.getDefinition(identifier, damage);
+
+        ItemDefinition recipeDefinition = rawDefinition != null
+                ? new SimpleItemDefinition(rawDefinition.getIdentifier(), rawDefinition.getRuntimeId(), false)
+                : null;
+
+        String[] canPlace = new String[0];
+        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
+            canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
+        }
+
+        String[] canBreak = new String[0];
+        if (item.get(ItemKeys.CAN_DESTROY) != null) {
+            canBreak = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
+        }
+
+        CloudBlockDefinition blockDefinition = null;
+        if (isRecipeBlockItem(rawDefinition, identifier)) {
+            NbtMap specificStates = RECIPE_BLOCK_STATES.get(identifier.toString());
+            if (specificStates != null) {
+                blockDefinition = BlockPalette.INSTANCE.getDefinitionByStates(identifier, specificStates);
+            }
+            if (blockDefinition == null) {
+                blockDefinition = BlockPalette.INSTANCE.getFirstDefinition(identifier);
+            }
+        }
+
+        NbtMap tag = ItemUtils.getSerializedTag(item);
+        return ItemData.builder()
+                .definition(recipeDefinition)
+                .damage(damage)
+                .count(item.getCount())
+                .tag(tag.isEmpty() ? null : tag)
+                .canPlace(canPlace)
+                .canBreak(canBreak)
+                .blockDefinition(blockDefinition);
+    }
+
+    private static boolean isRecipeBlockItem(ItemDefinition definition, Identifier identifier) {
+        if (definition == null) {
+            return false;
+        }
+
+        if (definition.isComponentBased()) {
+            return false;
+        }
+
+        int legacyId = definition.getRuntimeId();
+        if (legacyId > 255) {
+            return false;
+        }
+
+        String name = identifier.getName();
+        return !name.endsWith("_door") && !name.endsWith("_hanging_sign");
+    }
+
     public static ItemData toNetworkNetId(ItemStack item) {
         if (item == null || item.isEmpty()) {
             return ItemData.AIR;
@@ -226,7 +354,7 @@ public class ItemUtils {
         }
         String[] canBreak = new String[0];
         if (item.get(ItemKeys.CAN_DESTROY) != null) {
-            canPlace = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
+            canBreak = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
         }
 
         CloudBlockDefinition blockDefinition = null;
@@ -344,7 +472,8 @@ public class ItemUtils {
         }
 
         if ("complex_alias".equals(type)) {
-            return new ItemDescriptorWithCount(new ComplexAliasDescriptor(""), count);
+            String name = (String) data.getOrDefault("complexAliasName", "");
+            return new ItemDescriptorWithCount(new ComplexAliasDescriptor(name), count);
         }
 
         if (data.containsKey("id")) {

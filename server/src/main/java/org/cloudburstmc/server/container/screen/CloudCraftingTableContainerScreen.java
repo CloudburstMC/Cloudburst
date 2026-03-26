@@ -56,7 +56,7 @@ public class CloudCraftingTableContainerScreen extends CloudBlockContainerScreen
         ContainerClosePacket pkt = new ContainerClosePacket();
         pkt.setId(this.windowId);
         pkt.setServerInitiated(true);
-        pkt.setType(ContainerType.CONTAINER);
+        pkt.setType(ContainerType.WORKBENCH);
         player.sendPacket(pkt);
     }
 

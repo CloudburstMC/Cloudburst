@@ -37,9 +37,9 @@ public interface CraftingRecipe extends Recipe {
 
     /**
      * Returns the context under which this recipe is automatically unlocked in the recipe book.
-     * Defaults to {@link RecipeUnlockContext#ALWAYS_UNLOCKED}.
+     * Defaults to {@link RecipeUnlockContext#NONE}.
      */
     default RecipeUnlockContext getUnlockContext() {
-        return RecipeUnlockContext.ALWAYS_UNLOCKED;
+        return RecipeUnlockContext.NONE;
     }
 }

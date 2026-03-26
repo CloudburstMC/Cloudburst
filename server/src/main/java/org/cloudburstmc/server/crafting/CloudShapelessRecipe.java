@@ -2,6 +2,7 @@ package org.cloudburstmc.server.crafting;
 
 import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
+import org.cloudburstmc.api.crafting.RecipeUnlockContext;
 import org.cloudburstmc.api.crafting.ShapelessRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
@@ -23,6 +24,7 @@ public class CloudShapelessRecipe implements ShapelessRecipe {
     private final Identifier block;
     private final List<ItemStack> extraOutputs = new ArrayList<>();
     private final RecipeType type;
+    private RecipeUnlockContext unlockContext = RecipeUnlockContext.NONE;
 
     public CloudShapelessRecipe(Identifier recipeId, int priority, List<ItemStack> outputs, List<ItemStack> ingredients, Identifier craftingBlock, RecipeType type) {
         this(recipeId, priority, outputs, ingredients, null, craftingBlock, type);
@@ -114,6 +116,15 @@ public class CloudShapelessRecipe implements ShapelessRecipe {
     @Override
     public int getPriority() {
         return this.priority;
+    }
+
+    @Override
+    public RecipeUnlockContext getUnlockContext() {
+        return this.unlockContext;
+    }
+
+    public void setUnlockContext(RecipeUnlockContext context) {
+        this.unlockContext = context;
     }
 
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {

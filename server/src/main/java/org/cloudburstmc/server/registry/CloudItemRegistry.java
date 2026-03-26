@@ -29,9 +29,7 @@ import org.cloudburstmc.server.item.component.FireChargeItemHandlers;
 import org.cloudburstmc.server.item.component.FlintAndSteelItemHandlers;
 import org.cloudburstmc.server.item.component.SpawnEggItemHandlers;
 import org.cloudburstmc.server.item.data.serializer.*;
-import org.cloudburstmc.server.item.serializer.BannerSerializer;
-import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
-import org.cloudburstmc.server.item.serializer.ItemSerializer;
+import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.Collection;
@@ -440,8 +438,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.FILLED_MAP);
         registerVanilla(ItemTypes.FIRE_CHARGE)
                 .set(ItemComponents.USE_ON, FireChargeItemHandlers.USE_ON);
-        registerVanilla(ItemTypes.FIREWORK_ROCKET);
-        registerVanilla(ItemTypes.FIREWORK_STAR);
+        registerVanilla(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer());
+        registerVanilla(ItemTypes.FIREWORK_STAR, new FireworkStarSerializer());
         registerVanilla(ItemTypes.FISHING_ROD);
         registerVanilla(ItemTypes.FLINT);
         registerVanilla(ItemTypes.FLINT_AND_STEEL)
@@ -862,7 +860,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
         this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
         this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
-        this.registerDataSerializer(ItemKeys.FIREWORK_DATA, new FireworkSerializer());
         this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
         this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
         this.registerDataSerializer(ItemKeys.SPAWN_EGG_TYPE, new EntityTypeSerializer());

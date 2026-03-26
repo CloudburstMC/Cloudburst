@@ -104,8 +104,7 @@ public class ItemPalette {
                 Identifier id = Identifier.parse(name);
                 int runtime = item.get("id").intValue();
                 boolean componentBased = item.has("componentBased") && item.get("componentBased").asBoolean();
-                int versionOrdinal = item.has("version") ? item.get("version").asInt() : 0;
-                ItemVersion version = ItemVersion.from(versionOrdinal);
+                ItemVersion version = ItemVersion.from(item.has("version") ? item.get("version").intValue() : 0);
 
                 NbtMap components = vanillaComponents.getCompound(name);
                 if (components != null && components.isEmpty()) {

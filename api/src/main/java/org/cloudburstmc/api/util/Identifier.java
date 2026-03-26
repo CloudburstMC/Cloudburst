@@ -29,7 +29,7 @@ public final class Identifier implements Comparable<Identifier> {
     private static final Lock READ_LOCK;
     private static final Lock WRITE_LOCK;
 
-    private static final Map<String, Identifier> VALUES = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, Identifier> VALUES = new TreeMap<>();
 
     static {
         ReadWriteLock lock = new ReentrantReadWriteLock();

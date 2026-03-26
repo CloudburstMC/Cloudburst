@@ -6,6 +6,7 @@ import io.netty.util.collection.CharObjectMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
+import org.cloudburstmc.api.crafting.RecipeUnlockContext;
 import org.cloudburstmc.api.crafting.ShapedRecipe;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
@@ -24,7 +25,8 @@ public class CloudShapedRecipe implements ShapedRecipe {
     private final String[] shape;
     private final int priority;
     private final Identifier block;
-    private final boolean assumeSymmetry;
+    private boolean assumeSymmetry;
+    private RecipeUnlockContext unlockContext = RecipeUnlockContext.NONE;
 
     public CloudShapedRecipe(Identifier recipeId, int priority, ItemStack primaryResult, String[] shape, CharObjectMap<ItemStack> ingredients, List<ItemStack> extraResults, Identifier block) {
         this(recipeId, priority, primaryResult, shape, ingredients, null, extraResults, block);
@@ -61,7 +63,7 @@ public class CloudShapedRecipe implements ShapedRecipe {
         this.extraResults = ImmutableList.copyOf(extraResults);
         this.block = block;
         this.shape = shape;
-        this.assumeSymmetry = false;
+        this.assumeSymmetry = true;
 
         for (Map.Entry<Character, ItemStack> entry : ingredients.entrySet()) {
             this.setIngredient(entry.getKey(), entry.getValue());
@@ -194,6 +196,10 @@ public class CloudShapedRecipe implements ShapedRecipe {
         return this.assumeSymmetry;
     }
 
+    public void setAssumeSymmetry(boolean assumeSymmetry) {
+        this.assumeSymmetry = assumeSymmetry;
+    }
+
     @Override
     public RecipeType getType() {
         return RecipeType.SHAPED;
@@ -215,6 +221,15 @@ public class CloudShapedRecipe implements ShapedRecipe {
     @Override
     public int getPriority() {
         return this.priority;
+    }
+
+    @Override
+    public RecipeUnlockContext getUnlockContext() {
+        return this.unlockContext;
+    }
+
+    public void setUnlockContext(RecipeUnlockContext context) {
+        this.unlockContext = context;
     }
 
     public boolean matchItems(ItemStack[][] input, ItemStack[][] output) {
