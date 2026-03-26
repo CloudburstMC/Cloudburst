@@ -556,6 +556,7 @@ public final class BlockIds {
     public static final Identifier GLOWSTONE = Identifier.parse("glowstone");
     public static final Identifier GLOW_FRAME = Identifier.parse("glow_frame");
     public static final Identifier GLOW_LICHEN = Identifier.parse("glow_lichen");
+    public static final Identifier GOLDEN_DANDELION = Identifier.parse("golden_dandelion");
     public static final Identifier GOLDEN_RAIL = Identifier.parse("golden_rail");
     public static final Identifier GOLD_BLOCK = Identifier.parse("gold_block");
     public static final Identifier GOLD_ORE = Identifier.parse("gold_ore");

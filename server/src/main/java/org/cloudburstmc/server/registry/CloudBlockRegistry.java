@@ -870,10 +870,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GILDED_BLACKSTONE);
         this.registerVanilla(GLASS);
         this.registerVanilla(GLASS_PANE);
-        this.registerVanilla(GLOWINGOBSIDIAN);
+        this.registerVanilla(GLOWING_OBSIDIAN);
         this.registerVanilla(GLOWSTONE);
         this.registerVanilla(GLOW_FRAME);
         this.registerVanilla(GLOW_LICHEN);
+        this.registerVanilla(GOLDEN_DANDELION);
         this.registerVanilla(GOLDEN_RAIL);
         this.registerVanilla(GOLD_BLOCK);
         this.registerVanilla(GOLD_ORE);

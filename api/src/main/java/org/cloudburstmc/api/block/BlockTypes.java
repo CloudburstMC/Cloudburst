@@ -550,10 +550,11 @@ public class BlockTypes {
     public static final BlockType GILDED_BLACKSTONE = BlockType.of(BlockIds.GILDED_BLACKSTONE);
     public static final BlockType GLASS = BlockType.of(BlockIds.GLASS);
     public static final BlockType GLASS_PANE = BlockType.of(BlockIds.GLASS_PANE);
-    public static final BlockType GLOWINGOBSIDIAN = BlockType.of(BlockIds.GLOWING_OBSIDIAN);
+    public static final BlockType GLOWING_OBSIDIAN = BlockType.of(BlockIds.GLOWING_OBSIDIAN);
     public static final BlockType GLOWSTONE = BlockType.of(BlockIds.GLOWSTONE);
     public static final BlockType GLOW_FRAME = BlockType.of(BlockIds.GLOW_FRAME, BlockTraits.FACING_DIRECTION, BlockTraits.HAS_MAP, BlockTraits.HAS_PHOTO);
     public static final BlockType GLOW_LICHEN = BlockType.of(BlockIds.GLOW_LICHEN, BlockTraits.MULTI_FACE_DIRECTION);
+    public static final BlockType GOLDEN_DANDELION = BlockType.of(BlockIds.GOLDEN_DANDELION);
     public static final BlockType GOLDEN_RAIL = BlockType.of(BlockIds.GOLDEN_RAIL, BlockTraits.IS_POWERED, BlockTraits.RAIL_DIRECTION);
     public static final BlockType GOLD_BLOCK = BlockType.of(BlockIds.GOLD_BLOCK);
     public static final BlockType GOLD_ORE = BlockType.of(BlockIds.GOLD_ORE);
