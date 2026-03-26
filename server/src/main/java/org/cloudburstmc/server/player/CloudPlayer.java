@@ -1123,21 +1123,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         setTimePacket.setTime(this.getLevel().getTime());
         this.sendPacket(setTimePacket);
 
-        Location loc = this.findRespawnPosition();
+        Location loc = Location.from(this.getPosition(), this.getYaw(), this.getPitch(), this.getLevel());
         Set<PlayerRespawnEvent.RespawnFlag> flags = EnumSet.of(PlayerRespawnEvent.RespawnFlag.FIRST_SPAWN);
-        if (loc != null) {
-            // Personal spawn block was valid
-            if (this.respawnConfig != null) {
-                if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
-                    flags.add(PlayerRespawnEvent.RespawnFlag.BED_SPAWN);
-                } else {
-                    flags.add(PlayerRespawnEvent.RespawnFlag.ANCHOR_SPAWN);
-                }
-            }
-        } else {
-            CloudLevel spawnLevel = this.getLevel();
-            loc = spawnLevel == this.getServer().getDefaultLevel() ? spawnLevel.getSafeSpawn() : Location.from(this.getPosition(), this.getYaw(), this.getPitch(), spawnLevel);
-        }
 
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(this, loc, flags);
         this.server.getEventManager().fire(respawnEvent);
