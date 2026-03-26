@@ -265,7 +265,7 @@ public final class LevelChunkManager {
 
         final int spawnX = this.level.getSafeSpawn().getChunkX();
         final int spawnZ = this.level.getSafeSpawn().getChunkZ();
-        final int spawnRadius = 4;
+        final int spawnRadius = this.level.getSpawnChunkRadius();
 
         ServerConfig serverConfig = this.level.getServer().getConfig();
 

@@ -240,8 +240,6 @@ public class CloudLevel implements Level {
 //            }
 //        }
 
-        log.info(this.server.getLanguage().translate("cloudburst.level.preparing", "§a" + getId() + "§r"));
-
         this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
         if (this.levelData.getRainTime() <= 0) {
@@ -2315,9 +2313,17 @@ public class CloudLevel implements Level {
         updateBlockEntities.remove(entity);
     }
 
+    public int getSpawnChunkRadius() {
+        int radius = this.levelData.getSpawnRadius();
+        return Math.max(2, radius >> 4);
+    }
+
     public boolean isSpawnChunk(int x, int z) {
         Vector3i spawn = this.levelData.getSpawn();
-        return Math.abs(x - (spawn.getX() >> 4)) <= 1 && Math.abs(z - (spawn.getZ() >> 4)) <= 1;
+        int spawnChunkX = spawn.getX() >> 4;
+        int spawnChunkZ = spawn.getZ() >> 4;
+        int radius = this.getSpawnChunkRadius();
+        return Math.abs(x - spawnChunkX) <= radius && Math.abs(z - spawnChunkZ) <= radius;
     }
 
     public Location getSafeSpawn() {

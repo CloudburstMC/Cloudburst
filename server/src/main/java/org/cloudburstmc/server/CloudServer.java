@@ -34,6 +34,7 @@ import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
@@ -51,7 +52,6 @@ import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.Network;
@@ -715,8 +715,7 @@ public class CloudServer implements Server {
         this.tickCounter = 0;
 
         log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + this.getLanguage().translate(this.getGameMode().translationKey()) + "§r"));
-
-        log.info(this.getLanguage().translate("cloudburst.server.startFinished", "§a" + (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d + "§r"));
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", String.format("%.2f", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d)));
 
         this.tickProcessor();
         this.forceShutdown();
@@ -1775,7 +1774,7 @@ public class CloudServer implements Server {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
                 if (seedObj == name) {
-                    log.warn("World \"§a{}§r\" does not have a seed! Using the name as the seed", name);
+                    log.debug("World \"§a{}§r\" does not have a seed! Using the name as the seed", name);
                 }
 
                 //this internally generates an MD5 hash of the seed string
