@@ -3,8 +3,11 @@ package org.cloudburstmc.server.network.inventory;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.crafting.CraftingRecipe;
+import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
+import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -21,6 +24,7 @@ import org.cloudburstmc.server.container.screen.CloudBlockContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.*;
 
@@ -57,12 +61,16 @@ public class ItemStackRequestActionHandler {
                 case DROP -> handleDrop((DropAction) action);
                 case DESTROY -> handleDestroy((DestroyAction) action);
                 case CRAFT_CREATIVE -> handleCraftCreative((CraftCreativeAction) action);
-                case MINE_BLOCK, CRAFT_RESULTS_DEPRECATED, CREATE, CONSUME -> {
+                case CRAFT_RECIPE, CRAFT_RECIPE_AUTO -> handleCraftRecipe((RecipeItemStackRequestAction) action);
+                case CONSUME -> handleConsume((ConsumeAction) action);
+                case MINE_BLOCK, CRAFT_RESULTS_DEPRECATED, CREATE -> {
                 }
-                case CRAFT_RECIPE, CRAFT_RECIPE_AUTO, CRAFT_RECIPE_OPTIONAL,
+                case CRAFT_RECIPE_OPTIONAL,
                      CRAFT_REPAIR_AND_DISENCHANT,
-                     CRAFT_LOOM, CRAFT_NON_IMPLEMENTED_DEPRECATED,
-                     BEACON_PAYMENT, LAB_TABLE_COMBINE -> {
+                     CRAFT_LOOM,
+                     CRAFT_NON_IMPLEMENTED_DEPRECATED,
+                     BEACON_PAYMENT,
+                     LAB_TABLE_COMBINE -> {
                     log.debug("Unimplemented inventory action type {} for {}", action.getType(), player.getName());
                     requestFailed = true;
                 }
@@ -314,6 +322,77 @@ public class ItemStackRequestActionHandler {
         }
 
         this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, creativeItem);
+        trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
+    }
+
+    private void handleCraftRecipe(RecipeItemStackRequestAction action) {
+        CraftingRecipe recipe = resolveCraftingRecipe(action.getRecipeNetworkId());
+        if (recipe == null) {
+            return;
+        }
+
+        int numberOfCrafts = Math.max(1, action.getNumberOfRequestedCrafts());
+        placeRecipeOutput(recipe, numberOfCrafts);
+    }
+
+    private void handleConsume(ConsumeAction action) {
+        ContainerSlotType sourceContainer = action.getSource().getContainerName().getContainer();
+        if (sourceContainer != ContainerSlotType.CRAFTING_INPUT) {
+            log.debug("Consume action from {} targeted non-crafting-input container {}", player.getName(), sourceContainer);
+            requestFailed = true;
+            return;
+        }
+
+        int sourceSlot = action.getSource().getSlot();
+        int consumeCount = action.getCount();
+
+        ItemStack current = this.screen.getSlot(sourceContainer, sourceSlot);
+        if (current.isEmpty()) {
+            log.debug("Consume action from {} targeted empty crafting input slot {}", player.getName(), sourceSlot);
+            requestFailed = true;
+            return;
+        }
+
+        if (current.getCount() < consumeCount) {
+            log.debug("Consume action from {} requested {} but slot {} only has {}", player.getName(), consumeCount, sourceSlot, current.getCount());
+            requestFailed = true;
+            return;
+        }
+
+        ItemStack remaining = current.withCount(current.getCount() - consumeCount);
+        this.screen.setSlot(sourceContainer, sourceSlot, remaining);
+        trackAffectedSlot(sourceContainer, sourceSlot);
+    }
+
+    private CraftingRecipe resolveCraftingRecipe(int networkId) {
+        Recipe recipe = CloudRecipeRegistry.get().getRecipeFromNetId(networkId);
+        if (!(recipe instanceof CraftingRecipe craftingRecipe)) {
+            log.debug("Crafting request from {} used unknown recipe network ID {}", player.getName(), networkId);
+            requestFailed = true;
+            return null;
+        }
+
+        boolean isCraftingTable = screen.getType() == ScreenTypes.CRAFTING_TABLE;
+        boolean isInventory = screen.getType() == ScreenTypes.INVENTORY;
+
+        if (!isCraftingTable && !isInventory) {
+            log.debug("Crafting request from {} on incompatible screen type {}", player.getName(), screen.getType().getIdentifier());
+            requestFailed = true;
+            return null;
+        }
+
+        if (craftingRecipe.requiresCraftingTable() && !isCraftingTable) {
+            log.debug("Crafting request from {} for recipe {} requires a crafting table", player.getName(), recipe.getId());
+            requestFailed = true;
+            return null;
+        }
+
+        return craftingRecipe;
+    }
+
+    private void placeRecipeOutput(CraftingRecipe recipe, int numberOfCrafts) {
+        ItemStack result = recipe.getResult().withCount(recipe.getResult().getCount() * numberOfCrafts);
+        this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, result);
         trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
     }
 
