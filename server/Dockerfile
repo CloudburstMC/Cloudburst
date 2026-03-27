@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 
 RUN apk add --no-cache git
 
@@ -22,7 +22,7 @@ RUN chmod +x gradlew
 RUN --mount=type=cache,target=/root/.gradle \
     ./gradlew :server:shadowJar --no-daemon
 
-FROM eclipse-temurin:21-jre-alpine AS run
+FROM eclipse-temurin:25-jre-alpine AS run
 
 ARG VERSION=dev
 
