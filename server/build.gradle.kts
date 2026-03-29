@@ -128,6 +128,7 @@ tasks.register<JavaExec>("run") {
     workingDir = projectDir.resolve("run")
     workingDir.mkdir()
     classpath = sourceSets["main"].runtimeClasspath
+    standardInput = System.`in`
     systemProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true")
     systemProperty("guice_bytecode_gen_option", "DISABLED")
 }
