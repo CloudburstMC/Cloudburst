@@ -58,6 +58,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.component.ComponentMap;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -1861,18 +1862,15 @@ public class CloudLevel implements Level {
             return null;
         }
 
-        Vector3i blockPos = side.getPosition();
-        if (!(this.blockRegistry.getComponent(side.getState().getType(), BlockComponents.REPLACEABLE).get()
-                || (hand.hasTag(BlockTags.SLAB) && (side.getState().hasTag(BlockTags.SLAB) || target.getState().hasTag(BlockTags.SLAB))))) {
+        boolean isSlab = hand.hasTag(BlockTags.SLAB);
+        boolean sideReplaceable = this.blockRegistry.getComponent(side.getState().getType(), BlockComponents.REPLACEABLE).get();
+
+        Block block = isSlab ? resolveSlabTarget(hand, target, side, face, clickPos, sideReplaceable) : resolveNormalTarget(target, side, sideReplaceable);
+        if (block == null) {
             return null;
         }
 
-        Block block = side;
-        if (this.blockRegistry.getComponent(target.getState().getType(), BlockComponents.REPLACEABLE).get()) {
-            block = target;
-            blockPos = block.getPosition();
-        }
-
+        Vector3i blockPos = block.getPosition();
         ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
         AxisAlignedBB handBB = handBehaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(hand);
 
@@ -1964,6 +1962,34 @@ public class CloudLevel implements Level {
         }
 
         return item.getCount() <= 0 ? ItemStack.EMPTY : item;
+    }
+
+    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face, Vector3f clickPos, boolean sideReplaceable) {
+        BlockState targetState = target.getState();
+        if (targetState.hasTag(BlockTags.SLAB) && !targetState.hasTag(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
+            boolean above = clickPos.getY() > 0.5f;
+            SlabSlot existing = targetState.ensureTrait(BlockTraits.SLAB_SLOT);
+            boolean canMerge = face == Direction.UP ? existing == SlabSlot.BOTTOM
+                    : face == Direction.DOWN ? existing == SlabSlot.TOP
+                      : (existing == SlabSlot.BOTTOM) == above;
+            if (canMerge) {
+                return target;
+            }
+            return sideReplaceable ? side : null;
+        }
+
+        if (side.getState().hasTag(BlockTags.SLAB) && !side.getState().hasTag(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
+            return side;
+        }
+
+        return resolveNormalTarget(target, side, sideReplaceable);
+    }
+
+    private @Nullable Block resolveNormalTarget(Block target, Block side, boolean sideReplaceable) {
+        if (!sideReplaceable) {
+            return null;
+        }
+        return this.blockRegistry.getComponent(target.getState().getType(), BlockComponents.REPLACEABLE).get() ? target : side;
     }
 
     public boolean isInSpawnRadius(Vector3i vector3) {

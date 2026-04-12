@@ -18,7 +18,6 @@ public class SlabSlotSerializer implements TraitSerializer<SlabSlot> {
         return switch (slot) {
             case BOTTOM -> "bottom";
             case TOP -> "top";
-            case FULL -> "bottom";
         };
     }
 
