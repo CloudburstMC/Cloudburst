@@ -372,7 +372,6 @@ public class BlockStates {
     public static final BlockState NETHER_SPROUTS = BlockTypes.NETHER_SPROUTS.getDefaultState();
     public static final BlockState NETHER_WART = BlockTypes.NETHER_WART.getDefaultState();
     public static final BlockState NETHER_WART_BLOCK = BlockTypes.NETHER_WART_BLOCK.getDefaultState();
-    public static final BlockState NORMAL_STONE_SLAB = BlockTypes.NORMAL_STONE_SLAB.getDefaultState();
     public static final BlockState NOTE_BLOCK = BlockTypes.NOTE_BLOCK.getDefaultState();
     public static final BlockState OAK_BUTTON = BlockTypes.OAK_BUTTON.getDefaultState();
     public static final BlockState OAK_DOOR = BlockTypes.OAK_DOOR.getDefaultState();
@@ -519,6 +518,7 @@ public class BlockStates {
     public static final BlockState STONE_BRICK_WALL = BlockTypes.STONE_BRICK_WALL.getDefaultState();
     public static final BlockState STONE_BUTTON = BlockTypes.STONE_BUTTON.getDefaultState();
     public static final BlockState STONE_PRESSURE_PLATE = BlockTypes.STONE_PRESSURE_PLATE.getDefaultState();
+    public static final BlockState STONE_SLAB = BlockTypes.STONE_SLAB.getDefaultState();
     public static final BlockState STONE_STAIRS = BlockTypes.STONE_STAIRS.getDefaultState();
     public static final BlockState STRUCTURE_BLOCK = BlockTypes.STRUCTURE_BLOCK.getDefaultState();
     public static final BlockState STRUCTURE_VOID = BlockTypes.STRUCTURE_VOID.getDefaultState();

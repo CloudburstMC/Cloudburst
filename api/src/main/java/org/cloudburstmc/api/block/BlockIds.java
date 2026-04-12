@@ -221,6 +221,7 @@ public final class BlockIds {
     public static final Identifier COBBLESTONE = Identifier.parse("cobblestone");
     public static final Identifier COBBLESTONE_DOUBLE_SLAB = Identifier.parse("cobblestone_double_slab");
     public static final Identifier COBBLESTONE_SLAB = Identifier.parse("cobblestone_slab");
+    public static final Identifier COBBLESTONE_STAIRS = Identifier.parse("stone_stairs");
     public static final Identifier COBBLESTONE_WALL = Identifier.parse("cobblestone_wall");
     public static final Identifier COCOA = Identifier.parse("cocoa");
     public static final Identifier COLORED_TORCH_BLUE = Identifier.parse("colored_torch_blue");
@@ -819,9 +820,6 @@ public final class BlockIds {
     public static final Identifier NETHER_SPROUTS = Identifier.parse("nether_sprouts");
     public static final Identifier NETHER_WART = Identifier.parse("nether_wart");
     public static final Identifier NETHER_WART_BLOCK = Identifier.parse("nether_wart_block");
-    public static final Identifier NORMAL_STONE_DOUBLE_SLAB = Identifier.parse("normal_stone_double_slab");
-    public static final Identifier NORMAL_STONE_SLAB = Identifier.parse("normal_stone_slab");
-    public static final Identifier NORMAL_STONE_STAIRS = Identifier.parse("normal_stone_stairs");
     public static final Identifier NOTE_BLOCK = Identifier.parse("noteblock");
     public static final Identifier OAK_BUTTON = Identifier.parse("wooden_button");
     public static final Identifier OAK_DOOR = Identifier.parse("wooden_door");
@@ -1125,8 +1123,10 @@ public final class BlockIds {
     public static final Identifier STONE_BRICK_STAIRS = Identifier.parse("stone_brick_stairs");
     public static final Identifier STONE_BRICK_WALL = Identifier.parse("stone_brick_wall");
     public static final Identifier STONE_BUTTON = Identifier.parse("stone_button");
+    public static final Identifier STONE_DOUBLE_SLAB = Identifier.parse("normal_stone_double_slab");
     public static final Identifier STONE_PRESSURE_PLATE = Identifier.parse("stone_pressure_plate");
-    public static final Identifier STONE_STAIRS = Identifier.parse("stone_stairs");
+    public static final Identifier STONE_SLAB = Identifier.parse("normal_stone_slab");
+    public static final Identifier STONE_STAIRS = Identifier.parse("normal_stone_stairs");
     public static final Identifier STRIPPED_ACACIA_LOG = Identifier.parse("stripped_acacia_log");
     public static final Identifier STRIPPED_ACACIA_WOOD = Identifier.parse("stripped_acacia_wood");
     public static final Identifier STRIPPED_BAMBOO_BLOCK = Identifier.parse("stripped_bamboo_block");

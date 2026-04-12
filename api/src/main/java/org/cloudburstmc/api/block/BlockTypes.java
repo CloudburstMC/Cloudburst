@@ -219,6 +219,7 @@ public class BlockTypes {
     public static final BlockType COBBLESTONE = BlockType.of(BlockIds.COBBLESTONE);
     public static final BlockType COBBLESTONE_DOUBLE_SLAB = BlockType.of(BlockIds.COBBLESTONE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType COBBLESTONE_SLAB = BlockType.of(BlockIds.COBBLESTONE_SLAB, BlockTraits.SLAB_SLOT);
+    public static final BlockType COBBLESTONE_STAIRS = BlockType.of(BlockIds.COBBLESTONE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType COBBLESTONE_WALL = BlockType.of(BlockIds.COBBLESTONE_WALL, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
     public static final BlockType COCOA = BlockType.of(BlockIds.COCOA, BlockTraits.AGE, BlockTraits.DIRECTION);
     public static final BlockType COLORED_TORCH_BLUE = BlockType.of(BlockIds.COLORED_TORCH_BLUE, BlockTraits.TORCH_DIRECTION);
@@ -817,9 +818,6 @@ public class BlockTypes {
     public static final BlockType NETHER_SPROUTS = BlockType.of(BlockIds.NETHER_SPROUTS);
     public static final BlockType NETHER_WART = BlockType.of(BlockIds.NETHER_WART, BlockTraits.AGE);
     public static final BlockType NETHER_WART_BLOCK = BlockType.of(BlockIds.NETHER_WART_BLOCK);
-    public static final BlockType NORMAL_STONE_DOUBLE_SLAB = BlockType.of(BlockIds.NORMAL_STONE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
-    public static final BlockType NORMAL_STONE_SLAB = BlockType.of(BlockIds.NORMAL_STONE_SLAB, BlockTraits.SLAB_SLOT);
-    public static final BlockType NORMAL_STONE_STAIRS = BlockType.of(BlockIds.NORMAL_STONE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType NOTE_BLOCK = BlockType.of(BlockIds.NOTE_BLOCK);
     public static final BlockType OAK_BUTTON = BlockType.of(BlockIds.OAK_BUTTON, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);
     public static final BlockType OAK_DOOR = BlockType.of(BlockIds.OAK_DOOR, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_OPEN, BlockTraits.IS_UPPER_BLOCK);
@@ -1123,7 +1121,9 @@ public class BlockTypes {
     public static final BlockType STONE_BRICK_STAIRS = BlockType.of(BlockIds.STONE_BRICK_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType STONE_BRICK_WALL = BlockType.of(BlockIds.STONE_BRICK_WALL, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
     public static final BlockType STONE_BUTTON = BlockType.of(BlockIds.STONE_BUTTON, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);
+    public static final BlockType STONE_DOUBLE_SLAB = BlockType.of(BlockIds.STONE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType STONE_PRESSURE_PLATE = BlockType.of(BlockIds.STONE_PRESSURE_PLATE, BlockTraits.REDSTONE_SIGNAL);
+    public static final BlockType STONE_SLAB = BlockType.of(BlockIds.STONE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType STONE_STAIRS = BlockType.of(BlockIds.STONE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType STRIPPED_ACACIA_LOG = BlockType.of(BlockIds.STRIPPED_ACACIA_LOG, BlockTraits.AXIS);
     public static final BlockType STRIPPED_ACACIA_WOOD = BlockType.of(BlockIds.STRIPPED_ACACIA_WOOD, BlockTraits.AXIS);
