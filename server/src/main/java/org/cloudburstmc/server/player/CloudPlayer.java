@@ -2253,6 +2253,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         session.getPeer().getCodecHelper().setItemDefinitions((DefinitionRegistry) CloudItemRegistry.get());
         //noinspection unchecked,rawtypes
         session.getPeer().getCodecHelper().setBlockDefinitions((DefinitionRegistry) BlockPalette.INSTANCE);
+        VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
+        voxelShapesPacket.setShapes(List.of());
+        voxelShapesPacket.setNameMap(Map.of());
+        this.sendPacket(voxelShapesPacket);
         this.sendPacket(startGamePacket);
 
         ItemComponentPacket componentPacket = new ItemComponentPacket();

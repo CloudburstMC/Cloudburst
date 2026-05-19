@@ -61,7 +61,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     private static final int RECIPE_TYPE_SHAPELESS = 0;
     private static final int RECIPE_TYPE_SHAPED = 1;
-    private static final int RECIPE_TYPE_COOKING = 3;
     private static final int RECIPE_TYPE_COMPLEX = 4;
     private static final int RECIPE_TYPE_SHULKER_BOX = 5;
     private static final int RECIPE_TYPE_SMITHING_TRANSFORM = 8;
@@ -268,7 +267,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 case RECIPE_TYPE_SHAPELESS -> parseShapeless(id, entry, block, false);
                 case RECIPE_TYPE_SHULKER_BOX -> parseShulkerBox(id, entry, block);
                 case RECIPE_TYPE_SHAPED -> parseShaped(id, entry, block);
-                case RECIPE_TYPE_COOKING -> parseCooking(id, entry, block);
                 case RECIPE_TYPE_COMPLEX -> parseComplex(id, entry);
                 case RECIPE_TYPE_SMITHING_TRANSFORM -> parseSmithingTransform(id, entry, block);
                 case RECIPE_TYPE_SMITHING_TRIM -> parseSmithingTrim(entry, block);
@@ -382,9 +380,6 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         Map<String, Object> outputData = toMap(entry.get("output"));
         Map<String, Object> inputData = toMap(entry.get("input"));
 
-        int rawInputDamage = Utils.toInt(inputData.getOrDefault("damage", 0));
-        int wireDamage = rawInputDamage == -1 ? 32767 : rawInputDamage;
-
         int priority = entry.has("priority") ? entry.get("priority").asInt() : 0;
         this.register(new CloudFurnaceRecipe(
                 id,
@@ -392,8 +387,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 ItemUtils.fromJson(inputData),
                 ItemUtils.descriptorFromJson(inputData),
                 block,
-                priority,
-                wireDamage));
+                priority));
     }
 
     private void parseComplex(Identifier id, JsonNode entry) {
@@ -764,7 +758,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                             addShulkerBoxToPacket(packet, (CloudShapelessRecipe) recipe, entry.getKey(), blockTag, netId);
                     case SHAPED, SHAPED_CHEMISTRY ->
                             addShapedToPacket(packet, (CloudShapedRecipe) recipe, entry.getKey(), blockTag, netId);
-                    case COOKING -> packet.getCraftingData().add(((CloudFurnaceRecipe) recipe).toNetwork());
+                    case COOKING -> packet.getCraftingData().add(((CloudFurnaceRecipe) recipe).toNetwork(entry.getKey(), netId));
                     case COMPLEX ->
                             packet.getCraftingData().add(MultiRecipeData.of(((CloudComplexRecipe) recipe).uuid(), netId));
                     case SMITHING_TRANSFORM ->

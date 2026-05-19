@@ -5,12 +5,14 @@ import org.cloudburstmc.api.crafting.RecipeIngredient;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.FurnaceRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.List;
+import java.util.UUID;
 
 @Immutable
 public class CloudFurnaceRecipe implements CookingRecipe {
@@ -21,16 +23,14 @@ public class CloudFurnaceRecipe implements CookingRecipe {
     private final ItemDescriptorWithCount inputDescriptor;
     private final Identifier block;
     private final int priority;
-    private final int inputDamage;
 
-    public CloudFurnaceRecipe(Identifier id, ItemStack result, ItemStack inputItem, ItemDescriptorWithCount inputDescriptor, Identifier block, int priority, int inputDamage) {
+    public CloudFurnaceRecipe(Identifier id, ItemStack result, ItemStack inputItem, ItemDescriptorWithCount inputDescriptor, Identifier block, int priority) {
         this.recipeId = id;
         this.output = result;
         this.inputItem = inputItem;
         this.inputDescriptor = inputDescriptor;
         this.block = block;
         this.priority = priority;
-        this.inputDamage = inputDamage;
     }
 
     @Override
@@ -72,9 +72,15 @@ public class CloudFurnaceRecipe implements CookingRecipe {
         return block;
     }
 
-    public FurnaceRecipeData toNetwork() {
-        ItemData ingredientData = ItemUtils.toNetworkRecipe(inputItem);
-        ItemData outputData = ItemUtils.toNetworkRecipe(output);
-        return FurnaceRecipeData.of(ingredientData.getDefinition().getRuntimeId(), inputDamage, outputData, block.getName());
+    public ShapelessRecipeData toNetwork(UUID uuid, int netId) {
+        return ShapelessRecipeData.shapeless(
+                recipeId.toString(),
+                List.of(inputDescriptor),
+                ItemUtils.toNetworkRecipe(List.of(output)),
+                uuid,
+                block.getName(),
+                priority,
+                netId,
+                new RecipeUnlockingRequirement(RecipeUnlockingRequirement.UnlockingContext.ALWAYS_UNLOCKED));
     }
 }
