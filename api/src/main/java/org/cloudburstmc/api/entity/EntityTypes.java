@@ -118,6 +118,7 @@ public class EntityTypes {
     public static final EntityType<Squid> SQUID = EntityType.from("squid", Squid.class);
     public static final EntityType<Stray> STRAY = EntityType.from("stray", Stray.class);
     public static final EntityType<Strider> STRIDER = EntityType.from("strider", Strider.class);
+    public static final EntityType<SulfurCube> SULFUR_CUBE = EntityType.from("sulfur_cube", SulfurCube.class);
     public static final EntityType<Tadpole> TADPOLE = EntityType.from("tadpole", Tadpole.class);
     public static final EntityType<ThrownTrident> THROWN_TRIDENT = EntityType.from("thrown_trident", ThrownTrident.class);
     public static final EntityType<TntMinecart> TNT_MINECART = EntityType.from("tnt_minecart", TntMinecart.class);

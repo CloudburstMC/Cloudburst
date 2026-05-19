@@ -413,6 +413,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
         registerVanilla(ZOMBIE_NAUTILUS, EntityZombieNautilus::new, 150);
         registerVanilla(PARCHED, EntityParched::new, 151);
         registerVanilla(CAMEL_HUSK, EntityCamelHusk::new, 152);
+        registerVanilla(SULFUR_CUBE, EntitySulfurCube::new, 153);
         registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157);
         registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218);
         registerVanilla(PLAYER, EntityHuman::new, 257);
