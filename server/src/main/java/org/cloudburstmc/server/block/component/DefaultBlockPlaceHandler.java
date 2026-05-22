@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.component;
 
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.PlaceBlockHandler;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.Level;
@@ -39,6 +40,10 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
             if (!nearbyEntities.isEmpty()) {
                 return false;
             }
+        }
+
+        if (blockState.getTraits().containsKey(BlockTraits.AXIS)) {
+            blockState = blockState.withTrait(BlockTraits.AXIS, face.getAxis());
         }
 
         return level.setBlockState(pos, blockState, true, true);
