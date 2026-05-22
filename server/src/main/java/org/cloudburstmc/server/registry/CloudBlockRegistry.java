@@ -508,11 +508,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CINNABAR);
         this.registerVanilla(CINNABAR_BRICKS);
         this.registerVanilla(CINNABAR_BRICK_DOUBLE_SLAB);
-        this.registerVanilla(CINNABAR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_BRICK_SLAB));
+        this.registerVanilla(CINNABAR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_BRICK_DOUBLE_SLAB));
         this.registerVanilla(CINNABAR_BRICK_STAIRS);
         this.registerVanilla(CINNABAR_BRICK_WALL);
         this.registerVanilla(CINNABAR_DOUBLE_SLAB);
-        this.registerVanilla(CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_SLAB));
+        this.registerVanilla(CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_DOUBLE_SLAB));
         this.registerVanilla(CINNABAR_STAIRS);
         this.registerVanilla(CINNABAR_WALL);
         this.registerVanilla(CLAY);
@@ -1301,7 +1301,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POLISHED_BLACKSTONE_WALL);
         this.registerVanilla(POLISHED_CINNABAR);
         this.registerVanilla(POLISHED_CINNABAR_DOUBLE_SLAB);
-        this.registerVanilla(POLISHED_CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_CINNABAR_SLAB));
+        this.registerVanilla(POLISHED_CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_CINNABAR_DOUBLE_SLAB));
         this.registerVanilla(POLISHED_CINNABAR_STAIRS);
         this.registerVanilla(POLISHED_CINNABAR_WALL);
         this.registerVanilla(POLISHED_DEEPSLATE);
@@ -1319,7 +1319,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POLISHED_GRANITE_STAIRS);
         this.registerVanilla(POLISHED_SULFUR);
         this.registerVanilla(POLISHED_SULFUR_DOUBLE_SLAB);
-        this.registerVanilla(POLISHED_SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_SULFUR_SLAB));
+        this.registerVanilla(POLISHED_SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_SULFUR_DOUBLE_SLAB));
         this.registerVanilla(POLISHED_SULFUR_STAIRS);
         this.registerVanilla(POLISHED_SULFUR_WALL);
         this.registerVanilla(POLISHED_TUFF);
@@ -1545,11 +1545,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SULFUR);
         this.registerVanilla(SULFUR_BRICKS);
         this.registerVanilla(SULFUR_BRICK_DOUBLE_SLAB);
-        this.registerVanilla(SULFUR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_BRICK_SLAB));
+        this.registerVanilla(SULFUR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_BRICK_DOUBLE_SLAB));
         this.registerVanilla(SULFUR_BRICK_STAIRS);
         this.registerVanilla(SULFUR_BRICK_WALL);
         this.registerVanilla(SULFUR_DOUBLE_SLAB);
-        this.registerVanilla(SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_SLAB));
+        this.registerVanilla(SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_DOUBLE_SLAB));
         this.registerVanilla(SULFUR_STAIRS);
         this.registerVanilla(SULFUR_WALL);
         this.registerVanilla(SUNFLOWER);
