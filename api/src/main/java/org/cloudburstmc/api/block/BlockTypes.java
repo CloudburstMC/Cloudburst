@@ -9,7 +9,7 @@ public class BlockTypes {
     public static final BlockType ACACIA_DOUBLE_SLAB = BlockType.of(BlockIds.ACACIA_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType ACACIA_FENCE = BlockType.of(BlockIds.ACACIA_FENCE);
     public static final BlockType ACACIA_FENCE_GATE = BlockType.of(BlockIds.ACACIA_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType ACACIA_HANGING_SIGN = BlockType.of(BlockIds.ACACIA_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType ACACIA_HANGING_SIGN = BlockType.of(BlockIds.ACACIA_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType ACACIA_LEAVES = BlockType.of(BlockIds.ACACIA_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType ACACIA_LOG = BlockType.of(BlockIds.ACACIA_LOG, BlockTraits.AXIS);
     public static final BlockType ACACIA_PLANKS = BlockType.of(BlockIds.ACACIA_PLANKS);
@@ -18,7 +18,7 @@ public class BlockTypes {
     public static final BlockType ACACIA_SHELF = BlockType.of(BlockIds.ACACIA_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType ACACIA_SLAB = BlockType.of(BlockIds.ACACIA_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType ACACIA_STAIRS = BlockType.of(BlockIds.ACACIA_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType ACACIA_STANDING_SIGN = BlockType.of(BlockIds.ACACIA_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType ACACIA_STANDING_SIGN = BlockType.of(BlockIds.ACACIA_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType ACACIA_TRAPDOOR = BlockType.of(BlockIds.ACACIA_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType ACACIA_WALL_SIGN = BlockType.of(BlockIds.ACACIA_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType ACACIA_WOOD = BlockType.of(BlockIds.ACACIA_WOOD, BlockTraits.AXIS);
@@ -46,7 +46,7 @@ public class BlockTypes {
     public static final BlockType BAMBOO_DOUBLE_SLAB = BlockType.of(BlockIds.BAMBOO_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType BAMBOO_FENCE = BlockType.of(BlockIds.BAMBOO_FENCE);
     public static final BlockType BAMBOO_FENCE_GATE = BlockType.of(BlockIds.BAMBOO_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType BAMBOO_HANGING_SIGN = BlockType.of(BlockIds.BAMBOO_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType BAMBOO_HANGING_SIGN = BlockType.of(BlockIds.BAMBOO_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType BAMBOO_MOSAIC = BlockType.of(BlockIds.BAMBOO_MOSAIC);
     public static final BlockType BAMBOO_MOSAIC_DOUBLE_SLAB = BlockType.of(BlockIds.BAMBOO_MOSAIC_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType BAMBOO_MOSAIC_SLAB = BlockType.of(BlockIds.BAMBOO_MOSAIC_SLAB, BlockTraits.SLAB_SLOT);
@@ -57,7 +57,7 @@ public class BlockTypes {
     public static final BlockType BAMBOO_SHELF = BlockType.of(BlockIds.BAMBOO_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType BAMBOO_SLAB = BlockType.of(BlockIds.BAMBOO_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType BAMBOO_STAIRS = BlockType.of(BlockIds.BAMBOO_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType BAMBOO_STANDING_SIGN = BlockType.of(BlockIds.BAMBOO_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType BAMBOO_STANDING_SIGN = BlockType.of(BlockIds.BAMBOO_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType BAMBOO_TRAPDOOR = BlockType.of(BlockIds.BAMBOO_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType BAMBOO_WALL_SIGN = BlockType.of(BlockIds.BAMBOO_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType BARREL = BlockType.of(BlockIds.BARREL, BlockTraits.FACING_DIRECTION, BlockTraits.IS_OPEN);
@@ -76,7 +76,7 @@ public class BlockTypes {
     public static final BlockType BIRCH_DOUBLE_SLAB = BlockType.of(BlockIds.BIRCH_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType BIRCH_FENCE = BlockType.of(BlockIds.BIRCH_FENCE);
     public static final BlockType BIRCH_FENCE_GATE = BlockType.of(BlockIds.BIRCH_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType BIRCH_HANGING_SIGN = BlockType.of(BlockIds.BIRCH_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType BIRCH_HANGING_SIGN = BlockType.of(BlockIds.BIRCH_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType BIRCH_LEAVES = BlockType.of(BlockIds.BIRCH_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType BIRCH_LOG = BlockType.of(BlockIds.BIRCH_LOG, BlockTraits.AXIS);
     public static final BlockType BIRCH_PLANKS = BlockType.of(BlockIds.BIRCH_PLANKS);
@@ -85,7 +85,7 @@ public class BlockTypes {
     public static final BlockType BIRCH_SHELF = BlockType.of(BlockIds.BIRCH_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType BIRCH_SLAB = BlockType.of(BlockIds.BIRCH_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType BIRCH_STAIRS = BlockType.of(BlockIds.BIRCH_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType BIRCH_STANDING_SIGN = BlockType.of(BlockIds.BIRCH_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType BIRCH_STANDING_SIGN = BlockType.of(BlockIds.BIRCH_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType BIRCH_TRAPDOOR = BlockType.of(BlockIds.BIRCH_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType BIRCH_WALL_SIGN = BlockType.of(BlockIds.BIRCH_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType BIRCH_WOOD = BlockType.of(BlockIds.BIRCH_WOOD, BlockTraits.AXIS);
@@ -176,7 +176,7 @@ public class BlockTypes {
     public static final BlockType CHERRY_DOUBLE_SLAB = BlockType.of(BlockIds.CHERRY_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType CHERRY_FENCE = BlockType.of(BlockIds.CHERRY_FENCE);
     public static final BlockType CHERRY_FENCE_GATE = BlockType.of(BlockIds.CHERRY_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType CHERRY_HANGING_SIGN = BlockType.of(BlockIds.CHERRY_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType CHERRY_HANGING_SIGN = BlockType.of(BlockIds.CHERRY_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType CHERRY_LEAVES = BlockType.of(BlockIds.CHERRY_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType CHERRY_LOG = BlockType.of(BlockIds.CHERRY_LOG, BlockTraits.AXIS);
     public static final BlockType CHERRY_PLANKS = BlockType.of(BlockIds.CHERRY_PLANKS);
@@ -185,7 +185,7 @@ public class BlockTypes {
     public static final BlockType CHERRY_SHELF = BlockType.of(BlockIds.CHERRY_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType CHERRY_SLAB = BlockType.of(BlockIds.CHERRY_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType CHERRY_STAIRS = BlockType.of(BlockIds.CHERRY_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType CHERRY_STANDING_SIGN = BlockType.of(BlockIds.CHERRY_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType CHERRY_STANDING_SIGN = BlockType.of(BlockIds.CHERRY_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType CHERRY_TRAPDOOR = BlockType.of(BlockIds.CHERRY_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType CHERRY_WALL_SIGN = BlockType.of(BlockIds.CHERRY_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType CHERRY_WOOD = BlockType.of(BlockIds.CHERRY_WOOD, BlockTraits.AXIS);
@@ -270,7 +270,7 @@ public class BlockTypes {
     public static final BlockType CRIMSON_FENCE = BlockType.of(BlockIds.CRIMSON_FENCE);
     public static final BlockType CRIMSON_FENCE_GATE = BlockType.of(BlockIds.CRIMSON_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
     public static final BlockType CRIMSON_FUNGUS = BlockType.of(BlockIds.CRIMSON_FUNGUS);
-    public static final BlockType CRIMSON_HANGING_SIGN = BlockType.of(BlockIds.CRIMSON_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType CRIMSON_HANGING_SIGN = BlockType.of(BlockIds.CRIMSON_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType CRIMSON_HYPHAE = BlockType.of(BlockIds.CRIMSON_HYPHAE, BlockTraits.AXIS);
     public static final BlockType CRIMSON_NYLIUM = BlockType.of(BlockIds.CRIMSON_NYLIUM);
     public static final BlockType CRIMSON_PLANKS = BlockType.of(BlockIds.CRIMSON_PLANKS);
@@ -279,7 +279,7 @@ public class BlockTypes {
     public static final BlockType CRIMSON_SHELF = BlockType.of(BlockIds.CRIMSON_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType CRIMSON_SLAB = BlockType.of(BlockIds.CRIMSON_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType CRIMSON_STAIRS = BlockType.of(BlockIds.CRIMSON_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType CRIMSON_STANDING_SIGN = BlockType.of(BlockIds.CRIMSON_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType CRIMSON_STANDING_SIGN = BlockType.of(BlockIds.CRIMSON_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType CRIMSON_STEM = BlockType.of(BlockIds.CRIMSON_STEM, BlockTraits.AXIS);
     public static final BlockType CRIMSON_TRAPDOOR = BlockType.of(BlockIds.CRIMSON_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType CRIMSON_WALL_SIGN = BlockType.of(BlockIds.CRIMSON_WALL_SIGN, BlockTraits.FACING_DIRECTION);
@@ -306,14 +306,14 @@ public class BlockTypes {
     public static final BlockType CYAN_WOOL = BlockType.of(BlockIds.CYAN_WOOL);
     public static final BlockType DAMAGED_ANVIL = BlockType.of(BlockIds.DAMAGED_ANVIL, BlockTraits.CARDINAL_DIRECTION);
     public static final BlockType DANDELION = BlockType.of(BlockIds.DANDELION);
-    public static final BlockType DARKOAK_STANDING_SIGN = BlockType.of(BlockIds.DARK_OAK_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType DARKOAK_STANDING_SIGN = BlockType.of(BlockIds.DARK_OAK_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType DARKOAK_WALL_SIGN = BlockType.of(BlockIds.DARK_OAK_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType DARK_OAK_BUTTON = BlockType.of(BlockIds.DARK_OAK_BUTTON, BlockTraits.FACING_DIRECTION, BlockTraits.IS_BUTTON_PRESSED);
     public static final BlockType DARK_OAK_DOOR = BlockType.of(BlockIds.DARK_OAK_DOOR, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_DOOR_HINGE, BlockTraits.IS_OPEN, BlockTraits.IS_UPPER_BLOCK);
     public static final BlockType DARK_OAK_DOUBLE_SLAB = BlockType.of(BlockIds.DARK_OAK_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType DARK_OAK_FENCE = BlockType.of(BlockIds.DARK_OAK_FENCE);
     public static final BlockType DARK_OAK_FENCE_GATE = BlockType.of(BlockIds.DARK_OAK_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType DARK_OAK_HANGING_SIGN = BlockType.of(BlockIds.DARK_OAK_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType DARK_OAK_HANGING_SIGN = BlockType.of(BlockIds.DARK_OAK_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType DARK_OAK_LEAVES = BlockType.of(BlockIds.DARK_OAK_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType DARK_OAK_LOG = BlockType.of(BlockIds.DARK_OAK_LOG, BlockTraits.AXIS);
     public static final BlockType DARK_OAK_PLANKS = BlockType.of(BlockIds.DARK_OAK_PLANKS);
@@ -672,7 +672,7 @@ public class BlockTypes {
     public static final BlockType JUNGLE_DOUBLE_SLAB = BlockType.of(BlockIds.JUNGLE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType JUNGLE_FENCE = BlockType.of(BlockIds.JUNGLE_FENCE);
     public static final BlockType JUNGLE_FENCE_GATE = BlockType.of(BlockIds.JUNGLE_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType JUNGLE_HANGING_SIGN = BlockType.of(BlockIds.JUNGLE_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType JUNGLE_HANGING_SIGN = BlockType.of(BlockIds.JUNGLE_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType JUNGLE_LEAVES = BlockType.of(BlockIds.JUNGLE_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType JUNGLE_LOG = BlockType.of(BlockIds.JUNGLE_LOG, BlockTraits.AXIS);
     public static final BlockType JUNGLE_PLANKS = BlockType.of(BlockIds.JUNGLE_PLANKS);
@@ -681,7 +681,7 @@ public class BlockTypes {
     public static final BlockType JUNGLE_SHELF = BlockType.of(BlockIds.JUNGLE_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType JUNGLE_SLAB = BlockType.of(BlockIds.JUNGLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType JUNGLE_STAIRS = BlockType.of(BlockIds.JUNGLE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType JUNGLE_STANDING_SIGN = BlockType.of(BlockIds.JUNGLE_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType JUNGLE_STANDING_SIGN = BlockType.of(BlockIds.JUNGLE_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType JUNGLE_TRAPDOOR = BlockType.of(BlockIds.JUNGLE_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType JUNGLE_WALL_SIGN = BlockType.of(BlockIds.JUNGLE_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType JUNGLE_WOOD = BlockType.of(BlockIds.JUNGLE_WOOD, BlockTraits.AXIS);
@@ -776,7 +776,7 @@ public class BlockTypes {
     public static final BlockType MANGROVE_DOUBLE_SLAB = BlockType.of(BlockIds.MANGROVE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType MANGROVE_FENCE = BlockType.of(BlockIds.MANGROVE_FENCE);
     public static final BlockType MANGROVE_FENCE_GATE = BlockType.of(BlockIds.MANGROVE_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType MANGROVE_HANGING_SIGN = BlockType.of(BlockIds.MANGROVE_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType MANGROVE_HANGING_SIGN = BlockType.of(BlockIds.MANGROVE_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType MANGROVE_LEAVES = BlockType.of(BlockIds.MANGROVE_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType MANGROVE_LOG = BlockType.of(BlockIds.MANGROVE_LOG, BlockTraits.AXIS);
     public static final BlockType MANGROVE_PLANKS = BlockType.of(BlockIds.MANGROVE_PLANKS);
@@ -786,7 +786,7 @@ public class BlockTypes {
     public static final BlockType MANGROVE_SHELF = BlockType.of(BlockIds.MANGROVE_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType MANGROVE_SLAB = BlockType.of(BlockIds.MANGROVE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType MANGROVE_STAIRS = BlockType.of(BlockIds.MANGROVE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType MANGROVE_STANDING_SIGN = BlockType.of(BlockIds.MANGROVE_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType MANGROVE_STANDING_SIGN = BlockType.of(BlockIds.MANGROVE_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType MANGROVE_TRAPDOOR = BlockType.of(BlockIds.MANGROVE_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType MANGROVE_WALL_SIGN = BlockType.of(BlockIds.MANGROVE_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType MANGROVE_WOOD = BlockType.of(BlockIds.MANGROVE_WOOD, BlockTraits.AXIS);
@@ -836,7 +836,7 @@ public class BlockTypes {
     public static final BlockType OAK_DOUBLE_SLAB = BlockType.of(BlockIds.OAK_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType OAK_FENCE = BlockType.of(BlockIds.OAK_FENCE);
     public static final BlockType OAK_FENCE_GATE = BlockType.of(BlockIds.OAK_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType OAK_HANGING_SIGN = BlockType.of(BlockIds.OAK_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType OAK_HANGING_SIGN = BlockType.of(BlockIds.OAK_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType OAK_LEAVES = BlockType.of(BlockIds.OAK_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType OAK_LOG = BlockType.of(BlockIds.OAK_LOG, BlockTraits.AXIS);
     public static final BlockType OAK_PLANKS = BlockType.of(BlockIds.OAK_PLANKS);
@@ -845,7 +845,7 @@ public class BlockTypes {
     public static final BlockType OAK_SHELF = BlockType.of(BlockIds.OAK_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType OAK_SLAB = BlockType.of(BlockIds.OAK_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType OAK_STAIRS = BlockType.of(BlockIds.OAK_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType OAK_STANDING_SIGN = BlockType.of(BlockIds.OAK_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType OAK_STANDING_SIGN = BlockType.of(BlockIds.OAK_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType OAK_TRAPDOOR = BlockType.of(BlockIds.OAK_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType OAK_WALL_SIGN = BlockType.of(BlockIds.OAK_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType OAK_WOOD = BlockType.of(BlockIds.OAK_WOOD, BlockTraits.AXIS);
@@ -892,7 +892,7 @@ public class BlockTypes {
     public static final BlockType PALE_OAK_DOUBLE_SLAB = BlockType.of(BlockIds.PALE_OAK_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType PALE_OAK_FENCE = BlockType.of(BlockIds.PALE_OAK_FENCE);
     public static final BlockType PALE_OAK_FENCE_GATE = BlockType.of(BlockIds.PALE_OAK_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType PALE_OAK_HANGING_SIGN = BlockType.of(BlockIds.PALE_OAK_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType PALE_OAK_HANGING_SIGN = BlockType.of(BlockIds.PALE_OAK_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType PALE_OAK_LEAVES = BlockType.of(BlockIds.PALE_OAK_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType PALE_OAK_LOG = BlockType.of(BlockIds.PALE_OAK_LOG, BlockTraits.AXIS);
     public static final BlockType PALE_OAK_PLANKS = BlockType.of(BlockIds.PALE_OAK_PLANKS);
@@ -901,7 +901,7 @@ public class BlockTypes {
     public static final BlockType PALE_OAK_SHELF = BlockType.of(BlockIds.PALE_OAK_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType PALE_OAK_SLAB = BlockType.of(BlockIds.PALE_OAK_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType PALE_OAK_STAIRS = BlockType.of(BlockIds.PALE_OAK_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType PALE_OAK_STANDING_SIGN = BlockType.of(BlockIds.PALE_OAK_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType PALE_OAK_STANDING_SIGN = BlockType.of(BlockIds.PALE_OAK_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType PALE_OAK_TRAPDOOR = BlockType.of(BlockIds.PALE_OAK_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType PALE_OAK_WALL_SIGN = BlockType.of(BlockIds.PALE_OAK_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType PALE_OAK_WOOD = BlockType.of(BlockIds.PALE_OAK_WOOD, BlockTraits.AXIS);
@@ -1119,7 +1119,7 @@ public class BlockTypes {
     public static final BlockType SPRUCE_DOUBLE_SLAB = BlockType.of(BlockIds.SPRUCE_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType SPRUCE_FENCE = BlockType.of(BlockIds.SPRUCE_FENCE);
     public static final BlockType SPRUCE_FENCE_GATE = BlockType.of(BlockIds.SPRUCE_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
-    public static final BlockType SPRUCE_HANGING_SIGN = BlockType.of(BlockIds.SPRUCE_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType SPRUCE_HANGING_SIGN = BlockType.of(BlockIds.SPRUCE_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType SPRUCE_LEAVES = BlockType.of(BlockIds.SPRUCE_LEAVES, BlockTraits.HAS_UPDATE, BlockTraits.IS_PERSISTENT);
     public static final BlockType SPRUCE_LOG = BlockType.of(BlockIds.SPRUCE_LOG, BlockTraits.AXIS);
     public static final BlockType SPRUCE_PLANKS = BlockType.of(BlockIds.SPRUCE_PLANKS);
@@ -1128,11 +1128,11 @@ public class BlockTypes {
     public static final BlockType SPRUCE_SHELF = BlockType.of(BlockIds.SPRUCE_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType SPRUCE_SLAB = BlockType.of(BlockIds.SPRUCE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType SPRUCE_STAIRS = BlockType.of(BlockIds.SPRUCE_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType SPRUCE_STANDING_SIGN = BlockType.of(BlockIds.SPRUCE_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType SPRUCE_STANDING_SIGN = BlockType.of(BlockIds.SPRUCE_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType SPRUCE_TRAPDOOR = BlockType.of(BlockIds.SPRUCE_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType SPRUCE_WALL_SIGN = BlockType.of(BlockIds.SPRUCE_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType SPRUCE_WOOD = BlockType.of(BlockIds.SPRUCE_WOOD, BlockTraits.AXIS);
-    public static final BlockType STANDING_BANNER = BlockType.of(BlockIds.STANDING_BANNER, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType STANDING_BANNER = BlockType.of(BlockIds.STANDING_BANNER, BlockTraits.SIGN_DIRECTION);
     public static final BlockType STICKY_PISTON = BlockType.of(BlockIds.STICKY_PISTON, BlockTraits.FACING_DIRECTION);
     public static final BlockType STICKY_PISTON_ARM_COLLISION = BlockType.of(BlockIds.STICKY_PISTON_ARM_COLLISION, BlockTraits.FACING_DIRECTION);
     public static final BlockType STONE = BlockType.of(BlockIds.STONE);
@@ -1231,7 +1231,7 @@ public class BlockTypes {
     public static final BlockType WARPED_FENCE = BlockType.of(BlockIds.WARPED_FENCE);
     public static final BlockType WARPED_FENCE_GATE = BlockType.of(BlockIds.WARPED_FENCE_GATE, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_IN_WALL, BlockTraits.IS_OPEN);
     public static final BlockType WARPED_FUNGUS = BlockType.of(BlockIds.WARPED_FUNGUS);
-    public static final BlockType WARPED_HANGING_SIGN = BlockType.of(BlockIds.WARPED_HANGING_SIGN, BlockTraits.CARDINAL_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
+    public static final BlockType WARPED_HANGING_SIGN = BlockType.of(BlockIds.WARPED_HANGING_SIGN, BlockTraits.SIGN_DIRECTION, BlockTraits.FACING_DIRECTION, BlockTraits.IS_ATTACHED, BlockTraits.IS_HANGING);
     public static final BlockType WARPED_HYPHAE = BlockType.of(BlockIds.WARPED_HYPHAE, BlockTraits.AXIS);
     public static final BlockType WARPED_NYLIUM = BlockType.of(BlockIds.WARPED_NYLIUM);
     public static final BlockType WARPED_PLANKS = BlockType.of(BlockIds.WARPED_PLANKS);
@@ -1240,7 +1240,7 @@ public class BlockTypes {
     public static final BlockType WARPED_SHELF = BlockType.of(BlockIds.WARPED_SHELF, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_POWERED, BlockTraits.POWERED_SHELF_TYPE);
     public static final BlockType WARPED_SLAB = BlockType.of(BlockIds.WARPED_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType WARPED_STAIRS = BlockType.of(BlockIds.WARPED_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
-    public static final BlockType WARPED_STANDING_SIGN = BlockType.of(BlockIds.WARPED_STANDING_SIGN, BlockTraits.CARDINAL_DIRECTION);
+    public static final BlockType WARPED_STANDING_SIGN = BlockType.of(BlockIds.WARPED_STANDING_SIGN, BlockTraits.SIGN_DIRECTION);
     public static final BlockType WARPED_STEM = BlockType.of(BlockIds.WARPED_STEM, BlockTraits.AXIS);
     public static final BlockType WARPED_TRAPDOOR = BlockType.of(BlockIds.WARPED_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType WARPED_WALL_SIGN = BlockType.of(BlockIds.WARPED_WALL_SIGN, BlockTraits.FACING_DIRECTION);

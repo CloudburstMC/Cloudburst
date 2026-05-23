@@ -79,11 +79,12 @@ public class BlockTraitSerializers {
     public void init() {
         register(Direction.class, new DirectionSerializer());
         register(SeaGrassType.class, new SeagrassSerializer());
-        register(CardinalDirection.class, new CardinalDirectionSerializer());
         register(RailDirection.class, new EnumOrdinalSerializer<RailDirection>());
 
         register(Axis.class, new AxisSerializer());
         register(SlabSlot.class, new SlabSlotSerializer());
+        register(BlockTraits.CARDINAL_DIRECTION, new CardinalDirectionSerializer());
+        register(BlockTraits.SIGN_DIRECTION, new SignDirectionSerializer());
         register(BlockTraits.TORCH_DIRECTION, new TorchDirectionSerializer());
         register(BlockTraits.IS_POWERED, new PoweredSerializer());
         register(BlockTraits.BLOCK_FACE, NoopTraitSerializer.INSTANCE);

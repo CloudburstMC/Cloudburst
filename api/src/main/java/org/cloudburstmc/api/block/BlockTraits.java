@@ -17,7 +17,8 @@ public class BlockTraits {
 
     public static final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Direction.Axis.class, ImmutableSet.copyOf(Direction.Axis.values()), Direction.Axis.Y);
     public static final EnumBlockTrait<Direction> BLOCK_FACE = EnumBlockTrait.of("block_face", "minecraft:block_face", Direction.class);
-    public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "ground_sign_direction", CardinalDirection.class);
+    public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "minecraft:cardinal_direction", CardinalDirection.class, ImmutableSet.of(CardinalDirection.SOUTH, CardinalDirection.WEST, CardinalDirection.NORTH, CardinalDirection.EAST), CardinalDirection.SOUTH);
+    public static final EnumBlockTrait<CardinalDirection> SIGN_DIRECTION = EnumBlockTrait.of("sign_direction", "ground_sign_direction", CardinalDirection.class);
     public static final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
     public static final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
     public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);

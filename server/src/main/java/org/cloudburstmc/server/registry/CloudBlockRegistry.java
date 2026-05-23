@@ -293,7 +293,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ACTIVATOR_RAIL);
         this.registerVanilla(AIR)
                 .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.GET_RESOURCE_COUNT, AirBlockHandlers.GET_RESOURCE_COUNT);
+                .set(BlockComponents.GET_RESOURCE_COUNT, (block, random, bonusLevel) -> 0);
         this.registerVanilla(ALLIUM);
         this.registerVanilla(ALLOW);
         this.registerVanilla(AMETHYST_BLOCK);
@@ -305,6 +305,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ANDESITE_STAIRS);
         this.registerVanilla(ANDESITE_WALL);
         this.registerVanilla(ANVIL)
+                .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
                 .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(AZALEA);
@@ -487,6 +488,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.CHEST);
         this.registerVanilla(CHIPPED_ANVIL)
+                .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
                 .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(CHISELED_BOOKSHELF);
@@ -609,6 +611,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CYAN_TERRACOTTA);
         this.registerVanilla(CYAN_WOOL);
         this.registerVanilla(DAMAGED_ANVIL)
+                .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
                 .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(DANDELION);
@@ -1770,7 +1773,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.ALWAYS_DESTROYABLE, () -> true);
         this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
         this.registerComponent(BlockComponents.CAN_PASS_THROUGH, DefaultBlockHandlers.CAN_PASS_THROUGH);
-        this.registerComponent(BlockComponents.GET_BOUNDING_BOX, new CollisionShapeHandler());
+        this.registerComponent(BlockComponents.GET_BOUNDING_BOX, new GetBoundingBoxHandler());
         this.registerComponent(BlockComponents.CAN_BE_SILK_TOUCHED, DefaultBlockHandlers.CAN_BE_SILK_TOUCHED);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
         this.registerComponent(BlockComponents.CAN_CONTAIN_LIQUID, DefaultBlockHandlers.CAN_CONTAIN_LIQUID);
@@ -1789,26 +1792,19 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         });
         this.registerComponent(BlockComponents.ON_FALL_ON, (block, entity) -> {
         });
-        this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, (block) -> {
-        });
+        this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, DefaultBlockHandlers.ON_LIGHTNING_HIT);
         this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler(this));
-        this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, (block, entity) -> {
-        });
-        this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, (block) -> {
-        });
-        this.registerComponent(BlockComponents.ON_REMOVE, (block) -> {
-        });
+        this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, DefaultBlockHandlers.ON_PROJECTILE_HIT);
+        this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, DefaultBlockHandlers.ON_REDSTONE_UPDATE);
+        this.registerComponent(BlockComponents.ON_REMOVE, DefaultBlockHandlers.ON_REMOVE);
         this.registerComponent(BlockComponents.ON_RANDOM_TICK, (block, randomGenerator) -> {
         });
         this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {
         });
         this.registerComponent(BlockComponents.USE, (block, player, direction, item) -> false);
-        this.registerComponent(BlockComponents.ON_STAND_ON, (block, entity) -> {
-        });
-        this.registerComponent(BlockComponents.ON_STEP_ON, (block, entity) -> {
-        });
-        this.registerComponent(BlockComponents.ON_STEP_OFF, (block, entity) -> {
-        });
+        this.registerComponent(BlockComponents.ON_STAND_ON, DefaultBlockHandlers.ON_STAND_ON);
+        this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);
+        this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
         this.registerComponent(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, randomGenerator, bonusLevel) -> null);
         this.registerComponent(BlockComponents.DROP_RESOURCE, DefaultBlockHandlers.DROP_RESOURCE);
         this.registerComponent(BlockComponents.SPAWN_RESOURCES, DefaultBlockHandlers.SPAWN_RESOURCES);

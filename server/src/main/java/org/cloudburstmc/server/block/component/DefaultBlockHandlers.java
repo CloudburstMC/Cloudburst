@@ -7,11 +7,8 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Randoms;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -107,19 +104,4 @@ public class DefaultBlockHandlers {
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
     public static final BooleanBlockHandler CAN_CONTAIN_LIQUID = (block) -> false;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;
-
-    private static final AxisAlignedBB BOUNDING_BOX = new SimpleAxisAlignedBB(Vector3i.ZERO, Vector3i.ONE);
-
-    public static final AABBBlockHandler GET_BOUNDING_BOX = (state) -> BOUNDING_BOX;
-
-    public static final MayPlaceBlockHandler MAY_PLACE = (block, direction) -> {
-        int maxHeight = block.getLevel().getMaxHeight();
-        int minHeight = block.getLevel().getMinHeight();
-
-        BooleanBlockHandler mayPlaceOn = block.getComponents().get(BlockComponents.MAY_PLACE_ON);
-
-        return block.getPosition().getY() < maxHeight && block.getPosition().getY() >= minHeight &&
-                CloudBlockRegistry.REGISTRY.getComponent(block.getState().getType(), BlockComponents.REPLACEABLE).get() &&
-                (mayPlaceOn == null || mayPlaceOn.execute(block));
-    };
 }

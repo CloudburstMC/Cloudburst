@@ -11,15 +11,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
-public class CardinalDirectionSerializer implements TraitSerializer<CardinalDirection> {
+public class SignDirectionSerializer implements TraitSerializer<CardinalDirection> {
 
     @Override
     public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, CardinalDirection direction) {
-        return direction.toDirection().name().toLowerCase();
+        return direction.ordinal();
     }
 
     @Override
     public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
-        return BedrockStateTags.TAG_MINECRAFT_CARDINAL_DIRECTION;
+        return BedrockStateTags.TAG_GROUND_SIGN_DIRECTION;
     }
 }
