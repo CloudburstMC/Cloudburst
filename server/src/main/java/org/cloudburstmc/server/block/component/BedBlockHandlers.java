@@ -12,7 +12,6 @@ import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.blockentity.BedBlockEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -25,12 +24,6 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
  */
 @UtilityClass
 public class BedBlockHandlers {
-
-    /**
-     * Deny interaction while the player is sneaking with a non-empty item in hand.
-     */
-    public static final UseCheckHandler CAN_BE_USED = (block, player) ->
-            !player.isSneaking() || player.getInventory().getSelectedItem().isEmpty();
 
     /**
      * Places both the foot (at {@code blockPosition}) and head (one block ahead

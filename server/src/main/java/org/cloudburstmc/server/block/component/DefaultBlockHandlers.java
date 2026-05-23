@@ -99,6 +99,7 @@ public class DefaultBlockHandlers {
                 .amount(1)
                 .build();
     });
+    public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
     public static final BooleanBlockHandler CAN_BE_SILK_TOUCHED = (block) -> true;
     public static final BooleanBlockStateHandler CAN_PASS_THROUGH = (block) -> !CloudBlockRegistry.REGISTRY.getComponent(block.getType(), BlockComponents.SOLID).get();
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;

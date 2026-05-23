@@ -6,7 +6,6 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
-import org.cloudburstmc.api.block.component.UseCheckHandler;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -23,12 +22,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class RespawnAnchorBlockHandlers {
 
     private static final int MAX_CHARGES = 4;
-
-    /**
-     * Deny interaction while the player is sneaking with a non-empty item in hand.
-     */
-    public static final UseCheckHandler CAN_BE_USED = (block, player) ->
-            !player.isSneaking() || player.getInventory().getSelectedItem().isEmpty();
 
     public static final UseBlockHandler RESPAWN_ANCHOR = (block, player, direction, item) -> {
         if (!(player instanceof CloudPlayer cloudPlayer)) {

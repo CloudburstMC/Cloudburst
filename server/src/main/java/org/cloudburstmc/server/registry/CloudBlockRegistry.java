@@ -273,7 +273,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
     private void registerVanillaBlocks() {
         this.registerVanilla(ACACIA_BUTTON);
-        this.registerVanilla(ACACIA_DOOR);
+        this.registerDoor(ACACIA_DOOR);
         this.registerVanilla(ACACIA_DOUBLE_SLAB);
         this.registerVanilla(ACACIA_FENCE);
         this.registerVanilla(ACACIA_FENCE_GATE);
@@ -287,7 +287,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ACACIA_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(ACACIA_DOUBLE_SLAB));
         this.registerVanilla(ACACIA_STAIRS);
         this.registerVanilla(ACACIA_STANDING_SIGN);
-        this.registerVanilla(ACACIA_TRAPDOOR);
+        this.registerTrapdoor(ACACIA_TRAPDOOR);
         this.registerVanilla(ACACIA_WALL_SIGN);
         this.registerVanilla(ACACIA_WOOD);
         this.registerVanilla(ACTIVATOR_RAIL);
@@ -306,7 +306,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ANDESITE_WALL);
         this.registerVanilla(ANVIL)
                 .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(AZALEA);
         this.registerVanilla(AZALEA_LEAVES);
@@ -315,7 +315,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BAMBOO);
         this.registerVanilla(BAMBOO_BLOCK);
         this.registerVanilla(BAMBOO_BUTTON);
-        this.registerVanilla(BAMBOO_DOOR);
+        this.registerDoor(BAMBOO_DOOR);
         this.registerVanilla(BAMBOO_DOUBLE_SLAB);
         this.registerVanilla(BAMBOO_FENCE);
         this.registerVanilla(BAMBOO_FENCE_GATE);
@@ -331,18 +331,18 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BAMBOO_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BAMBOO_DOUBLE_SLAB));
         this.registerVanilla(BAMBOO_STAIRS);
         this.registerVanilla(BAMBOO_STANDING_SIGN);
-        this.registerVanilla(BAMBOO_TRAPDOOR);
+        this.registerTrapdoor(BAMBOO_TRAPDOOR);
         this.registerVanilla(BAMBOO_WALL_SIGN);
         this.registerVanilla(BARREL)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BARREL);
         this.registerVanilla(BARRIER);
         this.registerVanilla(BASALT);
         this.registerVanilla(BEACON)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BEACON);
         this.registerVanilla(BED)
-                .set(BlockComponents.CAN_BE_USED, BedBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, BedBlockHandlers.BED)
                 .set(BlockComponents.ON_PLACE, BedBlockHandlers.PLACE)
                 .set(BlockComponents.ON_DESTROY, BedBlockHandlers.ON_DESTROY)
@@ -355,7 +355,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BELL);
         this.registerVanilla(BIG_DRIPLEAF);
         this.registerVanilla(BIRCH_BUTTON);
-        this.registerVanilla(BIRCH_DOOR);
+        this.registerDoor(BIRCH_DOOR);
         this.registerVanilla(BIRCH_DOUBLE_SLAB);
         this.registerVanilla(BIRCH_FENCE);
         this.registerVanilla(BIRCH_FENCE_GATE);
@@ -369,7 +369,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BIRCH_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BIRCH_DOUBLE_SLAB));
         this.registerVanilla(BIRCH_STAIRS);
         this.registerVanilla(BIRCH_STANDING_SIGN);
-        this.registerVanilla(BIRCH_TRAPDOOR);
+        this.registerTrapdoor(BIRCH_TRAPDOOR);
         this.registerVanilla(BIRCH_WALL_SIGN);
         this.registerVanilla(BIRCH_WOOD);
         this.registerVanilla(BLACKSTONE);
@@ -384,14 +384,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BLACK_CONCRETE_POWDER);
         this.registerVanilla(BLACK_GLAZED_TERRACOTTA);
         this.registerVanilla(BLACK_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BLACK_STAINED_GLASS);
         this.registerVanilla(BLACK_STAINED_GLASS_PANE);
         this.registerVanilla(BLACK_TERRACOTTA);
         this.registerVanilla(BLACK_WOOL);
         this.registerVanilla(BLAST_FURNACE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BLAST_FURNACE);
         this.registerVanilla(BLUE_CANDLE);
         this.registerVanilla(BLUE_CANDLE_CAKE);
@@ -402,7 +402,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BLUE_ICE);
         this.registerVanilla(BLUE_ORCHID);
         this.registerVanilla(BLUE_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BLUE_STAINED_GLASS);
         this.registerVanilla(BLUE_STAINED_GLASS_PANE);
@@ -416,7 +416,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BRAIN_CORAL_FAN);
         this.registerVanilla(BRAIN_CORAL_WALL_FAN);
         this.registerVanilla(BREWING_STAND)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BREWING_STAND);
         this.registerVanilla(BRICK_BLOCK);
         this.registerVanilla(BRICK_DOUBLE_SLAB);
@@ -432,7 +432,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BROWN_MUSHROOM);
         this.registerVanilla(BROWN_MUSHROOM_BLOCK);
         this.registerVanilla(BROWN_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(BROWN_STAINED_GLASS);
         this.registerVanilla(BROWN_STAINED_GLASS_PANE);
@@ -456,7 +456,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CANDLE_CAKE);
         this.registerVanilla(CARROTS);
         this.registerVanilla(CARTOGRAPHY_TABLE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.CARTOGRAPHY_TABLE);
         this.registerVanilla(CARVED_PUMPKIN);
         this.registerVanilla(CAULDRON);
@@ -467,7 +467,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CHALKBOARD);
         this.registerVanilla(CHEMICAL_HEAT);
         this.registerVanilla(CHERRY_BUTTON);
-        this.registerVanilla(CHERRY_DOOR);
+        this.registerDoor(CHERRY_DOOR);
         this.registerVanilla(CHERRY_DOUBLE_SLAB);
         this.registerVanilla(CHERRY_FENCE);
         this.registerVanilla(CHERRY_FENCE_GATE);
@@ -481,15 +481,15 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CHERRY_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CHERRY_DOUBLE_SLAB));
         this.registerVanilla(CHERRY_STAIRS);
         this.registerVanilla(CHERRY_STANDING_SIGN);
-        this.registerVanilla(CHERRY_TRAPDOOR);
+        this.registerTrapdoor(CHERRY_TRAPDOOR);
         this.registerVanilla(CHERRY_WALL_SIGN);
         this.registerVanilla(CHERRY_WOOD);
         this.registerVanilla(CHEST)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.CHEST);
         this.registerVanilla(CHIPPED_ANVIL)
                 .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(CHISELED_BOOKSHELF);
         this.registerVanilla(CHISELED_CINNABAR);
@@ -547,13 +547,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(COPPER_BULB);
         this.registerVanilla(COPPER_CHAIN);
         this.registerVanilla(COPPER_CHEST);
-        this.registerVanilla(COPPER_DOOR);
+        this.registerDoor(COPPER_DOOR);
         this.registerVanilla(COPPER_GOLEM_STATUE);
         this.registerVanilla(COPPER_GRATE);
         this.registerVanilla(COPPER_LANTERN);
         this.registerVanilla(COPPER_ORE);
         this.registerVanilla(COPPER_TORCH);
-        this.registerVanilla(COPPER_TRAPDOOR);
+        this.registerTrapdoor(COPPER_TRAPDOOR);
         this.registerVanilla(CORNFLOWER);
         this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
         this.registerVanilla(CRACKED_DEEPSLATE_TILES);
@@ -561,15 +561,15 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CRACKED_POLISHED_BLACKSTONE_BRICKS);
         this.registerVanilla(CRACKED_STONE_BRICKS);
         this.registerVanilla(CRAFTER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.CRAFTER);
         this.registerVanilla(CRAFTING_TABLE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.CRAFTING_TABLE);
         this.registerVanilla(CREAKING_HEART);
         this.registerVanilla(CREEPER_HEAD);
         this.registerVanilla(CRIMSON_BUTTON);
-        this.registerVanilla(CRIMSON_DOOR);
+        this.registerDoor(CRIMSON_DOOR);
         this.registerVanilla(CRIMSON_DOUBLE_SLAB);
         this.registerVanilla(CRIMSON_FENCE);
         this.registerVanilla(CRIMSON_FENCE_GATE);
@@ -585,7 +585,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CRIMSON_STAIRS);
         this.registerVanilla(CRIMSON_STANDING_SIGN);
         this.registerVanilla(CRIMSON_STEM);
-        this.registerVanilla(CRIMSON_TRAPDOOR);
+        this.registerTrapdoor(CRIMSON_TRAPDOOR);
         this.registerVanilla(CRIMSON_WALL_SIGN);
         this.registerVanilla(CRYING_OBSIDIAN);
         this.registerVanilla(CUT_COPPER);
@@ -604,7 +604,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CYAN_CONCRETE_POWDER);
         this.registerVanilla(CYAN_GLAZED_TERRACOTTA);
         this.registerVanilla(CYAN_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(CYAN_STAINED_GLASS);
         this.registerVanilla(CYAN_STAINED_GLASS_PANE);
@@ -612,13 +612,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CYAN_WOOL);
         this.registerVanilla(DAMAGED_ANVIL)
                 .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
         this.registerVanilla(DANDELION);
         this.registerVanilla(DARKOAK_STANDING_SIGN);
         this.registerVanilla(DARKOAK_WALL_SIGN);
         this.registerVanilla(DARK_OAK_BUTTON);
-        this.registerVanilla(DARK_OAK_DOOR);
+        this.registerDoor(DARK_OAK_DOOR);
         this.registerVanilla(DARK_OAK_DOUBLE_SLAB);
         this.registerVanilla(DARK_OAK_FENCE);
         this.registerVanilla(DARK_OAK_FENCE_GATE);
@@ -631,7 +631,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DARK_OAK_SHELF);
         this.registerVanilla(DARK_OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DARK_OAK_DOUBLE_SLAB));
         this.registerVanilla(DARK_OAK_STAIRS);
-        this.registerVanilla(DARK_OAK_TRAPDOOR);
+        this.registerTrapdoor(DARK_OAK_TRAPDOOR);
         this.registerVanilla(DARK_OAK_WOOD);
         this.registerVanilla(DARK_PRISMARINE);
         this.registerVanilla(DARK_PRISMARINE_DOUBLE_SLAB);
@@ -695,7 +695,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DIRT);
         this.registerVanilla(DIRT_WITH_ROOTS);
         this.registerVanilla(DISPENSER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.DISPENSER);
         this.registerVanilla(DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(DRAGON_EGG);
@@ -704,7 +704,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DRIED_KELP_BLOCK);
         this.registerVanilla(DRIPSTONE_BLOCK);
         this.registerVanilla(DROPPER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.DROPPER);
         this.registerVanilla(ELEMENT_0);
         this.registerVanilla(ELEMENT_1);
@@ -829,10 +829,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(EMERALD_BLOCK);
         this.registerVanilla(EMERALD_ORE);
         this.registerVanilla(ENCHANTING_TABLE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ENCHANTING_TABLE);
         this.registerVanilla(ENDER_CHEST)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ENDER_CHEST);
         this.registerVanilla(END_BRICKS);
         this.registerVanilla(END_BRICK_STAIRS);
@@ -850,11 +850,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(EXPOSED_COPPER_BULB);
         this.registerVanilla(EXPOSED_COPPER_CHAIN);
         this.registerVanilla(EXPOSED_COPPER_CHEST);
-        this.registerVanilla(EXPOSED_COPPER_DOOR);
+        this.registerDoor(EXPOSED_COPPER_DOOR);
         this.registerVanilla(EXPOSED_COPPER_GOLEM_STATUE);
         this.registerVanilla(EXPOSED_COPPER_GRATE);
         this.registerVanilla(EXPOSED_COPPER_LANTERN);
-        this.registerVanilla(EXPOSED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(EXPOSED_COPPER_TRAPDOOR);
         this.registerVanilla(EXPOSED_CUT_COPPER);
         this.registerVanilla(EXPOSED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(EXPOSED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(EXPOSED_CUT_COPPER_STAIRS);
@@ -881,7 +881,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(FROSTED_ICE);
         this.registerVanilla(FURNACE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.FURNACE);
         this.registerVanilla(GILDED_BLACKSTONE);
         this.registerVanilla(GLASS);
@@ -909,7 +909,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GRAY_CONCRETE_POWDER);
         this.registerVanilla(GRAY_GLAZED_TERRACOTTA);
         this.registerVanilla(GRAY_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(GRAY_STAINED_GLASS);
         this.registerVanilla(GRAY_STAINED_GLASS_PANE);
@@ -922,14 +922,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GREEN_CONCRETE_POWDER);
         this.registerVanilla(GREEN_GLAZED_TERRACOTTA);
         this.registerVanilla(GREEN_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(GREEN_STAINED_GLASS);
         this.registerVanilla(GREEN_STAINED_GLASS_PANE);
         this.registerVanilla(GREEN_TERRACOTTA);
         this.registerVanilla(GREEN_WOOL);
         this.registerVanilla(GRINDSTONE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.GRINDSTONE);
         this.registerVanilla(HANGING_ROOTS);
         this.registerVanilla(HARDENED_CLAY);
@@ -973,7 +973,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(HONEYCOMB_BLOCK);
         this.registerVanilla(HONEY_BLOCK);
         this.registerVanilla(HOPPER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.HOPPER);
         this.registerVanilla(HORN_CORAL);
         this.registerVanilla(HORN_CORAL_BLOCK);
@@ -993,13 +993,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(IRON_BARS);
         this.registerVanilla(IRON_BLOCK);
         this.registerVanilla(IRON_CHAIN);
-        this.registerVanilla(IRON_DOOR);
+        this.registerDoor(IRON_DOOR);
         this.registerVanilla(IRON_ORE);
-        this.registerVanilla(IRON_TRAPDOOR);
+        this.registerTrapdoor(IRON_TRAPDOOR);
         this.registerVanilla(JIGSAW);
         this.registerVanilla(JUKEBOX);
         this.registerVanilla(JUNGLE_BUTTON);
-        this.registerVanilla(JUNGLE_DOOR);
+        this.registerDoor(JUNGLE_DOOR);
         this.registerVanilla(JUNGLE_DOUBLE_SLAB);
         this.registerVanilla(JUNGLE_FENCE);
         this.registerVanilla(JUNGLE_FENCE_GATE);
@@ -1013,7 +1013,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(JUNGLE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(JUNGLE_DOUBLE_SLAB));
         this.registerVanilla(JUNGLE_STAIRS);
         this.registerVanilla(JUNGLE_STANDING_SIGN);
-        this.registerVanilla(JUNGLE_TRAPDOOR);
+        this.registerTrapdoor(JUNGLE_TRAPDOOR);
         this.registerVanilla(JUNGLE_WALL_SIGN);
         this.registerVanilla(JUNGLE_WOOD);
         this.registerVanilla(KELP);
@@ -1029,7 +1029,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.LIQUID, () -> true);
         this.registerVanilla(LEAF_LITTER);
         this.registerVanilla(LECTERN)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.LECTERN);
         this.registerVanilla(LEVER);
         this.registerVanilla(LIGHTNING_ROD);
@@ -1056,7 +1056,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LIGHT_BLUE_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_BLUE_GLAZED_TERRACOTTA);
         this.registerVanilla(LIGHT_BLUE_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS);
         this.registerVanilla(LIGHT_BLUE_STAINED_GLASS_PANE);
@@ -1069,7 +1069,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LIGHT_GRAY_CONCRETE_POWDER);
         this.registerVanilla(LIGHT_GRAY_GLAZED_TERRACOTTA);
         this.registerVanilla(LIGHT_GRAY_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS);
         this.registerVanilla(LIGHT_GRAY_STAINED_GLASS_PANE);
@@ -1085,28 +1085,28 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LIME_CONCRETE_POWDER);
         this.registerVanilla(LIME_GLAZED_TERRACOTTA);
         this.registerVanilla(LIME_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(LIME_STAINED_GLASS);
         this.registerVanilla(LIME_STAINED_GLASS_PANE);
         this.registerVanilla(LIME_TERRACOTTA);
         this.registerVanilla(LIME_WOOL);
         this.registerVanilla(LIT_BLAST_FURNACE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BLAST_FURNACE);
         this.registerVanilla(LIT_DEEPSLATE_REDSTONE_ORE);
         this.registerVanilla(LIT_FURNACE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.FURNACE);
         this.registerVanilla(LIT_PUMPKIN);
         this.registerVanilla(LIT_REDSTONE_LAMP);
         this.registerVanilla(LIT_REDSTONE_ORE);
         this.registerVanilla(LIT_SMOKER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SMOKER);
         this.registerVanilla(LODESTONE);
         this.registerVanilla(LOOM)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.LOOM);
         this.registerVanilla(MAGENTA_CANDLE);
         this.registerVanilla(MAGENTA_CANDLE_CAKE);
@@ -1115,7 +1115,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MAGENTA_CONCRETE_POWDER);
         this.registerVanilla(MAGENTA_GLAZED_TERRACOTTA);
         this.registerVanilla(MAGENTA_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(MAGENTA_STAINED_GLASS);
         this.registerVanilla(MAGENTA_STAINED_GLASS_PANE);
@@ -1123,7 +1123,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MAGENTA_WOOL);
         this.registerVanilla(MAGMA);
         this.registerVanilla(MANGROVE_BUTTON);
-        this.registerVanilla(MANGROVE_DOOR);
+        this.registerDoor(MANGROVE_DOOR);
         this.registerVanilla(MANGROVE_DOUBLE_SLAB);
         this.registerVanilla(MANGROVE_FENCE);
         this.registerVanilla(MANGROVE_FENCE_GATE);
@@ -1138,7 +1138,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MANGROVE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(MANGROVE_DOUBLE_SLAB));
         this.registerVanilla(MANGROVE_STAIRS);
         this.registerVanilla(MANGROVE_STANDING_SIGN);
-        this.registerVanilla(MANGROVE_TRAPDOOR);
+        this.registerTrapdoor(MANGROVE_TRAPDOOR);
         this.registerVanilla(MANGROVE_WALL_SIGN);
         this.registerVanilla(MANGROVE_WOOD);
         this.registerVanilla(MATERIAL_REDUCER);
@@ -1183,7 +1183,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(NETHER_WART_BLOCK);
         this.registerVanilla(NOTE_BLOCK);
         this.registerVanilla(OAK_BUTTON);
-        this.registerVanilla(OAK_DOOR);
+        this.registerDoor(OAK_DOOR);
         this.registerVanilla(OAK_DOUBLE_SLAB);
         this.registerVanilla(OAK_FENCE);
         this.registerVanilla(OAK_FENCE_GATE);
@@ -1197,7 +1197,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(OAK_DOUBLE_SLAB));
         this.registerVanilla(OAK_STAIRS);
         this.registerVanilla(OAK_STANDING_SIGN);
-        this.registerVanilla(OAK_TRAPDOOR);
+        this.registerTrapdoor(OAK_TRAPDOOR);
         this.registerVanilla(OAK_WALL_SIGN);
         this.registerVanilla(OAK_WOOD);
         this.registerVanilla(OBSERVER);
@@ -1211,7 +1211,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ORANGE_CONCRETE_POWDER);
         this.registerVanilla(ORANGE_GLAZED_TERRACOTTA);
         this.registerVanilla(ORANGE_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(ORANGE_STAINED_GLASS);
         this.registerVanilla(ORANGE_STAINED_GLASS_PANE);
@@ -1225,11 +1225,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(OXIDIZED_COPPER_BULB);
         this.registerVanilla(OXIDIZED_COPPER_CHAIN);
         this.registerVanilla(OXIDIZED_COPPER_CHEST);
-        this.registerVanilla(OXIDIZED_COPPER_DOOR);
+        this.registerDoor(OXIDIZED_COPPER_DOOR);
         this.registerVanilla(OXIDIZED_COPPER_GOLEM_STATUE);
         this.registerVanilla(OXIDIZED_COPPER_GRATE);
         this.registerVanilla(OXIDIZED_COPPER_LANTERN);
-        this.registerVanilla(OXIDIZED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(OXIDIZED_COPPER_TRAPDOOR);
         this.registerVanilla(OXIDIZED_CUT_COPPER);
         this.registerVanilla(OXIDIZED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(OXIDIZED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(OXIDIZED_CUT_COPPER_STAIRS);
@@ -1241,7 +1241,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PALE_MOSS_BLOCK);
         this.registerVanilla(PALE_MOSS_CARPET);
         this.registerVanilla(PALE_OAK_BUTTON);
-        this.registerVanilla(PALE_OAK_DOOR);
+        this.registerDoor(PALE_OAK_DOOR);
         this.registerVanilla(PALE_OAK_DOUBLE_SLAB);
         this.registerVanilla(PALE_OAK_FENCE);
         this.registerVanilla(PALE_OAK_FENCE_GATE);
@@ -1255,7 +1255,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PALE_OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(PALE_OAK_DOUBLE_SLAB));
         this.registerVanilla(PALE_OAK_STAIRS);
         this.registerVanilla(PALE_OAK_STANDING_SIGN);
-        this.registerVanilla(PALE_OAK_TRAPDOOR);
+        this.registerTrapdoor(PALE_OAK_TRAPDOOR);
         this.registerVanilla(PALE_OAK_WALL_SIGN);
         this.registerVanilla(PALE_OAK_WOOD);
         this.registerVanilla(PEARLESCENT_FROGLIGHT);
@@ -1271,7 +1271,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PINK_GLAZED_TERRACOTTA);
         this.registerVanilla(PINK_PETALS);
         this.registerVanilla(PINK_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(PINK_STAINED_GLASS);
         this.registerVanilla(PINK_STAINED_GLASS_PANE);
@@ -1358,7 +1358,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PURPLE_CONCRETE_POWDER);
         this.registerVanilla(PURPLE_GLAZED_TERRACOTTA);
         this.registerVanilla(PURPLE_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(PURPLE_STAINED_GLASS);
         this.registerVanilla(PURPLE_STAINED_GLASS_PANE);
@@ -1405,7 +1405,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RED_SANDSTONE_STAIRS);
         this.registerVanilla(RED_SANDSTONE_WALL);
         this.registerVanilla(RED_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(RED_STAINED_GLASS);
         this.registerVanilla(RED_STAINED_GLASS_PANE);
@@ -1424,7 +1424,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RESIN_BRICK_WALL);
         this.registerVanilla(RESIN_CLUMP);
         this.registerVanilla(RESPAWN_ANCHOR)
-                .set(BlockComponents.CAN_BE_USED, RespawnAnchorBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, RespawnAnchorBlockHandlers.RESPAWN_ANCHOR);
         this.registerVanilla(ROSE_BUSH);
         this.registerVanilla(SAND);
@@ -1450,10 +1450,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SMALL_AMETHYST_BUD);
         this.registerVanilla(SMALL_DRIPLEAF_BLOCK);
         this.registerVanilla(SMITHING_TABLE)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SMITHING_TABLE);
         this.registerVanilla(SMOKER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SMOKER);
         this.registerVanilla(SMOOTH_BASALT);
         this.registerVanilla(SMOOTH_QUARTZ);
@@ -1483,7 +1483,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SPONGE);
         this.registerVanilla(SPORE_BLOSSOM);
         this.registerVanilla(SPRUCE_BUTTON);
-        this.registerVanilla(SPRUCE_DOOR);
+        this.registerDoor(SPRUCE_DOOR);
         this.registerVanilla(SPRUCE_DOUBLE_SLAB);
         this.registerVanilla(SPRUCE_FENCE);
         this.registerVanilla(SPRUCE_FENCE_GATE);
@@ -1497,7 +1497,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SPRUCE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SPRUCE_DOUBLE_SLAB));
         this.registerVanilla(SPRUCE_STAIRS);
         this.registerVanilla(SPRUCE_STANDING_SIGN);
-        this.registerVanilla(SPRUCE_TRAPDOOR);
+        this.registerTrapdoor(SPRUCE_TRAPDOOR);
         this.registerVanilla(SPRUCE_WALL_SIGN);
         this.registerVanilla(SPRUCE_WOOD);
         this.registerVanilla(STANDING_BANNER);
@@ -1505,10 +1505,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
         this.registerVanilla(STONE);
         this.registerVanilla(STONECUTTER)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);
         this.registerVanilla(STONECUTTER_BLOCK)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);
         this.registerVanilla(STONE_BRICKS);
         this.registerVanilla(STONE_BRICK_DOUBLE_SLAB);
@@ -1568,7 +1568,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(TORCHFLOWER);
         this.registerVanilla(TORCHFLOWER_CROP);
         this.registerVanilla(TRAPPED_CHEST)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.TRAPPED_CHEST);
         this.registerVanilla(TRIAL_SPAWNER);
         this.registerVanilla(TRIPWIRE_HOOK);
@@ -1592,7 +1592,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(UNDERWATER_TNT);
         this.registerVanilla(UNDERWATER_TORCH);
         this.registerVanilla(UNDYED_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(UNKNOWN);
         this.registerVanilla(UNLIT_REDSTONE_TORCH);
@@ -1603,7 +1603,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(VINE);
         this.registerVanilla(WALL_BANNER);
         this.registerVanilla(WARPED_BUTTON);
-        this.registerVanilla(WARPED_DOOR);
+        this.registerDoor(WARPED_DOOR);
         this.registerVanilla(WARPED_DOUBLE_SLAB);
         this.registerVanilla(WARPED_FENCE);
         this.registerVanilla(WARPED_FENCE_GATE);
@@ -1619,7 +1619,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WARPED_STAIRS);
         this.registerVanilla(WARPED_STANDING_SIGN);
         this.registerVanilla(WARPED_STEM);
-        this.registerVanilla(WARPED_TRAPDOOR);
+        this.registerTrapdoor(WARPED_TRAPDOOR);
         this.registerVanilla(WARPED_WALL_SIGN);
         this.registerVanilla(WARPED_WART_BLOCK);
         this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE)
@@ -1632,11 +1632,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WAXED_COPPER_BULB);
         this.registerVanilla(WAXED_COPPER_CHAIN);
         this.registerVanilla(WAXED_COPPER_CHEST);
-        this.registerVanilla(WAXED_COPPER_DOOR);
+        this.registerDoor(WAXED_COPPER_DOOR);
         this.registerVanilla(WAXED_COPPER_GOLEM_STATUE);
         this.registerVanilla(WAXED_COPPER_GRATE);
         this.registerVanilla(WAXED_COPPER_LANTERN);
-        this.registerVanilla(WAXED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(WAXED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_CUT_COPPER);
         this.registerVanilla(WAXED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(WAXED_CUT_COPPER_STAIRS);
@@ -1647,11 +1647,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WAXED_EXPOSED_COPPER_BULB);
         this.registerVanilla(WAXED_EXPOSED_COPPER_CHAIN);
         this.registerVanilla(WAXED_EXPOSED_COPPER_CHEST);
-        this.registerVanilla(WAXED_EXPOSED_COPPER_DOOR);
+        this.registerDoor(WAXED_EXPOSED_COPPER_DOOR);
         this.registerVanilla(WAXED_EXPOSED_COPPER_GOLEM_STATUE);
         this.registerVanilla(WAXED_EXPOSED_COPPER_GRATE);
         this.registerVanilla(WAXED_EXPOSED_COPPER_LANTERN);
-        this.registerVanilla(WAXED_EXPOSED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(WAXED_EXPOSED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_EXPOSED_CUT_COPPER);
         this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_EXPOSED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_STAIRS);
@@ -1664,11 +1664,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WAXED_OXIDIZED_COPPER_BULB);
         this.registerVanilla(WAXED_OXIDIZED_COPPER_CHAIN);
         this.registerVanilla(WAXED_OXIDIZED_COPPER_CHEST);
-        this.registerVanilla(WAXED_OXIDIZED_COPPER_DOOR);
+        this.registerDoor(WAXED_OXIDIZED_COPPER_DOOR);
         this.registerVanilla(WAXED_OXIDIZED_COPPER_GOLEM_STATUE);
         this.registerVanilla(WAXED_OXIDIZED_COPPER_GRATE);
         this.registerVanilla(WAXED_OXIDIZED_COPPER_LANTERN);
-        this.registerVanilla(WAXED_OXIDIZED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(WAXED_OXIDIZED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER);
         this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_OXIDIZED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_STAIRS);
@@ -1680,11 +1680,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WAXED_WEATHERED_COPPER_BULB);
         this.registerVanilla(WAXED_WEATHERED_COPPER_CHAIN);
         this.registerVanilla(WAXED_WEATHERED_COPPER_CHEST);
-        this.registerVanilla(WAXED_WEATHERED_COPPER_DOOR);
+        this.registerDoor(WAXED_WEATHERED_COPPER_DOOR);
         this.registerVanilla(WAXED_WEATHERED_COPPER_GOLEM_STATUE);
         this.registerVanilla(WAXED_WEATHERED_COPPER_GRATE);
         this.registerVanilla(WAXED_WEATHERED_COPPER_LANTERN);
-        this.registerVanilla(WAXED_WEATHERED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(WAXED_WEATHERED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_WEATHERED_CUT_COPPER);
         this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_WEATHERED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_STAIRS);
@@ -1696,11 +1696,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WEATHERED_COPPER_BULB);
         this.registerVanilla(WEATHERED_COPPER_CHAIN);
         this.registerVanilla(WEATHERED_COPPER_CHEST);
-        this.registerVanilla(WEATHERED_COPPER_DOOR);
+        this.registerDoor(WEATHERED_COPPER_DOOR);
         this.registerVanilla(WEATHERED_COPPER_GOLEM_STATUE);
         this.registerVanilla(WEATHERED_COPPER_GRATE);
         this.registerVanilla(WEATHERED_COPPER_LANTERN);
-        this.registerVanilla(WEATHERED_COPPER_TRAPDOOR);
+        this.registerTrapdoor(WEATHERED_COPPER_TRAPDOOR);
         this.registerVanilla(WEATHERED_CUT_COPPER);
         this.registerVanilla(WEATHERED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WEATHERED_DOUBLE_CUT_COPPER_SLAB));
         this.registerVanilla(WEATHERED_CUT_COPPER_STAIRS);
@@ -1717,7 +1717,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WHITE_CONCRETE_POWDER);
         this.registerVanilla(WHITE_GLAZED_TERRACOTTA);
         this.registerVanilla(WHITE_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(WHITE_STAINED_GLASS);
         this.registerVanilla(WHITE_STAINED_GLASS_PANE);
@@ -1734,7 +1734,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(YELLOW_CONCRETE_POWDER);
         this.registerVanilla(YELLOW_GLAZED_TERRACOTTA);
         this.registerVanilla(YELLOW_SHULKER_BOX)
-                .set(BlockComponents.CAN_BE_USED, ContainerBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(YELLOW_STAINED_GLASS);
         this.registerVanilla(YELLOW_STAINED_GLASS_PANE);
@@ -1742,6 +1742,22 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(YELLOW_WOOL);
         this.registerVanilla(ZOMBIE_HEAD);
         BlockTypeData.applyAll(this);
+    }
+
+    private void registerDoor(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new DoorPlaceHandler(this))
+                .set(BlockComponents.CAN_BE_USED, DoorBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, DoorBlockHandlers.USE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, DoorBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_DESTROY, DoorBlockHandlers.ON_DESTROY);
+    }
+
+    private void registerTrapdoor(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new TrapdoorPlaceHandler(this))
+                .set(BlockComponents.CAN_BE_USED, TrapdoorBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, TrapdoorBlockHandlers.USE);
     }
 
     private void registerVanillaBehaviors() {

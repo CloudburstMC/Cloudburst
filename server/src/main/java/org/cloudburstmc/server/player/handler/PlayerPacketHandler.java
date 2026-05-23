@@ -178,6 +178,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             processBlockActions(packet);
         }
 
+        processInputFlags(inputData);
+
+        boolean packetSneaking = inputData.contains(PlayerAuthInputData.SNEAKING);
+        if (packetSneaking != player.isSneaking()) {
+            player.setSneaking(packetSneaking);
+        }
+
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_INTERACTION)) {
             processItemUseTransaction(packet);
         }
@@ -185,8 +192,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
             player.getItemStackNetManager().handleSingleRequest(packet.getItemStackRequest());
         }
-
-        processInputFlags(inputData);
 
         return PacketSignal.HANDLED;
     }

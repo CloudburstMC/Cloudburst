@@ -3,8 +3,6 @@ package org.cloudburstmc.server.block.component;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
-import org.cloudburstmc.api.block.component.UseCheckHandler;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.blockentity.LecternBlockEntity;
 import org.cloudburstmc.server.container.screen.*;
@@ -14,9 +12,6 @@ import java.util.function.BiFunction;
 
 @UtilityClass
 public class ContainerBlockHandlers {
-
-    public static final UseCheckHandler CAN_BE_USED = (block, player) ->
-            !player.isSneaking() || player.getInventory().getSelectedItem().isEmpty();
 
     public static final UseBlockHandler ANVIL = open(CloudAnvilContainerScreen::new);
     public static final UseBlockHandler BARREL = open(CloudChestContainerScreen::barrel);

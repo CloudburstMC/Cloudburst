@@ -1795,6 +1795,10 @@ public class CloudLevel implements Level {
 
             targetBehaviors.get(BlockComponents.ON_TICK).execute(target, ThreadLocalRandom.current());
 
+            if (player.isSneaking() && !item.isEmpty()) {
+                return false;
+            }
+
             boolean canUse = targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, player);
             return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face, item);
         } else {
@@ -1874,10 +1878,10 @@ public class CloudLevel implements Level {
         ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
         AxisAlignedBB handBB = handBehaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(hand);
 
-        if (!handBehaviors.get(BlockComponents.CAN_PASS_THROUGH).execute(hand) && handBB != null) {
+        if (hand.getCollisionBoxes() != null && handBB != null) {
             handBB = handBB.getOffsetBoundingBox(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-            Set<Entity> entities = this.getCollidingEntities(handBB);
+            Set<Entity> entities = this.getCollidingEntities(handBB, player instanceof CloudPlayer cp ? cp : null);
             int realCount = 0;
             for (Entity e : entities) {
                 if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof CloudPlayer && ((CloudPlayer) e).isSpectator())) {
@@ -1887,13 +1891,14 @@ public class CloudLevel implements Level {
             }
 
             if (player != null) {
-                if (handBB.intersectsWith(player.getBoundingBox())) {
+                AxisAlignedBB shrunkPlayer = player.getBoundingBox().shrink(1e-4f, 1e-4f, 1e-4f);
+                if (handBB.intersectsWith(shrunkPlayer)) {
                     ++realCount;
                 }
 
                 Vector3f diff = ((CloudPlayer) player).getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
-                    AxisAlignedBB bb = player.getBoundingBox().getOffsetBoundingBox(diff);
+                    AxisAlignedBB bb = shrunkPlayer.getOffsetBoundingBox(diff.getX(), diff.getY(), diff.getZ());
                     if (handBB.intersectsWith(bb)) {
                         ++realCount;
                     }
