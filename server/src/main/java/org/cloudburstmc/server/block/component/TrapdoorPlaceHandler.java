@@ -19,7 +19,7 @@ public class TrapdoorPlaceHandler extends DefaultBlockPlaceHandler {
         return super.execute(applyUpsideDown(blockState, face, clickPos), player, pos, face, clickPos);
     }
 
-    private static BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPos) {
+    private BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPos) {
         boolean upsideDown;
         if (face == Direction.UP) {
             upsideDown = false;

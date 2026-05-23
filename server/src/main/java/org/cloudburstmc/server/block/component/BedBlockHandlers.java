@@ -19,9 +19,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.BlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-/**
- * Block interaction and placement handlers for the bed block.
- */
 @UtilityClass
 public class BedBlockHandlers {
 

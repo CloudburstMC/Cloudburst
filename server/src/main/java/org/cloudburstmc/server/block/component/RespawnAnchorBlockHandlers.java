@@ -15,9 +15,6 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * Block interaction handlers for the respawn anchor block.
- */
 @UtilityClass
 public class RespawnAnchorBlockHandlers {
 

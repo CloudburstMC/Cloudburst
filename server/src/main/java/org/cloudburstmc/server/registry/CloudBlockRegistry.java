@@ -276,7 +276,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(ACACIA_DOOR);
         this.registerVanilla(ACACIA_DOUBLE_SLAB);
         this.registerVanilla(ACACIA_FENCE);
-        this.registerVanilla(ACACIA_FENCE_GATE);
+        this.registerFenceGate(ACACIA_FENCE_GATE);
         this.registerVanilla(ACACIA_HANGING_SIGN);
         this.registerVanilla(ACACIA_LEAVES);
         this.registerVanilla(ACACIA_LOG);
@@ -318,7 +318,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(BAMBOO_DOOR);
         this.registerVanilla(BAMBOO_DOUBLE_SLAB);
         this.registerVanilla(BAMBOO_FENCE);
-        this.registerVanilla(BAMBOO_FENCE_GATE);
+        this.registerFenceGate(BAMBOO_FENCE_GATE);
         this.registerVanilla(BAMBOO_HANGING_SIGN);
         this.registerVanilla(BAMBOO_MOSAIC);
         this.registerVanilla(BAMBOO_MOSAIC_DOUBLE_SLAB);
@@ -358,7 +358,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(BIRCH_DOOR);
         this.registerVanilla(BIRCH_DOUBLE_SLAB);
         this.registerVanilla(BIRCH_FENCE);
-        this.registerVanilla(BIRCH_FENCE_GATE);
+        this.registerFenceGate(BIRCH_FENCE_GATE);
         this.registerVanilla(BIRCH_HANGING_SIGN);
         this.registerVanilla(BIRCH_LEAVES);
         this.registerVanilla(BIRCH_LOG);
@@ -470,7 +470,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(CHERRY_DOOR);
         this.registerVanilla(CHERRY_DOUBLE_SLAB);
         this.registerVanilla(CHERRY_FENCE);
-        this.registerVanilla(CHERRY_FENCE_GATE);
+        this.registerFenceGate(CHERRY_FENCE_GATE);
         this.registerVanilla(CHERRY_HANGING_SIGN);
         this.registerVanilla(CHERRY_LEAVES);
         this.registerVanilla(CHERRY_LOG);
@@ -572,7 +572,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(CRIMSON_DOOR);
         this.registerVanilla(CRIMSON_DOUBLE_SLAB);
         this.registerVanilla(CRIMSON_FENCE);
-        this.registerVanilla(CRIMSON_FENCE_GATE);
+        this.registerFenceGate(CRIMSON_FENCE_GATE);
         this.registerVanilla(CRIMSON_FUNGUS);
         this.registerVanilla(CRIMSON_HANGING_SIGN);
         this.registerVanilla(CRIMSON_HYPHAE);
@@ -621,7 +621,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(DARK_OAK_DOOR);
         this.registerVanilla(DARK_OAK_DOUBLE_SLAB);
         this.registerVanilla(DARK_OAK_FENCE);
-        this.registerVanilla(DARK_OAK_FENCE_GATE);
+        this.registerFenceGate(DARK_OAK_FENCE_GATE);
         this.registerVanilla(DARK_OAK_HANGING_SIGN);
         this.registerVanilla(DARK_OAK_LEAVES);
         this.registerVanilla(DARK_OAK_LOG);
@@ -1002,7 +1002,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(JUNGLE_DOOR);
         this.registerVanilla(JUNGLE_DOUBLE_SLAB);
         this.registerVanilla(JUNGLE_FENCE);
-        this.registerVanilla(JUNGLE_FENCE_GATE);
+        this.registerFenceGate(JUNGLE_FENCE_GATE);
         this.registerVanilla(JUNGLE_HANGING_SIGN);
         this.registerVanilla(JUNGLE_LEAVES);
         this.registerVanilla(JUNGLE_LOG);
@@ -1126,7 +1126,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(MANGROVE_DOOR);
         this.registerVanilla(MANGROVE_DOUBLE_SLAB);
         this.registerVanilla(MANGROVE_FENCE);
-        this.registerVanilla(MANGROVE_FENCE_GATE);
+        this.registerFenceGate(MANGROVE_FENCE_GATE);
         this.registerVanilla(MANGROVE_HANGING_SIGN);
         this.registerVanilla(MANGROVE_LEAVES);
         this.registerVanilla(MANGROVE_LOG);
@@ -1186,7 +1186,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(OAK_DOOR);
         this.registerVanilla(OAK_DOUBLE_SLAB);
         this.registerVanilla(OAK_FENCE);
-        this.registerVanilla(OAK_FENCE_GATE);
+        this.registerFenceGate(OAK_FENCE_GATE);
         this.registerVanilla(OAK_HANGING_SIGN);
         this.registerVanilla(OAK_LEAVES);
         this.registerVanilla(OAK_LOG);
@@ -1244,7 +1244,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(PALE_OAK_DOOR);
         this.registerVanilla(PALE_OAK_DOUBLE_SLAB);
         this.registerVanilla(PALE_OAK_FENCE);
-        this.registerVanilla(PALE_OAK_FENCE_GATE);
+        this.registerFenceGate(PALE_OAK_FENCE_GATE);
         this.registerVanilla(PALE_OAK_HANGING_SIGN);
         this.registerVanilla(PALE_OAK_LEAVES);
         this.registerVanilla(PALE_OAK_LOG);
@@ -1486,7 +1486,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(SPRUCE_DOOR);
         this.registerVanilla(SPRUCE_DOUBLE_SLAB);
         this.registerVanilla(SPRUCE_FENCE);
-        this.registerVanilla(SPRUCE_FENCE_GATE);
+        this.registerFenceGate(SPRUCE_FENCE_GATE);
         this.registerVanilla(SPRUCE_HANGING_SIGN);
         this.registerVanilla(SPRUCE_LEAVES);
         this.registerVanilla(SPRUCE_LOG);
@@ -1606,7 +1606,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerDoor(WARPED_DOOR);
         this.registerVanilla(WARPED_DOUBLE_SLAB);
         this.registerVanilla(WARPED_FENCE);
-        this.registerVanilla(WARPED_FENCE_GATE);
+        this.registerFenceGate(WARPED_FENCE_GATE);
         this.registerVanilla(WARPED_FUNGUS);
         this.registerVanilla(WARPED_HANGING_SIGN);
         this.registerVanilla(WARPED_HYPHAE);
@@ -1751,6 +1751,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.USE, DoorBlockHandlers.USE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, DoorBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_DESTROY, DoorBlockHandlers.ON_DESTROY);
+    }
+
+    private void registerFenceGate(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new FenceGatePlaceHandler())
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, FenceGateBlockHandlers.USE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceGateBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
     private void registerTrapdoor(BlockType type) {
