@@ -89,16 +89,33 @@ public class DefaultBlockHandlers {
 
     public static final ResourceCountBlockHandler GET_RESOURCE_COUNT = (block, random, bonusLevel) -> 1;
 
-    public static final ResourceBlockHandler GET_RESOURCE = ((block, random, bonusLevel) -> {
+    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) -> {
         BlockState state = block.getState();
         ItemType itemType = CloudItemRegistry.get().getType(state.getType().getId(), 0);
         if (itemType == null) return ItemStack.EMPTY;
         return ItemStack.builder()
                 .itemType(itemType)
-                .data(ItemKeys.BLOCK_STATE, state)
+                .data(ItemKeys.BLOCK_STATE, state.getType().getDefaultState())
                 .amount(1)
                 .build();
-    });
+    };
+
+    public static final ResourceBlockHandler GET_SILK_TOUCH_RESOURCE = (block, random, bonusLevel) -> {
+        ResourceBlockHandler getResource = block.getComponents().get(BlockComponents.GET_RESOURCE);
+        return getResource != null ? getResource.execute(block, random, bonusLevel) : ItemStack.EMPTY;
+    };
+
+    public static final PickBlockHandler GET_PICK_BLOCK = (block) -> {
+        BlockState defaultState = block.getState().getType().getDefaultState();
+        return defaultState.getType().asItem()
+                .map(itemType -> ItemStack.builder()
+                        .itemType(itemType)
+                        .data(ItemKeys.BLOCK_STATE, defaultState)
+                        .amount(1)
+                        .build())
+                .orElse(ItemStack.EMPTY);
+    };
+
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
     public static final BooleanBlockHandler CAN_BE_SILK_TOUCHED = (block) -> true;
     public static final BooleanBlockStateHandler CAN_PASS_THROUGH = (block) -> !CloudBlockRegistry.REGISTRY.getComponent(block.getType(), BlockComponents.SOLID).get();

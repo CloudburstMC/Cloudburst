@@ -251,8 +251,6 @@ public class CloudLevel implements Level {
             setThunderTime(ThreadLocalRandom.current().nextInt(168000) + 12000);
         }
 
-        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(), this.chunkTickList::containsKey);
-
         this.chunkTickRadius = Math.min(this.server.getViewDistance(),
                 Math.max(1, this.server.getConfig().getChunkTicking().getTickRadius()));
         this.chunksPerTicks = this.server.getConfig().getChunkTicking().getPerTick();
@@ -260,6 +258,9 @@ public class CloudLevel implements Level {
         this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
         this.tickRate = 1;
         this.chunkManager = new LevelChunkManager(this);
+
+        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(),
+                chunkKey -> this.chunkManager.isChunkLoaded(chunkKey) && this.areNeighboringChunksLoaded(chunkKey));
 
         this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
     }
@@ -1504,7 +1505,6 @@ public class CloudLevel implements Level {
         }
 
         if (update) {
-            ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
             if (this.blockRegistry.getComponent(oldState.getType(), BlockComponents.TRANSLUCENCY).get() != this.blockRegistry.getComponent(state.getType(), BlockComponents.TRANSLUCENCY).get() ||
                     this.blockRegistry.getComponent(oldState.getType(), BlockComponents.LIGHT_EMISSION).get() != this.blockRegistry.getComponent(state.getType(), BlockComponents.LIGHT_EMISSION).get()) {
                 addLightUpdate(x, y, z);
@@ -1515,7 +1515,6 @@ public class CloudLevel implements Level {
                 for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
-                behaviors.get(BlockComponents.ON_TICK).execute(newBlock, ThreadLocalRandom.current()); // TODO: Use level specific Random
                 this.updateAround(x, y, z);
             }
         }
@@ -1648,7 +1647,7 @@ public class CloudLevel implements Level {
                 eventDrops = new ItemStack[0];
             } else if (isSilkTouch && targetBehaviors.get(BlockComponents.CAN_BE_SILK_TOUCHED).execute(target)) {
                 ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
-                eventDrops = new ItemStack[]{itemStack};
+                eventDrops = itemStack != null && !itemStack.isEmpty() ? new ItemStack[]{itemStack} : new ItemStack[0];
             } else {
                 ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
                 int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
@@ -1683,7 +1682,7 @@ public class CloudLevel implements Level {
             return null;
         } else if (item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null) {
             ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
-            drops = new ItemStack[]{itemStack};
+            drops = itemStack != null && !itemStack.isEmpty() ? new ItemStack[]{itemStack} : new ItemStack[0];
         } else {
             ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
             int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
@@ -1793,7 +1792,6 @@ public class CloudLevel implements Level {
                 return false;
             }
 
-            targetBehaviors.get(BlockComponents.ON_TICK).execute(target, ThreadLocalRandom.current());
 
             if (player.isSneaking() && !item.isEmpty()) {
                 return false;

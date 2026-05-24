@@ -190,10 +190,6 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return isSimilar(other) && getAllMetadata().equals(other.getAllMetadata());
     }
 
-    public boolean isCombinable(@NonNull ItemStack other) {
-        return isSimilar(other) && isSimilarMetadata(other);
-    }
-
     /**
      * Returns a copy of this item with the stored {@link BlockState} replaced by the block type's
      * default state, stripping placement-specific properties (e.g. {@code axis}, {@code facing}).

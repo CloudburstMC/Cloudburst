@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.entity.Entity;
@@ -8,6 +9,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -18,7 +20,6 @@ import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.api.block.BlockComponents;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.ANVIL;
@@ -26,9 +27,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOC
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
-/**
- * @author MagicDroidX
- */
 public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
@@ -157,7 +155,15 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 BlockState blockState = b.getState();
                 if (blockState.getType() != AIR && blockState.getType().hasTag(BlockTags.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.REPLACEABLE).get()) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-                        getLevel().dropItem(this.getPosition(), ItemStack.from(this.getBlock()));
+                        BlockState fallingState = this.getBlock();
+                        fallingState.getType().asItem().ifPresent(itemType -> {
+                            ItemStack drop = ItemStack.builder()
+                                    .itemType(itemType)
+                                    .data(ItemKeys.BLOCK_STATE, fallingState.getType().getDefaultState())
+                                    .amount(1)
+                                    .build();
+                            getLevel().dropItem(this.getPosition(), drop);
+                        });
                     }
                 } else {
                     EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, b, this.getBlock());

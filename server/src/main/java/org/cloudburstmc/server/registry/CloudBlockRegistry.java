@@ -272,7 +272,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     private void registerVanillaBlocks() {
-        this.registerVanilla(ACACIA_BUTTON);
+        this.registerWoodenButton(ACACIA_BUTTON);
         this.registerDoor(ACACIA_DOOR);
         this.registerVanilla(ACACIA_DOUBLE_SLAB);
         this.registerVanilla(ACACIA_FENCE);
@@ -314,7 +314,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(AZURE_BLUET);
         this.registerVanilla(BAMBOO);
         this.registerVanilla(BAMBOO_BLOCK);
-        this.registerVanilla(BAMBOO_BUTTON);
+        this.registerWoodenButton(BAMBOO_BUTTON);
         this.registerDoor(BAMBOO_DOOR);
         this.registerVanilla(BAMBOO_DOUBLE_SLAB);
         this.registerVanilla(BAMBOO_FENCE);
@@ -354,7 +354,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BEE_NEST);
         this.registerVanilla(BELL);
         this.registerVanilla(BIG_DRIPLEAF);
-        this.registerVanilla(BIRCH_BUTTON);
+        this.registerWoodenButton(BIRCH_BUTTON);
         this.registerDoor(BIRCH_DOOR);
         this.registerVanilla(BIRCH_DOUBLE_SLAB);
         this.registerVanilla(BIRCH_FENCE);
@@ -466,7 +466,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CHAIN_COMMAND_BLOCK);
         this.registerVanilla(CHALKBOARD);
         this.registerVanilla(CHEMICAL_HEAT);
-        this.registerVanilla(CHERRY_BUTTON);
+        this.registerWoodenButton(CHERRY_BUTTON);
         this.registerDoor(CHERRY_DOOR);
         this.registerVanilla(CHERRY_DOUBLE_SLAB);
         this.registerVanilla(CHERRY_FENCE);
@@ -568,7 +568,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.USE, ContainerBlockHandlers.CRAFTING_TABLE);
         this.registerVanilla(CREAKING_HEART);
         this.registerVanilla(CREEPER_HEAD);
-        this.registerVanilla(CRIMSON_BUTTON);
+        this.registerWoodenButton(CRIMSON_BUTTON);
         this.registerDoor(CRIMSON_DOOR);
         this.registerVanilla(CRIMSON_DOUBLE_SLAB);
         this.registerVanilla(CRIMSON_FENCE);
@@ -617,7 +617,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DANDELION);
         this.registerVanilla(DARKOAK_STANDING_SIGN);
         this.registerVanilla(DARKOAK_WALL_SIGN);
-        this.registerVanilla(DARK_OAK_BUTTON);
+        this.registerWoodenButton(DARK_OAK_BUTTON);
         this.registerDoor(DARK_OAK_DOOR);
         this.registerVanilla(DARK_OAK_DOUBLE_SLAB);
         this.registerVanilla(DARK_OAK_FENCE);
@@ -998,7 +998,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(IRON_TRAPDOOR);
         this.registerVanilla(JIGSAW);
         this.registerVanilla(JUKEBOX);
-        this.registerVanilla(JUNGLE_BUTTON);
+        this.registerWoodenButton(JUNGLE_BUTTON);
         this.registerDoor(JUNGLE_DOOR);
         this.registerVanilla(JUNGLE_DOUBLE_SLAB);
         this.registerVanilla(JUNGLE_FENCE);
@@ -1122,7 +1122,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MAGENTA_TERRACOTTA);
         this.registerVanilla(MAGENTA_WOOL);
         this.registerVanilla(MAGMA);
-        this.registerVanilla(MANGROVE_BUTTON);
+        this.registerWoodenButton(MANGROVE_BUTTON);
         this.registerDoor(MANGROVE_DOOR);
         this.registerVanilla(MANGROVE_DOUBLE_SLAB);
         this.registerVanilla(MANGROVE_FENCE);
@@ -1182,7 +1182,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(NETHER_WART);
         this.registerVanilla(NETHER_WART_BLOCK);
         this.registerVanilla(NOTE_BLOCK);
-        this.registerVanilla(OAK_BUTTON);
+        this.registerWoodenButton(OAK_BUTTON);
         this.registerDoor(OAK_DOOR);
         this.registerVanilla(OAK_DOUBLE_SLAB);
         this.registerVanilla(OAK_FENCE);
@@ -1240,7 +1240,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PALE_HANGING_MOSS);
         this.registerVanilla(PALE_MOSS_BLOCK);
         this.registerVanilla(PALE_MOSS_CARPET);
-        this.registerVanilla(PALE_OAK_BUTTON);
+        this.registerWoodenButton(PALE_OAK_BUTTON);
         this.registerDoor(PALE_OAK_DOOR);
         this.registerVanilla(PALE_OAK_DOUBLE_SLAB);
         this.registerVanilla(PALE_OAK_FENCE);
@@ -1296,7 +1296,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB));
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS);
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL);
-        this.registerVanilla(POLISHED_BLACKSTONE_BUTTON);
+        this.registerStoneButton(POLISHED_BLACKSTONE_BUTTON);
         this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE);
         this.registerVanilla(POLISHED_BLACKSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_BLACKSTONE_DOUBLE_SLAB));
@@ -1482,7 +1482,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SOUL_TORCH);
         this.registerVanilla(SPONGE);
         this.registerVanilla(SPORE_BLOSSOM);
-        this.registerVanilla(SPRUCE_BUTTON);
+        this.registerWoodenButton(SPRUCE_BUTTON);
         this.registerDoor(SPRUCE_DOOR);
         this.registerVanilla(SPRUCE_DOUBLE_SLAB);
         this.registerVanilla(SPRUCE_FENCE);
@@ -1515,7 +1515,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STONE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(STONE_BRICK_DOUBLE_SLAB));
         this.registerVanilla(STONE_BRICK_STAIRS);
         this.registerVanilla(STONE_BRICK_WALL);
-        this.registerVanilla(STONE_BUTTON);
+        this.registerStoneButton(STONE_BUTTON);
         this.registerVanilla(STONE_DOUBLE_SLAB);
         this.registerVanilla(STONE_PRESSURE_PLATE);
         this.registerVanilla(STONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(STONE_DOUBLE_SLAB));
@@ -1602,7 +1602,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(VERDANT_FROGLIGHT);
         this.registerVanilla(VINE);
         this.registerVanilla(WALL_BANNER);
-        this.registerVanilla(WARPED_BUTTON);
+        this.registerWoodenButton(WARPED_BUTTON);
         this.registerDoor(WARPED_DOOR);
         this.registerVanilla(WARPED_DOUBLE_SLAB);
         this.registerVanilla(WARPED_FENCE);
@@ -1761,11 +1761,31 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceGateBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
+    private void registerStoneButton(BlockType type) {
+        ButtonBlockHandlers.registerPressDuration(type, ButtonBlockHandlers.STONE_PRESS_TICKS);
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ButtonBlockHandlers.USE)
+                .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ButtonBlockHandlers.ON_NEIGHBOUR_CHANGED);
+    }
+
     private void registerTrapdoor(BlockType type) {
         this.registerVanilla(type)
                 .set(BlockComponents.ON_PLACE, new TrapdoorPlaceHandler(this))
                 .set(BlockComponents.CAN_BE_USED, TrapdoorBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, TrapdoorBlockHandlers.USE);
+    }
+
+    private void registerWoodenButton(BlockType type) {
+        ButtonBlockHandlers.registerPressDuration(type, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ButtonBlockHandlers.USE)
+                .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ButtonBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
     private void registerVanillaBehaviors() {
@@ -1829,12 +1849,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.ON_STAND_ON, DefaultBlockHandlers.ON_STAND_ON);
         this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);
         this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
-        this.registerComponent(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, randomGenerator, bonusLevel) -> null);
+        this.registerComponent(BlockComponents.GET_SILK_TOUCH_RESOURCE, DefaultBlockHandlers.GET_SILK_TOUCH_RESOURCE);
         this.registerComponent(BlockComponents.DROP_RESOURCE, DefaultBlockHandlers.DROP_RESOURCE);
         this.registerComponent(BlockComponents.SPAWN_RESOURCES, DefaultBlockHandlers.SPAWN_RESOURCES);
         this.registerComponent(BlockComponents.GET_RESOURCE, DefaultBlockHandlers.GET_RESOURCE);
         this.registerComponent(BlockComponents.GET_RESOURCE_COUNT, DefaultBlockHandlers.GET_RESOURCE_COUNT);
-        this.registerComponent(BlockComponents.GET_PICK_BLOCK, (block) -> ItemStack.from(block.getState()));
+        this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);
         this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
         this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
         this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {

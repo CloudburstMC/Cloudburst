@@ -103,12 +103,8 @@ public class CloudContainer implements Container {
         }
 
         for (int i = 0; i < this.size(); ++i) {
-            if (items[i] == null) {
-                items[i] = ItemStack.EMPTY;
-            }
+            this.setItem(i, items[i] != null ? items[i] : ItemStack.EMPTY);
         }
-
-        this.storage.setContents(items);
 
         for (ContainerListener listener : this.listeners) {
             listener.onInventoryContentsChange(this);
@@ -375,7 +371,7 @@ public class CloudContainer implements Container {
         for (int i = 0; i < this.size(); i++) {
             ItemStack content = this.getItem(i);
 
-            if (content.isCombinable(item)) {
+            if (content.isSimilarMetadata(item)) {
                 combinable.put(i, content);
             }
         }
@@ -537,7 +533,7 @@ public class CloudContainer implements Container {
                 continue;
             }
 
-            if (slot.isCombinable(item)) {
+            if (slot.isSimilarMetadata(item)) {
                 space += maxStackSize - slot.getCount();
             }
         }

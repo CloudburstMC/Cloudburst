@@ -24,40 +24,33 @@ public class DirectionHelper {
 
     public void init() {
         // Horizontal (4-direction) mappings
-        register(TYPE_1, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
-        register(TYPE_2, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
-        register(TYPE_3, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
-        register(TYPE_4, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
+        register(HORIZONTAL_SWNE, Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST);
+        register(HORIZONTAL_EWSN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH);
+        register(HORIZONTAL_NESW, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST);
 
         // Omnidirectional (6-direction) mappings
-        register(TYPE_5, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
-        register(TYPE_6, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
-        register(TYPE_7, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.DOWN, Direction.UP);
-        register(TYPE_8, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
+        register(FACING_END_ROD, Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST);
+        register(FACING, Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
 
         registerDefaultMappings();
     }
 
     private void registerDefaultMappings() {
-        // TYPE_1: palette key "direction", values 0-3 as N/S/W/E
-        register(TYPE_1,
+        // HORIZONTAL_SWNE: palette key "direction", values 0-3 as S/W/N/E
+        register(HORIZONTAL_SWNE,
+                BED,
                 BEE_NEST,
                 BEEHIVE,
                 BELL,
-                GRINDSTONE,
-                LOOM
-        );
-
-        // TYPE_2: palette key "direction", values 0-3 as S/W/N/E
-        register(TYPE_2,
-                BED,
                 CHISELED_BOOKSHELF,
                 DECORATED_POT,
+                GRINDSTONE,
+                LOOM,
                 TRIPWIRE_HOOK
         );
 
-        // TYPE_3: palette key "direction" (trapdoors) or "weirdo_direction" (stairs), values 0-3 as E/W/S/N
-        register(TYPE_3,
+        // HORIZONTAL_EWSN: palette key "weirdo_direction" (stairs) or "direction" (trapdoors), values 0-3 as E/W/S/N
+        register(HORIZONTAL_EWSN,
                 ACACIA_STAIRS,
                 ACACIA_TRAPDOOR,
                 ANDESITE_STAIRS,
@@ -145,63 +138,55 @@ public class DirectionHelper {
                 WEATHERED_CUT_COPPER_STAIRS
         );
 
-        // TYPE_4: palette key "direction", values 0-3 as N/E/S/W
-        register(TYPE_4,
+        // HORIZONTAL_NESW: palette key "direction", values 0-3 as N/E/S/W
+        register(HORIZONTAL_NESW,
                 COCOA
         );
 
-        // TYPE_5: palette key "facing_direction", values 0-5 as D/U/S/N/E/W
-        register(TYPE_5,
+        // FACING_END_ROD: palette key "facing_direction", values 0-5 as D/U/S/N/E/W
+        register(FACING_END_ROD,
                 END_ROD,
                 OBSERVER
         );
 
-        // TYPE_6: palette key "facing_direction", values 0-5 as D/E/W/S/N/U
-        register(TYPE_6,
+        // FACING: palette key "facing_direction", values 0-5 as D/U/N/S/W/E
+        register(FACING,
                 ACACIA_BUTTON,
-                BAMBOO_BUTTON,
-                BIRCH_BUTTON,
-                CHERRY_BUTTON,
-                CRIMSON_BUTTON,
-                DARK_OAK_BUTTON,
-                JUNGLE_BUTTON,
-                MANGROVE_BUTTON,
-                OAK_BUTTON,
-                PALE_OAK_BUTTON,
-                POLISHED_BLACKSTONE_BUTTON,
-                SPRUCE_BUTTON,
-                STONE_BUTTON,
-                WARPED_BUTTON
-        );
-
-        // TYPE_7: palette key "facing_direction", values 0-5 as E/W/S/N/D/U
-        register(TYPE_7,
-                FRAME,
-                GLOW_FRAME
-        );
-
-        // TYPE_8: palette key "facing_direction", values 0-5 as D/U/N/S/W/E (default for unmapped blocks)
-        register(TYPE_8,
                 ACACIA_WALL_SIGN,
+                BAMBOO_BUTTON,
                 BAMBOO_WALL_SIGN,
+                BIRCH_BUTTON,
                 BIRCH_WALL_SIGN,
+                CHERRY_BUTTON,
                 CHERRY_WALL_SIGN,
+                CRIMSON_BUTTON,
                 CRIMSON_WALL_SIGN,
                 DARKOAK_WALL_SIGN,
+                DARK_OAK_BUTTON,
                 DISPENSER,
                 DROPPER,
+                FRAME,
+                GLOW_FRAME,
                 HOPPER,
+                JUNGLE_BUTTON,
                 JUNGLE_WALL_SIGN,
                 LADDER,
+                MANGROVE_BUTTON,
                 MANGROVE_WALL_SIGN,
+                OAK_BUTTON,
                 OAK_WALL_SIGN,
+                PALE_OAK_BUTTON,
                 PALE_OAK_WALL_SIGN,
                 PISTON,
                 PISTON_ARM_COLLISION,
+                POLISHED_BLACKSTONE_BUTTON,
+                SPRUCE_BUTTON,
                 SPRUCE_WALL_SIGN,
                 STICKY_PISTON,
                 STICKY_PISTON_ARM_COLLISION,
+                STONE_BUTTON,
                 WALL_BANNER,
+                WARPED_BUTTON,
                 WARPED_WALL_SIGN
         );
     }
@@ -229,7 +214,7 @@ public class DirectionHelper {
 
     @SuppressWarnings("ConstantConditions")
     public int serialize(@NonNull NbtMapBuilder builder, @NonNull BlockType blockType, @NonNull Map<BlockTrait<?>, Comparable<?>> traits) {
-        SeqType type = mapping.getOrDefault(blockType, TYPE_8);
+        SeqType type = mapping.getOrDefault(blockType, FACING);
         Direction direction = (Direction) traits.get(BlockTraits.DIRECTION);
 
         if (direction == null) {
@@ -249,15 +234,12 @@ public class DirectionHelper {
 
     public enum SeqType {
         // Horizontal (4-direction)
-        TYPE_1,
-        TYPE_2,
-        TYPE_3,
-        TYPE_4,
+        HORIZONTAL_SWNE,
+        HORIZONTAL_EWSN,
+        HORIZONTAL_NESW,
 
         // Omnidirectional (6-direction)
-        TYPE_5,
-        TYPE_6,
-        TYPE_7,
-        TYPE_8,
+        FACING_END_ROD,
+        FACING,
     }
 }
