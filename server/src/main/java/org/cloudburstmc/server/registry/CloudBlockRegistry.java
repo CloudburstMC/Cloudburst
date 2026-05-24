@@ -285,7 +285,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ACACIA_SAPLING);
         this.registerVanilla(ACACIA_SHELF);
         this.registerVanilla(ACACIA_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(ACACIA_DOUBLE_SLAB));
-        this.registerVanilla(ACACIA_STAIRS);
+        this.registerStairs(ACACIA_STAIRS);
         this.registerVanilla(ACACIA_STANDING_SIGN);
         this.registerTrapdoor(ACACIA_TRAPDOOR);
         this.registerVanilla(ACACIA_WALL_SIGN);
@@ -302,7 +302,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ANDESITE);
         this.registerVanilla(ANDESITE_DOUBLE_SLAB);
         this.registerVanilla(ANDESITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(ANDESITE_DOUBLE_SLAB));
-        this.registerVanilla(ANDESITE_STAIRS);
+        this.registerStairs(ANDESITE_STAIRS);
         this.registerVanilla(ANDESITE_WALL);
         this.registerVanilla(ANVIL)
                 .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
@@ -323,13 +323,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BAMBOO_MOSAIC);
         this.registerVanilla(BAMBOO_MOSAIC_DOUBLE_SLAB);
         this.registerVanilla(BAMBOO_MOSAIC_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BAMBOO_MOSAIC_DOUBLE_SLAB));
-        this.registerVanilla(BAMBOO_MOSAIC_STAIRS);
+        this.registerStairs(BAMBOO_MOSAIC_STAIRS);
         this.registerVanilla(BAMBOO_PLANKS);
         this.registerVanilla(BAMBOO_PRESSURE_PLATE);
         this.registerVanilla(BAMBOO_SAPLING);
         this.registerVanilla(BAMBOO_SHELF);
         this.registerVanilla(BAMBOO_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BAMBOO_DOUBLE_SLAB));
-        this.registerVanilla(BAMBOO_STAIRS);
+        this.registerStairs(BAMBOO_STAIRS);
         this.registerVanilla(BAMBOO_STANDING_SIGN);
         this.registerTrapdoor(BAMBOO_TRAPDOOR);
         this.registerVanilla(BAMBOO_WALL_SIGN);
@@ -367,7 +367,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BIRCH_SAPLING);
         this.registerVanilla(BIRCH_SHELF);
         this.registerVanilla(BIRCH_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BIRCH_DOUBLE_SLAB));
-        this.registerVanilla(BIRCH_STAIRS);
+        this.registerStairs(BIRCH_STAIRS);
         this.registerVanilla(BIRCH_STANDING_SIGN);
         this.registerTrapdoor(BIRCH_TRAPDOOR);
         this.registerVanilla(BIRCH_WALL_SIGN);
@@ -375,7 +375,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BLACKSTONE);
         this.registerVanilla(BLACKSTONE_DOUBLE_SLAB);
         this.registerVanilla(BLACKSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BLACKSTONE_DOUBLE_SLAB));
-        this.registerVanilla(BLACKSTONE_STAIRS);
+        this.registerStairs(BLACKSTONE_STAIRS);
         this.registerVanilla(BLACKSTONE_WALL);
         this.registerVanilla(BLACK_CANDLE);
         this.registerVanilla(BLACK_CANDLE_CAKE);
@@ -421,7 +421,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BRICK_BLOCK);
         this.registerVanilla(BRICK_DOUBLE_SLAB);
         this.registerVanilla(BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(BRICK_DOUBLE_SLAB));
-        this.registerVanilla(BRICK_STAIRS);
+        this.registerStairs(BRICK_STAIRS);
         this.registerVanilla(BRICK_WALL);
         this.registerVanilla(BROWN_CANDLE);
         this.registerVanilla(BROWN_CANDLE_CAKE);
@@ -479,7 +479,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CHERRY_SAPLING);
         this.registerVanilla(CHERRY_SHELF);
         this.registerVanilla(CHERRY_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CHERRY_DOUBLE_SLAB));
-        this.registerVanilla(CHERRY_STAIRS);
+        this.registerStairs(CHERRY_STAIRS);
         this.registerVanilla(CHERRY_STANDING_SIGN);
         this.registerTrapdoor(CHERRY_TRAPDOOR);
         this.registerVanilla(CHERRY_WALL_SIGN);
@@ -511,11 +511,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CINNABAR_BRICKS);
         this.registerVanilla(CINNABAR_BRICK_DOUBLE_SLAB);
         this.registerVanilla(CINNABAR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(CINNABAR_BRICK_STAIRS);
+        this.registerStairs(CINNABAR_BRICK_STAIRS);
         this.registerVanilla(CINNABAR_BRICK_WALL);
         this.registerVanilla(CINNABAR_DOUBLE_SLAB);
         this.registerVanilla(CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CINNABAR_DOUBLE_SLAB));
-        this.registerVanilla(CINNABAR_STAIRS);
+        this.registerStairs(CINNABAR_STAIRS);
         this.registerVanilla(CINNABAR_WALL);
         this.registerVanilla(CLAY);
         this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
@@ -526,12 +526,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(COBBLED_DEEPSLATE);
         this.registerVanilla(COBBLED_DEEPSLATE_DOUBLE_SLAB);
         this.registerVanilla(COBBLED_DEEPSLATE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(COBBLED_DEEPSLATE_DOUBLE_SLAB));
-        this.registerVanilla(COBBLED_DEEPSLATE_STAIRS);
+        this.registerStairs(COBBLED_DEEPSLATE_STAIRS);
         this.registerVanilla(COBBLED_DEEPSLATE_WALL);
         this.registerVanilla(COBBLESTONE);
         this.registerVanilla(COBBLESTONE_DOUBLE_SLAB);
         this.registerVanilla(COBBLESTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(COBBLESTONE_DOUBLE_SLAB));
-        this.registerVanilla(COBBLESTONE_STAIRS);
+        this.registerStairs(COBBLESTONE_STAIRS);
         this.registerVanilla(COBBLESTONE_WALL);
         this.registerVanilla(COCOA);
         this.registerVanilla(COLORED_TORCH_BLUE);
@@ -582,7 +582,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CRIMSON_ROOTS);
         this.registerVanilla(CRIMSON_SHELF);
         this.registerVanilla(CRIMSON_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CRIMSON_DOUBLE_SLAB));
-        this.registerVanilla(CRIMSON_STAIRS);
+        this.registerStairs(CRIMSON_STAIRS);
         this.registerVanilla(CRIMSON_STANDING_SIGN);
         this.registerVanilla(CRIMSON_STEM);
         this.registerTrapdoor(CRIMSON_TRAPDOOR);
@@ -590,7 +590,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CRYING_OBSIDIAN);
         this.registerVanilla(CUT_COPPER);
         this.registerVanilla(CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(CUT_COPPER_STAIRS);
+        this.registerStairs(CUT_COPPER_STAIRS);
         this.registerVanilla(CUT_RED_SANDSTONE);
         this.registerVanilla(CUT_RED_SANDSTONE_DOUBLE_SLAB);
         this.registerVanilla(CUT_RED_SANDSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(CUT_RED_SANDSTONE_DOUBLE_SLAB));
@@ -630,13 +630,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DARK_OAK_SAPLING);
         this.registerVanilla(DARK_OAK_SHELF);
         this.registerVanilla(DARK_OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DARK_OAK_DOUBLE_SLAB));
-        this.registerVanilla(DARK_OAK_STAIRS);
+        this.registerStairs(DARK_OAK_STAIRS);
         this.registerTrapdoor(DARK_OAK_TRAPDOOR);
         this.registerVanilla(DARK_OAK_WOOD);
         this.registerVanilla(DARK_PRISMARINE);
         this.registerVanilla(DARK_PRISMARINE_DOUBLE_SLAB);
         this.registerVanilla(DARK_PRISMARINE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DARK_PRISMARINE_DOUBLE_SLAB));
-        this.registerVanilla(DARK_PRISMARINE_STAIRS);
+        this.registerStairs(DARK_PRISMARINE_STAIRS);
         this.registerVanilla(DAYLIGHT_DETECTOR);
         this.registerVanilla(DAYLIGHT_DETECTOR_INVERTED);
         this.registerVanilla(DEADBUSH);
@@ -665,7 +665,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DEEPSLATE_BRICKS);
         this.registerVanilla(DEEPSLATE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(DEEPSLATE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DEEPSLATE_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(DEEPSLATE_BRICK_STAIRS);
+        this.registerStairs(DEEPSLATE_BRICK_STAIRS);
         this.registerVanilla(DEEPSLATE_BRICK_WALL);
         this.registerVanilla(DEEPSLATE_COAL_ORE);
         this.registerVanilla(DEEPSLATE_COPPER_ORE);
@@ -678,7 +678,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DEEPSLATE_TILES);
         this.registerVanilla(DEEPSLATE_TILE_DOUBLE_SLAB);
         this.registerVanilla(DEEPSLATE_TILE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DEEPSLATE_TILE_DOUBLE_SLAB));
-        this.registerVanilla(DEEPSLATE_TILE_STAIRS);
+        this.registerStairs(DEEPSLATE_TILE_STAIRS);
         this.registerVanilla(DEEPSLATE_TILE_WALL);
         this.registerVanilla(DENY);
         this.registerVanilla(DEPRECATED_ANVIL);
@@ -690,7 +690,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DIORITE);
         this.registerVanilla(DIORITE_DOUBLE_SLAB);
         this.registerVanilla(DIORITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DIORITE_DOUBLE_SLAB));
-        this.registerVanilla(DIORITE_STAIRS);
+        this.registerStairs(DIORITE_STAIRS);
         this.registerVanilla(DIORITE_WALL);
         this.registerVanilla(DIRT);
         this.registerVanilla(DIRT_WITH_ROOTS);
@@ -835,7 +835,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ENDER_CHEST);
         this.registerVanilla(END_BRICKS);
-        this.registerVanilla(END_BRICK_STAIRS);
+        this.registerStairs(END_BRICK_STAIRS);
         this.registerVanilla(END_GATEWAY);
         this.registerVanilla(END_PORTAL);
         this.registerVanilla(END_PORTAL_FRAME);
@@ -857,7 +857,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(EXPOSED_COPPER_TRAPDOOR);
         this.registerVanilla(EXPOSED_CUT_COPPER);
         this.registerVanilla(EXPOSED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(EXPOSED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(EXPOSED_CUT_COPPER_STAIRS);
+        this.registerStairs(EXPOSED_CUT_COPPER_STAIRS);
         this.registerVanilla(EXPOSED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(EXPOSED_LIGHTNING_ROD);
         this.registerVanilla(FARMLAND);
@@ -897,7 +897,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GRANITE);
         this.registerVanilla(GRANITE_DOUBLE_SLAB);
         this.registerVanilla(GRANITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(GRANITE_DOUBLE_SLAB));
-        this.registerVanilla(GRANITE_STAIRS);
+        this.registerStairs(GRANITE_STAIRS);
         this.registerVanilla(GRANITE_WALL);
         this.registerVanilla(GRASS_BLOCK);
         this.registerVanilla(GRASS_PATH);
@@ -1011,7 +1011,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(JUNGLE_SAPLING);
         this.registerVanilla(JUNGLE_SHELF);
         this.registerVanilla(JUNGLE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(JUNGLE_DOUBLE_SLAB));
-        this.registerVanilla(JUNGLE_STAIRS);
+        this.registerStairs(JUNGLE_STAIRS);
         this.registerVanilla(JUNGLE_STANDING_SIGN);
         this.registerTrapdoor(JUNGLE_TRAPDOOR);
         this.registerVanilla(JUNGLE_WALL_SIGN);
@@ -1136,7 +1136,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MANGROVE_ROOTS);
         this.registerVanilla(MANGROVE_SHELF);
         this.registerVanilla(MANGROVE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(MANGROVE_DOUBLE_SLAB));
-        this.registerVanilla(MANGROVE_STAIRS);
+        this.registerStairs(MANGROVE_STAIRS);
         this.registerVanilla(MANGROVE_STANDING_SIGN);
         this.registerTrapdoor(MANGROVE_TRAPDOOR);
         this.registerVanilla(MANGROVE_WALL_SIGN);
@@ -1149,12 +1149,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MOSSY_COBBLESTONE);
         this.registerVanilla(MOSSY_COBBLESTONE_DOUBLE_SLAB);
         this.registerVanilla(MOSSY_COBBLESTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(MOSSY_COBBLESTONE_DOUBLE_SLAB));
-        this.registerVanilla(MOSSY_COBBLESTONE_STAIRS);
+        this.registerStairs(MOSSY_COBBLESTONE_STAIRS);
         this.registerVanilla(MOSSY_COBBLESTONE_WALL);
         this.registerVanilla(MOSSY_STONE_BRICKS);
         this.registerVanilla(MOSSY_STONE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(MOSSY_STONE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(MOSSY_STONE_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(MOSSY_STONE_BRICK_STAIRS);
+        this.registerStairs(MOSSY_STONE_BRICK_STAIRS);
         this.registerVanilla(MOSSY_STONE_BRICK_WALL);
         this.registerVanilla(MOSS_BLOCK);
         this.registerVanilla(MOSS_CARPET);
@@ -1164,7 +1164,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MUD_BRICKS);
         this.registerVanilla(MUD_BRICK_DOUBLE_SLAB);
         this.registerVanilla(MUD_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(MUD_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(MUD_BRICK_STAIRS);
+        this.registerStairs(MUD_BRICK_STAIRS);
         this.registerVanilla(MUD_BRICK_WALL);
         this.registerVanilla(MUSHROOM_STEM);
         this.registerVanilla(MYCELIUM);
@@ -1175,7 +1175,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(NETHER_BRICK_DOUBLE_SLAB);
         this.registerVanilla(NETHER_BRICK_FENCE);
         this.registerVanilla(NETHER_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(NETHER_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(NETHER_BRICK_STAIRS);
+        this.registerStairs(NETHER_BRICK_STAIRS);
         this.registerVanilla(NETHER_BRICK_WALL);
         this.registerVanilla(NETHER_GOLD_ORE);
         this.registerVanilla(NETHER_SPROUTS);
@@ -1195,7 +1195,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(OAK_SAPLING);
         this.registerVanilla(OAK_SHELF);
         this.registerVanilla(OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(OAK_DOUBLE_SLAB));
-        this.registerVanilla(OAK_STAIRS);
+        this.registerStairs(OAK_STAIRS);
         this.registerVanilla(OAK_STANDING_SIGN);
         this.registerTrapdoor(OAK_TRAPDOOR);
         this.registerVanilla(OAK_WALL_SIGN);
@@ -1232,7 +1232,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(OXIDIZED_COPPER_TRAPDOOR);
         this.registerVanilla(OXIDIZED_CUT_COPPER);
         this.registerVanilla(OXIDIZED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(OXIDIZED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(OXIDIZED_CUT_COPPER_STAIRS);
+        this.registerStairs(OXIDIZED_CUT_COPPER_STAIRS);
         this.registerVanilla(OXIDIZED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(OXIDIZED_LIGHTNING_ROD);
         this.registerVanilla(PACKED_ICE);
@@ -1253,7 +1253,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PALE_OAK_SAPLING);
         this.registerVanilla(PALE_OAK_SHELF);
         this.registerVanilla(PALE_OAK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(PALE_OAK_DOUBLE_SLAB));
-        this.registerVanilla(PALE_OAK_STAIRS);
+        this.registerStairs(PALE_OAK_STAIRS);
         this.registerVanilla(PALE_OAK_STANDING_SIGN);
         this.registerTrapdoor(PALE_OAK_TRAPDOOR);
         this.registerVanilla(PALE_OAK_WALL_SIGN);
@@ -1288,47 +1288,47 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POLISHED_ANDESITE);
         this.registerVanilla(POLISHED_ANDESITE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_ANDESITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_ANDESITE_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_ANDESITE_STAIRS);
+        this.registerStairs(POLISHED_ANDESITE_STAIRS);
         this.registerVanilla(POLISHED_BASALT);
         this.registerVanilla(POLISHED_BLACKSTONE);
         this.registerVanilla(POLISHED_BLACKSTONE_BRICKS);
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_BLACKSTONE_BRICK_STAIRS);
+        this.registerStairs(POLISHED_BLACKSTONE_BRICK_STAIRS);
         this.registerVanilla(POLISHED_BLACKSTONE_BRICK_WALL);
         this.registerStoneButton(POLISHED_BLACKSTONE_BUTTON);
         this.registerVanilla(POLISHED_BLACKSTONE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_BLACKSTONE_PRESSURE_PLATE);
         this.registerVanilla(POLISHED_BLACKSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_BLACKSTONE_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_BLACKSTONE_STAIRS);
+        this.registerStairs(POLISHED_BLACKSTONE_STAIRS);
         this.registerVanilla(POLISHED_BLACKSTONE_WALL);
         this.registerVanilla(POLISHED_CINNABAR);
         this.registerVanilla(POLISHED_CINNABAR_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_CINNABAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_CINNABAR_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_CINNABAR_STAIRS);
+        this.registerStairs(POLISHED_CINNABAR_STAIRS);
         this.registerVanilla(POLISHED_CINNABAR_WALL);
         this.registerVanilla(POLISHED_DEEPSLATE);
         this.registerVanilla(POLISHED_DEEPSLATE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_DEEPSLATE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_DEEPSLATE_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_DEEPSLATE_STAIRS);
+        this.registerStairs(POLISHED_DEEPSLATE_STAIRS);
         this.registerVanilla(POLISHED_DEEPSLATE_WALL);
         this.registerVanilla(POLISHED_DIORITE);
         this.registerVanilla(POLISHED_DIORITE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_DIORITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_DIORITE_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_DIORITE_STAIRS);
+        this.registerStairs(POLISHED_DIORITE_STAIRS);
         this.registerVanilla(POLISHED_GRANITE);
         this.registerVanilla(POLISHED_GRANITE_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_GRANITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_GRANITE_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_GRANITE_STAIRS);
+        this.registerStairs(POLISHED_GRANITE_STAIRS);
         this.registerVanilla(POLISHED_SULFUR);
         this.registerVanilla(POLISHED_SULFUR_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_SULFUR_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_SULFUR_STAIRS);
+        this.registerStairs(POLISHED_SULFUR_STAIRS);
         this.registerVanilla(POLISHED_SULFUR_WALL);
         this.registerVanilla(POLISHED_TUFF);
         this.registerVanilla(POLISHED_TUFF_DOUBLE_SLAB);
         this.registerVanilla(POLISHED_TUFF_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POLISHED_TUFF_DOUBLE_SLAB));
-        this.registerVanilla(POLISHED_TUFF_STAIRS);
+        this.registerStairs(POLISHED_TUFF_STAIRS);
         this.registerVanilla(POLISHED_TUFF_WALL);
         this.registerVanilla(POPPY);
         this.registerVanilla(PORTAL)
@@ -1342,12 +1342,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POWERED_REPEATER);
         this.registerVanilla(PRISMARINE);
         this.registerVanilla(PRISMARINE_BRICKS);
-        this.registerVanilla(PRISMARINE_BRICKS_STAIRS);
+        this.registerStairs(PRISMARINE_BRICKS_STAIRS);
         this.registerVanilla(PRISMARINE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(PRISMARINE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(PRISMARINE_BRICK_DOUBLE_SLAB));
         this.registerVanilla(PRISMARINE_DOUBLE_SLAB);
         this.registerVanilla(PRISMARINE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(PRISMARINE_DOUBLE_SLAB));
-        this.registerVanilla(PRISMARINE_STAIRS);
+        this.registerStairs(PRISMARINE_STAIRS);
         this.registerVanilla(PRISMARINE_WALL);
         this.registerVanilla(PUMPKIN);
         this.registerVanilla(PUMPKIN_STEM);
@@ -1368,14 +1368,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PURPUR_DOUBLE_SLAB);
         this.registerVanilla(PURPUR_PILLAR);
         this.registerVanilla(PURPUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(PURPUR_DOUBLE_SLAB));
-        this.registerVanilla(PURPUR_STAIRS);
+        this.registerStairs(PURPUR_STAIRS);
         this.registerVanilla(QUARTZ_BLOCK);
         this.registerVanilla(QUARTZ_BRICKS);
         this.registerVanilla(QUARTZ_DOUBLE_SLAB);
         this.registerVanilla(QUARTZ_ORE);
         this.registerVanilla(QUARTZ_PILLAR);
         this.registerVanilla(QUARTZ_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(QUARTZ_DOUBLE_SLAB));
-        this.registerVanilla(QUARTZ_STAIRS);
+        this.registerStairs(QUARTZ_STAIRS);
         this.registerVanilla(RAIL);
         this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
@@ -1396,13 +1396,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RED_NETHER_BRICK);
         this.registerVanilla(RED_NETHER_BRICK_DOUBLE_SLAB);
         this.registerVanilla(RED_NETHER_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(RED_NETHER_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(RED_NETHER_BRICK_STAIRS);
+        this.registerStairs(RED_NETHER_BRICK_STAIRS);
         this.registerVanilla(RED_NETHER_BRICK_WALL);
         this.registerVanilla(RED_SAND);
         this.registerVanilla(RED_SANDSTONE);
         this.registerVanilla(RED_SANDSTONE_DOUBLE_SLAB);
         this.registerVanilla(RED_SANDSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(RED_SANDSTONE_DOUBLE_SLAB));
-        this.registerVanilla(RED_SANDSTONE_STAIRS);
+        this.registerStairs(RED_SANDSTONE_STAIRS);
         this.registerVanilla(RED_SANDSTONE_WALL);
         this.registerVanilla(RED_SHULKER_BOX)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
@@ -1420,7 +1420,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RESIN_BRICKS);
         this.registerVanilla(RESIN_BRICK_DOUBLE_SLAB);
         this.registerVanilla(RESIN_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(RESIN_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(RESIN_BRICK_STAIRS);
+        this.registerStairs(RESIN_BRICK_STAIRS);
         this.registerVanilla(RESIN_BRICK_WALL);
         this.registerVanilla(RESIN_CLUMP);
         this.registerVanilla(RESPAWN_ANCHOR)
@@ -1431,7 +1431,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SANDSTONE);
         this.registerVanilla(SANDSTONE_DOUBLE_SLAB);
         this.registerVanilla(SANDSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SANDSTONE_DOUBLE_SLAB));
-        this.registerVanilla(SANDSTONE_STAIRS);
+        this.registerStairs(SANDSTONE_STAIRS);
         this.registerVanilla(SANDSTONE_WALL);
         this.registerVanilla(SCAFFOLDING);
         this.registerVanilla(SCULK);
@@ -1459,15 +1459,15 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SMOOTH_QUARTZ);
         this.registerVanilla(SMOOTH_QUARTZ_DOUBLE_SLAB);
         this.registerVanilla(SMOOTH_QUARTZ_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SMOOTH_QUARTZ_DOUBLE_SLAB));
-        this.registerVanilla(SMOOTH_QUARTZ_STAIRS);
+        this.registerStairs(SMOOTH_QUARTZ_STAIRS);
         this.registerVanilla(SMOOTH_RED_SANDSTONE);
         this.registerVanilla(SMOOTH_RED_SANDSTONE_DOUBLE_SLAB);
         this.registerVanilla(SMOOTH_RED_SANDSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SMOOTH_RED_SANDSTONE_DOUBLE_SLAB));
-        this.registerVanilla(SMOOTH_RED_SANDSTONE_STAIRS);
+        this.registerStairs(SMOOTH_RED_SANDSTONE_STAIRS);
         this.registerVanilla(SMOOTH_SANDSTONE);
         this.registerVanilla(SMOOTH_SANDSTONE_DOUBLE_SLAB);
         this.registerVanilla(SMOOTH_SANDSTONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SMOOTH_SANDSTONE_DOUBLE_SLAB));
-        this.registerVanilla(SMOOTH_SANDSTONE_STAIRS);
+        this.registerStairs(SMOOTH_SANDSTONE_STAIRS);
         this.registerVanilla(SMOOTH_STONE);
         this.registerVanilla(SMOOTH_STONE_DOUBLE_SLAB);
         this.registerVanilla(SMOOTH_STONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SMOOTH_STONE_DOUBLE_SLAB));
@@ -1495,7 +1495,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SPRUCE_SAPLING);
         this.registerVanilla(SPRUCE_SHELF);
         this.registerVanilla(SPRUCE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SPRUCE_DOUBLE_SLAB));
-        this.registerVanilla(SPRUCE_STAIRS);
+        this.registerStairs(SPRUCE_STAIRS);
         this.registerVanilla(SPRUCE_STANDING_SIGN);
         this.registerTrapdoor(SPRUCE_TRAPDOOR);
         this.registerVanilla(SPRUCE_WALL_SIGN);
@@ -1513,13 +1513,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STONE_BRICKS);
         this.registerVanilla(STONE_BRICK_DOUBLE_SLAB);
         this.registerVanilla(STONE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(STONE_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(STONE_BRICK_STAIRS);
+        this.registerStairs(STONE_BRICK_STAIRS);
         this.registerVanilla(STONE_BRICK_WALL);
         this.registerStoneButton(STONE_BUTTON);
         this.registerVanilla(STONE_DOUBLE_SLAB);
         this.registerVanilla(STONE_PRESSURE_PLATE);
         this.registerVanilla(STONE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(STONE_DOUBLE_SLAB));
-        this.registerVanilla(STONE_STAIRS);
+        this.registerStairs(STONE_STAIRS);
         this.registerVanilla(STRIPPED_ACACIA_LOG);
         this.registerVanilla(STRIPPED_ACACIA_WOOD);
         this.registerVanilla(STRIPPED_BAMBOO_BLOCK);
@@ -1549,11 +1549,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SULFUR_BRICKS);
         this.registerVanilla(SULFUR_BRICK_DOUBLE_SLAB);
         this.registerVanilla(SULFUR_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(SULFUR_BRICK_STAIRS);
+        this.registerStairs(SULFUR_BRICK_STAIRS);
         this.registerVanilla(SULFUR_BRICK_WALL);
         this.registerVanilla(SULFUR_DOUBLE_SLAB);
         this.registerVanilla(SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_DOUBLE_SLAB));
-        this.registerVanilla(SULFUR_STAIRS);
+        this.registerStairs(SULFUR_STAIRS);
         this.registerVanilla(SULFUR_WALL);
         this.registerVanilla(SUNFLOWER);
         this.registerVanilla(SUSPICIOUS_GRAVEL);
@@ -1581,11 +1581,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(TUFF_BRICKS);
         this.registerVanilla(TUFF_BRICK_DOUBLE_SLAB);
         this.registerVanilla(TUFF_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(TUFF_BRICK_DOUBLE_SLAB));
-        this.registerVanilla(TUFF_BRICK_STAIRS);
+        this.registerStairs(TUFF_BRICK_STAIRS);
         this.registerVanilla(TUFF_BRICK_WALL);
         this.registerVanilla(TUFF_DOUBLE_SLAB);
         this.registerVanilla(TUFF_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(TUFF_DOUBLE_SLAB));
-        this.registerVanilla(TUFF_STAIRS);
+        this.registerStairs(TUFF_STAIRS);
         this.registerVanilla(TUFF_WALL);
         this.registerVanilla(TURTLE_EGG);
         this.registerVanilla(TWISTING_VINES);
@@ -1616,7 +1616,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(WARPED_ROOTS);
         this.registerVanilla(WARPED_SHELF);
         this.registerVanilla(WARPED_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WARPED_DOUBLE_SLAB));
-        this.registerVanilla(WARPED_STAIRS);
+        this.registerStairs(WARPED_STAIRS);
         this.registerVanilla(WARPED_STANDING_SIGN);
         this.registerVanilla(WARPED_STEM);
         this.registerTrapdoor(WARPED_TRAPDOOR);
@@ -1639,7 +1639,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WAXED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_CUT_COPPER);
         this.registerVanilla(WAXED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(WAXED_CUT_COPPER_STAIRS);
+        this.registerStairs(WAXED_CUT_COPPER_STAIRS);
         this.registerVanilla(WAXED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WAXED_EXPOSED_CHISELED_COPPER);
         this.registerVanilla(WAXED_EXPOSED_COPPER);
@@ -1654,7 +1654,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WAXED_EXPOSED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_EXPOSED_CUT_COPPER);
         this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_EXPOSED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(WAXED_EXPOSED_CUT_COPPER_STAIRS);
+        this.registerStairs(WAXED_EXPOSED_CUT_COPPER_STAIRS);
         this.registerVanilla(WAXED_EXPOSED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WAXED_EXPOSED_LIGHTNING_ROD);
         this.registerVanilla(WAXED_LIGHTNING_ROD);
@@ -1671,7 +1671,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WAXED_OXIDIZED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER);
         this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_OXIDIZED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(WAXED_OXIDIZED_CUT_COPPER_STAIRS);
+        this.registerStairs(WAXED_OXIDIZED_CUT_COPPER_STAIRS);
         this.registerVanilla(WAXED_OXIDIZED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WAXED_OXIDIZED_LIGHTNING_ROD);
         this.registerVanilla(WAXED_WEATHERED_CHISELED_COPPER);
@@ -1687,7 +1687,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WAXED_WEATHERED_COPPER_TRAPDOOR);
         this.registerVanilla(WAXED_WEATHERED_CUT_COPPER);
         this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WAXED_WEATHERED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(WAXED_WEATHERED_CUT_COPPER_STAIRS);
+        this.registerStairs(WAXED_WEATHERED_CUT_COPPER_STAIRS);
         this.registerVanilla(WAXED_WEATHERED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WAXED_WEATHERED_LIGHTNING_ROD);
         this.registerVanilla(WEATHERED_CHISELED_COPPER);
@@ -1703,7 +1703,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WEATHERED_COPPER_TRAPDOOR);
         this.registerVanilla(WEATHERED_CUT_COPPER);
         this.registerVanilla(WEATHERED_CUT_COPPER_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(WEATHERED_DOUBLE_CUT_COPPER_SLAB));
-        this.registerVanilla(WEATHERED_CUT_COPPER_STAIRS);
+        this.registerStairs(WEATHERED_CUT_COPPER_STAIRS);
         this.registerVanilla(WEATHERED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WEATHERED_LIGHTNING_ROD);
         this.registerVanilla(WEB);
@@ -1759,6 +1759,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, FenceGateBlockHandlers.USE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceGateBlockHandlers.ON_NEIGHBOUR_CHANGED);
+    }
+
+    private void registerStairs(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new StairsPlaceHandler(this));
     }
 
     private void registerStoneButton(BlockType type) {
