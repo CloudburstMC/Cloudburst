@@ -8,35 +8,31 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
- * A single scheduled block-tick entry.
+ * A single scheduled block tick entry.
  *
  * <h2>Ordering</h2>
- * <p>All ordering is done through explicit comparators rather than
- * {@link Comparable}. Callers must use one of the two constants directly.
+ * <p>Ordering is handled through explicit comparators rather than {@link Comparable}.
  * <ul>
- *   <li>{@link #DRAIN_ORDER}: {@code (delay, id)}. Used by per-chunk priority queues
- *       so entries drain in correct absolute order.</li>
- *   <li>{@link #INTRA_TICK_ORDER}: {@code (id)} only. Used when comparing entries
- *       across containers during the same game-tick drain phase, where all entries are
- *       already known to be due.</li>
+ *   <li>{@link #DRAIN_ORDER}: sorts by {@code (delay, id)}. Used by per-chunk priority
+ *       queues so entries fire in correct absolute tick order.</li>
+ *   <li>{@link #INTRA_TICK_ORDER}: sorts by {@code id} only. Used when interleaving
+ *       entries across containers within a single tick, where all entries are already due.</li>
  * </ul>
  *
  * <h2>Deduplication</h2>
- * <p>Equality and hashing cover only {@code (pos, layer-0 BlockState)}: at most one
- * tick per {@code (position, block-state)} pair may be queued at any time. The
- * {@code Block} wrapper object is not used for equality because it is allocated fresh
- * on every {@code getBlock()} call. {@code BlockState} instances are interned singletons
- * and are safe for identity comparison.
+ * <p>Equality and hashing are keyed on {@code (pos, BlockType)} only, so at most one
+ * pending tick per position per block type is allowed at any time. Breaking and re-placing
+ * the same block type at a position deduplicates against any pending tick there, preventing
+ * stale ticks from firing on a freshly placed block.
  *
  * <h2>Factories</h2>
  * <ul>
- *   <li>{@link #of}: new tick, assigned a unique positive ID from a global counter.</li>
- *   <li>{@link #ofRestored}: tick restored from disk; assigned a unique ID from a
- *       separate counter that starts at {@link Long#MIN_VALUE} and increments upward.
- *       Restored IDs are always numerically smaller than any ID from {@link #of}, so
- *       restored ticks sort before newly-scheduled ticks within the same game tick.</li>
- *   <li>{@link #ofWithId}: tick with an explicit ID, used by area-copy operations.</li>
- *   <li>{@link #probe}: zero-cost sentinel for set-membership checks only.</li>
+ *   <li>{@link #of}: creates a new tick with a unique positive ID.</li>
+ *   <li>{@link #ofRestored}: creates a tick restored from disk. Uses a counter starting
+ *       at {@link Long#MIN_VALUE} so restored ticks always sort before live ticks within
+ *       the same game tick.</li>
+ *   <li>{@link #ofWithId}: creates a tick with an explicit ID, used by area-copy operations.</li>
+ *   <li>{@link #probe}: creates a zero-cost sentinel for set-membership checks only.</li>
  * </ul>
  */
 public final class BlockUpdateEntry {
@@ -163,11 +159,11 @@ public final class BlockUpdateEntry {
     public boolean equals(Object obj) {
         return obj instanceof BlockUpdateEntry other
                 && this.pos.equals(other.pos)
-                && this.block.getState() == other.block.getState();
+                && this.block.getState().getType() == other.block.getState().getType();
     }
 
     @Override
     public int hashCode() {
-        return 31 * this.pos.hashCode() + System.identityHashCode(this.block.getState());
+        return 31 * this.pos.hashCode() + this.block.getState().getType().hashCode();
     }
 }

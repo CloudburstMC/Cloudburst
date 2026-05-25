@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.*;
@@ -756,7 +757,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.STRAY));
         registerVanilla(ItemTypes.STRIDER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.STRIDER));
-        registerVanilla(ItemTypes.STRING);
+        registerVanilla(ItemTypes.STRING)
+                .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.TRIP_WIRE.getDefaultState()));
         registerVanilla(ItemTypes.SUGAR);
         registerVanilla(ItemTypes.SUGAR_CANE);
         registerVanilla(ItemTypes.SUSPICIOUS_STEW);

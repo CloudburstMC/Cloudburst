@@ -199,6 +199,16 @@ public abstract class CloudEntity implements Entity {
         this.portalCooldown--;
     }
 
+    protected void onInsidePortal() {
+        if (this.getVehicle() == null) {
+            if (this.portalCooldown > 0) {
+                this.portalCooldown = getPortalCooldownTicks();
+            } else {
+                this.inPortalTicks = PORTAL_TRANSFER_TICKS;
+            }
+        }
+    }
+
     protected void initEntity() {
         this.data.setFlag(HAS_COLLISION, true);
         this.data.set(AIR_SUPPLY, (short) 400);
@@ -1751,30 +1761,36 @@ public abstract class CloudEntity implements Entity {
 
         for (Block block : this.getBlocksAround()) {
             BlockState state = block.getState();
+            if (state == BlockStates.AIR) {
+                continue;
+            }
+
+            Vector3i pos = block.getPosition();
             if (state.getType() == PORTAL) {
-                Vector3i pos = block.getPosition();
                 AxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
                 if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
                     portal = true;
                     this.portalEntryBlock = pos;
                 }
+                continue;
+            }
+
+            ComponentMap behaviors = block.getComponents();
+            if (behaviors.get(BlockComponents.CAN_PASS_THROUGH).execute(state)) {
+                AxisAlignedBB unitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+                if (unitBB.intersectsWith(this.getBoundingBox())) {
+                    behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
+                }
             }
         }
 
         for (Block block : this.getCollisionBlocks()) {
-            ComponentMap behaviors = block.getComponents();
-            behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
+            block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
 //            vector = behaviors.addVelocityToEntity(block, vector, this); FIXME
         }
 
         if (portal) {
-            if (this.getVehicle() == null) {
-                if (this.portalCooldown > 0) {
-                    this.portalCooldown = getPortalCooldownTicks();
-                } else {
-                    this.inPortalTicks = PORTAL_TRANSFER_TICKS;
-                }
-            }
+            onInsidePortal();
         } else {
             if (this.portalCooldown <= 0) {
                 this.inPortalTicks = Math.max(0, this.inPortalTicks - 4);

@@ -7,11 +7,13 @@ import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
+import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.utils.LoadState;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
@@ -111,7 +113,19 @@ class LevelDBProvider implements LevelProvider {
         final int z = chunk.getZ();
 
         return CompletableFuture.supplyAsync(() -> {
-            if (!chunk.isGenerated() || !chunk.isDirty()) {
+            if (!chunk.isGenerated()) {
+                return null;
+            }
+
+            CloudLevel level = (CloudLevel) chunk.getLevel();
+            BlockUpdateScheduler scheduler = level.getUpdateQueue();
+            long chunkKey = CloudChunk.key(x, z);
+            long currentTick = level.getCurrentTick();
+
+            boolean blocksDirty = chunk.isDirty();
+            boolean ticksDirty = scheduler.isDirty(chunkKey, currentTick);
+
+            if (!blocksDirty && !ticksDirty) {
                 return null;
             }
 
@@ -124,20 +138,22 @@ class LevelDBProvider implements LevelProvider {
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
+                    if (blocksDirty) {
+                        ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
 
-                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
+                        batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
 
-                    int stateValue = lockableChunk.getState() - 1;
-                    batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), new byte[]{
-                            (byte) stateValue,
-                            (byte) (stateValue >>> 8),
-                            (byte) (stateValue >>> 16),
-                            (byte) (stateValue >>> 24)
-                    });
+                        int stateValue = lockableChunk.getState() - 1;
+                        batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), new byte[]{
+                                (byte) stateValue,
+                                (byte) (stateValue >>> 8),
+                                (byte) (stateValue >>> 16),
+                                (byte) (stateValue >>> 24)
+                        });
 
-                    BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
-                    EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
+                        BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
+                        EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
+                    }
                     onSuccess = PendingTickSerializer.savePendingTicks(batch, (CloudChunk) chunk);
                 } finally {
                     lockableChunk.unlock();
@@ -157,7 +173,9 @@ class LevelDBProvider implements LevelProvider {
             for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
                 try {
                     this.db.write(batch);
-                    chunk.clearDirty();
+                    if (blocksDirty) {
+                        chunk.clearDirty();
+                    }
                     if (onSuccess != null) {
                         onSuccess.run();
                     }

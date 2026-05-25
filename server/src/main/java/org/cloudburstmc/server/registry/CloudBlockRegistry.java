@@ -534,10 +534,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerStairs(COBBLESTONE_STAIRS);
         this.registerVanilla(COBBLESTONE_WALL);
         this.registerVanilla(COCOA);
-        this.registerVanilla(COLORED_TORCH_BLUE);
-        this.registerVanilla(COLORED_TORCH_GREEN);
-        this.registerVanilla(COLORED_TORCH_PURPLE);
-        this.registerVanilla(COLORED_TORCH_RED);
+        this.registerTorch(COLORED_TORCH_BLUE);
+        this.registerTorch(COLORED_TORCH_GREEN);
+        this.registerTorch(COLORED_TORCH_PURPLE);
+        this.registerTorch(COLORED_TORCH_RED);
         this.registerVanilla(COMMAND_BLOCK);
         this.registerVanilla(COMPOSTER);
         this.registerVanilla(COMPOUND_CREATOR);
@@ -552,7 +552,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(COPPER_GRATE);
         this.registerVanilla(COPPER_LANTERN);
         this.registerVanilla(COPPER_ORE);
-        this.registerVanilla(COPPER_TORCH);
+        this.registerTorch(COPPER_TORCH);
         this.registerTrapdoor(COPPER_TRAPDOOR);
         this.registerVanilla(CORNFLOWER);
         this.registerVanilla(CRACKED_DEEPSLATE_BRICKS);
@@ -1031,7 +1031,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LECTERN)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.LECTERN);
-        this.registerVanilla(LEVER);
+        this.registerVanilla(LEVER)
+                .set(BlockComponents.ON_PLACE, new LeverPlaceHandler(this))
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, LeverBlockHandlers.USE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, LeverBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_DESTROY, LeverBlockHandlers.ON_DESTROY);
         this.registerVanilla(LIGHTNING_ROD);
         this.registerVanilla(LIGHT_BLOCK_0);
         this.registerVanilla(LIGHT_BLOCK_1);
@@ -1383,7 +1388,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(REDSTONE_BLOCK);
         this.registerVanilla(REDSTONE_LAMP);
         this.registerVanilla(REDSTONE_ORE);
-        this.registerVanilla(REDSTONE_TORCH);
+        this.registerTorch(REDSTONE_TORCH);
         this.registerVanilla(REDSTONE_WIRE);
         this.registerVanilla(RED_CANDLE);
         this.registerVanilla(RED_CANDLE_CAKE);
@@ -1479,7 +1484,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SOUL_LANTERN);
         this.registerVanilla(SOUL_SAND);
         this.registerVanilla(SOUL_SOIL);
-        this.registerVanilla(SOUL_TORCH);
+        this.registerTorch(SOUL_TORCH);
         this.registerVanilla(SPONGE);
         this.registerVanilla(SPORE_BLOSSOM);
         this.registerWoodenButton(SPRUCE_BUTTON);
@@ -1564,15 +1569,26 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(TARGET);
         this.registerVanilla(TINTED_GLASS);
         this.registerVanilla(TNT);
-        this.registerVanilla(TORCH);
+        this.registerTorch(TORCH);
         this.registerVanilla(TORCHFLOWER);
         this.registerVanilla(TORCHFLOWER_CROP);
         this.registerVanilla(TRAPPED_CHEST)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.TRAPPED_CHEST);
         this.registerVanilla(TRIAL_SPAWNER);
-        this.registerVanilla(TRIPWIRE_HOOK);
-        this.registerVanilla(TRIP_WIRE);
+        this.registerVanilla(TRIPWIRE_HOOK)
+                .set(BlockComponents.ON_PLACE, new TripwireHookPlaceHandler(this))
+                .set(BlockComponents.ON_TICK, TripwireHookBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireHookBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_DESTROY, TripwireHookBlockHandlers.ON_DESTROY);
+        this.registerVanilla(TRIP_WIRE)
+                .set(BlockComponents.ON_PLACE, new TripwireBlockPlaceHandler(this))
+                .set(BlockComponents.GET_RESOURCE, TripwireBlockHandlers.GET_RESOURCE)
+                .set(BlockComponents.GET_PICK_BLOCK, TripwireBlockHandlers.GET_PICK_BLOCK)
+                .set(BlockComponents.ON_ENTITY_COLLIDE, TripwireBlockHandlers.ON_ENTITY_COLLIDE)
+                .set(BlockComponents.ON_TICK, TripwireBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_DESTROY, TripwireBlockHandlers.ON_DESTROY);
         this.registerVanilla(TUBE_CORAL);
         this.registerVanilla(TUBE_CORAL_BLOCK);
         this.registerVanilla(TUBE_CORAL_FAN);
@@ -1590,12 +1606,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(TURTLE_EGG);
         this.registerVanilla(TWISTING_VINES);
         this.registerVanilla(UNDERWATER_TNT);
-        this.registerVanilla(UNDERWATER_TORCH);
+        this.registerTorch(UNDERWATER_TORCH);
         this.registerVanilla(UNDYED_SHULKER_BOX)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.SHULKER_BOX);
         this.registerVanilla(UNKNOWN);
-        this.registerVanilla(UNLIT_REDSTONE_TORCH);
+        this.registerTorch(UNLIT_REDSTONE_TORCH);
         this.registerVanilla(UNPOWERED_COMPARATOR);
         this.registerVanilla(UNPOWERED_REPEATER);
         this.registerVanilla(VAULT);
@@ -1774,6 +1790,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
                 .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ButtonBlockHandlers.ON_NEIGHBOUR_CHANGED);
+    }
+
+    private void registerTorch(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, new TorchPlaceHandler(this))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TorchBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
     private void registerTrapdoor(BlockType type) {

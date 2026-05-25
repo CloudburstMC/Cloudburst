@@ -441,7 +441,7 @@ public class BlockUpdateScheduler {
             Vector3i pos = entry.pos;
             Block block = level.getBlock(pos);
 
-            if (entry.block.getState() == block.getState()) {
+            if (entry.block.getState().getType() == block.getState().getType()) {
                 TickBlockHandler onTick = block.getComponents().get(BlockComponents.ON_TICK);
                 if (onTick != null) {
                     onTick.execute(block, null);
@@ -449,7 +449,7 @@ public class BlockUpdateScheduler {
             }
 
             BlockState extraState = block.getExtra();
-            if (entry.block.getExtra() == extraState && extraState != BlockStates.AIR) {
+            if (entry.block.getExtra().getType() == extraState.getType() && extraState != BlockStates.AIR) {
                 ComponentMap extraComponents = CloudBlockRegistry.REGISTRY.getComponents(extraState.getType());
                 TickBlockHandler extraOnTick = extraComponents.get(BlockComponents.ON_TICK);
                 if (extraOnTick != null) {

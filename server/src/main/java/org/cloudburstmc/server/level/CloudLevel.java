@@ -259,8 +259,7 @@ public class CloudLevel implements Level {
         this.tickRate = 1;
         this.chunkManager = new LevelChunkManager(this);
 
-        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(),
-                chunkKey -> this.chunkManager.isChunkLoaded(chunkKey) && this.areNeighboringChunksLoaded(chunkKey));
+        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(), chunkKey -> this.chunkManager.isChunkLoaded(chunkKey));
 
         this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
     }
@@ -606,6 +605,7 @@ public class CloudLevel implements Level {
 
             try (Timing ignored2 = timings.doTickPending.startTiming()) {
                 int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
+                this.chunkManager.promoteReadyChunks();
                 this.updateQueue.tick(this.getCurrentTick(), maxBlockTicks);
             }
 

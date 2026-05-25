@@ -42,6 +42,7 @@ public final class LevelChunkManager {
     private final CloudLevel level;
     private final LevelProvider provider;
     private final ConcurrentHashMap<Long, LoadingChunk> chunks = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<CloudChunk> readyToPromote = new ConcurrentLinkedQueue<>();
     private final Executor executor;
 
     /**
@@ -161,7 +162,7 @@ public final class LevelChunkManager {
 
     public boolean isChunkLoaded(long hash) {
         LoadingChunk chunk = this.chunks.get(hash);
-        return chunk != null && chunk.getChunk() != null;
+        return chunk != null && chunk.getPromotedChunk() != null;
     }
 
     public boolean isChunkLoaded(int x, int z) {
@@ -193,6 +194,7 @@ public final class LevelChunkManager {
         }
         if (tryUnload(chunkKey, loadingChunk, save, safe)) {
             this.chunks.remove(chunkKey, loadingChunk);
+            LevelChunkManager.this.level.getUpdateQueue().unregisterTickContainer(chunkKey);
             return true;
         }
         return false;
@@ -222,7 +224,6 @@ public final class LevelChunkManager {
                 return false;
             }
 
-            LevelChunkManager.this.level.getUpdateQueue().unregisterTickContainer(chunkKey);
             CompletableFuture<?> saveFuture = save ? this.saveChunk(chunk) : COMPLETED_VOID_FUTURE;
 
             saveFuture.whenComplete((r, ex) -> {
@@ -256,7 +257,22 @@ public final class LevelChunkManager {
         return COMPLETED_VOID_FUTURE;
     }
 
+    public void promoteReadyChunks() {
+        CloudChunk chunk;
+        while ((chunk = this.readyToPromote.poll()) != null) {
+            long key = CloudChunk.key(chunk.getX(), chunk.getZ());
+            LoadingChunk loadingChunk = this.chunks.get(key);
+            if (loadingChunk == null) {
+                continue;
+            }
+            this.level.getUpdateQueue().registerTickContainer(key);
+            loadingChunk.promoted = true;
+            chunk.replayDeferredUpdates();
+        }
+    }
+
     public void tick() {
+        promoteReadyChunks();
         if (this.chunks.isEmpty()) {
             return;
         }
@@ -324,6 +340,7 @@ public final class LevelChunkManager {
         volatile int closed;
         volatile long loadedTime;
         volatile long lastAccessTime;
+        volatile boolean promoted;
         private CompletableFuture<CloudChunk> future;
         private volatile CloudChunk chunk;
 
@@ -368,6 +385,14 @@ public final class LevelChunkManager {
             return null;
         }
 
+        @Nullable
+        private CloudChunk getPromotedChunk() {
+            if (!this.promoted) {
+                return null;
+            }
+            return getChunk();
+        }
+
         private void generate() {
             if ((this.chunk == null || !this.chunk.isGenerated()) && GENERATION_RUNNING_UPDATER.compareAndSet(this, 0, 1)) {
                 this.future = this.future.thenApplyAsync(GenerationTask.INSTANCE, LevelChunkManager.this.executor);
@@ -407,9 +432,7 @@ public final class LevelChunkManager {
                 this.future.whenComplete((chunk, ex) -> {
                     FINISH_RUNNING_UPDATER.compareAndSet(this, 1, 0);
                     if (ex == null && chunk != null) {
-                        long key = CloudChunk.key(this.x, this.z);
-                        LevelChunkManager.this.level.getUpdateQueue().registerTickContainer(key);
-                        chunk.replayDeferredUpdates();
+                        LevelChunkManager.this.readyToPromote.add(chunk);
                     }
                 });
             }

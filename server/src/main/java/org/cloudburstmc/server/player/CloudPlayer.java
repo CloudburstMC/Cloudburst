@@ -1543,37 +1543,15 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     @Override
-    protected void checkBlockCollision() {
-        boolean portal = false;
-
-        for (Block block : this.getBlocksAround()) {
-            if (block.getState().getType() == BlockTypes.PORTAL) {
-                Vector3i pos = block.getPosition();
-                SimpleAxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
-                if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
-                    portal = true;
-                    this.portalEntryBlock = pos;
-                }
-            }
+    protected void onInsidePortal() {
+        if (this.isSpectator() || this.getVehicle() != null) {
+            return;
         }
 
-        for (Block block : this.getCollisionBlocks()) {
-            block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
-        }
-
-        if (portal && !this.isSpectator() && this.getVehicle() == null) {
-            if (this.portalCooldown > 0) {
-                this.portalCooldown = getPortalCooldownTicks();
-            } else {
-                this.inPortalTicks++;
-            }
+        if (this.portalCooldown > 0) {
+            this.portalCooldown = getPortalCooldownTicks();
         } else {
-            if (this.portalCooldown <= 0) {
-                this.inPortalTicks = Math.max(0, this.inPortalTicks - 4);
-                if (this.inPortalTicks == 0) {
-                    this.portalEntryBlock = null;
-                }
-            }
+            this.inPortalTicks++;
         }
     }
 
