@@ -28,6 +28,7 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 import org.cloudburstmc.server.item.component.FireChargeItemHandlers;
 import org.cloudburstmc.server.item.component.FlintAndSteelItemHandlers;
+import org.cloudburstmc.server.item.component.MinecartItemHandlers;
 import org.cloudburstmc.server.item.component.SpawnEggItemHandlers;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
@@ -332,7 +333,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CHERRY_BOAT);
         registerVanilla(ItemTypes.CHERRY_CHEST_BOAT);
         registerVanilla(ItemTypes.CHERRY_SIGN);
-        registerVanilla(ItemTypes.CHEST_MINECART);
+        registerVanilla(ItemTypes.CHEST_MINECART)
+                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.CHEST_MINECART));
         registerVanilla(ItemTypes.CHICKEN);
         registerVanilla(ItemTypes.CHICKEN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CHICKEN));
@@ -346,6 +348,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COD_BUCKET);
         registerVanilla(ItemTypes.COD_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COD));
+        registerVanilla(ItemTypes.COMMAND_BLOCK_MINECART)
+                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.COMMAND_BLOCK_MINECART));
         registerVanilla(ItemTypes.COMPARATOR);
         registerVanilla(ItemTypes.COMPASS);
         registerVanilla(ItemTypes.COOKED_BEEF);
@@ -504,7 +508,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HOGLIN));
         registerVanilla(ItemTypes.HONEY_BOTTLE);
         registerVanilla(ItemTypes.HONEYCOMB);
-        registerVanilla(ItemTypes.HOPPER_MINECART);
+        registerVanilla(ItemTypes.HOPPER_MINECART)
+                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.HOPPER_MINECART));
         registerVanilla(ItemTypes.HORSE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HORSE));
         registerVanilla(ItemTypes.HOST_ARMOR_TRIM_SMITHING_TEMPLATE);
@@ -565,7 +570,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.MELON_SEEDS);
         registerVanilla(ItemTypes.MELON_SLICE);
         registerVanilla(ItemTypes.MILK_BUCKET);
-        registerVanilla(ItemTypes.MINECART);
+        registerVanilla(ItemTypes.MINECART)
+                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.MINECART));
         registerVanilla(ItemTypes.MINER_POTTERY_SHERD);
         registerVanilla(ItemTypes.MOJANG_BANNER_PATTERN);
         registerVanilla(ItemTypes.MOOSHROOM_SPAWN_EGG)
@@ -767,7 +773,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.TADPOLE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TADPOLE));
         registerVanilla(ItemTypes.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.TNT_MINECART);
+        registerVanilla(ItemTypes.TNT_MINECART)
+                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.TNT_MINECART));
         registerVanilla(ItemTypes.TORCHFLOWER_SEEDS);
         registerVanilla(ItemTypes.TOTEM_OF_UNDYING);
         registerVanilla(ItemTypes.TRADER_LLAMA_SPAWN_EGG)

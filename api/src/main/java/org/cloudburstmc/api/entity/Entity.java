@@ -43,6 +43,22 @@ public interface Entity {
 
     float getEyeHeight();
 
+    default float getBaseOffset() {
+        return 0f;
+    }
+
+    default Vector3f getPassengerAttachmentPoint(Entity passenger) {
+        return Vector3f.from(0f, getHeight(), 0f);
+    }
+
+    default float getMountedHeightOffset() {
+        return getHeight() * 0.75f;
+    }
+
+    default float getPassengerHeightOffset() {
+        return 0f;
+    }
+
     float getWidth();
 
     float getLength();

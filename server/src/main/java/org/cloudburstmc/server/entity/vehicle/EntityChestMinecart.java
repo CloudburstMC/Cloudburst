@@ -58,7 +58,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     }
 
     @Override
-    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         return false;
     }
 }

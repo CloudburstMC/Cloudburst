@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.block.component;
+package org.cloudburstmc.server.block.util;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;

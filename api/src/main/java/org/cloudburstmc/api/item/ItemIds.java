@@ -269,6 +269,7 @@ public final class ItemIds {
     public static final Identifier COD = Identifier.parse("cod");
     public static final Identifier COD_BUCKET = Identifier.parse("cod_bucket");
     public static final Identifier COD_SPAWN_EGG = Identifier.parse("cod_spawn_egg");
+    public static final Identifier COMMAND_BLOCK_MINECART = Identifier.parse("command_block_minecart");
     public static final Identifier COMPARATOR = Identifier.parse("comparator");
     public static final Identifier COMPASS = Identifier.parse("compass");
     public static final Identifier COMPOSTER = Identifier.parse("composter");

@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;

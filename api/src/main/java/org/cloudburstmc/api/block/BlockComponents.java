@@ -76,7 +76,7 @@ public final class BlockComponents {
     public static final ComponentType<BooleanTypeHandler> SUPER_HOT = ComponentType.of("super_hot", BooleanTypeHandler.class);
     public static final ComponentType<FloatTypeHandler> THICKNESS = ComponentType.of("thickness", FloatTypeHandler.class);
     public static final ComponentType<IntTypeHandler> TICK_DELAY = ComponentType.of("tick_delay", IntTypeHandler.class);
-    public static final ComponentType<BooleanTypeHandler> TOP_SOLID = ComponentType.of("top_solid", BooleanTypeHandler.class);
+    public static final ComponentType<BooleanBlockStateHandler> TOP_SOLID = ComponentType.of("top_solid", BooleanBlockStateHandler.class);
     public static final ComponentType<FloatTypeHandler> TRANSLUCENCY = ComponentType.of("translucency", FloatTypeHandler.class);
     public static final ComponentType<UseBlockHandler> USE = ComponentType.of("use", UseBlockHandler.class);
     public static final ComponentType<BooleanTypeHandler> USES_WATERLOGGING = ComponentType.of("uses_waterlogging", BooleanTypeHandler.class);

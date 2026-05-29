@@ -1,0 +1,84 @@
+package org.cloudburstmc.server.block.component;
+
+import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.component.ComplexBlockHandler;
+import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.RailConnector;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
+import org.cloudburstmc.server.registry.CloudBlockRegistry;
+
+import java.util.concurrent.ThreadLocalRandom;
+
+@UtilityClass
+public class RailBlockHandlers {
+
+    public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
+        if (checkAndBreakIfUnsupported(block)) {
+            return;
+        }
+
+        CloudLevel level = (CloudLevel) block.getLevel();
+        Vector3i pos = block.getPosition();
+        BlockState updated = RailConnector.updateDir(level, pos, block.getState(), false);
+
+        if (updated != block.getState()) {
+            level.setBlockState(pos, updated, true, false);
+        }
+    };
+
+    public static final ComplexBlockHandler ON_REMOVE = block -> {
+        CloudLevel level = (CloudLevel) block.getLevel();
+        RailConnector.updateSurroundingRails(level, block.getPosition());
+    };
+
+    public static boolean isSupported(Block block) {
+        CloudLevel level = (CloudLevel) block.getLevel();
+        Vector3i pos = block.getPosition();
+        BlockState state = block.getState();
+
+        if (!RailConnector.hasSolidSupport(level, pos)) {
+            return false;
+        }
+
+        if (RailConnector.getDirection(state).isAscending()) {
+            Direction ascendFace = RailConnector.getDirection(state).ascendingDirection();
+            if (ascendFace != null) {
+                Vector3i ascendPos = ascendFace.relative(pos);
+                BlockState ascendTop = level.getBlockState(ascendPos.getX(), ascendPos.getY(), ascendPos.getZ());
+                return CloudBlockRegistry.REGISTRY.getComponent(ascendTop.getType(), BlockComponents.TOP_SOLID).execute(ascendTop);
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkAndBreakIfUnsupported(Block block) {
+        if (isSupported(block)) {
+            return false;
+        }
+
+        CloudLevel level = (CloudLevel) block.getLevel();
+        Vector3i pos = block.getPosition();
+        BlockState state = block.getState();
+
+        ItemStack drop = CloudBlockRegistry.REGISTRY
+                .getComponents(state.getType())
+                .get(BlockComponents.GET_RESOURCE)
+                .execute(block, ThreadLocalRandom.current(), 0);
+        if (!drop.isEmpty()) {
+            level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);
+        }
+
+        level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));
+        block.set(BlockStates.AIR, false, true);
+        return true;
+    }
+}
+

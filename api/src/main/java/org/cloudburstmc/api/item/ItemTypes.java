@@ -269,6 +269,7 @@ public class ItemTypes {
     public static final ItemType COD = ItemType.of(ItemIds.COD);
     public static final ItemType COD_BUCKET = ItemType.of(ItemIds.COD_BUCKET);
     public static final ItemType COD_SPAWN_EGG = ItemType.of(ItemIds.COD_SPAWN_EGG);
+    public static final ItemType COMMAND_BLOCK_MINECART = ItemType.of(ItemIds.COMMAND_BLOCK_MINECART);
     public static final ItemType COMPARATOR = ItemType.of(ItemIds.COMPARATOR);
     public static final ItemType COMPASS = ItemType.of(ItemIds.COMPASS);
     public static final ItemType COMPOSTER = ItemType.of(ItemIds.COMPOSTER);

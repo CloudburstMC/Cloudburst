@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.entity.vehicle;
 
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
+import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -22,45 +21,28 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.utils.Rail;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * Created by: larryTheCoder on 2017/6/26.
- * <p>
- * Nukkit Project,
- * Minecart and Riding Project,
- * Package cn.nukkit.entity.item in project Nukkit.
- */
+@Log4j2
 public abstract class EntityAbstractMinecart extends EntityVehicle {
-
     private String entityName;
-    private static final int[][][] matrix = new int[][][]{
-            {{0, 0, -1}, {0, 0, 1}},
-            {{-1, 0, 0}, {1, 0, 0}},
-            {{-1, -1, 0}, {1, 0, 0}},
-            {{-1, 0, 0}, {1, -1, 0}},
-            {{0, 0, -1}, {0, -1, 1}},
-            {{0, -1, -1}, {0, 0, 1}},
-            {{0, 0, 1}, {1, 0, 0}},
-            {{0, 0, 1}, {-1, 0, 0}},
-            {{0, 0, -1}, {-1, 0, 0}},
-            {{0, 0, -1}, {1, 0, 0}}
-    };
-    private float currentSpeed = 0;
-    // Plugins modifiers
     private boolean slowWhenEmpty = true;
     private Vector3f derailed = Vector3f.from(0.5, 0.5, 0.5);
     private Vector3f flying = Vector3f.from(0.95, 0.95, 0.95);
     private float maxSpeed = 0.4f;
+    private boolean wasOnRail = false;
+    private boolean flipped = false;
+    private float inputMotionY = 0;
 
     public EntityAbstractMinecart(EntityType<?> type, Location location) {
         super(type, location);
@@ -79,6 +61,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
+    public Vector3f getPassengerAttachmentPoint(Entity passenger) {
+        return Vector3f.from(0f, getBaseOffset() + getMountedOffset(passenger).getY(), 0f);
+    }
+
+    @Override
     public float getWidth() {
         return 0.98F;
     }
@@ -88,18 +75,23 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         return 0.1F;
     }
 
-    public void setName(String name) {
-        entityName = name;
-    }
-
     @Override
     public String getName() {
         return entityName == null ? "Minecart" : entityName;
     }
 
+    public void setName(String name) {
+        entityName = name;
+    }
+
     @Override
     public float getBaseOffset() {
-        return 0.35F;
+        return isOnRail() ? 0f : 0.35f;
+    }
+
+    @Override
+    public Vector3f getMountedOffset(Entity passenger) {
+        return Vector3f.from(0f, 1.02001f, 0f);
     }
 
     @Override
@@ -109,7 +101,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     public boolean canDoInteraction() {
-        return passengers.isEmpty() && this.getDisplayBlock() == null;
+        return isRideable() && passengers.isEmpty();
     }
 
     @Override
@@ -118,6 +110,9 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
         setRollingAmplitude(0);
         setRollingDirection(1);
+
+        this.data.set(CUSTOM_DISPLAY, (byte) 0);
+        this.data.set(DISPLAY_OFFSET, 6);
     }
 
     @Override
@@ -187,39 +182,48 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         if (isAlive()) {
             super.onUpdate(currentTick);
 
-            // The damage token
+            // Regenerate health slowly after taking a hit.
             if (getHealth() < 20) {
                 setHealth(getHealth() + 1);
             }
 
-            // Entity variables
             this.lastPosition = this.position;
             this.motion = this.motion.sub(0, 0.04, 0);
             int dx = this.position.getFloorX();
             int dy = this.position.getFloorY();
             int dz = this.position.getFloorZ();
 
-            // Some hack to check rails
-            if (Rail.isRailBlock(this.getLevel().getBlockState(dx, dy - 1, dz))) {
+            // Check one block below in case the rail is flush with the floor.
+            if (RailConnector.isRail(this.getLevel().getBlockState(dx, dy - 1, dz))) {
                 --dy;
             }
 
             Block block = this.getLevel().getBlock(dx, dy, dz);
-            var state = block.getState();
+            BlockState state = block.getState();
 
-            // Ensure that the block is a rail
-            if (Rail.isRailBlock(state)) {
+            if (RailConnector.isRail(state)) {
                 processMovement(dx, dy, dz, block);
-                // Activate the minecart/TNT
                 if (state.getType() == BlockTypes.ACTIVATOR_RAIL && state.ensureTrait(BlockTraits.IS_POWERED)) {
                     activate(dx, dy, dz, true);
                 }
             } else {
                 setFalling();
             }
+
+            boolean nowOnRail = isOnRail();
+            if (nowOnRail != wasOnRail) {
+                // The seat offset differs on and off rail, so push it to all passengers
+                // whenever the cart crosses that boundary.
+                for (Entity linked : passengers) {
+                    linked.setSeatPosition(getMountedOffset(linked));
+                    updatePassengerPosition(linked);
+                }
+                wasOnRail = nowOnRail;
+            }
+
             checkBlockCollision();
 
-            // Minecart head
+            // Update yaw to face the direction of travel.
             pitch = 0;
             float diffX = this.lastPosition.getX() - this.getX();
             float diffZ = this.lastPosition.getZ() - this.getZ();
@@ -228,13 +232,16 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 yawToChange = (float) (Math.atan2(diffZ, diffX) * 180 / Math.PI);
             }
 
-            // Reverse yaw if yaw is below 0
-            if (yawToChange < 0) {
-                // -90-(-90)-(-90) = 90
-                yawToChange -= yawToChange - yawToChange;
+            // Wrap the yaw difference into a signed range so we can detect a near-180 degree
+            // reversal. When the cart crosses that boundary, flip orientation instead of
+            // spinning 360 degrees.
+            double rotDiff = ((yawToChange - this.yaw) % 360.0 + 540.0) % 360.0 - 180.0;
+            if (rotDiff < -170.0 || rotDiff >= 170.0) {
+                yawToChange += 180.0f;
+                flipped = !flipped;
             }
 
-            setRotation(yawToChange, this.getPitch());
+            setRotation(yawToChange % 360.0f, 0);
 
             Location from = Location.from(this.lastPosition, lastYaw, lastPitch, this.getLevel());
             Location to = Location.from(this.position, this.yaw, this.pitch, this.getLevel());
@@ -245,11 +252,13 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 this.getServer().getEventManager().fire(new VehicleMoveEvent(this, from, to));
             }
 
-            // Collisions
+            // Push nearby entities and let them push back.
             for (Entity entity : this.getLevel().getNearbyEntities(boundingBox.grow(0.2f, 0, 0.2f), this)) {
-                if (!passengers.contains(entity) && entity instanceof EntityAbstractMinecart) {
-                    entity.onEntityCollision(this);
+                if (passengers.contains(entity)) {
+                    continue;
                 }
+                entity.onEntityCollision(this);
+                onEntityCollision(entity);
             }
 
             Iterator<Entity> linkedIterator = this.passengers.iterator();
@@ -266,7 +275,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 }
             }
 
-            // No need to onGround or Motion diff! This always have an update
+            // Always return true so the caller keeps ticking this entity.
             return true;
         }
 
@@ -313,16 +322,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public boolean onInteract(Player p, ItemStack item, Vector3f clickedPos) {
-        if (!passengers.isEmpty() && isRideable()) {
-            return false;
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+        if (isRideable() && passengers.isEmpty()) {
+            player.mount(this);
         }
-
-        if (!this.hasDisplay()) {
-            p.mount(this);
-        }
-
-        return super.onInteract(p, item, clickedPos);
+        return true;
     }
 
     @Override
@@ -361,8 +365,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                 motiveZ *= 1 + entityCollisionReduction;
                 motiveX *= 0.5D;
                 motiveZ *= 0.5D;
-                if (entity instanceof EntityAbstractMinecart) {
-                    EntityAbstractMinecart mine = (EntityAbstractMinecart) entity;
+
+                if (entity instanceof EntityAbstractMinecart mine) {
                     float desinityX = mine.getX() - this.getX();
                     float desinityZ = mine.getZ() - this.getZ();
                     Vector3f vector = Vector3f.from(desinityX, 0, desinityZ).normalize();
@@ -376,24 +380,23 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
                     double motX = mine.getMotion().getX() + this.motion.getX();
                     double motZ = mine.getMotion().getZ() + this.motion.getZ();
 
-                    if (mine.getMinecartType().getId() == 2 && getMinecartType().getId() != 2) {
-                        this.motion = this.motion.mul(0.2, 1, 0.2)
-                                .add(mine.getMotion().getX() - motiveX, 0, mine.getMotion().getZ() - motiveZ)
-                                .mul(0.95, 1, 0.95);
-                    } else if (mine.getMinecartType().getId() != 2 && getMinecartType().getId() == 2) {
-                        this.motion = this.motion.mul(0.2, 1, 0.2)
-                                .add(mine.getMotion().getX() + motiveX, 0, mine.getMotion().getZ() + motiveZ)
-                                .mul(0.95, 1, 0.95);
+                    MinecartType myType = getMinecartType();
+                    MinecartType theirType = mine.getMinecartType();
+
+                    if (theirType == MinecartType.MINECART_FURNACE && myType != MinecartType.MINECART_FURNACE) {
+                        this.motion = this.motion.mul(0.2, 1, 0.2).add(mine.getMotion().getX() - motiveX, 0, mine.getMotion().getZ() - motiveZ);
+                        mine.motion = mine.motion.mul(0.95, 1, 0.95);
+                    } else if (theirType != MinecartType.MINECART_FURNACE && myType == MinecartType.MINECART_FURNACE) {
+                        mine.motion = mine.motion.mul(0.2, 1, 0.2).add(this.motion.getX() + motiveX, 0, this.motion.getZ() + motiveZ);
+                        this.motion = this.motion.mul(0.95, 1, 0.95);
                     } else {
-                        motX /= 2;
-                        motZ /= 2;
-                        this.motion = this.motion.mul(0.2, 1, 0.2)
-                                .add(motX - motiveX, 0, motZ - motiveZ)
-                                .mul(0.2, 1, 0.2)
-                                .add(motX + motiveX, 0, motZ + motiveZ);
+                        double avgX = motX / 2;
+                        double avgZ = motZ / 2;
+                        this.motion = this.motion.mul(0.2, 1, 0.2).add(avgX - motiveX, 0, avgZ - motiveZ);
+                        mine.motion = mine.motion.mul(0.2, 1, 0.2).add(avgX + motiveX, 0, avgZ + motiveZ);
                     }
                 } else {
-                    this.motion = motion.sub(motiveX, 0, motiveZ);
+                    this.motion = this.motion.add(-(float) motiveX, 0, -(float) motiveZ);
                 }
             }
         }
@@ -406,23 +409,12 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     protected void activate(int x, int y, int z, boolean flag) {
     }
 
-    private boolean hasUpdated = false;
-
     private void setFalling() {
         this.motion = Vector3f.from(
                 GenericMath.clamp(this.motion.getX(), -getMaxSpeed(), getMaxSpeed()),
                 this.motion.getY(),
                 GenericMath.clamp(this.motion.getZ(), -getMaxSpeed(), getMaxSpeed())
         );
-
-        if (!hasUpdated) {
-            for (Entity linked : passengers) {
-                linked.setSeatPosition(getMountedOffset(linked).add(0, 0.35f, 0));
-                updatePassengerPosition(linked);
-            }
-
-            hasUpdated = true;
-        }
 
         if (onGround) {
             this.motion = this.motion.mul(derailed);
@@ -434,200 +426,215 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         }
     }
 
-    private void processMovement(int dx, int dy, int dz, Block block) {
-        fallDistance = 0.0F;
-        var identifier = block.getState().getType();
-        if (identifier != BlockTypes.RAIL && identifier != BlockTypes.ACTIVATOR_RAIL &&
-                identifier != BlockTypes.DETECTOR_RAIL && identifier != BlockTypes.GOLDEN_RAIL) {
-            return;
-        }
-        Vector3f vector = getNextRail(this.getPosition());
-
-        int y = dy;
-
-        var state = block.getState();
-        Boolean powered = state.ensureTrait(BlockTraits.IS_POWERED);
-        boolean isPowered = powered != null ? powered : false;
-        boolean isSlowed = !isPowered;
-
-        float motionX = this.motion.getX();
-        float motionY = this.motion.getY();
-        float motionZ = this.motion.getZ();
-
-        RailDirection railDirection = state.ensureTrait(BlockTraits.RAIL_DIRECTION);
-        if (railDirection == null) railDirection = state.ensureTrait(BlockTraits.SIMPLE_RAIL_DIRECTION);
-        if (railDirection == null) return;
-
-        switch (railDirection) { //TODO: errors
-            case ASCENDING_NORTH:
-                motionX -= 0.0078125f;
-                y += 1;
-                break;
-            case ASCENDING_SOUTH:
-                motionX += 0.0078125f;
-                y += 1;
-                break;
-            case ASCENDING_EAST:
-                motionZ += 0.0078125f;
-                y += 1;
-                break;
-            case ASCENDING_WEST:
-                motionZ -= 0.0078125f;
-                y += 1;
-                break;
-        }
-
-        int[][] facing = matrix[railDirection.ordinal()]; //TODO: idk
-        float facing1 = facing[1][0] - facing[0][0];
-        float facing2 = facing[1][2] - facing[0][2];
-        float speedOnTurns = (float) Math.sqrt(facing1 * facing1 + facing2 * facing2);
-        float realFacing = motionX * facing1 + motionZ * facing2;
-
-        if (realFacing < 0) {
-            facing1 = -facing1;
-            facing2 = -facing2;
-        }
-
-        float squareOfFame = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
-
-        if (squareOfFame > 2) {
-            squareOfFame = 2;
-        }
-
-        motionX = squareOfFame * facing1 / speedOnTurns;
-        motionZ = squareOfFame * facing2 / speedOnTurns;
-        float expectedSpeed;
-        float playerYawNeg; // PlayerYawNegative
-        float playerYawPos; // PlayerYawPositive
-        float motion;
-
-        Entity linked = getPassenger();
-
-        if (linked instanceof EntityLiving) {
-            expectedSpeed = currentSpeed;
-            if (expectedSpeed > 0) {
-                // This is a trajectory (Angle of elevation)
-                playerYawNeg = (float) -Math.sin(linked.getLocation().getYaw() * Math.PI / 180.0F);
-                playerYawPos = (float) Math.cos(linked.getLocation().getYaw() * Math.PI / 180.0F);
-                motion = motionX * motionX + motionZ * motionZ;
-                if (motion < 0.01D) {
-                    motionX += playerYawNeg * 0.1D;
-                    motionZ += playerYawPos * 0.1D;
-
-                    isSlowed = false;
-                }
-            }
-        }
-
-        //http://minecraft.gamepedia.com/Powered_Rail#Rail
-        if (isSlowed) {
-            expectedSpeed = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
-            if (expectedSpeed < 0.03D) {
-                this.motion = Vector3f.ZERO;
-            } else {
-                this.motion = this.motion.mul(0.5, 0, 0.5);
-            }
-        }
-
-        playerYawNeg = dx + 0.5f + facing[0][0] * 0.5f;
-        playerYawPos = dz + 0.5f + facing[0][2] * 0.5f;
-        motion = dx + 0.5f + facing[1][0] * 0.5f;
-        float wallOfFame = dz + 0.5f + facing[1][2] * 0.5f;
-
-        facing1 = motion - playerYawNeg;
-        facing2 = wallOfFame - playerYawPos;
-        float motX;
-        float motZ;
-        float x = this.getX();
-        float z = this.getZ();
-
-        if (facing1 == 0) {
-            x = dx + 0.5f;
-            expectedSpeed = z - dz;
-        } else if (facing2 == 0) {
-            z = dz + 0.5f;
-            expectedSpeed = x - dx;
-        } else {
-            motX = x - playerYawNeg;
-            motZ = z - playerYawPos;
-            expectedSpeed = (motX * facing1 + motZ * facing2) * 2;
-        }
-
-        x = playerYawNeg + facing1 * expectedSpeed;
-        z = playerYawPos + facing2 * expectedSpeed;
-        setPosition(Vector3f.from(x, y, z));
-
-        motX = motionX;
-        motZ = motionZ;
-        if (!passengers.isEmpty()) {
-            motX *= 0.75D;
-            motZ *= 0.75D;
-        }
-        motX = (float) GenericMath.clamp(motX, -getMaxSpeed(), getMaxSpeed());
-        motZ = (float) GenericMath.clamp(motZ, -getMaxSpeed(), getMaxSpeed());
-
-        move(motX, 0, motZ);
-        if (facing[0][1] != 0 && MathHelper.floor(x) - dx == facing[0][0] && MathHelper.floor(z) - dz == facing[0][2]) {
-            setPosition(Vector3f.from(x, y + facing[0][1], z));
-        } else if (facing[1][1] != 0 && MathHelper.floor(x) - dx == facing[1][0] && MathHelper.floor(z) - dz == facing[1][2]) {
-            setPosition(Vector3f.from(x, y + facing[1][1], z));
-        }
-
-        applyDrag();
-        Vector3f vector1 = getNextRail(x, y, z);
-
-        if (vector1 != null && vector != null) {
-            float d14 = (vector.getY() - vector1.getY()) * 0.05f;
-
-            squareOfFame = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
-            if (squareOfFame > 0) {
-                motionX = motionX / squareOfFame * (squareOfFame + d14);
-                motionZ = motionZ / squareOfFame * (squareOfFame + d14);
-            }
-
-            setPosition(Vector3f.from(x, vector1.getY(), z));
-        }
-
-        int floorX = MathHelper.floor(x);
-        int floorZ = MathHelper.floor(z);
-
-        if (floorX != dx || floorZ != dz) {
-            squareOfFame = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
-            motionX = squareOfFame * (floorX - dx);
-            motionZ = squareOfFame * (floorZ - dz);
-        }
-
-        if (isPowered) {
-            double newMovie = Math.sqrt(motionX * motionX + motionZ * motionZ);
-
-            if (newMovie > 0.01D) {
-                double nextMovie = 0.06D;
-
-                motionX += motionX / newMovie * nextMovie;
-                motionZ += motionZ / newMovie * nextMovie;
-            } else if (railDirection == RailDirection.NORTH_SOUTH) {
-                if (_isNormalBlock(level.getBlock(dx - 1, dy, dz))) {
-                    motionX = 0.02f;
-                } else if (_isNormalBlock(level.getBlock(dx + 1, dy, dz))) {
-                    motionX = -0.02f;
-                }
-            } else if (railDirection == RailDirection.EAST_WEST) {
-                if (_isNormalBlock(level.getBlock(dx, dy, dz - 1))) {
-                    motionZ = 0.02f;
-                } else if (_isNormalBlock(level.getBlock(dx, dy, dz + 1))) {
-                    motionZ = -0.02f;
-                }
-            }
-        }
-        this.motion = Vector3f.from(motionX, motionY, motionZ);
+    /**
+     * Returns the two endpoint offsets for a rail direction as a 2x3 array.
+     * Each entry is an {dx, dy, dz} offset from the rail block center to one end of the segment.
+     */
+    private static int[][] railEndpoints(RailDirection direction) {
+        return switch (direction) {
+            case NORTH_SOUTH -> new int[][]{{0, 0, -1}, {0, 0, 1}};
+            case EAST_WEST -> new int[][]{{-1, 0, 0}, {1, 0, 0}};
+            case ASCENDING_EAST -> new int[][]{{-1, -1, 0}, {1, 0, 0}};
+            case ASCENDING_WEST -> new int[][]{{-1, 0, 0}, {1, -1, 0}};
+            case ASCENDING_NORTH -> new int[][]{{0, 0, -1}, {0, -1, 1}};
+            case ASCENDING_SOUTH -> new int[][]{{0, -1, -1}, {0, 0, 1}};
+            case SOUTH_EAST -> new int[][]{{0, 0, 1}, {1, 0, 0}};
+            case SOUTH_WEST -> new int[][]{{0, 0, 1}, {-1, 0, 0}};
+            case NORTH_WEST -> new int[][]{{0, 0, -1}, {-1, 0, 0}};
+            case NORTH_EAST -> new int[][]{{0, 0, -1}, {1, 0, 0}};
+        };
     }
 
-    private void applyDrag() {
-        if (!passengers.isEmpty() || !slowWhenEmpty) {
-            this.motion = this.motion.mul(0.997, 0, 0.997);
+    private void processMovement(int dx, int dy, int dz, Block block) {
+        fallDistance = 0.0F;
+
+        BlockState state = block.getState();
+        Map<BlockTrait<?>, Comparable<?>> traits = state.getTraits();
+
+        RailDirection railDirection;
+        if (traits.containsKey(BlockTraits.RAIL_DIRECTION)) {
+            railDirection = state.ensureTrait(BlockTraits.RAIL_DIRECTION);
+        } else if (traits.containsKey(BlockTraits.SIMPLE_RAIL_DIRECTION)) {
+            railDirection = state.ensureTrait(BlockTraits.SIMPLE_RAIL_DIRECTION);
         } else {
-            this.motion = this.motion.mul(0.96, 0, 0.96);
+            return;
         }
+
+        // A powered rail that is not currently powered acts as a brake.
+        boolean isPoweredRail = traits.containsKey(BlockTraits.IS_POWERED);
+        boolean isPowered = isPoweredRail && state.ensureTrait(BlockTraits.IS_POWERED);
+        boolean isSlowed = isPoweredRail && !isPowered;
+
+        // Record the Y position on the rail before moving so we can compute
+        // the hill speed adjustment after the cart has advanced.
+        Vector3f oldRailPos = getNextRail(this.getPosition());
+
+        float x = this.getX();
+        float z = this.getZ();
+        // Ascending rails raise the target Y by one relative to the block Y.
+        int y = dy;
+
+        // The track constrains vertical motion on rail, so gravity does not accumulate.
+        float motionX = this.motion.getX();
+        float motionZ = this.motion.getZ();
+
+        // Each ascending rail direction applies a small opposing force to simulate the climb.
+        switch (railDirection) {
+            case ASCENDING_EAST:
+                motionX -= 0.0078125f;
+                y++;
+                break;
+            case ASCENDING_WEST:
+                motionX += 0.0078125f;
+                y++;
+                break;
+            case ASCENDING_NORTH:
+                motionZ += 0.0078125f;
+                y++;
+                break;
+            case ASCENDING_SOUTH:
+                motionZ -= 0.0078125f;
+                y++;
+                break;
+            default:
+                break;
+        }
+
+        // Direction vectors along the two ends of the rail segment.
+        int[][] exits = railEndpoints(railDirection);
+        float exitDX = exits[1][0] - exits[0][0];
+        float exitDZ = exits[1][2] - exits[0][2];
+        float segLen = (float) Math.sqrt(exitDX * exitDX + exitDZ * exitDZ);
+
+        // Flip direction so the cart always moves in the same sense as its velocity.
+        if (motionX * exitDX + motionZ * exitDZ < 0) {
+            exitDX = -exitDX;
+            exitDZ = -exitDZ;
+        }
+
+        // Project speed onto the rail axis (cap at 2 m/t).
+        float speed = (float) Math.min(2.0, Math.sqrt(motionX * motionX + motionZ * motionZ));
+        motionX = speed * exitDX / segLen;
+        motionZ = speed * exitDZ / segLen;
+
+        // If a player is riding and pressing forward or backward while the cart is nearly
+        // stopped, add a small impulse in the direction the player is facing so the cart
+        // can get moving again.
+        Entity passenger = getPassenger();
+        if (passenger instanceof Player && inputMotionY != 0) {
+            float sinYaw = (float) -Math.sin(passenger.getLocation().getYaw() * Math.PI / 180.0);
+            float cosYaw = (float) Math.cos(passenger.getLocation().getYaw() * Math.PI / 180.0);
+            if (motionX * motionX + motionZ * motionZ < 0.01) {
+                motionX += sinYaw * 0.001;
+                motionZ += cosYaw * 0.001;
+                isSlowed = false;
+            }
+        }
+
+        // Unpowered powered-rail braking.
+        if (isSlowed) {
+            float hSpeed = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
+            if (hSpeed < 0.03) {
+                motionX = 0;
+                motionZ = 0;
+            } else {
+                motionX *= 0.5;
+                motionZ *= 0.5;
+            }
+        }
+
+        // Compute the parametric progress of the cart along the current rail segment
+        // and snap it to the rail center line.
+        float x0 = dx + 0.5f + exits[0][0] * 0.5f;
+        float z0 = dz + 0.5f + exits[0][2] * 0.5f;
+        float x1 = dx + 0.5f + exits[1][0] * 0.5f;
+        float z1 = dz + 0.5f + exits[1][2] * 0.5f;
+        float segX = x1 - x0;
+        float segZ = z1 - z0;
+
+        float progress;
+        if (segX == 0) {
+            progress = z - dz;
+        } else if (segZ == 0) {
+            progress = x - dx;
+        } else {
+            progress = ((x - x0) * segX + (z - z0) * segZ) * 2;
+        }
+
+        // Cart center snapped to the rail line.
+        float snapX = x0 + segX * progress;
+        float snapZ = z0 + segZ * progress;
+
+        // Scale velocity down when carrying a passenger.
+        float scale = passengers.isEmpty() ? 1.0f : 0.75f;
+        float advX = (float) GenericMath.clamp(scale * motionX, -getMaxSpeed(), getMaxSpeed());
+        float advZ = (float) GenericMath.clamp(scale * motionZ, -getMaxSpeed(), getMaxSpeed());
+
+        // Advance the cart along the rail. On-rail movement bypasses block collision
+        // because the rail geometry fully constrains the trajectory.
+        float posX = snapX + advX;
+        float posZ = snapZ + advZ;
+        setPosition(Vector3f.from(posX, y, posZ));
+
+        // On an ascending rail, shift Y by the ramp height once the cart has crossed
+        // into one of the raised ends of the segment.
+        if (exits[0][1] != 0 && MathHelper.floor(posX) - dx == exits[0][0] && MathHelper.floor(posZ) - dz == exits[0][2]) {
+            setPosition(Vector3f.from(posX, y + exits[0][1], posZ));
+        } else if (exits[1][1] != 0 && MathHelper.floor(posX) - dx == exits[1][0] && MathHelper.floor(posZ) - dz == exits[1][2]) {
+            setPosition(Vector3f.from(posX, y + exits[1][1], posZ));
+        }
+
+        // Natural drag applied after position is set.
+        float drag = (!passengers.isEmpty() || !slowWhenEmpty) ? 0.997f : 0.96f;
+        motionX *= drag;
+        motionZ *= drag;
+
+        // Water slows the cart further.
+        BlockType blockType = level.getBlockState(dx, dy, dz).getType();
+        if (blockType == BlockTypes.WATER || blockType == BlockTypes.FLOWING_WATER) {
+            motionX *= 0.95f;
+            motionZ *= 0.95f;
+        }
+
+        // Adjust speed based on slope: downhill gains speed, uphill loses it.
+        Vector3f newRailPos = getNextRail(posX, y, posZ);
+        if (newRailPos != null && oldRailPos != null) {
+            float hillSpeed = (oldRailPos.getY() - newRailPos.getY()) * 0.05f;
+            float hSpeed = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
+            if (hSpeed > 0) {
+                motionX = motionX / hSpeed * (hSpeed + hillSpeed);
+                motionZ = motionZ / hSpeed * (hSpeed + hillSpeed);
+            }
+            // Snap Y to the rail surface at the new position.
+            setPosition(Vector3f.from(posX, newRailPos.getY(), posZ));
+        }
+
+        // If the cart has moved into a new block, realign the velocity direction
+        // to the offset between the old and new block centres.
+        int newFloorX = MathHelper.floor(posX);
+        int newFloorZ = MathHelper.floor(posZ);
+        if (newFloorX != dx || newFloorZ != dz) {
+            float hSpeed = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
+            motionX = hSpeed * (newFloorX - dx);
+            motionZ = hSpeed * (newFloorZ - dz);
+        }
+
+        // A powered rail accelerates the cart, or gives it a small starting push if it is stopped.
+        if (isPowered) {
+            float hSpeed = (float) Math.sqrt(motionX * motionX + motionZ * motionZ);
+            if (hSpeed > 0.01) {
+                motionX += motionX / hSpeed * 0.06f;
+                motionZ += motionZ / hSpeed * 0.06f;
+            } else if (railDirection == RailDirection.EAST_WEST) {
+                if (isNormalBlock(level.getBlock(dx - 1, dy, dz))) motionX = 0.02f;
+                else if (isNormalBlock(level.getBlock(dx + 1, dy, dz))) motionX = -0.02f;
+            } else if (railDirection == RailDirection.NORTH_SOUTH) {
+                if (isNormalBlock(level.getBlock(dx, dy, dz - 1))) motionZ = 0.02f;
+                else if (isNormalBlock(level.getBlock(dx, dy, dz + 1))) motionZ = -0.02f;
+            }
+        }
+
+        this.motion = Vector3f.from(motionX, 0, motionZ);
     }
 
     private Vector3f getNextRail(Vector3f d) {
@@ -639,16 +646,16 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int checkY = MathHelper.floor(dy);
         int checkZ = MathHelper.floor(dz);
 
-        if (Rail.isRailBlock(level.getBlockState(checkX, checkY - 1, checkZ))) {
+        if (RailConnector.isRail(level.getBlockState(checkX, checkY - 1, checkZ))) {
             --checkY;
         }
 
         BlockState blockState = level.getBlockState(checkX, checkY, checkZ);
 
-        if (Rail.isRailBlock(blockState)) {
-            int[][] facing = matrix[blockState.ensureTrait(BlockTraits.RAIL_DIRECTION).ordinal()]; //TODO:
+        if (RailConnector.isRail(blockState)) {
+            RailDirection dir = RailConnector.getDirection(blockState);
+            int[][] facing = railEndpoints(dir);
             float rail;
-            // Genisys mistake (Doesn't check surrounding more exactly)
             float nextOne = checkX + 0.5f + facing[0][0] * 0.5f;
             float nextTwo = checkY + 0.5f + facing[0][1] * 0.5f;
             float nextThree = checkZ + 0.5f + facing[0][2] * 0.5f;
@@ -687,36 +694,21 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         }
     }
 
-    /**
-     * Used to multiply the minecart current speed
-     *
-     * @param speed The speed of the minecart that will be calculated
-     */
-    public void setCurrentSpeed(float speed) {
-        currentSpeed = speed;
+    public void setInputMotionY(float motionY) {
+        inputMotionY = motionY;
     }
 
-    /**
-     * Get the block display offset
-     *
-     * @return integer
-     */
     public int getDisplayOffset() {
         return this.data.get(DISPLAY_OFFSET);
     }
 
-    /**
-     * Set the block offset.
-     *
-     * @param offset The offset
-     */
     public void setDisplayBlockOffset(int offset) {
         this.data.set(DISPLAY_OFFSET, offset);
     }
 
     public BlockState getDisplayBlock() {
         CloudBlockDefinition definition = (CloudBlockDefinition) this.data.get(DISPLAY_BLOCK_STATE);
-        return definition.getCloudState();
+        return definition != null ? definition.getCloudState() : null;
     }
 
     public void setDisplayBlock(BlockState blockState) {
@@ -732,20 +724,10 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         this.data.set(CUSTOM_DISPLAY, (byte) (display ? 1 : 0));
     }
 
-    /**
-     * Is the minecart can be slowed when empty?
-     *
-     * @return boolean
-     */
     public boolean isSlowWhenEmpty() {
         return slowWhenEmpty;
     }
 
-    /**
-     * Set the minecart slowdown flag
-     *
-     * @param slow The slowdown flag
-     */
     public void setSlowWhenEmpty(boolean slow) {
         slowWhenEmpty = slow;
     }
@@ -772,9 +754,17 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         maxSpeed = speed;
     }
 
-    private boolean _isNormalBlock(Block block) {
-        return true;
-//        TODO Implement block traits
-//        return block.getState().getBehavior().isNormalBlock(block);
+    protected boolean isOnRail() {
+        int dx = this.position.getFloorX();
+        int dy = this.position.getFloorY();
+        int dz = this.position.getFloorZ();
+        if (RailConnector.isRail(level.getBlockState(dx, dy, dz))) {
+            return true;
+        }
+        return RailConnector.isRail(level.getBlockState(dx, dy - 1, dz));
+    }
+
+    private boolean isNormalBlock(Block block) {
+        return CloudBlockRegistry.REGISTRY.getComponents(block.getState().getType()).get(BlockComponents.SOLID).get();
     }
 }

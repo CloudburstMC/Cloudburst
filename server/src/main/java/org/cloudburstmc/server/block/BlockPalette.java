@@ -19,6 +19,7 @@ import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
+import org.cloudburstmc.server.block.util.BlockStateHash;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,7 +141,6 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         for (int i = 0; i < vanillaPalette.size(); i++) {
             NbtMap entry = vanillaPalette.get(i);
-            long blockStateHash = entry.containsKey("name_hash") ? entry.getLong("name_hash") : 0L;
 
             NbtMapBuilder builder = entry.toBuilder();
             builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
@@ -156,14 +156,15 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
                 continue;
             }
 
+            int fnvHash = BlockStateHash.compute(entry.getString("name"), entry.getCompound("states", NbtMap.EMPTY));
+            long blockStateHash = Integer.toUnsignedLong(fnvHash);
+
             CloudBlockDefinition definition = new CloudBlockDefinition(state, nbt, i, blockStateHash);
-            if (blockStateHash != 0L) {
-                BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
-                if (shapes != null) {
-                    float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
-                    float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
-                    state.initStateData(collision, outline);
-                }
+            BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
+            if (shapes != null) {
+                float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
+                float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
+                state.initStateData(collision, outline);
             }
 
             this.runtimeDefinitionMap.put(i, definition);

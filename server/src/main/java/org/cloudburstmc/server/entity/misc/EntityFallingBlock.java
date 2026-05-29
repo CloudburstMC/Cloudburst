@@ -67,7 +67,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    protected float getBaseOffset() {
+    public float getBaseOffset() {
         return 0.49f;
     }
 

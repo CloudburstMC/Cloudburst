@@ -22,7 +22,7 @@ public class BlockTypes {
     public static final BlockType ACACIA_TRAPDOOR = BlockType.of(BlockIds.ACACIA_TRAPDOOR, BlockTraits.DIRECTION, BlockTraits.IS_OPEN, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType ACACIA_WALL_SIGN = BlockType.of(BlockIds.ACACIA_WALL_SIGN, BlockTraits.FACING_DIRECTION);
     public static final BlockType ACACIA_WOOD = BlockType.of(BlockIds.ACACIA_WOOD, BlockTraits.AXIS);
-    public static final BlockType ACTIVATOR_RAIL = BlockType.of(BlockIds.ACTIVATOR_RAIL, BlockTraits.IS_POWERED, BlockTraits.RAIL_DIRECTION);
+    public static final BlockType ACTIVATOR_RAIL = BlockType.of(BlockIds.ACTIVATOR_RAIL, BlockTraits.IS_POWERED, BlockTraits.SIMPLE_RAIL_DIRECTION);
     public static final BlockType AIR = BlockType.of(BlockIds.AIR);
     public static final BlockType ALLIUM = BlockType.of(BlockIds.ALLIUM);
     public static final BlockType ALLOW = BlockType.of(BlockIds.ALLOW);
@@ -375,7 +375,7 @@ public class BlockTypes {
     public static final BlockType DEPRECATED_ANVIL = BlockType.of(BlockIds.DEPRECATED_ANVIL, BlockTraits.CARDINAL_DIRECTION);
     public static final BlockType DEPRECATED_PURPUR_BLOCK_1 = BlockType.of(BlockIds.DEPRECATED_PURPUR_BLOCK_1, BlockTraits.AXIS);
     public static final BlockType DEPRECATED_PURPUR_BLOCK_2 = BlockType.of(BlockIds.DEPRECATED_PURPUR_BLOCK_2, BlockTraits.AXIS);
-    public static final BlockType DETECTOR_RAIL = BlockType.of(BlockIds.DETECTOR_RAIL, BlockTraits.IS_POWERED, BlockTraits.RAIL_DIRECTION);
+    public static final BlockType DETECTOR_RAIL = BlockType.of(BlockIds.DETECTOR_RAIL, BlockTraits.IS_POWERED, BlockTraits.SIMPLE_RAIL_DIRECTION);
     public static final BlockType DIAMOND_BLOCK = BlockType.of(BlockIds.DIAMOND_BLOCK);
     public static final BlockType DIAMOND_ORE = BlockType.of(BlockIds.DIAMOND_ORE);
     public static final BlockType DIORITE = BlockType.of(BlockIds.DIORITE);
@@ -568,7 +568,7 @@ public class BlockTypes {
     public static final BlockType GLOW_FRAME = BlockType.of(BlockIds.GLOW_FRAME, BlockTraits.FACING_DIRECTION, BlockTraits.HAS_MAP, BlockTraits.HAS_PHOTO);
     public static final BlockType GLOW_LICHEN = BlockType.of(BlockIds.GLOW_LICHEN, BlockTraits.MULTI_FACE_DIRECTION);
     public static final BlockType GOLDEN_DANDELION = BlockType.of(BlockIds.GOLDEN_DANDELION);
-    public static final BlockType GOLDEN_RAIL = BlockType.of(BlockIds.GOLDEN_RAIL, BlockTraits.IS_POWERED, BlockTraits.RAIL_DIRECTION);
+    public static final BlockType GOLDEN_RAIL = BlockType.of(BlockIds.GOLDEN_RAIL, BlockTraits.IS_POWERED, BlockTraits.SIMPLE_RAIL_DIRECTION);
     public static final BlockType GOLD_BLOCK = BlockType.of(BlockIds.GOLD_BLOCK);
     public static final BlockType GOLD_ORE = BlockType.of(BlockIds.GOLD_ORE);
     public static final BlockType GRANITE = BlockType.of(BlockIds.GRANITE);

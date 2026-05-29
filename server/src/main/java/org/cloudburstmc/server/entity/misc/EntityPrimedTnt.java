@@ -54,7 +54,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
-    protected float getBaseOffset() {
+    public float getBaseOffset() {
         return 0.49f;
     }
 

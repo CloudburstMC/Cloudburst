@@ -80,7 +80,7 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    protected float getBaseOffset() {
+    public float getBaseOffset() {
         return this.getEyeHeight();
     }
 

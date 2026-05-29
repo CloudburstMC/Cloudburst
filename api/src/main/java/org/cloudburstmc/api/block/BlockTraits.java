@@ -26,7 +26,7 @@ public class BlockTraits {
             Direction.Axis.Y, // Palette value "unknown"
             Direction.Axis.X, Direction.Axis.Z);
     public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
-    public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", "rail_direction", RailDirection.class, RailDirection.simpleValues());
+    public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", "rail_direction", RailDirection.class, ImmutableSet.copyOf(RailDirection.simpleValues()), RailDirection.NORTH_SOUTH);
     public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", "torch_facing_direction", Direction.class,
             Direction.DOWN, // Palette value "unknown"
             Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);

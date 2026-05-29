@@ -175,7 +175,7 @@ public abstract class CloudEntity implements Entity {
         return 0;
     }
 
-    protected float getBaseOffset() {
+    public float getBaseOffset() {
         return 0;
     }
 
@@ -1170,8 +1170,12 @@ public abstract class CloudEntity implements Entity {
 //        this.data.setFlag(RIDING, true);
         this.data.update(); // force any data that needs to be sent
         broadcastLinkPacket(vehicle, EntityLinkData.Type.byId(mode.ordinal()));
+        onMountComplete(vehicle);
 
         return true;
+    }
+
+    protected void onMountComplete(Entity vehicle) {
     }
 
     public boolean dismount(Entity vehicle) {
@@ -1195,7 +1199,6 @@ public abstract class CloudEntity implements Entity {
         vehicle.onDismount(this);
 
         this.setSeatPosition(Vector3f.ZERO);
-        updatePassengerPosition(vehicle);
         this.data.setFlag(MOVING, true);
 
         return true;
@@ -1204,22 +1207,35 @@ public abstract class CloudEntity implements Entity {
     @Override
     public void onMount(Entity passenger) {
         checkArgument(passenger.getVehicle() == this, "passenger is not in this vehicle");
-        checkArgument(this.passengers.add(this), "passenger is already mounted to this vehicle");
-        passenger.setSeatPosition(this.getMountedOffset(passenger));
+        checkArgument(this.passengers.add(passenger), "passenger is already mounted to this vehicle");
+
+        if (passenger instanceof CloudPlayer ridingPlayer) {
+            this.hasSpawned.add(ridingPlayer);
+        }
+
+        Vector3f seatOffset = this.getMountedOffset(passenger);
+        passenger.setSeatPosition(seatOffset);
+        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 181.0f);
         this.updatePassengerPosition(passenger);
     }
 
     @Override
     public void onDismount(Entity passenger) {
         checkArgument(passenger.getVehicle() != this, "passenger is still mounted");
-        checkArgument(this.passengers.remove(this), "passenger is not in this vehicle");
+        checkArgument(this.passengers.remove(passenger), "passenger is not in this vehicle");
+
+        if (passenger instanceof CloudPlayer ridingPlayer) {
+            this.hasSpawned.remove(ridingPlayer);
+        }
+
         passenger.setSeatPosition(Vector3f.ZERO);
+        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 0.0f);
     }
 
     protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type) {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
-        packet.setEntityLink(new EntityLinkData(getUniqueId(), vehicle.getUniqueId(), type, false, false));
-
+        boolean riderInitiated = type == EntityLinkData.Type.RIDER || type == EntityLinkData.Type.PASSENGER;
+        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, false, riderInitiated));
         CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
     }
 
@@ -1239,7 +1255,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     protected void updatePassengerPosition(Entity passenger) {
-        passenger.setPosition(this.getPosition().add(passenger.getSeatPosition()));
+        passenger.setPosition(this.getPosition().add(this.getPassengerAttachmentPoint(passenger)));
     }
 
     public Vector3f getSeatPosition() {
@@ -1250,8 +1266,9 @@ public abstract class CloudEntity implements Entity {
         this.data.set(SEAT_OFFSET, pos);
     }
 
-    public Vector3f getMountedOffset(Entity entity) {
-        return Vector3f.from(0f, getHeight() * 0.75f, 0f);
+    public Vector3f getMountedOffset(Entity passenger) {
+        float yOffset = getMountedHeightOffset() + passenger.getPassengerHeightOffset();
+        return Vector3f.from(0f, yOffset, 0f);
     }
 
     public final void scheduleUpdate() {

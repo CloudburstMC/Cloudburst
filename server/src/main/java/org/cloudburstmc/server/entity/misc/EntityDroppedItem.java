@@ -71,7 +71,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    protected float getBaseOffset() {
+    public float getBaseOffset() {
         return 0.125f;
     }
 
@@ -107,7 +107,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         tag.putShort("Health", (short) this.getHealth());
         tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
-        tag.putLong("OwnerID", this.data.get(OWNER_EID));
+        Long ownerId = this.data.get(OWNER_EID);
+        tag.putLong("OwnerID", ownerId != null ? ownerId : 0L);
         tag.putCompound("Item", ItemUtils.serializeItem(this.item));
     }
 

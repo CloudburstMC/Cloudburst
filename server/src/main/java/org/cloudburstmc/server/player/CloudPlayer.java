@@ -1984,6 +1984,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPosition(Vector3f.from(x, y - getBaseOffset() /*TODO: find better solution */, z), yaw, pitch, MovePlayerPacket.Mode.NORMAL, getViewers());
     }
 
+    @Override
+    protected void onMountComplete(Entity vehicle) {
+    }
+
     public void sendMovementCorrection(Vector3f authoritativePos, long tick) {
         CorrectPlayerMovePredictionPacket correction = new CorrectPlayerMovePredictionPacket();
         correction.setPredictionType(PredictionType.PLAYER);
@@ -2983,8 +2987,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setPosition(pos.add(0, getEyeHeight(), 0));
         packet.setRotation(Vector3f.from(pitch, yaw, yaw));
-        packet.setMode(mode);
         packet.setOnGround(this.isOnGround());
+        packet.setMode(mode);
         if (mode == MovePlayerPacket.Mode.TELEPORT) {
             packet.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         }

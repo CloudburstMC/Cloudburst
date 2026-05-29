@@ -290,7 +290,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(ACACIA_TRAPDOOR);
         this.registerVanilla(ACACIA_WALL_SIGN);
         this.registerVanilla(ACACIA_WOOD);
-        this.registerVanilla(ACTIVATOR_RAIL);
+        this.registerPoweredRail(ACTIVATOR_RAIL);
         this.registerVanilla(AIR)
                 .set(BlockComponents.REPLACEABLE, () -> true)
                 .set(BlockComponents.GET_RESOURCE_COUNT, (block, random, bonusLevel) -> 0);
@@ -684,7 +684,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DEPRECATED_ANVIL);
         this.registerVanilla(DEPRECATED_PURPUR_BLOCK_1);
         this.registerVanilla(DEPRECATED_PURPUR_BLOCK_2);
-        this.registerVanilla(DETECTOR_RAIL);
+        this.registerPoweredRail(DETECTOR_RAIL);
         this.registerVanilla(DIAMOND_BLOCK);
         this.registerVanilla(DIAMOND_ORE);
         this.registerVanilla(DIORITE);
@@ -891,7 +891,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GLOW_FRAME);
         this.registerVanilla(GLOW_LICHEN);
         this.registerVanilla(GOLDEN_DANDELION);
-        this.registerVanilla(GOLDEN_RAIL);
+        this.registerPoweredRail(GOLDEN_RAIL);
         this.registerVanilla(GOLD_BLOCK);
         this.registerVanilla(GOLD_ORE);
         this.registerVanilla(GRANITE);
@@ -1381,7 +1381,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(QUARTZ_PILLAR);
         this.registerVanilla(QUARTZ_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(QUARTZ_DOUBLE_SLAB));
         this.registerStairs(QUARTZ_STAIRS);
-        this.registerVanilla(RAIL);
+        this.registerRail(RAIL);
         this.registerVanilla(RAW_COPPER_BLOCK);
         this.registerVanilla(RAW_GOLD_BLOCK);
         this.registerVanilla(RAW_IRON_BLOCK);
@@ -1777,6 +1777,20 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FenceGateBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
+    private void registerRail(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, RailPlaceHandler.INSTANCE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, RailBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REMOVE, RailBlockHandlers.ON_REMOVE);
+    }
+
+    private void registerPoweredRail(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.ON_PLACE, RailPlaceHandler.INSTANCE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PoweredRailBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REMOVE, RailBlockHandlers.ON_REMOVE);
+    }
+
     private void registerStairs(BlockType type) {
         this.registerVanilla(type)
                 .set(BlockComponents.ON_PLACE, new StairsPlaceHandler(this));
@@ -1830,7 +1844,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.REPLACEABLE, () -> false);
         this.registerComponent(BlockComponents.MAP_COLOR, () -> "#00000000");
         this.registerComponent(BlockComponents.LIQUID, () -> false);
-        this.registerComponent(BlockComponents.TOP_SOLID, () -> true);
+        this.registerComponent(BlockComponents.TOP_SOLID, TopSolidHandler.INSTANCE);
         this.registerComponent(BlockComponents.STAIRS, () -> false);
         this.registerComponent(BlockComponents.SLAB, () -> false);
         this.registerComponent(BlockComponents.SUPER_HOT, () -> false);

@@ -43,6 +43,7 @@ public class SyncedEntityData {
 
     public <T> void set(EntityDataType<T> type, T value) {
         this.data.put(type, value);
+        this.dataChangeSet.put(type, value);
     }
 
     public boolean getFlag(EntityFlag flag) {

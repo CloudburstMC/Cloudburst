@@ -13,6 +13,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 

@@ -95,8 +95,10 @@ import static org.cloudburstmc.server.player.CloudPlayer.DEFAULT_SPEED;
 public class PlayerPacketHandler implements BedrockPacketHandler {
     private final CloudPlayer player;
 
-    protected Vector3i lastRightClickPos = null;
+    protected Vector3i lastRightClickPos = Vector3i.ZERO;
     protected double lastRightClickTime = 0.0;
+    protected Direction lastRightClickFace = null;
+
     @Inject
     GlobalRegistry globalRegistry;
     private Vector3i lastBreakPosition = Vector3i.ZERO;
@@ -129,8 +131,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public PacketSignal handle(PlayerSkinPacket packet) {
         SerializedSkin skin = packet.getSkin();
-
-
         if (!skin.isValid()) {
             return PacketSignal.HANDLED;
         }
@@ -141,17 +141,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!playerChangeSkinEvent.isCancelled()) {
             player.lastSkinChange = System.currentTimeMillis();
             player.setSkin(skin);
-        }
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
-    public PacketSignal handle(PlayerInputPacket packet) {
-        if (!player.isAlive() || !player.spawned) {
-            return PacketSignal.HANDLED;
-        }
-        if (player.getVehicle() instanceof EntityAbstractMinecart) {
-            ((EntityAbstractMinecart) player.getVehicle()).setCurrentSpeed(packet.getInputMotion().getY());
         }
         return PacketSignal.HANDLED;
     }
@@ -185,9 +174,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             player.setSneaking(packetSneaking);
         }
 
-        if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_INTERACTION)) {
-            processItemUseTransaction(packet);
-        }
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
             player.getItemStackNetManager().handleSingleRequest(packet.getItemStackRequest());
@@ -197,6 +183,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void processMovement(PlayerAuthInputPacket packet) {
+        if (player.getVehicle() != null) {
+            processVehicleInput(packet);
+            return;
+        }
+
         if (player.getTeleportPosition() != null) {
             if (packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT)) {
                 player.setTeleportPosition(null);
@@ -250,6 +241,28 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (player.getVehicle() instanceof EntityBoat) {
             player.getVehicle().setPositionAndRotation(newPos.sub(0, 1, 0), (yaw + 90) % 360, 0);
         }
+    }
+
+    private void processVehicleInput(PlayerAuthInputPacket packet) {
+        player.setRotation(packet.getRotation().getY() % 360, packet.getRotation().getX() % 360);
+        if (player.getVehicle() instanceof EntityAbstractMinecart minecart) {
+            minecart.setInputMotionY(readForwardInput(packet));
+        }
+    }
+
+    private float readForwardInput(PlayerAuthInputPacket packet) {
+        InputMode inputMode = packet.getInputMode();
+        boolean isMobileClassic = inputMode == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
+        if (inputMode == InputMode.MOUSE || isMobileClassic) {
+            Set<PlayerAuthInputData> inputData = packet.getInputData();
+            if (inputData.contains(PlayerAuthInputData.UP)) {
+                return 1.0f;
+            } else if (inputData.contains(PlayerAuthInputData.DOWN)) {
+                return -1.0f;
+            }
+            return 0.0f;
+        }
+        return packet.getAnalogMoveVector().getY();
     }
 
     private void processBlockActions(PlayerAuthInputPacket packet) {
@@ -372,41 +385,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
     }
 
-    private void processItemUseTransaction(PlayerAuthInputPacket packet) {
-        ItemUseTransaction transaction = packet.getItemUseTransaction();
-        if (transaction == null) {
-            return;
-        }
-
-        Vector3i blockPos = transaction.getBlockPosition();
-        int blockFace = transaction.getBlockFace();
-        Direction face = Direction.fromIndex(blockFace);
-        Vector3f clickPos = transaction.getClickPosition();
-
-        switch (transaction.getActionType()) {
-            case 0:
-                handleItemUseOnBlock(transaction, blockPos, face, clickPos);
-                break;
-            case 1:
-                handleItemUseInAir(transaction, face);
-                break;
-            case 2:
-                // Client confirms a block placement or destruction prediction; no server action needed.
-                break;
-            case 3:
-                if (player.getInventory().getSelectedItem().getType() == ItemTypes.TRIDENT) {
-                    player.setUsingItem(false);
-                    AnimatePacket animPkt = new AnimatePacket();
-                    animPkt.setAction(AnimatePacket.Action.SWING_ARM);
-                    animPkt.setRuntimeEntityId(player.getRuntimeId());
-                    CloudServer.broadcastPacket(player.getViewers(), animPkt);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
     /**
      * Returns {@code true} if the item the player's game claims to be holding does not match what the server has
      * in the selected hotbar slot. When this occurs the interaction must be rejected and the player's
@@ -432,15 +410,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void handleItemUseOnBlock(ItemUseTransaction transaction, Vector3i blockPos, Direction face, Vector3f clickPos) {
-        boolean spamBug = (lastRightClickPos != null
-                && System.currentTimeMillis() - lastRightClickTime < 100.0
-                && blockPos.distanceSquared(lastRightClickPos) < 0.00001);
+        boolean spamBug = System.currentTimeMillis() - lastRightClickTime < 110.0
+                && blockPos.distanceSquared(lastRightClickPos) < 0.00001
+                && face == lastRightClickFace;
         lastRightClickPos = blockPos;
-        lastRightClickTime = System.currentTimeMillis();
+        lastRightClickFace = face;
         if (spamBug) {
             player.sendHeldItemSlot();
             return;
         }
+        lastRightClickTime = System.currentTimeMillis();
 
         if (isHeldItemDesynced(transaction)) {
             rollbackBlock(blockPos, face);
@@ -467,6 +446,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (!player.isCreative()) {
                     player.getInventory().setSelectedItem(afterUse);
                 }
+
+                rollbackBlock(blockPos, face);
                 return;
             }
         }
