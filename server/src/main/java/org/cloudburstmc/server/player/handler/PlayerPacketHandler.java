@@ -756,11 +756,25 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (offhand) {
             player.getOffhand().setOffhandItem(serverItem);
         } else {
-            player.setSelectedHotbarSlot(packet.getHotbarSlot());
+            int newSlot = packet.getHotbarSlot();
+            if (player.getSelectedHotbarSlot() != newSlot) {
+                applyClientHotbarSlot(newSlot);
+            }
         }
         player.setUsingItem(false);
 
         return PacketSignal.HANDLED;
+    }
+
+    private void applyClientHotbarSlot(int slot) {
+        ItemStack heldItem = player.getInventory().getItem(slot);
+        PlayerItemHeldEvent event = new PlayerItemHeldEvent(player, heldItem, slot);
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            player.sendHeldItemSlot();
+            return;
+        }
+        player.acknowledgeHotbarSlot(slot);
     }
 
     @Override
@@ -991,11 +1005,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
                 if (player.getContainer().getItem(slot).isEmpty()) {
                     if (!itemExists && player.isCreative()) {
-                        player.getInventory().setSelectedSlot(slot);
+                        player.setSelectedHotbarSlot(slot);
                         player.getInventory().setSelectedItem(item);
                         return PacketSignal.HANDLED;
                     } else if (itemSlot > -1) {
-                        player.getInventory().setSelectedSlot(slot);
+                        player.setSelectedHotbarSlot(slot);
                         player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
                         player.getInventory().setItem(itemSlot, ItemStack.EMPTY);
                         return PacketSignal.HANDLED;
@@ -1419,25 +1433,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventoryManager().sendAllInventories();
                 break;
         }
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
-    public PacketSignal handle(PlayerHotbarPacket packet) {
-        if (packet.getContainerId() != ContainerId.INVENTORY) {
-            return PacketSignal.HANDLED; // This should never happen
-        }
-
-        int slot = packet.getSelectedHotbarSlot();
-        ItemStack heldItem = player.getInventory().getItem(slot);
-        PlayerItemHeldEvent itemHeldEvent = new PlayerItemHeldEvent(player, heldItem, slot);
-        player.getServer().getEventManager().fire(itemHeldEvent);
-        if (itemHeldEvent.isCancelled()) {
-            player.sendHeldItemSlot();
-            return PacketSignal.HANDLED;
-        }
-
-        player.setSelectedHotbarSlot(slot);
         return PacketSignal.HANDLED;
     }
 

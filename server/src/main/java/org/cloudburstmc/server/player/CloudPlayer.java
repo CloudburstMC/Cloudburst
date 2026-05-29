@@ -4064,6 +4064,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
+    public void acknowledgeHotbarSlot(int slot) {
+        this.selectedHotbarSlot = slot;
+    }
+
     public void sendInventoryContents() {
         this.onInventoryContentsChange(this.container);
     }
