@@ -538,7 +538,7 @@ public final class CloudChunk implements Chunk, Closeable {
             highestIdx--;
         }
 
-        int subChunkLimit = highestIdx;
+        int subChunkLimit = highestIdx + 1;
 
         ByteBuf buffer = ByteBufAllocator.DEFAULT.ioBuffer();
         try {

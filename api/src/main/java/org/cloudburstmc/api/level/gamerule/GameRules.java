@@ -22,6 +22,7 @@ public class GameRules {
     public static final BooleanGameRule LOCATOR_BAR = BooleanGameRule.of("locatorbar", true);
     public static final BooleanGameRule MOB_GRIEFING = BooleanGameRule.of("mobgriefing", true);
     public static final BooleanGameRule NATURAL_REGENERATION = BooleanGameRule.of("maturalregeneration", true);
+    public static final EnumGameRule<PlayerWaypointVisibility> PLAYER_WAYPOINTS = EnumGameRule.of("playerwaypoints", PlayerWaypointVisibility.class, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.OFF);
     public static final BooleanGameRule PROJECTILES_CAN_BREAK_BLOCKS = BooleanGameRule.of("projectilescanbreakblocks", true);
     public static final BooleanGameRule PVP = BooleanGameRule.of("pvp", true);
     public static final BooleanGameRule RESPAWN_BLOCKS_EXPLODE = BooleanGameRule.of("respawnblocksexplode", true);

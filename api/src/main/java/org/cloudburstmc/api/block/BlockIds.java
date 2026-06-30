@@ -1183,6 +1183,7 @@ public final class BlockIds {
     public static final Identifier SULFUR_BRICK_WALL = Identifier.parse("sulfur_brick_wall");
     public static final Identifier SULFUR_DOUBLE_SLAB = Identifier.parse("sulfur_double_slab");
     public static final Identifier SULFUR_SLAB = Identifier.parse("sulfur_slab");
+    public static final Identifier SULFUR_SPIKE = Identifier.parse("sulfur_spike");
     public static final Identifier SULFUR_STAIRS = Identifier.parse("sulfur_stairs");
     public static final Identifier SULFUR_WALL = Identifier.parse("sulfur_wall");
     public static final Identifier SUNFLOWER = Identifier.parse("sunflower");

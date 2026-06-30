@@ -40,6 +40,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<CreakingHeartState> CREAKING_HEART_STATE = EnumBlockTrait.of("creaking_heart_state", CreakingHeartState.class);
     public static final EnumBlockTrait<DripleafTilt> DRIPLEAF_TILT = EnumBlockTrait.of("dripleaf_tilt", "big_dripleaf_tilt", DripleafTilt.class);
     public static final EnumBlockTrait<DripstoneThickness> DRIPSTONE_THICKNESS = EnumBlockTrait.of("dripstone_thickness", DripstoneThickness.class);
+    public static final EnumBlockTrait<PotentSulfurState> POTENT_SULFUR_STATE = EnumBlockTrait.of("potent_sulfur_state", PotentSulfurState.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_EAST = EnumBlockTrait.of("pale_moss_carpet_side_east", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_NORTH = EnumBlockTrait.of("pale_moss_carpet_side_north", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_SOUTH = EnumBlockTrait.of("pale_moss_carpet_side_south", WallConnectionType.class);

@@ -48,7 +48,7 @@ public class CommandParameter {
     public String name;
     public CommandParamType type;
     public boolean optional;
-    public byte options = 0;
+    public Set<CommandParamOption> options = EnumSet.noneOf(CommandParamOption.class);
 
     public CommandEnum enumData;
     public String postFix;
@@ -64,6 +64,11 @@ public class CommandParameter {
         this.optional = optional;
     }
 
+    public CommandParameter(String name, CommandParamType type, boolean optional, CommandParamOption... options) {
+        this(name, type, optional);
+        Collections.addAll(this.options, options);
+    }
+
     public CommandParameter(String name, boolean optional) {
         this(name, CommandParamType.TEXT, optional);
     }
@@ -74,16 +79,21 @@ public class CommandParameter {
 
     public CommandParameter(String name, boolean optional, String enumType) {
         this.name = name;
-        this.type = CommandParamType.TEXT;
         this.optional = optional;
         this.enumData = new CommandEnum(enumType, new ArrayList<>());
     }
 
     public CommandParameter(String name, boolean optional, String[] enumValues) {
         this.name = name;
-        this.type = CommandParamType.TEXT;
         this.optional = optional;
         this.enumData = new CommandEnum(name + "Enums", Arrays.asList(enumValues));
+    }
+
+    public CommandParameter(String name, boolean optional, String enumName, String[] enumValues, CommandParamOption... options) {
+        this.name = name;
+        this.optional = optional;
+        this.enumData = new CommandEnum(enumName, Arrays.asList(enumValues));
+        Collections.addAll(this.options, options);
     }
 
     public CommandParameter(String name, String enumType) {
@@ -92,17 +102,6 @@ public class CommandParameter {
 
     public CommandParameter(String name, String[] enumValues) {
         this(name, false, enumValues);
-    }
-
-    protected CommandParamData toNetwork() {
-        CommandParamData data = new CommandParamData();
-        data.setName(this.name);
-        data.setOptional(this.optional);
-        data.setEnumData(this.enumData != null ? new CommandEnumData(this.name, toNetwork(this.enumData.getValues()), false) : null);
-        data.setType(PARAM_MAPPINGS.get(this.type));
-        data.setPostfix(this.postFix);
-
-        return data;
     }
 
     private static LinkedHashMap<String, Set<CommandEnumConstraint>> toNetwork(List<String> values) {
@@ -129,5 +128,19 @@ public class CommandParameter {
         }
 
         return CommandParamType.TEXT;
+    }
+
+    protected CommandParamData toNetwork() {
+        CommandParamData data = new CommandParamData();
+        data.setName(this.name);
+        data.setOptional(this.optional);
+        data.setEnumData(this.enumData != null ? new CommandEnumData(this.enumData.getName(),
+                toNetwork(this.enumData.getValues()),
+                false) : null);
+        data.setType(PARAM_MAPPINGS.get(this.type));
+        data.setPostfix(this.postFix);
+        data.getOptions().addAll(this.options);
+
+        return data;
     }
 }

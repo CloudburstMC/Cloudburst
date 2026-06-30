@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.gamerule.*;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +16,7 @@ import java.util.Set;
 public class CloudGameRuleRegistry implements GameRuleRegistry {
     private static final CloudGameRuleRegistry INSTANCE = new CloudGameRuleRegistry();
 
-    private final Map<String, GameRule<?>> registered = new HashMap<>();
+    private final Map<String, GameRule<?>> registered = new LinkedHashMap<>();
     private volatile boolean closed;
 
     private CloudGameRuleRegistry() {
@@ -32,7 +32,8 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
         Preconditions.checkState(!closed, "Registry has closed");
         Preconditions.checkNotNull(gameRule, "gameRule");
         Preconditions.checkArgument(gameRule instanceof BooleanGameRule ||
-                        gameRule instanceof IntegerGameRule || gameRule instanceof FloatGameRule,
+                        gameRule instanceof IntegerGameRule || gameRule instanceof FloatGameRule ||
+                        gameRule instanceof EnumGameRule,
                 "Invalid gamerule type given");
         Preconditions.checkArgument(this.registered.putIfAbsent(gameRule.getName().toLowerCase(), gameRule) == null,
                 "GameRule already registered");
@@ -89,12 +90,17 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
         this.register(GameRules.FALL_DAMAGE);
         this.register(GameRules.FIRE_DAMAGE);
         this.register(GameRules.FREEZE_DAMAGE);
+        this.register(GameRules.FUNCTION_COMMAND_LIMIT);
         this.register(GameRules.KEEP_INVENTORY);
         this.register(GameRules.LOCATOR_BAR);
+        this.register(GameRules.MAX_COMMAND_CHAIN_LENGTH);
         this.register(GameRules.MOB_GRIEFING);
         this.register(GameRules.NATURAL_REGENERATION);
+        this.register(GameRules.PLAYER_WAYPOINTS);
+        this.register(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
         this.register(GameRules.PROJECTILES_CAN_BREAK_BLOCKS);
         this.register(GameRules.PVP);
+        this.register(GameRules.RANDOM_TICK_SPEED);
         this.register(GameRules.RESPAWN_BLOCKS_EXPLODE);
         this.register(GameRules.SEND_COMMAND_FEEDBACK);
         this.register(GameRules.SHOW_BORDER_EFFECT);
@@ -103,12 +109,8 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
         this.register(GameRules.SHOW_DEATH_MESSAGES);
         this.register(GameRules.SHOW_RECIPE_MESSAGES);
         this.register(GameRules.SHOW_TAGS);
+        this.register(GameRules.SPAWN_RADIUS);
         this.register(GameRules.TNT_EXPLODES);
         this.register(GameRules.TNT_EXPLOSION_DROP_DECAY);
-        this.register(GameRules.FUNCTION_COMMAND_LIMIT);
-        this.register(GameRules.MAX_COMMAND_CHAIN_LENGTH);
-        this.register(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
-        this.register(GameRules.RANDOM_TICK_SPEED);
-        this.register(GameRules.SPAWN_RADIUS);
     }
 }

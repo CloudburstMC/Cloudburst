@@ -2,9 +2,9 @@ package org.cloudburstmc.server.command.defaults;
 
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.level.gamerule.GameRule;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.*;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamOption;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
@@ -12,7 +12,9 @@ import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
 import org.cloudburstmc.server.player.CloudPlayer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringJoiner;
 
 public class GameruleCommand extends Command {
@@ -23,10 +25,7 @@ public class GameruleCommand extends Command {
                 .setDescription("commands.gamerule.description")
                 .setUsageMessage("/gamerule <gamerule> [value]")
                 .setPermissions("cloudburst.command.gamerule")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("gamerule", true, registry.getRuleNames().toArray(new String[0])),
-                        new CommandParameter("value", CommandParamType.STRING, true)
-                })
+                .setParameters(createParameters())
                 .build());
     }
 
@@ -58,7 +57,7 @@ public class GameruleCommand extends Command {
                     return true;
                 }
 
-                sender.sendMessage(Component.text(gameRule.getName() + " = " + rules.get(gameRule).toString()));
+                sender.sendMessage(Component.text(gameRule.getName() + " = " + formatValue(gameRule, rules.get(gameRule))));
                 return true;
             default:
                 gameRule = registry.fromString(args[0]);
@@ -73,12 +72,55 @@ public class GameruleCommand extends Command {
                 try {
                     rules.put(gameRule, gameRule.parse(args[1]));
                     sender.sendMessage(Component.translatable("commands.gamerule.success", Component.text(gameRule.getName()), Component.text(args[1])));
-                } catch (NumberFormatException e) {
+                } catch (IllegalArgumentException e) {
                     sender.sendMessage(Component.translatable("commands.generic.syntax",
                             Component.text("/gamerule " + args[0] + " "), Component.text(args[1]),
                             Component.text(" " + String.join(" ", Arrays.copyOfRange(args, 2, args.length)))));
                 }
                 return true;
         }
+    }
+
+    private static String formatValue(GameRule<?> gameRule, Object value) {
+        if (gameRule instanceof EnumGameRule<?> enumGameRule) {
+            return enumGameRule.getSerializedValue((int) value);
+        }
+        return value.toString();
+    }
+
+    private static List<CommandParameter[]> createParameters() {
+        List<CommandParameter[]> parameters = new ArrayList<>();
+        List<String> booleanRules = new ArrayList<>();
+        List<String> integerRules = new ArrayList<>();
+
+        parameters.add(new CommandParameter[]{});
+        for (GameRule<?> rule : registry.getRules()) {
+            if (rule instanceof EnumGameRule<?> enumGameRule) {
+                parameters.add(new CommandParameter[]{
+                        new CommandParameter("rule", false, enumGameRule.getName() + "Rule", new String[]{enumGameRule.getName()}),
+                        new CommandParameter("value", false, enumGameRule.getName() + "Values", enumGameRule.getValues().toArray(new String[0]))
+                });
+            } else if (rule instanceof BooleanGameRule) {
+                booleanRules.add(rule.getName());
+            } else if (rule instanceof IntegerGameRule) {
+                integerRules.add(rule.getName());
+            }
+        }
+
+        if (!booleanRules.isEmpty()) {
+            parameters.add(new CommandParameter[]{
+                    new CommandParameter("rule", false, "BoolGameRule", booleanRules.toArray(new String[0]), CommandParamOption.HAS_SEMANTIC_CONSTRAINT),
+                    new CommandParameter("value", true, "Boolean", new String[]{"true", "false"})
+            });
+        }
+
+        if (!integerRules.isEmpty()) {
+            parameters.add(new CommandParameter[]{
+                    new CommandParameter("rule", false, "IntGameRule", integerRules.toArray(new String[0]), CommandParamOption.HAS_SEMANTIC_CONSTRAINT),
+                    new CommandParameter("value", CommandParamType.INT, true)
+            });
+        }
+
+        return parameters;
     }
 }

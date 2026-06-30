@@ -978,7 +978,7 @@ public class BlockTypes {
     public static final BlockType POPPY = BlockType.of(BlockIds.POPPY);
     public static final BlockType PORTAL = BlockType.of(BlockIds.PORTAL, BlockTraits.PORTAL_AXIS);
     public static final BlockType POTATOES = BlockType.of(BlockIds.POTATOES, BlockTraits.GROWTH);
-    public static final BlockType POTENT_SULFUR = BlockType.of(BlockIds.POTENT_SULFUR);
+    public static final BlockType POTENT_SULFUR = BlockType.of(BlockIds.POTENT_SULFUR, BlockTraits.POTENT_SULFUR_STATE);
     public static final BlockType POWDER_SNOW = BlockType.of(BlockIds.POWDER_SNOW);
     public static final BlockType POWERED_COMPARATOR = BlockType.of(BlockIds.POWERED_COMPARATOR, BlockTraits.CARDINAL_DIRECTION, BlockTraits.IS_OUTPUT_LIT, BlockTraits.IS_OUTPUT_SUBTRACT);
     public static final BlockType POWERED_REPEATER = BlockType.of(BlockIds.POWERED_REPEATER, BlockTraits.CARDINAL_DIRECTION, BlockTraits.REPEATER_DELAY);
@@ -1181,6 +1181,7 @@ public class BlockTypes {
     public static final BlockType SULFUR_BRICK_WALL = BlockType.of(BlockIds.SULFUR_BRICK_WALL, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
     public static final BlockType SULFUR_DOUBLE_SLAB = BlockType.of(BlockIds.SULFUR_DOUBLE_SLAB, BlockTraits.SLAB_SLOT);
     public static final BlockType SULFUR_SLAB = BlockType.of(BlockIds.SULFUR_SLAB, BlockTraits.SLAB_SLOT);
+    public static final BlockType SULFUR_SPIKE = BlockType.of(BlockIds.SULFUR_SPIKE, BlockTraits.DRIPSTONE_THICKNESS, BlockTraits.IS_HANGING);
     public static final BlockType SULFUR_STAIRS = BlockType.of(BlockIds.SULFUR_STAIRS, BlockTraits.DIRECTION, BlockTraits.IS_UPSIDE_DOWN);
     public static final BlockType SULFUR_WALL = BlockType.of(BlockIds.SULFUR_WALL, BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
     public static final BlockType SUNFLOWER = BlockType.of(BlockIds.SUNFLOWER, BlockTraits.IS_UPPER_BLOCK);

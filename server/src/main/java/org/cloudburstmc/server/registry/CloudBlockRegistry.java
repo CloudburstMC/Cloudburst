@@ -1559,6 +1559,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SULFUR_DOUBLE_SLAB);
         this.registerVanilla(SULFUR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(SULFUR_DOUBLE_SLAB));
         this.registerStairs(SULFUR_STAIRS);
+        this.registerVanilla(SULFUR_SPIKE);
         this.registerVanilla(SULFUR_WALL);
         this.registerVanilla(SUNFLOWER);
         this.registerVanilla(SUSPICIOUS_GRAVEL);

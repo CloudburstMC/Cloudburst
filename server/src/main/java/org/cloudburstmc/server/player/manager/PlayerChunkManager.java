@@ -55,7 +55,7 @@ public class PlayerChunkManager {
      * entity spawning. A chunk enters this set when
      * {@link #recordSubChunkServed} determines that the outstanding
      * section count for the column has reached zero. Chunks whose
-     * subChunkLimit is negative (entirely air columns) are promoted here
+     * subChunkLimit is zero (entirely air columns) are promoted here
      * immediately when the shell is sent, because the client will not
      * send any sub-chunk requests for them.
      */
@@ -65,13 +65,12 @@ public class PlayerChunkManager {
      * Outstanding sub-chunk section count per chunk key.
      * <p>
      * When a shell is dispatched with subChunkLimit N the client will request
-     * sections 0 through N inclusive, which is N + 1 requests in total.
-     * That count is stored here when the shell is sent. Each call to
+     * N sections in total. That count is stored here when the shell is sent. Each call to
      * {@link #recordSubChunkServed} decrements it by the number of sections
      * answered in that response. When the count reaches zero the key is
      * removed and the chunk is promoted to {@link #readyChunks}.
      * <p>
-     * Chunks with a negative subChunkLimit are entirely air so the client
+     * Chunks with a zero subChunkLimit are entirely air so the client
      * sends no section requests for them. Those chunks go directly to
      * readyChunks when the shell is sent.
      */
@@ -156,7 +155,7 @@ public class PlayerChunkManager {
                 int subChunkLimit = packet.getSubChunkLimit();
                 this.shellSentChunks.add(key);
 
-                if (subChunkLimit < 0) {
+                if (subChunkLimit <= 0) {
                     this.readyChunks.add(key);
 
                     CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
@@ -174,7 +173,7 @@ public class PlayerChunkManager {
                         }
                     }
                 } else {
-                    int pending = subChunkLimit + 1;
+                    int pending = subChunkLimit;
                     this.pendingSubChunks.put(key, pending);
                 }
 

@@ -27,7 +27,7 @@ dependencies {
     api(libs.leveldb.mcpe.jni)
     api(libs.noise)
 
-    compileOnly(libs.jsr305)
+    compileOnly(libs.spotbugs.annotations)
 
     implementation(libs.terminal.console.appender)
     implementation(libs.jline.terminal)
