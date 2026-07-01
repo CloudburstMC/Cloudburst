@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -25,11 +24,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.item.component.DefaultItemHandlers;
-import org.cloudburstmc.server.item.component.FireChargeItemHandlers;
-import org.cloudburstmc.server.item.component.FlintAndSteelItemHandlers;
-import org.cloudburstmc.server.item.component.MinecartItemHandlers;
-import org.cloudburstmc.server.item.component.SpawnEggItemHandlers;
+import org.cloudburstmc.server.item.component.*;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
@@ -41,9 +36,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Log4j2
 public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<CloudItemDefinition> {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
+    private static final String ITEM_ALIAS_PREFIX = "item.";
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
@@ -56,15 +51,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         try {
             this.registerVanillaBehaviors();
             this.registerVanillaItems();
-            this.registerVanillaIdentifiers();
             this.registerVanillaDataSerializers();
-
-//            for (ItemDefinition definition : itemPalette.getItemDefinitions()) {
-//                if (itemPalette.getDefinition(definition) == Integer.MAX_VALUE) {
-//                    System.out.println("Unimplemented item found: " + definition.getName());
-//                    registerType(ItemTypes.UNKNOWN, definition);
-//                }
-//            }
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -97,8 +84,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         Objects.requireNonNull(type, "type");
         checkClosed();
 
-        if (serializer != null) {
-            this.serializers.put(type, serializer);
+        if (getComponentMap(type) != null) {
+            VanillaRegistryDiagnostics.duplicateVanillaItem(type.getId());
+            return newUnregisteredComponentMap();
         }
 
         CloudComponentMap collection = new CloudComponentMap(this);
@@ -106,11 +94,30 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 
         collection.bake();
         putComponents(type, collection);
-        this.registerType(type, type.getId());
+
+        if (serializer != null) {
+            this.serializers.put(type, serializer);
+        }
+
+        this.registerItemType(type, type.getId());
         return collection;
     }
 
-    protected void registerBlock(BlockType type) {
+    protected synchronized void registerBlock(BlockType type) {
+        ItemType itemType = this.typeMap.get(type.getId());
+        if (itemType == null) {
+            itemType = ItemType.of(type.getId());
+        }
+        type.linkItemType(itemType);
+        this.typeMap.put(type.getId(), itemType);
+
+        if (getComponentMap(itemType) != null) {
+            if (itemType != ItemTypes.UNKNOWN) {
+                VanillaRegistryDiagnostics.duplicateBlockItem(itemType.getId());
+            }
+            return;
+        }
+
         CloudComponentMap collection = new CloudComponentMap(this);
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
@@ -121,11 +128,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         });
 
         collection.bake();
-
-        ItemType itemType = ItemType.of(type.getId());
-        type.linkItemType(itemType);
-        this.typeMap.put(type.getId(), itemType);
-
         putComponents(itemType, collection);
     }
 
@@ -231,6 +233,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     @Override
     public synchronized void close() throws RegistryException {
         checkClosed();
+        reconcileVanillaDefinitions();
+        VanillaRegistryDiagnostics.flush();
         this.closed = true;
 
         itemPalette.registerVanillaCreativeItems();
@@ -250,6 +254,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.ACACIA_BOAT);
         registerVanilla(ItemTypes.ACACIA_CHEST_BOAT);
         registerVanilla(ItemTypes.ACACIA_SIGN);
+        registerVanilla(ItemTypes.AGENT_SPAWN_EGG)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.AGENT));
         registerVanilla(ItemTypes.ALLAY_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ALLAY));
         registerVanilla(ItemTypes.AMETHYST_SHARD);
@@ -266,6 +272,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.AXOLOTL_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.AXOLOTL));
         registerVanilla(ItemTypes.BAKED_POTATO);
+        registerVanilla(ItemTypes.BALLOON);
         registerVanilla(ItemTypes.BAMBOO_CHEST_RAFT);
         registerVanilla(ItemTypes.BAMBOO_RAFT);
         registerVanilla(ItemTypes.BAMBOO_SIGN);
@@ -288,10 +295,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BLAZE_ROD);
         registerVanilla(ItemTypes.BLAZE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BLAZE));
+        registerVanilla(ItemTypes.BLEACH);
         registerVanilla(ItemTypes.BLUE_BUNDLE);
         registerVanilla(ItemTypes.BLUE_DYE);
         registerVanilla(ItemTypes.BLUE_EGG);
         registerVanilla(ItemTypes.BLUE_HARNESS);
+        registerVanilla(ItemTypes.BOARD);
         registerVanilla(ItemTypes.BOGGED_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BOGGED));
         registerVanilla(ItemTypes.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE);
@@ -352,6 +361,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.COMMAND_BLOCK_MINECART));
         registerVanilla(ItemTypes.COMPARATOR);
         registerVanilla(ItemTypes.COMPASS);
+        registerVanilla(ItemTypes.COMPOUND);
         registerVanilla(ItemTypes.COOKED_BEEF);
         registerVanilla(ItemTypes.COOKED_CHICKEN);
         registerVanilla(ItemTypes.COOKED_COD);
@@ -425,6 +435,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.ENCHANTED_BOOK);
         registerVanilla(ItemTypes.ENCHANTED_GOLDEN_APPLE);
         registerVanilla(ItemTypes.END_CRYSTAL);
+        registerVanilla(ItemTypes.ENDER_DRAGON_SPAWN_EGG)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ENDER_DRAGON));
         registerVanilla(ItemTypes.ENDER_EYE);
         registerVanilla(ItemTypes.ENDER_PEARL);
         registerVanilla(ItemTypes.ENDERMAN_SPAWN_EGG)
@@ -437,7 +449,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.EXPLORER_POTTERY_SHERD);
         registerVanilla(ItemTypes.EYE_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.FEATHER);
-        registerVanilla(ItemTypes.FENCE_GATE);
         registerVanilla(ItemTypes.FERMENTED_SPIDER_EYE);
         registerVanilla(ItemTypes.FIELD_MASONED_BANNER_PATTERN);
         registerVanilla(ItemTypes.FILLED_MAP);
@@ -468,6 +479,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GLOW_INK_SAC);
         registerVanilla(ItemTypes.GLOW_SQUID_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.GLOW_SQUID));
+        registerVanilla(ItemTypes.GLOW_STICK);
         registerVanilla(ItemTypes.GLOWSTONE_DUST);
         registerVanilla(ItemTypes.GOAT_HORN);
         registerVanilla(ItemTypes.GOAT_SPAWN_EGG)
@@ -516,6 +528,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.HOWL_POTTERY_SHERD);
         registerVanilla(ItemTypes.HUSK_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HUSK));
+        registerVanilla(ItemTypes.ICE_BOMB);
         registerVanilla(ItemTypes.INK_SAC);
         registerVanilla(ItemTypes.IRON_AXE);
         registerVanilla(ItemTypes.IRON_BOOTS);
@@ -557,6 +570,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LINGERING_POTION);
         registerVanilla(ItemTypes.LLAMA_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.LLAMA));
+        registerVanilla(ItemTypes.LODESTONE_COMPASS);
         registerVanilla(ItemTypes.MACE);
         registerVanilla(ItemTypes.MAGENTA_BUNDLE);
         registerVanilla(ItemTypes.MAGENTA_DYE);
@@ -567,6 +581,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.MANGROVE_BOAT);
         registerVanilla(ItemTypes.MANGROVE_CHEST_BOAT);
         registerVanilla(ItemTypes.MANGROVE_SIGN);
+        registerVanilla(ItemTypes.MEDICINE);
         registerVanilla(ItemTypes.MELON_SEEDS);
         registerVanilla(ItemTypes.MELON_SLICE);
         registerVanilla(ItemTypes.MILK_BUCKET);
@@ -584,6 +599,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.MUSIC_DISC_13);
         registerVanilla(ItemTypes.MUSIC_DISC_5);
         registerVanilla(ItemTypes.MUSIC_DISC_BLOCKS);
+        registerVanilla(ItemTypes.MUSIC_DISC_BOUNCE);
         registerVanilla(ItemTypes.MUSIC_DISC_CAT);
         registerVanilla(ItemTypes.MUSIC_DISC_CHIRP);
         registerVanilla(ItemTypes.MUSIC_DISC_CREATOR);
@@ -623,7 +639,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.NETHERITE_SPEAR);
         registerVanilla(ItemTypes.NETHERITE_SWORD);
         registerVanilla(ItemTypes.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.NOTEBLOCK);
+        registerVanilla(ItemTypes.NPC_SPAWN_EGG)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NPC));
         registerVanilla(ItemTypes.OAK_BOAT);
         registerVanilla(ItemTypes.OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.OAK_SIGN);
@@ -690,6 +707,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.RABBIT));
         registerVanilla(ItemTypes.RABBIT_STEW);
         registerVanilla(ItemTypes.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE);
+        registerVanilla(ItemTypes.RAPID_FERTILIZER);
         registerVanilla(ItemTypes.RAVAGER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.RAVAGER));
         registerVanilla(ItemTypes.RAW_COPPER);
@@ -722,7 +740,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SHULKER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SHULKER));
         registerVanilla(ItemTypes.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE);
-        registerVanilla(ItemTypes.SILVER_GLAZED_TERRACOTTA);
         registerVanilla(ItemTypes.SILVERFISH_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SILVERFISH));
         registerVanilla(ItemTypes.SKELETON_HORSE_SPAWN_EGG)
@@ -741,6 +758,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SNOW_GOLEM_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SNOW_GOLEM));
         registerVanilla(ItemTypes.SNOWBALL);
+        registerVanilla(ItemTypes.SPARKLER);
+        registerVanilla(ItemTypes.SPAWN_EGG);
         registerVanilla(ItemTypes.SPIDER_EYE);
         registerVanilla(ItemTypes.SPIDER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SPIDER));
@@ -767,6 +786,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.TRIP_WIRE.getDefaultState()));
         registerVanilla(ItemTypes.SUGAR);
         registerVanilla(ItemTypes.SUGAR_CANE);
+        registerVanilla(ItemTypes.SULFUR_CUBE_BUCKET);
+        registerVanilla(ItemTypes.SULFUR_CUBE_SPAWN_EGG)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SULFUR_CUBE));
         registerVanilla(ItemTypes.SUSPICIOUS_STEW);
         registerVanilla(ItemTypes.SWEET_BERRIES);
         registerVanilla(ItemTypes.TADPOLE_BUCKET);
@@ -779,7 +801,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.TOTEM_OF_UNDYING);
         registerVanilla(ItemTypes.TRADER_LLAMA_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TRADER_LLAMA));
-        registerVanilla(ItemTypes.TRAPDOOR);
         registerVanilla(ItemTypes.TRIAL_KEY);
         registerVanilla(ItemTypes.TRIDENT);
         registerVanilla(ItemTypes.TROPICAL_FISH);
@@ -816,19 +837,19 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WITCH));
         registerVanilla(ItemTypes.WITHER_SKELETON_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WITHER_SKELETON));
+        registerVanilla(ItemTypes.WITHER_SPAWN_EGG)
+                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WITHER));
         registerVanilla(ItemTypes.WOLF_ARMOR);
         registerVanilla(ItemTypes.WOLF_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WOLF));
         registerVanilla(ItemTypes.WOODEN_AXE);
-        registerVanilla(ItemTypes.WOODEN_BUTTON);
-        registerVanilla(ItemTypes.WOODEN_DOOR);
         registerVanilla(ItemTypes.WOODEN_HOE);
         registerVanilla(ItemTypes.WOODEN_PICKAXE);
-        registerVanilla(ItemTypes.WOODEN_PRESSURE_PLATE);
         registerVanilla(ItemTypes.WOODEN_SHOVEL);
         registerVanilla(ItemTypes.WOODEN_SPEAR);
         registerVanilla(ItemTypes.WOODEN_SWORD);
         registerVanilla(ItemTypes.WRITABLE_BOOK);
+        registerVanilla(ItemTypes.WRITTEN_BOOK);
         registerVanilla(ItemTypes.YELLOW_BUNDLE);
         registerVanilla(ItemTypes.YELLOW_DYE);
         registerVanilla(ItemTypes.YELLOW_HARNESS);
@@ -848,7 +869,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.UNKNOWN);
     }
 
-    private void registerType(ItemType type, Identifier id) {
+    private void registerItemType(ItemType type, Identifier id) {
         this.typeMap.put(id, type);
         int runtime = itemPalette.addItem(id);
         if (type == ItemTypes.SHIELD) {
@@ -856,13 +877,64 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         }
     }
 
-    private void registerType(ItemType type, Identifier... identifiers) {
-        for (Identifier id : identifiers) {
-            this.typeMap.put(id, type);
+    private void reconcileVanillaDefinitions() {
+        for (ItemDefinition definition : this.itemPalette.getItemDefinitions()) {
+            Identifier id = Identifier.parse(definition.getIdentifier());
+            if (isRegisteredOrAliased(id)) {
+                continue;
+            }
+
+            VanillaRegistryDiagnostics.missingVanillaItemDefinition(id);
+            this.typeMap.put(id, ItemTypes.UNKNOWN);
         }
     }
 
-    private void registerVanillaIdentifiers() {
+    private boolean isRegisteredOrAliased(Identifier id) {
+        if (this.typeMap.containsKey(id)) {
+            return true;
+        }
+
+        if (registerItemPrefixAlias(id)) {
+            return true;
+        }
+
+        return registerMappedAlias(id);
+    }
+
+    private boolean registerItemPrefixAlias(Identifier id) {
+        String name = id.getName();
+        if (!name.startsWith(ITEM_ALIAS_PREFIX)) {
+            return false;
+        }
+
+        Identifier baseId = Identifier.from(id.getNamespace(), name.substring(ITEM_ALIAS_PREFIX.length()));
+        ItemType type = this.typeMap.get(baseId);
+        if (type == null) {
+            return false;
+        }
+
+        this.typeMap.put(id, type);
+        return true;
+    }
+
+    private boolean registerMappedAlias(Identifier id) {
+        CloudItemDefinition mappedDefinition = this.itemPalette.getDefinition(id);
+        if (mappedDefinition == null) {
+            return false;
+        }
+
+        Identifier mappedId = Identifier.parse(mappedDefinition.getIdentifier());
+        if (mappedId.equals(id)) {
+            return false;
+        }
+
+        ItemType type = this.typeMap.get(mappedId);
+        if (type == null) {
+            return false;
+        }
+
+        this.typeMap.put(id, type);
+        return true;
     }
 
     private void registerVanillaDataSerializers() {

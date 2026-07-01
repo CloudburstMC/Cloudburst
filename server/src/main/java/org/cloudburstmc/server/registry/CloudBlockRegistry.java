@@ -2,7 +2,6 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
@@ -44,7 +43,6 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  * maintains a bidirectional {@link org.cloudburstmc.api.block.BlockState} ↔ network runtime-ID mapping,
  * and registers all block behaviors.
  */
-@Log4j2
 public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implements BlockRegistry {
     private static final HashBiMap<Identifier, Integer> VANILLA_LEGACY_IDS = HashBiMap.create();
     public static CloudBlockRegistry REGISTRY;
@@ -78,6 +76,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     @Override
     public synchronized CloudComponentMap register(BlockType type) throws RegistryException {
         checkNotNull(type, "type");
+        if (getComponentMap(type) != null) {
+            VanillaRegistryDiagnostics.duplicateBlock(type.getId());
+            return newUnregisteredComponentMap();
+        }
+
         CloudComponentMap behaviors = registerVanilla(type);
 
         // generate legacy ID (Not sure why we need to but it's a requirement)
@@ -95,12 +98,16 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         checkNotNull(serializer, "serializer");
         checkClosed();
 
+        if (getComponentMap(type) != null) {
+            VanillaRegistryDiagnostics.duplicateVanillaBlock(type.getId());
+            return newUnregisteredComponentMap();
+        }
+
         this.itemRegistry.registerBlock(type);
 
         CloudComponentMap collection = new CloudComponentMap(this);
 
         collection.bake();
-
         putComponents(type, collection);
 
         this.palette.addBlock(type, serializer);

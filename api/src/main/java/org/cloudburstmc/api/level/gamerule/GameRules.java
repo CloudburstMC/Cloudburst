@@ -19,7 +19,6 @@ public class GameRules {
     public static final BooleanGameRule FIRE_DAMAGE = BooleanGameRule.of("firedamage", true);
     public static final BooleanGameRule FREEZE_DAMAGE = BooleanGameRule.of("freezedamage", true);
     public static final BooleanGameRule KEEP_INVENTORY = BooleanGameRule.of("keepinventory", false);
-    public static final BooleanGameRule LOCATOR_BAR = BooleanGameRule.of("locatorbar", true);
     public static final BooleanGameRule MOB_GRIEFING = BooleanGameRule.of("mobgriefing", true);
     public static final BooleanGameRule NATURAL_REGENERATION = BooleanGameRule.of("maturalregeneration", true);
     public static final EnumGameRule<PlayerWaypointVisibility> PLAYER_WAYPOINTS = EnumGameRule.of("playerwaypoints", PlayerWaypointVisibility.class, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.OFF);

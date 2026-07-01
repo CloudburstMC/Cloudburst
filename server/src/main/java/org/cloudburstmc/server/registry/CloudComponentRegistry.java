@@ -65,6 +65,16 @@ public abstract class CloudComponentRegistry<T> implements ComponentRegistry<T> 
         checkState(typeComponentMaps.putIfAbsent(type, map) == null, "%s is already registered", type);
     }
 
+    protected CloudComponentMap getComponentMap(T type) {
+        return typeComponentMaps.get(type);
+    }
+
+    protected CloudComponentMap newUnregisteredComponentMap() {
+        CloudComponentMap map = new CloudComponentMap(this);
+        map.bake();
+        return map;
+    }
+
     @Override
     public ComponentMap getComponents(T type) {
         return typeComponentMaps.get(type);

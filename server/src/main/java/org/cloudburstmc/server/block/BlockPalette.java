@@ -20,6 +20,7 @@ import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.util.BlockStateHash;
+import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,20 +39,20 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
     private final Reference2ReferenceMap<BlockState, CloudBlockDefinition> stateDefinitionMap = new Reference2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<CloudBlockDefinition> runtimeDefinitionMap = new Int2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, CloudBlockDefinition> identifierFirstDefinitionMap = new Reference2ReferenceOpenHashMap<>();
-    private final AtomicInteger runtimeIdAllocator = new AtomicInteger();
 
     //NBT Mappings
-    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(new Hash.Strategy<NbtMap>() {
-        @Override
-        public int hashCode(NbtMap o) {
-            return mix32(o.hashCode());
-        }
+    private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(
+            new Hash.Strategy<NbtMap>() {
+                @Override
+                public int hashCode(NbtMap o) {
+                    return mix32(o.hashCode());
+                }
 
-        @Override
-        public boolean equals(NbtMap a, NbtMap b) {
-            return Objects.equals(a, b);
-        }
-    });
+                @Override
+                public boolean equals(NbtMap a, NbtMap b) {
+                    return Objects.equals(a, b);
+                }
+            });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
     private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
 
@@ -63,7 +64,6 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
     private final Reference2ObjectMap<BlockType, ReferenceSet<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
-    //private final Reference2ReferenceMap<Identifier, BlockState> stateMap = new Reference2ReferenceOpenHashMap<>();
 
     public void addBlock(BlockType type, BlockSerializer serializer) {
         if (this.defaultStateMap.containsKey(type.getId())) {
@@ -125,51 +125,18 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
             return;
         }
 
-        List<NbtMap> vanillaPalette;
-        InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("data/block_palette.nbt");
-
-        if (stream == null) {
-            throw new AssertionError("Unable to load block palette");
-        }
-
-        try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
-            NbtMap tag = (NbtMap) nbtStream.readTag();
-            vanillaPalette = tag.getList("blocks", NbtType.COMPOUND);
-        } catch (IOException e) {
-            throw new AssertionError("Unable to load block palette");
-        }
-
-        for (int i = 0; i < vanillaPalette.size(); i++) {
-            NbtMap entry = vanillaPalette.get(i);
-
-            NbtMapBuilder builder = entry.toBuilder();
-            builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
-            builder.remove("name_hash"); // Added in 1.19.20
-            builder.remove("network_id"); // Added in 1.19.80
-            builder.remove("block_id"); // Added in 1.20.60
-            NbtMap nbt = builder.build();
-
-            BlockState state = serializedStateMap.get(nbt);
+        List<NbtMap> vanillaPalette = loadVanillaPalette();
+        for (int runtimeId = 0; runtimeId < vanillaPalette.size(); runtimeId++) {
+            NbtMap entry = vanillaPalette.get(runtimeId);
+            NbtMap serializedState = stripRuntimeOnlyTags(entry);
+            BlockState state = serializedStateMap.get(serializedState);
 
             if (state == null) {
-                log.warn("Block state not implemented for nbt {}", nbt);
+                VanillaRegistryDiagnostics.missingVanillaBlockState(entry.getString("name"), serializedState.getCompound("states", NbtMap.EMPTY));
                 continue;
             }
 
-            int fnvHash = BlockStateHash.compute(entry.getString("name"), entry.getCompound("states", NbtMap.EMPTY));
-            long blockStateHash = Integer.toUnsignedLong(fnvHash);
-
-            CloudBlockDefinition definition = new CloudBlockDefinition(state, nbt, i, blockStateHash);
-            BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
-            if (shapes != null) {
-                float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
-                float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
-                state.initStateData(collision, outline);
-            }
-
-            this.runtimeDefinitionMap.put(i, definition);
-            this.stateDefinitionMap.putIfAbsent(state, definition);
-            this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(entry.getString("name")), definition);
+            registerRuntimeDefinition(runtimeId, entry, serializedState, state);
         }
     }
 
@@ -290,7 +257,41 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
         return ImmutableMap.copyOf(this.runtimeDefinitionMap);
     }
 
-    private static Collection<NbtMap> serialize(BlockType type, BlockSerializer serializer, Map<BlockTrait<?>, Comparable<?>> traits) {
+    private List<NbtMap> loadVanillaPalette() {
+        List<NbtMap> vanillaPalette;
+        InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("data/block_palette.nbt");
+        if (stream == null) {
+            throw new AssertionError("Unable to load block palette");
+        }
+
+        try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
+            NbtMap tag = (NbtMap) nbtStream.readTag();
+            vanillaPalette = tag.getList("blocks", NbtType.COMPOUND);
+        } catch (IOException e) {
+            throw new AssertionError("Unable to load block palette");
+        }
+
+        return vanillaPalette;
+    }
+
+    private void registerRuntimeDefinition(int runtimeId, NbtMap vanillaEntry, NbtMap serializedState, BlockState state) {
+        int fnvHash = BlockStateHash.compute(vanillaEntry.getString("name"), vanillaEntry.getCompound("states", NbtMap.EMPTY));
+        long blockStateHash = Integer.toUnsignedLong(fnvHash);
+
+        CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash);
+        BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
+        if (shapes != null) {
+            float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
+            float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
+            state.initStateData(collision, outline);
+        }
+
+        this.runtimeDefinitionMap.put(runtimeId, definition);
+        this.stateDefinitionMap.putIfAbsent(state, definition);
+        this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(vanillaEntry.getString("name")), definition);
+    }
+
+    private Collection<NbtMap> serialize(BlockType type, BlockSerializer serializer, Map<BlockTrait<?>, Comparable<?>> traits) {
         List<NbtMapBuilder> tags = new LinkedList<>();
         serializer.serialize(tags, type, traits);
 
@@ -304,5 +305,14 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
         }
 
         return tags.stream().map(NbtMapBuilder::build).collect(Collectors.toList());
+    }
+
+    private NbtMap stripRuntimeOnlyTags(NbtMap entry) {
+        NbtMapBuilder builder = entry.toBuilder();
+        builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
+        builder.remove("name_hash"); // Added in 1.19.20
+        builder.remove("network_id"); // Added in 1.19.80
+        builder.remove("block_id"); // Added in 1.20.60
+        return builder.build();
     }
 }

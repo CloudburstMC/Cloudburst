@@ -92,7 +92,6 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
         this.register(GameRules.FREEZE_DAMAGE);
         this.register(GameRules.FUNCTION_COMMAND_LIMIT);
         this.register(GameRules.KEEP_INVENTORY);
-        this.register(GameRules.LOCATOR_BAR);
         this.register(GameRules.MAX_COMMAND_CHAIN_LENGTH);
         this.register(GameRules.MOB_GRIEFING);
         this.register(GameRules.NATURAL_REGENERATION);
