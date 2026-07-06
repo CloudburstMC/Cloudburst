@@ -1,15 +1,18 @@
 package org.cloudburstmc.server.network.inventory;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.TextProcessingEventOrigin;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
+import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -30,6 +33,7 @@ public class ItemStackNetManager {
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
     private final Deque<CloudInventoryScreen> screenStack = new ArrayDeque<>();
     private final ItemStackRequestActionHandler handler;
+    private final Deque<ServerAuthoritativeInventoryUpdate> serverAuthoritativeUpdates = new ArrayDeque<>();
     private TextFilterState textFilterState;
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
@@ -50,6 +54,17 @@ public class ItemStackNetManager {
     public void handleSingleRequest(ItemStackRequest request) {
         this.requests.offer(request);
         processQueue();
+    }
+
+    public void acknowledgeLegacyTransaction(int requestId, List<LegacySetItemSlotData> legacySlots) {
+        if (requestId == 0 || legacySlots.isEmpty()) {
+            return;
+        }
+
+        ItemStackResponse response = this.handler.acknowledgeLegacyCurrentState(requestId, legacySlots);
+        ItemStackResponsePacket packet = new ItemStackResponsePacket();
+        packet.getEntries().add(response);
+        this.player.sendPacket(packet);
     }
 
     private void processQueue() {
@@ -112,6 +127,12 @@ public class ItemStackNetManager {
             return;
         }
 
+        ItemStackResponse authoritativeResponse = acknowledgeServerAuthoritativeUpdate(request, screen);
+        if (authoritativeResponse != null) {
+            responses.add(authoritativeResponse);
+            return;
+        }
+
         this.currentRequestIsCrafting = false;
         this.handler.beginRequest(request, screen);
 
@@ -127,6 +148,21 @@ public class ItemStackNetManager {
         responses.add(this.handler.endRequest());
     }
 
+    private ItemStackResponse acknowledgeServerAuthoritativeUpdate(ItemStackRequest request, CloudInventoryScreen screen) {
+        while (!this.serverAuthoritativeUpdates.isEmpty() && this.serverAuthoritativeUpdates.peekFirst().isExpired()) {
+            this.serverAuthoritativeUpdates.removeFirst();
+        }
+
+        Iterator<ServerAuthoritativeInventoryUpdate> iterator = this.serverAuthoritativeUpdates.iterator();
+        while (iterator.hasNext()) {
+            ServerAuthoritativeInventoryUpdate update = iterator.next();
+            if (update.matches(request)) {
+                iterator.remove();
+                return this.handler.acknowledgeCurrentState(request, screen);
+            }
+        }
+        return null;
+    }
 
     private boolean isRequestActionAllowed(ItemStackRequestAction action) {
         switch (action.getType()) {
@@ -175,6 +211,13 @@ public class ItemStackNetManager {
         return this.screenStack.peekLast();
     }
 
+    public void recordServerAuthoritativeArmorUse(int armorSlot) {
+        this.serverAuthoritativeUpdates.addLast(ServerAuthoritativeInventoryUpdate.armorUse(armorSlot));
+        while (this.serverAuthoritativeUpdates.size() > 8) {
+            this.serverAuthoritativeUpdates.removeFirst();
+        }
+    }
+
     public Set<Container> getAllInventories() {
         Set<Container> inventories = new HashSet<>();
         for (CloudInventoryScreen screen : this.screenStack) {
@@ -203,6 +246,51 @@ public class ItemStackNetManager {
                     textFilterRequestTick++;
                 }
                 break;
+        }
+    }
+
+    private record ServerAuthoritativeInventoryUpdate(Set<SlotRef> triggerSlots, long deadline) {
+        private static final long RESPONSE_WINDOW_NANOS = 2_000_000_000L;
+
+        private static ServerAuthoritativeInventoryUpdate armorUse(int armorSlot) {
+            Set<SlotRef> triggerSlots = new LinkedHashSet<>();
+            triggerSlots.add(new SlotRef(ContainerSlotType.ARMOR, armorSlot));
+            return new ServerAuthoritativeInventoryUpdate(triggerSlots, System.nanoTime() + RESPONSE_WINDOW_NANOS);
+        }
+
+        private boolean isExpired() {
+            return System.nanoTime() > this.deadline;
+        }
+
+        private boolean matches(ItemStackRequest request) {
+            for (ItemStackRequestAction action : request.getActions()) {
+                if (matches(action)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean matches(ItemStackRequestAction action) {
+            return switch (action) {
+                case TransferItemStackRequestAction transfer -> matches(transfer.getSource()) || matches(transfer.getDestination());
+                case SwapAction swap -> matches(swap.getSource()) || matches(swap.getDestination());
+                case DropAction drop -> matches(drop.getSource());
+                case DestroyAction destroy -> matches(destroy.getSource());
+                case ConsumeAction consume -> matches(consume.getSource());
+                default -> false;
+            };
+        }
+
+        private boolean matches(ItemStackRequestSlotData slotData) {
+            try {
+                return this.triggerSlots.contains(new SlotRef(ItemStackRequestActionHandler.container(slotData), slotData.getSlot()));
+            } catch (IllegalArgumentException ignored) {
+                return false;
+            }
+        }
+
+        private record SlotRef(ContainerSlotType container, int slot) {
         }
     }
 }

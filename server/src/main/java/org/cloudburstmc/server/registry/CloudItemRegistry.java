@@ -80,6 +80,30 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return registerVanilla(type, null);
     }
 
+    private void registerArmorHelmet(ItemType type) throws RegistryException {
+        this.registerVanilla(type)
+                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemComponents.USE, ArmorItemHandlers.helmet());
+    }
+
+    private void registerArmorChestplate(ItemType type) throws RegistryException {
+        this.registerVanilla(type)
+                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemComponents.USE, ArmorItemHandlers.chestplate());
+    }
+
+    private void registerArmorLeggings(ItemType type) throws RegistryException {
+        this.registerVanilla(type)
+                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemComponents.USE, ArmorItemHandlers.leggings());
+    }
+
+    private void registerArmorBoots(ItemType type) throws RegistryException {
+        this.registerVanilla(type)
+                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemComponents.USE, ArmorItemHandlers.boots());
+    }
+
     private synchronized CloudComponentMap registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
         Objects.requireNonNull(type, "type");
         checkClosed();
@@ -334,10 +358,10 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAT));
         registerVanilla(ItemTypes.CAVE_SPIDER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAVE_SPIDER));
-        registerVanilla(ItemTypes.CHAINMAIL_BOOTS);
-        registerVanilla(ItemTypes.CHAINMAIL_CHESTPLATE);
-        registerVanilla(ItemTypes.CHAINMAIL_HELMET);
-        registerVanilla(ItemTypes.CHAINMAIL_LEGGINGS);
+        registerArmorBoots(ItemTypes.CHAINMAIL_BOOTS);
+        registerArmorChestplate(ItemTypes.CHAINMAIL_CHESTPLATE);
+        registerArmorHelmet(ItemTypes.CHAINMAIL_HELMET);
+        registerArmorLeggings(ItemTypes.CHAINMAIL_LEGGINGS);
         registerVanilla(ItemTypes.CHARCOAL);
         registerVanilla(ItemTypes.CHERRY_BOAT);
         registerVanilla(ItemTypes.CHERRY_CHEST_BOAT);
@@ -371,15 +395,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COOKED_SALMON);
         registerVanilla(ItemTypes.COOKIE);
         registerVanilla(ItemTypes.COPPER_AXE);
-        registerVanilla(ItemTypes.COPPER_BOOTS);
-        registerVanilla(ItemTypes.COPPER_CHESTPLATE);
+        registerArmorBoots(ItemTypes.COPPER_BOOTS);
+        registerArmorChestplate(ItemTypes.COPPER_CHESTPLATE);
         registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COPPER_GOLEM));
-        registerVanilla(ItemTypes.COPPER_HELMET);
+        registerArmorHelmet(ItemTypes.COPPER_HELMET);
         registerVanilla(ItemTypes.COPPER_HOE);
         registerVanilla(ItemTypes.COPPER_HORSE_ARMOR);
         registerVanilla(ItemTypes.COPPER_INGOT);
-        registerVanilla(ItemTypes.COPPER_LEGGINGS);
+        registerArmorLeggings(ItemTypes.COPPER_LEGGINGS);
         registerVanilla(ItemTypes.COPPER_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.COPPER_NUGGET);
         registerVanilla(ItemTypes.COPPER_PICKAXE);
@@ -404,12 +428,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DARK_OAK_SIGN);
         registerVanilla(ItemTypes.DIAMOND);
         registerVanilla(ItemTypes.DIAMOND_AXE);
-        registerVanilla(ItemTypes.DIAMOND_BOOTS);
-        registerVanilla(ItemTypes.DIAMOND_CHESTPLATE);
-        registerVanilla(ItemTypes.DIAMOND_HELMET);
+        registerArmorBoots(ItemTypes.DIAMOND_BOOTS);
+        registerArmorChestplate(ItemTypes.DIAMOND_CHESTPLATE);
+        registerArmorHelmet(ItemTypes.DIAMOND_HELMET);
         registerVanilla(ItemTypes.DIAMOND_HOE);
         registerVanilla(ItemTypes.DIAMOND_HORSE_ARMOR);
-        registerVanilla(ItemTypes.DIAMOND_LEGGINGS);
+        registerArmorLeggings(ItemTypes.DIAMOND_LEGGINGS);
         registerVanilla(ItemTypes.DIAMOND_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.DIAMOND_PICKAXE);
         registerVanilla(ItemTypes.DIAMOND_SHOVEL);
@@ -429,7 +453,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.EGG);
         registerVanilla(ItemTypes.ELDER_GUARDIAN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ELDER_GUARDIAN));
-        registerVanilla(ItemTypes.ELYTRA);
+        registerArmorChestplate(ItemTypes.ELYTRA);
         registerVanilla(ItemTypes.EMERALD);
         registerVanilla(ItemTypes.EMPTY_MAP);
         registerVanilla(ItemTypes.ENCHANTED_BOOK);
@@ -488,13 +512,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.GOLDEN_APPLE);
         registerVanilla(ItemTypes.GOLDEN_AXE);
-        registerVanilla(ItemTypes.GOLDEN_BOOTS);
+        registerArmorBoots(ItemTypes.GOLDEN_BOOTS);
         registerVanilla(ItemTypes.GOLDEN_CARROT);
-        registerVanilla(ItemTypes.GOLDEN_CHESTPLATE);
-        registerVanilla(ItemTypes.GOLDEN_HELMET);
+        registerArmorChestplate(ItemTypes.GOLDEN_CHESTPLATE);
+        registerArmorHelmet(ItemTypes.GOLDEN_HELMET);
         registerVanilla(ItemTypes.GOLDEN_HOE);
         registerVanilla(ItemTypes.GOLDEN_HORSE_ARMOR);
-        registerVanilla(ItemTypes.GOLDEN_LEGGINGS);
+        registerArmorLeggings(ItemTypes.GOLDEN_LEGGINGS);
         registerVanilla(ItemTypes.GOLDEN_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.GOLDEN_PICKAXE);
         registerVanilla(ItemTypes.GOLDEN_SHOVEL);
@@ -531,15 +555,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.ICE_BOMB);
         registerVanilla(ItemTypes.INK_SAC);
         registerVanilla(ItemTypes.IRON_AXE);
-        registerVanilla(ItemTypes.IRON_BOOTS);
-        registerVanilla(ItemTypes.IRON_CHESTPLATE);
+        registerArmorBoots(ItemTypes.IRON_BOOTS);
+        registerArmorChestplate(ItemTypes.IRON_CHESTPLATE);
         registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.IRON_GOLEM));
-        registerVanilla(ItemTypes.IRON_HELMET);
+        registerArmorHelmet(ItemTypes.IRON_HELMET);
         registerVanilla(ItemTypes.IRON_HOE);
         registerVanilla(ItemTypes.IRON_HORSE_ARMOR);
         registerVanilla(ItemTypes.IRON_INGOT);
-        registerVanilla(ItemTypes.IRON_LEGGINGS);
+        registerArmorLeggings(ItemTypes.IRON_LEGGINGS);
         registerVanilla(ItemTypes.IRON_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.IRON_NUGGET);
         registerVanilla(ItemTypes.IRON_PICKAXE);
@@ -553,11 +577,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LAVA_BUCKET);
         registerVanilla(ItemTypes.LEAD);
         registerVanilla(ItemTypes.LEATHER);
-        registerVanilla(ItemTypes.LEATHER_BOOTS);
-        registerVanilla(ItemTypes.LEATHER_CHESTPLATE);
-        registerVanilla(ItemTypes.LEATHER_HELMET);
+        registerArmorBoots(ItemTypes.LEATHER_BOOTS);
+        registerArmorChestplate(ItemTypes.LEATHER_CHESTPLATE);
+        registerArmorHelmet(ItemTypes.LEATHER_HELMET);
         registerVanilla(ItemTypes.LEATHER_HORSE_ARMOR);
-        registerVanilla(ItemTypes.LEATHER_LEGGINGS);
+        registerArmorLeggings(ItemTypes.LEATHER_LEGGINGS);
         registerVanilla(ItemTypes.LIGHT_BLUE_BUNDLE);
         registerVanilla(ItemTypes.LIGHT_BLUE_DYE);
         registerVanilla(ItemTypes.LIGHT_BLUE_HARNESS);
@@ -625,13 +649,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.NETHERBRICK);
         registerVanilla(ItemTypes.NETHERITE_AXE);
-        registerVanilla(ItemTypes.NETHERITE_BOOTS);
-        registerVanilla(ItemTypes.NETHERITE_CHESTPLATE);
-        registerVanilla(ItemTypes.NETHERITE_HELMET);
+        registerArmorBoots(ItemTypes.NETHERITE_BOOTS);
+        registerArmorChestplate(ItemTypes.NETHERITE_CHESTPLATE);
+        registerArmorHelmet(ItemTypes.NETHERITE_HELMET);
         registerVanilla(ItemTypes.NETHERITE_HOE);
         registerVanilla(ItemTypes.NETHERITE_HORSE_ARMOR);
         registerVanilla(ItemTypes.NETHERITE_INGOT);
-        registerVanilla(ItemTypes.NETHERITE_LEGGINGS);
+        registerArmorLeggings(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.NETHERITE_PICKAXE);
         registerVanilla(ItemTypes.NETHERITE_SCRAP);
@@ -807,7 +831,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.TROPICAL_FISH_BUCKET);
         registerVanilla(ItemTypes.TROPICAL_FISH_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TROPICAL_FISH));
-        registerVanilla(ItemTypes.TURTLE_HELMET);
+        registerArmorHelmet(ItemTypes.TURTLE_HELMET);
         registerVanilla(ItemTypes.TURTLE_SCUTE);
         registerVanilla(ItemTypes.TURTLE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TURTLE));

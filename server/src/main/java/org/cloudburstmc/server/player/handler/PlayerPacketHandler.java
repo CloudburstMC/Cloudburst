@@ -68,6 +68,7 @@ import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -443,10 +444,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!item.isEmpty()) {
             ItemStack afterUse = level.tryUseItem(target, face, clickPos, item, player);
             if (afterUse != null) {
-                if (!player.isCreative()) {
-                    player.getInventory().setSelectedItem(afterUse);
-                }
-
+                player.getInventory().setSelectedItem(afterUse);
                 rollbackBlock(blockPos, face);
                 return;
             }
@@ -455,9 +453,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!item.isEmpty()) {
             ItemStack afterPlace = level.tryPlaceBlock(target, side, face, clickPos, item, player, true);
             if (afterPlace != null) {
-                if (!player.isCreative()) {
-                    player.getInventory().setSelectedItem(afterPlace);
-                }
+                player.getInventory().setSelectedItem(afterPlace);
                 return;
             }
         }
@@ -471,18 +467,18 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void handleItemUseInAir(@Nullable ItemData clientItemData, Direction face) {
-        ItemStack serverItem = player.getInventory().getSelectedItem();
+        ItemStack useItem = player.getInventory().getSelectedItem();
         if (isHeldItemDesynced(clientItemData)) {
             player.sendHeldItemSlot();
             return;
         }
 
-        if (player.isUsingItem()) {
+        if (player.isUsingItem() && ArmorItemHandlers.armorSlot(useItem) == -1) {
             return;
         }
 
         Vector3f directionVector = player.getDirectionVector();
-        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, serverItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
+        PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, useItem, directionVector, face, PlayerInteractEvent.Action.RIGHT_CLICK_AIR);
         player.getServer().getEventManager().fire(interactEvent);
 
         if (interactEvent.isCancelled()) {
@@ -490,10 +486,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        if (!serverItem.isEmpty()) {
+        if (!useItem.isEmpty()) {
             CloudLevel level = player.getLevel();
-            ItemStack afterUse = level.tryActivateItem(serverItem, player);
-            if (afterUse != null && !player.isCreative()) {
+            ItemStack afterUse = level.tryActivateItem(useItem, player);
+            if (afterUse != null) {
                 player.getInventory().setSelectedItem(afterUse);
             }
         }
@@ -739,27 +735,18 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        boolean offhand = packet.getContainerId() == ContainerId.OFFHAND;
-        ItemStack serverItem;
-        if (offhand) {
-            serverItem = player.getOffhand().getOffhandItem();
-        } else {
-            serverItem = player.getContainer().getItem(packet.getHotbarSlot());
-        }
-        ItemStack clientItem = ItemUtils.fromNetwork(packet.getItem());
-
-        if (!serverItem.isSimilar(clientItem)) {
-            log.debug("Tried to equip {} but have {} in target slot", clientItem, serverItem);
-            player.getInventoryManager().sendAllInventories();
+        if (packet.getContainerId() != ContainerId.INVENTORY) {
             return PacketSignal.HANDLED;
         }
-        if (offhand) {
-            player.getOffhand().setOffhandItem(serverItem);
-        } else {
-            int newSlot = packet.getHotbarSlot();
-            if (player.getSelectedHotbarSlot() != newSlot) {
-                applyClientHotbarSlot(newSlot);
-            }
+
+        int newSlot = packet.getHotbarSlot();
+        if (newSlot < 0 || newSlot > 8) {
+            player.sendHeldItemSlot();
+            return PacketSignal.HANDLED;
+        }
+
+        if (player.getSelectedHotbarSlot() != newSlot) {
+            applyClientHotbarSlot(newSlot);
         }
         player.setUsingItem(false);
 
@@ -1290,6 +1277,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
+        int packetHotbarSlot = packet.getHotbarSlot();
+        if (packetHotbarSlot >= 0 && packetHotbarSlot <= 8 && player.getSelectedHotbarSlot() != packetHotbarSlot) {
+            applyClientHotbarSlot(packetHotbarSlot);
+        }
+
         if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
             InventoryActionData bookAction = packet.getActions().get(0);
             if (bookAction.getSource().getType() == InventorySource.Type.CONTAINER
@@ -1365,6 +1357,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     default:
                         break;
                 }
+                player.getItemStackNetManager().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
                 return PacketSignal.HANDLED;
             case ITEM_USE_ON_ENTITY: {
                 Entity target = player.getLevel().getEntity(packet.getRuntimeEntityId());
@@ -1541,7 +1534,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
             if (sectionY < minSectionY || sectionY > maxSectionY) {
                 subChunkData.setResult(SubChunkRequestResult.INDEX_OUT_OF_BOUNDS);
-                subChunkData.setData(Unpooled.buffer(0));
+                subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1553,7 +1546,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
             if (chunk == null) {
                 subChunkData.setResult(SubChunkRequestResult.CHUNK_NOT_FOUND);
-                subChunkData.setData(Unpooled.buffer(0));
+                subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1613,11 +1606,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 subChunkData.setHeightMapType(hMapType);
                 subChunkData.setHeightMapData(heightMapBuf);
                 subChunkData.setRenderHeightMapType(hMapType);
-                subChunkData.setRenderHeightMapData(hMapType == HeightMapDataType.HAS_DATA ? Unpooled.copiedBuffer(heightMap) : Unpooled.buffer(0));
+                subChunkData.setRenderHeightMapData(hMapType == HeightMapDataType.HAS_DATA ? Unpooled.copiedBuffer(heightMap) : Unpooled.EMPTY_BUFFER);
 
                 if (section == null || section.isEmpty()) {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS_ALL_AIR);
-                    subChunkData.setData(Unpooled.buffer(0));
+                    subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 } else {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS);
 
