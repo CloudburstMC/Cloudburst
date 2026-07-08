@@ -31,11 +31,9 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.FloatItemHandler;
-import org.cloudburstmc.api.item.component.IntItemHandler;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
-import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
@@ -59,7 +57,6 @@ import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
@@ -76,7 +73,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
-import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
@@ -162,25 +158,27 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
 
+        processInputFlags(inputData);
+        processContinuousInputState(inputData);
+
         processMovement(packet);
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             processBlockActions(packet);
         }
 
-        processInputFlags(inputData);
-
-        boolean packetSneaking = inputData.contains(PlayerAuthInputData.SNEAKING);
-        if (packetSneaking != player.isSneaking()) {
-            player.setSneaking(packetSneaking);
-        }
-
-
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
             player.getItemStackNetManager().handleSingleRequest(packet.getItemStackRequest());
         }
 
         return PacketSignal.HANDLED;
+    }
+
+    private void processContinuousInputState(Set<PlayerAuthInputData> inputData) {
+        boolean packetSneaking = inputData.contains(PlayerAuthInputData.SNEAKING);
+        if (packetSneaking != player.isSneaking()) {
+            player.setSneaking(packetSneaking);
+        }
     }
 
     private void processMovement(PlayerAuthInputPacket packet) {
@@ -191,7 +189,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (player.getTeleportPosition() != null) {
             if (packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT)) {
-                player.setTeleportPosition(null);
+                Vector3f clientPosition = packet.getPosition().sub(0, player.getBaseOffset(), 0);
+                if (!player.acknowledgeTeleport(clientPosition)) {
+                    return;
+                }
             } else {
                 return;
             }
@@ -205,7 +206,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        Vector3f newPos = rawPos.sub(0, player.getEyeHeight(), 0);
+        Vector3f newPos = rawPos.sub(0, player.getBaseOffset(), 0);
         Vector3f currentPos = player.getPosition();
 
         float yaw = rawRot.getY() % 360;
@@ -404,7 +405,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 : ItemUtils.fromNetwork(clientItemData);
         ItemStack serverItem = player.getInventory().getSelectedItem();
         if (!serverItem.isSimilar(clientItem)) {
-            log.debug("{}'s held item desynced: server={} client={}", player.getName(), serverItem, clientItem);
             return true;
         }
         return false;
@@ -506,6 +506,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void processInputFlags(Set<PlayerAuthInputData> inputData) {
+        processGlidingInput(inputData);
+
         for (PlayerAuthInputData input : inputData) {
             switch (input) {
                 case START_SPRINTING:
@@ -572,43 +574,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     }
                     break;
                 case START_GLIDING:
-                    ItemStack chestplate = player.getArmor().getChestplate();
-                    if (chestplate.getType() != ItemTypes.ELYTRA) {
-                        player.sendFlags(player);
-                        break;
-                    }
-
-                    IntItemHandler maxDamageHandler = CloudItemRegistry.get().getComponent(chestplate.getType(), ItemComponents.GET_MAX_DAMAGE);
-                    if (maxDamageHandler != null) {
-                        int maxDamage = maxDamageHandler.execute(chestplate);
-                        Integer currentDamage = chestplate.get(ItemKeys.DAMAGE);
-                        if (maxDamage > 0 && currentDamage != null && currentDamage >= maxDamage) {
-                            player.sendFlags(player);
-                            break;
-                        }
-                    }
-
-                    if (player.getAbilities().get(org.cloudburstmc.api.player.Ability.FLYING)) {
-                        player.getAbilities().set(org.cloudburstmc.api.player.Ability.FLYING, false);
-                        player.getAbilities().update();
-                    }
-
-                    PlayerToggleGlideEvent glideEvent = new PlayerToggleGlideEvent(player, true);
-                    player.getServer().getEventManager().fire(glideEvent);
-                    if (glideEvent.isCancelled()) {
-                        player.sendFlags(player);
-                    } else {
-                        player.setGliding(true);
-                    }
-                    break;
                 case STOP_GLIDING:
-                    glideEvent = new PlayerToggleGlideEvent(player, false);
-                    player.getServer().getEventManager().fire(glideEvent);
-                    if (glideEvent.isCancelled()) {
-                        player.sendFlags(player);
-                    } else {
-                        player.setGliding(false);
-                    }
                     break;
                 case START_CRAWLING:
                     PlayerToggleCrawlEvent startCrawlEvent = new PlayerToggleCrawlEvent(player, true);
@@ -671,6 +637,29 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
         player.getData().update();
+    }
+
+    private void processGlidingInput(Set<PlayerAuthInputData> inputData) {
+        Set<PlayerAuthInputData> remainingInput = new HashSet<>(inputData);
+        for (PlayerAuthInputData input : inputData) {
+            remainingInput.remove(input);
+            switch (input) {
+                case START_GLIDING:
+                    if (!remainingInput.contains(PlayerAuthInputData.STOP_GLIDING)) {
+                        player.tryStartGliding();
+                    }
+                    break;
+                case STOP_GLIDING:
+                    if (player.isGliding()) {
+                        player.stopGliding();
+                    } else {
+                        player.sendFlags(player);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     @Override
@@ -1173,7 +1162,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(RequestChunkRadiusPacket packet) {
-        player.getChunkManager().setChunkRadius(packet.getRadius());
+        player.setChunkRadius(packet.getRadius());
         return PacketSignal.HANDLED;
     }
 
@@ -1663,12 +1652,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         response.setSubChunks(responseChunks);
         player.sendPacket(response);
 
-        PlayerChunkManager chunkManager = player.getChunkManager();
         servedPerColumn.long2IntEntrySet().forEach(entry -> {
             long key = entry.getLongKey();
             int chunkX2 = CloudChunk.fromKeyX(key);
             int chunkZ2 = CloudChunk.fromKeyZ(key);
-            chunkManager.recordSubChunkServed(chunkX2, chunkZ2, entry.getIntValue());
+            player.recordSubChunkServed(chunkX2, chunkZ2, entry.getIntValue());
         });
 
         return PacketSignal.HANDLED;

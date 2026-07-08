@@ -30,9 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * @author MagicDroidX
- */
 @Log4j2
 public abstract class BaseBlockEntity implements BlockEntity {
 
@@ -44,12 +41,15 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private final Vector3i position;
     private final CloudChunk chunk;
     private final CloudLevel level;
-    private NbtMap tag;
+
     public boolean movable = true;
     public boolean closed = false;
+
     protected long lastUpdate;
     protected CloudServer server;
     protected Timing timing;
+    private NbtMap tag;
+
     private String customName;
     private boolean justCreated = true;
 
@@ -215,13 +215,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
             return true;
         }
 
-        if (tag instanceof List) {
-            if (!(local instanceof List)) {
+        if (tag instanceof List vanillaList) {
+            if (!(local instanceof List localList)) {
                 return false;
             }
-
-            var localList = (List) local;
-            var vanillaList = (List) tag;
 
             if (localList.size() != vanillaList.size()) {
                 return false;
@@ -411,7 +408,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
             return;
         }
 
-        for (CloudPlayer player : this.getChunk().getPlayerLoaders()) {
+        for (CloudPlayer player : this.getChunk().getViewers()) {
             if (player.spawned) {
                 this.spawnTo(player);
             }

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.provider.anvil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.entity.EntityType;
@@ -28,12 +28,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+@Log4j2
 public class AnvilConverter {
 
     public static void convertToCloudburst(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
-
         NbtMap tag;
 
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf);
@@ -175,24 +173,34 @@ public class AnvilConverter {
 
     private static Location getLocation(NbtMap tag, CloudChunk chunk) {
         List<Float> pos = tag.getList("Pos", NbtType.FLOAT);
-        if (pos == null || pos.size() < 3) return null;
+        if (pos == null || pos.size() < 3) {
+            log.warn("Skipping legacy entity with invalid position in chunk {},{}", chunk.getX(), chunk.getZ());
+            return null;
+        }
 
         Vector3f position = Vector3f.from(pos.get(0), pos.get(1), pos.get(2));
-
         List<Float> rotation = tag.getList("Rotation", NbtType.FLOAT);
+        if (rotation == null || rotation.size() < 2) {
+            log.warn("Skipping legacy entity with invalid rotation in chunk {},{} at {}", chunk.getX(), chunk.getZ(), position);
+            return null;
+        }
+
         float yaw = rotation.get(0);
         float pitch = rotation.get(1);
 
-        checkArgument(position.getFloorX() >> 4 == chunk.getX() && position.getFloorZ() >> 4 == chunk.getZ(),
-                "Entity is not in chunk of origin");
+        int entityChunkX = position.getFloorX() >> 4;
+        int entityChunkZ = position.getFloorZ() >> 4;
+        if (entityChunkX != chunk.getX() || entityChunkZ != chunk.getZ()) {
+            String identifier = tag.containsKey("id") ? tag.getString("id") : "unknown";
+            log.warn("Skipping legacy entity {} stored in chunk {},{} but positioned in chunk {},{} at {}",
+                    identifier, chunk.getX(), chunk.getZ(), entityChunkX, entityChunkZ, position);
+            return null;
+        }
 
         return Location.from(position, yaw, pitch, chunk.getLevel());
     }
 
-    @RequiredArgsConstructor
-    private static class DataLoader implements ChunkDataLoader {
-        private final List<NbtMap> entityTags;
-
+    private record DataLoader(List<NbtMap> entityTags) implements ChunkDataLoader {
         @Override
         public boolean load(CloudChunk chunk) {
             EntityRegistry registry = EntityRegistry.get();
@@ -207,28 +215,27 @@ public class AnvilConverter {
                     dirty = true; // Entity doesn't have a location?!?
                     continue;
                 }
-                Vector3f position = location.getPosition();
-                if ((position.getFloorX() >> 4) != chunk.getX() || ((position.getFloorZ() >> 4) != chunk.getZ())) {
-                    dirty = true;
-                    continue;
-                }
                 Identifier identifier = registry.getIdentifier(entityTag.getString("id"));
                 if (identifier == null) {
                     dirty = true;
                     continue;
                 }
                 EntityType<?> type = registry.getEntityType(identifier);
-                CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
-                entity.loadAdditionalData(entityTag);
+                try {
+                    CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
+                    entity.loadAdditionalData(entityTag);
+                } catch (Exception e) {
+                    log.warn("Skipping invalid legacy entity data in chunk {},{}: {}", chunk.getX(), chunk.getZ(), e.toString());
+                    log.debug("Invalid legacy entity data", e);
+                    dirty = true;
+                }
             }
             return dirty;
         }
     }
 
-    @RequiredArgsConstructor
-    private static class TileLoader implements ChunkDataLoader {
+    private record TileLoader(List<NbtMap> tileTags) implements ChunkDataLoader {
         private static final BlockEntityRegistry REGISTRY = BlockEntityRegistry.get();
-        private final List<NbtMap> tileTags;
 
         @Override
         public boolean load(CloudChunk chunk) {
@@ -239,8 +246,10 @@ public class AnvilConverter {
                         dirty = true;
                         continue;
                     }
-                    Vector3i position = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("y"));
+                    Vector3i position = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
                     if ((position.getX() >> 4) != chunk.getX() || ((position.getZ() >> 4) != chunk.getZ())) {
+                        log.warn("Skipping legacy block entity {} stored in chunk {},{} but positioned at {}",
+                                tag.getString("id"), chunk.getX(), chunk.getZ(), position);
                         dirty = true;
                         continue;
                     }

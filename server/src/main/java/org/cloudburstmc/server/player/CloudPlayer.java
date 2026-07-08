@@ -4,6 +4,7 @@ import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,8 +39,11 @@ import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
+import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.IntItemHandler;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
@@ -54,6 +58,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.LoginChainData;
@@ -75,11 +80,7 @@ import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.*;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
@@ -150,6 +151,9 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
+    private static final int BEDROCK_FIREWORK_GLIDE_BOOST_DURATION = 1_000_000;
+    private static final float TELEPORT_ACK_DISTANCE_TOLERANCE = 1.0f;
+    private static final float TELEPORT_ACK_DISTANCE_TOLERANCE_SQUARED = TELEPORT_ACK_DISTANCE_TOLERANCE * TELEPORT_ACK_DISTANCE_TOLERANCE;
 
     protected final BedrockServerSession session;
     protected final PlayerData playerData = new PlayerData();
@@ -169,6 +173,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private final PlayerPacketHandler packetHandler;
     private final Map<Container, Byte> containerToWindowId = new HashMap<>();
     private final Map<Byte, Container> windowIdToContainer = new HashMap<>();
+    private final LongOpenHashSet attachedFireworkRockets = new LongOpenHashSet();
     private Container uiContainer;
     private ContainerSlotType uiContainerSlotType;
     private int uiContainerSlotOffset;
@@ -176,6 +181,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
     private final Queue<BedrockPacket> inboundQueue = new ConcurrentLinkedQueue<>();
     private final AtomicReference<Locale> locale = new AtomicReference<>(null);
+    @Getter
     private final PlayerChunkManager chunkManager = new PlayerChunkManager(this);
 
     public boolean spawned = false;
@@ -226,6 +232,8 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Getter
     @Setter
     private boolean clientCacheEnabled = false;
+    private boolean teleportAcknowledged;
+    private boolean pendingTeleportEntityViewRefresh;
     private boolean initialized;
     private boolean changingDimension = false;
     private byte containerIdCounter = 1;
@@ -255,6 +263,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.lastSkinChange = -1;
 
         this.loginChainData = chainData;
+        super.setSkin(chainData.getSkin());
 
         this.randomClientId = chainData.getClientId();
         this.identity = chainData.getClientUUID();
@@ -481,8 +490,17 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void spawnTo(CloudPlayer player) {
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
-                player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator()) {
+                player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator() &&
+                this.chunk != null && player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
+            if (this == player || this.getViewers().contains(player)) {
+                return;
+            }
+
             super.spawnTo(player);
+            if (!this.getViewers().contains(player)) {
+                return;
+            }
+
             player.sendPacket(buildArmorEquipmentPacket());
         }
     }
@@ -711,6 +729,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     @Override
     public void setSkin(Skin skin) {
         this.loginChainData.setSkin(skin);
+        super.setSkin(skin);
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
         }
@@ -1613,6 +1632,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             entityDataPk.setRuntimeEntityId(this.getRuntimeId());
             entityDataPk.setTick(this.clientTick);
             this.data.putFlagsIn(entityDataPk.getMetadata());
+            this.putNetworkBounds(entityDataPk.getMetadata());
             this.sendPacket(entityDataPk);
             CloudServer.broadcastPacket(this.getViewers(), entityDataPk);
         }
@@ -1747,18 +1767,32 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
                 SetEntityMotionPacket packet = new SetEntityMotionPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setMotion(motion);
+                packet.setTick(this.clientTick);
                 this.sendPacket(packet);  //Send to self
             }
 
-            if (this.getMotion().getY() > 0) {
-                //todo: check this
-                this.startAirTicks = (int) ((-(Math.log(this.getGravity() / (this.getGravity() + this.getDrag() * this.getMotion().getY()))) / this.getDrag()) * 2 + 5);
-            }
+            this.updateAirTicksFromMotion();
 
             return true;
         }
 
         return false;
+    }
+
+    public boolean setPredictedMotion(Vector3f motion) {
+        if (super.setMotion(motion)) {
+            this.updateAirTicksFromMotion();
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateAirTicksFromMotion() {
+        if (this.getMotion().getY() > 0) {
+            //todo: check this
+            this.startAirTicks = (int) ((-(Math.log(this.getGravity() / (this.getGravity() + this.getDrag() * this.getMotion().getY()))) / this.getDrag()) * 2 + 5);
+        }
     }
 
     public void sendAttributes() {
@@ -1852,13 +1886,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
             revert = true;
             revertReason = "speed";
-        } else {
-            int targetChunkX = newPosition.getFloorX() >> 4;
-            int targetChunkZ = newPosition.getFloorZ() >> 4;
-            CloudChunk targetChunk = this.getLevel().getLoadedChunk(targetChunkX, targetChunkZ);
-            if (targetChunk != null) {
-                this.chunk = targetChunk;
-            }
         }
 
         float tdx = newPosition.getX() - currentPos.getX();
@@ -1981,7 +2008,15 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
-        this.sendPosition(Vector3f.from(x, y - getBaseOffset() /*TODO: find better solution */, z), yaw, pitch, MovePlayerPacket.Mode.NORMAL, getViewers());
+        MovePlayerPacket packet = new MovePlayerPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setPosition(Vector3f.from(x, y, z));
+        packet.setRotation(Vector3f.from(pitch, yaw, headYaw));
+        packet.setOnGround(this.isNetworkOnGround());
+        packet.setMode(MovePlayerPacket.Mode.NORMAL);
+        packet.setTick(this.clientTick);
+
+        CloudServer.broadcastPacket(this.getViewers(), packet);
     }
 
     @Override
@@ -1991,13 +2026,34 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void sendMovementCorrection(Vector3f authoritativePos, long tick) {
         CorrectPlayerMovePredictionPacket correction = new CorrectPlayerMovePredictionPacket();
         correction.setPredictionType(PredictionType.PLAYER);
-        correction.setPosition(authoritativePos.add(0, getEyeHeight(), 0));
+        correction.setPosition(authoritativePos.add(0, getBaseOffset(), 0));
         correction.setDelta(Vector3f.ZERO);
         correction.setVehicleRotation(Vector2f.ZERO);
         correction.setVehicleAngularVelocity(0.0f);
-        correction.setOnGround(this.isOnGround());
+        correction.setOnGround(this.isNetworkOnGround());
         correction.setTick(tick);
         this.sendPacket(correction);
+    }
+
+    public void beginFireworkGlideBoost(long fireworkRuntimeId) {
+        if (this.attachedFireworkRockets.add(fireworkRuntimeId)) {
+            this.sendGlideBoost(BEDROCK_FIREWORK_GLIDE_BOOST_DURATION);
+        }
+    }
+
+    public void endFireworkGlideBoost(long fireworkRuntimeId) {
+        if (this.attachedFireworkRockets.remove(fireworkRuntimeId) && this.attachedFireworkRockets.isEmpty()) {
+            this.sendGlideBoost(0);
+        }
+    }
+
+    private void sendGlideBoost(int duration) {
+        MovementEffectPacket packet = new MovementEffectPacket();
+        packet.setEntityRuntimeId(this.getRuntimeId());
+        packet.setEffectType(MovementEffectType.GLIDE_BOOST);
+        packet.setDuration(duration);
+        packet.setTick(this.clientTick);
+        this.sendPacket(packet);
     }
 
     @Override
@@ -2036,6 +2092,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             if (this.spawned) {
                 Vector3f chunkCenter = this.newPosition != null ? this.newPosition : this.getPosition();
                 this.processMovement(tickDiff);
+                this.reconcileGlidingState();
                 this.getChunkManager().queueNewChunks(chunkCenter);
 
                 if (!this.isSpectator()) {
@@ -2105,6 +2162,98 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         }
 
         return true;
+    }
+
+    public void tryStartGliding() {
+        if (this.isGliding()) {
+            return;
+        }
+
+        if (!this.canStartGliding()) {
+            this.sendFlags(this);
+            return;
+        }
+
+        if (this.getAbilities().get(Ability.FLYING)) {
+            this.getAbilities().set(Ability.FLYING, false);
+            this.getAbilities().update();
+        }
+
+        this.sendArmorEquipmentToViewers();
+        this.setGlidingWithEvent(true);
+    }
+
+    public void stopGliding() {
+        if (!this.isGliding()) {
+            this.sendFlags(this);
+            return;
+        }
+
+        this.setGlidingWithEvent(false);
+    }
+
+    private void reconcileGlidingState() {
+        if (!this.isGliding()) {
+            return;
+        }
+
+        boolean hardInvalidState = !this.hasValidGlidingState();
+        if (!hardInvalidState) {
+            return;
+        }
+
+        this.setGlidingWithEvent(false);
+    }
+
+    private boolean setGlidingWithEvent(boolean gliding) {
+        PlayerToggleGlideEvent glideEvent = new PlayerToggleGlideEvent(this, gliding);
+        this.server.getEventManager().fire(glideEvent);
+        if (glideEvent.isCancelled()) {
+            this.sendFlags(this);
+            return false;
+        }
+
+        this.setGliding(gliding);
+        return true;
+    }
+
+    private boolean canStartGliding() {
+        if (this.isOnGround()) {
+            return false;
+        }
+
+        return this.hasValidGlidingState();
+    }
+
+    private boolean hasValidGlidingState() {
+        if (this.isInsideOfWater() || this.hasEffect(EffectTypes.LEVITATION)) {
+            return false;
+        }
+
+        return this.hasUsableElytraEquipped();
+    }
+
+    private boolean hasUsableElytraEquipped() {
+        ItemStack chestplate = this.getArmor().getChestplate();
+        if (chestplate.getType() != ItemTypes.ELYTRA) {
+            return false;
+        }
+
+        IntItemHandler maxDamageHandler = CloudItemRegistry.get().getComponent(chestplate.getType(), ItemComponents.GET_MAX_DAMAGE);
+        if (maxDamageHandler == null) {
+            return true;
+        }
+
+        int maxDamage = maxDamageHandler.execute(chestplate);
+        Integer currentDamage = chestplate.get(ItemKeys.DAMAGE);
+        return maxDamage <= 0 || currentDamage == null || currentDamage < maxDamage - 1;
+    }
+
+    private void sendArmorEquipmentToViewers() {
+        MobArmorEquipmentPacket armorPacket = buildArmorEquipmentPacket();
+        for (CloudPlayer viewer : this.getViewers()) {
+            viewer.sendPacket(armorPacket);
+        }
     }
 
     /**
@@ -2493,6 +2642,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.getChunkManager().setChunkRadius(chunkRadius);
     }
 
+    public void recordSubChunkServed(int chunkX, int chunkZ, int sectionsServed) {
+        this.getChunkManager().recordSubChunkServed(chunkX, chunkZ, sectionsServed);
+    }
+
     public String getXuid() {
         return this.getLoginChainData().isXboxAuthed() ? this.getLoginChainData().getXUID() : "";
     }
@@ -2646,10 +2799,6 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public void save() {
         this.save(false);
-    }
-
-    public PlayerChunkManager getChunkManager() {
-        return this.chunkManager;
     }
 
     public String getName() {
@@ -2985,10 +3134,11 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     public void sendPosition(Vector3f pos, double yaw, double pitch, MovePlayerPacket.Mode mode, Set<CloudPlayer> targets) {
         MovePlayerPacket packet = new MovePlayerPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setPosition(pos.add(0, getEyeHeight(), 0));
+        packet.setPosition(pos.add(0, getBaseOffset(), 0));
         packet.setRotation(Vector3f.from(pitch, yaw, yaw));
-        packet.setOnGround(this.isOnGround());
+        packet.setOnGround(this.isNetworkOnGround());
         packet.setMode(mode);
+        packet.setTick(this.clientTick);
         if (mode == MovePlayerPacket.Mode.TELEPORT) {
             packet.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
         }
@@ -2998,6 +3148,10 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         } else {
             this.sendPacket(packet);
         }
+    }
+
+    private boolean isNetworkOnGround() {
+        return this.isOnGround() && !this.isGliding();
     }
 
     @Override
@@ -3302,16 +3456,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
             if (!this.justCreated) {
 
-                Set<CloudPlayer> loaders = this.getChunk().getPlayerLoaders();
+                Set<CloudPlayer> viewers = this.getChunk().getViewers();
                 for (CloudPlayer player : this.hasSpawned) {
-                    if (!loaders.contains(player)) {
+                    if (!viewers.contains(player)) {
                         this.despawnFrom(player);
                     } else {
-                        loaders.remove(player);
+                        viewers.remove(player);
                     }
                 }
 
-                for (CloudPlayer player : loaders) {
+                for (CloudPlayer player : viewers) {
                     this.spawnTo(player);
                 }
             }
@@ -3321,6 +3475,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             }
 
             this.chunk.addEntity(this);
+            this.getChunkManager().spawnReadyEntitiesIn(this.chunk);
         }
     }
 
@@ -3506,21 +3661,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     protected boolean checkTeleportPosition() {
         if (this.teleportPosition != null) {
-            int chunkX = this.teleportPosition.getFloorX() >> 4;
-            int chunkZ = this.teleportPosition.getFloorZ() >> 4;
+            if (this.pendingTeleportEntityViewRefresh && !this.teleportAcknowledged) {
+                return false;
+            }
 
-            for (int X = -1; X <= 1; ++X) {
-                for (int Z = -1; Z <= 1; ++Z) {
-                    long index = CloudChunk.key(chunkX + X, chunkZ + Z);
-                    if (!this.getChunkManager().isChunkShellSent(index)) {
-                        return false;
-                    }
-                }
+            long teleportChunk = CloudChunk.key(this.teleportPosition.getFloorX() >> 4, this.teleportPosition.getFloorZ() >> 4);
+            if (!this.getChunkManager().isChunkSent(teleportChunk)) {
+                return false;
             }
 
             this.spawnToAll();
+            this.refreshEntityViewAfterTeleport();
             this.forceMovement = this.teleportPosition;
             this.teleportPosition = null;
+            this.teleportAcknowledged = false;
             return true;
         }
 
@@ -3543,12 +3697,16 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             to = event.getTo();
         }
 
+        this.getChunkManager().despawnVisibleEntities();
+
         // Suppress the EntityTeleportEvent here since PlayerTeleportEvent was already fired above.
         if (super.teleport(to, null)) {
             this.closeInventory(InventoryCloseEvent.Reason.TELEPORT);
 
             this.teleportPosition = this.getPosition();
             this.getChunkManager().queueNewChunks(this.teleportPosition);
+            this.teleportAcknowledged = false;
+            this.pendingTeleportEntityViewRefresh = true;
             this.forceMovement = this.teleportPosition;
             this.sendPosition(this.getPosition(), this.getYaw(), this.getPitch(), MovePlayerPacket.Mode.TELEPORT);
 
@@ -3566,7 +3724,33 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             return true;
         }
 
+        this.teleportAcknowledged = false;
+        this.pendingTeleportEntityViewRefresh = false;
+        this.getChunkManager().spawnReadyEntities();
         return false;
+    }
+
+    public boolean acknowledgeTeleport(Vector3f clientPosition) {
+        if (this.teleportPosition == null) {
+            return true;
+        }
+
+        if (clientPosition.distanceSquared(this.teleportPosition) > TELEPORT_ACK_DISTANCE_TOLERANCE_SQUARED) {
+            return false;
+        }
+
+        this.teleportAcknowledged = true;
+        this.checkTeleportPosition();
+        return this.teleportPosition == null;
+    }
+
+    private void refreshEntityViewAfterTeleport() {
+        if (!this.pendingTeleportEntityViewRefresh) {
+            return;
+        }
+
+        this.pendingTeleportEntityViewRefresh = false;
+        this.getChunkManager().refreshReadyEntities();
     }
 
     public boolean isChunkInView(int x, int z) {
@@ -3752,7 +3936,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         if (dimensionChanged) {
             ChangeDimensionPacket changeDim = new ChangeDimensionPacket();
             changeDim.setDimension(newDimension);
-            changeDim.setPosition(this.getPosition().add(0, this.getEyeHeight(), 0));
+            changeDim.setPosition(this.getPosition().add(0, this.getBaseOffset(), 0));
             changeDim.setRespawn(false);
             this.sendPacketImmediately(changeDim);
         }
@@ -3951,10 +4135,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
 
         if (inventory == this.armor.getContainer()) {
-            MobArmorEquipmentPacket armorPacket = buildArmorEquipmentPacket();
-            for (CloudPlayer viewer : this.getViewers()) {
-                viewer.sendPacket(armorPacket);
-            }
+            this.sendArmorEquipmentToViewers();
         }
     }
 

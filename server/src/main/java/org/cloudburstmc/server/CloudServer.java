@@ -819,6 +819,7 @@ public class CloudServer implements Server {
         entry.setEntityId(entityId);
         entry.setName(name);
         entry.setSkin(skin);
+        entry.setTrustedSkin(true);
         entry.setXuid(xboxUserId);
         entry.setPlatformChatId("");
         entry.setColor(parseSkinColor(skin.getSkinColor()));
@@ -857,6 +858,7 @@ public class CloudServer implements Server {
                     entry.setEntityId(p.getUniqueId());
                     entry.setName(BedrockLegacyTextSerializer.getInstance().serialize(p.displayName()));
                     entry.setSkin(p.getSerializedSkin());
+                    entry.setTrustedSkin(true);
                     entry.setXuid(p.getXuid());
                     entry.setPlatformChatId("");
                     entry.setColor(parseSkinColor(p.getSerializedSkin().getSkinColor()));

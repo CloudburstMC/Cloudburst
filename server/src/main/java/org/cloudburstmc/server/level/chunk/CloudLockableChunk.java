@@ -11,10 +11,12 @@ import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
@@ -223,7 +225,7 @@ public final class CloudLockableChunk extends LockableChunk {
     }
 
     @Override
-    public Set<? extends Player> getPlayerLoaders() {
-        return unsafe.getPlayerLoaders();
+    public Set<? extends Player> getViewers() {
+        return new HashSet<>(((CloudLevel) this.unsafe.getLevel()).getChunkPlayers(this.unsafe.getX(), this.unsafe.getZ()));
     }
 }

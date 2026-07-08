@@ -29,7 +29,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.io.Closeable;
-import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -48,12 +47,10 @@ public final class CloudChunk implements Chunk, Closeable {
 
     private final UnsafeChunk unsafe;
     private final Set<ChunkLoader> loaders = Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Set<CloudPlayer> playerLoaders = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final CloudLockableChunk readLockable;
     private final CloudLockableChunk writeLockable;
 
-    private SoftReference<LevelChunkPacket> cached = null;
     private Collection<ChunkDataLoader> chunkDataLoaders;
     private List<BlockUpdate> blockUpdates;
 
@@ -375,19 +372,19 @@ public final class CloudChunk implements Chunk, Closeable {
     @Synchronized("loaders")
     public void addLoader(ChunkLoader chunkLoader) {
         Preconditions.checkNotNull(chunkLoader, "chunkLoader");
-        this.loaders.add(chunkLoader);
         if (chunkLoader instanceof CloudPlayer) {
-            this.playerLoaders.add((CloudPlayer) chunkLoader);
+            return;
         }
+        this.loaders.add(chunkLoader);
     }
 
     @Synchronized("loaders")
     public void removeLoader(ChunkLoader chunkLoader) {
         Preconditions.checkNotNull(chunkLoader, "chunkLoader");
-        this.loaders.remove(chunkLoader);
         if (chunkLoader instanceof CloudPlayer) {
-            this.playerLoaders.remove(chunkLoader);
+            return;
         }
+        this.loaders.remove(chunkLoader);
     }
 
     @NonNull
@@ -402,22 +399,9 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @NonNull
-    @Synchronized("loaders")
-    public Set<CloudPlayer> getPlayerLoaders() {
-        return new HashSet<>(playerLoaders);
-    }
-
-    private void clearCache() {
-        if (this.cached != null) {
-            LevelChunkPacket packet = this.cached.get();
-            if (packet != null) {
-                ByteBuf data = packet.getData();
-                if (data != null && data.refCnt() > 0) {
-                    data.release();
-                }
-            }
-            this.cached = null;
-        }
+    @Override
+    public Set<CloudPlayer> getViewers() {
+        return new HashSet<>(((CloudLevel) this.unsafe.getLevel()).getChunkPlayers(this.getX(), this.getZ()));
     }
 
     public void tick(int tick) {
@@ -443,7 +427,6 @@ public final class CloudChunk implements Chunk, Closeable {
             }
             this.restoredTicks = null;
             this.chunkDataLoaders = null;
-            clearCache();
         } finally {
             this.writeLock.unlock();
         }
@@ -454,7 +437,6 @@ public final class CloudChunk implements Chunk, Closeable {
         this.writeLock.lock();
         try {
             unsafe.close();
-            clearCache();
         } finally {
             this.writeLock.unlock();
         }
@@ -502,22 +484,7 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     public LevelChunkPacket createChunkPacket() {
-        this.writeLock.lock();
-        try {
-            if (UnsafeChunk.CLEAR_CACHE_FIELD.compareAndSet(unsafe, 1, 0)) {
-                this.clearCache();
-            }
-
-            if (this.cached != null) {
-                LevelChunkPacket hit = this.cached.get();
-                if (hit != null) {
-                    return retainedCopy(hit);
-                }
-                this.cached = null;
-            }
-        } finally {
-            this.writeLock.unlock();
-        }
+        UnsafeChunk.CLEAR_CACHE_FIELD.set(unsafe, 0);
 
         int dimension;
         int sectionCount;
@@ -560,35 +527,16 @@ public final class CloudChunk implements Chunk, Closeable {
                 entry.setRequestSubChunks(true);
                 entry.setDimension(dimension);
                 entry.setData(buffer.retainedDuplicate());
-                this.cached = new SoftReference<>(entry);
-
-                return retainedCopy(entry);
+                return entry;
             } finally {
                 this.writeLock.unlock();
             }
         } catch (Exception e) {
             log.error("Error whilst encoding chunk", e);
-            this.writeLock.lock();
-            try {
-                this.cached = null;
-            } finally {
-                this.writeLock.unlock();
-            }
             throw new ChunkException("Unable to create chunk packet", e);
         } finally {
             buffer.release();
         }
-    }
-
-    private LevelChunkPacket retainedCopy(LevelChunkPacket source) {
-        LevelChunkPacket copy = new LevelChunkPacket();
-        copy.setChunkX(source.getChunkX());
-        copy.setChunkZ(source.getChunkZ());
-        copy.setSubChunkLimit(source.getSubChunkLimit());
-        copy.setRequestSubChunks(true);
-        copy.setDimension(source.getDimension());
-        copy.setData(source.getData().retainedDuplicate());
-        return copy;
     }
 
     public static int blockKey(Vector3i vector, int minHeight) {

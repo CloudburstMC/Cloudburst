@@ -1,12 +1,15 @@
 package org.cloudburstmc.server.entity.misc;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -17,22 +20,26 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
+import org.cloudburstmc.server.player.CloudPlayer;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * @author CreeperFace
- */
 public class EntityFireworksRocket extends CloudEntity implements FireworksRocket {
+    private static final double GLIDE_BOOST_TARGET_SPEED = 1.5;
+    private static final double GLIDE_BOOST_DIRECT_PUSH = 0.1;
+    private static final double GLIDE_BOOST_CORRECTION = 0.5;
+    private static final FireworkData DEFAULT_FIREWORK_DATA = FireworkData.of(List.of(), (byte) 1);
 
     private int life;
     private int lifetime;
 
     private ItemStack firework;
+    private CloudPlayer boostedPlayer;
 
     public EntityFireworksRocket(EntityType<FireworksRocket> type, Location location) {
         super(type, location);
@@ -47,12 +54,12 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
     protected void initEntity() {
         super.initEntity();
 
-        Random rand = ThreadLocalRandom.current();
-        this.lifetime = 30 + rand.nextInt(6) + rand.nextInt(7);
+        this.updateLifetime();
 
+        Random rand = ThreadLocalRandom.current();
         this.setMotion(Vector3f.from(rand.nextGaussian() * 0.001, 0.05, rand.nextGaussian() * 0.001));
 
-        this.data.set(DISPLAY_FIREWORK, NbtMap.EMPTY);
+        this.data.set(DISPLAY_FIREWORK, this.createFireworkDisplayData(DEFAULT_FIREWORK_DATA));
         this.data.set(DISPLAY_OFFSET, 0);
         this.data.set(CUSTOM_DISPLAY, (byte) 1);
     }
@@ -93,18 +100,11 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
         if (this.isAlive()) {
-
-            this.motion = motion.mul(1.15, 1.15, 0).add(0, 0, 0.04);
-            this.move(this.motion);
-
-            this.updateMovement();
-
-
-            float f = (float) Math.sqrt(this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ());
-            this.yaw = (float) (Math.atan2(this.motion.getX(), this.motion.getZ()) * (180D / Math.PI));
-
-            this.pitch = (float) (Math.atan2(this.motion.getY(), f) * (180D / Math.PI));
-
+            if (this.boostedPlayer != null) {
+                this.updateBoostedFlight();
+            } else {
+                this.updateFreeFlight();
+            }
 
             if (this.life == 0) {
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
@@ -133,6 +133,43 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
                 Math.abs(this.motion.getX()) > 0.00001 ||
                 Math.abs(this.motion.getY()) > 0.00001 ||
                 Math.abs(this.motion.getZ()) > 0.00001;
+    }
+
+    private void updateFreeFlight() {
+        this.motion = this.motion.mul(1.15, 1.0, 1.15).add(0, 0.04, 0);
+        this.setPosition(this.position.add(this.motion));
+        this.updateRotationFromMotion();
+        this.updateMovement();
+    }
+
+    private void updateBoostedFlight() {
+        if (!this.boostedPlayer.isOnline() || !this.boostedPlayer.isAlive()) {
+            this.clearBoostedPlayer();
+            return;
+        }
+
+        if (this.boostedPlayer.isGliding()) {
+            Vector3f look = this.boostedPlayer.getDirectionVector();
+            Vector3f playerMotion = this.boostedPlayer.getMotion();
+            Vector3f boost = Vector3f.from(
+                    look.getX() * GLIDE_BOOST_DIRECT_PUSH + (look.getX() * GLIDE_BOOST_TARGET_SPEED - playerMotion.getX()) * GLIDE_BOOST_CORRECTION,
+                    look.getY() * GLIDE_BOOST_DIRECT_PUSH + (look.getY() * GLIDE_BOOST_TARGET_SPEED - playerMotion.getY()) * GLIDE_BOOST_CORRECTION,
+                    look.getZ() * GLIDE_BOOST_DIRECT_PUSH + (look.getZ() * GLIDE_BOOST_TARGET_SPEED - playerMotion.getZ()) * GLIDE_BOOST_CORRECTION
+            );
+            this.boostedPlayer.setPredictedMotion(playerMotion.add(boost));
+        }
+
+        this.position = this.boostedPlayer.getPosition();
+        this.motion = this.boostedPlayer.getMotion();
+        this.recalculateBoundingBox();
+        this.updateRotationFromMotion();
+        this.updateMovement();
+    }
+
+    private void updateRotationFromMotion() {
+        float horizontalLength = (float) Math.sqrt(this.motion.getX() * this.motion.getX() + this.motion.getZ() * this.motion.getZ());
+        this.yaw = (float) (Math.atan2(this.motion.getX(), this.motion.getZ()) * (180D / Math.PI));
+        this.pitch = (float) (Math.atan2(this.motion.getY(), horizontalLength) * (180D / Math.PI));
     }
 
     @Override
@@ -166,15 +203,74 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
     @Override
     public FireworkData getFireworkData() {
-        return this.firework != null ? this.firework.get(ItemKeys.FIREWORK_DATA) : null;
+        FireworkData fireworkData = this.firework != null ? this.firework.get(ItemKeys.FIREWORK_DATA) : null;
+        return fireworkData != null ? fireworkData : DEFAULT_FIREWORK_DATA;
     }
 
     @Override
-    public void setFireworkData(FireworkData data) {
-        this.firework = ItemStack.builder(ItemTypes.FIREWORK_ROCKET)
-                .data(ItemKeys.FIREWORK_DATA, data)
+    public void setFireworkData(@Nullable FireworkData data) {
+        ItemStackBuilder builder = ItemStack.builder(ItemTypes.FIREWORK_ROCKET);
+        FireworkData fireworkData = data != null ? data : DEFAULT_FIREWORK_DATA;
+        builder.data(ItemKeys.FIREWORK_DATA, fireworkData);
+
+        this.firework = builder.build();
+        this.data.set(EntityDataTypes.DISPLAY_FIREWORK, this.createFireworkDisplayData(fireworkData));
+        this.updateLifetime();
+    }
+
+    private NbtMap createFireworkDisplayData(FireworkData fireworkData) {
+        return NbtMap.builder()
+                .putCompound("Fireworks", FireworkRocketSerializer.serializeFireworks(fireworkData))
                 .build();
-        this.data.set(EntityDataTypes.DISPLAY_FIREWORK, ItemUtils.serializeItem(this.firework));
+    }
+
+    @Override
+    public @Nullable Player getBoostedPlayer() {
+        return this.boostedPlayer;
+    }
+
+    @Override
+    public void setBoostedPlayer(@Nullable Player player) {
+        if (player == null) {
+            this.clearBoostedPlayer();
+            return;
+        }
+
+        if (this.boostedPlayer == player) {
+            return;
+        }
+
+        this.clearBoostedPlayer();
+
+        this.boostedPlayer = (CloudPlayer) player;
+        this.data.set(FIREWORK_SHOOTER_ID, this.boostedPlayer.getRuntimeId());
+        this.data.set(FIREWORK_DIRECTION, this.boostedPlayer.getDirectionVector());
+        this.boostedPlayer.beginFireworkGlideBoost(this.getRuntimeId());
+    }
+
+    private void clearBoostedPlayer() {
+        if (this.boostedPlayer != null) {
+            this.boostedPlayer.endFireworkGlideBoost(this.getRuntimeId());
+            this.boostedPlayer = null;
+        }
+    }
+
+    @Override
+    public void kill() {
+        this.clearBoostedPlayer();
+        super.kill();
+    }
+
+    @Override
+    public void close() {
+        this.clearBoostedPlayer();
+        super.close();
+    }
+
+    private void updateLifetime() {
+        Random rand = ThreadLocalRandom.current();
+        int flightLevel = 1 + this.getFireworkData().getFlightLevel();
+        this.lifetime = 10 * flightLevel + rand.nextInt(6) + rand.nextInt(7);
     }
 
     @Override

@@ -215,8 +215,7 @@ public abstract class CloudEntity implements Entity {
         this.data.set(AIR_SUPPLY_MAX, (short) 400);
         this.data.set(LEASH_HOLDER, -1L);
         this.data.set(SCALE, 1f);
-        this.data.set(HEIGHT, this.getHeight());
-        this.data.set(WIDTH, this.getWidth());
+        this.updateNetworkBounds();
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
 
         this.scheduleUpdate();
@@ -560,8 +559,27 @@ public abstract class CloudEntity implements Entity {
         this.boundingBox.setBounds(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
                 this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
 
-        this.data.set(HEIGHT, this.getHeight());
+        this.updateNetworkBounds();
+    }
+
+    private void updateNetworkBounds() {
         this.data.set(WIDTH, this.getWidth());
+        this.data.set(HEIGHT, this.getHeight());
+        if (this.isPlayer) {
+            this.data.set(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    protected void putNetworkBounds(EntityDataMap metadata) {
+        metadata.put(WIDTH, this.getWidth());
+        metadata.put(HEIGHT, this.getHeight());
+        if (this.isPlayer) {
+            metadata.put(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    private Vector3f getNetworkCollisionBox() {
+        return Vector3f.from(this.getWidth(), this.getHeight(), this.getLength());
     }
 
     protected void recalculateEffectColor() {
@@ -719,14 +737,30 @@ public abstract class CloudEntity implements Entity {
     }
 
     private void onDataChange(EntityDataMap changeSet) {
-        this.sendDataToViewers(changeSet);
+        EntityDataMap metadata = this.withPlayerPoseMetadata(changeSet);
+        this.sendDataToViewers(metadata);
 
         if (this.isPlayer) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(this.getRuntimeId());
-            packet.getMetadata().putAll(changeSet);
+            packet.getMetadata().putAll(metadata);
             ((CloudPlayer) this).sendPacket(packet);
         }
+    }
+
+    private EntityDataMap withPlayerPoseMetadata(EntityDataMap changeSet) {
+        if (!this.isPlayer || !changeSet.containsKey(FLAGS) || this.hasNetworkBounds(changeSet)) {
+            return changeSet;
+        }
+
+        EntityDataMap metadata = new EntityDataMap();
+        metadata.putAll(changeSet);
+        this.putNetworkBounds(metadata);
+        return metadata;
+    }
+
+    private boolean hasNetworkBounds(EntityDataMap metadata) {
+        return metadata.containsKey(HEIGHT) && metadata.containsKey(WIDTH) && metadata.containsKey(COLLISION_BOX);
     }
 
     public void sendData(CloudPlayer player) {
@@ -747,7 +781,6 @@ public abstract class CloudEntity implements Entity {
     public void sendData(CloudPlayer player, EntityDataType<?>... data) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-
         for (EntityDataType<?> entityData : data) {
             packet.getMetadata().put(entityData, this.data.get(entityData));
         }
@@ -758,8 +791,10 @@ public abstract class CloudEntity implements Entity {
     public void sendFlags(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-
         this.data.putFlagsIn(packet.getMetadata());
+        if (this.isPlayer) {
+            this.putNetworkBounds(packet.getMetadata());
+        }
 
         player.sendPacket(packet);
     }
@@ -1038,7 +1073,16 @@ public abstract class CloudEntity implements Entity {
                     if (!ev.isCancelled()) {
                         this.portalCooldown = getPortalCooldownTicks();
                         this.inPortalTicks = 0;
-                        Location newLoc = EnumLevel.moveToNether(this.getX(), this.getY(), this.getZ(), this.getYaw(), this.getPitch(), this.getLevel());
+
+                        Location newLoc = EnumLevel.moveToNether(
+                                this.getX(),
+                                this.getY(),
+                                this.getZ(),
+                                this.getYaw(),
+                                this.getPitch(),
+                                this.getLevel()
+                        );
+
                         if (newLoc != null) {
                             NetherPortals.handlePortalTransfer(this, newLoc);
                         }
@@ -1085,6 +1129,9 @@ public abstract class CloudEntity implements Entity {
         SetEntityMotionPacket packet = new SetEntityMotionPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.setMotion(motion);
+        if (this.isPlayer) {
+            packet.setTick(((CloudPlayer) this).getClientTick());
+        }
 
         CloudServer.broadcastPacket(this.hasSpawned, packet);
     }
@@ -1538,7 +1585,6 @@ public abstract class CloudEntity implements Entity {
                 .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
 
         return bb != null && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get() && !state.getType().hasTag(BlockTags.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
-
     }
 
     public boolean isInsideOfFire() {
@@ -1784,7 +1830,15 @@ public abstract class CloudEntity implements Entity {
 
             Vector3i pos = block.getPosition();
             if (state.getType() == PORTAL) {
-                AxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+                AxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(
+                        pos.getX(),
+                        pos.getY(),
+                        pos.getZ(),
+                        pos.getX() + 1,
+                        pos.getY() + 1,
+                        pos.getZ() + 1
+                );
+
                 if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
                     portal = true;
                     this.portalEntryBlock = pos;
@@ -1794,7 +1848,15 @@ public abstract class CloudEntity implements Entity {
 
             ComponentMap behaviors = block.getComponents();
             if (behaviors.get(BlockComponents.CAN_PASS_THROUGH).execute(state)) {
-                AxisAlignedBB unitBB = new SimpleAxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+                AxisAlignedBB unitBB = new SimpleAxisAlignedBB(
+                        pos.getX(),
+                        pos.getY(),
+                        pos.getZ(),
+                        pos.getX() + 1,
+                        pos.getY() + 1,
+                        pos.getZ() + 1
+                );
+
                 if (unitBB.intersectsWith(this.getBoundingBox())) {
                     behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
                 }
@@ -1859,16 +1921,16 @@ public abstract class CloudEntity implements Entity {
             }
 
             if (!this.justCreated) {
-                Set<CloudPlayer> loaders = chunk.getPlayerLoaders();
+                Set<CloudPlayer> viewers = chunk.getViewers();
                 for (Player player : this.hasSpawned) {
-                    if (!loaders.contains(player)) {
+                    if (!viewers.contains(player)) {
                         this.despawnFrom(player);
                     } else {
-                        loaders.remove(player);
+                        viewers.remove(player);
                     }
                 }
 
-                for (Player player : loaders) {
+                for (Player player : viewers) {
                     this.spawnTo(player);
                 }
             }

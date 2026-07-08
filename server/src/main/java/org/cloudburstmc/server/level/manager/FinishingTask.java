@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
@@ -12,31 +11,32 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.random.RandomGenerator;
 
 /**
  * Delegates chunk finishing to a {@link Generator}.
- *
- * @author DaPorkchop_
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FinishingTask implements BiFunction<CloudChunk, List<CloudChunk>, CloudChunk> {
     public static final FinishingTask INSTANCE = new FinishingTask();
 
     @Override
-    public CloudChunk apply(@NonNull CloudChunk chunk, List<CloudChunk> chunks) {
+    public CloudChunk apply(@NonNull CloudChunk chunk, List<CloudChunk> neighbors) {
         if (chunk.isFinished()) {
             return chunk;
         }
         Preconditions.checkState(chunk.isPopulated(), "Chunk %s,%s was finished before being populated!", chunk.getX(), chunk.getZ());
 
         RandomGenerator random = new FastPRandom(chunk.getX() * 9050650275199519859L ^ chunk.getZ() * 5251710924988638743L ^ chunk.getLevel().getSeed());
-
+        List<CloudChunk> chunks = new ArrayList<>(neighbors.size() + 1);
+        chunks.addAll(neighbors);
         chunks.add(chunk);
+
         LockableChunk[] lockableChunks = chunks.stream()
-                .peek(populationChunk -> Preconditions.checkState(populationChunk.isGenerated(), "Chunk %d,%d was used for finishing before being generated!", populationChunk.getX(), populationChunk.getZ()))
+                .peek(populationChunk -> Preconditions.checkState(populationChunk.isPopulated(), "Chunk %d,%d was used for finishing before being populated!", populationChunk.getX(), populationChunk.getZ()))
                 .map(Chunk::writeLockable)
                 .sorted()
                 .toArray(LockableChunk[]::new);

@@ -86,6 +86,7 @@ public class BlockEntitySerializer {
                     }
                     Vector3i position = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
                     if ((position.getX() >> 4) != chunk.getX() || ((position.getZ() >> 4) != chunk.getZ())) {
+                        log.warn("Skipping block entity {} stored in chunk {},{} but positioned at {}", tag.getString("id"), chunk.getX(), chunk.getZ(), position);
                         dirty = true;
                         continue;
                     }
@@ -99,8 +100,7 @@ public class BlockEntitySerializer {
                         }
                         blockEntity.loadAdditionalData(tag);
                     } catch (RegistryException e) {
-                        log.throwing(e);
-                        log.info("unknown: {}", tag.getString("id"));
+                        log.warn("Skipping unknown block entity {} in chunk {},{}", tag.getString("id"), chunk.getX(), chunk.getZ());
                         dirty = true;
                     }
                 }

@@ -259,10 +259,13 @@ public class ServerConfig {
     public static class ChunkGeneration {
 
         @Builder.Default
-        private int queueSize = 8;
+        private int loadConcurrency = 4;
 
         @Builder.Default
-        private int populationQueueSize = 8;
+        private int generationConcurrency = 0;
+
+        @Builder.Default
+        private int saveConcurrency = 8;
 
     }
 
@@ -309,13 +312,7 @@ public class ServerConfig {
         private int baseTickRate = 1;
 
         @Builder.Default
-        private int chunkTimeoutAfterLoad = 30;
-
-        @Builder.Default
         private String defaultFormat = "minecraft:leveldb";
-
-        @Builder.Default
-        private int chunkTimeoutAfterLastAccess = 120;
 
     }
 
@@ -397,6 +394,9 @@ public class ServerConfig {
 
         @Builder.Default
         private int maxChunkRadius = 10;
+
+        @Builder.Default
+        private int maxLoadedChunkRadius = 10;
 
         @Builder.Default
         private int perTick = 4;

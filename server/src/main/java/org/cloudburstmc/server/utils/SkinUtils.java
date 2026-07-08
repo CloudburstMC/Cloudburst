@@ -22,7 +22,7 @@ public class SkinUtils {
         newSkin.setSkinId(skin.getSkinId());
         newSkin.setPlayFabId(skin.getPlayFabId());
         newSkin.setSkinResourcePatch(skin.getSkinResourcePatch());
-        newSkin.setSkinData(new ImageData(skin.getSkinData().getWidth(), skin.getSkinData().getWidth(), skin.getSkinData().getImage()));
+        newSkin.setSkinData(new ImageData(skin.getSkinData().getWidth(), skin.getSkinData().getHeight(), skin.getSkinData().getImage()));
         List<SkinAnimation> animations = new ArrayList<>();
         for (AnimationData data : skin.getAnimations()) {
             animations.add(new SkinAnimation(
@@ -33,7 +33,7 @@ public class SkinUtils {
         }
         skin.getPersonaPieces().forEach((piece) -> newSkin.getPersonaPieces().add(new PersonaPiece(piece.getId(), piece.getType(), piece.getPackId(), piece.isDefault(), piece.getProductId())));
         skin.getTintColors().forEach(color -> newSkin.getTintColors().add(new PersonaPieceTint(color.getType(), color.getColors())));
-        newSkin.setCapeData(new ImageData(skin.getCapeData().getWidth(), skin.getCapeData().getWidth(), skin.getCapeData().getImage()));
+        newSkin.setCapeData(new ImageData(skin.getCapeData().getWidth(), skin.getCapeData().getHeight(), skin.getCapeData().getImage()));
         newSkin.setGeometryData(skin.getGeometryData());
         newSkin.setAnimationData(skin.getAnimationData());
         newSkin.setPremium(skin.isPremium());

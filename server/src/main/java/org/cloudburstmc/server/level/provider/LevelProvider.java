@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.provider;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
@@ -23,12 +24,13 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
     String getLevelId();
 
     /**
-     * Reads chunk from provider asynchronously
+     * Reads chunk from provider.
      *
      * @param chunkBuilder builder
-     * @return future when chunk is loaded. Will return null if the chunk does not exist
+     * @return chunk or null if the chunk does not exist
      */
-    CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder);
+    @Nullable
+    CloudChunk readChunk(ChunkBuilder chunkBuilder);
 
     /**
      * Saves chunk to provider asynchronously

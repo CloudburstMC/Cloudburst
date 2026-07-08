@@ -10,12 +10,14 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.Closeable;
@@ -428,13 +430,13 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
     @Override
-    public Set<CloudPlayer> getLoaders() {
-        return players;
+    public Set<? extends ChunkLoader> getLoaders() {
+        return Collections.emptySet();
     }
 
     @Override
-    public Set<CloudPlayer> getPlayerLoaders() {
-        return players;
+    public Set<CloudPlayer> getViewers() {
+        return new HashSet<>(((CloudLevel) this.level).getChunkPlayers(this.x, this.z));
     }
 
     @Override

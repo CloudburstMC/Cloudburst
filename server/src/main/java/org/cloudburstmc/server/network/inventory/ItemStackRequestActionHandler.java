@@ -594,14 +594,11 @@ public class ItemStackRequestActionHandler {
             putCurrentStateSlot(slots, ContainerSlotType.OFFHAND, slot, this.player.getOffhand().getOffhandItem());
             return;
         }
-
-        log.debug("Ignoring unsupported legacy slot {} in container {} while acknowledging request for {}", slot, containerId, player.getName());
     }
 
     private void trackLegacyPlayerInventorySlot(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, int slot) {
         int inventorySlot = normalizeInventorySlot(slot);
         if (inventorySlot < 0 || inventorySlot >= this.player.getInventory().size()) {
-            log.debug("Ignoring out-of-bounds legacy inventory slot {} while acknowledging request for {}", slot, player.getName());
             return;
         }
 
@@ -612,7 +609,6 @@ public class ItemStackRequestActionHandler {
     private void trackLegacyProtocolInventorySlot(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, ContainerSlotType containerType, int slot) {
         int inventorySlot = normalizeInventorySlot(slot);
         if (inventorySlot < 0 || inventorySlot >= this.player.getInventory().size()) {
-            log.debug("Ignoring out-of-bounds legacy {} slot {} while acknowledging request for {}", containerType, slot, player.getName());
             return;
         }
 
@@ -621,7 +617,6 @@ public class ItemStackRequestActionHandler {
 
     private void trackLegacyArmorSlot(Map<ContainerSlotType, Map<Integer, ItemStack>> slots, int slot) {
         if (slot < 0 || slot >= 4) {
-            log.debug("Ignoring out-of-bounds legacy armor slot {} while acknowledging request for {}", slot, player.getName());
             return;
         }
 

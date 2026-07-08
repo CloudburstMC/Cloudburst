@@ -21,7 +21,7 @@ import java.util.function.LongConsumer;
 import static com.google.common.base.Preconditions.checkArgument;
 
 @Log4j2
-public class PlayerChunkManager {
+public final class PlayerChunkManager {
 
     private final CloudPlayer player;
 
@@ -77,6 +77,13 @@ public class PlayerChunkManager {
     private final Long2IntMap pendingSubChunks = new Long2IntOpenHashMap();
 
     /**
+     * Chunk keys inside the view radius whose load/serialize work has not
+     * started yet. This keeps one join from scheduling the entire view radius
+     * into generation at once.
+     */
+    private final LongList loadQueue = new LongArrayList();
+
+    /**
      * Pending serialized shell packets waiting to be sent, keyed by chunk
      * key. A {@code null} value means async serialization is still in
      * flight. The entry is present from the moment serialization starts
@@ -84,21 +91,21 @@ public class PlayerChunkManager {
      */
     private final Long2ObjectMap<LevelChunkPacket> sendQueue = new Long2ObjectOpenHashMap<>();
 
+    private final LongSet retainedChunks = new LongOpenHashSet();
+
+    private final LongComparator distanceSorter = this::compareDistanceToPlayer;
     private final AtomicLong chunksSentCounter = new AtomicLong();
-    private final LongConsumer removeChunkLoader;
-    private volatile int radius;
+    private final LongConsumer removeChunkView;
+
+    private volatile int chunkRadius;
+
+    private int lastQueuedChunkX = Integer.MIN_VALUE;
+    private int lastQueuedChunkZ = Integer.MIN_VALUE;
+    private int lastQueuedChunkRadius = Integer.MIN_VALUE;
 
     public PlayerChunkManager(CloudPlayer player) {
         this.player = player;
-        this.removeChunkLoader = chunkKey -> {
-            CloudChunk chunk = this.player.getLevel().getLoadedChunk(chunkKey);
-            if (chunk != null) {
-                chunk.removeLoader(this.player);
-                for (Entity entity : chunk.getEntities()) {
-                    entity.despawnFrom(this.player);
-                }
-            }
-        };
+        this.removeChunkView = key -> this.updateEntityViewsInChunk(key, EntityViewUpdate.DESPAWN);
     }
 
     /**
@@ -119,23 +126,17 @@ public class PlayerChunkManager {
         }
 
         for (long key : keysToDiscard) {
-            this.sendQueue.remove(key);
-            this.removeChunkLoader.accept(key);
+            this.release(this.sendQueue.remove(key));
+            this.releaseChunk(key);
+            this.removeChunkView.accept(key);
         }
 
-        int centerX = this.player.getPosition().getFloorX() >> 4;
-        int centerZ = this.player.getPosition().getFloorZ() >> 4;
+        this.scheduleQueuedChunkLoads(chunksPerTick);
 
         LongList list = new LongArrayList(this.sendQueue.keySet());
 
         try (Timing ignored = Timings.playerChunkOrderTimer.startTiming()) {
-            list.unstableSort((a, b) -> {
-                int ax = CloudChunk.fromKeyX(a) - centerX;
-                int az = CloudChunk.fromKeyZ(a) - centerZ;
-                int bx = CloudChunk.fromKeyX(b) - centerX;
-                int bz = CloudChunk.fromKeyZ(b) - centerZ;
-                return Integer.compare(ax * ax + az * az, bx * bx + bz * bz);
-            });
+            list.unstableSort(this.distanceSorter);
         }
 
         try (Timing ignored = Timings.playerChunkSendTimer.startTiming()) {
@@ -150,13 +151,17 @@ public class PlayerChunkManager {
                 }
 
                 this.sendQueue.remove(key);
-                this.player.sendPacket(packet);
+                if (!this.player.sendPacket(packet)) {
+                    this.release(packet);
+                    continue;
+                }
 
                 int subChunkLimit = packet.getSubChunkLimit();
                 this.shellSentChunks.add(key);
 
                 if (subChunkLimit <= 0) {
                     this.readyChunks.add(key);
+                    this.spawnEntityViewsInChunk(key);
 
                     CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
                     checkArgument(
@@ -166,12 +171,6 @@ public class PlayerChunkManager {
                             CloudChunk.fromKeyZ(key),
                             this.player.getName()
                     );
-
-                    for (Entity entity : chunk.getEntities()) {
-                        if (entity != this.player && !entity.isClosed() && entity.isAlive()) {
-                            entity.spawnTo(this.player);
-                        }
-                    }
                 } else {
                     int pending = subChunkLimit;
                     this.pendingSubChunks.put(key, pending);
@@ -181,6 +180,8 @@ public class PlayerChunkManager {
                 this.chunksSentCounter.incrementAndGet();
             }
         }
+
+        this.scheduleQueuedChunkLoads(chunksPerTick);
     }
 
     /**
@@ -210,13 +211,77 @@ public class PlayerChunkManager {
         this.pendingSubChunks.remove(key);
         this.readyChunks.add(key);
 
+        this.spawnEntityViewsInChunk(key);
+    }
+
+    public synchronized void despawnVisibleEntities() {
+        this.updateEntityViewsInChunks(this.viewChunks, EntityViewUpdate.DESPAWN);
+    }
+
+    public synchronized void spawnReadyEntities() {
+        this.updateEntityViewsInChunks(this.readyChunks, EntityViewUpdate.SPAWN);
+    }
+
+    public synchronized void refreshReadyEntities() {
+        this.updateEntityViewsInChunks(this.readyChunks, EntityViewUpdate.REFRESH);
+    }
+
+    public synchronized void spawnReadyEntitiesIn(CloudChunk chunk) {
+        if (chunk == null) {
+            return;
+        }
+
+        long key = chunk.key();
+        if (this.readyChunks.contains(key)) {
+            this.updateEntityViewsInChunk(key, EntityViewUpdate.SPAWN);
+        }
+    }
+
+    private void spawnEntityViewsInChunk(long key) {
+        this.updateEntityViewsInChunk(key, EntityViewUpdate.SPAWN);
+    }
+
+    private void updateEntityViewsInChunks(LongCollection chunks, EntityViewUpdate update) {
+        LongList chunkSnapshot = new LongArrayList(chunks);
+        for (long key : chunkSnapshot) {
+            this.updateEntityViewsInChunk(key, update);
+        }
+    }
+
+    private void updateEntityViewsInChunk(long key, EntityViewUpdate update) {
         CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
         if (chunk == null) {
             return;
         }
 
         for (Entity entity : chunk.getEntities()) {
-            if (entity != this.player && !entity.isClosed() && entity.isAlive()) {
+            this.updateEntityViewIfVisible(entity, update);
+        }
+
+        for (CloudPlayer player : chunk.getPlayers()) {
+            this.updateEntityViewIfVisible(player, update);
+        }
+    }
+
+    private boolean canUpdateEntityView(Entity entity, EntityViewUpdate update) {
+        if (entity == this.player) {
+            return false;
+        }
+        return update == EntityViewUpdate.DESPAWN || !entity.isClosed() && entity.isAlive();
+    }
+
+    private void updateEntityViewIfVisible(Entity entity, EntityViewUpdate update) {
+        if (this.canUpdateEntityView(entity, update)) {
+            this.updateEntityView(entity, update);
+        }
+    }
+
+    private void updateEntityView(Entity entity, EntityViewUpdate update) {
+        switch (update) {
+            case SPAWN -> entity.spawnTo(this.player);
+            case DESPAWN -> entity.despawnFrom(this.player);
+            case REFRESH -> {
+                entity.despawnFrom(this.player);
                 entity.spawnTo(this.player);
             }
         }
@@ -231,11 +296,17 @@ public class PlayerChunkManager {
     }
 
     public synchronized void queueNewChunks(int chunkX, int chunkZ) {
-        int radius = this.getChunkRadius();
+        int radius = this.chunkRadius;
+        if (chunkX == this.lastQueuedChunkX && chunkZ == this.lastQueuedChunkZ && radius == this.lastQueuedChunkRadius) {
+            return;
+        }
+
+        this.lastQueuedChunkX = chunkX;
+        this.lastQueuedChunkZ = chunkZ;
+        this.lastQueuedChunkRadius = radius;
+
         int radiusSqr = radius * radius;
 
-        LongSet chunksForRadius = new LongOpenHashSet();
-        LongSet previousView = new LongOpenHashSet(this.viewChunks);
         LongList chunksToLoad = new LongArrayList();
 
         for (int x = -radius; x <= radius; ++x) {
@@ -248,112 +319,192 @@ public class PlayerChunkManager {
                 int cz = chunkZ + z;
                 long key = CloudChunk.key(cx, cz);
 
-                chunksForRadius.add(key);
                 if (this.viewChunks.add(key)) {
                     chunksToLoad.add(key);
                 }
             }
         }
 
-        boolean viewChanged = this.viewChunks.retainAll(chunksForRadius);
-
-        this.shellSentChunks.retainAll(this.viewChunks);
-        this.readyChunks.retainAll(this.viewChunks);
-        this.pendingSubChunks.keySet().retainAll(this.viewChunks);
-
-        if (viewChanged || !chunksToLoad.isEmpty()) {
-            NetworkChunkPublisherUpdatePacket publisherPacket = new NetworkChunkPublisherUpdatePacket();
-            publisherPacket.setPosition(this.player.getPosition().toInt());
-            publisherPacket.setRadius(this.radius);
-            this.player.sendPacket(publisherPacket);
-        }
-
-        chunksToLoad.unstableSort((a, b) -> {
-            int ax = CloudChunk.fromKeyX(a) - chunkX;
-            int az = CloudChunk.fromKeyZ(a) - chunkZ;
-            int bx = CloudChunk.fromKeyX(b) - chunkX;
-            int bz = CloudChunk.fromKeyZ(b) - chunkZ;
-            return Integer.compare(ax * ax + az * az, bx * bx + bz * bz);
-        });
-
-        for (long key : chunksToLoad.toLongArray()) {
-            final int cx = CloudChunk.fromKeyX(key);
-            final int cz = CloudChunk.fromKeyZ(key);
-
-            if (this.sendQueue.putIfAbsent(key, null) == null) {
-                Executor asyncExecutor = ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor();
-                this.player.getLevel().getChunkFuture(cx, cz)
-                        .thenApplyAsync(chunk -> {
-                            chunk.addLoader(this.player);
-                            return chunk;
-                        }, asyncExecutor)
-                        .thenApplyAsync(
-                                CloudChunk::createChunkPacket,
-                                asyncExecutor
-                        )
-                        .whenCompleteAsync((packet, throwable) -> {
-                            synchronized (PlayerChunkManager.this) {
-                                if (throwable != null) {
-                                    if (this.sendQueue.remove(key, null)) {
-                                        this.viewChunks.remove(key);
-                                    }
-                                    log.error(
-                                            "Unable to create chunk packet for {}",
-                                            this.player.getName(),
-                                            throwable
-                                    );
-                                } else if (!this.sendQueue.replace(key, null, packet)) {
-                                    if (this.sendQueue.containsKey(key)) {
-                                        log.warn(
-                                                "Chunk ({},{}) already queued for {}, dropping duplicate",
-                                                cx, cz,
-                                                this.player.getName()
-                                        );
-                                    }
-                                }
-                            }
-                        }, asyncExecutor);
+        LongList chunksToRemove = new LongArrayList();
+        for (long key : this.viewChunks) {
+            int dx = CloudChunk.fromKeyX(key) - chunkX;
+            int dz = CloudChunk.fromKeyZ(key) - chunkZ;
+            if ((dx * dx) + (dz * dz) > radiusSqr) {
+                chunksToRemove.add(key);
             }
         }
 
-        previousView.removeAll(chunksForRadius);
-        previousView.forEach(this.removeChunkLoader);
+        for (long key : chunksToRemove) {
+            this.viewChunks.remove(key);
+            this.shellSentChunks.remove(key);
+            this.readyChunks.remove(key);
+            this.pendingSubChunks.remove(key);
+            this.removeFromView(key);
+        }
+
+        for (int i = this.loadQueue.size() - 1; i >= 0; i--) {
+            if (!this.viewChunks.contains(this.loadQueue.getLong(i))) {
+                this.loadQueue.removeLong(i);
+            }
+        }
+
+        if (!chunksToRemove.isEmpty() || !chunksToLoad.isEmpty()) {
+            NetworkChunkPublisherUpdatePacket publisherPacket = new NetworkChunkPublisherUpdatePacket();
+            publisherPacket.setPosition(this.player.getPosition().toInt());
+            publisherPacket.setRadius(this.chunkRadius << 4);
+            this.player.sendPacket(publisherPacket);
+        }
+
+        chunksToLoad.unstableSort(this.distanceSorter);
+
+        for (long key : chunksToLoad) {
+            if (!this.loadQueue.contains(key)) {
+                this.loadQueue.add(key);
+            }
+        }
+
+        this.scheduleQueuedChunkLoads(this.player.getServer().getConfig().getChunkSending().getPerTick());
     }
 
-    public int getRadius() {
-        return radius;
+    private void scheduleQueuedChunkLoads(int chunksPerTick) {
+        if (chunksPerTick <= 0 || this.loadQueue.isEmpty()) {
+            return;
+        }
+
+        int maxActive = Math.max(chunksPerTick * 4, chunksPerTick);
+        int loadsToStart = Math.min(chunksPerTick, maxActive - this.sendQueue.size());
+        while (loadsToStart > 0 && !this.loadQueue.isEmpty()) {
+            long key = this.loadQueue.removeLong(0);
+            if (!this.viewChunks.contains(key) || this.shellSentChunks.contains(key) || this.sendQueue.containsKey(key)) {
+                continue;
+            }
+
+            this.startChunkLoad(key);
+            loadsToStart--;
+        }
     }
 
-    public void setRadius(int radius) {
-        if (this.radius != radius) {
-            this.radius = radius;
-            ChunkRadiusUpdatedPacket packet = new ChunkRadiusUpdatedPacket();
-            packet.setRadius(radius >> 4);
-            this.player.sendPacket(packet);
-            this.queueNewChunks();
+    private void startChunkLoad(long key) {
+        final int cx = CloudChunk.fromKeyX(key);
+        final int cz = CloudChunk.fromKeyZ(key);
+
+        if (this.sendQueue.containsKey(key)) {
+            return;
+        }
+        this.sendQueue.put(key, null);
+        this.retainChunk(key);
+
+        Executor asyncExecutor = ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor();
+        this.player.getLevel().getChunkFuture(cx, cz)
+                .thenApplyAsync(chunk -> {
+                    synchronized (PlayerChunkManager.this) {
+                        return this.viewChunks.contains(key) && this.sendQueue.containsKey(key) ? chunk : null;
+                    }
+                }, asyncExecutor)
+                .thenApplyAsync(
+                        chunk -> chunk == null ? null : chunk.createChunkPacket(),
+                        asyncExecutor
+                )
+                .whenCompleteAsync((packet, throwable) -> {
+                    synchronized (PlayerChunkManager.this) {
+                        if (throwable != null) {
+                            if (this.sendQueue.remove(key, null)) {
+                                this.viewChunks.remove(key);
+                                this.removeFromView(key);
+                                this.invalidateQueuedCenter();
+                            }
+                            log.error("Unable to create chunk packet for {}", this.player.getName(), throwable);
+                        } else if (packet == null) {
+                            this.sendQueue.remove(key, null);
+                        } else if (!this.sendQueue.replace(key, null, packet)) {
+                            this.release(packet);
+                            if (this.sendQueue.containsKey(key)) {
+                                log.warn("Chunk ({},{}) already queued for {}, dropping duplicate", cx, cz, this.player.getName());
+                            }
+                        }
+                    }
+                }, asyncExecutor);
+    }
+
+    private void release(LevelChunkPacket packet) {
+        if (packet != null && packet.refCnt() > 0) {
+            packet.release();
+        }
+    }
+
+    private void removeFromView(long key) {
+        for (int i = this.loadQueue.size() - 1; i >= 0; i--) {
+            if (this.loadQueue.getLong(i) == key) {
+                this.loadQueue.removeLong(i);
+            }
+        }
+        if (this.sendQueue.containsKey(key)) {
+            this.release(this.sendQueue.remove(key));
+        }
+        this.releaseChunk(key);
+        this.removeChunkView.accept(key);
+    }
+
+    private void retainChunk(long key) {
+        if (this.retainedChunks.add(key)) {
+            this.player.getLevel().addPlayerViewChunkTicket(key, this.player);
+        }
+    }
+
+    private void releaseChunk(long key) {
+        if (this.retainedChunks.remove(key)) {
+            this.player.getLevel().removePlayerViewChunkTicket(key, this.player);
         }
     }
 
     public int getChunkRadius() {
-        return this.radius >> 4;
+        return this.chunkRadius;
     }
 
     public void setChunkRadius(int chunkRadius) {
         chunkRadius = GenericMath.clamp(
                 chunkRadius,
                 8,
-                this.player.getServer().getConfig().getChunkSending().getMaxChunkRadius()
+                this.getMaxChunkRadius()
         );
-        this.setRadius(chunkRadius << 4);
+
+        if (this.chunkRadius != chunkRadius) {
+            this.chunkRadius = chunkRadius;
+            ChunkRadiusUpdatedPacket packet = new ChunkRadiusUpdatedPacket();
+            packet.setRadius(chunkRadius);
+            this.player.sendPacket(packet);
+            this.queueNewChunks();
+        }
+    }
+
+    public int getLoadedChunkRadius() {
+        return this.chunkRadius;
+    }
+
+    private int getMaxChunkRadius() {
+        return Math.max(8, Math.min(
+                this.player.getServer().getConfig().getChunkSending().getMaxChunkRadius(),
+                this.player.getServer().getConfig().getChunkSending().getMaxLoadedChunkRadius()
+        ));
+    }
+
+    private int compareDistanceToPlayer(long a, long b) {
+        int centerX = this.player.getPosition().getFloorX() >> 4;
+        int centerZ = this.player.getPosition().getFloorZ() >> 4;
+        int ax = CloudChunk.fromKeyX(a) - centerX;
+        int az = CloudChunk.fromKeyZ(a) - centerZ;
+        int bx = CloudChunk.fromKeyX(b) - centerX;
+        int bz = CloudChunk.fromKeyZ(b) - centerZ;
+        return Integer.compare(ax * ax + az * az, bx * bx + bz * bz);
     }
 
     /**
      * Returns {@code true} if all sub-chunk sections for the chunk at
      * {@code (x, z)} have been served to this client.
      * <p>
-     * This is the correct gate for movement validation and entity
-     * spawning. A chunk whose shell has been sent but whose sub-chunk
-     * exchanges are still in progress is not yet walkable.
+     * This is the correct gate for movement validation. A chunk whose
+     * shell has been sent but whose sub-chunk exchanges are still in
+     * progress is not yet walkable.
      */
     public boolean isChunkSent(int x, int z) {
         return this.isChunkSent(CloudChunk.key(x, z));
@@ -361,21 +512,6 @@ public class PlayerChunkManager {
 
     public synchronized boolean isChunkSent(long key) {
         return this.readyChunks.contains(key);
-    }
-
-    /**
-     * Returns {@code true} if the {@link LevelChunkPacket} biome shell
-     * has been dispatched for the chunk at {@code (x, z)}.
-     * <p>
-     * The sub-chunk exchange may still be in progress. Use
-     * {@link #isChunkSent} when walkable terrain is required.
-     */
-    public boolean isChunkShellSent(int x, int z) {
-        return this.isChunkShellSent(CloudChunk.key(x, z));
-    }
-
-    public synchronized boolean isChunkShellSent(long key) {
-        return this.shellSentChunks.contains(key);
     }
 
     /**
@@ -412,11 +548,13 @@ public class PlayerChunkManager {
 
     public synchronized void resendChunk(int chunkX, int chunkZ) {
         long key = CloudChunk.key(chunkX, chunkZ);
-        this.viewChunks.remove(key);
+        if (this.viewChunks.remove(key)) {
+            this.removeFromView(key);
+        }
         this.shellSentChunks.remove(key);
         this.readyChunks.remove(key);
         this.pendingSubChunks.remove(key);
-        this.removeChunkLoader.accept(key);
+        this.invalidateQueuedCenter();
     }
 
     public void prepareRegion(Vector3f pos) {
@@ -429,11 +567,22 @@ public class PlayerChunkManager {
     }
 
     public synchronized void clear() {
-        this.sendQueue.clear();
-        this.viewChunks.forEach(this.removeChunkLoader);
+        LongList pendingSends = new LongArrayList(this.sendQueue.keySet());
+        for (long key : pendingSends) {
+            this.release(this.sendQueue.remove(key));
+        }
+        this.loadQueue.clear();
+        this.viewChunks.forEach((LongConsumer) this::removeFromView);
         this.viewChunks.clear();
         this.shellSentChunks.clear();
         this.readyChunks.clear();
         this.pendingSubChunks.clear();
+        this.invalidateQueuedCenter();
+    }
+
+    private void invalidateQueuedCenter() {
+        this.lastQueuedChunkX = Integer.MIN_VALUE;
+        this.lastQueuedChunkZ = Integer.MIN_VALUE;
+        this.lastQueuedChunkRadius = Integer.MIN_VALUE;
     }
 }

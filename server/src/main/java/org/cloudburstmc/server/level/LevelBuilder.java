@@ -6,18 +6,14 @@ import com.google.inject.Injector;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.inject.LevelModule;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.registry.StorageRegistry;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -90,7 +86,11 @@ public class LevelBuilder {
 
         return loadProvider(executor, worldsPath)
                 .thenApply(this::createLevel)
-                .thenCompose(level -> preloadSpawnChunks(level, startTime));
+                .thenApply(level -> {
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    log.info("Prepared level \"§a{}§r\" in §a{}s§r", id, String.format("%.2f", elapsed / 1000d));
+                    return level;
+                });
     }
 
     private CompletableFuture<LevelProvider> loadProvider(Executor executor, Path worldsPath) {
@@ -118,31 +118,4 @@ public class LevelBuilder {
         return level;
     }
 
-    private CompletableFuture<CloudLevel> preloadSpawnChunks(CloudLevel level, long startTime) {
-        Vector3i spawn = levelData.getSpawn();
-        int centerChunkX = spawn.getX() >> 4;
-        int centerChunkZ = spawn.getZ() >> 4;
-        int radius = level.getSpawnChunkRadius();
-        int side = radius * 2 + 1;
-        int total = side * side;
-
-        List<CompletableFuture<CloudChunk>> futures = new ArrayList<>(total);
-        for (int dz = -radius; dz <= radius; dz++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                futures.add(level.getChunkFuture(centerChunkX + dx, centerChunkZ + dz));
-            }
-        }
-
-        return CompletableFuture
-                .allOf(futures.toArray(new CompletableFuture[0]))
-                .handle((ignored, ex) -> {
-                    long elapsed = System.currentTimeMillis() - startTime;
-                    if (ex != null) {
-                        log.error("Failed to prepare level \"§a{}§r\" after §a{}s§r", id, String.format("%.2f", elapsed / 1000d), ex);
-                    } else {
-                        log.info("Prepared level \"§a{}§r\" in §a{}s§r", id, String.format("%.2f", elapsed / 1000d));
-                    }
-                    return level;
-                });
-    }
 }

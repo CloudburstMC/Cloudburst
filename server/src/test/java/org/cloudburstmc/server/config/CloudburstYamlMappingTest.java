@@ -72,8 +72,6 @@ public class CloudburstYamlMappingTest {
                         .autoTickRateLimit(20)
                         .baseTickRate(1)
                         .alwaysTickPlayers(false)
-                        .chunkTimeoutAfterLoad(30)
-                        .chunkTimeoutAfterLastAccess(120)
                         .build(),
                 yml.getLevelSettings()
         );
@@ -81,7 +79,8 @@ public class CloudburstYamlMappingTest {
         assertEquals(
                 ServerConfig.ChunkSending.builder()
                         .perTick(4)
-                        .maxChunkRadius(48)
+                        .maxChunkRadius(10)
+                        .maxLoadedChunkRadius(10)
                         .spawnThreshold(56)
                         .cacheChunks(false)
                         .build(),
@@ -100,8 +99,9 @@ public class CloudburstYamlMappingTest {
 
         assertEquals(
                 ServerConfig.ChunkGeneration.builder()
-                        .queueSize(8)
-                        .populationQueueSize(8)
+                        .loadConcurrency(4)
+                        .generationConcurrency(0)
+                        .saveConcurrency(8)
                         .build(),
                 yml.getChunkGeneration()
         );

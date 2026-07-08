@@ -478,7 +478,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.FILLED_MAP);
         registerVanilla(ItemTypes.FIRE_CHARGE)
                 .set(ItemComponents.USE_ON, FireChargeItemHandlers.USE_ON);
-        registerVanilla(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer());
+        registerVanilla(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
+                .set(ItemComponents.USE, FireworkRocketItemHandlers.USE)
+                .set(ItemComponents.USE_ON, FireworkRocketItemHandlers.USE_ON);
         registerVanilla(ItemTypes.FIREWORK_STAR, new FireworkStarSerializer());
         registerVanilla(ItemTypes.FISHING_ROD);
         registerVanilla(ItemTypes.FLINT);

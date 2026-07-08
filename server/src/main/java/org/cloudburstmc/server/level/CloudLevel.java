@@ -485,8 +485,13 @@ public class CloudLevel implements Level {
 
     @Override
     public Set<CloudPlayer> getChunkPlayers(int chunkX, int chunkZ) {
-        CloudChunk chunk = this.getLoadedChunk(chunkX, chunkZ);
-        return chunk == null ? ImmutableSet.of() : chunk.getPlayerLoaders();
+        ImmutableSet.Builder<CloudPlayer> players = ImmutableSet.builder();
+        for (CloudPlayer player : this.players.values()) {
+            if (player.isChunkInView(chunkX, chunkZ)) {
+                players.add(player);
+            }
+        }
+        return players.build();
     }
 
     @Override
@@ -669,14 +674,14 @@ public class CloudLevel implements Level {
                     for (long index : this.chunkPackets.keySet()) {
                         CloudChunk chunk = this.getLoadedChunk(index);
 
-                        Set<CloudPlayer> playerLoaders;
-                        if (chunk == null || (playerLoaders = chunk.getPlayerLoaders()).isEmpty()) {
+                        Set<CloudPlayer> viewers;
+                        if (chunk == null || (viewers = chunk.getViewers()).isEmpty()) {
                             // Chunk is unloaded.
                             continue;
                         }
 
                         for (BedrockPacket packet : this.chunkPackets.get(index)) {
-                            CloudServer.broadcastPacket(playerLoaders, packet);
+                            CloudServer.broadcastPacket(viewers, packet);
                         }
                     }
                     this.chunkPackets.clear();
@@ -2234,6 +2239,14 @@ public class CloudLevel implements Level {
         return this.chunkManager.getChunkFuture(chunkX, chunkZ);
     }
 
+    public void addPlayerViewChunkTicket(long chunkKey, Object identifier) {
+        this.chunkManager.addPlayerViewTicket(chunkKey, identifier);
+    }
+
+    public void removePlayerViewChunkTicket(long chunkKey, Object identifier) {
+        this.chunkManager.removePlayerViewTicket(chunkKey, identifier);
+    }
+
     public int getHighestBlockAt(int x, int z) {
         return this.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0x0f, z & 0x0f);
     }
@@ -2340,19 +2353,6 @@ public class CloudLevel implements Level {
         Preconditions.checkArgument(entity.getLevel() == this, "BlockEntity is not in this level");
         blockEntities.remove(entity);
         updateBlockEntities.remove(entity);
-    }
-
-    public int getSpawnChunkRadius() {
-        int radius = this.levelData.getSpawnRadius();
-        return Math.max(2, radius >> 4);
-    }
-
-    public boolean isSpawnChunk(int x, int z) {
-        Vector3i spawn = this.levelData.getSpawn();
-        int spawnChunkX = spawn.getX() >> 4;
-        int spawnChunkZ = spawn.getZ() >> 4;
-        int radius = this.getSpawnChunkRadius();
-        return Math.abs(x - spawnChunkX) <= radius && Math.abs(z - spawnChunkZ) <= radius;
     }
 
     public Location getSafeSpawn() {

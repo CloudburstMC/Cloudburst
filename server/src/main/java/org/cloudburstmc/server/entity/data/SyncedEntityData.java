@@ -27,6 +27,7 @@ public class SyncedEntityData {
 
     public void putAllIn(EntityDataMap map) {
         map.putAll(this.data);
+        map.putFlags(this.flags);
     }
 
     public void putFlagsIn(EntityDataMap map) {

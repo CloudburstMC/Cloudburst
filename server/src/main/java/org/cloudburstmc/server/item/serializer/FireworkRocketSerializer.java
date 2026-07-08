@@ -26,18 +26,14 @@ public class FireworkRocketSerializer extends DefaultItemSerializer {
     private static final String TAG_FLICKER = "FireworkFlicker";
     private static final String TAG_TRAIL = "FireworkTrail";
     private static final String TAG_TYPE = "FireworkType";
+    private static final byte DEFAULT_FLIGHT_LEVEL = 1;
 
-    @Override
-    public void serialize(ItemStack item, NbtMapBuilder tag) {
-        super.serialize(item, tag);
-
-        FireworkData data = item.get(ItemKeys.FIREWORK_DATA);
-        if (data == null) {
-            return;
-        }
+    public static NbtMap serializeFireworks(FireworkData data) {
+        byte flightLevel = data != null ? data.getFlightLevel() : DEFAULT_FLIGHT_LEVEL;
+        List<FireworkExplosion> explosions = data != null ? data.getExplosions() : List.of();
 
         List<NbtMap> explosionTags = new ArrayList<>();
-        for (FireworkExplosion explosion : data.getExplosions()) {
+        for (FireworkExplosion explosion : explosions) {
             byte[] colors = new byte[explosion.getColors().size()];
             for (int i = 0; i < colors.length; i++) {
                 colors[i] = (byte) explosion.getColors().get(i).getDyeData();
@@ -57,10 +53,16 @@ public class FireworkRocketSerializer extends DefaultItemSerializer {
                     .build());
         }
 
-        tag.putCompound(TAG_FIREWORKS, NbtMap.builder()
+        return NbtMap.builder()
                 .putList(TAG_EXPLOSIONS, NbtType.COMPOUND, explosionTags)
-                .putByte(TAG_FLIGHT, data.getFlightLevel())
-                .build());
+                .putByte(TAG_FLIGHT, flightLevel)
+                .build();
+    }
+
+    @Override
+    public void serialize(ItemStack item, NbtMapBuilder tag) {
+        super.serialize(item, tag);
+        tag.putCompound(TAG_FIREWORKS, serializeFireworks(item.get(ItemKeys.FIREWORK_DATA)));
     }
 
     @Override

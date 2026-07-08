@@ -26,10 +26,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.AnimatedTextureType;
 import org.cloudburstmc.protocol.bedrock.data.skin.AnimationData;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
-import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -50,6 +47,12 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
  * Adds skin, game type, permissions, and player inventory support.
  */
 public class EntityHuman extends EntityCreature implements Human {
+    private static final float STANDING_HEIGHT = 1.8f;
+    private static final float SNEAKING_HEIGHT = 1.5f;
+    private static final float CRAWLING_HEIGHT = 0.625f;
+    private static final float SWIMMING_OR_GLIDING_HEIGHT = 0.6f;
+    private static final float WIDTH = 0.6f;
+    private static final float STANDING_EYE_HEIGHT = 1.62f;
 
     protected final CloudContainer container = new CloudContainer(36);
     protected UUID identity;
@@ -61,27 +64,41 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public float getWidth() {
-        return 0.6f;
+        return WIDTH;
     }
 
     @Override
     public float getLength() {
-        return 0.6f;
+        return WIDTH;
     }
 
     @Override
     public float getHeight() {
-        return 1.8f;
+        if (this.isSwimming() || this.isGliding()) {
+            return SWIMMING_OR_GLIDING_HEIGHT;
+        } else if (this.isCrawling()) {
+            return CRAWLING_HEIGHT;
+        } else if (this.isSneaking()) {
+            return SNEAKING_HEIGHT;
+        }
+
+        return STANDING_HEIGHT;
     }
 
     @Override
     public float getEyeHeight() {
-        return 1.62f;
+        if (this.isSwimming() || this.isGliding() || this.isCrawling()) {
+            return this.getHeight() * 0.67f;
+        } else if (this.isSneaking()) {
+            return SNEAKING_HEIGHT * 0.85f;
+        }
+
+        return STANDING_EYE_HEIGHT;
     }
 
     @Override
     public float getBaseOffset() {
-        return this.getEyeHeight();
+        return STANDING_EYE_HEIGHT;
     }
 
     public Skin getSkin() {
@@ -181,8 +198,9 @@ public class EntityHuman extends EntityCreature implements Human {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        if (this.skin != null) {
-            SerializedSkin nbtSkin = SkinUtils.toSerialized(skin);
+        Skin currentSkin = this.getSkin();
+        if (currentSkin != null) {
+            SerializedSkin nbtSkin = SkinUtils.toSerialized(currentSkin);
             NbtMapBuilder skinTag = NbtMap.builder()
                     .putByteArray("Data", nbtSkin.getSkinData().getImage())
                     .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
@@ -223,34 +241,54 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public void spawnTo(CloudPlayer player) {
-        if (this != player && !this.hasSpawned.contains(player)) {
-            this.hasSpawned.add(player);
+        if (this == player || this.hasSpawned.contains(player) || this.chunk == null || !player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
+            return;
+        }
 
-            if (!this.skin.isValid()) {
-                throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
-            }
+        Skin currentSkin = this.getSkin();
+        if (currentSkin == null || !currentSkin.isValid()) {
+            throw new IllegalStateException(this.getClass().getSimpleName() + " must have a valid skin set");
+        }
 
-            if (this instanceof CloudPlayer)
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(((CloudPlayer) this).displayName()), ((CloudPlayer) this).getSerializedSkin(), ((CloudPlayer) this).getXuid(), new CloudPlayer[]{player});
-            else
-                this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(this.skin), new CloudPlayer[]{player});
+        this.hasSpawned.add(player);
 
-            player.sendPacket(createAddEntityPacket());
+        SerializedSkin playerSkin = null;
+        if (this instanceof CloudPlayer cloudPlayer) {
+            SerializedSkin serializedSkin = cloudPlayer.getSerializedSkin();
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(cloudPlayer.displayName()), serializedSkin, cloudPlayer.getXuid(), new CloudPlayer[]{player});
+            playerSkin = serializedSkin;
+        } else {
+            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(currentSkin), new CloudPlayer[]{player});
+        }
+
+        player.sendPacket(this.createAddEntityPacket());
+        if (playerSkin != null) {
+            player.sendPacket(this.createPlayerSkinPacket(playerSkin));
+        }
 
 //            this.getContainer().sendArmorContents(player); TODO: Fix this
 
-            if (this.vehicle != null) {
-                SetEntityLinkPacket packet = new SetEntityLinkPacket();
-                EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(), this.getUniqueId(), EntityLinkData.Type.RIDER, true, false);
-                packet.setEntityLink(link);
+        if (this.vehicle != null) {
+            SetEntityLinkPacket packet = new SetEntityLinkPacket();
+            EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(), this.getUniqueId(), EntityLinkData.Type.RIDER, true, false);
+            packet.setEntityLink(link);
 
-                player.sendPacket(packet);
-            }
-
-            if (!(this instanceof CloudPlayer)) {
-                this.server.removePlayerListData(this.getServerId(), new CloudPlayer[]{player});
-            }
+            player.sendPacket(packet);
         }
+
+        if (!(this instanceof CloudPlayer)) {
+            this.server.removePlayerListData(this.getServerId(), new CloudPlayer[]{player});
+        }
+    }
+
+    private PlayerSkinPacket createPlayerSkinPacket(SerializedSkin skin) {
+        PlayerSkinPacket packet = new PlayerSkinPacket();
+        packet.setUuid(this.getServerId());
+        packet.setSkin(skin);
+        packet.setNewSkinName(skin.getSkinId());
+        packet.setOldSkinName("");
+        packet.setTrustedSkin(true);
+        return packet;
     }
 
     @Override
@@ -422,6 +460,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
     public void setSneaking(boolean value) {
         this.data.setFlag(SNEAKING, value);
+        this.recalculateBoundingBox();
     }
 
     public void setSneaking() {
@@ -434,6 +473,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
     public void setSwimming(boolean value) {
         this.data.setFlag(SWIMMING, value);
+        this.recalculateBoundingBox();
     }
 
     public void setSwimming() {
@@ -458,6 +498,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
     public void setGliding(boolean value) {
         this.data.setFlag(GLIDING, value);
+        this.recalculateBoundingBox();
     }
 
     public void setGliding() {
@@ -470,5 +511,6 @@ public class EntityHuman extends EntityCreature implements Human {
 
     public void setCrawling(boolean value) {
         this.data.setFlag(CRAWLING, value);
+        this.recalculateBoundingBox();
     }
 }

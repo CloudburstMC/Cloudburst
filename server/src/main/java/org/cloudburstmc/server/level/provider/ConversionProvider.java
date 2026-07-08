@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.level.provider;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.LevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
@@ -27,20 +28,19 @@ public class ConversionProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
-        return this.newChunkProvider.readChunk(chunkBuilder).thenCompose(chunk -> {
-            if (chunk == null) {
-                // Couldn't find chunk in new provider so lets check the old one
-                return this.oldChunkProvider.readChunk(chunkBuilder).thenApply(oldChunk -> {
-                    // This chunk must be saved with the new provider.
-                    if (oldChunk != null) {
-                        oldChunk.setDirty();
-                    }
-                    return oldChunk;
-                });
-            }
-            return CompletableFuture.completedFuture(chunk);
-        });
+    @Nullable
+    public CloudChunk readChunk(ChunkBuilder chunkBuilder) {
+        CloudChunk chunk = this.newChunkProvider.readChunk(chunkBuilder);
+        if (chunk != null) {
+            return chunk;
+        }
+
+        CloudChunk oldChunk = this.oldChunkProvider.readChunk(chunkBuilder);
+        if (oldChunk != null) {
+            oldChunk.setDirty();
+        }
+
+        return oldChunk;
     }
 
     @Override

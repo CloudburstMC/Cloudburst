@@ -67,14 +67,14 @@ level-settings:
   base-tick-rate: 1
   # Tick all players each tick even when other settings disallow this
   always-tick-players: false
-  chunk-timeout-after-load: 30
-  chunk-timeout-after-last-access: 120
 
 chunk-sending:
   # Amount of chunks sent to players per tick
   per-tick: 4
   # %chunk-sending.max-chunk-radius
-  max-chunk-radius: 48
+  max-chunk-radius: 10
+  # Maximum radius the server will keep fully loaded around each player
+  max-loaded-chunk-radius: 10
   # Amount of chunks that need to be sent before spawning the player
   spawn-threshold: 56
   # Save a serialized copy of the chunk in memory for faster sending
@@ -90,10 +90,12 @@ chunk-ticking:
   clear-tick-list: false
 
 chunk-generation:
-  # Max. amount of chunks in the waiting queue to be generated
-  queue-size: 8
-  # Max. amount of chunks in the waiting queue to be populated
-  population-queue-size: 8
+  # Max. amount of chunk storage reads running at once
+  load-concurrency: 4
+  # Max. amount of generation work running at once. 0 uses the generation executor size
+  generation-concurrency: 0
+  # Max. amount of chunk saves running at once
+  save-concurrency: 8
 
 ticks-per:
   animal-spawns: 400

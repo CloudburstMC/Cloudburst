@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
 import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -31,6 +32,8 @@ import java.util.function.BiConsumer;
 class LevelDBProvider implements LevelProvider {
 
     private static final int CURRENT_CHUNK_VERSION = 42;
+    private static final long CACHE_SIZE = 32L * 1024L * 1024L;
+    private static final int MAX_OPEN_FILES = 64;
 
     /**
      * Maximum number of attempts when a chunk write fails transiently.
@@ -54,7 +57,9 @@ class LevelDBProvider implements LevelProvider {
         Options options = new Options()
                 .createIfMissing(true)
                 .compressionType(CompressionType.ZLIB_RAW)
-                .blockSize(64 * 1024);
+                .blockSize(64 * 1024)
+                .cacheSize(CACHE_SIZE)
+                .maxOpenFiles(MAX_OPEN_FILES);
         this.db = LevelDB.PROVIDER.open(dbPath.toFile(), options);
     }
 
@@ -64,47 +69,47 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
+    @Nullable
+    public CloudChunk readChunk(ChunkBuilder chunkBuilder) {
+        checkForClosed();
         final int x = chunkBuilder.getX();
         final int z = chunkBuilder.getZ();
 
-        return CompletableFuture.supplyAsync(() -> {
-            byte[] versionValue = this.db.get(LevelDBKey.VERSION.getKey(x, z));
-            if (versionValue == null || versionValue.length != 1) {
-                versionValue = this.db.get(LevelDBKey.VERSION_OLD.getKey(x, z));
-            }
+        byte[] versionValue = this.db.get(LevelDBKey.VERSION.getKey(x, z));
+        if (versionValue == null || versionValue.length != 1) {
+            versionValue = this.db.get(LevelDBKey.VERSION_OLD.getKey(x, z));
+        }
 
-            if (versionValue == null || versionValue.length != 1) {
-                return null;
-            }
+        if (versionValue == null || versionValue.length != 1) {
+            return null;
+        }
 
-            byte[] finalizationState = this.db.get(LevelDBKey.STATE_FINALIZATION.getKey(x, z));
-            if (finalizationState == null) {
-                chunkBuilder.state(Chunk.STATE_FINISHED);
-            } else {
-                int stateValue = (finalizationState[0] & 0xFF)
-                        | ((finalizationState[1] & 0xFF) << 8)
-                        | ((finalizationState[2] & 0xFF) << 16)
-                        | ((finalizationState[3] & 0xFF) << 24);
-                chunkBuilder.state(Math.min(stateValue + 1, Chunk.STATE_FINISHED));
-            }
+        byte[] finalizationState = this.db.get(LevelDBKey.STATE_FINALIZATION.getKey(x, z));
+        if (finalizationState == null) {
+            chunkBuilder.state(Chunk.STATE_FINISHED);
+        } else {
+            int stateValue = (finalizationState[0] & 0xFF)
+                    | ((finalizationState[1] & 0xFF) << 8)
+                    | ((finalizationState[2] & 0xFF) << 16)
+                    | ((finalizationState[3] & 0xFF) << 24);
+            chunkBuilder.state(Math.min(stateValue + 1, Chunk.STATE_FINISHED));
+        }
 
-            byte chunkVersion = versionValue[0];
+        byte chunkVersion = versionValue[0];
 
-            if (chunkVersion < 7) {
-                chunkBuilder.dirty();
-            }
+        if (chunkVersion < 7) {
+            chunkBuilder.dirty();
+        }
 
-            chunkBuilder.chunkVersion(chunkVersion & 0xFF);
-            ChunkSerializers.deserializeChunk(this.db, chunkBuilder, chunkVersion & 0xFF);
-            Data2dSerializer.deserialize(this.db, chunkBuilder);
+        chunkBuilder.chunkVersion(chunkVersion & 0xFF);
+        ChunkSerializers.deserializeChunk(this.db, chunkBuilder, chunkVersion & 0xFF);
+        Data2dSerializer.deserialize(this.db, chunkBuilder);
 
-            BlockEntitySerializer.loadBlockEntities(this.db, chunkBuilder);
-            EntitySerializer.loadEntities(this.db, chunkBuilder);
-            PendingTickSerializer.loadPendingTicks(this.db, chunkBuilder);
+        BlockEntitySerializer.loadBlockEntities(this.db, chunkBuilder);
+        EntitySerializer.loadEntities(this.db, chunkBuilder);
+        PendingTickSerializer.loadPendingTicks(this.db, chunkBuilder);
 
-            return chunkBuilder.build();
-        }, this.executor);
+        return chunkBuilder.build();
     }
 
     @Override

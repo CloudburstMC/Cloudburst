@@ -5,7 +5,6 @@ import com.google.common.cache.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -30,10 +29,6 @@ import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 @ParametersAreNonnullByDefault
 class AnvilProvider implements LevelProvider {
@@ -81,9 +76,9 @@ class AnvilProvider implements LevelProvider {
     }
 
     @Override
-    public CompletableFuture<CloudChunk> readChunk(ChunkBuilder chunkBuilder) {
+    @Nullable
+    public CloudChunk readChunk(ChunkBuilder chunkBuilder) {
         checkForClosed();
-        CompletableFuture<CloudChunk> future = new CompletableFuture<>();
 
         final int x = chunkBuilder.getX();
         final int z = chunkBuilder.getZ();
@@ -92,34 +87,27 @@ class AnvilProvider implements LevelProvider {
         final int inX = x & 0x1f;
         final int inZ = z & 0x1f;
 
-        this.executor.execute(() -> {
-            try {
-                Path regionPath = this.regionsPath.resolve(regionPosition.getFileName());
-                if (Files.notExists(regionPath)) {
-                    future.complete(null);
-                    return;
-                }
-                RegionFile file = this.regionFiles.get(regionPosition);
-
-                if (!file.hasChunk(inX, inZ)) {
-                    future.complete(null);
-                    return;
-                }
-
-                ByteBuf chunkBuf = file.readChunk(inX, inZ);
-                try {
-                    AnvilConverter.convertToCloudburst(chunkBuilder, chunkBuf);
-
-                    future.complete(chunkBuilder.build());
-                } finally {
-                    chunkBuf.release();
-                }
-            } catch (Exception e) {
-                future.completeExceptionally(e);
+        try {
+            Path regionPath = this.regionsPath.resolve(regionPosition.getFileName());
+            if (Files.notExists(regionPath)) {
+                return null;
             }
-        });
 
-        return future;
+            RegionFile file = this.regionFiles.get(regionPosition);
+            if (!file.hasChunk(inX, inZ)) {
+                return null;
+            }
+
+            ByteBuf chunkBuf = file.readChunk(inX, inZ);
+            try {
+                AnvilConverter.convertToCloudburst(chunkBuilder, chunkBuf);
+                return chunkBuilder.build();
+            } finally {
+                chunkBuf.release();
+            }
+        } catch (Exception e) {
+            throw new CompletionException(e);
+        }
     }
 
     @Override
@@ -265,12 +253,8 @@ class AnvilProvider implements LevelProvider {
         Preconditions.checkState(!closed, "LevelProvider closed");
     }
 
-    @RequiredArgsConstructor
-    private static class RegionPosition {
+    private record RegionPosition(int x, int z) {
         private static final Pattern PATTERN = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
-
-        private final int x;
-        private final int z;
 
         static RegionPosition fromChunk(int x, int z) {
             return new RegionPosition(x >> 5, z >> 5);

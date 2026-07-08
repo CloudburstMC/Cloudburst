@@ -171,17 +171,17 @@ public interface Chunk extends Comparable<Chunk> {
 
     /**
      * Sets the chunk's dirty status.
-     */
-    default void setDirty() {
-        this.setDirty(true);
-    }
-
-    /**
-     * Sets the chunk's dirty status.
      *
      * @param dirty true if chunk is dirty
      */
     void setDirty(boolean dirty);
+
+    /**
+     * Sets the chunk's dirty status.
+     */
+    default void setDirty() {
+        this.setDirty(true);
+    }
 
     /**
      * Atomically resets this chunk's dirty status.
@@ -217,6 +217,6 @@ public interface Chunk extends Comparable<Chunk> {
 
     Set<? extends ChunkLoader> getLoaders();
 
-    Set<? extends Player> getPlayerLoaders();
+    Set<? extends Player> getViewers();
 
 }
