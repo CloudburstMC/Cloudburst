@@ -2,9 +2,9 @@ package org.cloudburstmc.api.player;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
@@ -23,20 +23,13 @@ import java.util.UUID;
  * Represents a connected player. Extends {@link Creature} with player-specific capabilities including
  * inventory management, game mode control, permissions, ban/whitelist handling, and screen interactions.
  */
-public interface Player extends Creature {
+public interface Player extends Creature, CommandSender {
     /**
      * Checks if this player is currently online.
      *
      * @return true if they are online
      */
     boolean isOnline();
-
-    /**
-     * Returns the name of this player.
-     *
-     * @return Player name
-     */
-    String getName();
 
     UUID getServerId();
 
@@ -67,13 +60,6 @@ public interface Player extends Creature {
      * @param value true if whitelisted
      */
     void setWhitelisted(boolean value);
-
-    /**
-     * Returns the {@link Server} object carrying this player.
-     *
-     * @return The server instance
-     */
-    Server getServer();
 
     /**
      * Returns the time this player first played on this server.
@@ -166,10 +152,6 @@ public interface Player extends Creature {
      * @return the ender chest slot group
      */
     EnderChestView getEnderChest();
-
-    boolean isOp();
-
-    void setOp(boolean value);
 
     float getMovementSpeed();
 
@@ -277,6 +259,92 @@ public interface Player extends Creature {
      * @return ping in milliseconds, or 0 if the connection is not yet established
      */
     int getPing();
+
+    /**
+     * Sends a popup message.
+     *
+     * @param message the popup message
+     */
+    void sendPopup(Component message);
+
+    /**
+     * Sends a tip message.
+     *
+     * @param message the tip message
+     */
+    void sendTip(Component message);
+
+    /**
+     * Sends an action bar message.
+     *
+     * @param message the action bar message
+     */
+    @Override
+    void sendActionBar(Component message);
+
+    /**
+     * Sends an action bar message with explicit animation timing in ticks.
+     *
+     * @param message the action bar message
+     * @param fadeIn  fade-in duration in ticks
+     * @param stay    stay duration in ticks
+     * @param fadeOut fade-out duration in ticks
+     */
+    void sendActionBar(Component message, int fadeIn, int stay, int fadeOut);
+
+    /**
+     * Sends a title with default animation timing.
+     *
+     * @param title the title text
+     */
+    void sendTitle(Component title);
+
+    /**
+     * Sends a title and subtitle with default animation timing.
+     *
+     * @param title    the title text
+     * @param subtitle the subtitle text
+     */
+    void sendTitle(Component title, Component subtitle);
+
+    /**
+     * Sends a title and subtitle with explicit animation timing in ticks.
+     *
+     * @param title    the title text
+     * @param subtitle the subtitle text
+     * @param fadeIn   fade-in duration in ticks
+     * @param stay     stay duration in ticks
+     * @param fadeOut  fade-out duration in ticks
+     */
+    void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut);
+
+    /**
+     * Sends a subtitle without replacing the current title.
+     *
+     * @param subtitle the subtitle text
+     */
+    void sendSubtitle(Component subtitle);
+
+    /**
+     * Sets title animation timing in ticks.
+     *
+     * @param fadeIn  fade-in duration in ticks
+     * @param stay    stay duration in ticks
+     * @param fadeOut fade-out duration in ticks
+     */
+    void setTitleTimes(int fadeIn, int stay, int fadeOut);
+
+    /**
+     * Clears the currently displayed title.
+     */
+    @Override
+    void clearTitle();
+
+    /**
+     * Resets title text and animation timings to the client defaults.
+     */
+    @Override
+    void resetTitle();
 
     default void save() {
         save(false);

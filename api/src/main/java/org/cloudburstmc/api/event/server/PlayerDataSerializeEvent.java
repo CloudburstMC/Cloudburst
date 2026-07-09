@@ -1,41 +1,20 @@
 package org.cloudburstmc.api.event.server;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
+import org.cloudburstmc.api.util.PlayerDataKey;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 
-import java.util.Optional;
-import java.util.UUID;
-
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public final class PlayerDataSerializeEvent extends ServerEvent {
 
-    private final Optional<String> name;
-    private final Optional<UUID> uuid;
+    @Getter
+    private final PlayerDataKey key;
+    @Getter
     private PlayerDataSerializer serializer;
 
-    public PlayerDataSerializeEvent(String name, PlayerDataSerializer serializer) {
-        Preconditions.checkNotNull(name);
+    public PlayerDataSerializeEvent(PlayerDataKey key, PlayerDataSerializer serializer) {
+        this.key = Preconditions.checkNotNull(key, "key");
         this.serializer = Preconditions.checkNotNull(serializer);
-        UUID uuid = null;
-        try {
-            uuid = UUID.fromString(name);
-        } catch (Exception e) {
-            // ignore
-        }
-        this.uuid = Optional.ofNullable(uuid);
-        this.name = this.uuid.isPresent() ? Optional.empty() : Optional.of(name);
-    }
-
-    public Optional<String> getName() {
-        return name;
-    }
-
-    public Optional<UUID> getUuid() {
-        return uuid;
-    }
-
-    public PlayerDataSerializer getSerializer() {
-        return serializer;
     }
 
     public void setSerializer(PlayerDataSerializer serializer) {

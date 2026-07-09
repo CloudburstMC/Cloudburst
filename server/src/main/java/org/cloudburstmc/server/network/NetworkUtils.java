@@ -17,6 +17,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.server.container.CloudContainer;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.List;
 
 /**
@@ -140,6 +142,18 @@ public class NetworkUtils {
 
     public static EffectType effectFromLegacy(byte effectId) {
         return effectTypeMap.inverse().get(effectId);
+    }
+
+    public static String loggableAddress(SocketAddress address, boolean logAddress) {
+        if (!logAddress) {
+            return "<ip address withheld>";
+        }
+
+        if (address instanceof InetSocketAddress inetAddress) {
+            return inetAddress.getHostString() + ":" + inetAddress.getPort();
+        }
+
+        return String.valueOf(address);
     }
 
     public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudContainer inv) {

@@ -82,11 +82,11 @@ public class WhitelistCommand extends Command {
             }
             switch (args[0].toLowerCase()) {
                 case "add":
-                    server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(true);
+                    server.getOfflinePlayer(args[1]).setWhitelisted(true);
                     CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(args[1])));
                     return true;
                 case "remove":
-                    server.getOfflinePlayer(server.lookupName(args[1]).get()).setWhitelisted(false);
+                    server.getOfflinePlayer(args[1]).setWhitelisted(false);
                     CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(args[1])));
                     return true;
             }

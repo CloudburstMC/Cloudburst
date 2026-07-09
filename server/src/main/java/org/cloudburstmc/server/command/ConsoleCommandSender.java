@@ -3,6 +3,8 @@ package org.cloudburstmc.server.command;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.chat.ChatType;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
@@ -17,6 +19,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.permission.PermissibleBase;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -112,6 +115,18 @@ public class ConsoleCommandSender implements CommandSender {
         for (String line : text.split("\\R")) {
             log.info(line);
         }
+    }
+
+    @Override
+    public void sendMessage(@NotNull Component message, ChatType.@NotNull Bound boundChatType) {
+        this.sendMessage(message);
+    }
+
+    @Override
+    public void sendMessage(@NotNull SignedMessage signedMessage, ChatType.@NotNull Bound boundChatType) {
+        Component message = Objects.requireNonNullElseGet(signedMessage.unsignedContent(),
+                () -> Component.text(signedMessage.message()));
+        this.sendMessage(message, boundChatType);
     }
 
     @Override

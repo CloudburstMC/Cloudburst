@@ -4,25 +4,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface PlayerDataSerializer {
 
     /**
-     * Reads player data from {@link InputStream} if the file exists otherwise it will create the default data.
+     * Opens player data if it exists.
      *
-     * @param name name of player or {@link UUID} as {@link String}
-     * @param uuid uuid of player. Could be null if name is used.
-     * @return {@link InputStream} if the player data exists
+     * @param key player data key
+     * @return stream for existing player data
      */
-    Optional<InputStream> read(String name, UUID uuid) throws IOException;
+    Optional<InputStream> read(PlayerDataKey key) throws IOException;
 
     /**
-     * Writes player data to given {@link OutputStream}.
+     * Opens a stream for writing player data.
      *
-     * @param name name of player or {@link UUID} as {@link String}
-     * @param uuid uuid of player. Could be null if name is used.
-     * @return stream to write player data
+     * @param key player data key
+     * @return stream for writing player data
      */
-    OutputStream write(String name, UUID uuid) throws IOException;
+    OutputStream write(PlayerDataKey key) throws IOException;
 }

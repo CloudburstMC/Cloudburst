@@ -10,16 +10,18 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.chat.ChatType;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.TitlePart;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
-import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -124,12 +126,14 @@ import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
+import org.jspecify.annotations.NonNull;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,11 +147,11 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITE
 
 /**
  * Server-side implementation of a connected player. Extends {@link EntityHuman} and implements
- * {@link Player}, {@link CommandSender}, and {@link ContainerListener}. Handles movement, inventory,
+ * {@link Player} and {@link ContainerListener}. Handles movement, inventory,
  * chunk loading, packet processing, and all player-specific game logic.
  */
 @Log4j2
-public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoader, Player, ContainerListener {
+public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, ContainerListener {
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
@@ -753,6 +757,12 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     public SocketAddress getSocketAddress() {
         return this.session.getSocketAddress();
+    }
+
+    private String getLoggableAddress() {
+        return NetworkUtils.loggableAddress(
+                this.getSocketAddress(),
+                this.server.getConfig().getPlayer().isLogPlayerAddresses());
     }
 
     public boolean isSleeping() {
@@ -2414,8 +2424,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
         log.info(this.getServer().getLanguage().translate("cloudburst.player.logIn",
                 "§b" + this.username + "§r",
-                "",
-                this.getSocketAddress(),
+                this.getLoggableAddress(),
                 this.getUniqueId(),
                 this.getLevel().getName(),
                 GenericMath.round(pos.getX(), 4),
@@ -2652,19 +2661,22 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
 
     @Override
     public void sendMessage(Component message) {
-        TextPacket packet = new TextPacket();
-        if (message instanceof TranslatableComponent) {
-            packet.setType(TextPacket.Type.TRANSLATION);
-            packet.setNeedsTranslation(true);
-        } else {
-            packet.setType(TextPacket.Type.SYSTEM);
-            packet.setNeedsTranslation(false);
+        this.sendPacket(BedrockTextPacketFactory.message(message));
+    }
+
+    @Override
+    public void sendMessage(@NonNull Component message, ChatType.Bound boundChatType) {
+        this.sendChat(PlainTextComponentSerializer.plainText().serialize(boundChatType.name()), message);
+    }
+
+    @Override
+    public void sendMessage(SignedMessage signedMessage, ChatType.@NonNull Bound boundChatType) {
+        Component message = Objects.requireNonNullElseGet(signedMessage.unsignedContent(), () -> Component.text(signedMessage.message()));
+        if (signedMessage.isSystem()) {
+            this.sendMessage(message);
+            return;
         }
-        packet.setPlatformChatId("");
-        packet.setSourceName("");
-        packet.setXuid("");
-        packet.setMessage(new BedrockComponent(message));
-        this.sendPacket(packet);
+        this.sendMessage(message, boundChatType);
     }
 
     public void sendChat(Component message) {
@@ -2672,35 +2684,20 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
     }
 
     public void sendChat(String source, Component message) {
-        TextPacket packet = new TextPacket();
-        packet.setType(TextPacket.Type.CHAT);
-        packet.setPlatformChatId("");
-        packet.setSourceName(source);
-        packet.setXuid("");
-        packet.setMessage(new BedrockComponent(message));
-        this.sendPacket(packet);
+        this.sendPacket(BedrockTextPacketFactory.chat(source, message));
     }
 
+    @Override
     public void sendPopup(Component message) {
-        TextPacket packet = new TextPacket();
-        packet.setType(TextPacket.Type.POPUP);
-        packet.setPlatformChatId("");
-        packet.setSourceName("");
-        packet.setXuid("");
-        packet.setMessage(new BedrockComponent(message));
-        this.sendPacket(packet);
+        this.sendPacket(BedrockTextPacketFactory.popup(message));
     }
 
+    @Override
     public void sendTip(Component message) {
-        TextPacket packet = new TextPacket();
-        packet.setType(TextPacket.Type.TIP);
-        packet.setPlatformChatId("");
-        packet.setSourceName("");
-        packet.setXuid("");
-        packet.setMessage(new BedrockComponent(message));
-        this.sendPacket(packet);
+        this.sendPacket(BedrockTextPacketFactory.tip(message));
     }
 
+    @Override
     public void clearTitle() {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.CLEAR);
@@ -2708,29 +2705,29 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
-    /**
-     * Resets both title animation times and subtitle for the next shown title
-     */
-    public void resetTitleSettings() {
+    @Override
+    public void resetTitle() {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.RESET);
         packet.setText("");
         this.sendPacket(packet);
     }
 
-    public void setSubtitle(Component subtitle) {
+    @Override
+    public void sendSubtitle(Component subtitle) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.SUBTITLE);
         packet.setText(new BedrockComponent(subtitle));
         this.sendPacket(packet);
     }
 
-    public void setTitleAnimationTimes(int fadein, int duration, int fadeout) {
+    @Override
+    public void setTitleTimes(int fadeIn, int duration, int fadeOut) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.TIMES);
-        packet.setFadeInTime(fadein);
+        packet.setFadeInTime(fadeIn);
         packet.setStayTime(duration);
-        packet.setFadeOutTime(fadeout);
+        packet.setFadeOutTime(fadeOut);
         packet.setText("");
         this.sendPacket(packet);
     }
@@ -2742,34 +2739,68 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
         this.sendPacket(packet);
     }
 
+    @Override
     public void sendTitle(Component title) {
-        this.sendTitle(title, null, 20, 20, 5);
+        this.sendTitle(title, Component.empty(), 20, 20, 5);
     }
 
+    @Override
     public void sendTitle(Component title, Component subtitle) {
         this.sendTitle(title, subtitle, 20, 20, 5);
     }
 
+    @Override
     public void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
-        this.setTitleAnimationTimes(fadeIn, stay, fadeOut);
-        if (subtitle != null) {
-            this.setSubtitle(subtitle);
-        }
+        this.setTitleTimes(fadeIn, stay, fadeOut);
+        this.sendSubtitle(subtitle != null ? subtitle : Component.empty());
         this.setTitle(title != null ? title : Component.text(" "));
     }
 
+    @Override
+    public void showTitle(Title title) {
+        Title.Times times = title.times();
+        if (times != null) {
+            this.setTitleTimes(ticks(times.fadeIn()), ticks(times.stay()), ticks(times.fadeOut()));
+        }
+        this.sendSubtitle(title.subtitle());
+        this.setTitle(title.title());
+    }
+
+    @Override
+    public <T> void sendTitlePart(@NonNull TitlePart<T> part, @NonNull T value) {
+        Objects.requireNonNull(part, "part");
+        Objects.requireNonNull(value, "value");
+
+        if (part == TitlePart.TITLE) {
+            this.setTitle((Component) value);
+        } else if (part == TitlePart.SUBTITLE) {
+            this.sendSubtitle((Component) value);
+        } else if (part == TitlePart.TIMES) {
+            Title.Times times = (Title.Times) value;
+            this.setTitleTimes(ticks(times.fadeIn()), ticks(times.stay()), ticks(times.fadeOut()));
+        } else {
+            throw new IllegalArgumentException("Unknown title part: " + part);
+        }
+    }
+
+    @Override
     public void sendActionBar(Component title) {
         this.sendActionBar(title, 1, 0, 1);
     }
 
-    public void sendActionBar(Component title, int fadein, int duration, int fadeout) {
+    @Override
+    public void sendActionBar(Component title, int fadeIn, int duration, int fadeout) {
         SetTitlePacket packet = new SetTitlePacket();
         packet.setType(SetTitlePacket.Type.ACTIONBAR);
         packet.setText(new BedrockComponent(title));
-        packet.setFadeInTime(fadein);
+        packet.setFadeInTime(fadeIn);
         packet.setStayTime(duration);
         packet.setFadeOutTime(fadeout);
         this.sendPacket(packet);
+    }
+
+    private int ticks(Duration duration) {
+        return Math.toIntExact(duration.toMillis() / 50L);
     }
 
     @Override
@@ -2902,8 +2933,7 @@ public class CloudPlayer extends EntityHuman implements CommandSender, ChunkLoad
             this.spawned = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
-                    this.getSocketAddress(),
-                    "",
+                    this.getLoggableAddress(),
                     this.getServer().getLanguage().translate(reason)));
             this.hasSpawned.clear();
             this.spawnLocation = null;

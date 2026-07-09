@@ -7,6 +7,7 @@ import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
@@ -129,6 +130,10 @@ public interface Server {
 
     @Nullable
     Player getPlayer(String name);
+
+    OfflinePlayer getOfflinePlayer(UUID uuid);
+
+    OfflinePlayer getOfflinePlayer(String name);
 
     void setAutoSave(boolean autoSave);
 

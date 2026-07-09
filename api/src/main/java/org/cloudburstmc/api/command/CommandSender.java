@@ -11,6 +11,17 @@ import org.cloudburstmc.api.permission.Permissible;
 public interface CommandSender extends Audience, Permissible {
 
     /**
+     * Sends a component message to this sender.
+     *
+     * <p>Implementations decide how the component is represented for their target, such as an in-game
+     * message or plain rendered text for the console.</p>
+     *
+     * @param message the message to send
+     */
+    @Override
+    void sendMessage(Component message);
+
+    /**
      * Returns the server instance associated with this command sender.
      *
      * @return the server instance

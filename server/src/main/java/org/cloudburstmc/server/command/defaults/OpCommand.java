@@ -3,22 +3,17 @@ package org.cloudburstmc.server.command.defaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.data.CommandData;
 import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class OpCommand extends Command {
 
     public OpCommand() {
@@ -47,11 +42,9 @@ public class OpCommand extends Command {
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.op.success",
                 Component.text(name)));
         if (uuid.isPresent()) {
-            Player player = ((CloudServer) sender.getServer()).getOfflinePlayer(uuid.get());
-            if (player instanceof CloudPlayer) {
-                ((CloudPlayer) player).sendMessage(
-                        Component.translatable("commands.op.message").color(NamedTextColor.GRAY));
-            }
+            OfflinePlayer player = sender.getServer().getOfflinePlayer(uuid.get());
+            player.getPlayer().ifPresent(onlinePlayer -> onlinePlayer.sendMessage(
+                    Component.translatable("commands.op.message").color(NamedTextColor.GRAY)));
             player.setOp(true);
         } else {
             sender.getServer().addOp(name);

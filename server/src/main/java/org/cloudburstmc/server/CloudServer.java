@@ -22,9 +22,9 @@ import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.player.GameMode;
+import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
@@ -35,7 +35,7 @@ import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 import org.cloudburstmc.math.GenericMath;
-import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
@@ -63,8 +63,9 @@ import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.permission.DefaultPermissions;
+import org.cloudburstmc.server.player.CloudOfflinePlayer;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.player.OfflinePlayer;
+import org.cloudburstmc.server.player.CloudPlayerDataStore;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.plugin.loader.JavaPluginLoader;
 import org.cloudburstmc.server.registry.*;
@@ -93,148 +94,137 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Log4j2
 public class CloudServer implements Server {
 
-    private static CloudServer instance = null;
-
-    private BanList banByName;
-
-    private BanList banByIP;
-
-    private Config operators;
-
-    private Config whitelist;
-
-    private final AtomicBoolean isRunning = new AtomicBoolean(true);
-
-    private boolean hasStopped = false;
-
-    private final CloudPluginManager pluginManager;
-
-    private final CloudEventManager eventManager;
-
-    private final CloudPermissionManager permissionManager;
-
-    private final int profilingTickrate = 20;
-
-    private GlobalScheduler globalScheduler;
-    private AsyncScheduler asyncScheduler;
-
-    private int tickCounter;
-
-    private long nextTick;
-
-    private final float[] tickAverage = {20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20};
-
-    private final float[] useAverage = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
-    private float maxTick = 20;
-
-    private float maxUse = 0;
-
-    private int sendUsageTicker = 0;
-
-    private final boolean dispatchSignals = false;
-
-    private final CloudConsole console;
-    private final ConsoleThread consoleThread;
-
-    private final CraftingManager craftingManager;
-
-    private final PackManager packManager;
-
-    private final ConsoleCommandSender consoleSender;
-
-    private int maxPlayers;
-
-    private boolean autoSave = true;
-
-/*    private final EntityMetadataStore entityMetadata;
-
-    private final PlayerMetadataStore playerMetadata;
-
-    private final LevelMetadataStore levelMetadata;*/
-
-    private Network network;
-
-    private boolean networkCompressionAsync = true;
-    public int networkCompressionLevel = 7;
-
-    private boolean upnpEnabled = false;
-    private boolean autoTickRate = true;
-    private int autoTickRateLimit = 20;
-    private boolean alwaysTickPlayers = false;
-    private int baseTickRate = 1;
-    private Boolean getAllowFlight = null;
-    private Difficulty difficulty = null;
-    private GameMode defaultGamemode = null;
-
-    private int autoSaveTicker = 0;
-    private int autoSaveTicks = 6000;
-
-    private boolean forceLanguage = false;
-
-    private UUID serverID;
-
-    private final LevelManager levelManager;
+    private static CloudServer instance;
 
     private final Path filePath;
     private final Path dataPath;
     private final Path pluginPath;
 
-    private final Set<UUID> uniquePlayers = new HashSet<>();
+    private final Thread currentThread;
+
+    @Getter
+    private final Injector injector;
+
+    private final AtomicBoolean isRunning = new AtomicBoolean(true);
+    private boolean hasStopped;
+
+    private CloudburstYaml cloudburstYaml;
+    private ServerProperties serverProperties;
+    private UUID serverID;
+
+    private BanList banByName;
+    private BanList banByIP;
+    private Config operators;
+    private Config whitelist;
+
+    private final CloudConsole console;
+    private final ConsoleThread consoleThread;
+    private final ConsoleCommandSender consoleSender;
+
+    private final CloudPluginManager pluginManager;
+    private final CloudEventManager eventManager;
+    private final CloudPermissionManager permissionManager;
+
+//    private final EntityMetadataStore entityMetadata;
+//    private final PlayerMetadataStore playerMetadata;
+//    private final LevelMetadataStore levelMetadata;
+
+    private GlobalScheduler globalScheduler;
+    private AsyncScheduler asyncScheduler;
+
+    private final CraftingManager craftingManager;
+    private final PackManager packManager;
+
+    private Network network;
+    private boolean networkCompressionAsync = true;
+    public int networkCompressionLevel = 7;
+    private final Set<String> ignoredPackets = new HashSet<>();
 
     private QueryHandler queryHandler;
-
     private QueryRegenerateEvent queryRegenerateEvent;
-    private CloudburstYaml cloudburstYaml;
-
-    private final LocaleManager localeManager = LocaleManager.from("locale/cloudburst/languages.json",
-            "locale/cloudburst/texts", "locale/vanilla");
-    private final CloudGameRuleRegistry gameRuleRegistry = CloudGameRuleRegistry.get();
-    private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
-    private final StorageRegistry storageRegistry = StorageRegistry.get();
-    private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
-    private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
-    private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
-    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
-
-    private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
-    private final EntityRegistry entityRegistry = EntityRegistry.get();
-    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
-    private final CommandRegistry commandRegistry = CommandRegistry.get();
-
-    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
-
-    private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
-    private final LevelData defaultLevelData = new LevelData();
-    private String predefinedLanguage;
-
-    private boolean allowNether;
-    private boolean allowEnd;
-
-    private final Thread currentThread;
 
     private Watchdog watchdog;
 
     private DB nameLookup;
 
-    private PlayerDataSerializer playerDataSerializer = new DefaultPlayerDataSerializer(this);
-    private ServerProperties serverProperties;
+    private final LevelManager levelManager;
+    private final LevelData defaultLevelData = new LevelData();
+
+    private boolean allowNether;
+    private boolean allowEnd;
 
     private volatile Identifier defaultStorageId;
 
-    private final Set<String> ignoredPackets = new HashSet<>();
+    private PlayerDataSerializer playerDataSerializer = new DefaultPlayerDataSerializer(this);
+    private final CloudPlayerDataStore playerDataStore = new CloudPlayerDataStore(this);
 
-    @Getter
-    private final Injector injector;
+    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
+    private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
+    private final Set<UUID> uniquePlayers = new HashSet<>();
 
-    private static final Pattern UUID_PATTERN = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.dat$", Pattern.CASE_INSENSITIVE);
+    private int maxPlayers;
+    private boolean autoSave = true;
+    private int autoSaveTicker;
+    private int autoSaveTicks = 6000;
+
+    private boolean upnpEnabled;
+    private boolean autoTickRate = true;
+    private int autoTickRateLimit = 20;
+    private boolean alwaysTickPlayers;
+    private int baseTickRate = 1;
+
+    private Boolean getAllowFlight;
+    private Difficulty difficulty;
+    private GameMode defaultGamemode;
+
+    private int tickCounter;
+    private long nextTick;
+
+    private final float[] tickAverage = {
+            20, 20, 20, 20, 20,
+            20, 20, 20, 20, 20,
+            20, 20, 20, 20, 20,
+            20, 20, 20, 20, 20
+    };
+
+    private final float[] useAverage = {
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0
+    };
+
+    private float maxTick = 20;
+    private float maxUse;
+    private int sendUsageTicker;
+
+    private boolean forceLanguage;
+    private String predefinedLanguage;
+
+    private final LocaleManager localeManager = LocaleManager.from(
+            "locale/cloudburst/languages.json",
+            "locale/cloudburst/texts",
+            "locale/vanilla"
+    );
+
+    private final CloudGameRuleRegistry gameRuleRegistry = CloudGameRuleRegistry.get();
+    private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
+    private final StorageRegistry storageRegistry = StorageRegistry.get();
+
+    private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
+    private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
+    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
+
+    private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
+    private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
+    private final EntityRegistry entityRegistry = EntityRegistry.get();
+    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
+    private final CommandRegistry commandRegistry = CommandRegistry.get();
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
@@ -348,7 +338,7 @@ public class CloudServer implements Server {
             log.info("Welcome! Please choose a language first!");
 
             for (Locale locale : localeManager.getAvailableLocales()) {
-                log.info("{}: {}", locale.toString(), locale.getDisplayName(locale));
+                log.info("{}: {}", locale.toString(), localeManager.getConsoleDisplayName(locale));
             }
 
             String locale;
@@ -478,7 +468,7 @@ public class CloudServer implements Server {
 
         this.commandRegistry.registerVanilla();
 
-        this.convertLegacyPlayerData();
+        this.playerDataStore.convertLegacyData();
 
         DefaultPermissions.registerCorePermissions();
         this.consoleSender.recalculatePermissions();
@@ -1283,87 +1273,36 @@ public class CloudServer implements Server {
         nameLookup.put(nameBytes, buffer.array());
     }
 
-    public Player getOfflinePlayer(UUID uuid) {
+    @Override
+    public OfflinePlayer getOfflinePlayer(UUID uuid) {
         Preconditions.checkNotNull(uuid, "uuid");
-        Optional<Player> onlinePlayer = getPlayer(uuid);
-        //noinspection OptionalIsPresent
-        if (onlinePlayer.isPresent()) {
-            return onlinePlayer.get();
-        }
+        return new CloudOfflinePlayer(this, uuid);
+    }
 
-        return new OfflinePlayer(this, uuid);
+    @Override
+    public OfflinePlayer getOfflinePlayer(String name) {
+        Preconditions.checkNotNull(name, "name");
+        return this.lookupName(name)
+                .<OfflinePlayer>map(uuid -> new CloudOfflinePlayer(this, uuid, name))
+                .orElseGet(() -> new CloudOfflinePlayer(this, name));
     }
 
     public NbtMap getOfflinePlayerData(UUID uuid) {
-        return getOfflinePlayerData(uuid, false);
+        return this.getOfflinePlayerData(uuid, false);
     }
 
     public NbtMap getOfflinePlayerData(UUID uuid, boolean create) {
-        return getOfflinePlayerDataInternal(uuid.toString(), true, create);
+        Preconditions.checkNotNull(uuid, "uuid");
+        return this.playerDataStore.read(uuid, create);
     }
 
-    @Deprecated
     public NbtMap getOfflinePlayerData(String name) {
-        return getOfflinePlayerData(name, false);
+        return this.getOfflinePlayerData(name, false);
     }
 
-    @Deprecated
     public NbtMap getOfflinePlayerData(String name, boolean create) {
-        Optional<UUID> uuid = lookupName(name);
-        return getOfflinePlayerDataInternal(uuid.map(UUID::toString).orElse(name), true, create);
-    }
-
-    private NbtMap getOfflinePlayerDataInternal(String name, boolean runEvent, boolean create) {
         Preconditions.checkNotNull(name, "name");
-
-        PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(name, playerDataSerializer);
-        if (runEvent) {
-            eventManager.fire(event);
-        }
-
-        Optional<InputStream> dataStream = Optional.empty();
-        try {
-            dataStream = event.getSerializer().read(name, event.getUuid().orElse(null));
-            if (dataStream.isPresent()) {
-                try (NBTInputStream stream = NbtUtils.createGZIPReader(dataStream.get())) {
-                    return (NbtMap) stream.readTag();
-                }
-            }
-        } catch (IOException e) {
-            log.warn(this.getLanguage().translate("cloudburst.data.playerCorrupted", name));
-            log.throwing(e);
-        } finally {
-            if (dataStream.isPresent()) {
-                try {
-                    dataStream.get().close();
-                } catch (IOException e) {
-                    log.throwing(e);
-                }
-            }
-        }
-        NbtMap nbt = null;
-        if (create) {
-            log.info(this.getLanguage().translate("cloudburst.data.playerNotFound", name));
-            Location spawn = this.getDefaultLevel().getSafeSpawn();
-            nbt = NbtMap.builder()
-                    .putLong("firstPlayed", System.currentTimeMillis() / 1000)
-                    .putLong("lastPlayed", System.currentTimeMillis() / 1000)
-                    .putList("Pos", NbtType.FLOAT, Arrays.asList(
-                            spawn.getPosition().getX(),
-                            spawn.getPosition().getY(),
-                            spawn.getPosition().getZ()
-                    ))
-                    .putString("Level", this.getDefaultLevel().getName())
-                    .putInt("playerGameType", this.getGameMode().getVanillaId())
-                    .putList("Rotation", NbtType.FLOAT, Arrays.asList(
-                            spawn.getYaw(),
-                            spawn.getPitch()
-                    ))
-                    .build();
-
-            this.saveOfflinePlayerData(name, nbt, true, runEvent);
-        }
-        return nbt;
+        return this.playerDataStore.read(name, create);
     }
 
     public void saveOfflinePlayerData(UUID uuid, NbtMap tag) {
@@ -1375,88 +1314,15 @@ public class CloudServer implements Server {
     }
 
     public void saveOfflinePlayerData(UUID uuid, NbtMap tag, boolean async) {
-        this.saveOfflinePlayerData(uuid.toString(), tag, async);
+        Preconditions.checkNotNull(uuid, "uuid");
+        Preconditions.checkNotNull(tag, "tag");
+        this.playerDataStore.save(uuid, tag, async);
     }
 
     public void saveOfflinePlayerData(String name, NbtMap tag, boolean async) {
-        Optional<UUID> uuid = lookupName(name);
-        saveOfflinePlayerData(uuid.map(UUID::toString).orElse(name), tag, async, true);
-    }
-
-    private void saveOfflinePlayerData(String name, NbtMap tag, boolean async, boolean runEvent) {
-        String nameLower = name.toLowerCase();
-        if (this.shouldSavePlayerData()) {
-            PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(nameLower, playerDataSerializer);
-            if (runEvent) {
-                eventManager.fire(event);
-            }
-
-            if (async) {
-                this.asyncScheduler.runNow(null, t ->
-                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null)));
-            } else {
-                this.globalScheduler.run(null, t ->
-                        saveOfflinePlayerDataInternal(event.getSerializer(), tag, nameLower, event.getUuid().orElse(null)));
-            }
-        }
-    }
-
-    private void saveOfflinePlayerDataInternal(PlayerDataSerializer serializer, NbtMap tag, String name, UUID uuid) {
-        try (OutputStream dataStream = serializer.write(name, uuid);
-             NBTOutputStream stream = NbtUtils.createGZIPWriter(dataStream)) {
-            stream.writeTag(tag);
-        } catch (Exception e) {
-            log.error(this.getLanguage().translate("cloudburst.data.saveError", name, e));
-        }
-    }
-
-    private void convertLegacyPlayerData() {
-        File dataDirectory = this.dataPath.resolve("players").toFile();
-
-        File[] files = dataDirectory.listFiles(file -> {
-            String name = file.getName();
-            Matcher matcher = UUID_PATTERN.matcher(name);
-            return !matcher.matches() && name.endsWith(".dat");
-        });
-
-        if (files == null) {
-            return;
-        }
-
-        for (File legacyData : files) {
-            String name = legacyData.getName();
-            // Remove file extension
-            name = name.substring(0, name.length() - 4);
-
-            log.debug("Attempting legacy player data conversion for {}", name);
-
-            NbtMap tag = this.getOfflinePlayerDataInternal(name, false, false);
-
-            if (tag == null || !tag.containsKey("UUIDLeast") || !tag.containsKey("UUIDMost")) {
-                // No UUID so we cannot convert. Wait until player logs in.
-                continue;
-            }
-
-            UUID uuid = new UUID(tag.getLong("UUIDMost"), tag.getLong("UUIDLeast"));
-            if (!tag.containsKey("NameTag")) {
-                tag = tag.toBuilder().putString("NameTag", name).build();
-            }
-
-            if (new File(getDataPath() + "players/" + uuid + ".dat").exists()) {
-                // We don't want to overwrite existing data.
-                continue;
-            }
-
-            this.saveOfflinePlayerData(uuid.toString(), tag, false, false);
-
-            // Add name to lookup table
-            this.updateName(uuid, name);
-
-            // Delete legacy data
-            if (!legacyData.delete()) {
-                log.warn("Unable to delete legacy data for {}", name);
-            }
-        }
+        Preconditions.checkNotNull(name, "name");
+        Preconditions.checkNotNull(tag, "tag");
+        this.playerDataStore.save(name, tag, async);
     }
 
     public Player getPlayer(String name) {

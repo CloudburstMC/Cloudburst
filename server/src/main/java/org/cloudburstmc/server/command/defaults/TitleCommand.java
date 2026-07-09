@@ -65,7 +65,7 @@ public class TitleCommand extends Command {
                     sender.sendMessage(Component.translatable("cloudburst.command.title.clear", Component.text(player.getName())));
                     break;
                 case "reset":
-                    player.resetTitleSettings();
+                    player.resetTitle();
                     sender.sendMessage(Component.translatable("cloudburst.command.title.reset", Component.text(player.getName())));
                     break;
                 default:
@@ -78,7 +78,7 @@ public class TitleCommand extends Command {
                     sender.sendMessage(Component.translatable("cloudburst.command.title.title", Component.text(args[2]), Component.text(player.getName())));
                     break;
                 case "subtitle":
-                    player.setSubtitle(Component.text(args[2]));
+                    player.sendSubtitle(Component.text(args[2]));
                     sender.sendMessage(Component.translatable("cloudburst.command.title.subtitle", Component.text(args[2]), Component.text(player.getName())));
                     break;
                 case "actionbar":
@@ -94,7 +94,7 @@ public class TitleCommand extends Command {
                     int fadeIn = Integer.parseInt(args[2]);
                     int stay = Integer.parseInt(args[3]);
                     int fadeOut = Integer.parseInt(args[4]);
-                    player.sendTitle(Component.empty(), Component.empty(), fadeIn, stay, fadeOut);
+                    player.setTitleTimes(fadeIn, stay, fadeOut);
                     sender.sendMessage(Component.translatable("cloudburst.command.title.times.success", Component.text(args[2]), Component.text(args[3]), Component.text(args[4]), Component.text(player.getName())));
                 } catch (NumberFormatException exception) {
                     sender.sendMessage(Component.translatable("commands.generic.exception").color(NamedTextColor.RED));

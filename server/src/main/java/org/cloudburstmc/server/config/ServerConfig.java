@@ -423,6 +423,8 @@ public class ServerConfig {
         @Builder.Default
         private boolean savePlayerData = true;
 
+        @Builder.Default
+        private boolean logPlayerAddresses = true;
     }
 
     @Data

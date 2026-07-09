@@ -113,6 +113,8 @@ player:
   save-player-data: true
   # %player.skin-change-cooldown
   skin-change-cooldown: 30
+  # %player.log-player-addresses
+  log-player-addresses: true
 
 movement:
   # How many ticks of movement history to retain for server-side rewind

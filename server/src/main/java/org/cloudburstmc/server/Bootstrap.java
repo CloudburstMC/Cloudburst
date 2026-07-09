@@ -30,8 +30,8 @@ import tools.jackson.dataformat.javaprop.JavaPropsMapper;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.awt.*;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -52,17 +52,9 @@ import java.util.Properties;
  */
 @Log4j2
 public class Bootstrap {
-    static {
-        // Disable JLine deprecated terminal provider warning
-        System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
-        // Disable Guice bytecode generation to avoid Unsafe.staticFieldBase deprecation warning
-        System.setProperty("guice_bytecode_gen_option", "DISABLED");
-    }
-    
     public final static Properties GIT_INFO = getGitInfo();
     public final static String VERSION = getVersion();
     public final static String API_VERSION = "2.0.0";
-
     public final static Path PATH = Paths.get(System.getProperty("user.dir"));
     public static final JsonMapper JSON_MAPPER = JsonMapper.builder()
             .addModule(createCloudburstModule())
@@ -83,6 +75,14 @@ public class Bootstrap {
     public static boolean shortTitle = requiresShortTitle();
     public static int DEBUG = 1;
 
+    static {
+        configureStandardStreams();
+        // Disable JLine deprecated terminal provider warning
+        System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
+        // Disable Guice bytecode generation to avoid Unsafe.staticFieldBase deprecation warning
+        System.setProperty("guice_bytecode_gen_option", "DISABLED");
+    }
+
     private static SimpleModule createCloudburstModule() {
         SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
         module.addDeserializer(BlockState.class, new BlockStateDeserializer());
@@ -91,7 +91,12 @@ public class Bootstrap {
         return module;
     }
 
-    public static void main(String[] args) {
+    private static void configureStandardStreams() {
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
+        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, StandardCharsets.UTF_8));
+    }
+
+    static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
 
         // Force Mapped ByteBuffers for LevelDB till fixed.
@@ -110,8 +115,10 @@ public class Bootstrap {
         OptionSpec<Void> helpSpec = parser.accepts("help", "Shows this page").forHelp();
         OptionSpec<Void> ansiSpec = parser.accepts("disable-ansi", "Disables console coloring");
         OptionSpec<Void> titleSpec = parser.accepts("enable-title", "Enables title at the top of the window");
-        OptionSpec<String> verbositySpec = parser.acceptsAll(Arrays.asList("v", "verbosity"), "Set verbosity of logging").withRequiredArg().ofType(String.class);
-        OptionSpec<String> languageSpec = parser.accepts("language", "Set a predefined language").withOptionalArg().ofType(String.class);
+        OptionSpec<String> verbositySpec = parser.acceptsAll(Arrays.asList("v", "verbosity"),
+                "Set verbosity of logging").withRequiredArg().ofType(String.class);
+        OptionSpec<String> languageSpec = parser.accepts("language",
+                "Set a predefined language").withOptionalArg().ofType(String.class);
         OptionSpec<Path> dataPathSpec = parser.accepts("data-path", "path of main server data e.g. plexus.yml")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter())
