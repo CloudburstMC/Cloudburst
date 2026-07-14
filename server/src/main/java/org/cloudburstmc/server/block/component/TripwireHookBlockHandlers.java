@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -29,13 +30,11 @@ public class TripwireHookBlockHandlers {
         BlockState state = block.getState();
         Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
         Vector3i pos = block.getPosition();
-        Vector3i wallPos = facing.getOpposite().relative(pos);
+        Vector3i wallPos = PlacementSupport.supportPosition(pos, facing);
 
         if (neighbor.getPosition().equals(wallPos)) {
             CloudLevel level = (CloudLevel) block.getLevel();
-            BlockState wall = level.getBlockState(wallPos.getX(), wallPos.getY(), wallPos.getZ());
-            boolean solidWall = CloudBlockRegistry.REGISTRY.getComponents(wall.getType()).get(BlockComponents.SOLID).get();
-            if (!solidWall) {
+            if (!PlacementSupport.hasFullFaceSupport(level, pos, facing)) {
                 breakHook(block, state, level, pos);
             }
         }

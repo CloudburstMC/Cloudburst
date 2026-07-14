@@ -17,18 +17,17 @@ public class RailPlaceHandler implements PlaceBlockHandler {
     public static final RailPlaceHandler INSTANCE = new RailPlaceHandler();
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
         if (player == null) {
             return false;
         }
 
         CloudLevel level = (CloudLevel) player.getLevel();
-        if (!RailConnector.hasSolidSupport(level, pos)) {
+        if (!RailConnector.hasRigidSupport(level, blockPosition)) {
             return false;
         }
 
-        RailConnector.place(level, pos, blockState);
+        RailConnector.place(level, blockPosition, blockState);
         return true;
     }
 }
-

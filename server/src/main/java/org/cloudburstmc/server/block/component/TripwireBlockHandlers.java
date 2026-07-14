@@ -10,12 +10,11 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Set;
 
@@ -57,7 +56,7 @@ public class TripwireBlockHandlers {
         TripwireCalculator.notifyHooksAround(level, pos, wireSourceState);
     };
 
-    public static final EntityBlockHandler ON_ENTITY_COLLIDE = (block, entity) -> {
+    public static final EntityInsideBlockHandler ON_ENTITY_INSIDE = (block, entity, precise) -> {
         if (entity instanceof Player && ((Player) entity).isSpectator()) {
             return;
         }
@@ -94,13 +93,11 @@ public class TripwireBlockHandlers {
     };
 
     private boolean isSuspended(CloudLevel level, Vector3i pos) {
-        Vector3i below = pos.sub(0, 1, 0);
-        BlockState support = level.getBlockState(below.getX(), below.getY(), below.getZ());
-        return !CloudBlockRegistry.REGISTRY.getComponents(support.getType()).get(BlockComponents.SOLID).get();
+        return !PlacementSupport.hasFloorSupport(level, pos);
     }
 
     private boolean hasEntityInside(CloudLevel level, Vector3i pos) {
-        AxisAlignedBB bb = new SimpleAxisAlignedBB(
+        BoundingBox bb = new BoundingBox(
                 pos.getX() + 0.1f, pos.getY() + 0.1f, pos.getZ() + 0.1f,
                 pos.getX() + 0.9f, pos.getY() + 0.9f, pos.getZ() + 0.9f
         );

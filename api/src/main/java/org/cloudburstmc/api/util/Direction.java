@@ -6,6 +6,7 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
@@ -27,6 +28,8 @@ public enum Direction {
      * Horizontal faces in S-W-N-E order.
      */
     private static final Direction[] HORIZONTALS = new Direction[4];
+    private static final List<Axis> YXZ_AXIS_ORDER = List.of(Axis.Y, Axis.X, Axis.Z);
+    private static final List<Axis> YZX_AXIS_ORDER = List.of(Axis.Y, Axis.Z, Axis.X);
 
     static {
         // Axis and CardinalDirection cannot be set in the enum constructor
@@ -99,6 +102,10 @@ public enum Direction {
             }
         }
         throw new IllegalArgumentException("No face for axis=" + axis + " direction=" + axisDirection);
+    }
+
+    public static List<Axis> axisStepOrder(double x, double z) {
+        return Math.abs(x) < Math.abs(z) ? YZX_AXIS_ORDER : YXZ_AXIS_ORDER;
     }
 
     /**
@@ -286,12 +293,12 @@ public enum Direction {
         return unitVector;
     }
 
-    public Vector3i relative(Vector3i pos) {
-        return pos.add(unitVector);
+    public Vector3i relative(Vector3i position) {
+        return position.add(unitVector);
     }
 
-    public Vector3i relative(Vector3i pos, int distance) {
-        return pos.add(unitVector.getX() * distance, unitVector.getY() * distance, unitVector.getZ() * distance);
+    public Vector3i relative(Vector3i position, int distance) {
+        return position.add(unitVector.getX() * distance, unitVector.getY() * distance, unitVector.getZ() * distance);
     }
 
     @Override

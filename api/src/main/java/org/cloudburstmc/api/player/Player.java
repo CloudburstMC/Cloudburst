@@ -92,7 +92,7 @@ public interface Player extends Creature, CommandSender {
 
     boolean isSleeping();
 
-    boolean sleepOn(Vector3i pos);
+    boolean sleepOn(Vector3i position);
 
     void stopSleep();
 

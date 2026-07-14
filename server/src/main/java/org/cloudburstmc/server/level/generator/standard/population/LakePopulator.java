@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -21,9 +22,6 @@ import java.util.random.RandomGenerator;
 
 import static java.lang.Integer.min;
 
-/**
- * @author DaPorkchop_
- */
 @JsonDeserialize
 public class LakePopulator extends ChancePopulator.Column {
     public static final Identifier ID = Identifier.parse("cloudburst:lake");
@@ -121,8 +119,7 @@ public class LakePopulator extends ChancePopulator.Column {
 
                             if (y < 4) {
 //                                log.info("Getting behavior for {}", state.getType());
-                                boolean isSolid = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get();
-                                if (state != block && !isSolid) {
+                                if (state != block && !BlockSupport.blocksMotion(state)) {
                                     return;
                                 }
                             } else {
@@ -199,7 +196,7 @@ public class LakePopulator extends ChancePopulator.Column {
                                     || (z > 0 && points.get((y << 8) | (x << 4) | (z - 1)))
                                     || (z < 15 && points.get((y << 8) | (x << 4) | (z + 1)))) {
                                 BlockState stateToCheck = level.getBlockState(blockX + x, blockY + y, blockZ + z, 0);
-                                if (CloudBlockRegistry.REGISTRY.getComponent(stateToCheck.getType(), BlockComponents.SOLID).get()) {
+                                if (BlockSupport.blocksMotion(stateToCheck)) {
                                     level.setBlockState(blockX + x, blockY + y, blockZ + z, 0, border);
                                 }
                             }

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.util.VoxelShape;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -15,7 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * An immutable snapshot of a block type and its current trait values.
  * <p>
- * Shape data (collisionBoxes, outlineBoxes) is injected at startup by {@code BlockPalette}
+ * Shape data is injected at startup by {@code BlockPalette}
  * from {@code BlockPropertyData} for states where geometry varies by trait.
  */
 public final class BlockState {
@@ -23,8 +24,8 @@ public final class BlockState {
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
 
-    float[] collisionBoxes;
-    float[] outlineBoxes;
+    private VoxelShape collisionShape;
+    private VoxelShape outlineShape;
 
     private Map<BlockTrait<?>, BlockState[]> blockStates;
 
@@ -42,31 +43,28 @@ public final class BlockState {
     }
 
     /**
-     * Flat array of AABB boxes {@code [minX, minY, minZ, maxX, maxY, maxZ, ...]} for collision,
-     * or {@code null} if the block uses the dynamic component ({@link BlockComponents#GET_BOUNDING_BOX}).
+     * Shape used for entity and placement collision.
      */
-    public float[] getCollisionBoxes() {
-        return collisionBoxes;
+    public VoxelShape getCollisionShape() {
+        checkState(this.collisionShape != null, "Block state data has not been initialized");
+        return this.collisionShape;
     }
 
     /**
-     * Flat array of AABB boxes for the outline (selection) shape,
-     * or {@code null} to fall back to {@link #getCollisionBoxes()}.
+     * Shape used for block selection/outline.
      */
-    public float[] getOutlineBoxes() {
-        return outlineBoxes;
+    public VoxelShape getOutlineShape() {
+        checkState(this.outlineShape != null, "Block state data has not been initialized");
+        return this.outlineShape;
     }
 
     /**
      * Populates the per-state shape data. Called at most once per state by
      * {@code BlockPalette} during startup using data from {@code BlockPropertyData.BY_STATE_HASH}.
-     *
-     * @param collisionBoxes flat AABB array for collision, or {@code null} for full cube / dynamic
-     * @param outlineBoxes   flat AABB array for outline, or {@code null} to mirror collisionBoxes
      */
-    public void initStateData(float[] collisionBoxes, float[] outlineBoxes) {
-        this.collisionBoxes = collisionBoxes;
-        this.outlineBoxes = outlineBoxes;
+    public void initStateData(VoxelShape collisionShape, VoxelShape outlineShape) {
+        this.collisionShape = checkNotNull(collisionShape, "collisionShape");
+        this.outlineShape = outlineShape == null ? collisionShape : outlineShape;
     }
 
     public boolean hasTag(BlockTag tag) {

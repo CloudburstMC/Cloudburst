@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -46,16 +47,13 @@ public class ButtonBlockHandlers {
         Direction facing = state.ensureTrait(BlockTraits.FACING_DIRECTION);
         Vector3i pos = block.getPosition();
 
-        Vector3i attachedPos = facing.getOpposite().relative(pos);
+        Vector3i attachedPos = PlacementSupport.supportPosition(pos, facing);
         if (!neighbor.getPosition().equals(attachedPos)) {
             return;
         }
 
         CloudLevel level = (CloudLevel) block.getLevel();
-        BlockState attachedState = level.getBlockState(attachedPos.getX(), attachedPos.getY(), attachedPos.getZ());
-
-        boolean solidSurface = CloudBlockRegistry.REGISTRY.getComponents(attachedState.getType()).get(BlockComponents.SOLID).get();
-        if (solidSurface) {
+        if (PlacementSupport.hasFullFaceSupport(level, pos, facing)) {
             return;
         }
 

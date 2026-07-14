@@ -1,25 +1,23 @@
 package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.SupportType;
 import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
-/**
- * @author DaPorkchop_
- */
 @JsonDeserialize
 public class IceSnowFinisher implements Finisher {
     public static final Identifier ID = Identifier.parse("cloudburst:ice_snow");
@@ -40,7 +38,7 @@ public class IceSnowFinisher implements Finisher {
             BlockState state = level.getBlockState(blockX, y, blockZ, 0);
             if (state.getType().getId() == BlockIds.WATER) {
                 level.setBlockState(blockX, y, blockZ, 0, BlockStates.ICE);
-            } else if (y < 255 && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get()) {
+            } else if (y < 255 && BlockSupport.isFaceSturdy(state, Direction.UP, SupportType.FULL)) {
                 level.setBlockState(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
             }
         }

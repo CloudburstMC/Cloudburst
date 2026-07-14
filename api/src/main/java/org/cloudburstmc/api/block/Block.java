@@ -55,8 +55,8 @@ public interface Block extends BlockSnapshot {
 
     BlockState getSideState(Direction face, int step, int layer);
 
-    default Block getRelative(Vector3i pos) {
-        return getRelative(pos.getX(), pos.getY(), pos.getZ());
+    default Block getRelative(Vector3i position) {
+        return getRelative(position.getX(), position.getY(), position.getZ());
     }
 
     Block getRelative(int x, int y, int z);
@@ -65,16 +65,16 @@ public interface Block extends BlockSnapshot {
         return getRelativeState(x, y, z, 0);
     }
 
-    default BlockState getRelativeState(Vector3i pos) {
-        return getRelativeState(pos.getX(), pos.getY(), pos.getZ(), 0);
+    default BlockState getRelativeState(Vector3i position) {
+        return getRelativeState(position.getX(), position.getY(), position.getZ(), 0);
     }
 
-    default BlockState getRelativeState(Vector4i pos) {
-        return getRelativeState(pos.getX(), pos.getY(), pos.getZ(), pos.getW());
+    default BlockState getRelativeState(Vector4i position) {
+        return getRelativeState(position.getX(), position.getY(), position.getZ(), position.getW());
     }
 
-    default BlockState getRelativeState(Vector3i pos, int layer) {
-        return getRelativeState(pos.getX(), pos.getY(), pos.getZ(), layer);
+    default BlockState getRelativeState(Vector3i position, int layer) {
+        return getRelativeState(position.getX(), position.getY(), position.getZ(), layer);
     }
 
     BlockState getRelativeState(int x, int y, int z, int layer);

@@ -3,8 +3,8 @@ package org.cloudburstmc.api.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
-import org.cloudburstmc.api.entity.passive.Bat;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
@@ -15,14 +15,16 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface Entity {
@@ -95,7 +97,7 @@ public interface Entity {
 
     Vector3f getSeatPosition();
 
-    void setSeatPosition(Vector3f pos);
+    void setSeatPosition(Vector3f position);
 
     Entity getVehicle();
 
@@ -104,11 +106,11 @@ public interface Entity {
     }
 
     /**
-     * Enter into a vehicle
+     * Mounts this entity onto another entity.
      *
-     * @param vehicle vehicle to mount
-     * @param mode    mode
-     * @return whether or not the mount was successful
+     * @param vehicle the vehicle to mount
+     * @param mode    the mount mode
+     * @return {@code true} if the entity was mounted
      */
     boolean mount(Entity vehicle, MountType mode);
 
@@ -124,26 +126,37 @@ public interface Entity {
 
     void addEffect(Effect effect);
 
-    @Deprecated
     /**
-     * Use {@link #getEffect(EffectType)}
+     * Gets an effect by its numeric id.
+     *
+     * @param effectId the effect id
+     * @return the effect, or {@code null} if this entity does not have it
+     * @deprecated use {@link #getEffect(EffectType)}
      */
+    @Deprecated
     Effect getEffect(int effectId);
 
     Effect getEffect(EffectType type);
 
-    @Deprecated
     /**
-     * Use {@link #removeEffect(EffectType)}
+     * Removes an effect by its numeric id.
+     *
+     * @param effectId the effect id
+     * @deprecated use {@link #removeEffect(EffectType)}
      */
+    @Deprecated
     void removeEffect(int effectId);
 
     void removeEffect(EffectType type);
 
-    @Deprecated
     /**
-     * Use {@link #hasEffect(EffectType)}
+     * Tests whether this entity has an effect by its numeric id.
+     *
+     * @param effectId the effect id
+     * @return {@code true} if this entity has the effect
+     * @deprecated use {@link #hasEffect(EffectType)}
      */
+    @Deprecated
     boolean hasEffect(int effectId);
 
     boolean hasEffect(EffectType type);
@@ -188,6 +201,8 @@ public interface Entity {
 
     boolean canCollideWith(Entity entity);
 
+    boolean canBeCollidedWith(@Nullable Entity entity);
+
     Direction getDirection();
 
     Vector3f getDirectionVector();
@@ -223,7 +238,28 @@ public interface Entity {
 
     void resetFallDistance();
 
-    AxisAlignedBB getBoundingBox();
+    BoundingBox getBoundingBox();
+
+    /**
+     * Tests whether this entity would collide at a location.
+     *
+     * @param location the target location
+     * @return {@code true} if this entity's bounding box would collide at the location
+     */
+    default boolean collidesAt(Location location) {
+        Vector3f movement = location.getPosition().sub(this.getPosition());
+        return location.getLevel().hasCollision(this, this.getBoundingBox().move(movement));
+    }
+
+    /**
+     * Tests whether this entity would collide using a supplied bounding box.
+     *
+     * @param boundingBox the box to test
+     * @return {@code true} if the box collides in this entity's level
+     */
+    default boolean wouldCollideUsing(BoundingBox boundingBox) {
+        return this.getLevel().hasCollision(this, boundingBox);
+    }
 
     void fall(float fallDistance);
 
@@ -239,7 +275,7 @@ public interface Entity {
 
     Vector3f getPosition();
 
-    boolean setPosition(Vector3f pos);
+    boolean setPosition(Vector3f position);
 
     Location getLocation();
 
@@ -247,9 +283,11 @@ public interface Entity {
 
     boolean setMotion(Vector3f motion);
 
+    void makeStuckInBlock(BlockState state, Vector3f speedMultiplier);
+
     void setRotation(float yaw, float pitch);
 
-    boolean setPositionAndRotation(Vector3f pos, float yaw, float pitch);
+    boolean setPositionAndRotation(Vector3f position, float yaw, float pitch);
 
     float getPitch();
 
@@ -258,18 +296,23 @@ public interface Entity {
     boolean canBeMovedByCurrents();
 
     /**
-     * Whether the entity can active pressure plates.
-     * Used for {@link Bat}s only.
+     * Tests whether this entity can activate pressure plates.
      *
-     * @return triggers pressure plate
+     * @return {@code true} if this entity can activate pressure plates
      */
     boolean canTriggerPressurePlate();
 
-    boolean canPassThrough();
+    boolean isPushable();
 
     boolean isOnGround();
 
     void setOnGround(boolean onGround);
+
+    Optional<Vector3i> getSupportingBlockPosition();
+
+    default boolean isSupportedBy(Vector3i position) {
+        return this.getSupportingBlockPosition().filter(position::equals).isPresent();
+    }
 
     default boolean isUndead() {
         return false;
@@ -277,11 +320,11 @@ public interface Entity {
 
     void kill();
 
-    default boolean teleport(Vector3f pos) {
-        return this.teleport(pos, PlayerTeleportEvent.TeleportCause.PLUGIN);
+    default boolean teleport(Vector3f position) {
+        return this.teleport(position, PlayerTeleportEvent.TeleportCause.PLUGIN);
     }
 
-    boolean teleport(Vector3f pos, PlayerTeleportEvent.TeleportCause cause);
+    boolean teleport(Vector3f position, PlayerTeleportEvent.TeleportCause cause);
 
     default boolean teleport(Location location) {
         return this.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);

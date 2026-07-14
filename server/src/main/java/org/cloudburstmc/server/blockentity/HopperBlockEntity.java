@@ -17,9 +17,8 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -41,7 +40,7 @@ import static org.cloudburstmc.math.vector.Vector3i.UP;
  */
 public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, BlockHopperView {
 
-    private final AxisAlignedBB pickupArea = new SimpleAxisAlignedBB(this.getPosition(), this.getPosition().add(1, 2, 1));
+    private final BoundingBox pickupArea = new BoundingBox(this.getPosition(), this.getPosition().add(1, 2, 1));
     private int transferCooldown = 8;
 
     public HopperBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {

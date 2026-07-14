@@ -118,7 +118,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
                     this.pickupDelay = 0;
                 }
             } else {
-                for (Entity entity : this.level.getCollidingEntities(this.boundingBox, this)) {
+                for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox)) {
                     if (entity instanceof CloudPlayer) {
                         if (((CloudPlayer) entity).pickupEntity(this, false)) {
                             return true;
@@ -128,10 +128,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
             }
 
             this.motion = this.motion.sub(0, this.getGravity(), 0);
-
-            if (this.checkObstruction(this.getPosition())) {
-                hasUpdate = true;
-            }
+            boolean colliding = this.level.hasCollision(this.getBoundingBox());
 
             if (this.closestPlayer == null || this.closestPlayer.getPosition().distanceSquared(this.getPosition()) > 64.0D) {
                 for (CloudPlayer p : this.getViewers()) {
@@ -155,6 +152,15 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
                     diff = diff * diff;
                     this.motion = this.motion.add(diffPos.div(d * diff * 0.1));
                 }
+            }
+
+            if (colliding && this.level.hasCollision(this.getBoundingBox().move(this.motion))) {
+                this.noPhysics = true;
+                if (this.moveTowardsClosestSpace(this.getPosition())) {
+                    hasUpdate = true;
+                }
+            } else {
+                this.noPhysics = false;
             }
 
             this.move(this.motion);

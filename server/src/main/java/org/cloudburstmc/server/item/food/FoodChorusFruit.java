@@ -1,21 +1,18 @@
 package org.cloudburstmc.server.item.food;
 
-import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockTags;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.item.ItemIds;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Created by Leonidius20 on 20.08.18.
- */
 public class FoodChorusFruit extends FoodNormal {
 
     public FoodChorusFruit() {
@@ -44,16 +41,16 @@ public class FoodChorusFruit extends FoodNormal {
 
             if (y < 0) continue;
 
-            while (y >= 0 && !CloudBlockRegistry.REGISTRY.getComponent(level.getBlockState(x, y + 1, z).getType(), BlockComponents.SOLID).get()) {
+            while (y >= 0 && !BlockSupport.blocksMotion(level.getBlockState(x, y + 1, z))) {
                 y--;
             }
-            y++; // Back up to non solid
+            y++;
 
             BlockState blockStateUp = level.getBlockState(x, y + 1, z);
             BlockState blockStateUp2 = level.getBlockState(x, y + 2, z);
 
-            if (CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.SOLID).get() || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.LIQUID).get() ||
-                    CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.SOLID).get() || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.LIQUID).get()) {
+            if (BlockSupport.blocksMotion(blockStateUp) || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.LIQUID).get()
+                    || BlockSupport.blocksMotion(blockStateUp2) || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.LIQUID).get()) {
                 continue;
             }
 

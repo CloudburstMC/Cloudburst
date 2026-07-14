@@ -10,6 +10,7 @@ import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -44,7 +45,7 @@ public class RailBlockHandlers {
         Vector3i pos = block.getPosition();
         BlockState state = block.getState();
 
-        if (!RailConnector.hasSolidSupport(level, pos)) {
+        if (!RailConnector.hasRigidSupport(level, pos)) {
             return false;
         }
 
@@ -52,8 +53,7 @@ public class RailBlockHandlers {
             Direction ascendFace = RailConnector.getDirection(state).ascendingDirection();
             if (ascendFace != null) {
                 Vector3i ascendPos = ascendFace.relative(pos);
-                BlockState ascendTop = level.getBlockState(ascendPos.getX(), ascendPos.getY(), ascendPos.getZ());
-                return CloudBlockRegistry.REGISTRY.getComponent(ascendTop.getType(), BlockComponents.TOP_SOLID).execute(ascendTop);
+                return BlockSupport.canSupportRigidBlock(level, ascendPos);
             }
         }
         return true;
@@ -81,4 +81,3 @@ public class RailBlockHandlers {
         return true;
     }
 }
-

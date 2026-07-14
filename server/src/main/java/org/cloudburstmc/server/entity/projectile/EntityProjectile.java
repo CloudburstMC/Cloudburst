@@ -6,7 +6,7 @@ import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -127,8 +127,8 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
             Vector3f moveVector = this.position.add(this.motion);
 
             Set<Entity> collidingEntities = this.getLevel().getCollidingEntities(
-                    this.boundingBox.addCoord(this.motion).expand(1, 1, 1),
-                    this);
+                    this,
+                    this.boundingBox.expandTowards(this.motion).inflate(1, 1, 1));
 
             double nearDistance = Integer.MAX_VALUE;
             Entity nearEntity = null;
@@ -140,8 +140,8 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     continue;
                 }
 
-                AxisAlignedBB axisalignedbb = entity.getBoundingBox().grow(0.3f, 0.3f, 0.3f);
-                MovingObjectPosition ob = axisalignedbb.calculateIntercept(this.getPosition(), moveVector);
+                BoundingBox boundingBox = entity.getBoundingBox().inflate(0.3f, 0.3f, 0.3f);
+                MovingObjectPosition ob = boundingBox.clip(this.getPosition(), moveVector);
 
                 if (ob == null) {
                     continue;

@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.component.UseCheckHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -48,8 +49,7 @@ public class DoorBlockHandlers {
 
         boolean shouldBreak = false;
         if (!isUpperBlock) {
-            BlockState below = level.getBlockState(pos.getX(), pos.getY() - 1, pos.getZ());
-            if (!CloudBlockRegistry.REGISTRY.getComponents(below.getType()).get(BlockComponents.SOLID).get()) {
+            if (!PlacementSupport.hasFloorSupport(level, pos)) {
                 shouldBreak = true;
             }
         }

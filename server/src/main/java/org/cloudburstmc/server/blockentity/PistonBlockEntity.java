@@ -4,9 +4,8 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Piston;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -16,9 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author CreeperFace
- */
 public class PistonBlockEntity extends BaseBlockEntity implements Piston {
 
     private final List<Vector3i> attachedBlocks = new ArrayList<>();
@@ -77,7 +73,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
         float x = lastProgress * this.facing.getStepX();
         float y = lastProgress * this.facing.getStepY();
         float z = lastProgress * this.facing.getStepZ();
-        AxisAlignedBB bb = new SimpleAxisAlignedBB(x, y, z, x + 1f, y + 1f, z + 1f);
+        BoundingBox bb = new BoundingBox(x, y, z, x + 1f, y + 1f, z + 1f);
         Set<Entity> entities = this.getLevel().getCollidingEntities(bb);
         if (!entities.isEmpty()) {
 

@@ -18,7 +18,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.item.randomitem.Fishing;
+import org.cloudburstmc.server.item.loot.FishingLoot;
 import org.cloudburstmc.server.level.particle.BubbleParticle;
 import org.cloudburstmc.server.level.particle.WaterParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -103,9 +103,8 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
         if (this.isInsideOfWater()) {
             this.motion = Vector3f.from(0, getGravity() * -0.04, 0);
             hasUpdate = true;
-        } else if (this.isCollided && this.keepMovement) {
+        } else if (this.isCollided) {
             this.motion = Vector3f.ZERO;
-            this.keepMovement = false;
             hasUpdate = true;
         }
 
@@ -209,7 +208,7 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
     public void reelLine() {
         Entity owner = this.getOwner();
         if (owner instanceof CloudPlayer && this.caught) {
-            ItemStack item = Fishing.getFishingResult(this.rod);
+            ItemStack item = FishingLoot.select();
             int experience = new Random().nextInt((3 - 1) + 1) + 1;
             Vector3f motion;
 

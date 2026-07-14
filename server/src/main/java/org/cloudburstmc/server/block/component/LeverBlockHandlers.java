@@ -9,9 +9,11 @@ import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.PlayerBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.LeverDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -45,17 +47,15 @@ public class LeverBlockHandlers {
         BlockState state = block.getState();
         LeverDirection leverDirection = state.ensureTrait(BlockTraits.LEVER_DIRECTION);
         Vector3i pos = block.getPosition();
-        Vector3i supportPos = leverDirection.getDirection().relative(pos);
+        Direction supportFace = leverDirection.getDirection().getOpposite();
+        Vector3i supportPos = PlacementSupport.supportPosition(pos, supportFace);
 
         if (!neighbor.getPosition().equals(supportPos)) {
             return;
         }
 
         CloudLevel level = (CloudLevel) block.getLevel();
-        BlockState support = level.getBlockState(supportPos.getX(), supportPos.getY(), supportPos.getZ());
-
-        boolean solid = CloudBlockRegistry.REGISTRY.getComponents(support.getType()).get(BlockComponents.SOLID).get();
-        if (solid) {
+        if (PlacementSupport.hasFullFaceSupport(level, pos, supportFace)) {
             return;
         }
 

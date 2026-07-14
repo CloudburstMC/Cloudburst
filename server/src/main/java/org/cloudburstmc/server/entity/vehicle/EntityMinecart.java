@@ -45,7 +45,7 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
         boolean update = super.onUpdate(currentTick);
 
         if (this.passengers.isEmpty()) {
-            for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+            for (Entity entity : this.getLevel().getCollidingEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
                 if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof CloudPlayer || entity instanceof EntityWaterAnimal) {
                     continue;
                 }

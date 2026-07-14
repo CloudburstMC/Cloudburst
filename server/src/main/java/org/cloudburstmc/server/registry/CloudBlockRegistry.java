@@ -452,7 +452,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BUBBLE_CORAL_WALL_FAN);
         this.registerVanilla(BUDDING_AMETHYST);
         this.registerVanilla(BUSH);
-        this.registerVanilla(CACTUS);
+        this.registerVanilla(CACTUS)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.CACTUS_ENTITY_INSIDE);
         this.registerVanilla(CACTUS_FLOWER);
         this.registerVanilla(CAKE);
         this.registerVanilla(CALCITE);
@@ -869,7 +870,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(EXPOSED_LIGHTNING_ROD);
         this.registerVanilla(FARMLAND);
         this.registerVanilla(FERN);
-        this.registerVanilla(FIRE);
+        this.registerVanilla(FIRE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(FIREFLY_BUSH);
         this.registerVanilla(FIRE_CORAL);
         this.registerVanilla(FIRE_CORAL_BLOCK);
@@ -880,7 +883,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(FLOWER_POT);
         this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE)
                 .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true);
+                .set(BlockComponents.LIQUID, () -> true)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE)
                 .set(BlockComponents.REPLACEABLE, () -> true)
                 .set(BlockComponents.LIQUID, () -> true);
@@ -1033,13 +1038,15 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LARGE_FERN);
         this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE)
                 .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true);
+                .set(BlockComponents.LIQUID, () -> true)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(LEAF_LITTER);
         this.registerVanilla(LECTERN)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.LECTERN);
         this.registerVanilla(LEVER)
-                .set(BlockComponents.ON_PLACE, new LeverPlaceHandler(this))
+                .set(BlockComponents.ON_PLACE, new LeverPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, LeverBlockHandlers.USE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, LeverBlockHandlers.ON_NEIGHBOUR_CHANGED)
@@ -1349,7 +1356,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.ON_RANDOM_TICK, PortalBlockHandlers.ON_RANDOM_TICK);
         this.registerVanilla(POTATOES);
         this.registerVanilla(POTENT_SULFUR);
-        this.registerVanilla(POWDER_SNOW);
+        this.registerVanilla(POWDER_SNOW)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.POWDER_SNOW_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(POWERED_COMPARATOR);
         this.registerVanilla(POWERED_REPEATER);
         this.registerVanilla(PRISMARINE);
@@ -1487,7 +1496,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SNOW);
         this.registerVanilla(SNOW_LAYER);
         this.registerVanilla(SOUL_CAMPFIRE);
-        this.registerVanilla(SOUL_FIRE);
+        this.registerVanilla(SOUL_FIRE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(SOUL_LANTERN);
         this.registerVanilla(SOUL_SAND);
         this.registerVanilla(SOUL_SOIL);
@@ -1571,7 +1582,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SUNFLOWER);
         this.registerVanilla(SUSPICIOUS_GRAVEL);
         this.registerVanilla(SUSPICIOUS_SAND);
-        this.registerVanilla(SWEET_BERRY_BUSH);
+        this.registerVanilla(SWEET_BERRY_BUSH)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(TALL_DRY_GRASS);
         this.registerVanilla(TALL_GRASS);
         this.registerVanilla(TARGET);
@@ -1585,15 +1598,16 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.USE, ContainerBlockHandlers.TRAPPED_CHEST);
         this.registerVanilla(TRIAL_SPAWNER);
         this.registerVanilla(TRIPWIRE_HOOK)
-                .set(BlockComponents.ON_PLACE, new TripwireHookPlaceHandler(this))
+                .set(BlockComponents.ON_PLACE, new TripwireHookPlaceHandler())
                 .set(BlockComponents.ON_TICK, TripwireHookBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireHookBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_DESTROY, TripwireHookBlockHandlers.ON_DESTROY);
         this.registerVanilla(TRIP_WIRE)
-                .set(BlockComponents.ON_PLACE, new TripwireBlockPlaceHandler(this))
+                .set(BlockComponents.ON_PLACE, new TripwireBlockPlaceHandler())
                 .set(BlockComponents.GET_RESOURCE, TripwireBlockHandlers.GET_RESOURCE)
                 .set(BlockComponents.GET_PICK_BLOCK, TripwireBlockHandlers.GET_PICK_BLOCK)
-                .set(BlockComponents.ON_ENTITY_COLLIDE, TripwireBlockHandlers.ON_ENTITY_COLLIDE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, TripwireBlockHandlers.ON_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.ON_TICK, TripwireBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_DESTROY, TripwireBlockHandlers.ON_DESTROY);
@@ -1730,7 +1744,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerStairs(WEATHERED_CUT_COPPER_STAIRS);
         this.registerVanilla(WEATHERED_DOUBLE_CUT_COPPER_SLAB);
         this.registerVanilla(WEATHERED_LIGHTNING_ROD);
-        this.registerVanilla(WEB);
+        this.registerVanilla(WEB)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.WEB_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(WEEPING_VINES);
         this.registerVanilla(WET_SPONGE);
         this.registerVanilla(WHEAT);
@@ -1816,7 +1832,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
     private void registerTorch(BlockType type) {
         this.registerVanilla(type)
-                .set(BlockComponents.ON_PLACE, new TorchPlaceHandler(this))
+                .set(BlockComponents.ON_PLACE, new TorchPlaceHandler())
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TorchBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 
@@ -1847,12 +1863,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.FLAME_ODDS, () -> 0);
         this.registerComponent(BlockComponents.LIGHT_DAMPENING, () -> 0);
         this.registerComponent(BlockComponents.LIGHT_EMISSION, () -> 0);
-        this.registerComponent(BlockComponents.SOLID, () -> false);
         this.registerComponent(BlockComponents.REQUIRES_CORRECT_TOOL, () -> false);
         this.registerComponent(BlockComponents.REPLACEABLE, () -> false);
         this.registerComponent(BlockComponents.MAP_COLOR, () -> "#00000000");
         this.registerComponent(BlockComponents.LIQUID, () -> false);
-        this.registerComponent(BlockComponents.TOP_SOLID, TopSolidHandler.INSTANCE);
         this.registerComponent(BlockComponents.STAIRS, () -> false);
         this.registerComponent(BlockComponents.SLAB, () -> false);
         this.registerComponent(BlockComponents.SUPER_HOT, () -> false);
@@ -1865,8 +1879,16 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.USES_WATERLOGGING, () -> false);
         this.registerComponent(BlockComponents.ALWAYS_DESTROYABLE, () -> true);
         this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
-        this.registerComponent(BlockComponents.CAN_PASS_THROUGH, DefaultBlockHandlers.CAN_PASS_THROUGH);
-        this.registerComponent(BlockComponents.GET_BOUNDING_BOX, new GetBoundingBoxHandler());
+        this.registerComponent(BlockComponents.BLOCKS_MOTION, DefaultBlockHandlers.BLOCKS_MOTION);
+        this.registerComponent(BlockComponents.CAN_OCCLUDE, DefaultBlockHandlers.CAN_OCCLUDE);
+        this.registerComponent(BlockComponents.PASSABLE, DefaultBlockHandlers.PASSABLE);
+        this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
+        this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());
+        this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
+        this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
+        this.registerComponent(BlockComponents.IS_FACE_STURDY, DefaultBlockHandlers.IS_FACE_STURDY);
+        this.registerComponent(BlockComponents.SUFFOCATING, DefaultBlockHandlers.SUFFOCATING);
+        this.registerComponent(BlockComponents.VIEW_BLOCKING, DefaultBlockHandlers.VIEW_BLOCKING);
         this.registerComponent(BlockComponents.CAN_BE_SILK_TOUCHED, DefaultBlockHandlers.CAN_BE_SILK_TOUCHED);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
         this.registerComponent(BlockComponents.CAN_CONTAIN_LIQUID, DefaultBlockHandlers.CAN_CONTAIN_LIQUID);
@@ -1915,6 +1937,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_LIQUID_HEIGHT, (block) -> 0);
         this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {
         });
+        this.registerComponent(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.ON_ENTITY_INSIDE);
         this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> {
             StringTypeHandler mapColorHandler = getComponent(block.getState().getType(), BlockComponents.MAP_COLOR);
             String hex = mapColorHandler != null ? mapColorHandler.get() : null;

@@ -21,6 +21,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -253,7 +254,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
             }
 
             // Push nearby entities and let them push back.
-            for (Entity entity : this.getLevel().getNearbyEntities(boundingBox.grow(0.2f, 0, 0.2f), this)) {
+            for (Entity entity : this.getLevel().getNearbyEntities(this, boundingBox.inflate(0.2f, 0, 0.2f))) {
                 if (passengers.contains(entity)) {
                     continue;
                 }
@@ -765,6 +766,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     private boolean isNormalBlock(Block block) {
-        return CloudBlockRegistry.REGISTRY.getComponents(block.getState().getType()).get(BlockComponents.SOLID).get();
+        return BlockSupport.isCollisionShapeFullBlock(block.getState());
     }
 }

@@ -3,7 +3,7 @@ package org.cloudburstmc.server.scheduler;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
@@ -295,7 +295,7 @@ public final class LevelChunkTicks {
      * Returns all queued entries whose positions fall within the 3-D bounds of
      * {@code bb}. Returns {@code null} when none match.
      */
-    public Set<BlockUpdateEntry> getPendingInBounds(AxisAlignedBB bb) {
+    public Set<BlockUpdateEntry> getPendingInBounds(BoundingBox bb) {
         Set<BlockUpdateEntry> result = null;
         for (BlockUpdateEntry entry : index) {
             if (isInBounds(entry, bb)) {
@@ -314,7 +314,7 @@ public final class LevelChunkTicks {
      *
      * @return number of entries removed
      */
-    public int clearInBounds(AxisAlignedBB bb) {
+    public int clearInBounds(BoundingBox bb) {
         return removeIf(e -> isInBounds(e, bb));
     }
 
@@ -332,7 +332,7 @@ public final class LevelChunkTicks {
         nextTickTime = (head != null) ? head.delay : Long.MAX_VALUE;
     }
 
-    private static boolean isInBounds(BlockUpdateEntry entry, AxisAlignedBB bb) {
+    private static boolean isInBounds(BlockUpdateEntry entry, BoundingBox bb) {
         Vector3i p = entry.pos;
         return p.getX() >= bb.getMinX() && p.getX() < bb.getMaxX()
                 && p.getY() >= bb.getMinY() && p.getY() < bb.getMaxY()

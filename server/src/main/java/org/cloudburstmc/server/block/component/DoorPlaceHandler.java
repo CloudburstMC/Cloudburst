@@ -10,6 +10,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.BlockSupport;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class DoorPlaceHandler implements PlaceBlockHandler {
@@ -21,7 +23,7 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
     }
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
         if (player == null) {
             return false;
         }
@@ -31,13 +33,12 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
         }
 
         Level level = player.getLevel();
-        BlockState below = level.getBlockState(pos.getX(), pos.getY() - 1, pos.getZ());
-        if (!registry.getComponents(below.getType()).get(BlockComponents.SOLID).get()) {
+        if (!PlacementSupport.hasFloorSupport(level, blockPosition)) {
             return false;
         }
 
-        Vector3i upperPos = pos.add(0, 1, 0);
-        BlockState upperExisting = level.getBlockState(upperPos.getX(), upperPos.getY(), upperPos.getZ());
+        Vector3i upperPosition = blockPosition.add(0, 1, 0);
+        BlockState upperExisting = level.getBlockState(upperPosition.getX(), upperPosition.getY(), upperPosition.getZ());
         if (!registry.getComponents(upperExisting.getType()).get(BlockComponents.REPLACEABLE).get()) {
             return false;
         }
@@ -45,43 +46,58 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
         Direction playerFacing = player.getHorizontalDirection();
         CardinalDirection doorDirection = playerFacing.rotateClockwise().getCardinalDirection();
 
-        boolean hingeRight = resolveHinge(level, pos, playerFacing);
+        boolean hingeRight = resolveHinge(level, blockPosition, playerFacing, clickPosition);
         BlockState lowerState = blockState
                 .withTrait(BlockTraits.CARDINAL_DIRECTION, doorDirection)
                 .withTrait(BlockTraits.IS_DOOR_HINGE, hingeRight)
                 .withTrait(BlockTraits.IS_OPEN, false);
 
         BlockState upperState = lowerState.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
-        if (!level.setBlockState(pos, lowerState, true, false)) {
+        if (!level.setBlockState(blockPosition, lowerState, true, false)) {
             return false;
         }
 
-        level.setBlockState(upperPos, upperState, true, true);
+        level.setBlockState(upperPosition, upperState, true, true);
         return true;
     }
 
-    private boolean resolveHinge(Level level, Vector3i pos, Direction playerFacing) {
+    private boolean resolveHinge(Level level, Vector3i blockPosition, Direction playerFacing, Vector3f clickPosition) {
         Direction left = playerFacing.rotateCounterClockwise();
         Direction right = playerFacing.rotateClockwise();
 
-        BlockState leftState = level.getBlockState(left.relative(pos));
-        BlockState rightState = level.getBlockState(right.relative(pos));
+        Vector3i leftPosition = left.relative(blockPosition);
+        Vector3i rightPosition = right.relative(blockPosition);
+        Vector3i upperPosition = blockPosition.add(0, 1, 0);
+        Vector3i leftUpperPosition = left.relative(upperPosition);
+        Vector3i rightUpperPosition = right.relative(upperPosition);
+
+        BlockState leftState = level.getBlockState(leftPosition);
+        BlockState rightState = level.getBlockState(rightPosition);
 
         boolean leftIsDoorLower = isDoorLowerHalf(leftState);
         boolean rightIsDoorLower = isDoorLowerHalf(rightState);
+        int obstructionBalance = (BlockSupport.isCollisionShapeFullBlock(level, leftPosition) ? -1 : 0)
+                + (BlockSupport.isCollisionShapeFullBlock(level, leftUpperPosition) ? -1 : 0)
+                + (BlockSupport.isCollisionShapeFullBlock(level, rightPosition) ? 1 : 0)
+                + (BlockSupport.isCollisionShapeFullBlock(level, rightUpperPosition) ? 1 : 0);
 
-        if (leftIsDoorLower && !rightIsDoorLower) {
+        if ((leftIsDoorLower && !rightIsDoorLower) || obstructionBalance > 0) {
             return true;
         }
 
-        if (rightIsDoorLower && !leftIsDoorLower) {
+        if ((rightIsDoorLower && !leftIsDoorLower) || obstructionBalance < 0) {
             return false;
         }
 
-        boolean rightIsSolid = registry.getComponents(rightState.getType()).get(BlockComponents.SOLID).get();
-        boolean leftIsSolid = registry.getComponents(leftState.getType()).get(BlockComponents.SOLID).get();
+        int stepX = playerFacing.getStepX();
+        int stepZ = playerFacing.getStepZ();
+        float clickX = clickPosition.getX();
+        float clickZ = clickPosition.getZ();
 
-        return rightIsSolid && !leftIsSolid;
+        return (stepX < 0 && clickZ < 0.5f)
+                || (stepX > 0 && clickZ > 0.5f)
+                || (stepZ < 0 && clickX > 0.5f)
+                || (stepZ > 0 && clickX < 0.5f);
     }
 
     private boolean isDoorLowerHalf(BlockState state) {

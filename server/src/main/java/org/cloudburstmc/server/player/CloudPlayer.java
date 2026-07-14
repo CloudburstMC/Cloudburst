@@ -61,10 +61,10 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.LoginChainData;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -120,7 +120,6 @@ import org.cloudburstmc.server.permission.PermissibleBase;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
@@ -263,7 +262,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.playerData.setGamemode(this.server.getGameMode());
         this.viewDistance = this.server.getViewDistance();
         //this.newPosition = new Vector3(0, 0, 0);
-        this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
 
         this.loginChainData = chainData;
@@ -484,11 +483,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
         this.hiddenPlayers.put(player.getServerId(), player);
         player.despawnFrom(this);
-    }
-
-    @Override
-    public boolean canCollideWith(Entity entity) {
-        return false;
     }
 
     @Override
@@ -1103,7 +1097,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
      * <ol>
      *   <li>The candidate block itself is passable (feet level).</li>
      *   <li>The block directly above is also passable (head level).</li>
-     *   <li>The block below is solid (there is a floor to stand on).</li>
+     *   <li>The block below has a floor to stand on.</li>
      *   <li>If {@code avoidDanger=true}: neither the candidate block nor the floor block is a
      *       "dangerous" block (fire, lava, cactus, etc.).</li>
      * </ol></p>
@@ -1118,21 +1112,19 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         Block headBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() + 1, pos.getZ()));
         Block floorBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() - 1, pos.getZ()));
 
-        if (!isPassable(feetBlock) || !isPassable(headBlock)) {
+        if (!isPassable(level, feetBlock) || !isPassable(level, headBlock)) {
             return false;
         }
 
-        if (isPassable(floorBlock)) {
+        if (isPassable(level, floorBlock)) {
             return false;
         }
 
         return !avoidDanger || (!isDangerous(feetBlock) && !isDangerous(floorBlock));
     }
 
-    private static boolean isPassable(Block block) {
-        return CloudBlockRegistry.REGISTRY
-                .getComponent(block.getState().getType(), BlockComponents.CAN_PASS_THROUGH)
-                .execute(block.getState());
+    private static boolean isPassable(CloudLevel level, Block block) {
+        return !level.hasBlockCollision(null, block.getState(), block.getPosition(), BoundingBox.unit(block.getPosition()));
     }
 
     /**
@@ -1297,7 +1289,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         } catch (Exception ignored) {
         }
 
-        for (Entity p : level.getNearbyEntities(this.boundingBox.grow(2, 1, 2), this)) {
+        for (Entity p : level.getNearbyEntities(this, this.boundingBox.inflate(2, 1, 2))) {
             if (p instanceof CloudPlayer) {
                 if (((CloudPlayer) p).sleeping != null && pos.distance(((CloudPlayer) p).sleeping) <= 0.1) {
                     return false;
@@ -1585,7 +1577,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     protected void checkNearEntities() {
-        for (Entity entity : this.getLevel().getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
+        for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox.inflate(1, 0.5f, 1))) {
             this.getLevel().scheduleEntityUpdate(entity);
 
             if (!entity.isAlive() || !this.isAlive()) {
@@ -1621,7 +1613,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.setAir((short) 400);
         }
 
-        this.keepMovement = this.isSpectator();
+        this.noPhysics = this.isSpectator();
 
         this.abilities = buildAbilitiesForGameMode(gamemode);
 
@@ -1817,46 +1809,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.sendPacket(pk);
     }
 
-    @Override
-    protected void checkGroundState(double movX, double movY, double movZ, double dx, double dy, double dz) {
-        if (!this.onGround || movX != 0 || movY != 0 || movZ != 0) {
-            boolean onGround = false;
-
-            AxisAlignedBB bb = this.boundingBox.clone();
-            bb.setMaxY(bb.getMinY() + 0.5f);
-            bb.setMinY(bb.getMinY() - 1);
-
-            AxisAlignedBB realBB = this.boundingBox.clone();
-            realBB.setMaxY(realBB.getMinY() + 0.1f);
-            realBB.setMinY(realBB.getMinY() - 0.2f);
-
-            int minX = GenericMath.floor(bb.getMinX());
-            int minY = GenericMath.floor(bb.getMinY());
-            int minZ = GenericMath.floor(bb.getMinZ());
-            int maxX = GenericMath.ceil(bb.getMaxX());
-            int maxY = GenericMath.ceil(bb.getMaxY());
-            int maxZ = GenericMath.ceil(bb.getMaxZ());
-
-            for (int z = minZ; z <= maxZ; ++z) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getLevel().getBlock(x, y, z);
-                        ComponentMap behavior = block.getComponents();
-
-                        if (!CloudBlockRegistry.REGISTRY.getComponent(block.getState().getType(), BlockComponents.SOLID).get() && behavior.get(BlockComponents.GET_BOUNDING_BOX).execute(block.getState()).addCoord(x, y, z).intersectsWith(realBB)) {
-                            onGround = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            this.onGround = onGround;
-        }
-
-        this.isCollided = this.onGround;
-    }
-
     public void checkInteractNearby() {
         int interactDistance = isCreative() ? 5 : 3;
         if (canInteract(this.getPosition(), interactDistance)) {
@@ -1924,7 +1876,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             if (diffX != 0 || diffY != 0 || diffZ != 0) {
                 this.position = newPosition;
                 float radius = this.getWidth() / 2;
-                this.boundingBox.setBounds(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
+                this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
                         this.position.getX() + radius, this.position.getY() + this.getHeight(), this.position.getZ() + radius);
             }
         }
@@ -1945,13 +1897,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.lastPitch = to.getPitch();
 
             if (!isFirst) {
-                List<Block> blocksAround = this.blocksAround != null ? new ArrayList<>(this.blocksAround) : new ArrayList<>();
-                List<Block> collidingBlockStates = this.collisionBlockStates != null ? new ArrayList<>(this.collisionBlockStates) : new ArrayList<>();
-
                 PlayerMoveEvent ev = new PlayerMoveEvent(this, from, to);
-
-                this.blocksAround = null;
-                this.collisionBlockStates = null;
 
                 this.server.getEventManager().fire(ev);
 
@@ -1963,8 +1909,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     }
                 } else {
                     revertReason = "PlayerMoveEvent cancelled";
-                    this.blocksAround = blocksAround;
-                    this.collisionBlockStates = collidingBlockStates;
                 }
             }
 
@@ -2276,7 +2220,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
             Interactable entity = null;
 
-            Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(boundingBox.grow(maxDistance, maxDistance, maxDistance), this);
+            Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(this, boundingBox.inflate(maxDistance, maxDistance, maxDistance));
 
             // get all blocks in looking direction until the max interact distance is reached (it's possible that startblock isn't found!)
 
@@ -2537,7 +2481,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         super.init(this.getLocation());
 
-        if (this.isSpectator()) this.keepMovement = true;
+        this.noPhysics = this.isSpectator();
 
         this.forceMovement = this.teleportPosition = this.getPosition();
     }
@@ -4092,7 +4036,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         int tick = this.getServer().getTick();
-        if (pickedXPOrb < tick && entity instanceof ExperienceOrb experienceOrb && this.boundingBox.isVectorInside(entity.getPosition())) {
+        if (pickedXPOrb < tick && entity instanceof ExperienceOrb experienceOrb && this.boundingBox.contains(entity.getPosition())) {
             if (experienceOrb.getPickupDelay() <= 0) {
                 int exp = experienceOrb.getExperience();
                 entity.kill();

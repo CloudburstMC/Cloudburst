@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -23,19 +24,15 @@ public class TorchBlockHandlers {
         Direction torchDirection = state.ensureTrait(BlockTraits.TORCH_DIRECTION);
         Vector3i pos = block.getPosition();
 
-        Vector3i supportPos = torchDirection == Direction.DOWN
-                ? pos.sub(0, 1, 0)
-                : torchDirection.relative(pos);
+        Direction supportFace = torchDirection == Direction.DOWN ? Direction.UP : torchDirection.getOpposite();
+        Vector3i supportPos = PlacementSupport.supportPosition(pos, supportFace);
 
         if (!neighbor.getPosition().equals(supportPos)) {
             return;
         }
 
         CloudLevel level = (CloudLevel) block.getLevel();
-        BlockState support = level.getBlockState(supportPos.getX(), supportPos.getY(), supportPos.getZ());
-
-        boolean solid = CloudBlockRegistry.REGISTRY.getComponents(support.getType()).get(BlockComponents.SOLID).get();
-        if (solid) {
+        if (PlacementSupport.hasCenterFaceSupport(level, pos, supportFace)) {
             return;
         }
 

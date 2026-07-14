@@ -8,11 +8,11 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.ZombiePigman;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -322,7 +322,7 @@ public final class NetherPortals {
 
     /**
      * Returns true if the column at (x, y, z) is suitable to place a new portal frame:
-     * the floor block at y-1 must be solid, and the portal area plus a 1-block
+     * the floor block at y-1 must support the portal, and the portal area plus a 1-block
      * perpendicular border on each side must all be replaceable and contain no fluid.
      */
     private static boolean isSuitableForPortal(CloudLevel level, int x, int y, int z, Direction.Axis axis) {
@@ -332,7 +332,7 @@ public final class NetherPortals {
         int pz = dx;
 
         BlockState floorState = level.getBlockState(x, y - 1, z);
-        if (!CloudBlockRegistry.REGISTRY.getComponent(floorState.getType(), BlockComponents.SOLID).get()) {
+        if (!BlockSupport.isFaceSturdy(floorState, Direction.UP, SupportType.FULL)) {
             return false;
         }
 
@@ -623,15 +623,15 @@ public final class NetherPortals {
         }
 
         BlockState floor = level.getBlockState(bx, by - 1, bz);
-        if (!CloudBlockRegistry.REGISTRY.getComponent(floor.getType(), BlockComponents.SOLID).get()) {
+        if (!BlockSupport.isFaceSturdy(floor, Direction.UP, SupportType.FULL)) {
             return;
         }
 
-        // Require 2 non-solid, non-fluid blocks of headroom at the spawn column
+        // Require 2 non-blocking, non-fluid blocks of headroom at the spawn column
         for (int headroom = 0; headroom < 2; headroom++) {
             BlockState above = level.getBlockState(bx, by + headroom, bz);
             BlockType aboveType = above.getType();
-            if (CloudBlockRegistry.REGISTRY.getComponent(aboveType, BlockComponents.SOLID).get()) {
+            if (BlockSupport.blocksMotion(above)) {
                 return;
             }
 
@@ -651,7 +651,7 @@ public final class NetherPortals {
 
     /**
      * Adjust {@code spawnPos} upward until the entity's bounding box at that
-     * position no longer overlaps any solid block, or the search limit is reached.
+     * position no longer overlaps any motion-blocking block, or the search limit is reached.
      * Skips the search entirely for oversized entities (width or height {@literal >} 4).
      *
      * @param level    the destination level
@@ -675,10 +675,10 @@ public final class NetherPortals {
                 break;
             }
 
-            AxisAlignedBB bb = new SimpleAxisAlignedBB(
+            BoundingBox bb = new BoundingBox(
                     spawnPos.getX() - halfW, testY, spawnPos.getZ() - halfW,
                     spawnPos.getX() + halfW, testY + height, spawnPos.getZ() + halfW);
-            if (!level.hasCollision(entity, bb, false)) {
+            if (!level.hasBlockCollision(entity, bb)) {
                 return Vector3f.from(spawnPos.getX(), testY, spawnPos.getZ());
             }
         }

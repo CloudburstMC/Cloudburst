@@ -141,7 +141,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < CloudItemRegistry.get().getComponents(getItem().getType()).get(ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
-                for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
+                for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
                             continue;
@@ -182,7 +182,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                     this.pickupDelay = 0;
                 }
             } else {
-                for (Entity entity : this.level.getNearbyEntities(this.boundingBox.grow(1, 0.5f, 1), this)) {
+                for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox.inflate(1, 0.5f, 1))) {
                     if (entity instanceof CloudPlayer) {
                         if (((CloudPlayer) entity).pickupEntity(this, true)) {
                             return true;
@@ -200,7 +200,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 this.motion = this.motion.sub(0, this.getGravity(), 0);
             }
 
-            if (this.checkObstruction(pos)) {
+            this.noPhysics = this.level.hasCollision(this, this.getBoundingBox().deflate(1.0E-7f, 1.0E-7f, 1.0E-7f));
+            if (this.noPhysics && this.moveTowardsClosestSpace(pos)) {
                 hasUpdate = true;
             }
 

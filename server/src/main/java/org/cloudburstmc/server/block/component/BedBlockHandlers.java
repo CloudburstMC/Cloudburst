@@ -12,6 +12,7 @@ import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -50,10 +51,8 @@ public class BedBlockHandlers {
             return false;
         }
 
-        Block footBelow = level.getBlock(footPos.getX(), footPos.getY() - 1, footPos.getZ());
-        Block headBelow = level.getBlock(headPos.getX(), headPos.getY() - 1, headPos.getZ());
-        if (!CloudBlockRegistry.REGISTRY.getComponent(footBelow.getState().getType(), BlockComponents.SOLID).get()
-                || !CloudBlockRegistry.REGISTRY.getComponent(headBelow.getState().getType(), BlockComponents.SOLID).get()) {
+        if (!PlacementSupport.hasFloorSupport(level, footPos)
+                || !PlacementSupport.hasFloorSupport(level, headPos)) {
             return false;
         }
 

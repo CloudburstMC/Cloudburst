@@ -15,8 +15,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -162,9 +161,9 @@ public class Explosion {
         float minZ = GenericMath.floor(this.source.getZ() - explosionSize - 1);
         float maxZ = GenericMath.ceil(this.source.getZ() + explosionSize + 1);
 
-        AxisAlignedBB explosionBB = new SimpleAxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+        BoundingBox explosionBB = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
 
-        Set<Entity> entities = this.level.getNearbyEntities(explosionBB, this.what instanceof Entity ? (Entity) this.what : null);
+        Set<Entity> entities = this.level.getNearbyEntities(this.what instanceof Entity ? (Entity) this.what : null, explosionBB);
         for (Entity entity : entities) {
             double distance = entity.getPosition().distance(this.source) / explosionSize;
 

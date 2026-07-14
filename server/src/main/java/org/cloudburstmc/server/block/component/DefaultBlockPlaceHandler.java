@@ -5,11 +5,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.PlaceBlockHandler;
 import org.cloudburstmc.api.block.trait.BlockTrait;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -17,7 +17,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
 
@@ -28,28 +27,24 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
     }
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
         if (player == null) {
             return false;
         }
 
         Level level = player.getLevel();
-        ComponentMap blockComponents = registry.getComponents(blockState.getType());
-        AxisAlignedBB boundingBox = blockComponents.get(BlockComponents.GET_BOUNDING_BOX).execute(blockState);
+        ComponentMap blockComponents = this.registry.getComponents(blockState.getType());
+        VoxelShape collisionShape = blockComponents.get(BlockComponents.GET_COLLISION_SHAPE).execute(blockState, CollisionContext.of(player));
 
-        if (boundingBox != null && hasCollision(boundingBox)) {
-            AxisAlignedBB offsetBB = boundingBox.getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
-            Set<? extends Entity> nearbyEntities = level.getCollidingEntities(offsetBB);
-            if (!nearbyEntities.isEmpty()) {
-                return false;
-            }
+        if (!collisionShape.isEmpty() && level.hasEntityCollision(null, collisionShape, blockPosition)) {
+            return false;
         }
 
-        blockState = applyDirectionTraits(blockState, player, pos, face);
-        return level.setBlockState(pos, blockState, true, true);
+        blockState = this.applyDirectionTraits(blockState, player, blockPosition, face);
+        return level.setBlockState(blockPosition, blockState, true, true);
     }
 
-    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i pos, Direction face) {
+    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i blockPosition, Direction face) {
         Map<BlockTrait<?>, Comparable<?>> traits = blockState.getTraits();
         if (traits.containsKey(BlockTraits.AXIS)) {
             blockState = blockState.withTrait(BlockTraits.AXIS, face.getAxis());
@@ -66,11 +61,11 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
         }
 
         if (traits.containsKey(BlockTraits.FACING_DIRECTION)) {
-            blockState = blockState.withTrait(BlockTraits.FACING_DIRECTION, resolveFacingDirection(player));
+            blockState = blockState.withTrait(BlockTraits.FACING_DIRECTION, this.resolveFacingDirection(player));
         }
 
         if (traits.containsKey(BlockTraits.SIGN_DIRECTION)) {
-            blockState = blockState.withTrait(BlockTraits.SIGN_DIRECTION, yawToCardinalDirection(player.getYaw()));
+            blockState = blockState.withTrait(BlockTraits.SIGN_DIRECTION, this.yawToCardinalDirection(player.getYaw()));
         }
 
         return blockState;
@@ -92,11 +87,5 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
     protected CardinalDirection yawToCardinalDirection(float yaw) {
         int index = Math.round(((yaw % 360f) + 360f) % 360f / 22.5f) % 16;
         return CardinalDirection.values()[index];
-    }
-
-    private boolean hasCollision(AxisAlignedBB boundingBox) {
-        return boundingBox.getMaxX() > boundingBox.getMinX() ||
-                boundingBox.getMaxY() > boundingBox.getMinY() ||
-                boundingBox.getMaxZ() > boundingBox.getMinZ();
     }
 }

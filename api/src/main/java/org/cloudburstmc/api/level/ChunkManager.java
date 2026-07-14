@@ -13,80 +13,76 @@ import org.cloudburstmc.math.vector.Vector4i;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public interface ChunkManager {
 
-    default BlockState getBlockState(Vector3i pos) {
-        return getBlockState(pos.getX(), pos.getY(), pos.getZ(), 0);
+    default BlockState getBlockState(Vector3i position) {
+        return getBlockState(position.getX(), position.getY(), position.getZ(), 0);
     }
 
-    default BlockState getBlockState(Vector3i pos, int layer) {
-        return getBlockState(pos.getX(), pos.getY(), pos.getZ(), layer);
+    default BlockState getBlockState(Vector3i position, int layer) {
+        return getBlockState(position.getX(), position.getY(), position.getZ(), layer);
     }
 
     default BlockState getBlockState(int x, int y, int z) {
         return this.getBlockState(x, y, z, 0);
     }
 
-    default BlockState getBlockState(Vector4i pos) {
-        return getBlockState(pos.getX(), pos.getY(), pos.getZ(), pos.getW());
+    default BlockState getBlockState(Vector4i position) {
+        return getBlockState(position.getX(), position.getY(), position.getZ(), position.getW());
     }
 
     BlockState getBlockState(int x, int y, int z, int layer);
 
-    default Block getBlock(Vector3i pos) {
-        return getBlock(pos.getX(), pos.getY(), pos.getZ());
+    default Block getBlock(Vector3i position) {
+        return getBlock(position.getX(), position.getY(), position.getZ());
     }
 
-    default Block getBlock(Vector3f pos) {
-        return getBlock(pos.toInt());
+    default Block getBlock(Vector3f position) {
+        return getBlock(position.toInt());
     }
 
     Block getBlock(int x, int y, int z);
 
-    default Block getLoadedBlock(Vector3i pos) {
-        return getLoadedBlock(pos.getX(), pos.getY(), pos.getZ());
+    default Block getLoadedBlock(Vector3i position) {
+        return getLoadedBlock(position.getX(), position.getY(), position.getZ());
     }
 
-    default Block getLoadedBlock(Vector3f pos) {
-        return getLoadedBlock(pos.toInt());
+    default Block getLoadedBlock(Vector3f position) {
+        return getLoadedBlock(position.toInt());
     }
 
     Block getLoadedBlock(int x, int y, int z);
 
-    default boolean setBlockState(Vector3i pos, BlockState blockState) {
-        return this.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, blockState);
+    default boolean setBlockState(Vector3i position, BlockState blockState) {
+        return this.setBlockState(position.getX(), position.getY(), position.getZ(), 0, blockState);
     }
 
-    default boolean setBlockState(Vector3i pos, int layer, BlockState blockState) {
-        return this.setBlockState(pos.getX(), pos.getY(), pos.getZ(), layer, blockState);
+    default boolean setBlockState(Vector3i position, int layer, BlockState blockState) {
+        return this.setBlockState(position.getX(), position.getY(), position.getZ(), layer, blockState);
     }
 
-    default boolean setBlockState(Vector3i pos, BlockState blockState, boolean direct) {
-        return this.setBlockState(pos, blockState, direct, true);
+    default boolean setBlockState(Vector3i position, BlockState blockState, boolean direct) {
+        return this.setBlockState(position, blockState, direct, true);
     }
 
-    default boolean setBlockState(Vector3i pos, int layer, BlockState blockState, boolean direct, boolean update) {
-        return setBlockState(pos.getX(), pos.getY(), pos.getZ(), layer, blockState, direct, update);
+    default boolean setBlockState(Vector3i position, int layer, BlockState blockState, boolean direct, boolean update) {
+        return setBlockState(position.getX(), position.getY(), position.getZ(), layer, blockState, direct, update);
     }
 
-    default boolean setBlockState(Vector3i pos, BlockState blockState, boolean direct, boolean update) {
-        return setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, blockState, direct, update);
+    default boolean setBlockState(Vector3i position, BlockState blockState, boolean direct, boolean update) {
+        return setBlockState(position.getX(), position.getY(), position.getZ(), 0, blockState, direct, update);
     }
 
-    default boolean setBlockState(Vector4i pos, BlockState blockState) {
-        return this.setBlockState(pos, blockState, false);
+    default boolean setBlockState(Vector4i position, BlockState blockState) {
+        return this.setBlockState(position, blockState, false);
     }
 
-    default boolean setBlockState(Vector4i pos, BlockState blockState, boolean direct) {
-        return this.setBlockState(pos, blockState, direct, true);
+    default boolean setBlockState(Vector4i position, BlockState blockState, boolean direct) {
+        return this.setBlockState(position, blockState, direct, true);
     }
 
-    default boolean setBlockState(Vector4i pos, BlockState blockState, boolean direct, boolean update) {
-        return setBlockState(pos.getX(), pos.getY(), pos.getZ(), pos.getW(), blockState, direct, update);
+    default boolean setBlockState(Vector4i position, BlockState blockState, boolean direct, boolean update) {
+        return setBlockState(position.getX(), position.getY(), position.getZ(), position.getW(), blockState, direct, update);
     }
 
     default boolean setBlockState(int x, int y, int z, BlockState state) {
@@ -99,16 +95,16 @@ public interface ChunkManager {
 
     boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update);
 
-    default Chunk getChunk(Vector3f pos) {
-        return getChunk(pos.toInt());
+    default Chunk getChunk(Vector3f position) {
+        return getChunk(position.toInt());
     }
 
-    default Chunk getChunk(Vector3i pos) {
-        return getChunk(pos.getX() >> 4, pos.getZ() >> 4);
+    default Chunk getChunk(Vector3i position) {
+        return getChunk(position.getX() >> 4, position.getZ() >> 4);
     }
 
-    default Chunk getChunk(Vector2i chunkPos) {
-        return getChunk(chunkPos.getX(), chunkPos.getY());
+    default Chunk getChunk(Vector2i chunkPosition) {
+        return getChunk(chunkPosition.getX(), chunkPosition.getY());
     }
 
     default Chunk getChunk(int chunkX, int chunkZ) {

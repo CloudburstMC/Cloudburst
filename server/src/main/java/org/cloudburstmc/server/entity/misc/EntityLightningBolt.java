@@ -8,7 +8,7 @@ import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -134,10 +134,9 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
 
         if (this.state >= 0) {
             if (this.isEffect) {
-                AxisAlignedBB bb = getBoundingBox().grow(3, 3, 3);
-                bb.setMaxX(bb.getMaxX() + 6);
+                BoundingBox bb = getBoundingBox().inflate(3, 3, 3).setMaxX(getBoundingBox().getMaxX() + 9);
 
-                for (Entity entity : this.level.getCollidingEntities(bb, this)) {
+                for (Entity entity : this.level.getCollidingEntities(this, bb)) {
                     entity.onStruckByLightning(this);
                 }
             }

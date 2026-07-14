@@ -53,10 +53,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.registry.RegistryException;
-import org.cloudburstmc.api.util.AxisAlignedBB;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.GenericMath;
@@ -78,6 +75,8 @@ import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.SectionTickList;
+import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
+import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -99,6 +98,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -187,6 +188,7 @@ public class CloudLevel implements Level {
             .build();
     private final LevelChunkManager chunkManager;
     private final LevelData levelData;
+    private final CollisionEngine collisionEngine;
 
     private Generator generator;
 
@@ -258,6 +260,7 @@ public class CloudLevel implements Level {
         this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
         this.tickRate = 1;
         this.chunkManager = new LevelChunkManager(this);
+        this.collisionEngine = new CollisionEngine(this);
 
         this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(), chunkKey -> this.chunkManager.isChunkLoaded(chunkKey));
 
@@ -754,10 +757,10 @@ public class CloudLevel implements Level {
 
     public Vector3f adjustPosToNearbyEntity(Vector3f pos) {
         pos = Vector3f.from(pos.getX(), this.getHighestBlockAt(pos.getFloorX(), pos.getFloorZ()), pos.getZ());
-        AxisAlignedBB axisalignedbb = new SimpleAxisAlignedBB(pos, Vector3f.from(pos.getX(), 255, pos.getZ())).expand(3, 3, 3);
+        BoundingBox boundingBox = new BoundingBox(pos, Vector3f.from(pos.getX(), 255, pos.getZ())).inflate(3, 3, 3);
         List<Entity> list = new ArrayList<>();
 
-        for (Entity entity : this.getCollidingEntities(axisalignedbb)) {
+        for (Entity entity : this.getCollidingEntities(boundingBox)) {
             if (entity.isAlive() && canBlockSeeSky(entity.getPosition())) {
                 list.add(entity);
             }
@@ -1102,156 +1105,140 @@ public class CloudLevel implements Level {
         int minZ = (chunk.getZ() << 4) - 2;
         int maxZ = minZ + 16 + 2;
 
-        return this.getPendingBlockUpdates(new SimpleAxisAlignedBB(minX, getMinHeight(), minZ, maxX, getMaxHeight(), maxZ));
+        return this.getPendingBlockUpdates(new BoundingBox(minX, getMinHeight(), minZ, maxX, getMaxHeight(), maxZ));
     }
 
-    public Set<BlockUpdateEntry> getPendingBlockUpdates(AxisAlignedBB boundingBox) {
+    public Set<BlockUpdateEntry> getPendingBlockUpdates(BoundingBox boundingBox) {
         return updateQueue.getPendingBlockUpdates(boundingBox);
     }
 
-    public void clearPendingBlockUpdates(AxisAlignedBB boundingBox) {
+    public void clearPendingBlockUpdates(BoundingBox boundingBox) {
         updateQueue.clearArea(boundingBox);
     }
 
-    public void copyPendingBlockUpdates(AxisAlignedBB boundingBox, Vector3i offset) {
+    public void copyPendingBlockUpdates(BoundingBox boundingBox, Vector3i offset) {
         updateQueue.copyArea(boundingBox, offset);
-    }
-
-    public Block[] getCollisionBlocks(AxisAlignedBB bb) {
-        return this.getCollisionBlocks(bb, false);
-    }
-
-    public Block[] getCollisionBlocks(AxisAlignedBB bb, boolean targetFirst) {
-        int minX = GenericMath.floor(bb.getMinX());
-        int minY = GenericMath.floor(bb.getMinY());
-        int minZ = GenericMath.floor(bb.getMinZ());
-        int maxX = GenericMath.ceil(bb.getMaxX());
-        int maxY = GenericMath.ceil(bb.getMaxY());
-        int maxZ = GenericMath.ceil(bb.getMaxZ());
-
-        List<Block> collides = new ArrayList<>();
-
-        if (targetFirst) {
-            for (int z = minZ; z <= maxZ; ++z) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getLoadedBlock(x, y, z);
-
-                        if (block != null && block.getState() != BlockStates.AIR) {
-                            AxisAlignedBB boundingBox = this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.GET_BOUNDING_BOX).execute(block.getState());
-                            if (boundingBox.getOffsetBoundingBox(x, y, z).intersectsWith(bb)) {
-                                return new Block[]{block};
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            for (int z = minZ; z <= maxZ; ++z) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int y = minY; y <= maxY; ++y) {
-                        Block block = this.getLoadedBlock(x, y, z);
-
-                        if (block != null && block.getState() != BlockStates.AIR) {
-                            AxisAlignedBB boundingBox = this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.GET_BOUNDING_BOX).execute(block.getState());
-                            if (boundingBox.getOffsetBoundingBox(x, y, z).intersectsWith(bb)) {
-                                collides.add(block);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return collides.toArray(new Block[0]);
     }
 
     public boolean isBlockTickPending(Vector3i pos, Block block) {
         return this.updateQueue.willTickThisTick(pos, block);
     }
 
-    public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb) {
-        return this.getCollisionCubes(entity, bb, true);
+    public boolean isFullBlock(Vector3i pos, BlockState state) {
+        ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
+        VoxelShape shape = behaviors.get(BlockComponents.GET_COLLISION_SHAPE).execute(state, CollisionContext.empty());
+        return CloudVoxelShapes.isFullBlock(shape);
     }
 
-    public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb, boolean entities) {
-        return getCollisionCubes(entity, bb, entities, false);
+    @Override
+    public boolean hasCollision(@Nullable Entity entity, BoundingBox boundingBox, boolean includeEntities) {
+        return this.collisionEngine.hasCollision(entity, boundingBox, includeEntities);
     }
 
-    public AxisAlignedBB[] getCollisionCubes(Entity entity, AxisAlignedBB bb, boolean entities, boolean solidEntities) {
-        int minX = GenericMath.floor(bb.getMinX());
-        int minY = GenericMath.floor(bb.getMinY());
-        int minZ = GenericMath.floor(bb.getMinZ());
-        int maxX = GenericMath.ceil(bb.getMaxX());
-        int maxY = GenericMath.ceil(bb.getMaxY());
-        int maxZ = GenericMath.ceil(bb.getMaxZ());
+    @Override
+    public boolean hasBlockCollision(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.hasBlockCollision(entity, boundingBox);
+    }
 
-        List<AxisAlignedBB> collides = new ArrayList<>();
+    public boolean hasBlockCollision(@Nullable Entity entity, BlockState state, Vector3i position, BoundingBox boundingBox) {
+        return this.collisionEngine.hasBlockCollision(entity, state, position, boundingBox);
+    }
+
+    public boolean collidesWithSuffocatingBlock(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.collidesWithSuffocatingBlock(entity, boundingBox);
+    }
+
+    public Iterable<VoxelShape> getBlockCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.getBlockCollisions(entity, boundingBox);
+    }
+
+    public Optional<Vector3i> findSupportingBlock(Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.findSupportingBlock(entity, boundingBox);
+    }
+
+    public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.getEntityCollisions(entity, boundingBox);
+    }
+
+    public Vector3f collideBoundingBox(@Nullable Entity entity, Vector3f movement, BoundingBox boundingBox) {
+        return this.collisionEngine.collideBoundingBox(entity, movement, boundingBox);
+    }
+
+    public void forEachLoadedBlockIntersecting(BoundingBox boundingBox, Consumer<Block> consumer) {
+        int minX = GenericMath.floor(boundingBox.getMinX());
+        int minY = GenericMath.floor(boundingBox.getMinY());
+        int minZ = GenericMath.floor(boundingBox.getMinZ());
+        int maxX = GenericMath.ceil(boundingBox.getMaxX());
+        int maxY = GenericMath.ceil(boundingBox.getMaxY());
+        int maxZ = GenericMath.ceil(boundingBox.getMaxZ());
 
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
                     Block block = this.getLoadedBlock(x, y, z);
-                    if (block == null) continue;
-                    ComponentMap behaviors = block.getComponents();
-                    AxisAlignedBB blockBB = behaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(block.getState()).getOffsetBoundingBox(x, y, z);
-                    if (this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.SOLID).get() && blockBB.intersectsWith(bb)) {
-                        collides.add(blockBB);
+                    if (block != null && block.getState() != BlockStates.AIR && intersectsUnitBlock(boundingBox, x, y, z)) {
+                        consumer.accept(block);
                     }
                 }
             }
         }
-
-        if (entities || solidEntities) {
-            for (Entity ent : this.getCollidingEntities(bb.grow(0.25f, 0.25f, 0.25f), entity)) {
-                if (solidEntities && !ent.canPassThrough()) {
-                    collides.add(ent.getBoundingBox().clone());
-                }
-            }
-        }
-
-        return collides.toArray(new AxisAlignedBB[0]);
     }
 
-    public boolean isFullBlock(Vector3i pos, BlockState state) {
-        ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
-        Block block = this.getBlock(pos);
-        if (this.blockRegistry.getComponent(state.getType(), BlockComponents.SOLID).get()) {
-            return true;
-        }
-
-        AxisAlignedBB bb = behaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(state)
-                .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
-
-        return bb != null && bb.getAverageEdgeLength() >= 1;
-    }
-
-    public boolean hasCollision(Entity entity, AxisAlignedBB bb, boolean entities) {
-        int minX = GenericMath.floor(bb.getMinX());
-        int minY = GenericMath.floor(bb.getMinY());
-        int minZ = GenericMath.floor(bb.getMinZ());
-        int maxX = GenericMath.ceil(bb.getMaxX());
-        int maxY = GenericMath.ceil(bb.getMaxY());
-        int maxZ = GenericMath.ceil(bb.getMaxZ());
+    public boolean hasLoadedBlockIntersecting(BoundingBox boundingBox, Predicate<Block> predicate) {
+        int minX = GenericMath.floor(boundingBox.getMinX());
+        int minY = GenericMath.floor(boundingBox.getMinY());
+        int minZ = GenericMath.floor(boundingBox.getMinZ());
+        int maxX = GenericMath.ceil(boundingBox.getMaxX());
+        int maxY = GenericMath.ceil(boundingBox.getMaxY());
+        int maxZ = GenericMath.ceil(boundingBox.getMaxZ());
 
         for (int z = minZ; z <= maxZ; ++z) {
             for (int x = minX; x <= maxX; ++x) {
                 for (int y = minY; y <= maxY; ++y) {
-                    Block block = this.getLoadedBlock(Vector3i.from(x, y, z));
-                    if (block == null) return true; // Shouldn't walk into unloaded chunks.
-                    ComponentMap behaviors = block.getComponents();
-                    AxisAlignedBB blockBB = behaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(block.getState()).getOffsetBoundingBox(x, y, z);
-                    if (this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.SOLID).get() && blockBB.intersectsWith(bb)) {
+                    Block block = this.getLoadedBlock(x, y, z);
+                    if (block != null && block.getState() != BlockStates.AIR
+                            && intersectsUnitBlock(boundingBox, x, y, z)
+                            && predicate.test(block)) {
                         return true;
                     }
                 }
             }
         }
 
-        if (entities) {
-            return !this.getCollidingEntities(bb.grow(0.25f, 0.25f, 0.25f), entity).isEmpty();
-        }
         return false;
+    }
+
+    public void forEachBlockCollision(@Nullable Entity entity, BoundingBox boundingBox, Consumer<Block> consumer) {
+        CollisionContext context = CollisionContext.of(entity);
+        this.forEachLoadedBlockIntersecting(boundingBox, block -> {
+            BlockState state = block.getState();
+            Vector3i position = block.getPosition();
+            VoxelShape collisionShape = block.getComponents()
+                    .get(BlockComponents.GET_COLLISION_SHAPE)
+                    .execute(state, context);
+            if (!collisionShape.isEmpty() && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ())) {
+                consumer.accept(block);
+            }
+        });
+    }
+
+    private static boolean intersectsUnitBlock(BoundingBox boundingBox, int x, int y, int z) {
+        return boundingBox.getMaxX() > x
+                && boundingBox.getMinX() < x + 1
+                && boundingBox.getMaxY() > y
+                && boundingBox.getMinY() < y + 1
+                && boundingBox.getMaxZ() > z
+                && boundingBox.getMinZ() < z + 1;
+    }
+
+    @Override
+    public boolean hasEntityCollision(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collisionEngine.hasEntityCollision(entity, boundingBox);
+    }
+
+    @Override
+    public boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position) {
+        return this.collisionEngine.hasEntityCollision(entity, shape, position);
     }
 
     public int calculateSkylightSubtracted(float tickDiff) {
@@ -1517,7 +1504,7 @@ public class CloudLevel implements Level {
             BlockUpdateEvent ev = new BlockUpdateEvent(newBlock);
             this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
-                for (Entity entity : this.getNearbyEntities(new SimpleAxisAlignedBB(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
+                for (Entity entity : this.getNearbyEntities(new BoundingBox(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
                 this.updateAround(x, y, z);
@@ -1879,12 +1866,13 @@ public class CloudLevel implements Level {
 
         Vector3i blockPos = block.getPosition();
         ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
-        AxisAlignedBB handBB = handBehaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(hand);
+        VoxelShape handShape = handBehaviors.get(BlockComponents.GET_COLLISION_SHAPE).execute(hand, CollisionContext.of(player))
+                .move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-        if (hand.getCollisionBoxes() != null && handBB != null) {
-            handBB = handBB.getOffsetBoundingBox(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        if (!handShape.isEmpty()) {
+            BoundingBox handBB = handShape.bounds();
 
-            Set<Entity> entities = this.getCollidingEntities(handBB, player instanceof CloudPlayer cp ? cp : null);
+            Set<Entity> entities = this.getCollidingEntities(player instanceof CloudPlayer cp ? cp : null, handBB);
             int realCount = 0;
             for (Entity e : entities) {
                 if (e instanceof EntityArrow || e instanceof DroppedItem || (e instanceof CloudPlayer && ((CloudPlayer) e).isSpectator())) {
@@ -1894,15 +1882,15 @@ public class CloudLevel implements Level {
             }
 
             if (player != null) {
-                AxisAlignedBB shrunkPlayer = player.getBoundingBox().shrink(1e-4f, 1e-4f, 1e-4f);
-                if (handBB.intersectsWith(shrunkPlayer)) {
+                BoundingBox shrunkPlayer = player.getBoundingBox().deflate(1e-4f, 1e-4f, 1e-4f);
+                if (handShape.overlaps(shrunkPlayer)) {
                     ++realCount;
                 }
 
                 Vector3f diff = ((CloudPlayer) player).getNextPosition().sub(player.getPosition());
                 if (diff.lengthSquared() > 0.00001) {
-                    AxisAlignedBB bb = shrunkPlayer.getOffsetBoundingBox(diff.getX(), diff.getY(), diff.getZ());
-                    if (handBB.intersectsWith(bb)) {
+                    BoundingBox movedPlayer = shrunkPlayer.move(diff.getX(), diff.getY(), diff.getZ());
+                    if (handShape.overlaps(movedPlayer)) {
                         ++realCount;
                     }
                 }
@@ -2018,25 +2006,25 @@ public class CloudLevel implements Level {
         return entities.values().toArray(new Entity[0]);
     }
 
-    public Set<Entity> getCollidingEntities(AxisAlignedBB bb) {
-        return this.getCollidingEntities(bb, null);
+    public Set<Entity> getCollidingEntities(BoundingBox boundingBox) {
+        return this.getCollidingEntities(null, boundingBox);
     }
 
-    public Set<Entity> getCollidingEntities(AxisAlignedBB bb, Entity entity) {
+    public Set<Entity> getCollidingEntities(@Nullable Entity except, BoundingBox boundingBox) {
         ImmutableSet.Builder<Entity> entities = null;
 
-        if (entity == null || entity.canCollide()) {
-            int minX = GenericMath.floor((bb.getMinX() - 2) / 16);
-            int maxX = GenericMath.ceil((bb.getMaxX() + 2) / 16);
-            int minZ = GenericMath.floor((bb.getMinZ() - 2) / 16);
-            int maxZ = GenericMath.ceil((bb.getMaxZ() + 2) / 16);
+        if (except == null || except.canCollide()) {
+            int minX = GenericMath.floor((boundingBox.getMinX() - 2) / 16);
+            int maxX = GenericMath.ceil((boundingBox.getMaxX() + 2) / 16);
+            int minZ = GenericMath.floor((boundingBox.getMinZ() - 2) / 16);
+            int maxZ = GenericMath.ceil((boundingBox.getMaxZ() + 2) / 16);
 
             for (int x = minX; x <= maxX; ++x) {
                 for (int z = minZ; z <= maxZ; ++z) {
                     Set<CloudEntity> colliding = this.getLoadedChunkEntities(x, z);
                     for (CloudEntity ent : colliding) {
-                        if ((entity == null || (ent != entity && entity.canCollideWith(ent)))
-                                && ent.getBoundingBox().intersectsWith(bb)) {
+                        if ((except == null || (ent != except && except.canCollideWith(ent)))
+                                && ent.getBoundingBox().intersects(boundingBox)) {
                             if (entities == null) {
                                 entities = ImmutableSet.builder();
                             }
@@ -2051,19 +2039,28 @@ public class CloudLevel implements Level {
     }
 
     @Override
-    public Set<Entity> getNearbyEntities(AxisAlignedBB bb) {
-        return this.getNearbyEntities(bb, null);
+    public Set<Entity> getNearbyEntities(BoundingBox boundingBox) {
+        return this.getNearbyEntities(boundingBox, null);
     }
 
-    public Set<Entity> getNearbyEntities(AxisAlignedBB bb, Entity entity) {
-        return getNearbyEntities(bb, entity, false);
+    @Override
+    public Set<Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter) {
+        return this.getNearbyEntities(boundingBox, filter, false);
     }
 
-    public Set<Entity> getNearbyEntities(AxisAlignedBB bb, Entity entity, boolean loadChunks) {
-        int minX = GenericMath.floor((bb.getMinX() - 2) * 0.0625);
-        int maxX = GenericMath.ceil((bb.getMaxX() + 2) * 0.0625);
-        int minZ = GenericMath.floor((bb.getMinZ() - 2) * 0.0625);
-        int maxZ = GenericMath.ceil((bb.getMaxZ() + 2) * 0.0625);
+    public Set<Entity> getNearbyEntities(@Nullable Entity except, BoundingBox boundingBox) {
+        return this.getNearbyEntities(except, boundingBox, false);
+    }
+
+    public Set<Entity> getNearbyEntities(@Nullable Entity except, BoundingBox boundingBox, boolean loadChunks) {
+        return this.getNearbyEntities(boundingBox, candidate -> candidate != except, loadChunks);
+    }
+
+    private Set<Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter, boolean loadChunks) {
+        int minX = GenericMath.floor((boundingBox.getMinX() - 2) * 0.0625);
+        int maxX = GenericMath.ceil((boundingBox.getMaxX() + 2) * 0.0625);
+        int minZ = GenericMath.floor((boundingBox.getMinZ() - 2) * 0.0625);
+        int maxZ = GenericMath.ceil((boundingBox.getMaxZ() + 2) * 0.0625);
 
         ImmutableSet.Builder<Entity> entities = null;
 
@@ -2071,7 +2068,7 @@ public class CloudLevel implements Level {
             for (int z = minZ; z <= maxZ; ++z) {
                 Set<CloudEntity> entitiesInRange = loadChunks ? this.getChunkEntities(x, z) : this.getLoadedChunkEntities(x, z);
                 for (CloudEntity entityInRange : entitiesInRange) {
-                    if (entityInRange != entity && entityInRange.getBoundingBox().intersectsWith(bb)) {
+                    if (entityInRange.getBoundingBox().intersects(boundingBox) && (filter == null || filter.test(entityInRange))) {
                         if (entities == null) {
                             entities = ImmutableSet.builder();
                         }
@@ -2405,7 +2402,7 @@ public class CloudLevel implements Level {
 
     /**
      * Returns the Y coordinate the player should stand at in column (x,z), or
-     * {@code null} if the column is unsuitable (over liquid, no solid floor found).
+     * {@code null} if the column is unsuitable (over liquid, no collision floor found).
      */
     private Integer getOverworldRespawnY(int x, int z) {
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
@@ -2432,21 +2429,16 @@ public class CloudLevel implements Level {
                 break;
             }
 
-            boolean solid = !CloudBlockRegistry.REGISTRY
-                    .getComponent(state.getType(), BlockComponents.CAN_PASS_THROUGH)
-                    .execute(state);
+            Vector3i position = Vector3i.from(x, y, z);
+            boolean collisionFloor = this.hasBlockCollision(null, state, position, BoundingBox.unit(position));
 
-            if (solid) {
+            if (collisionFloor) {
                 int standY = y + 1;
                 if (standY + 1 <= 255) {
                     BlockState feet = chunk.getBlock(lx, standY, lz);
                     BlockState head = chunk.getBlock(lx, standY + 1, lz);
-                    boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                            .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH)
-                            .execute(feet);
-                    boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                            .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH)
-                            .execute(head);
+                    boolean feetClear = this.isSpawnSpaceClear(feet, x, standY, z);
+                    boolean headClear = this.isSpawnSpaceClear(head, x, standY + 1, z);
                     if (feetClear && headClear) {
                         return standY;
                     }
@@ -2473,10 +2465,8 @@ public class CloudLevel implements Level {
         while (y < 254) {
             BlockState feet = chunk.getBlock(lx, y, lz);
             BlockState head = chunk.getBlock(lx, y + 1, lz);
-            boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                    .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH).execute(feet);
-            boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                    .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH).execute(head);
+            boolean feetClear = this.isSpawnSpaceClear(feet, x, y, z);
+            boolean headClear = this.isSpawnSpaceClear(head, x, y + 1, z);
             if (feetClear && headClear) {
                 break;
             }
@@ -2486,10 +2476,8 @@ public class CloudLevel implements Level {
         while (y > getMinHeight()) {
             BlockState feet = chunk.getBlock(lx, y - 1, lz);
             BlockState head = chunk.getBlock(lx, y, lz);
-            boolean feetClear = !feet.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                    .getComponent(feet.getType(), BlockComponents.CAN_PASS_THROUGH).execute(feet);
-            boolean headClear = !head.getType().hasTag(BlockTags.LIQUID) && CloudBlockRegistry.REGISTRY
-                    .getComponent(head.getType(), BlockComponents.CAN_PASS_THROUGH).execute(head);
+            boolean feetClear = this.isSpawnSpaceClear(feet, x, y - 1, z);
+            boolean headClear = this.isSpawnSpaceClear(head, x, y, z);
             if (!feetClear || !headClear) {
                 break;
             }
@@ -2497,6 +2485,12 @@ public class CloudLevel implements Level {
         }
 
         return y;
+    }
+
+    private boolean isSpawnSpaceClear(BlockState state, int x, int y, int z) {
+        Vector3i position = Vector3i.from(x, y, z);
+        return !state.getType().hasTag(BlockTags.LIQUID)
+                && !this.hasBlockCollision(null, state, position, BoundingBox.unit(position));
     }
 
     public int getTime() {
@@ -2721,14 +2715,14 @@ public class CloudLevel implements Level {
     }
 
 
-    public boolean isAreaLoaded(AxisAlignedBB bb) {
-        if (bb.getMaxY() < -64 || bb.getMinY() >= 320) {
+    public boolean isAreaLoaded(BoundingBox boundingBox) {
+        if (boundingBox.getMaxY() < -64 || boundingBox.getMinY() >= 320) {
             return false;
         }
-        int minX = GenericMath.floor(bb.getMinX()) >> 4;
-        int minZ = GenericMath.floor(bb.getMinZ()) >> 4;
-        int maxX = GenericMath.floor(bb.getMaxX()) >> 4;
-        int maxZ = GenericMath.floor(bb.getMaxZ()) >> 4;
+        int minX = GenericMath.floor(boundingBox.getMinX()) >> 4;
+        int minZ = GenericMath.floor(boundingBox.getMinZ()) >> 4;
+        int maxX = GenericMath.floor(boundingBox.getMaxX()) >> 4;
+        int maxZ = GenericMath.floor(boundingBox.getMaxZ()) >> 4;
 
         for (int x = minX; x <= maxX; ++x) {
             for (int z = minZ; z <= maxZ; ++z) {

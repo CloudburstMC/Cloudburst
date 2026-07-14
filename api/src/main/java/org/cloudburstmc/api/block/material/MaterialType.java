@@ -7,7 +7,6 @@ public final class MaterialType {
     private final float translucency;
     private final boolean neverBuildable;
     private final boolean liquid;
-    private final boolean solid;
     private final boolean superHot;
     private final boolean alwaysDestroyable;
     private final boolean replaceable;
@@ -15,13 +14,12 @@ public final class MaterialType {
     private final boolean blockingPrecipitation;
     private final boolean blockingMotion;
 
-    private MaterialType(float translucency, boolean neverBuildable, boolean liquid, boolean solid,
+    private MaterialType(float translucency, boolean neverBuildable, boolean liquid,
                          boolean superHot, boolean alwaysDestroyable, boolean replaceable, boolean flammable,
                          boolean blockingPrecipitation, boolean blockingMotion) {
         this.translucency = translucency;
         this.neverBuildable = neverBuildable;
         this.liquid = liquid;
-        this.solid = solid;
         this.superHot = superHot;
         this.alwaysDestroyable = alwaysDestroyable;
         this.replaceable = replaceable;
@@ -45,10 +43,6 @@ public final class MaterialType {
 
     public boolean isLiquid() {
         return liquid;
-    }
-
-    public boolean isSolid() {
-        return solid;
     }
 
     public boolean isSuperHot() {
@@ -75,21 +69,23 @@ public final class MaterialType {
         return blockingMotion;
     }
 
-    public boolean isSolidBlocking() {
+    public boolean isMotionBlocking() {
         return neverBuildable || blockingMotion;
     }
 
-    public static class Builder {
+    public static final class Builder {
         private float translucency;
         private boolean neverBuildable;
         private boolean liquid;
-        private boolean solid;
         private boolean superHot;
         private boolean alwaysDestroyable;
         private boolean replaceable;
         private boolean flammable;
         private boolean blockingPrecipitation;
         private boolean blockingMotion;
+
+        private Builder() {
+        }
 
         public Builder translucency(@NonNegative float translucency) {
             Preconditions.checkArgument(translucency >= 0 && translucency <= 1, "Translucency must be between 0 and 1");
@@ -104,13 +100,6 @@ public final class MaterialType {
 
         public Builder liquid() {
             this.liquid = true;
-            this.solid = false;
-            return this;
-        }
-
-        public Builder solid() {
-            this.solid = true;
-            this.liquid = false;
             return this;
         }
 
@@ -145,7 +134,7 @@ public final class MaterialType {
         }
 
         public MaterialType build() {
-            return new MaterialType(translucency, neverBuildable, liquid, solid, superHot, alwaysDestroyable,
+            return new MaterialType(translucency, neverBuildable, liquid, superHot, alwaysDestroyable,
                     replaceable, flammable, blockingPrecipitation, blockingMotion);
         }
     }

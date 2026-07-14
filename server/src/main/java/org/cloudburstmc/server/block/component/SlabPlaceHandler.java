@@ -20,15 +20,15 @@ public class SlabPlaceHandler implements PlaceBlockHandler {
     }
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
         Level level = player.getLevel();
-        if (level.getBlockState(pos).getType() == blockState.getType()) {
-            return level.setBlockState(pos, doubleSlabType.getDefaultState(), true, true);
+        if (level.getBlockState(blockPosition).getType() == blockState.getType()) {
+            return level.setBlockState(blockPosition, doubleSlabType.getDefaultState(), true, true);
         }
 
         SlabSlot slot = face == Direction.DOWN ? SlabSlot.TOP
                 : face == Direction.UP ? SlabSlot.BOTTOM
-                  : clickPos.getY() > 0.5f ? SlabSlot.TOP : SlabSlot.BOTTOM;
-        return level.setBlockState(pos, blockState.withTrait(BlockTraits.SLAB_SLOT, slot), true, true);
+                  : clickPosition.getY() > 0.5f ? SlabSlot.TOP : SlabSlot.BOTTOM;
+        return level.setBlockState(blockPosition, blockState.withTrait(BlockTraits.SLAB_SLOT, slot), true, true);
     }
 }

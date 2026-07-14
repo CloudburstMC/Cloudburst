@@ -2,7 +2,6 @@ package org.cloudburstmc.server.block.util;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -11,7 +10,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,10 +53,8 @@ public final class RailConnector {
         return state.getType() == BlockTypes.RAIL;
     }
 
-    public static boolean hasSolidSupport(CloudLevel level, Vector3i pos) {
-        Vector3i below = pos.add(0, -1, 0);
-        BlockState belowState = level.getBlockState(below.getX(), below.getY(), below.getZ());
-        return CloudBlockRegistry.REGISTRY.getComponent(belowState.getType(), BlockComponents.TOP_SOLID).execute(belowState);
+    public static boolean hasRigidSupport(CloudLevel level, Vector3i pos) {
+        return BlockSupport.canSupportRigidBlock(level, pos.add(0, -1, 0));
     }
 
     public static void updateSurroundingRails(CloudLevel level, Vector3i pos) {

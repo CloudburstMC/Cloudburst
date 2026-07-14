@@ -11,7 +11,7 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -599,7 +599,7 @@ public class BlockUpdateScheduler {
         }
     }
 
-    public Set<BlockUpdateEntry> getPendingBlockUpdates(AxisAlignedBB bb) {
+    public Set<BlockUpdateEntry> getPendingBlockUpdates(BoundingBox bb) {
         long stamp = lock.readLock();
         try {
             Set<BlockUpdateEntry> result = null;
@@ -645,7 +645,7 @@ public class BlockUpdateScheduler {
      * Removes all pending ticks within {@code bb} from all containers and from
      * the current tick's collected / already-run lists.
      */
-    public void clearArea(AxisAlignedBB bb) {
+    public void clearArea(BoundingBox bb) {
         long stamp = lock.writeLock();
         try {
             Predicate<BlockUpdateEntry> inBounds = e -> isInBounds(e, bb);
@@ -687,7 +687,7 @@ public class BlockUpdateScheduler {
      * @param bb     source bounding box
      * @param offset block position offset applied to each copied tick
      */
-    public void copyArea(AxisAlignedBB bb, Vector3i offset) {
+    public void copyArea(BoundingBox bb, Vector3i offset) {
         copyAreaFrom(this, bb, offset);
     }
 
@@ -709,7 +709,7 @@ public class BlockUpdateScheduler {
      * @param bb     source bounding box
      * @param offset block position offset applied to each copied tick
      */
-    public void copyAreaFrom(BlockUpdateScheduler source, AxisAlignedBB bb, Vector3i offset) {
+    public void copyAreaFrom(BlockUpdateScheduler source, BoundingBox bb, Vector3i offset) {
         if (source == this) {
             long stamp = lock.writeLock();
             try {
@@ -755,7 +755,7 @@ public class BlockUpdateScheduler {
      * held. When {@code source == this}, reads from live scratch structures
      * directly. Extracted so the same logic is shared by both lock paths.
      */
-    private void copyAreaUnderWriteLock(BlockUpdateScheduler source, AxisAlignedBB bb, Vector3i offset) {
+    private void copyAreaUnderWriteLock(BlockUpdateScheduler source, BoundingBox bb, Vector3i offset) {
         Predicate<BlockUpdateEntry> inBounds = e -> isInBounds(e, bb);
         List<BlockUpdateEntry> sources = new ArrayList<>();
 
@@ -840,7 +840,7 @@ public class BlockUpdateScheduler {
     /**
      * Returns all packed chunk keys that overlap the XZ footprint of {@code bb}.
      */
-    private static long[] chunkKeysInBounds(AxisAlignedBB bb) {
+    private static long[] chunkKeysInBounds(BoundingBox bb) {
         int minChunkX = (int) Math.floor(bb.getMinX()) >> 4;
         int minChunkZ = (int) Math.floor(bb.getMinZ()) >> 4;
         int maxChunkX = (int) Math.floor(bb.getMaxX()) >> 4;
@@ -857,7 +857,7 @@ public class BlockUpdateScheduler {
         return keys;
     }
 
-    private static boolean isInBounds(BlockUpdateEntry entry, AxisAlignedBB bb) {
+    private static boolean isInBounds(BlockUpdateEntry entry, BoundingBox bb) {
         Vector3i p = entry.pos;
         return p.getX() >= bb.getMinX() && p.getX() < bb.getMaxX()
                 && p.getY() >= bb.getMinY() && p.getY() < bb.getMaxY()

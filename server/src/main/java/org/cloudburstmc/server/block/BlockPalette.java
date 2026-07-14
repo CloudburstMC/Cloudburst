@@ -14,18 +14,19 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.util.BlockStateHash;
+import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.math.PMath.mix32;
@@ -280,11 +281,13 @@ public class BlockPalette implements DefinitionRegistry<CloudBlockDefinition> {
 
         CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash);
         BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
+        VoxelShape collision = CloudVoxelShapes.block();
+        VoxelShape outline = collision;
         if (shapes != null) {
-            float[] collision = shapes.collisionBoxes().length == 0 ? new float[0] : shapes.collisionBoxes();
-            float[] outline = shapes.outlineShape().length == 0 ? new float[0] : shapes.outlineShape();
-            state.initStateData(collision, outline);
+            collision = CloudVoxelShapes.fromBoxes(shapes.collisionBoxes());
+            outline = shapes.outlineShape() == null ? collision : CloudVoxelShapes.fromBoxes(shapes.outlineShape());
         }
+        state.initStateData(collision, outline);
 
         this.runtimeDefinitionMap.put(runtimeId, definition);
         this.stateDefinitionMap.putIfAbsent(state, definition);

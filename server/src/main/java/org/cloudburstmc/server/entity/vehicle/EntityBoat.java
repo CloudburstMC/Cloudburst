@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -14,7 +15,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.AxisAlignedBB;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -24,6 +24,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
+import org.cloudburstmc.server.level.collision.BlockBoxTraversal;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
@@ -162,10 +163,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
                 }
             }
 
-            if (this.checkObstruction(this.position)) {
-                hasUpdate = true;
-            }
-
             this.move(this.motion);
 
             double friction = 1 - this.getDrag();
@@ -198,7 +195,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
             this.updateMovement();
 
             if (this.passengers.size() < 2) {
-                for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+                for (Entity entity : this.getLevel().getCollidingEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
                     if (entity.getVehicle() != null || !(entity instanceof EntityLiving) || entity instanceof CloudPlayer || entity instanceof EntityWaterAnimal || isPassenger(entity)) {
                         continue;
                     }
@@ -277,33 +274,36 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     public double getWaterLevel() {
         double maxY = this.boundingBox.getMinY() + getBaseOffset();
-        AxisAlignedBB.BBConsumer<Double> consumer = new AxisAlignedBB.BBConsumer<Double>() {
+        WaterLevelBlockScanner scanner = new WaterLevelBlockScanner(maxY);
+        BlockBoxTraversal.forEach(this.boundingBox, scanner);
+        return scanner.getWaterLevel();
+    }
 
-            private double diffY = Double.MAX_VALUE;
+    private final class WaterLevelBlockScanner implements BlockBoxTraversal.BlockPositionConsumer {
 
-            @Override
-            public void accept(int x, int y, int z) {
-                var block = getLevel().getBlock(x, y, z);
-                BlockState state = block.getState();
+        private final double maxY;
+        private double waterLevel = Double.MAX_VALUE;
 
-                if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
-//                    TODO This is broken :(
-//                    block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
-//                    double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
+        private WaterLevelBlockScanner(double maxY) {
+            this.maxY = maxY;
+        }
 
-                    diffY = Math.min(maxY, diffY);
-                }
+        @Override
+        public void accept(int x, int y, int z) {
+            var block = getLevel().getBlock(x, y, z);
+            BlockState state = block.getState();
+
+            if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
+//                TODO This is broken :(
+//                block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
+//                double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
+                this.waterLevel = Math.min(this.maxY, this.waterLevel);
             }
+        }
 
-            @Override
-            public Double get() {
-                return diffY;
-            }
-        };
-
-        this.boundingBox.forEach(consumer);
-
-        return consumer.get();
+        private double getWaterLevel() {
+            return this.waterLevel;
+        }
     }
 
     @Override
@@ -372,7 +372,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     @Override
     public void onEntityCollision(Entity entity) {
         if (this.vehicle == null && entity.getVehicle() != this && !entity.getPassengers().contains(this)) {
-            if (!entity.getBoundingBox().intersectsWith(this.boundingBox.grow(0.2f, -0.1f, 0.2f))) {
+            if (!entity.getBoundingBox().intersects(this.boundingBox.inflate(0.2f, -0.1f, 0.2f))) {
                 return;
             }
 
@@ -402,8 +402,18 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean canPassThrough() {
-        return false;
+    public boolean canCollideWith(Entity entity) {
+        return (entity.canBeCollidedWith(this) || entity.isPushable()) && !this.isPassengerOfSameVehicle(entity);
+    }
+
+    @Override
+    public boolean canBeCollidedWith(@Nullable Entity entity) {
+        return true;
+    }
+
+    @Override
+    public boolean isPushable() {
+        return true;
     }
 
     @Override

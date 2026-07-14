@@ -30,7 +30,7 @@ public final class BlockDataGen {
 	private static final int DEF_FLAME_ODDS = 0;
 	private static final int DEF_LIGHT_DAMPENING = 0;
 	private static final int DEF_LIGHT_EMISSION = 0;
-	private static final boolean DEF_SOLID = false;
+	private static final boolean DEF_CAN_OCCLUDE = true;
 	private static final boolean DEF_REQUIRES_CORRECT_TOOL = false;
 	private static final boolean DEF_REPLACEABLE = false;
 	private static final String DEF_MAP_COLOR = "#00000000";
@@ -49,7 +49,7 @@ public final class BlockDataGen {
 	private static final int PROP_DEF_LIGHT_DAMPENING = 15;
 	private static final int PROP_DEF_BURN_ODDS = 0;
 	private static final int PROP_DEF_FLAME_ODDS = 0;
-	private static final boolean PROP_DEF_IS_SOLID = true;
+	private static final boolean PROP_DEF_CAN_OCCLUDE = true;
 	private static final boolean PROP_DEF_REQUIRES_TOOL = false;
 	private static final boolean PROP_DEF_CAN_CONTAIN_LIQUID = false;
 	private static final String PROP_DEF_TINT_METHOD = "None";
@@ -208,8 +208,8 @@ public final class BlockDataGen {
 			body.addStatement("componentMap.set($T.LIGHT_DAMPENING, () -> $L)", blockComponents, props.lightDampening());
 		if (props.lightEmission() != DEF_LIGHT_EMISSION)
 			body.addStatement("componentMap.set($T.LIGHT_EMISSION, () -> $L)", blockComponents, props.lightEmission());
-		if (props.solid() != DEF_SOLID)
-			body.addStatement("componentMap.set($T.SOLID, () -> $L)", blockComponents, props.solid());
+		if (props.canOcclude() != DEF_CAN_OCCLUDE)
+			body.addStatement("componentMap.set($T.CAN_OCCLUDE, (state) -> $L)", blockComponents, props.canOcclude());
 		if (props.requiresCorrectTool() != DEF_REQUIRES_CORRECT_TOOL)
 			body.addStatement("componentMap.set($T.REQUIRES_CORRECT_TOOL, () -> $L)", blockComponents, props.requiresCorrectTool());
 		if ("POPPED".equals(props.liquidReactionOnTouch()) != DEF_REPLACEABLE)
@@ -229,7 +229,7 @@ public final class BlockDataGen {
 				&& props.flameOdds() == DEF_FLAME_ODDS
 				&& props.lightDampening() == DEF_LIGHT_DAMPENING
 				&& props.lightEmission() == DEF_LIGHT_EMISSION
-				&& props.solid() == DEF_SOLID
+				&& props.canOcclude() == DEF_CAN_OCCLUDE
 				&& props.requiresCorrectTool() == DEF_REQUIRES_CORRECT_TOOL
 				&& !"POPPED".equals(props.liquidReactionOnTouch())
 				&& (props.mapColor() == null || props.mapColor().equals(DEF_MAP_COLOR));
@@ -256,7 +256,7 @@ public final class BlockDataGen {
 					intVal(node, "lightDampening", PROP_DEF_LIGHT_DAMPENING),
 					intVal(node, "burnOdds", PROP_DEF_BURN_ODDS),
 					intVal(node, "flameOdds", PROP_DEF_FLAME_ODDS),
-					boolVal(node, "isSolid", PROP_DEF_IS_SOLID),
+					boolVal(node, "isSolid", PROP_DEF_CAN_OCCLUDE),
 					boolVal(node, "requiresCorrectToolForDrops", PROP_DEF_REQUIRES_TOOL),
 					boolVal(node, "canContainLiquidSource", PROP_DEF_CAN_CONTAIN_LIQUID),
 					stringVal(node, "mapColor"),
@@ -360,7 +360,7 @@ public final class BlockDataGen {
 				field(TypeName.INT, "lightDampening"),
 				field(TypeName.INT, "burnOdds"),
 				field(TypeName.INT, "flameOdds"),
-				field(TypeName.BOOLEAN, "isSolid"),
+				field(TypeName.BOOLEAN, "canOcclude"),
 				field(TypeName.BOOLEAN, "requiresCorrectToolForDrops"),
 				field(TypeName.BOOLEAN, "canContainLiquidSource"),
 				field(ClassName.get(String.class), "mapColor"),
@@ -413,7 +413,7 @@ public final class BlockDataGen {
 		builder.addField(FieldSpec.builder(TypeName.INT, "lightDampening", Modifier.PRIVATE).initializer("$L", PROP_DEF_LIGHT_DAMPENING).build());
 		builder.addField(FieldSpec.builder(TypeName.INT, "burnOdds", Modifier.PRIVATE).initializer("$L", PROP_DEF_BURN_ODDS).build());
 		builder.addField(FieldSpec.builder(TypeName.INT, "flameOdds", Modifier.PRIVATE).initializer("$L", PROP_DEF_FLAME_ODDS).build());
-		builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "isSolid", Modifier.PRIVATE).initializer("$L", PROP_DEF_IS_SOLID).build());
+		builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "canOcclude", Modifier.PRIVATE).initializer("$L", PROP_DEF_CAN_OCCLUDE).build());
 		builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "requiresCorrectToolForDrops", Modifier.PRIVATE).initializer("$L", PROP_DEF_REQUIRES_TOOL).build());
 		builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "canContainLiquidSource", Modifier.PRIVATE).initializer("$L", PROP_DEF_CAN_CONTAIN_LIQUID).build());
 		builder.addField(FieldSpec.builder(ClassName.get(String.class), "mapColor", Modifier.PRIVATE).build());
@@ -429,9 +429,10 @@ public final class BlockDataGen {
 		for (String name : List.of("mapColor", "tintMethod", "liquidReactionOnTouch"))
 			builder.addMethod(setter(builderName, name, ClassName.get(String.class)));
 
-		builder.addMethod(MethodSpec.methodBuilder("notSolid")
+		builder.addMethod(MethodSpec.methodBuilder("canOcclude")
 				.addModifiers(Modifier.PUBLIC).returns(builderName)
-				.addStatement("this.isSolid = false").addStatement("return this").build());
+				.addParameter(TypeName.BOOLEAN, "canOcclude")
+				.addStatement("this.canOcclude = canOcclude").addStatement("return this").build());
 		builder.addMethod(MethodSpec.methodBuilder("requiresCorrectToolForDrops")
 				.addModifiers(Modifier.PUBLIC).returns(builderName)
 				.addStatement("this.requiresCorrectToolForDrops = true").addStatement("return this").build());
@@ -444,7 +445,7 @@ public final class BlockDataGen {
 				.returns(TYPE_PROPERTIES)
 				.addStatement("return new $T(hardness, explosionResistance, friction, thickness, translucency," +
 						" lightEmission, lightDampening, burnOdds, flameOdds," +
-						" isSolid, requiresCorrectToolForDrops, canContainLiquidSource," +
+						" canOcclude, requiresCorrectToolForDrops, canContainLiquidSource," +
 						" mapColor, tintMethod, liquidReactionOnTouch)", TYPE_PROPERTIES)
 				.build());
 
@@ -575,7 +576,7 @@ public final class BlockDataGen {
 			float translucency, float thickness,
 			int burnOdds, int flameOdds, int lightDampening,
 			int lightEmission,
-			boolean solid, boolean requiresCorrectTool,
+			boolean canOcclude, boolean requiresCorrectTool,
 			String mapColor, String liquidReactionOnTouch
 	) {
 	}
@@ -586,7 +587,7 @@ public final class BlockDataGen {
 			double thickness, double translucency,
 			int lightEmission, int lightDampening,
 			int burnOdds, int flameOdds,
-			boolean isSolid, boolean requiresCorrectToolForDrops, boolean canContainLiquidSource,
+			boolean canOcclude, boolean requiresCorrectToolForDrops, boolean canContainLiquidSource,
 			String mapColor, String tintMethod, String liquidReactionOnTouch
 	) {
 	}

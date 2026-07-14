@@ -117,7 +117,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
         this.getLevel().addParticle(particle);
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
 
-        Set<Entity> entities = this.getLevel().getNearbyEntities(this.getBoundingBox().grow(4.125f, 2.125f, 4.125f));
+        Set<Entity> entities = this.getLevel().getNearbyEntities(this.getBoundingBox().inflate(4.125f, 2.125f, 4.125f));
         for (Entity anEntity : entities) {
             double distance = anEntity.getPosition().distanceSquared(this.getPosition());
             if (distance < 16) {

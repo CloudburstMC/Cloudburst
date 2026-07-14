@@ -8,6 +8,7 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -286,7 +287,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
             if ((nextApply -= tickDiff) <= 0) {
                 nextApply = reapplicationDelay + 10;
 
-                Set<Entity> collidingEntities = level.getCollidingEntities(getBoundingBox(), this);
+                Set<Entity> collidingEntities = level.getCollidingEntities(this, getBoundingBox());
                 if (!collidingEntities.isEmpty()) {
                     radius += radiusOnUse;
                     radiusOnUse /= 2;
@@ -334,7 +335,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         }
 
         float height = getHeight();
-        boundingBox.setBounds(getX() - radius, getY() - height, getZ() - radius,
+        this.boundingBox = new BoundingBox(getX() - radius, getY() - height, getZ() - radius,
                 getX() + radius, getY() + height, getZ() + radius);
         this.data.set(HEIGHT, height);
         this.data.set(WIDTH, radius);

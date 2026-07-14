@@ -7,7 +7,10 @@ import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -26,9 +29,9 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.AxisAlignedBB;
+import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.SimpleAxisAlignedBB;
+import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
@@ -49,6 +52,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EnumLevel;
 import org.cloudburstmc.server.level.NetherPortals;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -58,6 +62,7 @@ import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -79,8 +84,6 @@ public abstract class CloudEntity implements Entity {
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
     public CloudChunk chunk;
-    public List<Block> blocksAround = new ArrayList<>();
-    public List<Block> collisionBlockStates = new ArrayList<>();
     public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
@@ -88,6 +91,7 @@ public abstract class CloudEntity implements Entity {
     protected Vector3f lastPosition = Vector3f.ZERO;
     protected Vector3f motion = Vector3f.ZERO;
     protected Vector3f lastMotion = Vector3f.ZERO;
+    protected Vector3f stuckSpeedMultiplier = Vector3f.ZERO;
     protected float yaw;
     protected float pitch;
     protected float lastYaw;
@@ -100,7 +104,6 @@ public abstract class CloudEntity implements Entity {
     public boolean positionChanged;
     public boolean motionChanged;
     public int deadTicks = 0;
-    public boolean keepMovement = false;
     public float fallDistance = 0;
     public int ticksLived = 0;
     public int lastUpdate;
@@ -111,14 +114,18 @@ public abstract class CloudEntity implements Entity {
     public boolean pendingPortalTransfer = false;
     public Vector3i portalEntryBlock = null;
     public float scale = 1;
-    protected AxisAlignedBB boundingBox;
+    protected BoundingBox boundingBox;
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
     public boolean isCollidedVertically = false;
+    public boolean verticalCollisionBelow = false;
+    protected Optional<Vector3i> supportingBlockPosition = Optional.empty();
+    boolean onGroundNoBlocks = false;
     public int noDamageTicks;
     public boolean justCreated;
     public boolean fireProof;
     public boolean invulnerable;
+    protected boolean noPhysics;
     protected CloudLevel level;
     public boolean closed = false;
     protected Entity vehicle;
@@ -133,6 +140,15 @@ public abstract class CloudEntity implements Entity {
     protected boolean isPlayer = false;
     private int maxHealth = 20;
     private volatile boolean initialized;
+    private static final int MAX_MOVEMENT_SEGMENTS = 100;
+    private final Deque<EntityMovementSegment> movementSegments = new ArrayDeque<>(MAX_MOVEMENT_SEGMENTS);
+    private static final Direction[] COLLISION_ESCAPE_DIRECTIONS = {
+            Direction.NORTH,
+            Direction.SOUTH,
+            Direction.WEST,
+            Direction.EAST,
+            Direction.UP
+    };
 
     public CloudEntity(EntityType<?> type, Location location) {
         this.type = type;
@@ -556,7 +572,7 @@ public abstract class CloudEntity implements Entity {
     public void recalculateBoundingBox() {
         float height = this.getHeight() * this.scale;
         float radius = (this.getWidth() * this.scale) / 2;
-        this.boundingBox.setBounds(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
+        this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
                 this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
 
         this.updateNetworkBounds();
@@ -640,7 +656,7 @@ public abstract class CloudEntity implements Entity {
         this.lastYaw = this.yaw;
         this.lastPitch = this.pitch;
 
-        this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
+        this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
             if (throwable == null) {
@@ -895,90 +911,71 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean canCollideWith(Entity entity) {
-        return !this.justCreated && this != entity;
+        return !this.justCreated
+                && entity != null
+                && (entity.canBeCollidedWith(this) || entity.isPushable())
+                && !this.isPassengerOfSameVehicle(entity);
     }
 
-    protected boolean checkObstruction(Vector3f pos) {
-        return this.checkObstruction(pos.getX(), pos.getY(), pos.getZ());
+    public boolean canBeCollidedWith(@Nullable Entity entity) {
+        return false;
     }
 
-    protected boolean checkObstruction(float x, float y, float z) {
-        if (this.level.getCollisionCubes(this, this.getBoundingBox(), false).length == 0) {
-            return false;
-        }
+    public boolean isPushable() {
+        return false;
+    }
 
-        float motionX = this.motion.getX();
-        float motionY = this.motion.getY();
-        float motionZ = this.motion.getZ();
+    protected boolean isPassengerOfSameVehicle(Entity entity) {
+        return this.getVehicle() != null && this.getVehicle() == entity.getVehicle();
+    }
 
+    protected boolean moveTowardsClosestSpace(Vector3f pos) {
+        return this.moveTowardsClosestSpace(pos.getX(), (this.boundingBox.getMinY() + this.boundingBox.getMaxY()) / 2f, pos.getZ());
+    }
+
+    protected boolean moveTowardsClosestSpace(float x, float y, float z) {
         int i = GenericMath.floor(x);
         int j = GenericMath.floor(y);
         int k = GenericMath.floor(z);
-
         float diffX = x - i;
         float diffY = y - j;
         float diffZ = z - k;
 
-        if (!this.level.getBlockState(i, j, k).hasTag(BlockTags.TRANSPARENT)) {
-            boolean flag = this.level.getBlockState(i - 1, j, k).hasTag(BlockTags.TRANSPARENT);
-            boolean flag1 = this.level.getBlockState(i + 1, j, k).hasTag(BlockTags.TRANSPARENT);
-            boolean flag2 = this.level.getBlockState(i, j - 1, k).hasTag(BlockTags.TRANSPARENT);
-            boolean flag3 = this.level.getBlockState(i, j + 1, k).hasTag(BlockTags.TRANSPARENT);
-            boolean flag4 = this.level.getBlockState(i, j, k - 1).hasTag(BlockTags.TRANSPARENT);
-            boolean flag5 = this.level.getBlockState(i, j, k + 1).hasTag(BlockTags.TRANSPARENT);
+        Direction closestDirection = Direction.UP;
+        float closestDistance = Float.MAX_VALUE;
+        Vector3i blockPos = Vector3i.from(i, j, k);
 
-            int direction = -1;
-            float limit = 9999;
-
-            if (flag) {
-                limit = diffX;
-                direction = 0;
+        for (Direction direction : COLLISION_ESCAPE_DIRECTIONS) {
+            Vector3i neighborPos = direction.relative(blockPos);
+            Block neighbor = this.level.getLoadedBlock(neighborPos.getX(), neighborPos.getY(), neighborPos.getZ());
+            if (neighbor != null && !this.level.isFullBlock(neighborPos, neighbor.getState())) {
+                float axisDelta = switch (direction.getAxis()) {
+                    case X -> diffX;
+                    case Y -> diffY;
+                    case Z -> diffZ;
+                };
+                float orientedDelta = direction.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1f - axisDelta : axisDelta;
+                if (orientedDelta < closestDistance) {
+                    closestDistance = orientedDelta;
+                    closestDirection = direction;
+                }
             }
-
-            if (flag1 && 1 - diffX < limit) {
-                limit = 1 - diffX;
-                direction = 1;
-            }
-
-            if (flag2 && diffY < limit) {
-                limit = diffY;
-                direction = 2;
-            }
-
-            if (flag3 && 1 - diffY < limit) {
-                limit = 1 - diffY;
-                direction = 3;
-            }
-
-            if (flag4 && diffZ < limit) {
-                limit = diffZ;
-                direction = 4;
-            }
-
-            if (flag5 && 1 - diffZ < limit) {
-                direction = 5;
-            }
-
-            float force = new Random().nextFloat() * 0.2f + 0.1f;
-
-            if (direction == 0) {
-                motionX = -force;
-            } else if (direction == 1) {
-                motionX = force;
-            } else if (direction == 2) {
-                motionY = -force;
-            } else if (direction == 3) {
-                motionY = force;
-            } else if (direction == 4) {
-                motionZ = -force;
-            } else if (direction == 5) {
-                motionZ = force;
-            }
-            this.motion = Vector3f.from(motionX, motionY, motionZ);
-            return true;
         }
 
-        return false;
+        if (closestDistance == Float.MAX_VALUE) {
+            return false;
+        }
+
+        float force = (float) (ThreadLocalRandom.current().nextDouble() * 0.2d + 0.1d);
+        float step = closestDirection.getAxisDirection().getStep();
+        Vector3f scaledMotion = this.motion.mul(0.75f);
+        this.motion = switch (closestDirection.getAxis()) {
+            case X -> Vector3f.from(step * force, scaledMotion.getY(), scaledMotion.getZ());
+            case Y -> Vector3f.from(scaledMotion.getX(), step * force, scaledMotion.getZ());
+            case Z -> Vector3f.from(scaledMotion.getX(), scaledMotion.getY(), step * force);
+        };
+
+        return true;
     }
 
     public boolean entityBaseTick() {
@@ -988,10 +985,6 @@ public abstract class CloudEntity implements Entity {
     public boolean entityBaseTick(int tickDiff) {
         try (Timing ignored = Timings.entityBaseTickTimer.startTiming()) {
 
-            if (!this.isPlayer) {
-                this.blocksAround = null;
-                this.collisionBlockStates = null;
-            }
             this.justCreated = false;
 
             if (!this.isAlive()) {
@@ -1420,7 +1413,7 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public AxisAlignedBB getBoundingBox() {
+    public BoundingBox getBoundingBox() {
         return this.boundingBox;
     }
 
@@ -1572,241 +1565,70 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean isInsideOfSolid() {
-        double y = this.getY() + this.getEyeHeight();
-        Vector3i pos = Vector3i.from(this.getX(), y, this.getZ());
-        BlockState state = this.level.getBlockState(pos);
-
-        if (state == null) {
-            return true;
+        if (this.noPhysics) {
+            return false;
         }
 
-        ComponentMap behaviors = this.server.getBlockRegistry().getComponents(state.getType());
-        AxisAlignedBB bb = behaviors.get(BlockComponents.GET_BOUNDING_BOX).execute(state)
-                .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
-
-        return bb != null && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.SOLID).get() && !state.getType().hasTag(BlockTags.TRANSPARENT) && bb.intersectsWith(this.getBoundingBox());
+        float eyeY = this.getY() + this.getEyeHeight();
+        float width = Math.max(0.1f, (this.boundingBox.getMaxX() - this.boundingBox.getMinX()) * 0.8f);
+        float halfWidth = width / 2f;
+        BoundingBox eyeBox = new BoundingBox(
+                this.getX() - halfWidth,
+                eyeY - CloudVoxelShapes.EPSILON,
+                this.getZ() - halfWidth,
+                this.getX() + halfWidth,
+                eyeY + CloudVoxelShapes.EPSILON,
+                this.getZ() + halfWidth
+        );
+        return this.level.collidesWithSuffocatingBlock(this, eyeBox);
     }
 
     public boolean isInsideOfFire() {
-        for (Block block : this.getCollisionBlocks()) {
-            if (block.getState().getType() == FIRE) {
-                return true;
-            }
-        }
-
-        return false;
+        return this.level.hasLoadedBlockIntersecting(this.getBoundingBox(), block -> block.getState().getType() == FIRE);
     }
 
     public boolean fastMove(float dx, float dy, float dz) {
-        if (dx == 0 && dy == 0 && dz == 0) {
-            return true;
-        }
-
-        try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
-            AxisAlignedBB newBB = this.boundingBox.getOffsetBoundingBox(dx, dy, dz);
-
-            if (server.getAllowFlight() || !this.level.hasCollision(this, newBB, false)) {
-                this.boundingBox = newBB;
-            }
-
-            this.position = Vector3f.from(
-                    (this.boundingBox.getMinX() + this.boundingBox.getMaxX()) / 2,
-                    this.boundingBox.getMinY() - this.ySize,
-                    (this.boundingBox.getMinZ() + this.boundingBox.getMaxZ()) / 2
-            );
-
-            this.checkChunks();
-
-            if (!this.onGround || dy != 0) {
-                AxisAlignedBB bb = this.boundingBox.clone();
-                bb.setMinY(bb.getMinY() - 0.75f);
-
-                this.onGround = this.level.getCollisionBlocks(bb).length > 0;
-            }
-            this.isCollided = this.onGround;
-            this.updateFallState(this.onGround);
-            return true;
-        }
+        return EntityMovementController.fastMove(this, dx, dy, dz);
     }
 
     public boolean move(Vector3f d) {
-        return move(d.getX(), d.getY(), d.getZ());
+        return this.move(MovementType.SELF, d);
     }
 
     public boolean move(float dx, float dy, float dz) {
-        if (dx == 0 && dz == 0 && dy == 0) {
-            return true;
-        }
-
-        if (this.keepMovement) {
-            this.boundingBox.offset(dx, dy, dz);
-            this.setPosition(this.position = Vector3f.from((this.boundingBox.getMinX() + this.boundingBox.getMaxX()) / 2, this.boundingBox.getMinY(), (this.boundingBox.getMinZ() + this.boundingBox.getMaxZ()) / 2));
-            this.onGround = this.isPlayer;
-        } else {
-
-            try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
-                this.ySize *= 0.4;
-
-                float movX = dx;
-                float movY = dy;
-                float movZ = dz;
-
-                AxisAlignedBB axisalignedbb = this.boundingBox.clone();
-
-                AxisAlignedBB[] list = this.level.getCollisionCubes(this, this.level.getTickRate() > 1 ? this.boundingBox.getOffsetBoundingBox(dx, dy, dz) : this.boundingBox.addCoord(dx, dy, dz), false, true);
-
-                for (AxisAlignedBB bb : list) {
-                    dy = bb.calculateYOffset(this.boundingBox, dy);
-                }
-
-                this.boundingBox.offset(0, dy, 0);
-
-                boolean fallingFlag = (this.onGround || (dy != movY && movY < 0));
-
-                for (AxisAlignedBB bb : list) {
-                    dx = bb.calculateXOffset(this.boundingBox, dx);
-                }
-
-                this.boundingBox.offset(dx, 0, 0);
-
-                for (AxisAlignedBB bb : list) {
-                    dz = bb.calculateZOffset(this.boundingBox, dz);
-                }
-
-                this.boundingBox.offset(0, 0, dz);
-
-                if (this.getStepHeight() > 0 && fallingFlag && this.ySize < 0.05 && (movX != dx || movZ != dz)) {
-                    float cx = dx;
-                    float cy = dy;
-                    float cz = dz;
-                    dx = movX;
-                    dy = this.getStepHeight();
-                    dz = movZ;
-
-                    AxisAlignedBB axisalignedbb1 = this.boundingBox.clone();
-
-                    this.boundingBox.setBB(axisalignedbb);
-
-                    list = this.level.getCollisionCubes(this, this.boundingBox.addCoord(dx, dy, dz), false);
-
-                    for (AxisAlignedBB bb : list) {
-                        dy = bb.calculateYOffset(this.boundingBox, dy);
-                    }
-
-                    this.boundingBox.offset(0, dy, 0);
-
-                    for (AxisAlignedBB bb : list) {
-                        dx = bb.calculateXOffset(this.boundingBox, dx);
-                    }
-
-                    this.boundingBox.offset(dx, 0, 0);
-
-                    for (AxisAlignedBB bb : list) {
-                        dz = bb.calculateZOffset(this.boundingBox, dz);
-                    }
-
-                    this.boundingBox.offset(0, 0, dz);
-
-                    this.boundingBox.offset(0, 0, dz);
-
-                    if ((cx * cx + cz * cz) >= (dx * dx + dz * dz)) {
-                        dx = cx;
-                        dy = cy;
-                        dz = cz;
-                        this.boundingBox.setBB(axisalignedbb1);
-                    } else {
-                        this.ySize += 0.5;
-                    }
-
-                }
-
-                this.position = Vector3f.from(
-                        (this.boundingBox.getMinX() + this.boundingBox.getMaxX()) / 2,
-                        this.boundingBox.getMinY() - this.ySize,
-                        (this.boundingBox.getMinZ() + this.boundingBox.getMaxZ()) / 2
-                );
-
-                this.checkChunks();
-
-                this.checkGroundState(movX, movY, movZ, dx, dy, dz);
-                this.updateFallState(this.onGround);
-
-                if (movX != dx) {
-                    this.motion = Vector3f.from(0, this.motion.getY(), this.motion.getZ());
-                }
-
-                if (movY != dy) {
-                    this.motion = Vector3f.from(this.motion.getX(), 0, this.motion.getZ());
-                }
-
-                if (movZ != dz) {
-                    this.motion = Vector3f.from(this.motion.getX(), this.motion.getY(), 0);
-                }
-
-                //TODO: vehicle collision events (first we need to spawn them!)
-            }
-        }
-        return true;
+        return this.move(MovementType.SELF, dx, dy, dz);
     }
 
-    protected void checkGroundState(double movX, double movY, double movZ, double dx, double dy, double dz) {
-        this.isCollidedVertically = movY != dy;
-        this.isCollidedHorizontally = (movX != dx || movZ != dz);
-        this.isCollided = (this.isCollidedHorizontally || this.isCollidedVertically);
-        this.onGround = (movY != dy && movY < 0);
+    public boolean move(MovementType type, Vector3f movement) {
+        return this.move(type, movement.getX(), movement.getY(), movement.getZ());
     }
 
-    public List<Block> getBlocksAround() {
-        if (this.blocksAround == null) {
-            int minX = GenericMath.floor(this.boundingBox.getMinX());
-            int minY = GenericMath.floor(this.boundingBox.getMinY());
-            int minZ = GenericMath.floor(this.boundingBox.getMinZ());
-            int maxX = GenericMath.ceil(this.boundingBox.getMaxX());
-            int maxY = GenericMath.ceil(this.boundingBox.getMaxY());
-            int maxZ = GenericMath.ceil(this.boundingBox.getMaxZ());
-
-            this.blocksAround = new ArrayList<>();
-
-            for (int z = minZ; z <= maxZ; ++z) {
-                for (int x = minX; x <= maxX; ++x) {
-                    for (int y = minY; y <= maxY; ++y) {
-                        this.blocksAround.add(this.level.getBlock(x, y, z));
-                    }
-                }
-            }
-        }
-
-        return this.blocksAround;
+    public boolean move(MovementType type, float dx, float dy, float dz) {
+        return EntityMovementController.move(this, type, dx, dy, dz);
     }
 
-    public List<Block> getCollisionBlocks() {
-        if (this.collisionBlockStates == null) {
-            this.collisionBlockStates = new ArrayList<>();
+    public void recordMovement(BoundingBox previousBox, BoundingBox currentBox) {
+        if (this.movementSegments.size() >= MAX_MOVEMENT_SEGMENTS) {
+            EntityMovementSegment first = this.movementSegments.removeFirst();
+            EntityMovementSegment second = this.movementSegments.removeFirst();
+            this.movementSegments.addFirst(new EntityMovementSegment(first.fromBox(), second.toBox()));
+        }
+        this.movementSegments.add(new EntityMovementSegment(previousBox, currentBox));
+    }
 
-            for (Block block : getBlocksAround()) {
-                BlockState state = block.getState();
-                if (state == BlockStates.AIR) {
-                    continue;
-                }
-
-                ComponentMap components = block.getComponents();
-                if (components.get(BlockComponents.CAN_PASS_THROUGH).execute(state)) {
-                    continue;
-                }
-
-                Vector3i pos = block.getPosition();
-                AxisAlignedBB blockBB = components
-                        .get(BlockComponents.GET_BOUNDING_BOX)
-                        .execute(state)
-                        .getOffsetBoundingBox(pos.getX(), pos.getY(), pos.getZ());
-
-                if (blockBB.intersectsWith(this.getBoundingBox())) {
-                    this.collisionBlockStates.add(block);
-                }
-            }
+    public List<EntityMovementSegment> drainMovementSegments() {
+        if (this.movementSegments.isEmpty()) {
+            BoundingBox boundingBox = this.getBoundingBox();
+            return List.of(new EntityMovementSegment(boundingBox, boundingBox));
         }
 
-        return this.collisionBlockStates;
+        List<EntityMovementSegment> movements = List.copyOf(this.movementSegments);
+        this.movementSegments.clear();
+        return movements;
+    }
+
+    protected void setOnGroundWithMovement(boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {
+        EntityMovementController.setOnGroundWithMovement(this, onGround, horizontalCollision, movement);
     }
 
     /**
@@ -1819,71 +1641,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     protected void checkBlockCollision() {
-        Vector3f vector = Vector3f.ZERO;
-        boolean portal = false;
-
-        for (Block block : this.getBlocksAround()) {
-            BlockState state = block.getState();
-            if (state == BlockStates.AIR) {
-                continue;
-            }
-
-            Vector3i pos = block.getPosition();
-            if (state.getType() == PORTAL) {
-                AxisAlignedBB portalUnitBB = new SimpleAxisAlignedBB(
-                        pos.getX(),
-                        pos.getY(),
-                        pos.getZ(),
-                        pos.getX() + 1,
-                        pos.getY() + 1,
-                        pos.getZ() + 1
-                );
-
-                if (portalUnitBB.intersectsWith(this.getBoundingBox())) {
-                    portal = true;
-                    this.portalEntryBlock = pos;
-                }
-                continue;
-            }
-
-            ComponentMap behaviors = block.getComponents();
-            if (behaviors.get(BlockComponents.CAN_PASS_THROUGH).execute(state)) {
-                AxisAlignedBB unitBB = new SimpleAxisAlignedBB(
-                        pos.getX(),
-                        pos.getY(),
-                        pos.getZ(),
-                        pos.getX() + 1,
-                        pos.getY() + 1,
-                        pos.getZ() + 1
-                );
-
-                if (unitBB.intersectsWith(this.getBoundingBox())) {
-                    behaviors.get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
-                }
-            }
-        }
-
-        for (Block block : this.getCollisionBlocks()) {
-            block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
-//            vector = behaviors.addVelocityToEntity(block, vector, this); FIXME
-        }
-
-        if (portal) {
-            onInsidePortal();
-        } else {
-            if (this.portalCooldown <= 0) {
-                this.inPortalTicks = Math.max(0, this.inPortalTicks - 4);
-                if (this.inPortalTicks == 0) {
-                    this.portalEntryBlock = null;
-                }
-            }
-        }
-
-        if (vector.lengthSquared() > 0) {
-            vector = vector.normalize();
-            double d = 0.014d;
-            this.motion = this.motion.add(vector.mul(d));
-        }
+        EntityInsideBlockScanner.scan(this);
     }
 
     public boolean setPositionAndRotation(Vector3f pos, float yaw, float pitch) {
@@ -1902,10 +1660,6 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean canTriggerPressurePlate() {
-        return true;
-    }
-
-    public boolean canPassThrough() {
         return true;
     }
 
@@ -1980,13 +1734,24 @@ public abstract class CloudEntity implements Entity {
         return true;
     }
 
+    @Override
+    public void makeStuckInBlock(BlockState state, Vector3f speedMultiplier) {
+        this.resetFallDistance();
+        this.stuckSpeedMultiplier = speedMultiplier;
+    }
+
     public boolean isOnGround() {
         return onGround;
     }
 
     @Override
     public void setOnGround(boolean onGround) {
-        this.onGround = onGround;
+        this.setOnGroundWithMovement(onGround, this.isCollidedHorizontally, null);
+    }
+
+    @Override
+    public Optional<Vector3i> getSupportingBlockPosition() {
+        return this.supportingBlockPosition;
     }
 
     public void kill() {

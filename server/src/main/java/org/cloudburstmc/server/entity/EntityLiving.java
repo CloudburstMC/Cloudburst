@@ -103,6 +103,11 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
     }
 
     @Override
+    public boolean isPushable() {
+        return this.isAlive() && (!(this instanceof CloudPlayer player) || !player.isSpectator());
+    }
+
+    @Override
     public boolean attack(EntityDamageEvent source) {
         if (this.attackTime > 0 || this.noDamageTicks > 0) {
             EntityDamageEvent lastCause = this.getLastDamageCause();
@@ -267,7 +272,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             }
 
             if (this.vehicle == null) {
-                for (Entity entity : this.getLevel().getNearbyEntities(this.boundingBox.grow(0.2f, 0, 0.2f), this)) {
+                for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
                     if (entity instanceof Rideable) {
                         this.collidingWith(entity);
                     }

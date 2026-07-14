@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 public class FenceGatePlaceHandler implements PlaceBlockHandler {
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
         if (player == null) {
             return false;
         }
@@ -22,16 +22,16 @@ public class FenceGatePlaceHandler implements PlaceBlockHandler {
         Direction horizontal = player.getHorizontalDirection();
         CardinalDirection cardinal = horizontal.getCardinalDirection();
         blockState = blockState.withTrait(BlockTraits.CARDINAL_DIRECTION, cardinal);
-        blockState = blockState.withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered(pos, horizontal, (CloudLevel) player.getLevel()));
+        blockState = blockState.withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered(blockPosition, horizontal, (CloudLevel) player.getLevel()));
 
-        return player.getLevel().setBlockState(pos, blockState, true, true);
+        return player.getLevel().setBlockState(blockPosition, blockState, true, true);
     }
 
-    private boolean shouldBeLowered(Vector3i pos, Direction facing, CloudLevel level) {
+    private boolean shouldBeLowered(Vector3i blockPosition, Direction facing, CloudLevel level) {
         Direction left = facing.rotateCounterClockwise();
-        Vector3i leftPos = left.relative(pos);
-        Vector3i rightPos = left.getOpposite().relative(pos);
-        return level.getBlockState(leftPos.getX(), leftPos.getY(), leftPos.getZ()).getType().hasTag(BlockTags.WALLS)
-                || level.getBlockState(rightPos.getX(), rightPos.getY(), rightPos.getZ()).getType().hasTag(BlockTags.WALLS);
+        Vector3i leftPosition = left.relative(blockPosition);
+        Vector3i rightPosition = left.getOpposite().relative(blockPosition);
+        return level.getBlockState(leftPosition.getX(), leftPosition.getY(), leftPosition.getZ()).getType().hasTag(BlockTags.WALLS)
+                || level.getBlockState(rightPosition.getX(), rightPosition.getY(), rightPosition.getZ()).getType().hasTag(BlockTags.WALLS);
     }
 }

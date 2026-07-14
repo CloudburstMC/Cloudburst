@@ -14,7 +14,7 @@ public class AnvilPlaceHandler extends DefaultBlockPlaceHandler {
     }
 
     @Override
-    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i pos, Direction face) {
+    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i blockPosition, Direction face) {
         Direction anvilFacing = player.getHorizontalDirection().rotateCounterClockwise();
         return blockState.withTrait(BlockTraits.CARDINAL_DIRECTION, anvilFacing.getCardinalDirection());
     }

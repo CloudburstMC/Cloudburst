@@ -15,18 +15,18 @@ public class TrapdoorPlaceHandler extends DefaultBlockPlaceHandler {
     }
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
-        return super.execute(applyUpsideDown(blockState, face, clickPos), player, pos, face, clickPos);
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
+        return super.execute(applyUpsideDown(blockState, face, clickPosition), player, blockPosition, face, clickPosition);
     }
 
-    private BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPos) {
+    private BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPosition) {
         boolean upsideDown;
         if (face == Direction.UP) {
             upsideDown = false;
         } else if (face == Direction.DOWN) {
             upsideDown = true;
         } else {
-            upsideDown = clickPos.getY() > 0.5f;
+            upsideDown = clickPosition.getY() > 0.5f;
         }
         return blockState.withTrait(BlockTraits.IS_UPSIDE_DOWN, upsideDown);
     }

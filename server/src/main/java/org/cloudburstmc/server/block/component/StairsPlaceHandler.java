@@ -18,13 +18,13 @@ public class StairsPlaceHandler extends DefaultBlockPlaceHandler {
     }
 
     @Override
-    public boolean execute(BlockState blockState, Player player, Vector3i pos, Direction face, Vector3f clickPos) {
-        blockState = applyUpsideDown(blockState, face, clickPos);
-        return super.execute(blockState, player, pos, face, clickPos);
+    public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
+        blockState = applyUpsideDown(blockState, face, clickPosition);
+        return super.execute(blockState, player, blockPosition, face, clickPosition);
     }
 
     @Override
-    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i pos, Direction face) {
+    protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i blockPosition, Direction face) {
         Map<BlockTrait<?>, Comparable<?>> traits = blockState.getTraits();
         if (traits.containsKey(BlockTraits.DIRECTION)) {
             blockState = blockState.withTrait(BlockTraits.DIRECTION, player.getHorizontalDirection());
@@ -32,8 +32,8 @@ public class StairsPlaceHandler extends DefaultBlockPlaceHandler {
         return blockState;
     }
 
-    private BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPos) {
-        boolean upsideDown = (clickPos.getY() > 0.5f && face != Direction.UP) || face == Direction.DOWN;
+    private BlockState applyUpsideDown(BlockState blockState, Direction face, Vector3f clickPosition) {
+        boolean upsideDown = (clickPosition.getY() > 0.5f && face != Direction.UP) || face == Direction.DOWN;
         return blockState.withTrait(BlockTraits.IS_UPSIDE_DOWN, upsideDown);
     }
 }
