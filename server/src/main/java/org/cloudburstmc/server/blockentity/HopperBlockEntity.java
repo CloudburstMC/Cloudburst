@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Hopper;
@@ -80,11 +79,6 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         tag.putList("Items", NbtType.COMPOUND, items);
 
         tag.putInt("TransferCooldown", this.transferCooldown);
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.HOPPER;
     }
 
     public boolean isOnTransferCooldown() {

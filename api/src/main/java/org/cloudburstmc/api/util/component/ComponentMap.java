@@ -6,8 +6,6 @@ import org.cloudburstmc.api.data.ComponentType;
  * A flat map of behavioral components keyed by {@link ComponentType}.
  * <p>
  * Each slot holds exactly one handler set via {@link #set}.
- * The map must be {@link org.cloudburstmc.server.registry.component.CloudComponentMap#bake() baked}
- * before use, which populates missing keys from registry defaults.
  */
 public interface ComponentMap {
 
@@ -24,7 +22,7 @@ public interface ComponentMap {
      * Sets the handler for {@code type}, replacing any previous value.
      *
      * @param type    component type
-     * @param handler handler implementation
+     * @param handler handler to store
      * @param <H>     handler type
      * @return this map (for chaining)
      */

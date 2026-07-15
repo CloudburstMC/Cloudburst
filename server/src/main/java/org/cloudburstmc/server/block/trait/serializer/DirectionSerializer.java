@@ -35,7 +35,7 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
 
     @Override
     public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
-        if (type.hasTag(BlockTags.STAIRS)) {
+        if (type.is(BlockTags.STAIRS)) {
             return BedrockStateTags.TAG_WEIRDO_DIRECTION;
         }
 

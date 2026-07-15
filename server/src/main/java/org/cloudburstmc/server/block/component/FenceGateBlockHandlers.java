@@ -55,8 +55,8 @@ public class FenceGateBlockHandlers {
         }
 
         CloudLevel level = (CloudLevel) block.getLevel();
-        boolean shouldBeLowered = level.getBlockState(leftPos.getX(), leftPos.getY(), leftPos.getZ()).getType().hasTag(BlockTags.WALLS)
-                || level.getBlockState(rightPos.getX(), rightPos.getY(), rightPos.getZ()).getType().hasTag(BlockTags.WALLS);
+        boolean shouldBeLowered = level.getBlockState(leftPos.getX(), leftPos.getY(), leftPos.getZ()).is(BlockTags.WALLS)
+                || level.getBlockState(rightPos.getX(), rightPos.getY(), rightPos.getZ()).is(BlockTags.WALLS);
 
         if (shouldBeLowered != state.ensureTrait(BlockTraits.IS_IN_WALL)) {
             level.setBlockState(pos, state.withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered), false, true);

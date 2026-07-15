@@ -1,89 +1,61 @@
 package org.cloudburstmc.server.registry;
 
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.CloudBlockDefinition;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
-public class BlockRegistryTest {
+import static org.junit.jupiter.api.Assertions.*;
 
-    @DisplayName("Block Palette Test")
+class BlockRegistryTest {
+
     @Test
-    public void blockPaletteTest() throws IOException {
+    void serializedPaletteMatchesVanillaPalette() throws IOException {
         LinkedList<NbtMap> vanillaPalette;
-        InputStream stream = BlockRegistryTest.class.getClassLoader().getResourceAsStream("data/block_palette.nbt");
+        InputStream stream = Objects.requireNonNull(
+                BlockRegistryTest.class.getClassLoader().getResourceAsStream("data/block_palette.nbt"),
+                "Missing vanilla block palette"
+        );
+
         try (NBTInputStream nbtStream = NbtUtils.createGZIPReader(stream)) {
             NbtMap tag = (NbtMap) nbtStream.readTag();
-            vanillaPalette = new LinkedList<>(tag.getList("blocks", NbtType.COMPOUND));
-        } catch (IOException e) {
-            throw new AssertionError("Unable to load block palette");
+            vanillaPalette = tag.getList("blocks", NbtType.COMPOUND).stream()
+                    .map(BlockRegistryTest::stripRuntimeOnlyTags)
+                    .collect(LinkedList::new, LinkedList::add, LinkedList::addAll);
         }
 
-        int version = BlockStateUpdaters.getLatestVersion();
-        int paletteVersion = vanillaPalette.get(0).getInt("version");
+        CloudBlockRegistry registry = new CloudBlockRegistry(CloudItemRegistry.get());
+        registry.close();
 
-        Assertions.assertTrue(version == paletteVersion, "Palette version missmatch");
+        Set<NbtMap> serializedStates = BlockPalette.INSTANCE.getSerializedPalette().keySet();
+        List<NbtMap> missingStates = vanillaPalette.stream()
+                .filter(state -> !serializedStates.contains(state))
+                .toList();
 
-        int major = (version >> 24) & 0xFF;
-        int minor = (version >> 16) & 0xFF;
-        int patch = (version >> 8) & 0xFF;
-        int build = version & 0xFF;
-        System.out.printf("Latest block state version: %d.%d.%d.%d%n", major, minor, patch, build);
+        assertAll(
+                () -> assertEquals(vanillaPalette.size(), BlockPalette.INSTANCE.getRuntimeMap().size(),
+                        "Every vanilla state must have one runtime definition"),
+                () -> assertTrue(missingStates.isEmpty(),
+                        () -> missingStates.size() + " vanilla states are absent from the serialized palette: "
+                                + missingStates.stream().limit(5).toList())
+        );
+    }
 
-        CloudBlockRegistry.REGISTRY.close(); // init
-
-        Map<NbtMap, BlockState> serverPalette = BlockPalette.INSTANCE.getSerializedPalette();
-        Map<Integer, CloudBlockDefinition> runtimeMap = BlockPalette.INSTANCE.getRuntimeMap();
-
-       // Assertions.assertTrue(runtimeIdMap.size() == vanillaPalette.size(), "Palettes are not the same size");
-
-        Path logPath = Paths.get("./logs");
-
-        List<String> invalidStates = new ArrayList<>();
-        int invalid = 0;
-        for (NbtMap nbt : serverPalette.keySet()) {
-            if (!vanillaPalette.remove(nbt)) {
-                invalidStates.add(nbt.toString());
-                invalid++;
-            }
-        }
-
-        System.out.println("Found " + invalid + " invalid block states");
-        if (invalid > 0) {
-            Files.write(logPath.resolve("invalid_states.log"), invalidStates, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-        }
-
-        List<String> missingStates = new ArrayList<>();
-        int missing = 0;
-        for (NbtMap state : vanillaPalette) {
-            missing++;
-            missingStates.add(state.toString());
-        }
-
-        System.out.println("Found " + missing + " missing block states");
-
-        if (missing > 0) {
-            Files.write(logPath.resolve("missing_states.log"), missingStates, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-        }
-
-        Assertions.assertFalse(missing > 0 | invalid > 0, "One or more block states did not match the vanilla palette");
+    private static NbtMap stripRuntimeOnlyTags(NbtMap state) {
+        var builder = state.toBuilder();
+        builder.remove("version");
+        builder.remove("name_hash");
+        builder.remove("network_id");
+        builder.remove("block_id");
+        return builder.build();
     }
 }

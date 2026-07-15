@@ -23,8 +23,9 @@ public class EntityMovementController {
         try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
             BoundingBox previousBox = entity.boundingBox;
             BoundingBox newBox = entity.boundingBox.move(dx, dy, dz);
+            boolean accepted = !entity.level.hasBlockCollision(entity, newBox);
 
-            if (entity.server.getAllowFlight() || !entity.level.hasBlockCollision(entity, newBox)) {
+            if (accepted) {
                 entity.boundingBox = newBox;
             }
 
@@ -39,7 +40,7 @@ public class EntityMovementController {
 
             entity.isCollided = entity.onGround;
             entity.updateFallState(entity.onGround);
-            return true;
+            return accepted;
         }
     }
 
@@ -75,9 +76,18 @@ public class EntityMovementController {
             applyCollisionState(entity, movementResult);
             entity.updateFallState(entity.onGround);
             stopBlockedMotion(entity, movementResult);
+            synchronizeForcedMovement(entity, type, previousBox);
         }
 
         return true;
+    }
+
+    private static void synchronizeForcedMovement(CloudEntity entity, MovementType type, BoundingBox previousBox) {
+        if (type != MovementType.SELF
+                && type != MovementType.PLAYER
+                && !previousBox.equals(entity.boundingBox)) {
+            entity.sendAuthoritativeDisplacement();
+        }
     }
 
     public static void setOnGroundWithMovement(CloudEntity entity, boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {

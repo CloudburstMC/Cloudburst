@@ -1,47 +1,25 @@
 package org.cloudburstmc.api.block;
 
-import org.cloudburstmc.api.util.Identifier;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Set;
 
 /**
- * An {@link Identifier}-keyed tag that a {@link BlockType} may belong to.
+ * A named, read-only set of block types.
  */
-public final class BlockTag {
+public interface BlockTag {
 
-    private final Identifier id;
+    /**
+     * @return the key used to identify this tag
+     */
+    BlockTagKey getKey();
 
-    private BlockTag(Identifier id) {
-        this.id = id;
-    }
+    /**
+     * @param type block type to test
+     * @return whether {@code type} is a member
+     */
+    boolean isTagged(BlockType type);
 
-    public static BlockTag of(Identifier id) {
-        checkNotNull(id, "id");
-        return new BlockTag(id);
-    }
-
-    public static BlockTag of(String id) {
-        return of(Identifier.parse(id));
-    }
-
-    public Identifier getId() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return id.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BlockTag other)) return false;
-        return id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+    /**
+     * @return all members in an immutable set
+     */
+    Set<BlockType> getValues();
 }

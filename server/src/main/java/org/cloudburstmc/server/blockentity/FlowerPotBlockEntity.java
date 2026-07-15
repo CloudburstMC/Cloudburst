@@ -2,7 +2,6 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -15,10 +14,6 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
-/**
- * Created by Snake1999 on 2016/2/4.
- * Package cn.nukkit.blockentity in project Nukkit.
- */
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
     private BlockState plant = BlockStates.AIR;
@@ -52,11 +47,6 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
         if (this.plant != BlockStates.AIR) {
             tag.putCompound("PlantBlock", BlockPalette.INSTANCE.getSerialized(this.plant));
         }
-    }
-
-    @Override
-    public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.FLOWER_POT;
     }
 
     public BlockState getPlant() {

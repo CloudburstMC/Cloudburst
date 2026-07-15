@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Dispenser;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -81,11 +80,6 @@ public class DispenserBlockEntity extends ContainerBlockEntity implements Dispen
             this.getLevel().dropItem(this.getPosition(), content);
         }
         this.container.clear();
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.DISPENSER;
     }
 
     @Override

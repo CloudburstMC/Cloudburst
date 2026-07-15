@@ -7,14 +7,16 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Factory and utility methods for voxel shapes.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CloudVoxelShapes {
+
+    private static final int FULL_BLOCK_CACHE_SIZE = 512;
+    private static final long MAX_COVERAGE_CELLS = 262_144;
 
     /**
      * Tolerance used by shape collision and full-block checks.
@@ -23,6 +25,14 @@ public final class CloudVoxelShapes {
 
     private static final VoxelShape EMPTY = new CloudVoxelShape(new float[0]);
     private static final VoxelShape BLOCK = box(0, 0, 0, 1, 1, 1);
+    private static final Map<VoxelShape, Boolean> FULL_BLOCK_CACHE = Collections.synchronizedMap(
+            new LinkedHashMap<>(FULL_BLOCK_CACHE_SIZE, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<VoxelShape, Boolean> eldest) {
+                    return size() > FULL_BLOCK_CACHE_SIZE;
+                }
+            }
+    );
 
     /**
      * Returns the shared empty shape.
@@ -129,6 +139,69 @@ public final class CloudVoxelShapes {
     }
 
     /**
+     * Tests whether the union of {@code covering} fully contains the union of {@code required}.
+     * Box boundaries from both shapes partition the tested volume into cells whose membership is constant.
+     *
+     * @param covering the shape providing coverage
+     * @param required the shape that must be covered
+     * @return {@code true} if {@code required} has no volume outside {@code covering}
+     */
+    public static boolean covers(VoxelShape covering, VoxelShape required) {
+        Objects.requireNonNull(covering, "covering");
+        Objects.requireNonNull(required, "required");
+        if (covering == required || required.isEmpty()) {
+            return true;
+        }
+
+        if (covering.isEmpty()) {
+            return false;
+        }
+
+        BoundingBox bounds = required.bounds();
+        BoundingBox coveringBounds = covering.bounds();
+        if (coveringBounds.getMinX() > bounds.getMinX() + EPSILON
+                || coveringBounds.getMinY() > bounds.getMinY() + EPSILON
+                || coveringBounds.getMinZ() > bounds.getMinZ() + EPSILON
+                || coveringBounds.getMaxX() < bounds.getMaxX() - EPSILON
+                || coveringBounds.getMaxY() < bounds.getMaxY() - EPSILON
+                || coveringBounds.getMaxZ() < bounds.getMaxZ() - EPSILON) {
+            return false;
+        }
+
+        List<Float> xBoundaries = new ArrayList<>();
+        List<Float> yBoundaries = new ArrayList<>();
+        List<Float> zBoundaries = new ArrayList<>();
+
+        addShapeBoundaries(required, bounds, xBoundaries, yBoundaries, zBoundaries);
+        addShapeBoundaries(covering, bounds, xBoundaries, yBoundaries, zBoundaries);
+
+        xBoundaries.sort(Float::compare);
+        yBoundaries.sort(Float::compare);
+        zBoundaries.sort(Float::compare);
+
+        long cellCount = (long) (xBoundaries.size() - 1) * (yBoundaries.size() - 1) * (zBoundaries.size() - 1);
+        if (cellCount > MAX_COVERAGE_CELLS) {
+            throw new IllegalArgumentException("Voxel shape coverage would require " + cellCount
+                            + " cells; maximum is " + MAX_COVERAGE_CELLS);
+        }
+
+        for (int x = 1; x < xBoundaries.size(); x++) {
+            float midpointX = midpoint(xBoundaries, x);
+            for (int y = 1; y < yBoundaries.size(); y++) {
+                float midpointY = midpoint(yBoundaries, y);
+                for (int z = 1; z < zBoundaries.size(); z++) {
+                    float midpointZ = midpoint(zBoundaries, z);
+                    if (contains(required, midpointX, midpointY, midpointZ) && !contains(covering, midpointX, midpointY, midpointZ)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Resolves a movement vector against a collection of collision shapes.
      *
      * @param box      the moving box
@@ -195,20 +268,54 @@ public final class CloudVoxelShapes {
      * @return {@code true} if the shape covers the unit block bounds
      */
     public static boolean isFullBlock(VoxelShape shape) {
-        if (shape.isEmpty()) {
-            return false;
-        }
+        return FULL_BLOCK_CACHE.computeIfAbsent(shape, candidate -> candidate.covers(BLOCK));
+    }
 
-        BoundingBox bounds = shape.bounds();
-        return bounds.getMinX() <= EPSILON
-                && bounds.getMinY() <= EPSILON
-                && bounds.getMinZ() <= EPSILON
-                && bounds.getMaxX() >= 1f - EPSILON
-                && bounds.getMaxY() >= 1f - EPSILON
-                && bounds.getMaxZ() >= 1f - EPSILON;
+    private static void addShapeBoundaries(VoxelShape shape, BoundingBox bounds,
+                                           List<Float> xBoundaries, List<Float> yBoundaries, List<Float> zBoundaries) {
+        addBoundary(xBoundaries, bounds.getMinX());
+        addBoundary(xBoundaries, bounds.getMaxX());
+        addBoundary(yBoundaries, bounds.getMinY());
+        addBoundary(yBoundaries, bounds.getMaxY());
+        addBoundary(zBoundaries, bounds.getMinZ());
+        addBoundary(zBoundaries, bounds.getMaxZ());
+        shape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
+            addBoundaryWithin(xBoundaries, minX, bounds.getMinX(), bounds.getMaxX());
+            addBoundaryWithin(xBoundaries, maxX, bounds.getMinX(), bounds.getMaxX());
+            addBoundaryWithin(yBoundaries, minY, bounds.getMinY(), bounds.getMaxY());
+            addBoundaryWithin(yBoundaries, maxY, bounds.getMinY(), bounds.getMaxY());
+            addBoundaryWithin(zBoundaries, minZ, bounds.getMinZ(), bounds.getMaxZ());
+            addBoundaryWithin(zBoundaries, maxZ, bounds.getMinZ(), bounds.getMaxZ());
+        });
+    }
+
+    private static void addBoundaryWithin(List<Float> boundaries, float value, float min, float max) {
+        if (value > min && value < max) {
+            addBoundary(boundaries, value);
+        }
+    }
+
+    private static void addBoundary(List<Float> boundaries, float value) {
+        if (!boundaries.contains(value)) {
+            boundaries.add(value);
+        }
+    }
+
+    private static float midpoint(List<Float> boundaries, int upperIndex) {
+        return (boundaries.get(upperIndex - 1) + boundaries.get(upperIndex)) * 0.5f;
+    }
+
+    private static boolean contains(VoxelShape shape, float x, float y, float z) {
+        return shape.anyBox((minX, minY, minZ, maxX, maxY, maxZ) ->
+                minX <= x && maxX >= x && minY <= y && maxY >= y && minZ <= z && maxZ >= z);
     }
 
     private static void validateBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        if (!Float.isFinite(minX) || !Float.isFinite(minY) || !Float.isFinite(minZ)
+                || !Float.isFinite(maxX) || !Float.isFinite(maxY) || !Float.isFinite(maxZ)) {
+            throw new IllegalArgumentException("Shape bounds must be finite");
+        }
+
         if (minX > maxX || minY > maxY || minZ > maxZ) {
             throw new IllegalArgumentException("Shape minimum bounds must be less than or equal to maximum bounds");
         }

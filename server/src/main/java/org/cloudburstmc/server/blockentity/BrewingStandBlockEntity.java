@@ -122,11 +122,6 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         }
     }
 
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.BREWING_STAND;
-    }
-
     protected boolean checkIngredient(ItemStack ingredient) {
         return ingredients.contains(ingredient.getType());
     }

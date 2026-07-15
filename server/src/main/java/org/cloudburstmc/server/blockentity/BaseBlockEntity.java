@@ -19,7 +19,7 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 import java.util.HashMap;
 import java.util.List;
@@ -162,7 +162,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         NbtMapBuilder tag = NbtMap.builder();
 
         if (id) {
-            tag.putString("id", BlockEntityRegistry.get().getPersistentId(this.type));
+            tag.putString("id", CloudBlockEntityRegistry.get().getPersistentId(this.type));
         }
 
         if (position) {
@@ -309,7 +309,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     @Override
-    public abstract boolean isValid();
+    public final boolean isValid() {
+        return CloudBlockEntityRegistry.get().isValid(this.type, this.getBlockState());
+    }
 
     public boolean onUpdate() {
         if (this.justCreated) {
@@ -416,7 +418,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public final boolean updateFromClient(NbtMap tag, CloudPlayer player) {
-        if (!tag.getString("id").equals(BlockEntityRegistry.get().getPersistentId(this.getType()))) {
+        if (!tag.getString("id").equals(CloudBlockEntityRegistry.get().getPersistentId(this.getType()))) {
             return false;
         }
         return this.updateNbtMap(tag, player);

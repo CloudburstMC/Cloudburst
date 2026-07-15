@@ -43,7 +43,8 @@ dependencies {
     implementation(libs.upnp)
 
     testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 extraJavaModuleInfo {
@@ -118,6 +119,13 @@ tasks.shadowJar {
     }
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
+    append("META-INF/io.netty.versions.properties")
+    exclude(
+        "META-INF/DEPENDENCIES",
+        "META-INF/LICENSE",
+        "META-INF/LICENSE.txt",
+        "META-INF/NOTICE"
+    )
 
     dependsOn(":api:classes", ":api:jar")
     from(project(":api").sourceSets.main.get().output)
@@ -133,7 +141,7 @@ tasks.register<JavaExec>("run") {
     systemProperty("guice_bytecode_gen_option", "DISABLED")
 }
 
-val codegenRuntime: Configuration by configurations.creating {
+val codegenRuntime = configurations.create("codegenRuntime") {
     isCanBeConsumed = false
     isCanBeResolved = true
 }

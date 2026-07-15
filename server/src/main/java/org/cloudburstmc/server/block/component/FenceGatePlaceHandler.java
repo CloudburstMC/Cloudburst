@@ -31,7 +31,7 @@ public class FenceGatePlaceHandler implements PlaceBlockHandler {
         Direction left = facing.rotateCounterClockwise();
         Vector3i leftPosition = left.relative(blockPosition);
         Vector3i rightPosition = left.getOpposite().relative(blockPosition);
-        return level.getBlockState(leftPosition.getX(), leftPosition.getY(), leftPosition.getZ()).getType().hasTag(BlockTags.WALLS)
-                || level.getBlockState(rightPosition.getX(), rightPosition.getY(), rightPosition.getZ()).getType().hasTag(BlockTags.WALLS);
+        return level.getBlockState(leftPosition.getX(), leftPosition.getY(), leftPosition.getZ()).is(BlockTags.WALLS)
+                || level.getBlockState(rightPosition.getX(), rightPosition.getY(), rightPosition.getZ()).is(BlockTags.WALLS);
     }
 }

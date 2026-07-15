@@ -14,10 +14,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * An immutable snapshot of a block type and its current trait values.
- * <p>
- * Shape data is injected at startup by {@code BlockPalette}
- * from {@code BlockPropertyData} for states where geometry varies by trait.
+ * A block type paired with immutable trait values and geometry.
  */
 public final class BlockState {
 
@@ -42,33 +39,16 @@ public final class BlockState {
         return traits;
     }
 
-    /**
-     * Shape used for entity and placement collision.
-     */
-    public VoxelShape getCollisionShape() {
-        checkState(this.collisionShape != null, "Block state data has not been initialized");
-        return this.collisionShape;
+    public boolean is(BlockTagKey tag) {
+        return this.type.is(tag);
     }
 
-    /**
-     * Shape used for block selection/outline.
-     */
-    public VoxelShape getOutlineShape() {
-        checkState(this.outlineShape != null, "Block state data has not been initialized");
-        return this.outlineShape;
-    }
-
-    /**
-     * Populates the per-state shape data. Called at most once per state by
-     * {@code BlockPalette} during startup using data from {@code BlockPropertyData.BY_STATE_HASH}.
-     */
-    public void initStateData(VoxelShape collisionShape, VoxelShape outlineShape) {
-        this.collisionShape = checkNotNull(collisionShape, "collisionShape");
-        this.outlineShape = outlineShape == null ? collisionShape : outlineShape;
-    }
-
-    public boolean hasTag(BlockTag tag) {
-        return BlockTags.hasTag(this.type, tag);
+    @SuppressWarnings("unchecked")
+    public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
+        checkNotNull(trait, "trait");
+        T val = (T) this.traits.get(trait);
+        checkNotNull(val, "Trait '%s' does not exist for type '%s'", trait, this.type);
+        return val;
     }
 
     public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
@@ -84,14 +64,6 @@ public final class BlockState {
     public BlockState withTrait(BooleanBlockTrait trait, boolean value) {
         checkNotNull(trait, "trait");
         return this.blockStates.get(trait)[trait.getIndex(value)];
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
-        checkNotNull(trait, "trait");
-        T val = (T) this.traits.get(trait);
-        checkNotNull(val, "Trait '%s' does not exist for type '%s'", trait, this.type);
-        return val;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -115,6 +87,26 @@ public final class BlockState {
 
     public BlockState toggleTrait(BooleanBlockTrait trait) {
         return this.blockStates.get(trait)[trait.getIndex(!((Boolean) this.traits.get(trait)))];
+    }
+
+    /**
+     * Returns entity and placement collision geometry in block-local coordinates.
+     *
+     * @return collision shape
+     */
+    public VoxelShape getCollisionShape() {
+        checkState(this.collisionShape != null, "Block state data has not been initialized");
+        return this.collisionShape;
+    }
+
+    /**
+     * Returns selection geometry in block-local coordinates.
+     *
+     * @return outline shape
+     */
+    public VoxelShape getOutlineShape() {
+        checkState(this.outlineShape != null, "Block state data has not been initialized");
+        return this.outlineShape;
     }
 
     @Override
@@ -146,6 +138,20 @@ public final class BlockState {
         }
 
         this.blockStates = Collections.unmodifiableMap(statesMap);
+    }
+
+    /**
+     * Binds collision and outline geometry during block registration.
+     * This operation succeeds once for each state.
+     *
+     * @param collisionShape collision geometry in block-local coordinates
+     * @param outlineShape outline geometry, or {@code null} to reuse the collision shape
+     * @throws IllegalStateException if geometry is already bound
+     */
+    public synchronized void initStateData(VoxelShape collisionShape, VoxelShape outlineShape) {
+        checkState(this.collisionShape == null && this.outlineShape == null, "Block state data has already been initialized");
+        this.collisionShape = checkNotNull(collisionShape, "collisionShape");
+        this.outlineShape = outlineShape == null ? collisionShape : outlineShape;
     }
 
     private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {

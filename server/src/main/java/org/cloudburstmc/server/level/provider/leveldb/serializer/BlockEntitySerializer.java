@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -72,7 +72,7 @@ public class BlockEntitySerializer {
 
     @RequiredArgsConstructor
     private static class BlockEntityLoader implements ChunkDataLoader {
-        private static final BlockEntityRegistry REGISTRY = BlockEntityRegistry.get();
+        private static final CloudBlockEntityRegistry REGISTRY = CloudBlockEntityRegistry.get();
         private final List<NbtMap> blockEntityTags;
 
         @Override

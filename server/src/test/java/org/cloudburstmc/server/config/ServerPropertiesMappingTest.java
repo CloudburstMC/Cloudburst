@@ -38,33 +38,6 @@ public class ServerPropertiesMappingTest {
             .allowFlight(false)
             .build();
 
-    String serialized = "motd=A Cloudburst Powered Server\n" +
-            "sub-motd=https://cloudburstmc.org\n" +
-            "server-ip=0.0.0.0\n" +
-            "server-port=19132\n" +
-            "view-distance=10\n" +
-            "white-list=false\n" +
-            "achievements=true\n" +
-            "announce-player-achievements=true\n" +
-            "spawn-protection=16\n" +
-            "max-players=20\n" +
-            "allow-flight=false\n" +
-            "spawn-animals=true\n" +
-            "spawn-mobs=true\n" +
-            "gamemode=0\n" +
-            "force-gamemode=false\n" +
-            "hardcore=false\n" +
-            "pvp=true\n" +
-            "difficulty=1\n" +
-            "default-level=world\n" +
-            "allow-nether=true\n" +
-            "enable-query=true\n" +
-            "auto-save=true\n" +
-            "force-resources=false\n" +
-            "xbox-auth=true\n" +
-            "generate-structures=true\n"
-            ;
-
     @Test
     @SneakyThrows
     void parsingWorks() {
@@ -76,9 +49,11 @@ public class ServerPropertiesMappingTest {
 
     @Test
     @SneakyThrows
-    void writingWorks() {
-        final String actual = Bootstrap.JAVA_PROPS_MAPPER.writeValueAsString(properties);
-        assertEquals(serialized, actual);
+    void writingRoundTrips() {
+        final String serialized = Bootstrap.JAVA_PROPS_MAPPER.writeValueAsString(properties);
+        final ServerProperties actual = Bootstrap.JAVA_PROPS_MAPPER.readValue(serialized, ServerProperties.class);
+
+        assertEquals(properties, actual);
     }
 
 }

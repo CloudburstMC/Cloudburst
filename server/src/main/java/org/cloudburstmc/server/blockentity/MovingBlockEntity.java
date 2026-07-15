@@ -10,12 +10,9 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-/**
- * Created by CreeperFace on 11.4.2017.
- */
 public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     private BlockState blockState = BlockStates.AIR;
@@ -51,8 +48,8 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
         }
 
         tag.listenForCompound("movingEntity", entityTag -> {
-            BlockEntityType<?> type = BlockEntityRegistry.get().getBlockEntityType(entityTag.getString("id"));
-            this.blockEntity = (BaseBlockEntity) BlockEntityRegistry.get().newEntity(type, this.getChunk(), this.getPosition());
+            BlockEntityType<?> type = CloudBlockEntityRegistry.get().getBlockEntityType(entityTag.getString("id"));
+            this.blockEntity = (BaseBlockEntity) CloudBlockEntityRegistry.get().newEntity(type, this.getChunk(), this.getPosition());
             this.blockEntity.loadAdditionalData(entityTag);
         });
 
@@ -112,11 +109,6 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     public void setPiston(Vector3i piston) {
         this.piston = piston;
-    }
-
-    @Override
-    public boolean isValid() {
-        return true;
     }
 
     @Override

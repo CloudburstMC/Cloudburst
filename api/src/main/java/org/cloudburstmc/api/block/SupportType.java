@@ -13,7 +13,7 @@ public enum SupportType {
      */
     CENTER,
     /**
-     * A rigid central area must be supported.
+     * The outer face, excluding its central column, must be supported.
      */
     RIGID
 }

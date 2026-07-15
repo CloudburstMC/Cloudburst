@@ -169,7 +169,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             }
         }
 
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
+        this.entityBaseTick(tickDiff);
 
         if (isInsideOfFire()) {
             this.kill();
@@ -196,13 +196,13 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
             if (b == FLOWING_WATER || b == WATER) {
                 this.motion = Vector3f.from(this.motion.getX(), this.getGravity() - 0.06, this.motion.getZ());
-            } else if (!this.isOnGround()) {
+            } else {
                 this.motion = this.motion.sub(0, this.getGravity(), 0);
             }
 
             this.noPhysics = this.level.hasCollision(this, this.getBoundingBox().deflate(1.0E-7f, 1.0E-7f, 1.0E-7f));
-            if (this.noPhysics && this.moveTowardsClosestSpace(pos)) {
-                hasUpdate = true;
+            if (this.noPhysics) {
+                this.moveTowardsClosestSpace(pos);
             }
 
             this.move(this.motion);
@@ -229,14 +229,13 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                     this.age = 0;
                 } else {
                     this.kill();
-                    hasUpdate = true;
                 }
             }
         }
 
         this.timing.stopTiming();
 
-        return hasUpdate || !this.onGround || this.motion.length() > 0.00001;
+        return this.isAlive();
     }
 
     @Override

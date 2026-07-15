@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.PlayerBlockHandler;
+import org.cloudburstmc.api.block.component.ResourceBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.block.component.UseCheckHandler;
 import org.cloudburstmc.api.item.ItemStack;
@@ -20,6 +21,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DoorBlockHandlers {
 
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> block.getState().getType() != BlockTypes.IRON_DOOR;
+
+    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) ->
+            block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)
+                    ? ItemStack.EMPTY
+                    : DefaultBlockHandlers.GET_RESOURCE.execute(block, random, bonusLevel);
 
     public static final UseBlockHandler USE = (block, player, direction, item) -> {
         BlockState state = block.getState();
@@ -88,11 +94,14 @@ public class DoorBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         BlockState partnerState = level.getBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
 
-        block.set(BlockStates.AIR);
+        level.setBlockState(pos, BlockStates.AIR, false, false);
 
         if (partnerState.getType() == state.getType()) {
             level.addParticle(new DestroyBlockParticle(partnerPos.toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
-            level.setBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ(), 0, BlockStates.AIR, false, true);
+            level.setBlockState(partnerPos, BlockStates.AIR, false, false);
+            level.updateAround(partnerPos);
         }
+
+        level.updateAround(pos);
     };
 }

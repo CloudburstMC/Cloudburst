@@ -29,8 +29,8 @@ public final class BlockComponents {
     public static final ComponentType<BooleanTypeHandler> FLOODABLE = ComponentType.of("floodable", BooleanTypeHandler.class);
     public static final ComponentType<FloatTypeHandler> FRICTION = ComponentType.of("friction", FloatTypeHandler.class);
     public static final ComponentType<GenericBlockHandler> GET_BLOCK_ENTITY = ComponentType.of("get_block_entity", GenericBlockHandler.class);
-    public static final ComponentType<VoxelShapeBlockHandler> GET_BLOCK_SUPPORT_SHAPE = ComponentType.of("get_block_support_shape", VoxelShapeBlockHandler.class);
-    public static final ComponentType<VoxelShapeBlockHandler> GET_COLLISION_SHAPE = ComponentType.of("get_collision_shape", VoxelShapeBlockHandler.class);
+    public static final ComponentType<BlockSupportShapeHandler> GET_BLOCK_SUPPORT_SHAPE = ComponentType.of("get_block_support_shape", BlockSupportShapeHandler.class);
+    public static final ComponentType<CollisionShapeHandler> GET_COLLISION_SHAPE = ComponentType.of("get_collision_shape", CollisionShapeHandler.class);
     public static final ComponentType<ColorBlockHandler> GET_COLOR = ComponentType.of("get_color", ColorBlockHandler.class);
     public static final ComponentType<DescriptionBlockHandler> GET_DESCRIPTION_ID = ComponentType.of("get_description_id", DescriptionBlockHandler.class);
     public static final ComponentType<FloatBlockHandler> GET_DESTROY_SPEED = ComponentType.of("get_destroy_speed", FloatBlockHandler.class);
@@ -39,14 +39,13 @@ public final class BlockComponents {
     public static final ComponentType<FloatBlockHandler> GET_GRAVITY = ComponentType.of("get_gravity", FloatBlockHandler.class);
     public static final ComponentType<FloatBlockHandler> GET_LIQUID_HEIGHT = ComponentType.of("get_liquid_height", FloatBlockHandler.class);
     public static final ComponentType<MapColorHandler> GET_MAP_COLOR = ComponentType.of("get_map_color", MapColorHandler.class);
-    public static final ComponentType<VoxelShapeBlockHandler> GET_OUTLINE_SHAPE = ComponentType.of("get_outline_shape", VoxelShapeBlockHandler.class);
+    public static final ComponentType<BlockShapeHandler> GET_OUTLINE_SHAPE = ComponentType.of("get_outline_shape", BlockShapeHandler.class);
     public static final ComponentType<PickBlockHandler> GET_PICK_BLOCK = ComponentType.of("get_pick_block", PickBlockHandler.class);
     public static final ComponentType<ResourceBlockHandler> GET_RESOURCE = ComponentType.of("get_resource", ResourceBlockHandler.class);
     public static final ComponentType<ResourceCountBlockHandler> GET_RESOURCE_COUNT = ComponentType.of("get_resource_count", ResourceCountBlockHandler.class);
     public static final ComponentType<ResourceBlockHandler> GET_SILK_TOUCH_RESOURCE = ComponentType.of("get_silk_touch_resource", ResourceBlockHandler.class);
     public static final ComponentType<FloatTypeHandler> HARDNESS = ComponentType.of("hardness", FloatTypeHandler.class);
     public static final ComponentType<CanBreakBlockHandler> IS_BREAKABLE = ComponentType.of("is_breakable", CanBreakBlockHandler.class);
-    public static final ComponentType<FaceSupportBlockHandler> IS_FACE_STURDY = ComponentType.of("is_face_sturdy", FaceSupportBlockHandler.class);
     public static final ComponentType<BooleanBlockHandler> IS_FREE_TO_FALL = ComponentType.of("is_free_to_fall", BooleanBlockHandler.class);
     public static final ComponentType<IntTypeHandler> LIGHT_DAMPENING = ComponentType.of("light_dampening", IntTypeHandler.class);
     public static final ComponentType<IntTypeHandler> LIGHT_EMISSION = ComponentType.of("light_emission", IntTypeHandler.class);

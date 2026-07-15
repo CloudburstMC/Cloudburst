@@ -20,12 +20,6 @@ public class SmokerBlockEntity extends FurnaceBlockEntity implements Smoker {
     }
 
     @Override
-    public boolean isValid() {
-        var type = getBlockState().getType();
-        return type == SMOKER || type == LIT_SMOKER;
-    }
-
-    @Override
     public float getBurnRate() {
         return 2.0f;
     }

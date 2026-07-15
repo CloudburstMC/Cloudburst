@@ -153,7 +153,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 close();
                 Block b = level.getBlock(pos);
                 BlockState blockState = b.getState();
-                if (blockState.getType() != AIR && blockState.getType().hasTag(BlockTags.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.REPLACEABLE).get()) {
+                if (blockState.getType() != AIR && blockState.is(BlockTags.TRANSPARENT) && !CloudBlockRegistry.REGISTRY.getComponent(blockState.getType(), BlockComponents.REPLACEABLE).get()) {
                     if (this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
                         BlockState fallingState = this.getBlock();
                         fallingState.getType().asItem().ifPresent(itemType -> {

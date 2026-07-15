@@ -11,16 +11,19 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 
 public final class BlockType {
+
+    private static final BlockTrait<?>[] EMPTY = new BlockTrait[0];
 
     private final Identifier id;
     private final Set<BlockTrait<?>> traits;
     private final List<BlockState> states;
     private final BlockState defaultState;
-    ItemType itemType;
+
+    private volatile Set<BlockTagKey> tags;
+    private ItemType itemType;
 
     private BlockType(Identifier id, BlockTrait<?>[] traits) {
         this.id = id;
@@ -40,8 +43,6 @@ public final class BlockType {
             state.initialize(blockStateMap);
         }
     }
-
-    private static final BlockTrait<?>[] EMPTY = new BlockTrait[0];
 
     public static BlockType of(Identifier id) {
         return of(id, EMPTY);
@@ -67,9 +68,16 @@ public final class BlockType {
         return id;
     }
 
-    @Override
-    public String toString() {
-        return id.toString();
+    public boolean is(BlockTagKey tag) {
+        Set<BlockTagKey> boundTags = this.tags;
+        checkState(boundTags != null, "Block type tags have not been bound: %s", this.id);
+        return boundTags.contains(checkNotNull(tag, "tag"));
+    }
+
+    public Set<BlockTagKey> getTags() {
+        Set<BlockTagKey> boundTags = this.tags;
+        checkState(boundTags != null, "Block type tags have not been bound: %s", this.id);
+        return boundTags;
     }
 
     public Set<BlockTrait<?>> getTraits() {
@@ -92,12 +100,25 @@ public final class BlockType {
         return Optional.ofNullable(itemType);
     }
 
-    public void linkItemType(ItemType type) {
-        this.itemType = type;
+    @Override
+    public String toString() {
+        return id.toString();
     }
 
-    public boolean hasTag(BlockTag tag) {
-        return BlockTags.hasTag(this, tag);
+    /**
+     * Assigns this type's tag membership during registration.
+     * This operation may be performed once.
+     *
+     * @param tags tag keys assigned to this type
+     * @throws IllegalStateException if tags are already bound
+     */
+    public synchronized void bindTags(Set<BlockTagKey> tags) {
+        checkState(this.tags == null, "Block type tags have already been bound: %s", this.id);
+        this.tags = Set.copyOf(checkNotNull(tags, "tags"));
+    }
+
+    public void linkItemType(ItemType type) {
+        this.itemType = type;
     }
 
     private static List<BlockState> getPermutations(BlockType type, BlockTrait<?>[] traits) {

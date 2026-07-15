@@ -5,6 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.CollisionContext;
@@ -20,6 +21,7 @@ import java.util.function.Predicate;
 
 @RequiredArgsConstructor
 public final class CollisionEngine {
+    private static final float COLLISION_EPSILON = 1.0E-7f;
 
     private final CloudLevel level;
 
@@ -35,7 +37,7 @@ public final class CollisionEngine {
     public boolean hasBlockCollision(@Nullable Entity entity, BlockState state, Vector3i position, BoundingBox boundingBox) {
         VoxelShape collisionShape = CloudBlockRegistry.REGISTRY
                 .getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
-                .execute(state, CollisionContext.of(entity));
+                .execute(state, BlockShapeContext.at(this.level, position), CollisionContext.of(entity));
         return !collisionShape.isEmpty()
                 && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ());
     }
@@ -95,7 +97,8 @@ public final class CollisionEngine {
             }
 
             BlockState state = block.getState();
-            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE).execute(state, context);
+            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE)
+                    .execute(state, BlockShapeContext.at(this.level, Vector3i.from(position.x(), position.y(), position.z())), context);
             if (collisionShape.isEmpty() || !collisionShape.overlaps(boundingBox, position.x(), position.y(), position.z())) {
                 continue;
             }
@@ -139,12 +142,12 @@ public final class CollisionEngine {
     }
 
     private Iterable<BlockPosition> intersectingBlockPositions(BoundingBox boundingBox) {
-        int minX = GenericMath.floor(boundingBox.getMinX());
-        int minY = GenericMath.floor(boundingBox.getMinY());
-        int minZ = GenericMath.floor(boundingBox.getMinZ());
-        int maxX = GenericMath.ceil(boundingBox.getMaxX());
-        int maxY = GenericMath.ceil(boundingBox.getMaxY());
-        int maxZ = GenericMath.ceil(boundingBox.getMaxZ());
+        int minX = GenericMath.floor(boundingBox.getMinX() - COLLISION_EPSILON) - 1;
+        int minY = GenericMath.floor(boundingBox.getMinY() - COLLISION_EPSILON) - 1;
+        int minZ = GenericMath.floor(boundingBox.getMinZ() - COLLISION_EPSILON) - 1;
+        int maxX = GenericMath.floor(boundingBox.getMaxX() + COLLISION_EPSILON) + 1;
+        int maxY = GenericMath.floor(boundingBox.getMaxY() + COLLISION_EPSILON) + 1;
+        int maxZ = GenericMath.floor(boundingBox.getMaxZ() + COLLISION_EPSILON) + 1;
         return () -> new BlockPositionIterator(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
@@ -289,7 +292,8 @@ public final class CollisionEngine {
                 return null;
             }
 
-            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE).execute(state, this.context);
+            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE)
+                    .execute(state, BlockShapeContext.at(level, Vector3i.from(position.x(), position.y(), position.z())), this.context);
             return !collisionShape.isEmpty() && collisionShape.overlaps(this.boundingBox, position.x(), position.y(), position.z())
                     ? collisionShape.move(position.x(), position.y(), position.z())
                     : null;

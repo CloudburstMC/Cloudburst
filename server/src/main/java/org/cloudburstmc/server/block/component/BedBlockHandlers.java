@@ -17,7 +17,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
@@ -195,7 +195,7 @@ public class BedBlockHandlers {
             return;
         }
 
-        Bed entity = BlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, chunk, pos);
+        Bed entity = CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.BED, chunk, pos);
         entity.setColor(color);
         entity.spawnToAll();
     }

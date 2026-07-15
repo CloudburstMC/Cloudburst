@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
@@ -118,13 +117,6 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
         }
         container.clear(); // Stop items from being moved around by another player in the inventory
     }
-
-    @Override
-    public boolean isValid() {
-        var blockId = this.getBlockState().getType();
-        return blockId == BlockTypes.CHEST || blockId == BlockTypes.TRAPPED_CHEST;
-    }
-
 
     @Override
     public CloudContainer getContainer() {

@@ -9,8 +9,6 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Provides helper methods for other {@link WorldFeature} to quickly check if a block can be replaced.
- *
- * @author DaPorkchop_
  */
 public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter {
     @Override
@@ -18,14 +16,14 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
         Identifier id = state.getType().getId();
 
         return id == BlockIds.AIR ||
-                state.getType().hasTag(BlockTags.LEAVES) ||
+                state.is(BlockTags.LEAVES) ||
                 (!CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get() && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.REPLACEABLE).get());
     }
 
     public boolean testOrLiquid(BlockState state) {
         BlockType type = state.getType();
         return type == BlockTypes.AIR ||
-                type.hasTag(BlockTags.LEAVES) ||
+                type.is(BlockTags.LEAVES) ||
                 CloudBlockRegistry.REGISTRY.getComponent(type, BlockComponents.REPLACEABLE).get();
     }
 

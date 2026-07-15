@@ -17,7 +17,7 @@ import org.cloudburstmc.server.container.ContainerTypeRegistry;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudLecternView;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 /**
  * Screen implementation for the lectern.
@@ -49,7 +49,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
             return null;
         }
         log.warn("No block entity found at {} for lectern; auto-creating", block.getPosition());
-        return (LecternBlockEntity) BlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
+        return (LecternBlockEntity) CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
     }
 
     @Override

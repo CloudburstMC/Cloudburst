@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.component;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.block.component.PlaceBlockHandler;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.level.Level;
@@ -34,7 +35,8 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
 
         Level level = player.getLevel();
         ComponentMap blockComponents = this.registry.getComponents(blockState.getType());
-        VoxelShape collisionShape = blockComponents.get(BlockComponents.GET_COLLISION_SHAPE).execute(blockState, CollisionContext.of(player));
+        VoxelShape collisionShape = blockComponents.get(BlockComponents.GET_COLLISION_SHAPE)
+                .execute(blockState, BlockShapeContext.at(level, blockPosition), CollisionContext.of(player));
 
         if (!collisionShape.isEmpty() && level.hasEntityCollision(null, collisionShape, blockPosition)) {
             return false;

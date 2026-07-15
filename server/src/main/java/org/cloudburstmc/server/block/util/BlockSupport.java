@@ -3,7 +3,11 @@ package org.cloudburstmc.server.block.util;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.SupportType;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
+import org.cloudburstmc.api.block.component.BlockSupportShapeHandler;
+import org.cloudburstmc.api.block.component.ShapeContextRequirement;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
@@ -12,22 +16,35 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 @UtilityClass
 public class BlockSupport {
 
-    private static final float CENTER_MIN = 7f / 16f;
-    private static final float CENTER_MAX = 9f / 16f;
-    private static final float RIGID_MIN = 2f / 16f;
-    private static final float RIGID_MAX = 14f / 16f;
+    private static final float PIXEL = 1f / 16f;
+    private static final VoxelShape FULL_SUPPORT_SHAPE = CloudVoxelShapes.block();
+    private static final VoxelShape CENTER_SUPPORT_SHAPE =
+            CloudVoxelShapes.box(7 * PIXEL, 0, 7 * PIXEL, 9 * PIXEL, 10 * PIXEL, 9 * PIXEL);
+    private static final VoxelShape RIGID_SUPPORT_SHAPE = CloudVoxelShapes.fromBoxes(
+            0, 0, 0, 1, 1, 2 * PIXEL,
+            0, 0, 14 * PIXEL, 1, 1, 1,
+            0, 0, 2 * PIXEL, 2 * PIXEL, 1, 14 * PIXEL,
+            14 * PIXEL, 0, 2 * PIXEL, 1, 1, 14 * PIXEL
+    );
+    private static final int SUPPORT_TYPE_COUNT = SupportType.values().length;
+    private static final ConcurrentMap<BlockState, FaceSupportCache> FACE_SUPPORT_CACHE = new ConcurrentHashMap<>();
 
     public static boolean canSupportCenter(Level level, Vector3i pos, Direction direction) {
         BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        return isFaceSturdy(state, direction, SupportType.CENTER);
+        if (direction == Direction.DOWN && state.is(BlockTags.UNSTABLE_BOTTOM_CENTER)) {
+            return false;
+        }
+        return isFaceSturdy(level, pos, direction, SupportType.CENTER);
     }
 
     public static boolean canSupportRigidBlock(Level level, Vector3i pos) {
-        BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        return isFaceSturdy(state, Direction.UP, SupportType.RIGID);
+        return isFaceSturdy(level, pos, Direction.UP, SupportType.RIGID);
     }
 
     public static boolean isCollisionShapeFullBlock(Level level, Vector3i pos) {
@@ -37,7 +54,7 @@ public class BlockSupport {
 
     public static boolean isCollisionShapeFullBlock(BlockState state) {
         VoxelShape shape = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
-                .execute(state, CollisionContext.empty());
+                .execute(state, BlockShapeContext.empty(), CollisionContext.empty());
         return CloudVoxelShapes.isFullBlock(shape);
     }
 
@@ -52,7 +69,7 @@ public class BlockSupport {
 
     public static boolean defaultBlocksMotion(BlockState state) {
         VoxelShape shape = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
-                .execute(state, CollisionContext.empty());
+                .execute(state, BlockShapeContext.empty(), CollisionContext.empty());
         return !shape.isEmpty();
     }
 
@@ -69,56 +86,82 @@ public class BlockSupport {
     }
 
     public static boolean isFaceSturdy(Level level, Vector3i pos, Direction direction) {
+        return isFaceSturdy(level, pos, direction, SupportType.FULL);
+    }
+
+    public static VoxelShape getBlockSupportShape(Level level, Vector3i pos) {
         BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        return isFaceSturdy(state, direction, SupportType.FULL);
+        return getSupportShapeHandler(state).execute(state, BlockShapeContext.at(level, pos));
+    }
+
+    public static VoxelShape getBlockSupportShape(BlockState state) {
+        return getSupportShapeHandler(state).execute(state, BlockShapeContext.empty());
     }
 
     public static boolean isFaceSturdy(Level level, Vector3i pos, Direction direction, SupportType supportType) {
         BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        return isFaceSturdy(state, direction, supportType);
+        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+        if (handler.contextRequirement() != ShapeContextRequirement.STATE_ONLY) {
+            return hasRequiredSupport(handler.execute(state, BlockShapeContext.at(level, pos)), direction, supportType);
+        }
+
+        return getCachedFaceSupport(state, direction, supportType);
     }
 
     public static boolean isFaceSturdy(BlockState state, Direction direction, SupportType supportType) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.IS_FACE_STURDY)
-                .execute(state, direction, supportType);
-    }
-
-    public static boolean defaultFaceSturdy(BlockState state, Direction direction, SupportType supportType) {
-        VoxelShape shape = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE)
-                .execute(state, CollisionContext.empty());
-        if (shape.isEmpty()) {
-            return false;
+        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+        if (handler.contextRequirement() != ShapeContextRequirement.STATE_ONLY) {
+            return hasRequiredSupport(handler.execute(state, BlockShapeContext.empty()), direction, supportType);
         }
 
-        return switch (supportType) {
-            case FULL -> hasSupportArea(shape, direction, 0f, 1f);
-            case CENTER -> hasSupportArea(shape, direction, CENTER_MIN, CENTER_MAX);
-            case RIGID -> hasSupportArea(shape, direction, RIGID_MIN, RIGID_MAX);
-        };
+        return getCachedFaceSupport(state, direction, supportType);
     }
 
-    private static boolean hasSupportArea(VoxelShape shape, Direction direction, float min, float max) {
-        return shape.anyBox((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            if (!touchesFace(direction, minX, minY, minZ, maxX, maxY, maxZ)) {
-                return false;
+    private static BlockSupportShapeHandler getSupportShapeHandler(BlockState state) {
+        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE);
+    }
+
+    private static boolean getCachedFaceSupport(BlockState state, Direction direction, SupportType supportType) {
+        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+        FaceSupportCache cache = FACE_SUPPORT_CACHE.compute(state, (ignored, existing) ->
+                existing != null && existing.handler() == handler
+                        ? existing
+                        : new FaceSupportCache(handler, computeSupportMask(state, handler)));
+        return cache.supports(direction, supportType);
+    }
+
+    private static long computeSupportMask(BlockState state, BlockSupportShapeHandler handler) {
+        VoxelShape shape = handler.execute(state, BlockShapeContext.empty());
+        long supportMask = 0;
+        for (Direction direction : Direction.values()) {
+            for (SupportType supportType : SupportType.values()) {
+                if (hasRequiredSupport(shape, direction, supportType)) {
+                    supportMask |= supportBit(direction, supportType);
+                }
             }
+        }
 
-            return switch (direction.getAxis()) {
-                case X -> minY <= min && maxY >= max && minZ <= min && maxZ >= max;
-                case Y -> minX <= min && maxX >= max && minZ <= min && maxZ >= max;
-                case Z -> minX <= min && maxX >= max && minY <= min && maxY >= max;
-            };
-        });
+        return supportMask;
     }
 
-    private static boolean touchesFace(Direction direction, float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
-        return switch (direction) {
-            case DOWN -> minY <= CloudVoxelShapes.EPSILON;
-            case UP -> maxY >= 1f - CloudVoxelShapes.EPSILON;
-            case NORTH -> minZ <= CloudVoxelShapes.EPSILON;
-            case SOUTH -> maxZ >= 1f - CloudVoxelShapes.EPSILON;
-            case WEST -> minX <= CloudVoxelShapes.EPSILON;
-            case EAST -> maxX >= 1f - CloudVoxelShapes.EPSILON;
+    private static long supportBit(Direction direction, SupportType supportType) {
+        int index = direction.ordinal() * SUPPORT_TYPE_COUNT + supportType.ordinal();
+        return 1L << index;
+    }
+
+    static boolean hasRequiredSupport(VoxelShape shape, Direction direction, SupportType supportType) {
+        VoxelShape required = switch (supportType) {
+            case FULL -> FULL_SUPPORT_SHAPE;
+            case CENTER -> CENTER_SUPPORT_SHAPE;
+            case RIGID -> RIGID_SUPPORT_SHAPE;
         };
+
+        return shape.getFaceShape(direction).covers(required);
+    }
+
+    private record FaceSupportCache(BlockSupportShapeHandler handler, long supportMask) {
+        boolean supports(Direction direction, SupportType supportType) {
+            return (this.supportMask & supportBit(direction, supportType)) != 0;
+        }
     }
 }

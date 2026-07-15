@@ -2,7 +2,6 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Campfire;
 import org.cloudburstmc.api.item.ItemStack;
@@ -13,9 +12,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-/**
- * @author Sleepybear
- */
 public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     private static final String[] ITEM_TAGS = {"Item1", "Item2", "Item3", "Item4"};
@@ -62,11 +58,6 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
                 tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
             }
         }
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.CAMPFIRE;
     }
 
     @Override

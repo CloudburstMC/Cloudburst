@@ -19,7 +19,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.chunk.*;
 import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
@@ -235,7 +235,7 @@ public class AnvilConverter {
     }
 
     private record TileLoader(List<NbtMap> tileTags) implements ChunkDataLoader {
-        private static final BlockEntityRegistry REGISTRY = BlockEntityRegistry.get();
+        private static final CloudBlockEntityRegistry REGISTRY = CloudBlockEntityRegistry.get();
 
         @Override
         public boolean load(CloudChunk chunk) {

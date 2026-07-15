@@ -19,12 +19,6 @@ public class BlastFurnaceBlockEntity extends FurnaceBlockEntity implements Blast
     }
 
     @Override
-    public boolean isValid() {
-        var type = getBlockState().getType();
-        return type == BLAST_FURNACE || type == LIT_BLAST_FURNACE;
-    }
-
-    @Override
     public float getBurnRate() {
         return 2.0f;
     }

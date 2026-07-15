@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.plugin.PluginManager;
+import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.server.CloudServer;
@@ -35,7 +36,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(ConsoleCommandSender.class);
 
         this.bindAndExpose(CloudBiomeRegistry.class).toInstance(CloudBiomeRegistry.get());
-        this.bindAndExpose(BlockEntityRegistry.class).toInstance(BlockEntityRegistry.get());
+        this.bindAndExpose(BlockEntityRegistry.class).toInstance(CloudBlockEntityRegistry.get());
         this.bindAndExpose(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
         this.bindAndExpose(CommandRegistry.class).toInstance(CommandRegistry.get());
         this.bindAndExpose(EntityRegistry.class).toInstance(EntityRegistry.get());

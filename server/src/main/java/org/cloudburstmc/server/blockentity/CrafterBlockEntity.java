@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Crafter;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -93,11 +92,6 @@ public class CrafterBlockEntity extends ContainerBlockEntity implements Crafter,
             this.getLevel().dropItem(this.getPosition(), content);
         }
         this.container.clear();
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.CRAFTER;
     }
 
     @Override

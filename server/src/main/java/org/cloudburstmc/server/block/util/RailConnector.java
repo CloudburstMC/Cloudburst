@@ -46,7 +46,7 @@ public final class RailConnector {
     }
 
     public static boolean isRail(BlockState state) {
-        return state.getType().hasTag(BlockTags.RAIL);
+        return state.is(BlockTags.RAIL);
     }
 
     public static boolean canCurve(BlockState state) {

@@ -28,11 +28,11 @@ import org.cloudburstmc.server.player.CloudPlayer;
  */
 public class CloudChestContainerScreen extends CloudBlockContainerScreen implements StorageScreen {
 
-    private final ContainerBlockEntity chestEntity;
+    protected final ContainerBlockEntity chestEntity;
     private final ContainerSlotType slotType;
     private final SlotGroupType<BlockStorageView> storageSlotGroupType;
 
-    private CloudChestContainerScreen(ScreenType<StorageScreen> type, CloudPlayer player, Block block,
+    protected CloudChestContainerScreen(ScreenType<StorageScreen> type, CloudPlayer player, Block block,
                                       ContainerSlotType slotType, BlockEntityType<?> beType,
                                       SlotGroupType<BlockStorageView> storageSlotGroupType) {
         super(type, player, block);
@@ -64,12 +64,6 @@ public class CloudChestContainerScreen extends CloudBlockContainerScreen impleme
         return new CloudChestContainerScreen(ScreenTypes.BARREL, player, block,
                 ContainerSlotType.BARREL, BlockEntityTypes.BARREL,
                 SlotGroupTypes.BARREL);
-    }
-
-    public static CloudChestContainerScreen shulkerBox(CloudPlayer player, Block block) {
-        return new CloudChestContainerScreen(ScreenTypes.SHULKER_BOX, player, block,
-                ContainerSlotType.SHULKER_BOX, BlockEntityTypes.SHULKER_BOX,
-                SlotGroupTypes.SHULKER_BOX);
     }
 
     @Override

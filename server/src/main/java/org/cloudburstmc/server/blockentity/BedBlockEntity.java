@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -9,9 +8,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-/**
- * Created by CreeperFace on 2.6.2017.
- */
 public class BedBlockEntity extends BaseBlockEntity implements Bed {
 
     public DyeColor color = DyeColor.WHITE;
@@ -32,11 +28,6 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
         super.saveClientData(tag);
 
         tag.putByte("color", (byte) this.getColor().getWoolData());
-    }
-
-    @Override
-    public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.BED;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Cauldron;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -9,10 +8,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-/**
- * author: CreeperFace
- * Nukkit Project
- */
 public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     private short potionType;
@@ -96,11 +91,6 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     @Override
     public boolean hasCustomColor() {
         return this.customColor != null;
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.CAULDRON;
     }
 
     @Override

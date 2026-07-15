@@ -43,11 +43,6 @@ public abstract class ContainerBlockEntity extends BaseBlockEntity {
         return container.size();
     }
 
-    @Override
-    public boolean isValid() {
-        return false;
-    }
-
     public BlockEntity getBlockEntity() {
         return this;
     }

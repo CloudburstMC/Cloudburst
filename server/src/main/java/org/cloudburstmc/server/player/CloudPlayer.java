@@ -1834,6 +1834,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         boolean revert = false;
         String revertReason = null;
+        Vector3f authoritativePosition = null;
+        boolean applyAcceptanceThreshold = false;
 
         float tickDiffSq = (float) tickDiff * (float) tickDiff;
         float maxSpeedThreshold = this.server.getConfig().getMovement().getMaxSpeedThreshold();
@@ -1848,6 +1850,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
             revert = true;
             revertReason = "speed";
+            authoritativePosition = currentPos;
         }
 
         float tdx = newPosition.getX() - currentPos.getX();
@@ -1859,25 +1862,15 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             float dy = newPosition.getY() - currentPos.getY();
             float dz = newPosition.getZ() - currentPos.getZ();
 
-            this.fastMove(dx, dy, dz);
+            if (!this.fastMove(dx, dy, dz)) {
+                revert = true;
+                revertReason = "collision";
+                authoritativePosition = currentPos;
+                applyAcceptanceThreshold = true;
+            }
+
             if (this.newPosition == null) {
                 return; //maybe solve that in better way
-            }
-
-            double diffX = currentPos.getX() - newPosition.getX();
-            double diffY = currentPos.getY() - newPosition.getY();
-            double diffZ = currentPos.getZ() - newPosition.getZ();
-
-            double yS = 0.5 + this.ySize;
-            if (diffY > -yS && diffY < yS) {
-                diffY = 0;
-            }
-
-            if (diffX != 0 || diffY != 0 || diffZ != 0) {
-                this.position = newPosition;
-                float radius = this.getWidth() / 2;
-                this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
-                        this.position.getX() + radius, this.position.getY() + this.getHeight(), this.position.getZ() + radius);
             }
         }
 
@@ -1945,14 +1938,22 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.lastYaw = from.getYaw();
             this.lastPitch = from.getPitch();
 
-            Vector3f correctedPos = from.getPosition();
-            log.debug("[{}] movement corrected: claimed {} corrected to {} ({})", this.getName(), newPosition, correctedPos, revertReason);
+            Vector3f correctedPos = authoritativePosition == null ? from.getPosition() : authoritativePosition;
+            this.position = correctedPos;
+            float radius = this.getWidth() / 2;
+            this.boundingBox = new BoundingBox(correctedPos.getX() - radius, correctedPos.getY(), correctedPos.getZ() - radius,
+                    correctedPos.getX() + radius, correctedPos.getY() + this.getHeight(), correctedPos.getZ() + radius);
+            this.lastPosition = correctedPos;
 
             float acceptanceThreshold = this.server.getConfig().getMovement().getPositionAcceptanceThreshold();
-            if (newPosition.distance(correctedPos) > acceptanceThreshold) {
+            boolean correctionRequired = !applyAcceptanceThreshold || newPosition.distance(correctedPos) > acceptanceThreshold;
+            if (correctionRequired) {
+                log.debug("[{}] movement corrected: claimed {} corrected to {} ({})", this.getName(), newPosition, correctedPos, revertReason);
                 sendMovementCorrection(correctedPos, this.clientTick);
+                this.forceMovement = correctedPos;
+            } else {
+                this.forceMovement = null;
             }
-            this.forceMovement = correctedPos;
         } else {
             this.forceMovement = null;
         }
@@ -1987,6 +1988,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         correction.setOnGround(this.isNetworkOnGround());
         correction.setTick(tick);
         this.sendPacket(correction);
+    }
+
+    @Override
+    public void sendAuthoritativeDisplacement() {
+        super.sendAuthoritativeDisplacement();
+        this.sendPacket(this.createAuthoritativeDisplacementPacket());
     }
 
     public void beginFireworkGlideBoost(long fireworkRuntimeId) {
@@ -4015,7 +4022,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                             return false;
                         }
 
-                        if (((Object) item.getType()) instanceof BlockType blockType && blockType.hasTag(BlockTags.LOG)) {
+                        if (((Object) item.getType()) instanceof BlockType blockType && blockType.is(BlockTags.LOG)) {
                             this.awardAchievement("mineWood");
                         } else if (item.getType() == ItemTypes.DIAMOND) {
                             this.awardAchievement("diamond");

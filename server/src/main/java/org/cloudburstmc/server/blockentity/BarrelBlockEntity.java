@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -75,11 +74,6 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
             this.getLevel().dropItem(this.getPosition(), content);
         }
         this.container.clear(); // Stop items from being moved around by another player in the inventory
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.BARREL;
     }
 
     @Override

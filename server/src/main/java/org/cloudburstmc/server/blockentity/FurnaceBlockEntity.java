@@ -114,12 +114,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         }
     }
 
-    @Override
-    public boolean isValid() {
-        BlockType type = getBlockState().getType();
-        return type == FURNACE || type == LIT_FURNACE;
-    }
-
     protected float getBurnRate() {
         return 1.0f;
     }

@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.block;
 
 import lombok.ToString;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockSnapshot;
-import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -49,6 +50,22 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public int getBrightness() {
         return this.level.getBlockLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
+    }
+
+    @Override
+    public VoxelShape getOutlineShape() {
+        return this.getComponents().get(BlockComponents.GET_OUTLINE_SHAPE)
+                .execute(this.getState(), BlockShapeContext.at(this.level, this.position));
+    }
+
+    @Override
+    public VoxelShape getBlockSupportShape() {
+        return BlockSupport.getBlockSupportShape(this.level, this.position);
+    }
+
+    @Override
+    public boolean isFaceSturdy(Direction face, SupportType supportType) {
+        return BlockSupport.isFaceSturdy(this.level, this.position, face, supportType);
     }
 
     @Override

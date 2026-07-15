@@ -3,6 +3,7 @@ package org.cloudburstmc.api.block;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
@@ -19,10 +20,6 @@ public interface Block extends BlockSnapshot {
 
     Vector3i getPosition();
 
-    ComponentMap getComponents();
-
-    int getBrightness();
-
     default int getX() {
         return getPosition().getX();
     }
@@ -35,6 +32,35 @@ public interface Block extends BlockSnapshot {
         return getPosition().getZ();
     }
 
+    ComponentMap getComponents();
+
+    int getBrightness();
+
+    boolean isWaterlogged();
+
+    /**
+     * Gets the level-aware selection and interaction outline of this block.
+     *
+     * @return the outline shape
+     */
+    VoxelShape getOutlineShape();
+
+    /**
+     * Gets the geometry this block uses to support neighboring blocks.
+     *
+     * @return the block support shape
+     */
+    VoxelShape getBlockSupportShape();
+
+    /**
+     * Checks whether one face provides the requested kind of block support.
+     *
+     * @param face the face to check
+     * @param supportType the required support type
+     * @return {@code true} if the face is sturdy for that support type
+     */
+    boolean isFaceSturdy(Direction face, SupportType supportType);
+
     default Block up() {
         return getSide(Direction.UP, 1);
     }
@@ -43,11 +69,11 @@ public interface Block extends BlockSnapshot {
         return getSide(face, 1);
     }
 
+    Block getSide(Direction face, int step);
+
     default BlockState getSideState(Direction face) {
         return getSideState(face, 1);
     }
-
-    Block getSide(Direction face, int step);
 
     default BlockState getSideState(Direction face, int step) {
         return getSideState(face, step, 0);
@@ -78,8 +104,6 @@ public interface Block extends BlockSnapshot {
     }
 
     BlockState getRelativeState(int x, int y, int z, int layer);
-
-    boolean isWaterlogged();
 
     default void set(BlockState state) {
         this.set(state, 0, false, true);

@@ -10,8 +10,4 @@ public class UnknownBlockEntity extends BaseBlockEntity {
         super(type, chunk, position);
     }
 
-    @Override
-    public boolean isValid() {
-        return true;
-    }
 }

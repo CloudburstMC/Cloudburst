@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -9,10 +7,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-/**
- * Created by Snake1999 on 2016/2/3.
- * Package cn.nukkit.blockentity in project Nukkit.
- */
 public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     private float rotation;
     private int skullType;
@@ -41,18 +35,6 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
         tag.putFloat("Rotation", this.getRotation());
         tag.putInt("MouthTickCount", this.getMouthTickCount());
         tag.putBoolean("MouthMoving", this.isMouthMoving());
-    }
-
-    @Override
-    public boolean isValid() {
-        BlockType type = getBlockState().getType();
-        return type == BlockTypes.SKELETON_SKULL ||
-                type == BlockTypes.WITHER_SKELETON_SKULL ||
-                type == BlockTypes.ZOMBIE_HEAD ||
-                type == BlockTypes.PLAYER_HEAD ||
-                type == BlockTypes.CREEPER_HEAD ||
-                type == BlockTypes.DRAGON_HEAD ||
-                type == BlockTypes.PIGLIN_HEAD;
     }
 
     public float getRotation() {

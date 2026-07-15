@@ -67,6 +67,15 @@ public interface Entity {
 
     boolean canCollide();
 
+    /**
+     * Returns how this entity reacts to block-driven displacement.
+     *
+     * @return push reaction
+     */
+    default PushReaction getPushReaction() {
+        return PushReaction.NORMAL;
+    }
+
     void onEntityCollision(Entity entity);
 
     float getGravity();

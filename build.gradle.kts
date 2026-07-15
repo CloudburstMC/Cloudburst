@@ -23,7 +23,7 @@ subprojects {
     }
 
     group = "org.cloudburstmc"
-    version = rootProject.properties["$name.version"].toString()
+    version = providers.gradleProperty("$name.version").get()
 
     configure<JavaPluginExtension> {
         toolchain {

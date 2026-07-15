@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -45,11 +44,6 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     @Override
     public Lectern getBlockEntity() {
         return this;
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.LECTERN;
     }
 
     @Override
@@ -99,8 +93,9 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public void setBook(ItemStack item) {
-        if (item != null && !item.isEmpty() && item.getType() == ItemTypes.WRITABLE_BOOK) {
-            this.book = item;
+        if (item != null && !item.isEmpty()
+                && (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK)) {
+            this.book = item.withCount(1);
         } else {
             this.book = null;
         }

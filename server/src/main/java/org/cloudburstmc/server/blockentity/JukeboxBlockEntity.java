@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -19,9 +18,6 @@ import java.util.Map;
 
 import static org.cloudburstmc.math.vector.Vector3i.UP;
 
-/**
- * @author CreeperFace
- */
 public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     private static final Map<Record, SoundEvent> SOUND_MAP = new EnumMap<>(Record.class);
@@ -64,11 +60,6 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         if (!this.recordItem.isEmpty()) {
             tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
         }
-    }
-
-    @Override
-    public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.JUKEBOX;
     }
 
     public ItemStack getRecordItem() {

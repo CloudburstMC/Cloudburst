@@ -11,6 +11,8 @@ import java.util.Objects;
 
 public final class CloudVoxelShape implements VoxelShape {
 
+    static final int MAX_BOXES = 64;
+
     private final float[] boxes;
 
     public CloudVoxelShape(float[] boxes) {
@@ -23,6 +25,10 @@ public final class CloudVoxelShape implements VoxelShape {
             throw new IllegalArgumentException("Voxel shape box data must be a multiple of 6");
         }
 
+        if (boxes.length / 6 > MAX_BOXES) {
+            throw new IllegalArgumentException("Voxel shapes may contain at most " + MAX_BOXES + " boxes");
+        }
+
         float[] validBoxes = new float[boxes.length];
         int validLength = 0;
         for (int i = 0; i < boxes.length; i += 6) {
@@ -32,9 +38,16 @@ public final class CloudVoxelShape implements VoxelShape {
             float maxX = boxes[i + 3];
             float maxY = boxes[i + 4];
             float maxZ = boxes[i + 5];
+
+            if (!Float.isFinite(minX) || !Float.isFinite(minY) || !Float.isFinite(minZ)
+                    || !Float.isFinite(maxX) || !Float.isFinite(maxY) || !Float.isFinite(maxZ)) {
+                throw new IllegalArgumentException("Shape bounds must be finite");
+            }
+
             if (minX > maxX || minY > maxY || minZ > maxZ) {
                 throw new IllegalArgumentException("Shape minimum bounds must be less than or equal to maximum bounds");
             }
+
             if (maxX == minX || maxY == minY || maxZ == minZ) {
                 continue;
             }
@@ -47,8 +60,7 @@ public final class CloudVoxelShape implements VoxelShape {
             validBoxes[validLength++] = maxZ;
         }
 
-        return validLength == boxes.length ? Arrays.copyOf(boxes, boxes.length) : Arrays.copyOf(validBoxes,
-                validLength);
+        return validLength == boxes.length ? Arrays.copyOf(boxes, boxes.length) : Arrays.copyOf(validBoxes, validLength);
     }
 
     @Override
@@ -109,6 +121,45 @@ public final class CloudVoxelShape implements VoxelShape {
     }
 
     @Override
+    public VoxelShape getFaceShape(Direction face) {
+        if (this.isEmpty()) {
+            return CloudVoxelShapes.empty();
+        }
+
+        float[] faceBoxes = new float[this.boxes.length];
+        int length = 0;
+        for (int i = 0; i < this.boxes.length; i += 6) {
+            if (!touchesFace(face, i)) {
+                continue;
+            }
+
+            System.arraycopy(this.boxes, i, faceBoxes, length, 6);
+            switch (face.getAxis()) {
+                case X -> {
+                    faceBoxes[length] = 0;
+                    faceBoxes[length + 3] = 1;
+                }
+                case Y -> {
+                    faceBoxes[length + 1] = 0;
+                    faceBoxes[length + 4] = 1;
+                }
+                case Z -> {
+                    faceBoxes[length + 2] = 0;
+                    faceBoxes[length + 5] = 1;
+                }
+            }
+            length += 6;
+        }
+
+        return length == 0 ? CloudVoxelShapes.empty() : new CloudVoxelShape(Arrays.copyOf(faceBoxes, length));
+    }
+
+    @Override
+    public boolean covers(VoxelShape required) {
+        return CloudVoxelShapes.covers(this, required);
+    }
+
+    @Override
     public boolean overlaps(BoundingBox box) {
         return this.overlaps(box, 0, 0, 0);
     }
@@ -142,9 +193,11 @@ public final class CloudVoxelShape implements VoxelShape {
             if (box.getMaxY() <= this.boxes[i + 1] + offsetY || box.getMinY() >= this.boxes[i + 4] + offsetY) {
                 continue;
             }
+
             if (box.getMaxZ() <= this.boxes[i + 2] + offsetZ || box.getMinZ() >= this.boxes[i + 5] + offsetZ) {
                 continue;
             }
+
             if (movement > 0 && box.getMaxX() <= this.boxes[i] + offsetX) {
                 float limit = this.boxes[i] + offsetX - box.getMaxX();
                 if (limit >= -CloudVoxelShapes.EPSILON && limit < movement) {
@@ -157,6 +210,7 @@ public final class CloudVoxelShape implements VoxelShape {
                 }
             }
         }
+
         return movement;
     }
 
@@ -169,9 +223,11 @@ public final class CloudVoxelShape implements VoxelShape {
             if (box.getMaxX() <= this.boxes[i] + offsetX || box.getMinX() >= this.boxes[i + 3] + offsetX) {
                 continue;
             }
+
             if (box.getMaxZ() <= this.boxes[i + 2] + offsetZ || box.getMinZ() >= this.boxes[i + 5] + offsetZ) {
                 continue;
             }
+
             if (movement > 0 && box.getMaxY() <= this.boxes[i + 1] + offsetY) {
                 float limit = this.boxes[i + 1] + offsetY - box.getMaxY();
                 if (limit >= -CloudVoxelShapes.EPSILON && limit < movement) {
@@ -184,6 +240,7 @@ public final class CloudVoxelShape implements VoxelShape {
                 }
             }
         }
+
         return movement;
     }
 
@@ -196,9 +253,11 @@ public final class CloudVoxelShape implements VoxelShape {
             if (box.getMaxX() <= this.boxes[i] + offsetX || box.getMinX() >= this.boxes[i + 3] + offsetX) {
                 continue;
             }
+
             if (box.getMaxY() <= this.boxes[i + 1] + offsetY || box.getMinY() >= this.boxes[i + 4] + offsetY) {
                 continue;
             }
+
             if (movement > 0 && box.getMaxZ() <= this.boxes[i + 2] + offsetZ) {
                 float limit = this.boxes[i + 2] + offsetZ - box.getMaxZ();
                 if (limit >= -CloudVoxelShapes.EPSILON && limit < movement) {
@@ -211,6 +270,7 @@ public final class CloudVoxelShape implements VoxelShape {
                 }
             }
         }
+
         return movement;
     }
 
@@ -255,5 +315,16 @@ public final class CloudVoxelShape implements VoxelShape {
                 && box.getMinY() < this.boxes[index + 4] + offsetY
                 && box.getMaxZ() > this.boxes[index + 2] + offsetZ
                 && box.getMinZ() < this.boxes[index + 5] + offsetZ;
+    }
+
+    private boolean touchesFace(Direction face, int index) {
+        return switch (face) {
+            case DOWN -> this.boxes[index + 1] <= CloudVoxelShapes.EPSILON;
+            case UP -> this.boxes[index + 4] >= 1 - CloudVoxelShapes.EPSILON;
+            case NORTH -> this.boxes[index + 2] <= CloudVoxelShapes.EPSILON;
+            case SOUTH -> this.boxes[index + 5] >= 1 - CloudVoxelShapes.EPSILON;
+            case WEST -> this.boxes[index] <= CloudVoxelShapes.EPSILON;
+            case EAST -> this.boxes[index + 3] >= 1 - CloudVoxelShapes.EPSILON;
+        };
     }
 }

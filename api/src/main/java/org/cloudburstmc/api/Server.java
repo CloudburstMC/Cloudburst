@@ -10,6 +10,8 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
+import org.cloudburstmc.api.registry.BlockEntityRegistry;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
 import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
@@ -35,6 +37,10 @@ public interface Server {
     boolean isRunning();
 
     PluginManager getPluginManager();
+
+    BlockEntityRegistry getBlockEntityRegistry();
+
+    BlockRegistry getBlockRegistry();
 
     GameRuleRegistry getGameRuleRegistry();
 

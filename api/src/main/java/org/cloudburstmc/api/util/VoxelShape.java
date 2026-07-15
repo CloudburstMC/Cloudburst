@@ -40,6 +40,23 @@ public interface VoxelShape {
     VoxelShape move(float x, float y, float z);
 
     /**
+     * Gets the normalized slice of this shape touching a block face.
+     * The face axis is expanded to the full unit interval while the two tangential axes are preserved.
+     *
+     * @param face the face to extract
+     * @return the normalized face shape
+     */
+    VoxelShape getFaceShape(Direction face);
+
+    /**
+     * Tests whether the union of this shape fully covers another shape.
+     *
+     * @param required the shape that must be covered
+     * @return {@code true} if no part of {@code required} lies outside this shape
+     */
+    boolean covers(VoxelShape required);
+
+    /**
      * Tests whether this shape overlaps a bounding box.
      *
      * @param box the box to test

@@ -85,10 +85,6 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
         return this.extending ? progress - 1.0F : 1.0F - progress;
     }
 
-    public boolean isValid() {
-        return true;
-    }
-
     public float getProgress() {
         return progress;
     }

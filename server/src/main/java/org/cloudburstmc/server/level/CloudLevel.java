@@ -17,6 +17,7 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -1126,7 +1127,8 @@ public class CloudLevel implements Level {
 
     public boolean isFullBlock(Vector3i pos, BlockState state) {
         ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
-        VoxelShape shape = behaviors.get(BlockComponents.GET_COLLISION_SHAPE).execute(state, CollisionContext.empty());
+        VoxelShape shape = behaviors.get(BlockComponents.GET_COLLISION_SHAPE)
+                .execute(state, BlockShapeContext.at(this, pos), CollisionContext.empty());
         return CloudVoxelShapes.isFullBlock(shape);
     }
 
@@ -1215,7 +1217,7 @@ public class CloudLevel implements Level {
             Vector3i position = block.getPosition();
             VoxelShape collisionShape = block.getComponents()
                     .get(BlockComponents.GET_COLLISION_SHAPE)
-                    .execute(state, context);
+                    .execute(state, BlockShapeContext.at(this, position), context);
             if (!collisionShape.isEmpty() && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ())) {
                 consumer.accept(block);
             }
@@ -1856,7 +1858,7 @@ public class CloudLevel implements Level {
             return null;
         }
 
-        boolean isSlab = hand.hasTag(BlockTags.SLAB);
+        boolean isSlab = hand.is(BlockTags.SLAB);
         boolean sideReplaceable = this.blockRegistry.getComponent(side.getState().getType(), BlockComponents.REPLACEABLE).get();
 
         Block block = isSlab ? resolveSlabTarget(hand, target, side, face, clickPos, sideReplaceable) : resolveNormalTarget(target, side, sideReplaceable);
@@ -1866,7 +1868,8 @@ public class CloudLevel implements Level {
 
         Vector3i blockPos = block.getPosition();
         ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
-        VoxelShape handShape = handBehaviors.get(BlockComponents.GET_COLLISION_SHAPE).execute(hand, CollisionContext.of(player))
+        VoxelShape handShape = handBehaviors.get(BlockComponents.GET_COLLISION_SHAPE)
+                .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.of(player))
                 .move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if (!handShape.isEmpty()) {
@@ -1962,7 +1965,7 @@ public class CloudLevel implements Level {
 
     private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face, Vector3f clickPos, boolean sideReplaceable) {
         BlockState targetState = target.getState();
-        if (targetState.hasTag(BlockTags.SLAB) && !targetState.hasTag(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
+        if (targetState.is(BlockTags.SLAB) && !targetState.is(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
             boolean above = clickPos.getY() > 0.5f;
             SlabSlot existing = targetState.ensureTrait(BlockTraits.SLAB_SLOT);
             boolean canMerge = face == Direction.UP ? existing == SlabSlot.BOTTOM
@@ -1974,7 +1977,7 @@ public class CloudLevel implements Level {
             return sideReplaceable ? side : null;
         }
 
-        if (side.getState().hasTag(BlockTags.SLAB) && !side.getState().hasTag(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
+        if (side.getState().is(BlockTags.SLAB) && !side.getState().is(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
             return side;
         }
 
@@ -2419,13 +2422,13 @@ public class CloudLevel implements Level {
         }
 
         BlockState topBlock = chunk.getBlock(lx, motionBlockingY, lz);
-        if (topBlock.getType().hasTag(BlockTags.LIQUID)) {
+        if (topBlock.is(BlockTags.LIQUID)) {
             return null;
         }
 
         for (int y = motionBlockingY; y >= getMinHeight(); y--) {
             BlockState state = chunk.getBlock(lx, y, lz);
-            if (state.getType().hasTag(BlockTags.LIQUID)) {
+            if (state.is(BlockTags.LIQUID)) {
                 break;
             }
 
@@ -2489,7 +2492,7 @@ public class CloudLevel implements Level {
 
     private boolean isSpawnSpaceClear(BlockState state, int x, int y, int z) {
         Vector3i position = Vector3i.from(x, y, z);
-        return !state.getType().hasTag(BlockTags.LIQUID)
+        return !state.is(BlockTags.LIQUID)
                 && !this.hasBlockCollision(null, state, position, BoundingBox.unit(position));
     }
 

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
@@ -60,12 +59,6 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
         tag.putString("Text", String.join("\n", this.text));
         tag.putString("TextOwner", this.textOwner);
-    }
-
-    @Override
-    public boolean isValid() {
-        var blockType = getBlockState().getType();
-        return blockType == BlockTypes.OAK_STANDING_SIGN || blockType == BlockTypes.OAK_WALL_SIGN;
     }
 
     public String[] getText() {

@@ -1118,6 +1118,23 @@ public abstract class CloudEntity implements Entity {
         this.level.addEntityMovement(this, x, y, z, yaw, pitch, headYaw);
     }
 
+    public void sendAuthoritativeDisplacement() {
+        this.lastPosition = this.position;
+        this.lastYaw = this.yaw;
+        this.lastPitch = this.pitch;
+        CloudServer.broadcastPacket(this.hasSpawned, this.createAuthoritativeDisplacementPacket());
+    }
+
+    protected MoveEntityAbsolutePacket createAuthoritativeDisplacementPacket() {
+        MoveEntityAbsolutePacket movement = new MoveEntityAbsolutePacket();
+        movement.setRuntimeEntityId(this.getRuntimeId());
+        movement.setPosition(this.getPosition().add(0, this.getBaseOffset(), 0));
+        movement.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
+        movement.setOnGround(this.onGround);
+        movement.setTeleported(true);
+        return movement;
+    }
+
     public void addMotion(Vector3f motion) {
         SetEntityMotionPacket packet = new SetEntityMotionPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());

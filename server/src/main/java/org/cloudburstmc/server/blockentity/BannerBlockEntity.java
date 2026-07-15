@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -25,12 +24,6 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
     public BannerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
-    }
-
-    @Override
-    public boolean isValid() {
-        var b = getBlockState().getType();
-        return b == BlockTypes.WALL_BANNER || b == BlockTypes.STANDING_BANNER;
     }
 
     @Override

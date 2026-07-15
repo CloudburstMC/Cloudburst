@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Noteblock;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -31,11 +30,6 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
         tag.putByte("note", this.getNote());
         tag.putBoolean("powered", this.isPowered());
-    }
-
-    @Override
-    public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.NOTE_BLOCK;
     }
 
     public byte getNote() {

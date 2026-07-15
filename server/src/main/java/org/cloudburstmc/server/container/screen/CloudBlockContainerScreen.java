@@ -16,7 +16,7 @@ import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerTypeRegistry;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.BlockEntityRegistry;
+import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 /**
  * Base class for container screens that are backed by a block in the world
@@ -45,7 +45,7 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
             log.warn("No block entity found at {} for block {}; auto-creating {}",
                     block.getPosition(), block.getState().getType().getId(),
                     type.getIdentifier());
-            return (T) BlockEntityRegistry.get().newEntity((BlockEntityType) type, block);
+            return (T) CloudBlockEntityRegistry.get().newEntity((BlockEntityType) type, block);
         }
         if (!(existing instanceof ContainerBlockEntity)) {
             throw new IllegalStateException(

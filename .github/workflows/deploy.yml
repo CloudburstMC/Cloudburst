@@ -23,7 +23,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
       - name: Publish
-        run: ./gradlew publish
+        run: ./gradlew check publish
         env:
           DEPLOY_USERNAME: ${{ vars.OPENCOLLAB_USERNAME }}
           DEPLOY_PASSWORD: ${{ secrets.OPENCOLLAB_PASSWORD }}

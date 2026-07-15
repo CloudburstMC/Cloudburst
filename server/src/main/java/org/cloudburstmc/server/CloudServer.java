@@ -27,6 +27,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.BiomeRegistry;
+import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -218,7 +219,7 @@ public class CloudServer implements Server {
 
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
     private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
-    private final BlockEntityRegistry blockEntityRegistry = BlockEntityRegistry.get();
+    private final CloudBlockEntityRegistry blockEntityRegistry = CloudBlockEntityRegistry.get();
 
     private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
@@ -1717,6 +1718,12 @@ public class CloudServer implements Server {
         return gameRuleRegistry;
     }
 
+    @Override
+    public BlockEntityRegistry getBlockEntityRegistry() {
+        return CloudBlockEntityRegistry.get();
+    }
+
+    @Override
     public CloudBlockRegistry getBlockRegistry() {
         return blockRegistry;
     }

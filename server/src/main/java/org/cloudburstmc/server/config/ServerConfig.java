@@ -339,16 +339,12 @@ public class ServerConfig {
         @Builder.Default
         private float maxSpeedThreshold = 20.0f;
 
-        // When true, the speed cap is halved and corrections are sent more
-        // frequently. Useful for stricter anti-cheat at the cost of more
-        // corrections on high-latency connections.
+        // When true, the speed cap is halved.
         @Builder.Default
         private boolean strictMovement = false;
 
-        // Distance (blocks) the player position may differ from the server
-        // authoritative position before a correction is sent. Higher values
-        // reduce correction noise for honest players. Values above 1.0 increase
-        // the risk of accepting invalid positions.
+        // Minimum collision discrepancy, in blocks, that sends a correction.
+        // Rejected positions within this threshold are still not applied.
         @Builder.Default
         private float positionAcceptanceThreshold = 0.5f;
 

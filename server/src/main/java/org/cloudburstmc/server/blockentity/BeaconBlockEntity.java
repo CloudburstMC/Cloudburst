@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.block.BlockTags;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -52,11 +51,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         super.saveAdditionalData(tag);
         tag.putInt("primary", NetworkUtils.effectToNetwork(this.getPrimaryEffect()));
         tag.putInt("secondary", NetworkUtils.effectToNetwork(this.getSecondaryEffect()));
-    }
-
-    @Override
-    public boolean isValid() {
-        return getBlockState().getType() == BlockTypes.BEACON;
     }
 
     @Override
@@ -135,7 +129,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
             var state = getLevel().getBlockState(getPosition().getX(), y, getPosition().getZ());
-            if (!state.hasTag(BlockTags.TRANSPARENT)) {
+            if (!state.is(BlockTags.TRANSPARENT)) {
                 //There is no sky access
                 return false;
             }

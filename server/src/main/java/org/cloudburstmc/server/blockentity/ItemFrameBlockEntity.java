@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
@@ -12,9 +11,6 @@ import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.Objects;
 
-/**
- * Created by Pub4Game on 03.07.2016.
- */
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     private ItemStack item = ItemStack.EMPTY;
@@ -45,11 +41,6 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
             tag.putFloat("ItemRotation", this.itemRotation);
             tag.putFloat("ItemDropChance", this.itemDropChance);
         }
-    }
-
-    @Override
-    public boolean isValid() {
-        return this.getBlockState().getType() == BlockTypes.FRAME;
     }
 
     @Override
