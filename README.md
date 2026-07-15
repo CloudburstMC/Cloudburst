@@ -1,8 +1,7 @@
 ![Cloudburst](.github/images/banner.png)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](server/LICENSE)
-[![Build Status](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/badge/icon)](https://ci.nukkitx.com/job/NukkitX/job/Server/job/master/)
-![Tests](https://img.shields.io/jenkins/t/https/ci.nukkitx.com/job/NukkitX/job/Server/job/master.svg)
+[![Build Status](https://github.com/CloudburstMC/Cloudburst/actions/workflows/deploy.yml/badge.svg?branch=develop)](https://github.com/CloudburstMC/Cloudburst/actions/workflows/deploy.yml)
 [![Discord](https://img.shields.io/discord/393465748535640064.svg)](https://discord.gg/5PzMkyK)
 
 ## Introduction
@@ -20,7 +19,7 @@ Cloudburst is **under improvement**, yet we welcome contributions.
 - **[News](https://cloudburstmc.org)**
 - **[Forums](https://cloudburstmc.org/forums)**
 - **[Discord](https://discord.gg/5PzMkyK)**
-- **[Download](https://ci.opencollab.dev/job/NukkitX/job/Server/job/bleeding/)**
+- **[Download](https://dl.opencollab.dev/cloudburst)**
 - **[Plugins](https://cloudburstmc.org/resources/categories/cloudburst-plugins.19/)**
 - **[Wiki](https://cloudburstmc.org/wiki/cloudburst)**
 
