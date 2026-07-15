@@ -80,13 +80,13 @@ public class SkinUtils {
         Skin newSkin = new Skin();
 
         if (skinToken.has("SkinId")) {
-            newSkin.setSkinId(skinToken.get("SkinId").textValue());
+            newSkin.setSkinId(skinToken.get("SkinId").stringValue());
         }
         if (skinToken.has("PlayFabId")) {
-            newSkin.setPlayFabId(skinToken.get("PlayFabId").textValue());
+            newSkin.setPlayFabId(skinToken.get("PlayFabId").stringValue());
         }
         if (skinToken.has("SkinResourcePatch")) {
-            newSkin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinToken.get("SkinResourcePatch").textValue()), StandardCharsets.UTF_8));
+            newSkin.setSkinResourcePatch(new String(Base64.getDecoder().decode(skinToken.get("SkinResourcePatch").stringValue()), StandardCharsets.UTF_8));
         }
 
         newSkin.setSkinData(getImage(skinToken, "Skin"));
@@ -105,11 +105,11 @@ public class SkinUtils {
             if (skinToken.has("PersonaPieces")) {
                 for (JsonNode piece : skinToken.get("PersonaPieces")) {
                     newSkin.getPersonaPieces().add(new PersonaPiece(
-                            piece.get("PieceId").textValue(),
-                            piece.get("PieceType").textValue(),
-                            piece.get("PackId").textValue(),
+                            piece.get("PieceId").stringValue(),
+                            piece.get("PieceType").stringValue(),
+                            piece.get("PackId").stringValue(),
                             piece.get("IsDefault").booleanValue(),
-                            piece.get("ProductId").textValue()
+                            piece.get("ProductId").stringValue()
                     ));
                 }
             }
@@ -117,10 +117,10 @@ public class SkinUtils {
                 for (JsonNode node : skinToken.get("PieceTintColors")) {
                     List<String> colors = new ArrayList<>();
                     for (JsonNode color : node.get("Colors")) {
-                        colors.add(color.textValue());
+                        colors.add(color.stringValue());
                     }
                     newSkin.getTintColors().add(new PersonaPieceTint(
-                            node.get("PieceType").textValue(),
+                            node.get("PieceType").stringValue(),
                             colors
                     ));
                 }
@@ -130,10 +130,10 @@ public class SkinUtils {
         newSkin.setCapeData(getImage(skinToken, "Cape"));
 
         if (skinToken.has("SkinGeometryData")) {
-            newSkin.setGeometryData(new String(Base64.getDecoder().decode(skinToken.get("SkinGeometryData").textValue()), StandardCharsets.UTF_8));
+            newSkin.setGeometryData(new String(Base64.getDecoder().decode(skinToken.get("SkinGeometryData").stringValue()), StandardCharsets.UTF_8));
         }
         if (skinToken.has("SkinAnimationData")) {
-            newSkin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("SkinAnimationData").textValue()), StandardCharsets.UTF_8));
+            newSkin.setAnimationData(new String(Base64.getDecoder().decode(skinToken.get("SkinAnimationData").stringValue()), StandardCharsets.UTF_8));
         }
         if (skinToken.has("PremiumSkin")) {
             newSkin.setPremium(skinToken.get("PremiumSkin").booleanValue());
@@ -142,13 +142,13 @@ public class SkinUtils {
             newSkin.setCapeOnClassic(skinToken.get("CapeOnClassicSkin").booleanValue());
         }
         if (skinToken.has("CapeId")) {
-            newSkin.setCapeId(skinToken.get("CapeId").textValue());
+            newSkin.setCapeId(skinToken.get("CapeId").stringValue());
         }
         if (skinToken.has("SkinColor")) {
-            newSkin.setSkinColor(skinToken.get("SkinColor").textValue());
+            newSkin.setSkinColor(skinToken.get("SkinColor").stringValue());
         }
         if (skinToken.has("ArmSize")) {
-            newSkin.setArmSize(skinToken.get("ArmSize").textValue());
+            newSkin.setArmSize(skinToken.get("ArmSize").stringValue());
         }
 
         return newSkin;
@@ -157,7 +157,7 @@ public class SkinUtils {
     private static SkinAnimation getAnimation(JsonNode element) {
         float frames = element.get("Frames").floatValue();
         int type = element.get("Type").intValue();
-        byte[] data = Base64.getDecoder().decode(element.get("Image").textValue());
+        byte[] data = Base64.getDecoder().decode(element.get("Image").stringValue());
         int width = element.get("ImageWidth").intValue();
         int height = element.get("ImageHeight").intValue();
         int expression = 0;
@@ -169,7 +169,7 @@ public class SkinUtils {
 
     private static ImageData getImage(JsonNode token, String name) {
         if (token.has(name + "Data")) {
-            byte[] skinImage = Base64.getDecoder().decode(token.get(name + "Data").textValue());
+            byte[] skinImage = Base64.getDecoder().decode(token.get(name + "Data").stringValue());
             if (token.has(name + "ImageHeight") && token.has(name + "ImageWidth")) {
                 int width = token.get(name + "ImageWidth").intValue();
                 int height = token.get(name + "ImageHeight").intValue();

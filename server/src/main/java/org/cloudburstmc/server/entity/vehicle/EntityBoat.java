@@ -18,9 +18,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
@@ -43,8 +41,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
     public static final double SINKING_DEPTH = 0.07;
     public static final double SINKING_SPEED = 0.0005;
     public static final double SINKING_MAX_SPEED = 0.005;
+    private static final float ROWING_SPEED = 0.04f;
     private static final String INTERACT_TAG = "action.interact.ride.boat";
     protected boolean sinking = true;
+    private boolean paddlingLeft;
+    private boolean paddlingRight;
+    private float paddleTimeLeft;
+    private float paddleTimeRight;
 
     public EntityBoat(EntityType<Boat> type, Location location) {
         super(type, location);
@@ -56,6 +59,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
     @Override
     protected void initEntity() {
         super.initEntity();
+        this.data.set(ROW_TIME_LEFT, 0f);
+        this.data.set(ROW_TIME_RIGHT, 0f);
     }
 
     public int getWoodType() {
@@ -138,6 +143,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         this.lastUpdate = currentTick;
 
         boolean hasUpdate = this.entityBaseTick(tickDiff);
+        updatePaddles(currentTick);
 
         if (this.isAlive()) {
             super.onUpdate(currentTick);
@@ -279,33 +285,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
         return scanner.getWaterLevel();
     }
 
-    private final class WaterLevelBlockScanner implements BlockBoxTraversal.BlockPositionConsumer {
-
-        private final double maxY;
-        private double waterLevel = Double.MAX_VALUE;
-
-        private WaterLevelBlockScanner(double maxY) {
-            this.maxY = maxY;
-        }
-
-        @Override
-        public void accept(int x, int y, int z) {
-            var block = getLevel().getBlock(x, y, z);
-            BlockState state = block.getState();
-
-            if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
-//                TODO This is broken :(
-//                block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
-//                double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
-                this.waterLevel = Math.min(this.maxY, this.waterLevel);
-            }
-        }
-
-        private double getWaterLevel() {
-            return this.waterLevel;
-        }
-    }
-
     @Override
     public boolean mount(Entity entity) {
         boolean player = this.passengers.size() >= 1 && this.passengers.get(0) instanceof CloudPlayer;
@@ -334,6 +313,9 @@ public class EntityBoat extends EntityVehicle implements Boat {
     @Override
     public void onDismount(Entity passenger) {
         super.onDismount(passenger);
+        if (!hasControllingPassenger()) {
+            setPaddling(false, false);
+        }
     }
 
     @Override
@@ -361,11 +343,31 @@ public class EntityBoat extends EntityVehicle implements Boat {
         return entity instanceof CloudPlayer ? RIDER_PLAYER_OFFSET : RIDER_OFFSET;
     }
 
-    public void onPaddle(AnimatePacket.Action animation, float value) {
-        EntityDataType<Float> data = animation == AnimatePacket.Action.ROW_RIGHT ? ROW_TIME_RIGHT : ROW_TIME_LEFT;
+    public void setPaddling(boolean left, boolean right) {
+        this.paddlingLeft = left;
+        this.paddlingRight = right;
 
-        if (this.data.get(data) != value) {
-            this.data.set(data, value);
+        if (!left) {
+            this.paddleTimeLeft = 0f;
+            this.data.set(ROW_TIME_LEFT, 0f);
+        }
+        if (!right) {
+            this.paddleTimeRight = 0f;
+            this.data.set(ROW_TIME_RIGHT, 0f);
+        }
+    }
+
+    private void updatePaddles(int currentTick) {
+        if ((currentTick & 1) != 0 || this.passengers.isEmpty()) {
+            return;
+        }
+        if (this.paddlingLeft) {
+            this.paddleTimeLeft += ROWING_SPEED;
+            this.data.set(ROW_TIME_LEFT, this.paddleTimeLeft);
+        }
+        if (this.paddlingRight) {
+            this.paddleTimeRight += ROWING_SPEED;
+            this.data.set(ROW_TIME_RIGHT, this.paddleTimeRight);
         }
     }
 
@@ -428,6 +430,33 @@ public class EntityBoat extends EntityVehicle implements Boat {
     @Override
     public boolean mount(Entity entity, MountType mode) {
         return this.mount(entity);
+    }
+
+    private final class WaterLevelBlockScanner implements BlockBoxTraversal.BlockPositionConsumer {
+
+        private final double maxY;
+        private double waterLevel = Double.MAX_VALUE;
+
+        private WaterLevelBlockScanner(double maxY) {
+            this.maxY = maxY;
+        }
+
+        @Override
+        public void accept(int x, int y, int z) {
+            var block = getLevel().getBlock(x, y, z);
+            BlockState state = block.getState();
+
+            if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
+//                TODO This is broken :(
+//                block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
+//                double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
+                this.waterLevel = Math.min(this.maxY, this.waterLevel);
+            }
+        }
+
+        private double getWaterLevel() {
+            return this.waterLevel;
+        }
     }
 
 }

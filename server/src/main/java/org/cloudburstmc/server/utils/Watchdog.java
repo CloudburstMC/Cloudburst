@@ -64,7 +64,7 @@ public class Watchdog extends Thread {
                         log.fatal(" - https://github.com/CloudburstMC/Server/issues/new");
                         log.fatal("---------------- Main thread ----------------");
 
-                        dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(this.server.getPrimaryThread().getId(), Integer.MAX_VALUE));
+                        dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(this.server.getPrimaryThread().threadId(), Integer.MAX_VALUE));
 
                         log.fatal("---------------- All threads ----------------");
                         ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);

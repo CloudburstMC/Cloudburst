@@ -601,7 +601,6 @@ public abstract class CloudEntity implements Entity {
     protected void recalculateEffectColor() {
         int[] color = new int[3];
         int count = 0;
-        boolean ambient = true;
         for (Effect effect : this.effects.values()) {
             if (effect.isVisible()) {
                 int[] c = effect.getColor();
@@ -609,9 +608,6 @@ public abstract class CloudEntity implements Entity {
                 color[1] += c[1] * (effect.getAmplifier() + 1);
                 color[2] += c[2] * (effect.getAmplifier() + 1);
                 count += effect.getAmplifier() + 1;
-                if (!effect.isAmbient()) {
-                    ambient = false;
-                }
             }
         }
 
@@ -621,10 +617,8 @@ public abstract class CloudEntity implements Entity {
             int b = (color[2] / count) & 0xff;
 
             this.data.set(EFFECT_COLOR, (r << 16) + (g << 8) + b);
-            this.data.set(EFFECT_AMBIENCE, (byte) (ambient ? 1 : 0));
         } else {
             this.data.set(EFFECT_COLOR, 0);
-            this.data.set(EFFECT_AMBIENCE, (byte) 0);
         }
     }
 
@@ -708,7 +702,7 @@ public abstract class CloudEntity implements Entity {
 
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
             packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
-                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false));
+                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0));
 
             player.sendPacket(packet);
         }
@@ -729,7 +723,7 @@ public abstract class CloudEntity implements Entity {
 
         for (int i = 0; i < this.passengers.size(); i++) {
             addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
-                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false));
+                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false, 0));
         }
         return addEntity;
     }
@@ -1292,7 +1286,7 @@ public abstract class CloudEntity implements Entity {
     protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type) {
         SetEntityLinkPacket packet = new SetEntityLinkPacket();
         boolean riderInitiated = type == EntityLinkData.Type.RIDER || type == EntityLinkData.Type.PASSENGER;
-        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, false, riderInitiated));
+        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, false, riderInitiated, 0));
         CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
     }
 

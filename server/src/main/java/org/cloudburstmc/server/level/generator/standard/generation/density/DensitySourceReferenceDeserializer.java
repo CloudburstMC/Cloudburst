@@ -17,7 +17,7 @@ import java.io.InputStream;
 public final class DensitySourceReferenceDeserializer extends ValueDeserializer<DensitySource> {
     @Override
     public DensitySource deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
-        Identifier id = Identifier.parse(p.getText());
+        Identifier id = Identifier.parse(p.getString());
 
         try (InputStream in = StandardGeneratorUtils.read("density", id)) {
             return Bootstrap.YAML_MAPPER.readValue(in, DensitySource.class);

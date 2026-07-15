@@ -17,11 +17,9 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
-import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.block.ItemFrameDropItemEvent;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -67,7 +65,6 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
@@ -160,6 +157,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         processInputFlags(inputData);
         processContinuousInputState(inputData);
+        processVehicleInput(inputData);
 
         processMovement(packet);
 
@@ -404,10 +402,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 ? ItemStack.EMPTY
                 : ItemUtils.fromNetwork(clientItemData);
         ItemStack serverItem = player.getInventory().getSelectedItem();
-        if (!serverItem.isSimilar(clientItem)) {
-            return true;
-        }
-        return false;
+        return !serverItem.isSimilar(clientItem);
     }
 
     private void handleItemUseOnBlock(ItemUseTransaction transaction, Vector3i blockPos, Direction face, Vector3f clickPos) {
@@ -639,6 +634,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getData().update();
     }
 
+    private void processVehicleInput(Set<PlayerAuthInputData> inputData) {
+        if (player.getVehicle() instanceof EntityBoat boat && boat.isControlling(player)) {
+            boat.setPaddling(
+                    inputData.contains(PlayerAuthInputData.PADDLE_LEFT),
+                    inputData.contains(PlayerAuthInputData.PADDLE_RIGHT)
+            );
+        }
+    }
+
     private void processGlidingInput(Set<PlayerAuthInputData> inputData) {
         Set<PlayerAuthInputData> remainingInput = new HashSet<>(inputData);
         for (PlayerAuthInputData input : inputData) {
@@ -860,7 +864,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         try {
             JsonNode response = new JsonMapper().readTree(packet.getFormData());
 
-            if ("null".equals(response.asText())) {
+            if (response.isNull()) {
                 window.close(player);
             } else {
                 try {
@@ -1019,26 +1023,34 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(player, PlayerAnimationEvent.Type.values()[packet.getAction().ordinal()]);
+        PlayerAnimationEvent.Type animationType = switch (packet.getAction()) {
+            case NO_ACTION -> PlayerAnimationEvent.Type.NO_ACTION;
+            case SWING_ARM -> PlayerAnimationEvent.Type.SWING_ARM;
+            case WAKE_UP -> PlayerAnimationEvent.Type.WAKE_UP;
+            case CRITICAL_HIT -> PlayerAnimationEvent.Type.CRITICAL_HIT;
+            case MAGIC_CRITICAL_HIT -> PlayerAnimationEvent.Type.MAGIC_CRITICAL_HIT;
+            default -> null;
+        };
+
+        if (animationType == null) {
+            return PacketSignal.HANDLED;
+        }
+
+        PlayerAnimationEvent animationEvent = new PlayerAnimationEvent(player, animationType);
         player.getServer().getEventManager().fire(animationEvent);
         if (animationEvent.isCancelled()) {
             return PacketSignal.HANDLED;
         }
 
-        AnimatePacket.Action animation = AnimatePacket.Action.values()[animationEvent.getAnimationType().ordinal()];
-
-        switch (animation) {
-            case ROW_RIGHT:
-            case ROW_LEFT:
-                if (player.getVehicle() instanceof EntityBoat) {
-                    ((EntityBoat) player.getVehicle()).onPaddle(animation, packet.getRowingTime());
-                }
-                break;
-        }
-
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(player.getRuntimeId());
-        animatePacket.setAction(AnimatePacket.Action.values()[animationEvent.getAnimationType().ordinal()]);
+        animatePacket.setAction(switch (animationEvent.getAnimationType()) {
+            case NO_ACTION -> AnimatePacket.Action.NO_ACTION;
+            case SWING_ARM -> AnimatePacket.Action.SWING_ARM;
+            case WAKE_UP -> AnimatePacket.Action.WAKE_UP;
+            case CRITICAL_HIT -> AnimatePacket.Action.CRITICAL_HIT;
+            case MAGIC_CRITICAL_HIT -> AnimatePacket.Action.MAGIC_CRITICAL_HIT;
+        });
         CloudServer.broadcastPacket(player.getViewers(), animatePacket);
         return PacketSignal.HANDLED;
     }
@@ -1082,7 +1094,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         try (Timing ignored2 = Timings.playerCommandTimer.startTiming()) {
-            player.getServer().dispatchCommand((CommandSender) playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
         }
         return PacketSignal.HANDLED;
     }
@@ -1120,25 +1132,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(CraftingEventPacket packet) {
-//        CraftingRecipe recipe = (CraftingRecipe) CloudRecipeRegistry.get().getRecipe(packet.getUuid());
-//        if (recipe != null) {
-//            CraftItemStackTransaction transaction = new CraftItemStackTransaction(player, recipe);
-//            transaction.setPrimaryOutput(ItemUtils.fromNetwork(packet.getOutputs().remove(0)));
-//            if (packet.getOutputs().size() >= 1) {
-//                int slot = 0;
-//                for (ItemData data : packet.getOutputs()) {
-//                    transaction.setExtraOutput(slot++, ItemUtils.fromNetwork(data));
-//                }
-//            }
-//            player.getInventoryManager().setTransaction(transaction);
-//            return PacketSignal.HANDLED;
-//        }
-//        log.warn("Received invalid recipe UUID({}) in CraftingEventPacket", packet.getUuid());
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
     public PacketSignal handle(BlockEntityDataPacket packet) {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
@@ -1172,30 +1165,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         correction.setGamemode(player.getGameMode().getVanillaId());
         player.sendPacket(correction);
         player.getAbilities().update();
-        return PacketSignal.HANDLED;
-    }
-
-    @Override
-    public PacketSignal handle(ItemFrameDropItemPacket packet) {
-        Vector3i vector3 = packet.getBlockPosition();
-        BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(vector3);
-        if (!(blockEntity instanceof ItemFrame itemFrame)) {
-            return PacketSignal.HANDLED;
-        }
-        Block block = itemFrame.getBlock();
-        ItemStack itemDrop = itemFrame.getItem();
-        ItemFrameDropItemEvent itemFrameDropItemEvent = new ItemFrameDropItemEvent(player, block, itemFrame, itemDrop);
-        player.getServer().getEventManager().fire(itemFrameDropItemEvent);
-        if (!itemFrameDropItemEvent.isCancelled()) {
-            if (!itemDrop.isEmpty()) {
-                player.getLevel().dropItem(itemFrame.getPosition(), itemDrop);
-                itemFrame.setItem(ItemStack.EMPTY);
-                itemFrame.setItemRotation(0);
-                player.getLevel().addSound(player.getPosition(), Sound.BLOCK_ITEMFRAME_REMOVE_ITEM);
-            }
-        } else {
-            itemFrame.spawnTo(player);
-        }
         return PacketSignal.HANDLED;
     }
 
@@ -1459,27 +1428,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(LecternUpdatePacket packet) {
         Vector3i blockPosition = packet.getBlockPosition();
 
-        if (packet.isDroppingBook()) {
-            Block block = player.getLevel().getBlock(blockPosition);
-            BlockState state = block.getState();
-            if (state.getType() == BlockTypes.LECTERN) {
-//                TODO Drop Lectern book
-//                ((BlockBehaviorLectern) state.getBehavior()).dropBook(block, player);
-            }
-        } else {
-            BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
-            if (blockEntity instanceof Lectern lectern) {
-                LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
-                player.getServer().getEventManager().fire(lecternPageChangeEvent);
-                if (!lecternPageChangeEvent.isCancelled()) {
-                    lectern.setPage(lecternPageChangeEvent.getNewRawPage());
-                    lectern.spawnToAll();
-                    Block block = lectern.getBlock();
-                    BlockState state = block.getState();
-                    if (state.getType() == BlockTypes.LECTERN) {
-                        block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
-//                        ((BlockBehaviorLectern) state.getBehavior()).executeRedstonePulse(block);
-                    }
+        BlockEntity blockEntity = player.getLevel().getBlockEntity(blockPosition);
+        if (blockEntity instanceof Lectern lectern) {
+            LecternPageChangeEvent lecternPageChangeEvent = new LecternPageChangeEvent(player, lectern, packet.getPage());
+            player.getServer().getEventManager().fire(lecternPageChangeEvent);
+            if (!lecternPageChangeEvent.isCancelled()) {
+                lectern.setPage(lecternPageChangeEvent.getNewRawPage());
+                lectern.spawnToAll();
+                Block block = lectern.getBlock();
+                BlockState state = block.getState();
+                if (state.getType() == BlockTypes.LECTERN) {
+                    block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
                 }
             }
         }

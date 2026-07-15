@@ -28,7 +28,6 @@ dependencies {
     implementation(libs.terminal.console.appender)
     implementation(libs.jline.terminal)
     implementation(libs.jline.reader)
-    runtimeOnly(libs.jline.terminal.jna)
 
     implementation(libs.log4j.api)
     implementation(libs.log4j.core)
@@ -112,6 +111,7 @@ tasks.shadowJar {
 
     manifest {
         attributes["Main-Class"] = "org.cloudburstmc.server.Bootstrap"
+        attributes["Enable-Native-Access"] = "ALL-UNNAMED"
     }
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
@@ -130,6 +130,7 @@ tasks.register<JavaExec>("run") {
     workingDir.mkdir()
     classpath = sourceSets["main"].runtimeClasspath
     standardInput = System.`in`
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
     systemProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true")
     systemProperty("guice_bytecode_gen_option", "DISABLED")
 }

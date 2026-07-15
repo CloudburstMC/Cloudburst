@@ -22,9 +22,13 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,7 +63,7 @@ class AnvilProvider implements LevelProvider {
         Preconditions.checkArgument(Files.isDirectory(regionsPath), "region is not a directory");
 
         this.regionFiles = CacheBuilder.newBuilder()
-                .expireAfterAccess(2, TimeUnit.MINUTES)
+                .expireAfterAccess(Duration.ofMinutes(2))
                 .removalListener(REMOVAL_LISTENER)
                 .build(CacheLoader.from(regionPosition -> {
                     try {

@@ -14,11 +14,6 @@ import org.cloudburstmc.server.potion.CloudPotion;
 
 import java.util.Set;
 
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.AUX_VALUE_DATA;
-
-/**
- * @author xtypr
- */
 public class EntitySplashPotion extends EntityProjectile implements SplashPotion {
 
     private PotionType type;
@@ -148,14 +143,6 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
         this.timing.stopTiming();
         return hasUpdate;
-    }
-
-    public short getPotionId() {
-        return this.data.get(AUX_VALUE_DATA);
-    }
-
-    public void setPotionId(int potionId) {
-        this.data.set(AUX_VALUE_DATA, (short) potionId);
     }
 
     @Override

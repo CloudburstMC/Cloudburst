@@ -8,6 +8,8 @@ import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionType;
+import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -53,6 +55,8 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     protected int particleColor;
     protected boolean particleColorSet;
     private int lastAge;
+    private float radiusPerTick;
+    private PotionType potionType = PotionTypes.WATER;
 
     public EntityAreaEffectCloud(EntityType<?> type, Location location) {
         super(type, location);
@@ -69,13 +73,14 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    public short getPotionId() {
-        return this.data.get(AUX_VALUE_DATA);
+    public PotionType getPotionType() {
+        return this.potionType;
     }
 
     @Override
-    public void setPotionId(int potionId) {
-        this.data.set(AUX_VALUE_DATA, (short) (potionId & 0xFFFF));
+    public void setPotionType(PotionType potionType) {
+        this.potionType = potionType;
+        this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(potionType));
         this.recalculatePotionColor();
     }
 
@@ -95,12 +100,12 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
             b = color & 0x000000FF;
         } else {
             a = 255;
-            CloudEffect effect = new CloudEffect(NetworkUtils.effectFromLegacy((byte) getPotionId()));
-            if (effect == null) {
+            if (this.potionType.getType() == null) {
                 r = 40;
                 g = 40;
                 b = 255;
             } else {
+                CloudEffect effect = new CloudEffect(this.potionType.getType());
                 int[] colors = effect.getColor();
                 r = colors[0];
                 g = colors[1];
@@ -148,12 +153,12 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public float getRadiusPerTick() {
-        return this.data.get(AREA_EFFECT_CLOUD_CHANGE_RATE);
+        return this.radiusPerTick;
     }
 
     @Override
     public void setRadiusPerTick(float radiusPerTick) {
-        this.data.set(AREA_EFFECT_CLOUD_CHANGE_RATE, radiusPerTick);
+        this.radiusPerTick = radiusPerTick;
     }
 
     @Override
@@ -205,6 +210,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         this.data.set(AREA_EFFECT_CLOUD_PARTICLE, ParticleType.MOB_SPELL_AMBIENT);
         this.data.set(AREA_EFFECT_CLOUD_SPAWN_TIME, (int) this.level.getCurrentTick());
         this.data.set(AREA_EFFECT_CLOUD_PICKUP_COUNT, 0);
+        this.setPotionType(PotionTypes.WATER);
         this.setDuration(600);
         this.initialRadius = 3f;
         this.setRadius(this.initialRadius);
@@ -225,7 +231,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
             }
         });
 
-        tag.listenForShort(TAG_POTION_ID, this::setPotionId);
+        tag.listenForShort(TAG_POTION_ID, potionId -> this.setPotionType(NetworkUtils.potionFromLegacy(potionId)));
         tag.listenForInt(TAG_DURATION, this::setDuration);
         tag.listenForInt(TAG_DURATION_ON_USE, v -> this.durationOnUse = v);
         tag.listenForInt(TAG_REAPPLICATION_DELAY, v -> this.reapplicationDelay = v);
@@ -247,7 +253,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         }
         tag.putList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effects);
         tag.putInt(TAG_PARTICLE_COLOR, getPotionColor());
-        tag.putShort(TAG_POTION_ID, getPotionId());
+        tag.putShort(TAG_POTION_ID, NetworkUtils.potionToNetwork(getPotionType()));
         tag.putInt(TAG_DURATION, getDuration());
         tag.putInt(TAG_DURATION_ON_USE, durationOnUse);
         tag.putInt(TAG_REAPPLICATION_DELAY, reapplicationDelay);

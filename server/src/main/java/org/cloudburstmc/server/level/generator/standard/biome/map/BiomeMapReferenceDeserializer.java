@@ -17,7 +17,7 @@ import java.io.InputStream;
 public final class BiomeMapReferenceDeserializer extends ValueDeserializer<BiomeMap> {
     @Override
     public BiomeMap deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
-        Identifier id = Identifier.parse(p.getText());
+        Identifier id = Identifier.parse(p.getString());
 
         try (InputStream in = StandardGeneratorUtils.read("biomemap", id)) {
             return Bootstrap.YAML_MAPPER.readValue(in, BiomeMap.class);

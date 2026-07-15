@@ -51,11 +51,11 @@ public class CustomFormResponse {
      */
     public String getInput(int index) {
         JsonNode node = get(index);
-        if (!node.isTextual()) {
+        if (!node.isString()) {
             wrongValue(index, "input");
         }
 
-        return node.asText();
+        return node.asString();
     }
 
     /**

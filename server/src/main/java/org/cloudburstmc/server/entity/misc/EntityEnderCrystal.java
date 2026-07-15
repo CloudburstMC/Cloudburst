@@ -62,7 +62,9 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
         this.close();
 
         if (this.level.getGameRules().get(GameRules.MOB_GRIEFING)) {
-            explode.explode();
+            if (explode.explodeA()) {
+                explode.explodeB();
+            }
         }
     }
 

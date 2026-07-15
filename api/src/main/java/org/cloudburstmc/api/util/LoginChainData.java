@@ -13,6 +13,8 @@ public interface LoginChainData {
 
     UUID getClientUUID();
 
+    String getMinecraftId();
+
     String getIdentityPublicKey();
 
     long getClientId();

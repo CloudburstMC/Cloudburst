@@ -139,7 +139,6 @@ public class BlockTraits {
     public static final IntegerBlockTrait CHALKBOARD_DIRECTION = IntegerBlockTrait.from("chalkboard_direction", "direction", 0, 15, 0);
     public static final IntegerBlockTrait CHEMISTRY_TABLE_DIRECTION = IntegerBlockTrait.from("chemistry_table_direction", "direction", 0, 3, 0);
 
-    @Deprecated
     public static final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})

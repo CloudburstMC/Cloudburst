@@ -25,8 +25,6 @@ public final class PlayerAnimationEvent extends PlayerEvent implements Cancellab
         SWING_ARM,
         WAKE_UP,
         CRITICAL_HIT,
-        MAGIC_CRITICAL_HIT,
-        ROW_RIGHT,
-        ROW_LEFT,
+        MAGIC_CRITICAL_HIT
     }
 }

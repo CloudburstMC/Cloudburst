@@ -40,7 +40,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.zip.GZIPOutputStream;
@@ -192,7 +192,7 @@ public class TimingsExport extends Thread {
 
         String response = null;
         try {
-            HttpURLConnection con = (HttpURLConnection) new URL("http://timings.aikar.co/post").openConnection();
+            HttpURLConnection con = (HttpURLConnection) URI.create("http://timings.aikar.co/post").toURL().openConnection();
             con.setDoOutput(true);
             con.setRequestProperty("User-Agent", "Cloudburst/" + CloudServer.getInstance().getName() + "/" + InetAddress.getLocalHost().getHostName());
             con.setRequestMethod("POST");

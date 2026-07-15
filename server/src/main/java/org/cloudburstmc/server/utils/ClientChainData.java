@@ -15,6 +15,8 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.UUID;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * ClientChainData is a container of chain data sent from clients.
  * <p>
@@ -36,6 +38,7 @@ public final class ClientChainData implements LoginChainData {
 
     private String username;
     private UUID clientUUID;
+    private String minecraftId;
     private String xuid;
     private String identityPublicKey;
     private PublicKey parsedIdentityPublicKey;
@@ -65,7 +68,8 @@ public final class ClientChainData implements LoginChainData {
             ChainValidationResult.IdentityData extraData = claims.extraData;
 
             this.username = extraData.displayName;
-            this.clientUUID = extraData.identity;
+            this.minecraftId = Objects.requireNonNull(extraData.minecraftId, "Missing Minecraft ID");
+            this.clientUUID = UUID.nameUUIDFromBytes(("minecraft-id:" + this.minecraftId).getBytes(UTF_8));
             this.xuid = this.xboxAuthed ? extraData.xuid : null;
             this.identityPublicKey = claims.identityPublicKey;
             this.parsedIdentityPublicKey = claims.parsedIdentityPublicKey();
@@ -102,13 +106,13 @@ public final class ClientChainData implements LoginChainData {
         JsonNode skinToken = decodeToken(skinData);
         if (skinToken == null) return;
         if (skinToken.has("ClientRandomId")) this.clientId = skinToken.get("ClientRandomId").longValue();
-        if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").textValue();
-        if (skinToken.has("DeviceModel")) this.deviceModel = skinToken.get("DeviceModel").textValue();
+        if (skinToken.has("ServerAddress")) this.serverAddress = skinToken.get("ServerAddress").stringValue();
+        if (skinToken.has("DeviceModel")) this.deviceModel = skinToken.get("DeviceModel").stringValue();
         if (skinToken.has("DeviceOS")) this.deviceOS = skinToken.get("DeviceOS").intValue();
-        if (skinToken.has("DeviceId")) this.deviceId = skinToken.get("DeviceId").textValue();
-        if (skinToken.has("GameVersion")) this.gameVersion = skinToken.get("GameVersion").textValue();
+        if (skinToken.has("DeviceId")) this.deviceId = skinToken.get("DeviceId").stringValue();
+        if (skinToken.has("GameVersion")) this.gameVersion = skinToken.get("GameVersion").stringValue();
         if (skinToken.has("GuiScale")) this.guiScale = skinToken.get("GuiScale").intValue();
-        if (skinToken.has("LanguageCode")) this.languageCode = skinToken.get("LanguageCode").textValue();
+        if (skinToken.has("LanguageCode")) this.languageCode = skinToken.get("LanguageCode").stringValue();
         if (skinToken.has("CurrentInputMode")) this.currentInputMode = skinToken.get("CurrentInputMode").intValue();
         if (skinToken.has("DefaultInputMode")) this.defaultInputMode = skinToken.get("DefaultInputMode").intValue();
         if (skinToken.has("UIProfile")) this.UIProfile = skinToken.get("UIProfile").intValue();
@@ -123,6 +127,11 @@ public final class ClientChainData implements LoginChainData {
     @Override
     public UUID getClientUUID() {
         return clientUUID;
+    }
+
+    @Override
+    public String getMinecraftId() {
+        return minecraftId;
     }
 
     @Override

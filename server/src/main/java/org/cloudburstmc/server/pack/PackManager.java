@@ -207,7 +207,6 @@ public class PackManager implements Closeable, ResourcePackRegistry {
         packsInfos.setForcedToAccept(mustAccept);
         packStack.setForcedToAccept(mustAccept);
 
-        packsInfos.getBehaviorPackInfos().clear();
         packsInfos.getResourcePackInfos().clear();
         packStack.getBehaviorPacks().clear();
         packStack.getResourcePacks().clear();

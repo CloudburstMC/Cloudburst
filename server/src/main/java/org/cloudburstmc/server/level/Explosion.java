@@ -53,18 +53,6 @@ public class Explosion {
 
     /**
      * @return bool
-     * @deprecated
-     */
-    @Deprecated
-    public boolean explode() {
-        if (explodeA()) {
-            return explodeB();
-        }
-        return false;
-    }
-
-    /**
-     * @return bool
      */
     public boolean explodeA() {
         if (what instanceof Explosive) {

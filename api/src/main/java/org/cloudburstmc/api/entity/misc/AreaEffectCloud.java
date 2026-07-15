@@ -2,6 +2,7 @@ package org.cloudburstmc.api.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.PotionType;
 
 import java.util.List;
 
@@ -10,9 +11,9 @@ public interface AreaEffectCloud extends Entity {
 
     void setWaitTime(int waitTime);
 
-    short getPotionId();
+    PotionType getPotionType();
 
-    void setPotionId(int potionId);
+    void setPotionType(PotionType potionType);
 
     void recalculatePotionColor();
 

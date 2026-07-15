@@ -270,7 +270,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
         if (this.vehicle != null) {
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
-            EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(), this.getUniqueId(), EntityLinkData.Type.RIDER, true, false);
+            EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(), this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0);
             packet.setEntityLink(link);
 
             player.sendPacket(packet);
