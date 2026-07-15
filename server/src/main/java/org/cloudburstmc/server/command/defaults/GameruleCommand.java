@@ -50,14 +50,14 @@ public class GameruleCommand extends Command {
                 sender.sendMessage(Component.text(rulesJoiner.toString()));
                 return true;
             case 1:
-                GameRule gameRule = registry.fromString(args[0]);
+                GameRule<?> gameRule = registry.fromString(args[0]);
                 if (gameRule == null || !rules.contains(gameRule)) {
                     sender.sendMessage(Component.translatable("commands.generic.syntax",
                             Component.text("/gamerule"), Component.text(args[0])));
                     return true;
                 }
 
-                sender.sendMessage(Component.text(gameRule.getName() + " = " + formatValue(gameRule, rules.get(gameRule))));
+                sender.sendMessage(Component.text(gameRule.getName() + " = " + formatValue(gameRule, rules.getValue(gameRule))));
                 return true;
             default:
                 gameRule = registry.fromString(args[0]);
@@ -70,7 +70,7 @@ public class GameruleCommand extends Command {
                 }
 
                 try {
-                    rules.put(gameRule, gameRule.parse(args[1]));
+                    rules.parseAndSet(gameRule, args[1]);
                     sender.sendMessage(Component.translatable("commands.gamerule.success", Component.text(gameRule.getName()), Component.text(args[1])));
                 } catch (IllegalArgumentException e) {
                     sender.sendMessage(Component.translatable("commands.generic.syntax",

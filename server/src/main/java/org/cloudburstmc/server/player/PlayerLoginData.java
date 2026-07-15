@@ -40,7 +40,7 @@ public class PlayerLoginData {
 
         PlayerCreationEvent ev = new PlayerCreationEvent(interfaz, CloudPlayer.class, CloudPlayer.class, this.chainData.getClientId(), session.getSocketAddress());
         this.server.getEventManager().fire(ev);
-        Class<? extends CloudPlayer> clazz = (Class<? extends CloudPlayer>) ev.getPlayerClass();
+        Class<? extends CloudPlayer> clazz = ev.getPlayerClass().asSubclass(CloudPlayer.class);
 
         try {
             Constructor<? extends CloudPlayer> constructor = clazz.getConstructor(BedrockServerSession.class, ClientChainData.class);

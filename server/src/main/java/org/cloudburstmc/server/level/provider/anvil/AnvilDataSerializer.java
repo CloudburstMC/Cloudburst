@@ -127,13 +127,7 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         NbtMap gameRulesTag = tag.getCompound("GameRules");
         CloudGameRuleRegistry.get().getRules().forEach(rule -> {
             String value = gameRulesTag.getString(rule.getName());
-            if (rule.getValueClass() == Boolean.class) {
-                data.getGameRules().put((GameRule<Boolean>) rule, Boolean.valueOf(value));
-            } else if (rule.getValueClass() == Integer.class) {
-                data.getGameRules().put((GameRule<Integer>) rule, Integer.valueOf(value));
-            } else if (rule.getValueClass() == Float.class) {
-                data.getGameRules().put((GameRule<Float>) rule, Float.valueOf(value));
-            }
+            data.getGameRules().parseAndSet(rule, value);
         });
     }
 }

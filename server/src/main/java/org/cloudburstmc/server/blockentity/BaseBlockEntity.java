@@ -194,15 +194,12 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     private boolean nbtEquals(Object tag, Object local) {
-        if (tag instanceof Map) {
-            if (!(local instanceof Map)) {
+        if (tag instanceof Map<?, ?> vanillaMap) {
+            if (!(local instanceof Map<?, ?> localMap)) {
                 return false;
             }
 
-            var localMap = (Map<String, ?>) local;
-            var vanillaMap = (Map<String, ?>) tag;
-
-            for (Entry<String, ?> entry : localMap.entrySet()) {
+            for (Entry<?, ?> entry : localMap.entrySet()) {
                 if (!vanillaMap.containsKey(entry.getKey())) {
                     return false;
                 }

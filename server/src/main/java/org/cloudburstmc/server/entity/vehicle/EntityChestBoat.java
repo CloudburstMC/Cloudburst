@@ -7,6 +7,6 @@ import org.cloudburstmc.api.level.Location;
 public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     public EntityChestBoat(EntityType<ChestBoat> type, Location location) {
-        super((EntityType) type, location);
+        super(type, location);
     }
 }

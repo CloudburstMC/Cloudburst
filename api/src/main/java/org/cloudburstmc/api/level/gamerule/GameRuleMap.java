@@ -29,6 +29,26 @@ public class GameRuleMap implements Iterable<Map.Entry<GameRule<?>, Object>> {
         return this.gameRules.containsKey(gameRule);
     }
 
+    public Object getValue(GameRule<?> gameRule) {
+        Preconditions.checkNotNull(gameRule, "gameRule");
+        return this.gameRules.get(gameRule);
+    }
+
+    public void setValue(GameRule<?> gameRule, Object value) {
+        Preconditions.checkNotNull(gameRule, "gameRule");
+        Preconditions.checkNotNull(value, "value");
+        Preconditions.checkArgument(gameRule.getValueClass().isInstance(value),
+                "Value for %s must be a %s", gameRule.getName(), gameRule.getValueClass().getSimpleName());
+        Object oldValue = this.gameRules.put(gameRule, value);
+        if (!value.equals(oldValue)) {
+            this.dirty = true;
+        }
+    }
+
+    public void parseAndSet(GameRule<?> gameRule, String value) {
+        setValue(gameRule, gameRule.parse(value));
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T get(GameRule<T> gameRule) {
         Preconditions.checkNotNull(gameRule, "gameRule");

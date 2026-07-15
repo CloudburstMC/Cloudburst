@@ -49,7 +49,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     private float paddleTimeLeft;
     private float paddleTimeRight;
 
-    public EntityBoat(EntityType<Boat> type, Location location) {
+    public EntityBoat(EntityType<? extends Boat> type, Location location) {
         super(type, location);
 
         this.setMaxHealth(40);

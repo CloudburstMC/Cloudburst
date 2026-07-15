@@ -84,7 +84,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.*;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
@@ -2148,10 +2147,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         startGamePacket.setWorldId("");
         startGamePacket.setScenarioId("");
         startGamePacket.setOwnerId("");
-        //noinspection unchecked,rawtypes
-        session.getPeer().getCodecHelper().setItemDefinitions((DefinitionRegistry) CloudItemRegistry.get());
-        //noinspection unchecked,rawtypes
-        session.getPeer().getCodecHelper().setBlockDefinitions((DefinitionRegistry) BlockPalette.INSTANCE);
+        session.getPeer().getCodecHelper().setItemDefinitions(CloudItemRegistry.get());
+        session.getPeer().getCodecHelper().setBlockDefinitions(BlockPalette.INSTANCE);
         VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
         voxelShapesPacket.setShapes(List.of());
         voxelShapesPacket.setNameMap(Map.of());

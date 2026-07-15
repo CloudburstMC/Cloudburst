@@ -161,17 +161,16 @@ class AnvilProvider implements LevelProvider {
 
         log.info("Using {} workers to convert", workers);
 
-        //noinspection unchecked
-        List<Path>[] paths = new List[workers];
+        List<List<Path>> paths = new ArrayList<>(workers);
 
         for (int i = 0; i < workers; i++) {
-            paths[i] = new ArrayList<>();
+            paths.add(new ArrayList<>());
         }
 
         int counter = 0;
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.regionsPath, "**.mca")) {
             for (Path path : stream) {
-                paths[counter++ % workers].add(path);
+                paths.get(counter++ % workers).add(path);
             }
         } catch (IOException e) {
             throw new IllegalStateException(e);
@@ -180,7 +179,7 @@ class AnvilProvider implements LevelProvider {
         CompletableFuture<?>[] futures = new CompletableFuture[workers];
 
         for (int i = 0; i < workers; i++) {
-            final List<Path> pathList = paths[i];
+            final List<Path> pathList = paths.get(i);
 
             futures[i] = CompletableFuture.runAsync(() -> {
                 try {

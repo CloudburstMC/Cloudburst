@@ -17,20 +17,17 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * author: MagicDroidX
- * Nukkit
+ * Loads and saves hierarchical configuration data in the supported file formats.
  */
 @Log4j2
 public class Config {
 
-    public static final int DETECT = -1; //Detect by file extension
-    public static final int PROPERTIES = 0; // .properties
-    public static final int CNF = Config.PROPERTIES; // .cnf
-    public static final int JSON = 1; // .js, .json
-    public static final int YAML = 2; // .yml, .yaml
-    //public static final int EXPORT = 3; // .export, .xport
-    //public static final int SERIALIZED = 4; // .sl
-    public static final int ENUM = 5; // .txt, .list, .enum
+    public static final int DETECT = -1;
+    public static final int PROPERTIES = 0;
+    public static final int CNF = Config.PROPERTIES;
+    public static final int JSON = 1;
+    public static final int YAML = 2;
+    public static final int ENUM = 5;
     public static final int ENUMERATION = Config.ENUM;
 
     private static final SimpleModule CONFIG_MODULE;
@@ -52,7 +49,6 @@ public class Config {
                 .build();
     }
 
-    //private LinkedHashMap<String, Object> config = new LinkedHashMap<>();
     private ConfigSection config = new ConfigSection();
     private File file;
     private boolean correct = false;
@@ -69,27 +65,17 @@ public class Config {
         format.put("json", Config.JSON);
         format.put("yml", Config.YAML);
         format.put("yaml", Config.YAML);
-        //format.put("sl", Config.SERIALIZED);
-        //format.put("serialize", Config.SERIALIZED);
         format.put("txt", Config.ENUM);
         format.put("list", Config.ENUM);
         format.put("enum", Config.ENUM);
     }
 
-    /**
-     * Constructor for Config instance with undefined file object
-     *
-     * @param type - Config type
-     */
     public Config(int type) {
         this.type = type;
         this.correct = true;
         this.config = new ConfigSection();
     }
 
-    /**
-     * Constructor for Config (YAML) instance with undefined file object
-     */
     public Config() {
         this(Config.YAML);
     }
@@ -110,11 +96,6 @@ public class Config {
         this(file.toString(), type, new ConfigSection());
     }
 
-    @Deprecated
-    public Config(String file, int type, LinkedHashMap<String, Object> defaultMap) {
-        this.load(file, type, new ConfigSection(defaultMap));
-    }
-
     public Config(String file, int type, ConfigSection defaultMap) {
         this.load(file, type, defaultMap);
     }
@@ -123,15 +104,9 @@ public class Config {
         this.load(file.toString(), type, defaultMap);
     }
 
-    @Deprecated
-    public Config(File file, int type, LinkedHashMap<String, Object> defaultMap) {
-        this(file.toString(), type, new ConfigSection(defaultMap));
-    }
-
     public void reload() {
         this.config.clear();
         this.correct = false;
-        //this.load(this.file.toString());
         if (this.file == null) throw new IllegalStateException("Failed to reload Config. File object is undefined.");
         this.load(this.file.toString(), this.type);
 
@@ -145,7 +120,6 @@ public class Config {
         return this.load(file, type, new ConfigSection());
     }
 
-    @SuppressWarnings("unchecked")
     public boolean load(String file, int type, ConfigSection defaultMap) {
         this.correct = true;
         this.type = type;
@@ -213,13 +187,6 @@ public class Config {
         return correct;
     }
 
-    /**
-     * Save configuration into provided file. Internal file object will be set to new file.
-     *
-     * @param file
-     * @param async
-     * @return
-     */
     public boolean save(File file, boolean async) {
         this.file = file;
         return save(async);
@@ -297,7 +264,7 @@ public class Config {
         return this.get(key, null);
     }
 
-    public <T> T get(String key, T defaultValue) {
+    public Object get(String key, Object defaultValue) {
         return this.correct ? this.config.get(key, defaultValue) : defaultValue;
     }
 
@@ -377,11 +344,11 @@ public class Config {
         return config.isBoolean(key);
     }
 
-    public <T> List<T> getList(String key) {
+    public List<?> getList(String key) {
         return this.getList(key, null);
     }
 
-    public <T> List<T> getList(String key, List<T> defaultList) {
+    public List<?> getList(String key, List<?> defaultList) {
         return this.correct ? this.config.getList(key, defaultList) : defaultList;
     }
 
@@ -425,7 +392,7 @@ public class Config {
         return config.getShortList(key);
     }
 
-    public List<Map> getMapList(String key) {
+    public List<Map<String, Object>> getMapList(String key) {
         return config.getMapList(key);
     }
 
@@ -453,11 +420,6 @@ public class Config {
         return this.config.getAllMap();
     }
 
-    /**
-     * Get root (main) config section of the Config
-     *
-     * @return
-     */
     public ConfigSection getRootSection() {
         return config;
     }
@@ -536,39 +498,6 @@ public class Config {
                 }
             }
         }
-    }
-
-    /**
-     * @deprecated use {@link #get(String)} instead
-     */
-    @Deprecated
-    public Object getNested(String key) {
-        return get(key);
-    }
-
-    /**
-     * @deprecated use {@link #get(String, Object)} instead
-     */
-    @Deprecated
-    public <T> T getNested(String key, T defaultValue) {
-        return get(key, defaultValue);
-    }
-
-    /**
-     * @deprecated use {@link #get(String)} instead
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public <T> T getNestedAs(String key, Class<T> type) {
-        return (T) get(key);
-    }
-
-    /**
-     * @deprecated use {@link #remove(String)} instead
-     */
-    @Deprecated
-    public void removeNested(String key) {
-        remove(key);
     }
 
     private void parseContent(String content) {

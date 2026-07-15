@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<CloudItemDefinition> {
+public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
     private static final String ITEM_ALIAS_PREFIX = "item.";
 
@@ -159,9 +159,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public <T> ItemDataSerializer<T> getSerializer(DataKey<T, T> dataKey) {
-        //noinspection unchecked
-        return (ItemDataSerializer<T>) dataSerializers.get(dataKey);
+    public ItemDataSerializer<?> getSerializer(DataKey<?, ?> dataKey) {
+        return dataSerializers.get(dataKey);
     }
 
     public ItemType getType(Identifier id) {
@@ -231,8 +230,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     }
 
     @Override
-    public boolean isRegistered(CloudItemDefinition definition) {
-        return itemPalette.getDefinition(definition.getRuntimeId()) == definition;
+    public boolean isRegistered(ItemDefinition definition) {
+        return definition instanceof CloudItemDefinition cloudDefinition
+                && itemPalette.getDefinition(cloudDefinition.getRuntimeId()) == cloudDefinition;
     }
 
     public CloudItemDefinition getDefinition(Identifier identifier) throws RegistryException {

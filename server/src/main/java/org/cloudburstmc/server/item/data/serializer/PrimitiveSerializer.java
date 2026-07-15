@@ -35,6 +35,6 @@ public class PrimitiveSerializer<T> implements ItemDataSerializer<T> {
             Preconditions.checkArgument(value.getClass() == type);
         }
 
-        return (T) value;
+        return type.cast(value);
     }
 }

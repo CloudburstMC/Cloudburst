@@ -160,12 +160,10 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
         CloudGameRuleRegistry.get().getRules().forEach(rule -> {
             Object value = tag.get(rule.getName().toLowerCase());
 
-            if (value instanceof Byte) {
-                data.getGameRules().put((GameRule<Boolean>) rule, (byte) value != 0);
-            } else if (value instanceof Integer) {
-                data.getGameRules().put((GameRule<Integer>) rule, (int) value);
-            } else if (value instanceof Float) {
-                data.getGameRules().put((GameRule<Float>) rule, (float) value);
+            if (value instanceof Byte byteValue) {
+                data.getGameRules().setValue(rule, byteValue != 0);
+            } else if (value instanceof Integer || value instanceof Float) {
+                data.getGameRules().setValue(rule, value);
             }
         });
     }

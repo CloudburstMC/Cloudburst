@@ -148,8 +148,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
             putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
             RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
-            //noinspection unchecked
-            ((EntityData<T>) this.dataMap.get(type)).serviceProvider.add(provider);
+            getServiceProvider(type).add(provider);
         } else { // invalid - registering EntityType with used identifier.
             throw new RegistryException(type.getIdentifier() + " is already registered");
         }
