@@ -7,11 +7,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":api")) {
-        attributes {
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
-        }
-    }
+    implementation(project(":api"))
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
     }
@@ -126,9 +122,6 @@ tasks.shadowJar {
         "META-INF/LICENSE.txt",
         "META-INF/NOTICE"
     )
-
-    dependsOn(":api:classes", ":api:jar")
-    from(project(":api").sourceSets.main.get().output)
 }
 
 tasks.register<JavaExec>("run") {
