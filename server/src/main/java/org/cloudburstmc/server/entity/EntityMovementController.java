@@ -15,35 +15,6 @@ import java.util.Optional;
 @UtilityClass
 public class EntityMovementController {
 
-    public static boolean fastMove(CloudEntity entity, float dx, float dy, float dz) {
-        if (dx == 0 && dy == 0 && dz == 0) {
-            return true;
-        }
-
-        try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
-            BoundingBox previousBox = entity.boundingBox;
-            BoundingBox newBox = entity.boundingBox.move(dx, dy, dz);
-            boolean accepted = !entity.level.hasBlockCollision(entity, newBox);
-
-            if (accepted) {
-                entity.boundingBox = newBox;
-            }
-
-            syncPositionFromBox(entity, true);
-            entity.checkChunks();
-            entity.recordMovement(previousBox, entity.boundingBox);
-
-            if (!entity.onGround || dy != 0) {
-                BoundingBox groundCheck = entity.boundingBox.setMinY(entity.boundingBox.getMinY() - 0.75f);
-                entity.onGround = entity.level.hasBlockCollision(entity, groundCheck);
-            }
-
-            entity.isCollided = entity.onGround;
-            entity.updateFallState(entity.onGround);
-            return accepted;
-        }
-    }
-
     public static boolean move(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
         if (dx == 0 && dz == 0 && dy == 0) {
             return true;

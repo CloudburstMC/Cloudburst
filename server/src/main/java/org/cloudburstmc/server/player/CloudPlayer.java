@@ -62,10 +62,9 @@ import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.LoginChainData;
-import org.cloudburstmc.api.util.component.ComponentMap;
+import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -91,6 +90,8 @@ import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.component.BedBlockHandlers;
+import org.cloudburstmc.server.block.component.RespawnAnchorBlockHandlers;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
@@ -874,19 +875,9 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     /**
-     * Attempts to resolve the player's personal spawn point into a safe stand-up position.
+     * Resolves the player's personal spawn block to a safe standing position.
      *
-     * <p>The block at the stored respawn coordinate is validated:
-     * <ul>
-     *   <li>For {@link RespawnConfig.SpawnType#BED}: the block must be {@link BlockTypes#BED}.</li>
-     *   <li>For {@link RespawnConfig.SpawnType#RESPAWN_ANCHOR}: the block must be
-     *       {@link BlockTypes#RESPAWN_ANCHOR} with a charge &gt; 0.</li>
-     * </ul>
-     * If the block is missing or invalid the personal spawn is cleared and {@code null} is returned,
-     * signaling that the caller must fall back to world spawn.</p>
-     *
-     * @return a safe {@link Location} to teleport the player to, or {@code null} if no valid
-     * personal spawn block exists
+     * @return the respawn location, or {@code null} when the personal spawn is no longer valid
      */
     @Nullable
     public Location findRespawnPosition() {
@@ -896,6 +887,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         CloudLevel spawnLevel = this.respawnConfig.level();
         Vector3i pos = this.respawnConfig.pos();
+        float respawnYaw = this.respawnConfig.yaw();
         Block block = spawnLevel.getBlock(pos);
         BlockType type = block.getState().getType();
 
@@ -919,8 +911,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             }
         }
 
-        Location standUp = findStandUpPosition(spawnLevel, pos);
-        if (standUp == null) {
+        Vector3f standUpPosition = this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED
+                ? BedBlockHandlers.findStandUpPosition(spawnLevel, pos,
+                block.getState().ensureTrait(BlockTraits.DIRECTION), respawnYaw)
+                : RespawnAnchorBlockHandlers.findStandUpPosition(spawnLevel, pos);
+        if (standUpPosition == null) {
             this.spawnLocation = null;
             this.respawnConfig = null;
             return null;
@@ -948,197 +943,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             }
         }
 
-        return standUp;
-    }
-
-    /**
-     * Searches candidate positions around {@code pos} for a safe 2-block-tall standing spot.
-     *
-     * <p>For {@link RespawnConfig.SpawnType#BED}: offsets are computed dynamically from the
-     * bed's {@code FACING} direction and the player's yaw (clockwise vs counter-clockwise side).
-     * The 12 candidates = 10 "surround" + 2 "above" are all tested at head-block Y.</p>
-     *
-     * <p>For {@link RespawnConfig.SpawnType#RESPAWN_ANCHOR}: 25 offsets comprising the 8
-     * horizontal neighbors, those 8 shifted one below, those 8 shifted one above, plus
-     * {@code {0,1,0}}.</p>
-     *
-     * <p>Both types do a first pass with {@code avoidDanger=true} (prefer non-dangerous floors)
-     * then a second pass with {@code avoidDanger=false}.</p>
-     *
-     * @param level the level containing the block
-     * @param pos   the spawn block position (bed head or anchor)
-     * @return a safe {@link Location} or {@code null} if none found
-     */
-    @Nullable
-    private Location findStandUpPosition(CloudLevel level, Vector3i pos) {
-        if (this.respawnConfig != null && this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
-            return findBedStandUpPosition(level, pos);
-        } else {
-            return findAnchorStandUpPosition(level, pos);
-        }
-    }
-
-    /**
-     * Bed respawn stand-up position search.
-     *
-     * <p>All 12 offsets are 2-D XZ relative to the HEAD block and iterated at head-block Y.</p>
-     */
-    @Nullable
-    private Location findBedStandUpPosition(CloudLevel level, Vector3i headPos) {
-        Block headBlock = level.getBlock(headPos);
-        Direction facing;
-        try {
-            facing = headBlock.getState().ensureTrait(BlockTraits.DIRECTION);
-        } catch (Exception e) {
-            facing = Direction.NORTH;
-        }
-
-        // sideFacing: clockwise of facing, flipped based on player yaw.
-        Direction clockwise = facing.rotateClockwise();
-        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
-        Direction sideFacing = clockwise.isFacing(yaw) ? clockwise.rotateCounterClockwise() : clockwise;
-
-        // bedStandUpOffsets = bedSurroundStandUpOffsets(facing, sideFacing) + bedAboveStandUpOffsets(facing)
-        // All offsets are [xOff, zOff] relative to headPos (Y stays at headPos.Y).
-        int[][] offsets = bedStandUpOffsets(facing, sideFacing);
-
-        // First pass: avoidDanger=true, then avoidDanger=false
-        Location loc = findSafePositionBed(level, headPos, offsets, true);
-        if (loc != null) return loc;
-        return findSafePositionBed(level, headPos, offsets, false);
-    }
-
-    /**
-     * Computes the 12 bed stand-up offsets from facing and side directions.
-     * Returns {@code int[12][2]} where each entry is {@code [xOff, zOff]}.
-     */
-    private static int[][] bedStandUpOffsets(Direction f, Direction s) {
-        return new int[][]{
-                // surround
-                {s.getStepX(), s.getStepZ()},
-                {s.getStepX() - f.getStepX(), s.getStepZ() - f.getStepZ()},
-                {s.getStepX() - f.getStepX() * 2, s.getStepZ() - f.getStepZ() * 2},
-                {-f.getStepX() * 2, -f.getStepZ() * 2},
-                {-s.getStepX() - f.getStepX() * 2, -s.getStepZ() - f.getStepZ() * 2},
-                {-s.getStepX() - f.getStepX(), -s.getStepZ() - f.getStepZ()},
-                {-s.getStepX(), -s.getStepZ()},
-                {-s.getStepX() + f.getStepX(), -s.getStepZ() + f.getStepZ()},
-                {f.getStepX(), f.getStepZ()},
-                {s.getStepX() + f.getStepX(), s.getStepZ() + f.getStepZ()},
-                // above
-                {0, 0},
-                {-f.getStepX(), -f.getStepZ()},
-        };
-    }
-
-    /**
-     * Iterates 2-D XZ {@code offsets} relative to {@code headPos} (all at {@code headPos.Y}) and
-     * returns the first position that passes {@link #isSafeDismountLocation}.
-     */
-    @Nullable
-    private Location findSafePositionBed(CloudLevel level, Vector3i headPos, int[][] offsets, boolean avoidDanger) {
-        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
-        for (int[] off : offsets) {
-            int cx = headPos.getX() + off[0];
-            int cy = headPos.getY(); // Y stays at head block level
-            int cz = headPos.getZ() + off[1];
-            if (isSafeDismountLocation(level, Vector3i.from(cx, cy, cz), avoidDanger)) {
-                return Location.from(cx + 0.5f, cy, cz + 0.5f, yaw, 0f, level);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Anchor respawn stand-up position search.
-     *
-     * <p>Uses 25 offsets: 8 horizontal neighbors, those 8 shifted -1Y, those 8 shifted +1Y,
-     * plus {@code {0,1,0}}. Two passes: avoidDanger=true then false.</p>
-     */
-    @Nullable
-    private Location findAnchorStandUpPosition(CloudLevel level, Vector3i pos) {
-        // 8 horizontal neighbours (cardinal + diagonal)
-        int[][] horizontal = {
-                {0, 0, -1}, {-1, 0, 0}, {0, 0, 1}, {1, 0, 0},
-                {-1, 0, -1}, {1, 0, -1}, {-1, 0, 1}, {1, 0, 1},
-        };
-
-        // Build all 25 offsets: horizontal, horizontal-1Y, horizontal+1Y, then {0,1,0}
-        int[][] all = new int[25][3];
-        for (int i = 0; i < 8; i++) {
-            all[i] = new int[]{horizontal[i][0], 0, horizontal[i][2]}; // same Y
-            all[8 + i] = new int[]{horizontal[i][0], -1, horizontal[i][2]}; // one below
-            all[16 + i] = new int[]{horizontal[i][0], +1, horizontal[i][2]}; // one above
-        }
-        all[24] = new int[]{0, 1, 0}; // directly above anchor
-
-        float yaw = this.respawnConfig != null ? this.respawnConfig.yaw() : this.getYaw();
-        for (int[] off : all) {
-            Vector3i candidate = Vector3i.from(pos.getX() + off[0], pos.getY() + off[1], pos.getZ() + off[2]);
-            if (isSafeDismountLocation(level, candidate, true)) {
-                return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
-            }
-        }
-
-        for (int[] off : all) {
-            Vector3i candidate = Vector3i.from(pos.getX() + off[0], pos.getY() + off[1], pos.getZ() + off[2]);
-            if (isSafeDismountLocation(level, candidate, false)) {
-                return Location.from(candidate.getX() + 0.5f, candidate.getY(), candidate.getZ() + 0.5f, yaw, 0f, level);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns {@code true} if a player can safely stand at {@code pos}.
-     *
-     * <p>A position is safe when:
-     * <ol>
-     *   <li>The candidate block itself is passable (feet level).</li>
-     *   <li>The block directly above is also passable (head level).</li>
-     *   <li>The block below has a floor to stand on.</li>
-     *   <li>If {@code avoidDanger=true}: neither the candidate block nor the floor block is a
-     *       "dangerous" block (fire, lava, cactus, etc.).</li>
-     * </ol></p>
-     *
-     * @param level       the level to check in
-     * @param pos         the candidate feet-level position
-     * @param avoidDanger if {@code true}, reject positions with dangerous blocks
-     * @return {@code true} if the position is safe to respawn at
-     */
-    private static boolean isSafeDismountLocation(CloudLevel level, Vector3i pos, boolean avoidDanger) {
-        Block feetBlock = level.getBlock(pos);
-        Block headBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() + 1, pos.getZ()));
-        Block floorBlock = level.getBlock(Vector3i.from(pos.getX(), pos.getY() - 1, pos.getZ()));
-
-        if (!isPassable(level, feetBlock) || !isPassable(level, headBlock)) {
-            return false;
-        }
-
-        if (isPassable(level, floorBlock)) {
-            return false;
-        }
-
-        return !avoidDanger || (!isDangerous(feetBlock) && !isDangerous(floorBlock));
-    }
-
-    private static boolean isPassable(CloudLevel level, Block block) {
-        return !level.hasBlockCollision(null, block.getState(), block.getPosition(), BoundingBox.unit(block.getPosition()));
-    }
-
-    /**
-     * Returns {@code true} if standing in or on this block would immediately harm the player.
-     */
-    private static boolean isDangerous(Block block) {
-        BlockType type = block.getState().getType();
-        return type == BlockTypes.FIRE
-                || type == BlockTypes.SOUL_FIRE
-                || type == BlockTypes.LAVA
-                || type == BlockTypes.FLOWING_LAVA
-                || type == BlockTypes.CACTUS
-                || type == BlockTypes.MAGMA
-                || type == BlockTypes.WITHER_ROSE;
+        return Location.from(standUpPosition, respawnYaw, 0, spawnLevel);
     }
 
     protected void doFirstSpawn() {
@@ -1835,7 +1640,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         boolean revert = false;
         String revertReason = null;
         Vector3f authoritativePosition = null;
-        boolean applyAcceptanceThreshold = false;
+        Vector3f collisionResolvedPosition = null;
 
         float tickDiffSq = (float) tickDiff * (float) tickDiff;
         float maxSpeedThreshold = this.server.getConfig().getMovement().getMaxSpeedThreshold();
@@ -1862,11 +1667,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             float dy = newPosition.getY() - currentPos.getY();
             float dz = newPosition.getZ() - currentPos.getZ();
 
-            if (!this.fastMove(dx, dy, dz)) {
-                revert = true;
-                revertReason = "collision";
-                authoritativePosition = currentPos;
-                applyAcceptanceThreshold = true;
+            this.move(MovementType.PLAYER, dx, dy, dz);
+            Vector3f resolvedPosition = this.getPosition();
+            if (!resolvedPosition.equals(newPosition)) {
+                collisionResolvedPosition = resolvedPosition;
             }
 
             if (this.newPosition == null) {
@@ -1945,12 +1749,15 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     correctedPos.getX() + radius, correctedPos.getY() + this.getHeight(), correctedPos.getZ() + radius);
             this.lastPosition = correctedPos;
 
+            log.debug("[{}] movement corrected: claimed {} corrected to {} ({})", this.getName(), newPosition, correctedPos, revertReason);
+            sendMovementCorrection(correctedPos, this.clientTick);
+            this.forceMovement = correctedPos;
+        } else if (collisionResolvedPosition != null && this.getPosition().equals(collisionResolvedPosition)) {
             float acceptanceThreshold = this.server.getConfig().getMovement().getPositionAcceptanceThreshold();
-            boolean correctionRequired = !applyAcceptanceThreshold || newPosition.distance(correctedPos) > acceptanceThreshold;
-            if (correctionRequired) {
-                log.debug("[{}] movement corrected: claimed {} corrected to {} ({})", this.getName(), newPosition, correctedPos, revertReason);
-                sendMovementCorrection(correctedPos, this.clientTick);
-                this.forceMovement = correctedPos;
+            if (newPosition.distance(collisionResolvedPosition) > acceptanceThreshold) {
+                log.debug("[{}] movement corrected: claimed {} corrected to {} (collision)", this.getName(), newPosition, collisionResolvedPosition);
+                sendMovementCorrection(collisionResolvedPosition, this.clientTick);
+                this.forceMovement = collisionResolvedPosition;
             } else {
                 this.forceMovement = null;
             }

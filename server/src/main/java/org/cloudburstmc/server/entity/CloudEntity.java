@@ -1604,10 +1604,6 @@ public abstract class CloudEntity implements Entity {
         return this.level.hasLoadedBlockIntersecting(this.getBoundingBox(), block -> block.getState().getType() == FIRE);
     }
 
-    public boolean fastMove(float dx, float dy, float dz) {
-        return EntityMovementController.fastMove(this, dx, dy, dz);
-    }
-
     public boolean move(Vector3f d) {
         return this.move(MovementType.SELF, d);
     }

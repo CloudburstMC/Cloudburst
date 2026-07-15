@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.blockentity.Bed;
@@ -11,8 +12,10 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.PlacementSupport;
+import org.cloudburstmc.server.entity.vehicle.DismountHelper;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -20,8 +23,28 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
+import java.util.List;
+
 @UtilityClass
 public class BedBlockHandlers {
+
+    private static final List<RelativeOffset> SURROUND_OFFSETS = List.of(
+            new RelativeOffset(1, 0),
+            new RelativeOffset(1, -1),
+            new RelativeOffset(1, -2),
+            new RelativeOffset(0, -2),
+            new RelativeOffset(-1, -2),
+            new RelativeOffset(-1, -1),
+            new RelativeOffset(-1, 0),
+            new RelativeOffset(-1, 1),
+            new RelativeOffset(0, 1),
+            new RelativeOffset(1, 1)
+    );
+
+    private static final List<RelativeOffset> ABOVE_OFFSETS = List.of(
+            new RelativeOffset(0, 0),
+            new RelativeOffset(0, -1)
+    );
 
     /**
      * Places both the foot (at {@code blockPosition}) and head (one block ahead
@@ -189,6 +212,63 @@ public class BedBlockHandlers {
         return builder.build();
     };
 
+    public static @Nullable Vector3f findStandUpPosition(CloudLevel level, Vector3i position, Direction forward, float yaw) {
+        Direction right = forward.rotateClockwise();
+        Direction side = right.isFacing(yaw) ? right.getOpposite() : right;
+        if (level.getBlockState(position.sub(0, 1, 0)).getType() == BlockTypes.BED) {
+            return findBunkBedStandUpPosition(level, position, forward, side);
+        }
+
+        Vector3f safePosition = findBedStandUpPosition(level, position, forward, side, true);
+        return safePosition != null ? safePosition : findBedStandUpPosition(level, position, forward, side, false);
+    }
+
+    private static @Nullable Vector3f findBunkBedStandUpPosition(CloudLevel level, Vector3i position, Direction forward, Direction side) {
+        Vector3f safePosition = findStandUpPositionAtOffset(level, position, forward, side, SURROUND_OFFSETS, true);
+        if (safePosition != null) {
+            return safePosition;
+        }
+
+        Vector3i below = position.sub(0, 1, 0);
+        safePosition = findStandUpPositionAtOffset(level, below, forward, side, SURROUND_OFFSETS, true);
+        if (safePosition != null) {
+            return safePosition;
+        }
+
+        safePosition = findStandUpPositionAtOffset(level, position, forward, side, ABOVE_OFFSETS, true);
+        if (safePosition != null) {
+            return safePosition;
+        }
+
+        safePosition = findStandUpPositionAtOffset(level, position, forward, side, SURROUND_OFFSETS, false);
+        if (safePosition != null) {
+            return safePosition;
+        }
+
+        safePosition = findStandUpPositionAtOffset(level, below, forward, side, SURROUND_OFFSETS, false);
+        return safePosition != null ? safePosition
+                : findStandUpPositionAtOffset(level, position, forward, side, ABOVE_OFFSETS, false);
+    }
+
+    private static @Nullable Vector3f findBedStandUpPosition(CloudLevel level, Vector3i position, Direction forward, Direction side, boolean avoidDanger) {
+        Vector3f safePosition = findStandUpPositionAtOffset(level, position, forward, side, SURROUND_OFFSETS, avoidDanger);
+        return safePosition != null ? safePosition
+                : findStandUpPositionAtOffset(level, position, forward, side, ABOVE_OFFSETS, avoidDanger);
+    }
+
+    private static @Nullable Vector3f findStandUpPositionAtOffset(CloudLevel level, Vector3i position, Direction forward, Direction side, List<RelativeOffset> offsets, boolean avoidDanger) {
+        for (RelativeOffset offset : offsets) {
+            int x = side.getStepX() * offset.sideSteps() + forward.getStepX() * offset.forwardSteps();
+            int z = side.getStepZ() * offset.sideSteps() + forward.getStepZ() * offset.forwardSteps();
+            Vector3f safePosition = DismountHelper.findSafeDismountLocation(level, position.add(x, 0, z), avoidDanger);
+            if (safePosition != null) {
+                return safePosition;
+            }
+        }
+
+        return null;
+    }
+
     private static void spawnBedEntity(CloudLevel level, Vector3i pos, DyeColor color) {
         CloudChunk chunk = level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
         if (chunk == null) {
@@ -200,28 +280,13 @@ public class BedBlockHandlers {
         entity.spawnToAll();
     }
 
-    /**
-     * Returns the head-block position for the given bed block.
-     */
     private static Vector3i resolveHeadPos(Block block) {
-        boolean isHead;
-        try {
-            isHead = block.getState().ensureTrait(BlockTraits.IS_HEAD_PIECE);
-        } catch (Exception e) {
-            isHead = true;
-        }
-
-        if (isHead) {
+        BlockState state = block.getState();
+        if (state.ensureTrait(BlockTraits.IS_HEAD_PIECE)) {
             return block.getPosition();
         }
 
-        Direction facing;
-        try {
-            facing = block.getState().ensureTrait(BlockTraits.DIRECTION);
-        } catch (Exception e) {
-            facing = Direction.NORTH;
-        }
-
+        Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
         Vector3i foot = block.getPosition();
         return Vector3i.from(
                 foot.getX() + facing.getStepX(),
@@ -230,25 +295,10 @@ public class BedBlockHandlers {
         );
     }
 
-    /**
-     * Returns the position of the partner half of the bed relative to
-     * {@code block}.
-     */
     private static Vector3i resolvePartnerPos(Block block) {
-        Direction facing;
-        try {
-            facing = block.getState().ensureTrait(BlockTraits.DIRECTION);
-        } catch (Exception e) {
-            facing = Direction.NORTH;
-        }
-
-        boolean isHead;
-        try {
-            isHead = block.getState().ensureTrait(BlockTraits.IS_HEAD_PIECE);
-        } catch (Exception e) {
-            isHead = false;
-        }
-
+        BlockState state = block.getState();
+        Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
+        boolean isHead = state.ensureTrait(BlockTraits.IS_HEAD_PIECE);
         Vector3i pos = block.getPosition();
         int stepX = facing.getStepX();
         int stepZ = facing.getStepZ();
@@ -258,5 +308,8 @@ public class BedBlockHandlers {
         } else {
             return Vector3i.from(pos.getX() + stepX, pos.getY(), pos.getZ() + stepZ);
         }
+    }
+
+    private record RelativeOffset(int sideSteps, int forwardSteps) {
     }
 }
