@@ -67,7 +67,7 @@ public class EntityInsideBlockScanner {
 
             entity.level.forEachBlockCollision(entity, box, block -> {
                 if (collisionBlocks.add(block.getPosition())) {
-                    block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, entity);
+                    block.getComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, entity);
                 }
             });
         }

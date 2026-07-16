@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Boat;
@@ -24,7 +23,6 @@ import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.level.collision.BlockBoxTraversal;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 
@@ -175,7 +173,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var b = this.getLevel().getBlockState(this.getPosition().down().toInt());
-                friction *= CloudBlockRegistry.REGISTRY.getComponent(b.getType(), BlockComponents.FRICTION).get();
+                friction *= b.getFriction();
             }
 
             this.motion = motion.mul(friction, 1, friction);
@@ -435,7 +433,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     private final class WaterLevelBlockScanner implements BlockBoxTraversal.BlockPositionConsumer {
 
         private final double maxY;
-        private double waterLevel = Double.MAX_VALUE;
+        private double waterLevel = Double.NEGATIVE_INFINITY;
 
         private WaterLevelBlockScanner(double maxY) {
             this.maxY = maxY;
@@ -444,13 +442,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
         @Override
         public void accept(int x, int y, int z) {
             var block = getLevel().getBlock(x, y, z);
-            BlockState state = block.getState();
+            LiquidState state = block.getLiquid();
 
-            if (state.getType() == BlockTypes.WATER || state.getType() == BlockTypes.FLOWING_WATER) {
-//                TODO This is broken :(
-//                block.getY() + 1 - (state.getTraits().get(BlockTraits.FLUID_LEVEL)/ 8)
-//                double level = ((BlockBehaviorWater) state.getBehavior()).getMaxY(block);
-                this.waterLevel = Math.min(this.maxY, this.waterLevel);
+            if (state.getType().isSameFamily(LiquidTypes.WATER)) {
+                float height = state.isSameFamily(block.up().getLiquid()) ? 1 : state.getOwnHeight();
+                this.waterLevel = Math.max(this.waterLevel, Math.min(this.maxY, y + height));
             }
         }
 

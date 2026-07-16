@@ -1,9 +1,10 @@
 package org.cloudburstmc.server.block.component;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
@@ -20,8 +21,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @UtilityClass
 public class ButtonBlockHandlers {
-
-    private static final Object2IntMap<BlockType> PRESS_DURATION = new Object2IntOpenHashMap<>();
 
     public static final int WOODEN_PRESS_TICKS = 30;
     public static final int STONE_PRESS_TICKS = 20;
@@ -57,8 +56,7 @@ public class ButtonBlockHandlers {
             return;
         }
 
-        ItemStack drop = CloudBlockRegistry.REGISTRY.getComponents(state.getType())
-                .get(BlockComponents.GET_RESOURCE)
+        ItemStack drop = block.getComponent(BlockComponents.GET_RESOURCE)
                 .execute(block, ThreadLocalRandom.current(), 0);
         if (!drop.isEmpty()) {
             level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);
@@ -83,13 +81,10 @@ public class ButtonBlockHandlers {
         int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(pressed);
         level.addLevelSoundEvent(pos, SoundEvent.BUTTON_CLICK_ON, soundData);
 
-        int pressDurationTicks = PRESS_DURATION.getOrDefault(state.getType(), 30);
+        int pressDurationTicks = block.getComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS);
         level.scheduleUpdate(level.getBlock(pos), pressDurationTicks);
 
         return true;
     };
 
-    public static void registerPressDuration(BlockType type, int ticks) {
-        PRESS_DURATION.put(type, ticks);
-    }
 }

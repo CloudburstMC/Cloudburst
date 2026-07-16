@@ -69,8 +69,9 @@ public class BedBlockHandlers {
             return false;
         }
 
+        BlockState footExisting = level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ());
         BlockState headExisting = level.getBlockState(headPos.getX(), headPos.getY(), headPos.getZ());
-        if (!CloudBlockRegistry.REGISTRY.getComponent(headExisting.getType(), BlockComponents.REPLACEABLE).get()) {
+        if (!headExisting.isReplaceable()) {
             return false;
         }
 
@@ -95,7 +96,7 @@ public class BedBlockHandlers {
 
         if (!level.setBlockState(headPos.getX(), headPos.getY(), headPos.getZ(), 0, headState, true, true)) {
             level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0,
-                    level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ()), true, true);
+                    footExisting, true, true);
             return false;
         }
 

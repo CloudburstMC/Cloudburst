@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
@@ -24,22 +26,16 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.api.block.BlockTypes.WATER;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 
-/**
- * @author MagicDroidX
- */
 public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     protected ItemStack item;
     protected int pickupDelay;
+    private boolean fromFishing;
 
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
         super(type, location);
@@ -192,10 +188,21 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             }
 
             Vector3f pos = this.getPosition();
-            var b = this.level.getBlockState(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ()).getType();
+            Block liquidBlock = this.level.getBlock(pos);
+            LiquidState liquid = liquidBlock.getLiquid();
+            float liquidHeight = liquid.getOwnHeight();
+            if (!liquid.isEmpty() && liquid.isSameFamily(liquidBlock.up().getLiquid())) {
+                liquidHeight = 1;
+            }
 
-            if (b == FLOWING_WATER || b == WATER) {
-                this.motion = Vector3f.from(this.motion.getX(), this.getGravity() - 0.06, this.motion.getZ());
+            if (!liquid.isEmpty() && pos.getY() < liquidBlock.getY() + liquidHeight) {
+                boolean water = liquid.getType().isSameFamily(org.cloudburstmc.api.block.LiquidTypes.WATER);
+                float horizontalDrag = water ? 0.99f : 0.95f;
+                this.motion = Vector3f.from(
+                        this.motion.getX() * horizontalDrag,
+                        this.motion.getY() + (this.motion.getY() < 0.06f ? 0.0005f : 0),
+                        this.motion.getZ() * horizontalDrag
+                );
             } else {
                 this.motion = this.motion.sub(0, this.getGravity(), 0);
             }
@@ -211,7 +218,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
                 var block = this.getLevel().getBlockState(pos.add(0, -1, 0).toInt());
-                friction *= CloudBlockRegistry.REGISTRY.getComponent(block.getType(), BlockComponents.FRICTION).get();
+                friction *= block.getFriction();
             }
 
             this.motion = this.motion.mul(friction, 1 - this.getDrag(), friction);
@@ -267,6 +274,14 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         this.pickupDelay = pickupDelay;
     }
 
+    public boolean isFromFishing() {
+        return this.fromFishing;
+    }
+
+    public void setFromFishing(boolean fromFishing) {
+        this.fromFishing = fromFishing;
+    }
+
     @Override
     public BedrockPacket createAddEntityPacket() {
         Vector3f pos = this.getPosition();
@@ -275,6 +290,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         addEntity.setRuntimeEntityId(this.getRuntimeId());
         addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
         addEntity.setMotion(this.getMotion());
+        addEntity.setFromFishing(this.fromFishing);
         this.data.putAllIn(addEntity.getMetadata());
         addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
         return addEntity;

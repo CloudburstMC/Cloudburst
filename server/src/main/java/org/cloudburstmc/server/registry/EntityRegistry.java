@@ -144,7 +144,6 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
             this.dataMap.put(type, entityData);
 
             CloudComponentMap map = new CloudComponentMap(this);
-            map.bake();
             putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
             RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
@@ -249,6 +248,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
 
         // Bake registry providers
         this.dataMap.values().forEach(entityData -> entityData.serviceProvider.bake());
+        this.freezeComponentMaps();
 
         // generate cache
 

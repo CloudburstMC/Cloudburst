@@ -114,7 +114,6 @@ public class LevelBuilder {
         CloudLevel level = injector.getInstance(CloudLevel.class);
         this.server.getLevelManager().register(level);
         level.init();
-        level.setTickRate(this.server.getBaseTickRate());
         return level;
     }
 

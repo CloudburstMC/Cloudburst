@@ -14,7 +14,6 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
-import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.utils.LoadState;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
@@ -123,12 +122,10 @@ class LevelDBProvider implements LevelProvider {
             }
 
             CloudLevel level = (CloudLevel) chunk.getLevel();
-            BlockUpdateScheduler scheduler = level.getUpdateQueue();
             long chunkKey = CloudChunk.key(x, z);
-            long currentTick = level.getCurrentTick();
 
             boolean blocksDirty = chunk.isDirty();
-            boolean ticksDirty = scheduler.isDirty(chunkKey, currentTick);
+            boolean ticksDirty = level.areTicksDirty(chunkKey);
 
             if (!blocksDirty && !ticksDirty) {
                 return null;

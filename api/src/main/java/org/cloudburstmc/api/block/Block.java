@@ -1,5 +1,7 @@
 package org.cloudburstmc.api.block;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
@@ -32,11 +34,32 @@ public interface Block extends BlockSnapshot {
         return getPosition().getZ();
     }
 
-    ComponentMap getComponents();
-
     int getBrightness();
 
-    boolean isWaterlogged();
+    /**
+     * Gets the behavioral components of this block.
+     *
+     * @return the block components
+     */
+    ComponentMap getComponents();
+
+    /**
+     * Gets a behavioral component of this block.
+     *
+     * @param type the component type
+     * @param <H> the component value type
+     * @return the component, or {@code null} if this block does not have it
+     */
+    default <H> @Nullable H getComponent(ComponentType<H> type) {
+        return this.getComponents().get(type);
+    }
+
+    /**
+     * Gets the level-aware collision shape of this block.
+     *
+     * @return the collision shape
+     */
+    VoxelShape getCollisionShape();
 
     /**
      * Gets the level-aware selection and interaction outline of this block.

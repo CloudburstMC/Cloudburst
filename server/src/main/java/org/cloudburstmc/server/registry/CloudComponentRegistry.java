@@ -1,62 +1,75 @@
 package org.cloudburstmc.server.registry;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.registry.ComponentRegistry;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
 /**
  * Base implementation of {@link ComponentRegistry} for server-side block, item, and entity registries.
  * <p>
- * Stores both global component defaults (applied to every type at bake time) and per-type
- * {@link CloudComponentMap}s in a single shared {@link IdentityHashMap}.
- *
  * @param <T> the type managed by this registry
  */
 @SuppressWarnings("unchecked")
 public abstract class CloudComponentRegistry<T> implements ComponentRegistry<T> {
 
-    /**
-     * Global component defaults; copied into every per-type map during {@link CloudComponentMap#bake()}.
-     */
-    protected final Map<ComponentType<?>, Object> components = new HashMap<>();
+    /** Component defaults collected during registration. */
+    private final Map<ComponentType<?>, Object> mutableComponents = new HashMap<>();
+    /** Immutable component defaults published when registration closes. */
+    private volatile Map<ComponentType<?>, Object> components = Map.of();
+    private final Map<Identifier, ComponentType<?>> componentTypes = new HashMap<>();
 
     /**
      * Per-type component maps, keyed by type identity.
      */
     private final IdentityHashMap<T, CloudComponentMap> typeComponentMaps = new IdentityHashMap<>();
+    private volatile boolean componentsFrozen;
 
     @Override
-    public <H> void registerComponent(ComponentType<H> type, H defaultComponent) {
+    public synchronized <H> void registerComponent(ComponentType<H> type) {
         checkNotNull(type, "type");
-        checkNotNull(defaultComponent, "defaultComponent");
-        checkState(!this.components.containsKey(type), "%s has already been registered", type.getId());
+        checkState(!this.componentsFrozen, "Component registration is closed");
+        ComponentType<?> existingType = this.componentTypes.get(type.getId());
+        if (existingType != null) {
+            throw new IllegalStateException("Component identifier " + type.getId()
+                    + " is already registered for " + existingType.getType().getName());
+        }
 
-        this.components.put(type, defaultComponent);
+        this.componentTypes.put(type.getId(), type);
     }
 
     @Override
-    public <H> H getDefaultComponent(ComponentType<H> type) {
-        return (H) components.get(type);
+    public synchronized <H> void registerComponent(ComponentType<H> type, H defaultComponent) {
+        checkNotNull(type, "type");
+        checkNotNull(defaultComponent, "defaultComponent");
+        checkArgument(type.getType().isInstance(defaultComponent),
+                "Default for %s must implement %s", type.getId(), type.getType().getName());
+        this.registerComponent(type);
+        this.mutableComponents.put(type, defaultComponent);
+    }
+
+    @Override
+    public <H> @Nullable H getDefaultComponent(ComponentType<H> type) {
+        checkNotNull(type, "type");
+        if (this.componentsFrozen) {
+            return (H) this.components.get(type);
+        }
+
+        synchronized (this) {
+            return (H) this.mutableComponents.get(type);
+        }
     }
 
     public boolean isComponentRegistered(ComponentType<?> type) {
-        return components.containsKey(type);
-    }
-
-    public void forEachComponent(BiConsumer<ComponentType<?>, Object> consumer) {
-        checkNotNull(consumer, "consumer");
-        for (Map.Entry<ComponentType<?>, Object> entry : this.components.entrySet()) {
-            consumer.accept(entry.getKey(), entry.getValue());
-        }
+        return type.equals(this.componentTypes.get(type.getId()));
     }
 
     protected void putComponents(T type, CloudComponentMap map) {
@@ -69,14 +82,15 @@ public abstract class CloudComponentRegistry<T> implements ComponentRegistry<T> 
         return typeComponentMaps.get(type);
     }
 
-    protected CloudComponentMap newUnregisteredComponentMap() {
-        CloudComponentMap map = new CloudComponentMap(this);
-        map.bake();
-        return map;
+    protected synchronized void freezeComponentMaps() {
+        checkState(!this.componentsFrozen, "Components are already frozen");
+        this.typeComponentMaps.values().forEach(CloudComponentMap::freeze);
+        this.components = Map.copyOf(this.mutableComponents);
+        this.componentsFrozen = true;
     }
 
     @Override
-    public ComponentMap getComponents(T type) {
-        return typeComponentMaps.get(type);
+    public @Nullable ComponentMap getComponents(T type) {
+        return typeComponentMaps.get(checkNotNull(type, "type"));
     }
 }

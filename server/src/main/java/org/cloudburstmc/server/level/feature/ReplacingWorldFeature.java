@@ -5,7 +5,6 @@ import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Provides helper methods for other {@link WorldFeature} to quickly check if a block can be replaced.
@@ -14,17 +13,12 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     @Override
     public boolean test(BlockState state) {
         Identifier id = state.getType().getId();
-
-        return id == BlockIds.AIR ||
-                state.is(BlockTags.LEAVES) ||
-                (!CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get() && CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.REPLACEABLE).get());
+        return id == BlockIds.AIR || state.is(BlockTags.LEAVES) || (!state.getType().isLiquid() && state.isReplaceable());
     }
 
     public boolean testOrLiquid(BlockState state) {
         BlockType type = state.getType();
-        return type == BlockTypes.AIR ||
-                type.is(BlockTags.LEAVES) ||
-                CloudBlockRegistry.REGISTRY.getComponent(type, BlockComponents.REPLACEABLE).get();
+        return type == BlockTypes.AIR || type.is(BlockTags.LEAVES) || state.isReplaceable();
     }
 
     /**
@@ -63,6 +57,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
                 return false;
             }
         }
+
         return true;
     }
 }

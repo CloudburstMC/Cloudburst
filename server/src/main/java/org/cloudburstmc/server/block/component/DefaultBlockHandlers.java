@@ -115,12 +115,6 @@ public class DefaultBlockHandlers {
         };
     }
 
-    public static final BooleanBlockStateHandler BLOCKS_MOTION = BlockSupport::defaultBlocksMotion;
-
-    public static final BooleanBlockStateHandler CAN_OCCLUDE = (state) -> true;
-
-    public static final BooleanBlockStateHandler PASSABLE = (state) -> !BlockSupport.blocksMotion(state);
-
     public static final BooleanBlockStateHandler SUFFOCATING = (state) -> {
         if (state.is(BlockTags.TRANSPARENT)) {
             return false;
@@ -128,8 +122,6 @@ public class DefaultBlockHandlers {
 
         return BlockSupport.blocksMotion(state) && BlockSupport.isCollisionShapeFullBlock(state);
     };
-
-    public static final BooleanBlockStateHandler VIEW_BLOCKING = SUFFOCATING;
 
     public static final EntityInsideBlockHandler ON_ENTITY_INSIDE = (block, entity, precise) -> {
     };
@@ -182,21 +174,21 @@ public class DefaultBlockHandlers {
     };
 
     public static final PlayerBlockHandler POST_DESTROY = (block, player) -> {
-        ResourceBlockHandler getResource = block.getComponents().get(BlockComponents.GET_RESOURCE);
+        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
         if (getResource != null) {
             getResource.execute(block, ThreadLocalRandom.current(), 0);
         }
     };
 
     public static final SpawnResourcesBlockHandler SPAWN_RESOURCES = (block, random, tool, bonusLootLevel) -> {
-        ResourceCountBlockHandler getResourceCount = block.getComponents().get(BlockComponents.GET_RESOURCE_COUNT);
+        ResourceCountBlockHandler getResourceCount = block.getComponent(BlockComponents.GET_RESOURCE_COUNT);
         int resourceCount = getResourceCount != null ? getResourceCount.execute(block, random, bonusLootLevel) : 1;
         if (resourceCount < 1) {
             return;
         }
 
-        ResourceBlockHandler getResource = block.getComponents().get(BlockComponents.GET_RESOURCE);
-        DropResourceBlockHandler dropResource = block.getComponents().get(BlockComponents.DROP_RESOURCE);
+        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
+        DropResourceBlockHandler dropResource = block.getComponent(BlockComponents.DROP_RESOURCE);
 
         for (int i = 0; i < resourceCount; i++) {
             if (!Randoms.chanceFloatGreaterThan(random, 0)) {
@@ -242,7 +234,7 @@ public class DefaultBlockHandlers {
     };
 
     public static final ResourceBlockHandler GET_SILK_TOUCH_RESOURCE = (block, random, bonusLevel) -> {
-        ResourceBlockHandler getResource = block.getComponents().get(BlockComponents.GET_RESOURCE);
+        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
         return getResource != null ? getResource.execute(block, random, bonusLevel) : ItemStack.EMPTY;
     };
 
@@ -260,6 +252,5 @@ public class DefaultBlockHandlers {
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
     public static final BooleanBlockHandler CAN_BE_SILK_TOUCHED = (block) -> true;
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
-    public static final BooleanBlockHandler CAN_CONTAIN_LIQUID = (block) -> false;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;
 }

@@ -55,7 +55,7 @@ class VanillaBlockTags {
                 tags.add(key);
             }
         }
-        type.bindTags(tags);
+        BlockRegistrationAccess.bindTags(type, tags);
     }
 
     static void freeze() {

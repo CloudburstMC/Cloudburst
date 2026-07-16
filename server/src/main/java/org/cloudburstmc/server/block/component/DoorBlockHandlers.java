@@ -73,8 +73,7 @@ public class DoorBlockHandlers {
         }
 
         if (!isUpperBlock) {
-            ItemStack drop = CloudBlockRegistry.REGISTRY.getComponents(state.getType())
-                    .get(BlockComponents.GET_RESOURCE)
+            ItemStack drop = block.getComponent(BlockComponents.GET_RESOURCE)
                     .execute(block, ThreadLocalRandom.current(), 0);
             if (!drop.isEmpty()) {
                 level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);

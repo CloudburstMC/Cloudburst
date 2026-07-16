@@ -3,7 +3,7 @@ plugins {
 }
 
 application {
-    mainClass.set("org.cloudburstmc.codegen.BlockDataGen")
+    mainClass.set("org.cloudburstmc.codegen.ItemDataGen")
 }
 
 tasks.register<JavaExec>("generateItemData") {

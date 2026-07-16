@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.data;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -9,12 +10,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A typed slot identifier for a behavioral component in a {@link org.cloudburstmc.api.util.component.ComponentMap}.
  * <p>
  * The type parameter {@code H} is the handler (callable) interface stored in the slot.
- * Identity equality is used for lookup; always reference the static constants declared in
- * {@link org.cloudburstmc.api.block.BlockComponents} or {@link org.cloudburstmc.api.item.ItemComponents}.
+ * Component types with the same identifier and handler type are equal.
  *
  * @param <H> the handler interface type
  */
 @Getter
+@EqualsAndHashCode
 public final class ComponentType<H> {
 
     private final Identifier id;

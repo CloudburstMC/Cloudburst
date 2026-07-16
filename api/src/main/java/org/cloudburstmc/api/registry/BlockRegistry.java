@@ -1,12 +1,15 @@
 package org.cloudburstmc.api.registry;
 
-import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.api.util.component.ComponentMap;
+
+import java.util.List;
 
 public interface BlockRegistry extends ComponentRegistry<BlockType> {
 
@@ -26,9 +29,10 @@ public interface BlockRegistry extends ComponentRegistry<BlockType> {
 
     BlockState getBlock(int runtimeId);
 
-    ImmutableList<BlockState> getBlockStates();
+    List<BlockState> getBlockStates();
 
     @Override
+    @Nullable
     ComponentMap getComponents(BlockType type);
 
     VoxelShape getBlockSupportShape(BlockState state);
@@ -44,6 +48,13 @@ public interface BlockRegistry extends ComponentRegistry<BlockType> {
      */
     BlockTag getTag(BlockTagKey key);
 
-    ComponentMap register(BlockType type) throws RegistryException;
+    /**
+     * Returns a builder for configuring a registered block type during initialization.
+     *
+     * @param type registered block type
+     * @return component builder for the type
+     * @throws RegistryException if the type is unknown or registration has closed
+     */
+    ComponentBuilder configure(BlockType type) throws RegistryException;
 
 }

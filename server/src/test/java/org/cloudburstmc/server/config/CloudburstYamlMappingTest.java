@@ -68,10 +68,6 @@ public class CloudburstYamlMappingTest {
         assertEquals(
                 ServerConfig.LevelSettings.builder()
                         .defaultFormat("leveldb")
-                        .autoTickRate(true)
-                        .autoTickRateLimit(20)
-                        .baseTickRate(1)
-                        .alwaysTickPlayers(false)
                         .build(),
                 yml.getLevelSettings()
         );
@@ -134,6 +130,16 @@ public class CloudburstYamlMappingTest {
                 yml.getPlayer()
         );
 
+        assertEquals(
+                ServerConfig.Level.builder()
+                        .maxBlockTicks(12345)
+                        .maxLiquidTicks(23456)
+                        .waterOverLavaFlowSpeed(7)
+                        .maxChainedNeighborUpdates(34567)
+                        .build(),
+                yml.getLevel()
+        );
+
         HashMap<String, List<String>> aliases = new HashMap<>();
         aliases.put("savestop", Stream.of("save-all", "stop").collect(Collectors.toList()));
         assertEquals(
@@ -145,12 +151,16 @@ public class CloudburstYamlMappingTest {
         worldConfig.put("world", new ServerConfig.World(
                 "test",
                 "cloudburst:standard",
-                "overworld"
+                "overworld",
+                45678,
+                9
         ));
         worldConfig.put("nether", new ServerConfig.World(
                 "nether",
                 "cloudburst:standard",
-                "nether"
+                "nether",
+                null,
+                null
         ));
         assertEquals(
                 worldConfig,

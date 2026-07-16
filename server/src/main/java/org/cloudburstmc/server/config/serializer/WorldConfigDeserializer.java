@@ -30,6 +30,8 @@ public class WorldConfigDeserializer extends StdDeserializer<Map<String, ServerC
                             .seed(v.getSeed() == null ? k : v.getSeed())
                             .generator(v.getGenerator())
                             .options(v.getOptions())
+                            .maxLiquidTicks(v.getMaxLiquidTicks())
+                            .waterOverLavaFlowSpeed(v.getWaterOverLavaFlowSpeed())
                             .build()
             );
         });

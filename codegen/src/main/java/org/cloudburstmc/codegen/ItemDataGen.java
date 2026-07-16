@@ -69,13 +69,6 @@ public class ItemDataGen {
         Files.createDirectories(outputRoot);
         writeCompact(result.itemIds(), outputRoot, "ItemIds.java");
         writeCompact(result.itemTypes(), outputRoot, "ItemTypes.java");
-
-        System.out.printf(
-                Locale.ROOT,
-                "Generated %d item types; skipped %d block-backed items and %d mapped legacy aliases.%n",
-                result.itemTypeCount(),
-                result.skippedBlockBackedItems(),
-                result.skippedMappedAliases());
     }
 
     private static GenerationResult generate(Path projectRoot) throws IOException {

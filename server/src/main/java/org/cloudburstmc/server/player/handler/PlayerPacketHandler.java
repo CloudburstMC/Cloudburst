@@ -70,7 +70,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -92,6 +91,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     protected Vector3i lastRightClickPos = Vector3i.ZERO;
     protected double lastRightClickTime = 0.0;
     protected Direction lastRightClickFace = null;
+    private boolean usingItemOnBlock;
+    private int blockItemActivationTick = Integer.MIN_VALUE;
 
     @Inject
     GlobalRegistry globalRegistry;
@@ -312,7 +313,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
         if (!player.isCreative()) {
-            double breakTime = Math.ceil(CloudBlockRegistry.REGISTRY.getComponent(targetState.getType(), BlockComponents.GET_DESTROY_SPEED).execute(targetState) * 20);
+            double breakTime = Math.ceil(block.getComponent(BlockComponents.GET_DESTROY_SPEED)
+                    .execute(targetState) * 20);
             if (breakTime > 0) {
                 LevelEventPacket levelEvent = new LevelEventPacket();
                 levelEvent.setType(LevelEvent.BLOCK_START_BREAK);
@@ -453,6 +455,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
+        if (!item.isEmpty()) {
+            ItemStack afterUse = level.tryActivateItem(item, player);
+            if (afterUse != null) {
+                this.blockItemActivationTick = player.getServer().getTick();
+                player.getInventory().setSelectedItem(afterUse);
+                rollbackBlock(blockPos, face);
+                return;
+            }
+        }
+
         rollbackBlock(blockPos, face);
     }
 
@@ -462,6 +474,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void handleItemUseInAir(@Nullable ItemData clientItemData, Direction face) {
+        if (this.usingItemOnBlock || this.blockItemActivationTick == player.getServer().getTick()) {
+            return;
+        }
+
         ItemStack useItem = player.getInventory().getSelectedItem();
         if (isHeldItemDesynced(clientItemData)) {
             player.sendHeldItemSlot();
@@ -768,6 +784,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         packet.setRuntimeEntityId(player.getRuntimeId());
 
         switch (packet.getAction()) {
+            case START_ITEM_USE_ON:
+                this.usingItemOnBlock = true;
+                break;
+            case STOP_ITEM_USE_ON:
+                this.usingItemOnBlock = false;
+                break;
             case GET_UPDATED_BLOCK:
                 break; //TODO
             case DROP_ITEM:
@@ -946,8 +968,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        ItemStack item = CloudBlockRegistry.REGISTRY
-                .getComponent(block.getState().getType(), BlockComponents.GET_PICK_BLOCK)
+        ItemStack item = block.getComponent(BlockComponents.GET_PICK_BLOCK)
                 .execute(block);
         if (packet.isAddUserData()) {
             BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
@@ -1438,7 +1459,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 Block block = lectern.getBlock();
                 BlockState state = block.getState();
                 if (state.getType() == BlockTypes.LECTERN) {
-                    block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
+                    block.getComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
                 }
             }
         }

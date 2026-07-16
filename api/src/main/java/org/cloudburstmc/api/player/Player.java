@@ -6,6 +6,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
@@ -120,6 +121,14 @@ public interface Player extends Creature, CommandSender {
      * @return the player's 36-slot main inventory
      */
     PlayerInventoryView getInventory();
+
+    /**
+     * Returns this player's active fishing hook.
+     *
+     * @return the active hook, or {@code null} when the player is not fishing
+     */
+    @Nullable
+    FishingHook getFishingHook();
 
     /**
      * Returns the player's hotbar, a 9-slot section view (slots 0-8) that mirrors the

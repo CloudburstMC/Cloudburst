@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
@@ -18,6 +18,7 @@ public class CloudChunkSection implements ChunkSection {
     public static final int SIZE = 4096;
     public static final int DEFAULT_BIOME_ID = 0;
 
+    private final BlockRegistry blockRegistry;
     private final BlockStorage[] storage;
     private final NibbleArray blockLight;
     private final NibbleArray skyLight;
@@ -35,8 +36,9 @@ public class CloudChunkSection implements ChunkSection {
      */
     private short tickingBlockCount;
 
-    public CloudChunkSection() {
+    public CloudChunkSection(BlockRegistry blockRegistry) {
         this(
+                blockRegistry,
                 new BlockStorage[]{new BlockStorage(), new BlockStorage()},
                 new NibbleArray(SIZE),
                 new NibbleArray(SIZE),
@@ -44,8 +46,9 @@ public class CloudChunkSection implements ChunkSection {
         );
     }
 
-    public CloudChunkSection(BlockStorage[] blockStorage) {
+    public CloudChunkSection(BlockRegistry blockRegistry, BlockStorage[] blockStorage) {
         this(
+                blockRegistry,
                 blockStorage,
                 new NibbleArray(SIZE),
                 new NibbleArray(SIZE),
@@ -53,7 +56,8 @@ public class CloudChunkSection implements ChunkSection {
         );
     }
 
-    public CloudChunkSection(BlockStorage[] storage, byte[] blockLight, byte[] skyLight) {
+    public CloudChunkSection(BlockRegistry blockRegistry, BlockStorage[] storage, byte[] blockLight, byte[] skyLight) {
+        this.blockRegistry = Preconditions.checkNotNull(blockRegistry, "blockRegistry");
         Preconditions.checkNotNull(storage, "storage");
         Preconditions.checkArgument(storage.length > 1, "Block storage length must be at least 2");
         for (BlockStorage blockStorage : storage) {
@@ -70,11 +74,13 @@ public class CloudChunkSection implements ChunkSection {
     }
 
     private CloudChunkSection(
+            BlockRegistry blockRegistry,
             BlockStorage[] storage,
             NibbleArray blockLight,
             NibbleArray skyLight,
             BiomeStorage biomeStorage
     ) {
+        this.blockRegistry = Preconditions.checkNotNull(blockRegistry, "blockRegistry");
         this.storage = storage;
         this.blockLight = blockLight;
         this.skyLight = skyLight;
@@ -99,18 +105,14 @@ public class CloudChunkSection implements ChunkSection {
         Preconditions.checkArgument(z >= 0 && z < 16, "z (%s) is not between 0 and 15", z);
     }
 
-    /**
-     * Returns {@code true} when {@code state} has the {@code CAN_RANDOM_TICK}
-     * component set to {@code true}. Air always returns {@code false}.
-     */
-    private static boolean canRandomTick(BlockState state) {
+    private boolean canRandomTick(BlockState state) {
         if (state == BlockStates.AIR) {
             return false;
         }
 
-        return CloudBlockRegistry.REGISTRY
-                .getComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK)
-                .get();
+        return Preconditions.checkNotNull(
+                this.blockRegistry.getComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK),
+                "Random tick component is not registered for %s", state.getType());
     }
 
     void checkLayer(int layer) {
@@ -310,6 +312,7 @@ public class CloudChunkSection implements ChunkSection {
             storage[i] = this.storage[i].copy();
         }
         return new CloudChunkSection(
+                this.blockRegistry,
                 storage,
                 blockLight.copy(),
                 skyLight.copy(),

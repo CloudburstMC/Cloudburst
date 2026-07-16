@@ -22,6 +22,10 @@ public class BlockStateHash {
      * @param states the states compound from the palette entry
      */
     public static int compute(String name, NbtMap states) {
+        if ("minecraft:unknown".equals(name)) {
+            return -2;
+        }
+
         NbtMap tag = NbtMap.builder()
                 .putString("name", name)
                 .putCompound("states", states)

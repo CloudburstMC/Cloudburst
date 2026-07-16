@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level;
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.LiquidType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
@@ -21,15 +21,13 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.api.block.BlockTypes.WATER;
+import static org.cloudburstmc.api.block.LiquidTypes.WATER;
 
 @Log4j2
 public class Explosion {
@@ -57,8 +55,8 @@ public class Explosion {
     public boolean explodeA() {
         if (what instanceof Explosive) {
             Vector3f pos = ((Entity) what).getPosition();
-            var b = this.level.getBlockState(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ()).getType();
-            if (b == WATER || b == FLOWING_WATER) {
+            LiquidType liquid = this.level.getBlock(pos).getLiquid().getType();
+            if (liquid.isSameFamily(WATER)) {
                 this.doesDamage = false;
                 return true;
             }
@@ -100,10 +98,7 @@ public class Explosion {
                                 var state = block.getState();
                                 BlockState layer1 = block.getExtra();
 
-                                double resistance = Math.max(
-                                        CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.RESISTANCE).get(),
-                                        CloudBlockRegistry.REGISTRY.getComponent(layer1.getType(), BlockComponents.RESISTANCE).get()
-                                );
+                                double resistance = Math.max(state.getExplosionResistance(), layer1.getExplosionResistance());
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;
                                 if (blastForce > 0) {
                                     if (!this.affectedBlockStates.contains(block)) {

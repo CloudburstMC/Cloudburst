@@ -2,7 +2,7 @@ package org.cloudburstmc.server.scheduler;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
@@ -18,10 +18,10 @@ import java.util.stream.Stream;
  * <p>Entries are held in a {@link PriorityQueue} ordered by
  * {@link BlockUpdateEntry#DRAIN_ORDER} (delay, id). A parallel
  * {@link ObjectOpenCustomHashSet} provides O(1) membership and deduplication
- * keyed on {@code (pos, layer-0 BlockState)}.
+ * keyed on position and scheduled type.
  *
  * <p>{@link #nextTickTime} tracks the head entry's {@code delay} so the
- * world-level scheduler can skip this container without touching the queue.
+ * level scheduler can skip this container without touching the queue.
  *
  * <p>The optional {@link #onTickAdded} callback fires after every successful
  * {@link #scheduleUnchecked}. The owning scheduler is responsible for
@@ -31,23 +31,8 @@ import java.util.stream.Stream;
  * <p>The scheduler controls all draining through {@link #peek()} and
  * {@link #poll()}, giving it full control over cross-container interleaving.
  *
- * <p>{@link #isDirty(long)} and {@link #markSaved(long)} allow the save
- * system to skip writing when nothing has changed since the last save.
- * A container is considered dirty if it has been structurally mutated since
- * the last save, OR if it is non-empty and more than
- * {@link #TIME_STALENESS_HORIZON} ticks have passed since the last save.
- * The staleness horizon prevents the on-disk record from drifting far from
- * the current tick timeline without triggering endless per-tick writes.
  */
 public final class LevelChunkTicks {
-
-    /**
-     * Number of ticks after a save after which a non-empty container is
-     * considered stale and should be re-saved even if no structural mutation
-     * has occurred. This keeps the on-disk absolute tick values reasonably
-     * current without triggering a write every single game tick.
-     */
-    private static final long TIME_STALENESS_HORIZON = 600L;
 
     private static final Hash.Strategy<BlockUpdateEntry> DEDUP_STRATEGY =
             new Hash.Strategy<>() {
@@ -88,25 +73,18 @@ public final class LevelChunkTicks {
      */
     private BiConsumer<LevelChunkTicks, BlockUpdateEntry> onTickAdded;
 
-    /**
-     * True when the container has been structurally mutated (entries added or
-     * removed) since the last {@link #markSaved(long)} call.
-     */
+    /** True after entries have changed since the last successful save. */
     private boolean dirty;
-
-    /**
-     * The game tick at which this container was last serialized.
-     * Used together with {@link #dirty} to detect when the relative-delay
-     * encoding in the saved record has become stale.
-     */
-    private long lastSaved;
 
     public LevelChunkTicks() {
         this.queue = new PriorityQueue<>(BlockUpdateEntry.DRAIN_ORDER);
         this.index = new ObjectOpenCustomHashSet<>(DEDUP_STRATEGY);
         this.nextTickTime = Long.MAX_VALUE;
         this.dirty = false;
-        this.lastSaved = Long.MIN_VALUE;
+    }
+
+    public int size() {
+        return this.index.size();
     }
 
     /**
@@ -128,36 +106,12 @@ public final class LevelChunkTicks {
         this.onTickAdded = callback;
     }
 
-    /**
-     * Returns {@code true} when the container should be written to disk.
-     *
-     * <p>Two independent conditions make a container dirty:
-     * <ol>
-     *   <li>A structural mutation has occurred since the last
-     *       {@link #markSaved(long)} call.</li>
-     *   <li>The queue is non-empty and more than
-     *       {@link #TIME_STALENESS_HORIZON} ticks have elapsed since the last
-     *       save, meaning the absolute tick values stored on disk have drifted
-     *       far enough from the current tick timeline to warrant a refresh.
-     *       This prevents endless per-tick writes while still bounding how
-     *       stale the on-disk record can become.</li>
-     * </ol>
-     *
-     * @param currentTick the current world game tick
-     */
-    public boolean isDirty(long currentTick) {
-        return dirty || (!queue.isEmpty() && currentTick - lastSaved > TIME_STALENESS_HORIZON);
+    public boolean isDirty() {
+        return this.dirty;
     }
 
-    /**
-     * Records {@code tick} as the game time at which this container's tick
-     * data was last serialized. Also clears the dirty flag.
-     *
-     * @param tick the game tick at save time
-     */
-    public void markSaved(long tick) {
-        lastSaved = tick;
-        dirty = false;
+    public void markSaved() {
+        this.dirty = false;
     }
 
     /**
@@ -218,8 +172,8 @@ public final class LevelChunkTicks {
      * Returns {@code true} if any queued entry targets {@code pos} with block
      * {@code block}. Uses a zero-cost probe, O(1).
      */
-    public boolean hasScheduledTick(Vector3i pos, Block block) {
-        return index.contains(BlockUpdateEntry.probe(pos, block));
+    public boolean hasScheduledTick(Vector3i pos, BlockType type) {
+        return index.contains(BlockUpdateEntry.probe(pos, type));
     }
 
     /**

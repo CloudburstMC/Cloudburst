@@ -12,6 +12,7 @@ import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -38,10 +39,8 @@ import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.item.component.UseOnHandler;
-import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.LevelException;
@@ -69,8 +68,10 @@ import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
+import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
+import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -100,6 +101,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -125,6 +127,9 @@ public class CloudLevel implements Level {
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
 
     private final CloudServer server;
+    private final int maxLiquidTicks;
+    @Getter
+    private final int waterOverLavaFlowSpeed;
     public final LevelTimings timings;
 
     private LevelProvider provider;
@@ -152,15 +157,12 @@ public class CloudLevel implements Level {
     };
 
 
-    private final BlockUpdateScheduler updateQueue;
+    @Getter
+    private final BlockUpdateScheduler blockUpdateQueue;
+    @Getter
+    private final BlockUpdateScheduler liquidUpdateQueue;
 
-    /**
-     * Per-thread depth counter for recursive neighbor-update chains.
-     * Using a single-element int array avoids boxing on every increment.
-     * The counter is reset to zero after each top-level updateAround() call
-     * completes, so it is always 0 when the tick thread is idle.
-     */
-    private static final ThreadLocal<int[]> NEIGHBOR_UPDATE_DEPTH = ThreadLocal.withInitial(() -> new int[1]);
+    private static final ThreadLocal<NeighborUpdateContext> NEIGHBOR_UPDATES = ThreadLocal.withInitial(NeighborUpdateContext::new);
 
     private boolean autoSave;
 
@@ -178,9 +180,7 @@ public class CloudLevel implements Level {
     private static final int LCG_CONSTANT = 1013904223;
     private final String id;
 
-    private int tickRate;
-    public int tickRateTime = 0;
-    public int tickRateCounter = 0;
+    private double lastTickDuration;
 
     private final Long2ObjectOpenHashMap<Set<Player>> chunkPlayers = new Long2ObjectOpenHashMap<>();
     private final Cache<Long, ByteBuf> chunkCache = CacheBuilder.newBuilder()
@@ -210,6 +210,15 @@ public class CloudLevel implements Level {
         this.id = id;
         //this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
+        ServerConfig.World levelConfig = server.getConfig().getWorlds().get(id);
+        ServerConfig.Level defaults = server.getConfig().getLevel();
+        this.maxLiquidTicks = levelConfig != null && levelConfig.getMaxLiquidTicks() != null
+                ? levelConfig.getMaxLiquidTicks() : defaults.getMaxLiquidTicks();
+        this.waterOverLavaFlowSpeed = levelConfig != null && levelConfig.getWaterOverLavaFlowSpeed() != null
+                ? levelConfig.getWaterOverLavaFlowSpeed() : defaults.getWaterOverLavaFlowSpeed();
+        checkArgument(this.maxLiquidTicks > 0, "max-liquid-ticks must be greater than zero for level %s", id);
+        checkArgument(this.waterOverLavaFlowSpeed > 0,
+                "water-over-lava-flow-speed must be greater than zero for level %s", id);
         this.autoSave = server.getAutoSave();
         this.provider = levelProvider;
         this.levelData = levelData;
@@ -259,11 +268,12 @@ public class CloudLevel implements Level {
         this.chunksPerTicks = this.server.getConfig().getChunkTicking().getPerTick();
         this.chunkTickList.clear();
         this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
-        this.tickRate = 1;
         this.chunkManager = new LevelChunkManager(this);
         this.collisionEngine = new CollisionEngine(this);
 
-        this.updateQueue = new BlockUpdateScheduler(this, this.levelData.getCurrentTick(), chunkKey -> this.chunkManager.isChunkLoaded(chunkKey));
+        LongPredicate loadedChunk = chunkKey -> this.chunkManager.isChunkLoaded(chunkKey);
+        this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getCurrentTick(), loadedChunk, this::tickBlock);
+        this.liquidUpdateQueue = new BlockUpdateScheduler(this.levelData.getCurrentTick(), loadedChunk, this::tickLiquid);
 
         this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
     }
@@ -272,16 +282,12 @@ public class CloudLevel implements Level {
         this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
     }
 
-    public int getTickRate() {
-        return tickRate;
+    public double getLastTickDuration() {
+        return this.lastTickDuration;
     }
 
-    public void setTickRate(int tickRate) {
-        this.tickRate = tickRate;
-    }
-
-    public int getTickRateTime() {
-        return tickRateTime;
+    public void setLastTickDuration(double lastTickDuration) {
+        this.lastTickDuration = lastTickDuration;
     }
 
     /*public BlockMetadataStore getBlockMetadata() {
@@ -434,6 +440,7 @@ public class CloudLevel implements Level {
         packet.setUniqueEntityId(uniqueEntityId);
         packet.setDimensionId(dimensionId);
         packet.setPosition(pos);
+        packet.setMolangVariablesJson(Optional.empty());
 
         if (players == null || players.length == 0) {
             addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, packet);
@@ -517,7 +524,7 @@ public class CloudLevel implements Level {
     }
 
     public void checkTime() {
-        this.levelData.checkTime(this.tickRate);
+        this.levelData.checkTime();
     }
 
     private boolean doDaylightCycle() {
@@ -612,10 +619,15 @@ public class CloudLevel implements Level {
 
             this.levelData.tick();
 
-            try (Timing ignored2 = timings.doTickPending.startTiming()) {
-                int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
-                this.chunkManager.promoteReadyChunks();
-                this.updateQueue.tick(this.getCurrentTick(), maxBlockTicks);
+            int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
+            int maxLiquidTicks = this.maxLiquidTicks;
+            this.chunkManager.promoteReadyChunks();
+            try (Timing ignored2 = timings.scheduledBlockTicks.startTiming()) {
+                this.blockUpdateQueue.tick(this.getCurrentTick(), maxBlockTicks);
+            }
+
+            try (Timing ignored2 = timings.scheduledLiquidTicks.startTiming()) {
+                this.liquidUpdateQueue.tick(this.getCurrentTick(), maxLiquidTicks);
             }
 
             TimingsHistory.entityTicks += this.updateEntities.size();
@@ -658,7 +670,7 @@ public class CloudLevel implements Level {
                                     Block[] blocksArray = new Block[blocks.size()];
                                     int i = 0;
                                     for (int blockKey : blocks) {
-                                        blocksArray[i++] = this.getBlock(CloudChunk.fromKey(chunkKey, blockKey, this.getMinHeight()).toVector3()); //TODO: send layers separately
+                                        blocksArray[i++] = this.getBlock(CloudChunk.fromBlockKey(chunkKey, blockKey, this.getMinHeight()));
                                     }
                                     this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
                                 }
@@ -714,7 +726,7 @@ public class CloudLevel implements Level {
             Vector3f vector = this.adjustPosToNearbyEntity(Vector3f.from(chunkX + (LCG & 0xf), 0, chunkZ + (LCG >> 8 & 0xf)));
 
             BlockType blockType = chunk.getBlock(vector.getFloorX() & 0xf, vector.getFloorY(), vector.getFloorZ() & 0xf).getType();
-            if (blockType != BlockTypes.TALL_GRASS && blockType != BlockTypes.FLOWING_WATER)
+            if (blockType != BlockTypes.TALL_GRASS && !blockType.isLiquid())
                 vector = vector.add(0, 1, 0);
 
             Location location = Location.from(vector, this);
@@ -821,7 +833,7 @@ public class CloudLevel implements Level {
             updateBlockPacket2.getFlags().addAll(flags);
 
             try {
-                updateBlockPacket.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getState())); //TODO: send layers separately
+                updateBlockPacket.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getState()));
                 updateBlockPacket2.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getExtra()));
             } catch (RegistryException e) {
                 throw new IllegalStateException("Unable to create BlockUpdatePacket at " +
@@ -989,7 +1001,7 @@ public class CloudLevel implements Level {
             }
 
             Block block = this.getBlock(side.relative(pos));
-            block.getComponents().get(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
+            block.getComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
         }
     }
 
@@ -1017,40 +1029,67 @@ public class CloudLevel implements Level {
     }
 
     public void updateAround(int posX, int posY, int posZ) {
-        int[] depth = NEIGHBOR_UPDATE_DEPTH.get();
+        NeighborUpdateContext context = NEIGHBOR_UPDATES.get();
+        Vector3i centre = Vector3i.from(posX, posY, posZ);
         int cap = this.server.getConfig().getLevel().getMaxChainedNeighborUpdates();
-
-        if (cap >= 0 && depth[0] >= cap) {
-            if (depth[0] == cap) {
-                log.error(
-                        "Neighbor-update chain exceeded {} updates starting near ({}, {}, {}). "
-                                + "Skipping remaining updates. Likely a runaway block interaction.",
-                        cap, posX, posY, posZ);
+        if (cap >= 0 && context.count >= cap) {
+            if (context.count == cap) {
+                log.error("Neighbor-update chain exceeded {} updates near {}. Skipping remaining updates.", cap, centre);
             }
-            depth[0]++;
+
+            context.count++;
+            if (!context.processing) {
+                context.count = 0;
+            }
+
             return;
         }
 
-        depth[0]++;
-        try {
-            BlockUpdateEvent ev;
-            Vector3i centre = Vector3i.from(posX, posY, posZ);
-            Block changed = this.getBlock(centre);
+        NeighborUpdate update = new NeighborUpdate(this, centre, this.getBlock(centre));
+        context.count++;
+        if (context.processing) {
+            context.added.add(update);
+            return;
+        }
 
-            for (Direction face : Direction.values()) {
-                Block block = this.getBlock(face.relative(centre));
-                if (block.getState().getType() != BlockTypes.AIR) {
-                    this.getServer().getEventManager().fire(ev = new BlockUpdateEvent(block));
-                    if (!ev.isCancelled()) {
-                        NeighborBlockHandler handler = block.getComponents().get(BlockComponents.ON_NEIGHBOUR_CHANGED);
-                        if (handler != null) {
-                            handler.execute(block, changed);
-                        }
+        context.stack.push(update);
+        context.processing = true;
+
+        try {
+            while (!context.stack.isEmpty() || !context.added.isEmpty()) {
+                for (int i = context.added.size() - 1; i >= 0; i--) {
+                    context.stack.push(context.added.get(i));
+                }
+                context.added.clear();
+
+                NeighborUpdate current = context.stack.getFirst();
+                while (context.added.isEmpty()) {
+                    if (!current.runNext()) {
+                        context.stack.pop();
+                        break;
                     }
                 }
             }
         } finally {
-            depth[0]--;
+            context.stack.clear();
+            context.added.clear();
+            context.count = 0;
+            context.processing = false;
+        }
+    }
+
+    private void updateNeighbour(Block block, Block changed) {
+        if (block.getState().getType() == BlockTypes.AIR) {
+            return;
+        }
+
+        BlockUpdateEvent event = new BlockUpdateEvent(block);
+        this.getServer().getEventManager().fire(event);
+        if (!event.isCancelled()) {
+            NeighborBlockHandler handler = block.getComponent(BlockComponents.ON_NEIGHBOUR_CHANGED);
+            if (handler != null) {
+                handler.execute(block, changed);
+            }
         }
     }
 
@@ -1058,8 +1097,23 @@ public class CloudLevel implements Level {
         scheduleUpdate(getBlock(pos), delay);
     }
 
-    public BlockUpdateScheduler getUpdateQueue() {
-        return updateQueue;
+    public void registerTickContainers(long chunkKey) {
+        this.blockUpdateQueue.registerTickContainer(chunkKey);
+        this.liquidUpdateQueue.registerTickContainer(chunkKey);
+    }
+
+    public void unregisterTickContainers(long chunkKey) {
+        this.blockUpdateQueue.unregisterTickContainer(chunkKey);
+        this.liquidUpdateQueue.unregisterTickContainer(chunkKey);
+    }
+
+    public void removeTickContainers(long chunkKey) {
+        this.blockUpdateQueue.removeTickContainer(chunkKey);
+        this.liquidUpdateQueue.removeTickContainer(chunkKey);
+    }
+
+    public boolean areTicksDirty(long chunkKey) {
+        return this.blockUpdateQueue.isDirty(chunkKey) || this.liquidUpdateQueue.isDirty(chunkKey);
     }
 
     public void scheduleUpdate(Block block, int delay) {
@@ -1087,17 +1141,17 @@ public class CloudLevel implements Level {
             return;
         }
 
-        BlockUpdateEntry entry = BlockUpdateEntry.of(pos, block, ((long) delay) + getCurrentTick());
-        this.updateQueue.add(entry);
+        BlockUpdateEntry entry = BlockUpdateEntry.of(pos, block.getState().getType(), (long) delay + getCurrentTick());
+        this.blockUpdateQueue.add(entry);
     }
 
     @Override
     public boolean cancelScheduledUpdate(Vector3i pos) {
-        return this.updateQueue.remove(BlockUpdateEntry.probe(pos, getBlock(pos)));
+        return this.blockUpdateQueue.remove(BlockUpdateEntry.probe(pos, getBlockState(pos).getType()));
     }
 
     public boolean isUpdateScheduled(Vector3i pos) {
-        return this.updateQueue.contains(BlockUpdateEntry.probe(pos, getBlock(pos)));
+        return this.blockUpdateQueue.contains(BlockUpdateEntry.probe(pos, getBlockState(pos).getType()));
     }
 
     public Set<BlockUpdateEntry> getPendingBlockUpdates(CloudChunk chunk) {
@@ -1110,19 +1164,33 @@ public class CloudLevel implements Level {
     }
 
     public Set<BlockUpdateEntry> getPendingBlockUpdates(BoundingBox boundingBox) {
-        return updateQueue.getPendingBlockUpdates(boundingBox);
+        Set<BlockUpdateEntry> result = new HashSet<>();
+        Set<BlockUpdateEntry> blockTicks = this.blockUpdateQueue.getPendingBlockUpdates(boundingBox);
+        Set<BlockUpdateEntry> liquidTicks = this.liquidUpdateQueue.getPendingBlockUpdates(boundingBox);
+
+        if (blockTicks != null) {
+            result.addAll(blockTicks);
+        }
+
+        if (liquidTicks != null) {
+            result.addAll(liquidTicks);
+        }
+
+        return result;
     }
 
     public void clearPendingBlockUpdates(BoundingBox boundingBox) {
-        updateQueue.clearArea(boundingBox);
+        this.blockUpdateQueue.clearArea(boundingBox);
+        this.liquidUpdateQueue.clearArea(boundingBox);
     }
 
     public void copyPendingBlockUpdates(BoundingBox boundingBox, Vector3i offset) {
-        updateQueue.copyArea(boundingBox, offset);
+        this.blockUpdateQueue.copyArea(boundingBox, offset);
+        this.liquidUpdateQueue.copyArea(boundingBox, offset);
     }
 
     public boolean isBlockTickPending(Vector3i pos, Block block) {
-        return this.updateQueue.willTickThisTick(pos, block);
+        return this.blockUpdateQueue.willTickThisTick(pos, block.getState().getType());
     }
 
     public boolean isFullBlock(Vector3i pos, BlockState state) {
@@ -1215,8 +1283,7 @@ public class CloudLevel implements Level {
         this.forEachLoadedBlockIntersecting(boundingBox, block -> {
             BlockState state = block.getState();
             Vector3i position = block.getPosition();
-            VoxelShape collisionShape = block.getComponents()
-                    .get(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(this, position), context);
             if (!collisionShape.isEmpty() && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ())) {
                 consumer.accept(block);
@@ -1362,7 +1429,7 @@ public class CloudLevel implements Level {
                             chunk.getBlock(lcx, position.getY(), lcz, 0),
                             chunk.getBlock(lcx, position.getY(), lcz, 1)
                     });
-                    int newLevel = this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.LIGHT_EMISSION).get();
+                    int newLevel = block.getState().getLightEmission();
                     if (oldLevel != newLevel) {
                         this.setBlockLightAt(position.getX(), position.getY(), position.getZ(), newLevel);
                         if (newLevel < oldLevel) {
@@ -1412,7 +1479,7 @@ public class CloudLevel implements Level {
             Block block = this.getBlock(x, y, z);
             BlockState state = block.getState();
 
-            int lightLevel = this.getBlockLightAt(x, y, z) - this.blockRegistry.getComponent(state.getType(), BlockComponents.LIGHT_DAMPENING).get();
+            int lightLevel = this.getBlockLightAt(x, y, z) - state.getLightDampening();
 
             if (lightLevel >= 1) {
                 this.computeSpreadBlockLight(x - 1, y, z, lightLevel, lightPropagationQueue, visited);
@@ -1472,62 +1539,215 @@ public class CloudLevel implements Level {
         if (this.isOutsideBuildHeight(y)) {
             return false;
         }
+
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
+        if (layer == 1 && state != BlockStates.AIR) {
+            BlockState primary = chunk.getBlock(x & 0xf, y, z & 0xf);
+            if (!state.getType().isLiquid() || !canContainLiquid(primary, state)) {
+                return false;
+            }
+        }
+
         BlockState oldState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
         if (oldState == state) {
             return false;
         }
+
+        if (layer == 0) {
+            BlockState extra = chunk.getBlock(x & 0xf, y, z & 0xf, 1);
+            if (extra == BlockStates.AIR && oldState.getType().isLiquid() && LiquidState.of(oldState).isSource()
+                    && canContainLiquid(state, oldState)) {
+                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, oldState);
+                addBlockChange(x, y, z);
+            } else if (extra.getType().isLiquid() && state == BlockStates.AIR) {
+                if (LiquidState.of(extra).isSource()) {
+                    chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 0, extra);
+                    state = extra;
+                }
+
+                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                addBlockChange(x, y, z);
+            } else if (extra.getType().isLiquid() && !canContainLiquid(state, extra)) {
+                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                addBlockChange(x, y, z);
+            }
+        }
+
         int cx = x >> 4;
         int cz = z >> 4;
         long index = CloudChunk.key(cx, cz);
 
         Vector3i position = Vector3i.from(x, y, z);
-
-        Block oldBlock = new CloudBlock(this, position, new BlockState[]{
-                layer == 0 ? oldState : chunk.getBlock(x & 0xf, y, z & 0xf),
-                layer == 1 ? oldState : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
-        });
-
         Block newBlock = new CloudBlock(this, position, new BlockState[]{
                 layer == 0 ? state : chunk.getBlock(x & 0xf, y, z & 0xf),
                 layer == 1 ? state : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
         });
+
         if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
-            addBlockChange(index, x, y, z, layer);
+            addBlockChange(index, x, y, z);
         }
 
         if (update) {
-            if (this.blockRegistry.getComponent(oldState.getType(), BlockComponents.TRANSLUCENCY).get() != this.blockRegistry.getComponent(state.getType(), BlockComponents.TRANSLUCENCY).get() ||
-                    this.blockRegistry.getComponent(oldState.getType(), BlockComponents.LIGHT_EMISSION).get() != this.blockRegistry.getComponent(state.getType(), BlockComponents.LIGHT_EMISSION).get()) {
+            if (oldState.getTranslucency() != state.getTranslucency() || oldState.getLightEmission() != state.getLightEmission()) {
                 addLightUpdate(x, y, z);
             }
+
             BlockUpdateEvent ev = new BlockUpdateEvent(newBlock);
             this.server.getEventManager().fire(ev);
             if (!ev.isCancelled()) {
                 for (Entity entity : this.getNearbyEntities(new BoundingBox(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                     this.scheduleEntityUpdate(entity);
                 }
+
                 this.updateAround(x, y, z);
+                this.scheduleLiquidUpdate(position);
+
+                for (Direction direction : Direction.values()) {
+                    this.scheduleLiquidUpdate(direction.relative(position));
+                }
             }
         }
+
         return true;
     }
 
+    @Override
+    public float getLiquidHeight(Vector3i position) {
+        LiquidState liquid = this.getLiquidState(position);
+        if (liquid.isEmpty()) {
+            return 0;
+        }
+
+        LiquidState above = this.getLiquidState(Direction.UP.relative(position));
+        return liquid.isSameFamily(above) ? 1 : liquid.getOwnHeight();
+    }
+
+    @Override
+    public Vector3f getLiquidFlow(Vector3i position) {
+        LiquidState liquid = this.getLiquidState(position);
+        return liquid.isEmpty() ? Vector3f.ZERO : LiquidBlockHandlers.flow(this, position, liquid);
+    }
+
+    @Override
+    public boolean canSetLiquidState(Vector3i position, LiquidState liquid) {
+        if (liquid.isEmpty()) {
+            return false;
+        }
+
+        BlockState primary = this.getBlockState(position);
+        if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
+            return true;
+        }
+
+        return LiquidBlockHandlers.canOccupySecondaryLayer(liquid)
+                && (liquid.isSource() ? primary.canContainLiquidSource() : primary.canContainFlowingLiquid());
+    }
+
+    @Override
+    public boolean setLiquidState(Vector3i position, LiquidState liquid) {
+        if (!this.canSetLiquidState(position, liquid)) {
+            return false;
+        }
+
+        BlockState primary = this.getBlockState(position);
+        boolean changed;
+        if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
+            boolean primaryChanged = this.setBlockState(position, LiquidStateAccess.blockState(liquid));
+            boolean extraChanged = this.setBlockState(position, 1, BlockStates.AIR);
+            changed = primaryChanged || extraChanged;
+        } else {
+            changed = this.setBlockState(position, 1, LiquidStateAccess.blockState(liquid));
+        }
+
+        if (changed) {
+            this.scheduleLiquidUpdate(position);
+        }
+
+        return changed;
+    }
+
+    @Override
+    public boolean removeLiquid(Vector3i position) {
+        Block block = this.getBlock(position);
+        if (block.getState().getType() == BlockTypes.BUBBLE_COLUMN) {
+            boolean extraChanged = this.setBlockState(position.getX(), position.getY(), position.getZ(),
+                    1, BlockStates.AIR, false, false);
+            boolean primaryChanged = this.setBlockState(position, BlockStates.AIR);
+            return primaryChanged || extraChanged;
+        }
+
+        int layer = block.getLiquidLayer();
+        return layer >= 0 && this.setBlockState(position, layer, BlockStates.AIR);
+    }
+
+    public boolean scheduleLiquidUpdate(Vector3i position) {
+        LiquidState liquid = this.getBlock(position).getLiquid();
+        if (liquid.isEmpty() || this.isLiquidUpdateScheduled(position, liquid)) {
+            return false;
+        }
+
+        int delay = LiquidBlockHandlers.tickDelay(this, position, liquid);
+        this.scheduleLiquidUpdate(position, liquid, delay);
+        return this.isLiquidUpdateScheduled(position, liquid);
+    }
+
+    public void scheduleLiquidUpdate(Vector3i position, LiquidState liquid, int delay) {
+        if (liquid.isEmpty()) {
+            throw new IllegalArgumentException("Cannot schedule empty liquid");
+        }
+
+        if (!this.isChunkLoaded(position)) {
+            return;
+        }
+
+        if (isLiquidUpdateScheduled(position, liquid)) {
+            return;
+        }
+
+        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, LiquidStateAccess.blockState(liquid).getType(),
+                (long) delay + getCurrentTick()));
+    }
+
+    private boolean isLiquidUpdateScheduled(Vector3i position, LiquidState liquid) {
+        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, LiquidStateAccess.blockState(liquid).getType()));
+    }
+
+    private void tickBlock(Vector3i position, BlockType scheduledType) {
+        Block block = this.getBlock(position);
+        if (block.getState().getType() != scheduledType) {
+            return;
+        }
+
+        TickBlockHandler handler = block.getComponent(BlockComponents.ON_TICK);
+        if (handler != null) {
+            handler.execute(block, null);
+        }
+    }
+
+    private void tickLiquid(Vector3i position, BlockType scheduledType) {
+        Block block = this.getBlock(position);
+        LiquidState liquid = block.getLiquid();
+        if (liquid.isEmpty() || LiquidStateAccess.blockState(liquid).getType() != scheduledType) {
+            return;
+        }
+
+        TickBlockHandler handler = this.blockRegistry.getComponent(scheduledType, BlockComponents.ON_TICK);
+        if (handler != null) {
+            handler.execute(block, null);
+        }
+    }
+
     private void addBlockChange(int x, int y, int z) {
-        addBlockChange(x, y, z, 0);
-    }
-
-    private void addBlockChange(int x, int y, int z, int layer) {
         long index = CloudChunk.key(x >> 4, z >> 4);
-        addBlockChange(index, x, y, z, layer);
+        addBlockChange(index, x, y, z);
     }
 
-    private void addBlockChange(long index, int x, int y, int z, int layer) {
+    private void addBlockChange(long index, int x, int y, int z) {
         synchronized (changedBlocks) {
             try {
-                this.changedBlocks.get(index, IntOpenHashSet::new).add(CloudChunk.blockKeyWithLayer(x, y, z, layer, this.getMinHeight()));
+                this.changedBlocks.get(index, IntOpenHashSet::new).add(CloudChunk.blockKey(x, y, z, this.getMinHeight()));
             } catch (ExecutionException e) {
                 throw new IllegalStateException("Unable to get block changes", e);
             }
@@ -1740,23 +1960,30 @@ public class CloudLevel implements Level {
         dropExpOrb(source, exp, null);
     }
 
-    public void dropExpOrb(Vector3f source, int exp, Vector3f motion) {
+    public void dropExpOrb(Vector3f source, int exp, @Nullable Vector3f motion) {
         dropExpOrb(source, exp, motion, 10);
     }
 
-    public void dropExpOrb(Vector3f source, int exp, Vector3f motion, int delay) {
-        Random rand = ThreadLocalRandom.current();
+    public void dropExpOrb(Vector3f source, int exp, @Nullable Vector3f motion, int delay) {
         for (int split : ExperienceOrb.splitIntoOrbSizes(exp)) {
-            ExperienceOrb experienceOrb = this.entityRegistry.newEntity(EntityTypes.XP_ORB, Location.from(source, this));
-            experienceOrb.setPickupDelay(delay);
-            experienceOrb.setExperience(split);
-            experienceOrb.setRotation(rand.nextFloat() * 360f, 0);
-            experienceOrb.setMotion(motion == null ? Vector3f.from(
-                    (rand.nextDouble() * 0.2 - 0.1) * 2,
-                    rand.nextDouble() * 0.4,
-                    (rand.nextDouble() * 0.2 - 0.1) * 2) : motion);
-            experienceOrb.spawnToAll();
+            this.spawnExperienceOrb(source, split, motion, delay);
         }
+    }
+
+    public void spawnExperienceOrb(Vector3f source, int experience, @Nullable Vector3f motion, int pickupDelay) {
+        Preconditions.checkArgument(experience > 0, "Experience must be greater than zero");
+        Preconditions.checkArgument(pickupDelay >= 0, "Pickup delay cannot be negative");
+
+        Random random = ThreadLocalRandom.current();
+        ExperienceOrb orb = this.entityRegistry.newEntity(EntityTypes.XP_ORB, Location.from(source, this));
+        orb.setPickupDelay(pickupDelay);
+        orb.setExperience(experience);
+        orb.setRotation(random.nextFloat() * 360, 0);
+        orb.setMotion(motion == null ? Vector3f.from(
+                (random.nextDouble() * 0.2 - 0.1) * 2,
+                random.nextDouble() * 0.4,
+                (random.nextDouble() * 0.2 - 0.1) * 2) : motion);
+        orb.spawnToAll();
     }
 
     /**
@@ -1780,9 +2007,6 @@ public class CloudLevel implements Level {
             this.server.getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
-                if (!item.isEmpty() && item.getType() == ItemTypes.BUCKET && item.get(ItemKeys.BUCKET_DATA) == Bucket.WATER) {
-                    sendBlocks(new Player[]{player}, new Block[]{new CloudBlock(this, side.getPosition(), new BlockState[]{BlockStates.AIR, BlockStates.AIR})}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                }
                 return false;
             }
 
@@ -1859,9 +2083,12 @@ public class CloudLevel implements Level {
         }
 
         boolean isSlab = hand.is(BlockTags.SLAB);
-        boolean sideReplaceable = this.blockRegistry.getComponent(side.getState().getType(), BlockComponents.REPLACEABLE).get();
+        boolean targetReplaceable = canReplace(target, hand, player, face, clickPos);
+        boolean sideReplaceable = canReplace(side, hand, player, face, clickPos);
 
-        Block block = isSlab ? resolveSlabTarget(hand, target, side, face, clickPos, sideReplaceable) : resolveNormalTarget(target, side, sideReplaceable);
+        Block block = isSlab
+                ? resolveSlabTarget(hand, target, side, face, clickPos, targetReplaceable, sideReplaceable)
+                : resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
         if (block == null) {
             return null;
         }
@@ -1920,35 +2147,11 @@ public class CloudLevel implements Level {
             }
         }
 
-        ComponentMap blockBehaviors = blockRegistry.getComponents(block.getState().getType());
-        BlockState air = block.getExtra();
-        Vector3i waterlogPos = null;
-
-        // TODO: Water logging
-        if (air == BlockStates.AIR
-                && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.LIQUID).get()
-                && this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.USES_WATERLOGGING).get()
-                && (block.getState().ensureTrait(BlockTraits.FLUID_LEVEL) == 0) // Remove when MCPE-33345 is resolved
-        ) {
-            waterlogPos = block.getPosition();
-            block.set(block.getState(), 1, false, false);
-            block.set(air, false, false);
-            this.scheduleUpdate(block, 1);
-        }
-
         try {
             if (!handBehaviors.get(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
-                if (waterlogPos != null) {
-                    this.setBlockState(waterlogPos, 0, block.getState(), false, false);
-                    this.setBlockState(waterlogPos, 1, air, false, false);
-                }
                 return null;
             }
         } catch (Exception e) {
-            if (waterlogPos != null) {
-                this.setBlockState(waterlogPos, 0, block.getState(), false, false);
-                this.setBlockState(waterlogPos, 1, air, false, false);
-            }
             throw e;
         }
 
@@ -1963,7 +2166,18 @@ public class CloudLevel implements Level {
         return item.getCount() <= 0 ? ItemStack.EMPTY : item;
     }
 
-    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face, Vector3f clickPos, boolean sideReplaceable) {
+    private static boolean canContainLiquid(BlockState container, BlockState liquid) {
+        if (container == BlockStates.AIR || container.getType().isLiquid()) {
+            return false;
+        }
+
+        LiquidState state = LiquidState.of(liquid);
+        return LiquidBlockHandlers.canOccupySecondaryLayer(state)
+                && (state.isSource() ? container.canContainLiquidSource() : container.canContainFlowingLiquid());
+    }
+
+    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
+                                              Vector3f clickPos, boolean targetReplaceable, boolean sideReplaceable) {
         BlockState targetState = target.getState();
         if (targetState.is(BlockTags.SLAB) && !targetState.is(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
             boolean above = clickPos.getY() > 0.5f;
@@ -1981,14 +2195,48 @@ public class CloudLevel implements Level {
             return side;
         }
 
-        return resolveNormalTarget(target, side, sideReplaceable);
+        return resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
     }
 
-    private @Nullable Block resolveNormalTarget(Block target, Block side, boolean sideReplaceable) {
-        if (!sideReplaceable) {
-            return null;
+    private static @Nullable Block resolveNormalTarget(Block target, Block side, boolean targetReplaceable, boolean sideReplaceable) {
+        if (targetReplaceable) {
+            return target;
         }
-        return this.blockRegistry.getComponent(target.getState().getType(), BlockComponents.REPLACEABLE).get() ? target : side;
+
+        return sideReplaceable ? side : null;
+    }
+
+    private boolean canReplace(Block block, BlockState replacement, @Nullable Player player, Direction face, Vector3f clickPosition) {
+        return this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
+                .execute(block, replacement, player, face, clickPosition);
+    }
+
+    private static final class NeighborUpdate {
+        private static final Direction[] DIRECTIONS = Direction.values();
+
+        private final CloudLevel level;
+        private final Vector3i position;
+        private final Block changed;
+        private int directionIndex;
+
+        private NeighborUpdate(CloudLevel level, Vector3i position, Block changed) {
+            this.level = level;
+            this.position = position;
+            this.changed = changed;
+        }
+
+        private boolean runNext() {
+            Direction direction = DIRECTIONS[this.directionIndex++];
+            this.level.updateNeighbour(this.level.getBlock(direction.relative(this.position)), this.changed);
+            return this.directionIndex < DIRECTIONS.length;
+        }
+    }
+
+    private static final class NeighborUpdateContext {
+        private final Deque<NeighborUpdate> stack = new ArrayDeque<>();
+        private final List<NeighborUpdate> added = new ArrayList<>();
+        private int count;
+        private boolean processing;
     }
 
     public boolean isInSpawnRadius(Vector3i vector3) {
@@ -2256,7 +2504,7 @@ public class CloudLevel implements Level {
         int y = chunk.getHighestBlock(x & 0x0f, z & 0x0f);
         while (y > 1) {
             Block block = getBlock(Vector3i.from(x, y, z));
-            Color mapColor = block.getComponents().get(BlockComponents.GET_MAP_COLOR).execute(block);
+            Color mapColor = block.getComponent(BlockComponents.GET_MAP_COLOR).execute(block);
             if (mapColor.getAlpha() == 0x00) {
                 y--;
             } else {

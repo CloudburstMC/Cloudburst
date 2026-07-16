@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -27,6 +27,7 @@ public class LevelManager implements Closeable {
     /**
      * Virtual-thread executor for LevelDB reads and writes.
      */
+    @Getter
     private final ExecutorService ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     /**
@@ -42,6 +43,7 @@ public class LevelManager implements Closeable {
     private final CloudServer server;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
+    @Getter
     private volatile CloudLevel defaultLevel;
 
     @Inject
@@ -92,10 +94,6 @@ public class LevelManager implements Closeable {
             }
         }
         return null;
-    }
-
-    public CloudLevel getDefaultLevel() {
-        return defaultLevel;
     }
 
     public synchronized void setDefaultLevel(CloudLevel level) {
@@ -151,30 +149,9 @@ public class LevelManager implements Closeable {
     public void tick(int currentTick) {
         for (CloudLevel level : this.levels) {
             try {
-                long levelTime = System.currentTimeMillis();
+                long levelTime = System.nanoTime();
                 level.doTick(currentTick);
-                int tickMs = (int) (System.currentTimeMillis() - levelTime);
-                level.tickRateTime = tickMs;
-
-                if (server.isAutoTickRate()) {
-                    if (tickMs < 50 && level.getTickRate() > server.getBaseTickRate()) {
-                        int r;
-                        level.setTickRate(r = level.getTickRate() - 1);
-                        if (r > server.getBaseTickRate()) {
-                            level.tickRateCounter = level.getTickRate();
-                        }
-                        log.debug("Raising level \"" + level.getName() + "\" tick rate to " + level.getTickRate() + " ticks");
-                    } else if (tickMs >= 50) {
-                        if (level.getTickRate() == server.getBaseTickRate()) {
-                            level.setTickRate(Math.max(server.getBaseTickRate() + 1, Math.min(server.getAutoTickRateLimit(), tickMs / 50)));
-                            log.debug("Level \"" + level.getName() + "\" took " + GenericMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
-                        } else if ((tickMs / level.getTickRate()) >= 50 && level.getTickRate() < server.getAutoTickRateLimit()) {
-                            level.setTickRate(level.getTickRate() + 1);
-                            log.debug("Level \"" + level.getName() + "\" took " + GenericMath.round(tickMs, 2) + "ms, setting tick rate to " + level.getTickRate() + " ticks");
-                        }
-                        level.tickRateCounter = level.getTickRate();
-                    }
-                }
+                level.setLastTickDuration((System.nanoTime() - levelTime) / 1_000_000d);
 
                 if (currentTick % 100 == 0) {
                     level.doChunkGarbageCollection();
@@ -183,10 +160,6 @@ public class LevelManager implements Closeable {
                 log.error(server.getLanguage().translate("cloudburst.level.tickError", level.getId(), Utils.getExceptionMessage(e)));
             }
         }
-    }
-
-    public ExecutorService getIoExecutor() {
-        return ioExecutor;
     }
 
     /**

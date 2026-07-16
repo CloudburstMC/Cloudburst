@@ -1,31 +1,27 @@
 package org.cloudburstmc.server.scheduler;
 
 import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongMaps;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.component.TickBlockHandler;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.util.*;
 import java.util.concurrent.locks.StampedLock;
+import java.util.function.BiConsumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 /**
- * World-level orchestrator for scheduled block ticks.
+ * Level-wide scheduler for block or liquid ticks.
  *
  * <h2>Container lifecycle</h2>
  * <p>Containers survive across unload/reload cycles. {@link #unregisterTickContainer}
@@ -81,7 +77,7 @@ public class BlockUpdateScheduler {
                 }
             };
 
-    private final CloudLevel level;
+    private final BiConsumer<Vector3i, BlockType> ticker;
 
     /**
      * Gates tick execution by chunk key. Applied during
@@ -135,33 +131,12 @@ public class BlockUpdateScheduler {
      */
     private final ObjectOpenCustomHashSet<BlockUpdateEntry> toRunThisTickSet;
 
-    /**
-     * Reusable scratch list: chunk keys to remove from
-     * {@link #nextTickForContainer} during {@link #sortContainersToTick}.
-     * Cleared after each use; never reallocated.
-     */
-    private final LongArrayList sortScratchRemove = new LongArrayList();
-
-    /**
-     * Reusable scratch list: chunk keys whose stored next-tick value needs
-     * updating during {@link #sortContainersToTick}.
-     * Cleared after each use; never reallocated.
-     */
-    private final LongArrayList sortScratchUpdateKeys = new LongArrayList();
-
-    /**
-     * Reusable scratch list: replacement next-tick values paired with
-     * {@link #sortScratchUpdateKeys}.
-     * Cleared after each use; never reallocated.
-     */
-    private final LongArrayList sortScratchUpdateVals = new LongArrayList();
-
     private long lastTick;
 
-    public BlockUpdateScheduler(CloudLevel level, long currentTick, LongPredicate tickCheck) {
-        this.level = level;
+    public BlockUpdateScheduler(long currentTick, LongPredicate tickCheck, BiConsumer<Vector3i, BlockType> ticker) {
         this.lastTick = currentTick;
         this.tickCheck = tickCheck;
+        this.ticker = ticker;
         this.chunkTicks = new Long2ObjectOpenHashMap<>();
         this.nextTickForContainer = new Long2LongOpenHashMap();
         this.nextTickForContainer.defaultReturnValue(Long.MAX_VALUE);
@@ -236,97 +211,57 @@ public class BlockUpdateScheduler {
     public void tick(long currentTick, int maxTicks) {
         long stamp = lock.writeLock();
         try {
-            if (currentTick - lastTick < Short.MAX_VALUE) {
-                for (long t = lastTick + 1; t <= currentTick; t++) {
-                    stamp = perform(t, maxTicks, stamp);
-                }
-            } else {
-                stamp = perform(currentTick, maxTicks, stamp);
+            this.lastTick = currentTick;
+            if (this.nextTickForContainer.isEmpty()) {
+                return;
+            }
+
+            this.sortContainersToTick(currentTick);
+            this.drainContainers(currentTick, maxTicks);
+            this.rescheduleLeftoverContainers();
+
+            this.lock.unlockWrite(stamp);
+            stamp = 0;
+            try {
+                this.runCollectedTicks();
+            } finally {
+                stamp = this.lock.writeLock();
+                this.cleanupAfterTick();
             }
         } finally {
-            lock.unlockWrite(stamp);
+            if (stamp != 0) {
+                lock.unlockWrite(stamp);
+            }
         }
-    }
-
-    /**
-     * Executes one game-tick worth of block ticks.
-     *
-     * <p>The method is split into three lock-separated phases to avoid a
-     * non-reentrant deadlock:
-     * <ol>
-     *   <li><b>Collection phase</b> (write lock held): drain due containers
-     *       into {@link #toRunThisTick}.</li>
-     *   <li><b>Run phase</b> (lock released): execute each collected entry.
-     *       Block tick callbacks may call {@link #add}, which acquires the
-     *       write lock independently. This is safe because the run phase does
-     *       not touch the shared scheduler state.</li>
-     *   <li><b>Cleanup phase</b> (write lock re-acquired): clear scratch
-     *       structures.</li>
-     * </ol>
-     *
-     * @param currentTick the tick being processed
-     * @param maxTicks    maximum entries to collect this tick
-     * @param stamp       the write stamp held by the caller; may be exchanged
-     *                    and returned as a fresh stamp after re-acquisition
-     * @return the current write stamp (caller must unlock it)
-     */
-    private long perform(long currentTick, int maxTicks, long stamp) {
-        lastTick = currentTick;
-        if (nextTickForContainer.isEmpty()) {
-            return stamp;
-        }
-
-        // Phase 1: collection (write lock held by caller).
-        sortContainersToTick(currentTick);
-        drainContainers(currentTick, maxTicks);
-        rescheduleLeftoverContainers();
-
-        // Phase 2: execution (lock released so callbacks can call add()).
-        lock.unlockWrite(stamp);
-        try {
-            runCollectedTicks();
-        } finally {
-            // Phase 3: cleanup (re-acquire write lock).
-            stamp = lock.writeLock();
-        }
-
-        cleanupAfterTick();
-        return stamp;
     }
 
     /**
      * Moves containers whose head tick is due and whose chunk passes
      * {@link #tickCheck} into {@link #containersToTick}.
-     *
-     * <p>Iterates {@link #nextTickForContainer} key-by-key (non-fast iterator)
-     * and collects mutations into side lists, applying them after the loop.
-     * Mutating a fastutil open-addressing map via a fast iterator's
-     * {@code remove()} can corrupt the iterator's internal slot index due to
-     * Robin Hood backward-shifting.
      */
     private void sortContainersToTick(long currentTick) {
-        for (long key : nextTickForContainer.keySet().toLongArray()) {
-            long storedNext = nextTickForContainer.get(key);
-
-            if (storedNext > currentTick) {
+        ObjectIterator<Long2LongMap.Entry> iterator = Long2LongMaps.fastIterator(this.nextTickForContainer);
+        while (iterator.hasNext()) {
+            Long2LongMap.Entry entry = iterator.next();
+            if (entry.getLongValue() > currentTick) {
                 continue;
             }
 
+            long key = entry.getLongKey();
             LevelChunkTicks container = chunkTicks.get(key);
             if (container == null) {
-                sortScratchRemove.add(key);
+                iterator.remove();
                 continue;
             }
 
             BlockUpdateEntry head = container.peek();
             if (head == null) {
-                sortScratchRemove.add(key);
+                iterator.remove();
                 continue;
             }
 
             if (head.delay > currentTick) {
-                sortScratchUpdateKeys.add(key);
-                sortScratchUpdateVals.add(head.delay);
+                entry.setValue(head.delay);
                 continue;
             }
 
@@ -334,21 +269,9 @@ public class BlockUpdateScheduler {
                 continue;
             }
 
-            sortScratchRemove.add(key);
+            iterator.remove();
             containersToTick.add(container);
         }
-
-        for (int i = 0; i < sortScratchRemove.size(); i++) {
-            nextTickForContainer.remove(sortScratchRemove.getLong(i));
-        }
-
-        for (int i = 0; i < sortScratchUpdateKeys.size(); i++) {
-            nextTickForContainer.put(sortScratchUpdateKeys.getLong(i), sortScratchUpdateVals.getLong(i));
-        }
-
-        sortScratchRemove.clear();
-        sortScratchUpdateKeys.clear();
-        sortScratchUpdateVals.clear();
     }
 
     /**
@@ -438,24 +361,7 @@ public class BlockUpdateScheduler {
 
             alreadyRunThisTick.add(entry);
 
-            Vector3i pos = entry.pos;
-            Block block = level.getBlock(pos);
-
-            if (entry.block.getState().getType() == block.getState().getType()) {
-                TickBlockHandler onTick = block.getComponents().get(BlockComponents.ON_TICK);
-                if (onTick != null) {
-                    onTick.execute(block, null);
-                }
-            }
-
-            BlockState extraState = block.getExtra();
-            if (entry.block.getExtra().getType() == extraState.getType() && extraState != BlockStates.AIR) {
-                ComponentMap extraComponents = CloudBlockRegistry.REGISTRY.getComponents(extraState.getType());
-                TickBlockHandler extraOnTick = extraComponents.get(BlockComponents.ON_TICK);
-                if (extraOnTick != null) {
-                    extraOnTick.execute(block, null);
-                }
-            }
+            this.ticker.accept(entry.pos, entry.type);
         }
     }
 
@@ -464,9 +370,6 @@ public class BlockUpdateScheduler {
         containersToTick.clear();
         alreadyRunThisTick.clear();
         toRunThisTickSet.clear();
-        sortScratchRemove.clear();
-        sortScratchUpdateKeys.clear();
-        sortScratchUpdateVals.clear();
     }
 
     public void add(BlockUpdateEntry entry) {
@@ -487,7 +390,7 @@ public class BlockUpdateScheduler {
         }
 
         long minTime = lastTick + 1;
-        BlockUpdateEntry toSchedule = (entry.delay >= minTime) ? entry : BlockUpdateEntry.ofWithId(entry.pos, entry.block, minTime, entry.id);
+        BlockUpdateEntry toSchedule = (entry.delay >= minTime) ? entry : BlockUpdateEntry.ofWithId(entry.pos, entry.type, minTime, entry.id);
         container.schedule(toSchedule);
     }
 
@@ -513,47 +416,35 @@ public class BlockUpdateScheduler {
     /**
      * Records a successful save of tick data for the given chunk.
      *
-     * <p>Clears the dirty flag and updates the {@code lastSaved} timestamp so
-     * that {@link LevelChunkTicks#isDirty(long)} returns {@code false} until
-     * the next structural mutation or game-tick advancement.
-     *
      * @param chunkKey packed chunk key
-     * @param tick     the game tick at which the save occurred
      */
-    public void markSaved(long chunkKey, long tick) {
+    public void markSaved(long chunkKey) {
         long stamp = lock.writeLock();
         try {
             LevelChunkTicks container = chunkTicks.get(chunkKey);
             if (container != null) {
-                container.markSaved(tick);
+                container.markSaved();
             }
         } finally {
             lock.unlockWrite(stamp);
         }
     }
 
-    /**
-     * Returns {@code true} when the tick data for the given chunk needs to be
-     * written to disk: either because entries were added or removed since the
-     * last save, or because game time has advanced and the relative-delay
-     * encoding in the stored record is now stale.
-     *
-     * @param chunkKey    packed chunk key
-     * @param currentTick the current world game tick
-     */
-    public boolean isDirty(long chunkKey, long currentTick) {
+    /** Returns whether the chunk's scheduled ticks changed since its last save. */
+    public boolean isDirty(long chunkKey) {
         long stamp = lock.tryOptimisticRead();
         LevelChunkTicks container = chunkTicks.get(chunkKey);
-        boolean result = container != null && container.isDirty(currentTick);
+        boolean result = container != null && container.isDirty();
         if (!lock.validate(stamp)) {
             stamp = lock.readLock();
             try {
                 container = chunkTicks.get(chunkKey);
-                result = container != null && container.isDirty(currentTick);
+                result = container != null && container.isDirty();
             } finally {
                 lock.unlockRead(stamp);
             }
         }
+
         return result;
     }
 
@@ -588,12 +479,12 @@ public class BlockUpdateScheduler {
      * to call from block tick callbacks (during the run phase) because the run
      * phase releases the write lock before executing ticks.
      */
-    public boolean willTickThisTick(Vector3i pos, Block block) {
+    public boolean willTickThisTick(Vector3i pos, BlockType type) {
         long stamp = lock.writeLock();
         try {
             if (toRunThisTick.isEmpty()) return false;
             buildTickSetIfNeeded();
-            return toRunThisTickSet.contains(BlockUpdateEntry.probe(pos, block));
+            return toRunThisTickSet.contains(BlockUpdateEntry.probe(pos, type));
         } finally {
             lock.unlockWrite(stamp);
         }
@@ -613,6 +504,22 @@ public class BlockUpdateScheduler {
                 }
             }
             return result;
+        } finally {
+            lock.unlockRead(stamp);
+        }
+    }
+
+    /**
+     * Returns the number of pending ticks across loaded and dormant chunk containers.
+     */
+    public int getPendingCount() {
+        long stamp = lock.readLock();
+        try {
+            int count = 0;
+            for (LevelChunkTicks container : this.chunkTicks.values()) {
+                count += container.size();
+            }
+            return count;
         } finally {
             lock.unlockRead(stamp);
         }
@@ -802,7 +709,7 @@ public class BlockUpdateScheduler {
             Vector3i newPos = src.pos.add(offset);
             long newDelay = Math.max(src.delay, lastTick + 1);
             long newId = (src.id - idMin) + globalIdMax + 1;
-            BlockUpdateEntry copy = BlockUpdateEntry.ofWithId(newPos, src.block, newDelay, newId);
+            BlockUpdateEntry copy = BlockUpdateEntry.ofWithId(newPos, src.type, newDelay, newId);
             addUnderLock(copy);
         }
     }

@@ -2,6 +2,7 @@ package org.cloudburstmc.api.level;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
@@ -66,6 +67,58 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     boolean cancelScheduledUpdate(Vector3i position);
 
     boolean isUpdateScheduled(Vector3i position);
+
+    /**
+     * Returns the liquid in either block layer.
+     *
+     * @param position the block position
+     * @return the liquid state, or the empty liquid state when none is present
+     */
+    default LiquidState getLiquidState(Vector3i position) {
+        return getBlock(position).getLiquid();
+    }
+
+    /**
+     * Returns the liquid surface height at a block position.
+     *
+     * @param position the block position
+     * @return the height from {@code 0} for no liquid to {@code 1} for a full column
+     */
+    float getLiquidHeight(Vector3i position);
+
+    /**
+     * Returns the direction in which liquid at a block position is flowing.
+     *
+     * @param position the block position
+     * @return the normalized flow vector, or the zero vector when there is no flow
+     */
+    Vector3f getLiquidFlow(Vector3i position);
+
+    /**
+     * Checks whether liquid can occupy the primary or secondary block layer.
+     *
+     * @param position the block position
+     * @param liquid the liquid state
+     * @return whether the liquid can be placed
+     */
+    boolean canSetLiquidState(Vector3i position, LiquidState liquid);
+
+    /**
+     * Places liquid in the primary layer or in a block state that can contain it.
+     *
+     * @param position the block position
+     * @param liquid the liquid state to place
+     * @return whether the liquid was placed
+     */
+    boolean setLiquidState(Vector3i position, LiquidState liquid);
+
+    /**
+     * Removes liquid from either block layer without removing its container.
+     *
+     * @param position the block position
+     * @return whether liquid was removed
+     */
+    boolean removeLiquid(Vector3i position);
 
     int getFullLight(Vector3i position);
 
@@ -146,8 +199,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     void scheduleEntityUpdate(Entity entity);
 
     void removeEntity(Entity entity);
-
-    int getTickRate();
 
     /**
      * Tests whether a bounding box collides with blocks or entities in this level.

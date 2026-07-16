@@ -92,16 +92,17 @@ public class StatusCommand extends Command {
         for (CloudLevel level : server.getLevels()) {
             String nameInfo = !Objects.equals(level.getId(), level.getName())
                     ? " (" + level.getName() + ")" : "";
-            boolean slowTick = level.getTickRate() > 1 || level.getTickRateTime() > 40;
-            String tickRateInfo = level.getTickRate() > 1 ? " (tick rate " + level.getTickRate() + ")" : "";
-            sender.sendMessage(Component.text("World \"" + level.getId() + "\"" + nameInfo + ": ").color(NamedTextColor.YELLOW)
+            boolean slowTick = level.getLastTickDuration() > 50;
+            sender.sendMessage(Component.text("Level \"" + level.getId() + "\"" + nameInfo + ": ").color(NamedTextColor.YELLOW)
                     .append(Component.text(level.getChunks().size()).color(NamedTextColor.RED))
                     .append(Component.text(" chunks, ").color(NamedTextColor.GREEN))
                     .append(Component.text(level.getEntities().length).color(NamedTextColor.RED))
                     .append(Component.text(" entities, ").color(NamedTextColor.GREEN))
                     .append(Component.text(level.getBlockEntities().size()).color(NamedTextColor.RED))
-                    .append(Component.text(" blockEntities. Time ").color(NamedTextColor.GREEN))
-                    .append(Component.text(GenericMath.round(level.getTickRateTime(), 2) + "ms" + tickRateInfo)
+                    .append(Component.text(" block entities, ").color(NamedTextColor.GREEN))
+                    .append(Component.text(level.getLiquidUpdateQueue().getPendingCount()).color(NamedTextColor.RED))
+                    .append(Component.text(" pending liquid ticks. Time ").color(NamedTextColor.GREEN))
+                    .append(Component.text(GenericMath.round(level.getLastTickDuration(), 2) + "ms")
                             .color(slowTick ? NamedTextColor.RED : NamedTextColor.YELLOW)));
         }
 

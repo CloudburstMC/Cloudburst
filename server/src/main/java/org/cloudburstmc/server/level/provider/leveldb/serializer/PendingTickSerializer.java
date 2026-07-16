@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.block.BlockPalette;
@@ -87,24 +87,35 @@ public final class PendingTickSerializer {
      */
     public static Runnable savePendingTicks(WriteBatch batch, CloudChunk chunk) {
         CloudLevel level = (CloudLevel) chunk.getLevel();
-        BlockUpdateScheduler scheduler = level.getUpdateQueue();
+        BlockUpdateScheduler blockScheduler = level.getBlockUpdateQueue();
+        BlockUpdateScheduler liquidScheduler = level.getLiquidUpdateQueue();
         long chunkKey = CloudChunk.key(chunk.getX(), chunk.getZ());
-        long currentTick = level.getCurrentTick();
 
-        List<BlockUpdateEntry> entries = scheduler.packAll(chunkKey);
-        if (entries == null) {
+        List<BlockUpdateEntry> blockEntries = blockScheduler.packAll(chunkKey);
+        List<BlockUpdateEntry> liquidEntries = liquidScheduler.packAll(chunkKey);
+        if (blockEntries == null && liquidEntries == null) {
             return null;
         }
-        byte[] dbKey = LevelDBKey.PENDING_TICKS.getKey(chunk.getX(), chunk.getZ());
 
+        List<BlockUpdateEntry> entries = new ArrayList<>((blockEntries == null ? 0 : blockEntries.size())
+                + (liquidEntries == null ? 0 : liquidEntries.size()));
+        if (blockEntries != null) {
+            entries.addAll(blockEntries);
+        }
+
+        if (liquidEntries != null) {
+            entries.addAll(liquidEntries);
+        }
+
+        byte[] dbKey = LevelDBKey.PENDING_TICKS.getKey(chunk.getX(), chunk.getZ());
         if (entries.isEmpty()) {
             batch.delete(dbKey);
-            return () -> scheduler.markSaved(chunkKey, currentTick);
+            return () -> markSaved(blockScheduler, liquidScheduler, chunkKey);
         }
 
         List<NbtMap> tickList = new ArrayList<>(entries.size());
         for (BlockUpdateEntry entry : entries) {
-            NbtMap blockState = BlockPalette.INSTANCE.getSerialized(entry.block.getState());
+            NbtMap blockState = BlockPalette.INSTANCE.getSerialized(entry.type.getDefaultState());
             NbtMap compound = NbtMap.builder()
                     .putInt(FIELD_X, entry.pos.getX())
                     .putInt(FIELD_Y, entry.pos.getY())
@@ -131,7 +142,7 @@ public final class PendingTickSerializer {
         }
 
         batch.put(dbKey, value);
-        return () -> scheduler.markSaved(chunkKey, currentTick);
+        return () -> markSaved(blockScheduler, liquidScheduler, chunkKey);
     }
 
     private record PendingTickLoader(List<NbtMap> tickEntries) implements ChunkDataLoader {
@@ -140,7 +151,7 @@ public final class PendingTickSerializer {
             CloudLevel level = (CloudLevel) chunk.getLevel();
 
             // Accept only ticks within the chunk's own column and within
-            // the world's vertical build range. Entries outside this range
+            // the level's vertical build range. Entries outside this range
             // are corrupt or stale upgrade data and are discarded with a warning.
             int minX = chunk.getX() << 4;
             int maxX = minX + 15;
@@ -163,8 +174,15 @@ public final class PendingTickSerializer {
                     }
 
                     Vector3i pos = Vector3i.from(x, y, z);
-                    Block block = level.getBlock(pos);
-                    restored.add(BlockUpdateEntry.ofRestored(pos, block, time));
+                    NbtMap serializedState = entry.getCompound(FIELD_BLOCK_STATE);
+                    BlockState state = BlockPalette.INSTANCE.getSerializedPalette().get(serializedState);
+                    if (state == null) {
+                        log.warn("Discarding pending tick for unknown serialized block state {} at ({}, {}, {}) "
+                                        + "in level \"{}\" chunk ({}, {})",
+                                serializedState, x, y, z, level.getName(), chunk.getX(), chunk.getZ());
+                        continue;
+                    }
+                    restored.add(BlockUpdateEntry.ofRestored(pos, state.getType(), time));
                 } catch (Exception e) {
                     log.warn("Skipping malformed pending tick entry: {}", e.getMessage());
                 }
@@ -176,5 +194,11 @@ public final class PendingTickSerializer {
 
             return false;
         }
+    }
+
+    private static void markSaved(BlockUpdateScheduler blockScheduler, BlockUpdateScheduler liquidScheduler,
+                                  long chunkKey) {
+        blockScheduler.markSaved(chunkKey);
+        liquidScheduler.markSaved(chunkKey);
     }
 }

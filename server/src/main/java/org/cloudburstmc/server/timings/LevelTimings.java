@@ -10,7 +10,8 @@ import org.cloudburstmc.server.level.CloudLevel;
  */
 public class LevelTimings {
     public final Timing doChunkUnload;
-    public final Timing doTickPending;
+    public final Timing scheduledBlockTicks;
+    public final Timing scheduledLiquidTicks;
     public final Timing doChunkGC;
     public final Timing doTick;
 
@@ -29,7 +30,8 @@ public class LevelTimings {
         String name = level.getId() + " - ";
 
         this.doChunkUnload = TimingsManager.getTiming(name + "doChunkUnload");
-        this.doTickPending = TimingsManager.getTiming(name + "doTickPending");
+        this.scheduledBlockTicks = TimingsManager.getTiming(name + "scheduledBlockTicks");
+        this.scheduledLiquidTicks = TimingsManager.getTiming(name + "scheduledLiquidTicks");
         this.doChunkGC = TimingsManager.getTiming(name + "doChunkGC");
         this.doTick = TimingsManager.getTiming(name + "doTick");
 

@@ -12,15 +12,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.PlacementSupport;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class DoorPlaceHandler implements PlaceBlockHandler {
-
-    private final CloudBlockRegistry registry;
-
-    public DoorPlaceHandler(CloudBlockRegistry registry) {
-        this.registry = registry;
-    }
 
     @Override
     public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {
@@ -39,7 +32,7 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
 
         Vector3i upperPosition = blockPosition.add(0, 1, 0);
         BlockState upperExisting = level.getBlockState(upperPosition.getX(), upperPosition.getY(), upperPosition.getZ());
-        if (!registry.getComponents(upperExisting.getType()).get(BlockComponents.REPLACEABLE).get()) {
+        if (!upperExisting.isReplaceable()) {
             return false;
         }
 
@@ -77,7 +70,7 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
         BlockState rightState = level.getBlockState(rightPosition);
 
         return isDoorLowerHalf(leftState)
-                || BlockSupport.canOcclude(rightState) && !BlockSupport.canOcclude(leftState);
+                || BlockSupport.isSolid(rightState) && !BlockSupport.isSolid(leftState);
     }
 
     private boolean isDoorLowerHalf(BlockState state) {

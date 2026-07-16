@@ -60,13 +60,6 @@ timings:
 level-settings:
   # The default format that levels will use when created
   default-format: leveldb
-  # Automatically change levels tick rate to maintain 20 ticks per second
-  auto-tick-rate: true
-  auto-tick-rate-limit: 20
-  # Sets the base tick rate (1 = 20 ticks per second, 2 = 10 ticks per second, etc.)
-  base-tick-rate: 1
-  # Tick all players each tick even when other settings disallow this
-  always-tick-players: false
 
 chunk-sending:
   # Amount of chunks sent to players per tick
@@ -117,6 +110,12 @@ player:
   # The time between skin change action in seconds. Set 0 to disable the cooldown
   skin-change-cooldown: 30
 
+level:
+  max-block-ticks: 12345
+  max-liquid-ticks: 23456
+  water-over-lava-flow-speed: 7
+  max-chained-neighbor-updates: 34567
+
 # Aliases for commands
 aliases:
   savestop: [save-all, stop]
@@ -127,6 +126,8 @@ worlds:
     seed: test
     generator: cloudburst:standard
     options: overworld
+    max-liquid-ticks: 45678
+    water-over-lava-flow-speed: 9
   nether:
     generator: cloudburst:standard
     options: nether

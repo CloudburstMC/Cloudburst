@@ -9,15 +9,16 @@ import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.block.component.BlockSupportShapeHandler;
 import org.cloudburstmc.api.block.component.ShapeContextRequirement;
 import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.util.CollisionContext;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @UtilityClass
 public class BlockSupport {
@@ -53,9 +54,7 @@ public class BlockSupport {
     }
 
     public static boolean isCollisionShapeFullBlock(BlockState state) {
-        VoxelShape shape = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
-                .execute(state, BlockShapeContext.empty(), CollisionContext.empty());
-        return CloudVoxelShapes.isFullBlock(shape);
+        return CloudVoxelShapes.isFullBlock(state.getCollisionShape());
     }
 
     public static boolean blocksMotion(Level level, Vector3i pos) {
@@ -64,25 +63,19 @@ public class BlockSupport {
     }
 
     public static boolean blocksMotion(BlockState state) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.BLOCKS_MOTION).execute(state);
+        return !state.getCollisionShape().isEmpty();
     }
 
-    public static boolean defaultBlocksMotion(BlockState state) {
-        VoxelShape shape = CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
-                .execute(state, BlockShapeContext.empty(), CollisionContext.empty());
-        return !shape.isEmpty();
-    }
-
-    public static boolean canOcclude(BlockState state) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.CAN_OCCLUDE).execute(state);
+    public static boolean isSolid(BlockState state) {
+        return state.isSolid();
     }
 
     public static boolean isViewBlocking(BlockState state) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.VIEW_BLOCKING).execute(state);
+        return !state.is(BlockTags.TRANSPARENT) && blocksMotion(state) && isCollisionShapeFullBlock(state);
     }
 
     public static boolean isPassable(BlockState state) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.PASSABLE).execute(state);
+        return !blocksMotion(state);
     }
 
     public static boolean isFaceSturdy(Level level, Vector3i pos, Direction direction) {
@@ -91,38 +84,41 @@ public class BlockSupport {
 
     public static VoxelShape getBlockSupportShape(Level level, Vector3i pos) {
         BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        return getSupportShapeHandler(state).execute(state, BlockShapeContext.at(level, pos));
+        return getSupportShapeHandler(level.getServer().getBlockRegistry(), state)
+                .execute(state, BlockShapeContext.at(level, pos));
     }
 
-    public static VoxelShape getBlockSupportShape(BlockState state) {
-        return getSupportShapeHandler(state).execute(state, BlockShapeContext.empty());
+    public static VoxelShape getBlockSupportShape(BlockRegistry registry, BlockState state) {
+        return getSupportShapeHandler(registry, state).execute(state, BlockShapeContext.empty());
     }
 
     public static boolean isFaceSturdy(Level level, Vector3i pos, Direction direction, SupportType supportType) {
         BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+        BlockSupportShapeHandler handler = getSupportShapeHandler(level.getServer().getBlockRegistry(), state);
         if (handler.contextRequirement() != ShapeContextRequirement.STATE_ONLY) {
             return hasRequiredSupport(handler.execute(state, BlockShapeContext.at(level, pos)), direction, supportType);
         }
 
-        return getCachedFaceSupport(state, direction, supportType);
+        return getCachedFaceSupport(level.getServer().getBlockRegistry(), state, direction, supportType);
     }
 
-    public static boolean isFaceSturdy(BlockState state, Direction direction, SupportType supportType) {
-        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+    public static boolean isFaceSturdy(BlockRegistry registry, BlockState state, Direction direction, SupportType supportType) {
+        BlockSupportShapeHandler handler = getSupportShapeHandler(registry, state);
         if (handler.contextRequirement() != ShapeContextRequirement.STATE_ONLY) {
             return hasRequiredSupport(handler.execute(state, BlockShapeContext.empty()), direction, supportType);
         }
 
-        return getCachedFaceSupport(state, direction, supportType);
+        return getCachedFaceSupport(registry, state, direction, supportType);
     }
 
-    private static BlockSupportShapeHandler getSupportShapeHandler(BlockState state) {
-        return CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE);
+    private static BlockSupportShapeHandler getSupportShapeHandler(BlockRegistry registry, BlockState state) {
+        return checkNotNull(registry.getComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE),
+                "Block support shape component is not registered for %s", state.getType());
     }
 
-    private static boolean getCachedFaceSupport(BlockState state, Direction direction, SupportType supportType) {
-        BlockSupportShapeHandler handler = getSupportShapeHandler(state);
+    private static boolean getCachedFaceSupport(BlockRegistry registry, BlockState state, Direction direction,
+                                                SupportType supportType) {
+        BlockSupportShapeHandler handler = getSupportShapeHandler(registry, state);
         FaceSupportCache cache = FACE_SUPPORT_CACHE.compute(state, (ignored, existing) ->
                 existing != null && existing.handler() == handler
                         ? existing

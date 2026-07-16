@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
@@ -25,9 +26,11 @@ import org.cloudburstmc.server.block.util.BlockStateHash;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static net.daporkchop.lib.common.math.PMath.mix32;
@@ -282,18 +285,32 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
         long blockStateHash = Integer.toUnsignedLong(fnvHash);
 
         CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash);
-        BlockPropertyData.StateShapes shapes = BlockPropertyData.BY_STATE_HASH.get(blockStateHash);
-        VoxelShape collision = CloudVoxelShapes.block();
-        VoxelShape outline = collision;
-        if (shapes != null) {
-            collision = CloudVoxelShapes.fromBoxes(shapes.collisionBoxes());
-            outline = shapes.outlineShape() == null ? collision : CloudVoxelShapes.fromBoxes(shapes.outlineShape());
-        }
-        state.initStateData(collision, outline);
+        BlockPropertyData.StateData stateData = BlockPropertyData.get(blockStateHash);
+        Preconditions.checkState(stateData != null, "Missing block property data for %s (state hash %s)",
+                state, Long.toUnsignedString(blockStateHash));
+
+        VoxelShape collision = CloudVoxelShapes.fromBoxes(stateData.collisionBoxes());
+        VoxelShape outline = stateData.outlineShape() == null ? collision : CloudVoxelShapes.fromBoxes(stateData.outlineShape());
+
+        BlockRegistrationAccess.bindData(state, new BlockRegistrationAccess.Properties(
+                collision, outline, stateData.hardness(), stateData.explosionResistance(),
+                stateData.friction(), stateData.translucency(), stateData.thickness(), stateData.burnOdds(),
+                stateData.flameOdds(), stateData.lightDampening(), stateData.lightEmission(), stateData.solid(),
+                stateData.requiresCorrectToolForDrops(), parseMapColor(stateData.mapColor()),
+                stateData.canContainLiquidSource(), stateData.liquidReactionOnTouch()));
 
         this.runtimeDefinitionMap.put(runtimeId, definition);
         this.stateDefinitionMap.putIfAbsent(state, definition);
         this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(vanillaEntry.getString("name")), definition);
+    }
+
+    private static Color parseMapColor(String value) {
+        Preconditions.checkArgument(value.length() == 9 && value.charAt(0) == '#',
+                "Invalid map colour: %s", value);
+        return new Color(Integer.parseInt(value.substring(1, 3), 16),
+                Integer.parseInt(value.substring(3, 5), 16),
+                Integer.parseInt(value.substring(5, 7), 16),
+                Integer.parseInt(value.substring(7, 9), 16));
     }
 
     private Collection<NbtMap> serialize(BlockType type, BlockSerializer serializer, Map<BlockTrait<?>, Comparable<?>> traits) {

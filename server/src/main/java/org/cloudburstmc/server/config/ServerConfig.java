@@ -300,18 +300,6 @@ public class ServerConfig {
     public static class LevelSettings {
 
         @Builder.Default
-        private boolean autoTickRate = true;
-
-        @Builder.Default
-        private int autoTickRateLimit = 20;
-
-        @Builder.Default
-        private boolean alwaysTickPlayers = false;
-
-        @Builder.Default
-        private int baseTickRate = 1;
-
-        @Builder.Default
         private String defaultFormat = "minecraft:leveldb";
 
     }
@@ -546,6 +534,12 @@ public class ServerConfig {
         @Builder.Default
         private String options = null;
 
+        @Builder.Default
+        private Integer maxLiquidTicks = null;
+
+        @Builder.Default
+        private Integer waterOverLavaFlowSpeed = null;
+
     }
 
     @Data
@@ -561,6 +555,14 @@ public class ServerConfig {
         // delayed ticks still fire; they just carry over to the next tick.
         @Builder.Default
         private int maxBlockTicks = 65536;
+
+        // Maximum number of scheduled liquid ticks executed per game tick.
+        @Builder.Default
+        private int maxLiquidTicks = 65536;
+
+        // Tick delay for water when lava is horizontally adjacent.
+        @Builder.Default
+        private int waterOverLavaFlowSpeed = 5;
 
         // Maximum number of chained neighbor-update callbacks that may fire
         // from a single block-change event before the chain is cut and a

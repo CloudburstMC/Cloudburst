@@ -332,7 +332,7 @@ public final class NetherPortals {
         int pz = dx;
 
         BlockState floorState = level.getBlockState(x, y - 1, z);
-        if (!BlockSupport.isFaceSturdy(floorState, Direction.UP, SupportType.FULL)) {
+        if (!BlockSupport.isFaceSturdy(level.getServer().getBlockRegistry(), floorState, Direction.UP, SupportType.FULL)) {
             return false;
         }
 
@@ -342,14 +342,15 @@ public final class NetherPortals {
                     int bx = x + dx * i + px * p;
                     int bz = z + dz * i + pz * p;
 
-                    BlockState state = level.getBlockState(bx, y + j, bz);
+                    Block block = level.getBlock(bx, y + j, bz);
+                    BlockState state = block.getState();
                     BlockType type = state.getType();
 
-                    if (!CloudBlockRegistry.REGISTRY.getComponent(type, BlockComponents.REPLACEABLE).get()) {
+                    if (!state.isReplaceable()) {
                         return false;
                     }
 
-                    if (type == BlockTypes.WATER || type == BlockTypes.FLOWING_WATER || type == BlockTypes.LAVA || type == BlockTypes.FLOWING_LAVA) {
+                    if (block.containsLiquid()) {
                         return false;
                     }
                 }
@@ -623,19 +624,19 @@ public final class NetherPortals {
         }
 
         BlockState floor = level.getBlockState(bx, by - 1, bz);
-        if (!BlockSupport.isFaceSturdy(floor, Direction.UP, SupportType.FULL)) {
+        if (!BlockSupport.isFaceSturdy(level.getServer().getBlockRegistry(), floor, Direction.UP, SupportType.FULL)) {
             return;
         }
 
         // Require 2 non-blocking, non-fluid blocks of headroom at the spawn column
         for (int headroom = 0; headroom < 2; headroom++) {
-            BlockState above = level.getBlockState(bx, by + headroom, bz);
-            BlockType aboveType = above.getType();
+            Block aboveBlock = level.getBlock(bx, by + headroom, bz);
+            BlockState above = aboveBlock.getState();
             if (BlockSupport.blocksMotion(above)) {
                 return;
             }
 
-            if (aboveType == BlockTypes.WATER || aboveType == BlockTypes.FLOWING_WATER || aboveType == BlockTypes.LAVA || aboveType == BlockTypes.FLOWING_LAVA) {
+            if (aboveBlock.containsLiquid()) {
                 return;
             }
         }

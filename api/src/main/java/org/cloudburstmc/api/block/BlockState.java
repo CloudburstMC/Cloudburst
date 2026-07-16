@@ -1,11 +1,13 @@
 package org.cloudburstmc.api.block;
 
 import com.google.common.collect.ImmutableMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.VoxelShape;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -14,19 +16,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * A block type paired with immutable trait values and geometry.
+ * A block type paired with immutable trait values and physical properties.
  */
 public final class BlockState {
 
     private final BlockType type;
     private final Map<BlockTrait<?>, Comparable<?>> traits;
-
-    private VoxelShape collisionShape;
-    private VoxelShape outlineShape;
-
+    private volatile LiquidState liquidState;
+    private volatile Data data;
     private Map<BlockTrait<?>, BlockState[]> blockStates;
 
-    public BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
+    BlockState(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits) {
         this.type = type;
         this.traits = traits;
     }
@@ -95,8 +95,7 @@ public final class BlockState {
      * @return collision shape
      */
     public VoxelShape getCollisionShape() {
-        checkState(this.collisionShape != null, "Block state data has not been initialized");
-        return this.collisionShape;
+        return data().collisionShape();
     }
 
     /**
@@ -105,8 +104,111 @@ public final class BlockState {
      * @return outline shape
      */
     public VoxelShape getOutlineShape() {
-        checkState(this.outlineShape != null, "Block state data has not been initialized");
-        return this.outlineShape;
+        return data().outlineShape();
+    }
+
+    /** @return this state's hardness */
+    public float getHardness() {
+        return data().hardness();
+    }
+
+    /** @return this state's explosion resistance */
+    public float getExplosionResistance() {
+        return data().explosionResistance();
+    }
+
+    /** @return this state's surface friction */
+    public float getFriction() {
+        return data().friction();
+    }
+
+    /** @return this state's translucency */
+    public float getTranslucency() {
+        return data().translucency();
+    }
+
+    /** @return this state's thickness */
+    public float getThickness() {
+        return data().thickness();
+    }
+
+    /** @return this state's chance of catching fire */
+    public int getBurnOdds() {
+        return data().burnOdds();
+    }
+
+    /** @return this state's chance of spreading fire */
+    public int getFlameOdds() {
+        return data().flameOdds();
+    }
+
+    /** @return the light removed while passing through this state */
+    public int getLightDampening() {
+        return data().lightDampening();
+    }
+
+    /** @return the light emitted by this state */
+    public int getLightEmission() {
+        return data().lightEmission();
+    }
+
+    /** @return whether this state is solid */
+    public boolean isSolid() {
+        return data().solid();
+    }
+
+    /** @return whether this state's drops require the correct tool */
+    public boolean requiresCorrectToolForDrops() {
+        return data().requiresCorrectToolForDrops();
+    }
+
+    /** @return this state's map color */
+    public Color getMapColor() {
+        return data().mapColor();
+    }
+
+    /**
+     * @return whether this state can share its position with a liquid source
+     */
+    public boolean canContainLiquidSource() {
+        return data().canContainLiquidSource();
+    }
+
+    /**
+     * @return this state's reaction to flowing liquid
+     */
+    public LiquidReaction getLiquidReaction() {
+        return data().liquidReaction();
+    }
+
+    /**
+     * @return whether this state can share its position with flowing liquid
+     */
+    public boolean canContainFlowingLiquid() {
+        return !isReplaceable() && getLiquidReaction().allowsFlow();
+    }
+
+    /**
+     * @return whether this state may be replaced by normal block placement
+     */
+    public boolean isReplaceable() {
+        return this.type == BlockTypes.AIR || this.type.isLiquid() || getLiquidReaction().removesBlock();
+    }
+
+    LiquidState asLiquidState() {
+        checkState(this.type.isLiquid(), "Block state is not liquid: %s", this);
+        LiquidState liquidState = this.liquidState;
+        if (liquidState == null) {
+            synchronized (this) {
+                liquidState = this.liquidState;
+                if (liquidState == null) {
+                    liquidState = new LiquidState(this, this.type.getLiquidType());
+                    this.liquidState = liquidState;
+                }
+            }
+        }
+
+        return liquidState;
     }
 
     @Override
@@ -140,23 +242,53 @@ public final class BlockState {
         this.blockStates = Collections.unmodifiableMap(statesMap);
     }
 
-    /**
-     * Binds collision and outline geometry during block registration.
-     * This operation succeeds once for each state.
-     *
-     * @param collisionShape collision geometry in block-local coordinates
-     * @param outlineShape outline geometry, or {@code null} to reuse the collision shape
-     * @throws IllegalStateException if geometry is already bound
-     */
-    public synchronized void initStateData(VoxelShape collisionShape, VoxelShape outlineShape) {
-        checkState(this.collisionShape == null && this.outlineShape == null, "Block state data has already been initialized");
-        this.collisionShape = checkNotNull(collisionShape, "collisionShape");
-        this.outlineShape = outlineShape == null ? collisionShape : outlineShape;
+    synchronized void bindData(VoxelShape collisionShape, @Nullable VoxelShape outlineShape,
+                               float hardness, float explosionResistance, float friction,
+                               float translucency, float thickness, int burnOdds, int flameOdds,
+                               int lightDampening, int lightEmission, boolean solid,
+                               boolean requiresCorrectToolForDrops, Color mapColor,
+                               boolean canContainLiquidSource, LiquidReaction liquidReaction) {
+        checkState(this.data == null, "Block state data has already been initialized");
+        this.data = new Data(collisionShape, outlineShape, hardness, explosionResistance, friction,
+                translucency, thickness, burnOdds, flameOdds, lightDampening, lightEmission, solid,
+                requiresCorrectToolForDrops, mapColor, canContainLiquidSource, liquidReaction);
     }
 
     private ImmutableMap<BlockTrait<?>, Comparable<?>> getTraitsWithValue(BlockTrait<?> trait, Comparable<?> comparable) {
         ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
         this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v));
         return builder.build();
+    }
+
+    private Data data() {
+        Data data = this.data;
+        checkState(data != null, "Block state data has not been initialized");
+        return data;
+    }
+
+    private record Data(
+            VoxelShape collisionShape,
+            VoxelShape outlineShape,
+            float hardness,
+            float explosionResistance,
+            float friction,
+            float translucency,
+            float thickness,
+            int burnOdds,
+            int flameOdds,
+            int lightDampening,
+            int lightEmission,
+            boolean solid,
+            boolean requiresCorrectToolForDrops,
+            Color mapColor,
+            boolean canContainLiquidSource,
+            LiquidReaction liquidReaction
+    ) {
+        private Data {
+            collisionShape = checkNotNull(collisionShape, "collisionShape");
+            outlineShape = outlineShape == null ? collisionShape : outlineShape;
+            mapColor = checkNotNull(mapColor, "mapColor");
+            liquidReaction = checkNotNull(liquidReaction, "liquidReaction");
+        }
     }
 }

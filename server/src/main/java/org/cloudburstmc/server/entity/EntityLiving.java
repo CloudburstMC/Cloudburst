@@ -281,7 +281,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
             // Used to check collisions with magma blocks
             Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
-            if (block.getState().getType() == MAGMA) block.getComponents().get(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
+            if (block.getState().getType() == MAGMA) block.getComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
             return hasUpdate;
         }
     }

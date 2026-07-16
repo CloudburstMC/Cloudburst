@@ -591,8 +591,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         motionZ *= drag;
 
         // Water slows the cart further.
-        BlockType blockType = level.getBlockState(dx, dy, dz).getType();
-        if (blockType == BlockTypes.WATER || blockType == BlockTypes.FLOWING_WATER) {
+        if (level.getBlock(dx, dy, dz).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
             motionX *= 0.95f;
             motionZ *= 0.95f;
         }

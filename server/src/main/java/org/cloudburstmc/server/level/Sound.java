@@ -872,7 +872,6 @@ public enum Sound {
     RANDOM_GLASS("random.glass"),
     RANDOM_HURT("random.hurt"),
     RANDOM_LEVELUP("random.levelup"),
-    RANDOM_ORB("random.orb"),
     RANDOM_POP("random.pop"),
     RANDOM_POP2("random.pop2"),
     RANDOM_POTION_BREWED("random.potion.brewed"),

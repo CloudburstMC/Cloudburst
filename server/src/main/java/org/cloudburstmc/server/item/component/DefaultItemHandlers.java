@@ -10,10 +10,10 @@ import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.*;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @UtilityClass
@@ -32,10 +32,10 @@ public class DefaultItemHandlers {
         return 0F;
     };
 
-    public static final DamageChanceHandler GET_DAMAGE_CHANCE = (unbreaking) -> 100 / (unbreaking + 1);
+    public static final DamageChanceHandler GET_DAMAGE_CHANCE = unbreakingLevel -> 100f / (unbreakingLevel + 1);
 
     public static final MineBlockHandler MINE_BLOCK = (itemStack, block, owner) -> {
-        if (CloudBlockRegistry.REGISTRY.getComponent(block.getState().getType(), BlockComponents.CAN_DAMAGE_ITEM).get()) {
+        if (block.getComponent(BlockComponents.CAN_DAMAGE_ITEM)) {
             DamageItemHandler onDamage = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.ON_DAMAGE);
             if (onDamage != null) {
                 return onDamage.execute(itemStack, 2, owner);
@@ -48,11 +48,12 @@ public class DefaultItemHandlers {
         IntItemHandler getMaxDamage = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.GET_MAX_DAMAGE);
         int maxDamage = getMaxDamage != null ? getMaxDamage.execute(itemStack) : -1;
 
-        if (damage <= 0 || itemStack.isEmpty() || maxDamage < 0 ||
-                !owner.isAlive() || itemStack.get(ItemKeys.UNBREAKABLE) != Boolean.TRUE) {
+        if (damage <= 0 || itemStack.isEmpty() || maxDamage <= 0 ||
+                !owner.isAlive() || itemStack.get(ItemKeys.UNBREAKABLE) == Boolean.TRUE) {
             if (damage < 0) {
                 log.debug("Tried to damage {} with a negative value of {}", itemStack, damage);
             }
+
             return itemStack;
         }
 
@@ -60,16 +61,25 @@ public class DefaultItemHandlers {
         int enchantmentLevel = enchantment == null ? 0 : enchantment.level();
 
         DamageChanceHandler getDamageChance = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.GET_DAMAGE_CHANCE);
-        int damageChance = getDamageChance != null ? getDamageChance.execute(enchantmentLevel) : 100;
+        float damageChance = getDamageChance != null ? getDamageChance.execute(enchantmentLevel) : 100;
 
-        if (enchantmentLevel > 0 && damageChance <= 100) {
+        damageChance = Math.clamp(damageChance, 0, 100);
+        int appliedDamage = 0;
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        for (int i = 0; i < damage; i++) {
+            if (random.nextFloat(100) < damageChance) {
+                appliedDamage++;
+            }
+        }
+
+        if (appliedDamage == 0) {
             return itemStack;
         }
 
         Integer damageKey = itemStack.get(ItemKeys.DAMAGE);
         int damageValue = damageKey == null ? 0 : damageKey;
 
-        damageValue += damage;
+        damageValue += appliedDamage;
 
         if (damageValue >= maxDamage) {
             // TODO: Make the break sound

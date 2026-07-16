@@ -26,6 +26,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.io.Closeable;
@@ -134,7 +135,8 @@ public final class CloudChunk implements Chunk, Closeable {
 
         if (this.restoredTicks != null) {
             for (BlockUpdateEntry entry : this.restoredTicks) {
-                lvl.getUpdateQueue().add(entry);
+                BlockUpdateScheduler scheduler = entry.type.isLiquid() ? lvl.getLiquidUpdateQueue() : lvl.getBlockUpdateQueue();
+                scheduler.add(entry);
             }
             this.restoredTicks = null;
         }

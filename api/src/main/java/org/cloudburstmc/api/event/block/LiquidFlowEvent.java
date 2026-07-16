@@ -1,31 +1,34 @@
 package org.cloudburstmc.api.event.block;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.event.Cancellable;
 
+/**
+ * Called before liquid flows from one block position into another.
+ */
 public final class LiquidFlowEvent extends BlockEvent implements Cancellable {
 
-    private final BlockState to;
-    private final Block source;
-    private final int newFlowDecay;
+    private final Block target;
+    private final LiquidState liquid;
 
-    public LiquidFlowEvent(BlockState to, Block source, int newFlowDecay) {
+    public LiquidFlowEvent(Block source, Block target, LiquidState liquid) {
         super(source);
-        this.to = to;
-        this.source = source;
-        this.newFlowDecay = newFlowDecay;
+        this.target = target;
+        this.liquid = liquid;
     }
 
-    public int getNewFlowDecay() {
-        return this.newFlowDecay;
+    /**
+     * @return the block the liquid will enter
+     */
+    public Block getTarget() {
+        return this.target;
     }
 
-    public Block getSource() {
-        return this.source;
-    }
-
-    public BlockState getTo() {
-        return this.to;
+    /**
+     * @return the liquid state that will enter the target
+     */
+    public LiquidState getLiquid() {
+        return this.liquid;
     }
 }

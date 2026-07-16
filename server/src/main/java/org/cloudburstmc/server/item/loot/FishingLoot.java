@@ -26,10 +26,12 @@ public class FishingLoot {
             .add(ItemStack.from(ItemTypes.ENCHANTED_BOOK), 1)
             .add(ItemStack.from(ItemTypes.FISHING_ROD), 1)
             .add(ItemStack.from(ItemTypes.NAME_TAG), 1)
+            .add(ItemStack.from(ItemTypes.NAUTILUS_SHELL), 1)
             .add(ItemStack.from(ItemTypes.SADDLE), 1)
             .build();
 
     private static final WeightedTable<ItemStack> JUNK = WeightedTable.<ItemStack>builder()
+            .add(ItemStack.from(BlockTypes.WATERLILY.getDefaultState()), 204)
             .add(ItemStack.from(ItemTypes.BOWL), 120)
             .add(ItemStack.from(ItemTypes.FISHING_ROD), 24)
             .add(ItemStack.from(ItemTypes.LEATHER), 120)
@@ -43,41 +45,31 @@ public class FishingLoot {
             .add(ItemStack.from(BlockTypes.TRIPWIRE_HOOK.getDefaultState()), 120)
             .build();
 
-    public static ItemStack select() {
-        return select(0, 0);
-    }
-
-    public static ItemStack select(int fortuneLevel, int lureLevel) {
-        double treasureChance = clamp(0, 1, 0.05 + 0.01 * fortuneLevel - 0.01 * lureLevel);
-        double junkChance = clamp(0, 1, 0.05 - 0.025 * fortuneLevel - 0.01 * lureLevel);
-        double fishChance = clamp(0, 1, 1 - treasureChance - junkChance);
+    public static ItemStack select(int luckLevel, boolean openWater) {
+        double treasureWeight = openWater ? Math.max(0, 5 + 2 * luckLevel) : 0;
+        double junkWeight = Math.max(0, 10 - 2 * luckLevel);
+        double fishWeight = Math.max(0, 85 - luckLevel);
         Random random = ThreadLocalRandom.current();
 
-        return selectCategory(fishChance, treasureChance, junkChance, random)
+        return selectCategory(fishWeight, treasureWeight, junkWeight, random)
                 .flatMap(category -> category.select(random))
                 .orElse(ItemStack.EMPTY);
     }
 
-    private static Optional<WeightedTable<ItemStack>> selectCategory(double fishChance, double treasureChance, double junkChance, Random random) {
+    private static Optional<WeightedTable<ItemStack>> selectCategory(double fishWeight, double treasureWeight, double junkWeight, Random random) {
         WeightedTable.Builder<WeightedTable<ItemStack>> categories = WeightedTable.builder();
-        if (fishChance > 0) {
-            categories.add(FISH, fishChance);
+        if (fishWeight > 0) {
+            categories.add(FISH, fishWeight);
         }
 
-        if (treasureChance > 0) {
-            categories.add(TREASURE, treasureChance);
+        if (treasureWeight > 0) {
+            categories.add(TREASURE, treasureWeight);
         }
 
-        if (junkChance > 0) {
-            categories.add(JUNK, junkChance);
+        if (junkWeight > 0) {
+            categories.add(JUNK, junkWeight);
         }
 
         return categories.build().select(random);
-    }
-
-    private static double clamp(double min, double max, double value) {
-        if (value >= max) return max;
-        if (value <= min) return min;
-        return value;
     }
 }

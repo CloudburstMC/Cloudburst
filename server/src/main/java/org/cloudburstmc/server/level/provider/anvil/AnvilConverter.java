@@ -78,7 +78,8 @@ public class AnvilConverter {
                 }
             }
 
-            sections[y] = new CloudChunkSection(new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
+            sections[y] = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry(),
+                    new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
         }
         chunkBuilder.sections(sections);
 

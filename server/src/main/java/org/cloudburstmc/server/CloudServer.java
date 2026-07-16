@@ -174,11 +174,6 @@ public class CloudServer implements Server {
     private int autoSaveTicks = 6000;
 
     private boolean upnpEnabled;
-    private boolean autoTickRate = true;
-    private int autoTickRateLimit = 20;
-    private boolean alwaysTickPlayers;
-    private int baseTickRate = 1;
-
     private Boolean getAllowFlight;
     private Difficulty difficulty;
     private GameMode defaultGamemode;
@@ -428,11 +423,6 @@ public class CloudServer implements Server {
 
         this.networkCompressionLevel = getConfig().getNetwork().getCompressionLevel();
         this.networkCompressionAsync = getConfig().getNetwork().isAsyncCompression();
-
-        this.autoTickRate = getConfig().getLevelSettings().isAutoTickRate();
-        this.autoTickRateLimit = getConfig().getLevelSettings().getAutoTickRateLimit();
-        this.alwaysTickPlayers = getConfig().getLevelSettings().isAlwaysTickPlayers();
-        this.baseTickRate = getConfig().getLevelSettings().getBaseTickRate();
 
         this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
         this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
@@ -1738,18 +1728,6 @@ public class CloudServer implements Server {
 
     public GeneratorRegistry getGeneratorRegistry() {
         return this.generatorRegistry;
-    }
-
-    public int getBaseTickRate() {
-        return baseTickRate;
-    }
-
-    public int getAutoTickRateLimit() {
-        return autoTickRateLimit;
-    }
-
-    public boolean isAutoTickRate() {
-        return autoTickRate;
     }
 
     public boolean isIgnoredPacket(Class<? extends BedrockPacket> clazz) {

@@ -61,10 +61,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.LoginChainData;
-import org.cloudburstmc.api.util.MovementType;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -104,13 +101,13 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
+import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
@@ -135,6 +132,7 @@ import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
@@ -195,7 +193,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     public long lastBreak;
     public long lastSkinChange;
     public Block breakingBlock = null;
-    public FishingHook fishing = null;
+    private @Nullable FishingHook fishingHook;
     public Vector3f speed = null;
 
     protected boolean connected = true;
@@ -239,6 +237,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private boolean pendingTeleportEntityViewRefresh;
     private boolean initialized;
     private boolean changingDimension = false;
+    private boolean wasUnderwater;
     private byte containerIdCounter = 1;
     private int exp = 0;
     private int expLevel = 0;
@@ -1525,10 +1524,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     @Override
     public void openContainer(Block block) {
         if (!canOpenInventory()) return;
-        if (!block.getComponents().get(BlockComponents.CAN_BE_USED).execute(block, this)) {
+        if (!block.getComponent(BlockComponents.CAN_BE_USED).execute(block, this)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
-        block.getComponents().get(BlockComponents.USE).execute(block, this, Direction.DOWN, ItemStack.EMPTY);
+        block.getComponent(BlockComponents.USE).execute(block, this, Direction.DOWN, ItemStack.EMPTY);
     }
 
     @Override
@@ -1751,7 +1750,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             log.debug("[{}] movement corrected: claimed {} corrected to {} ({})", this.getName(), newPosition, correctedPos, revertReason);
             sendMovementCorrection(correctedPos, this.clientTick);
             this.forceMovement = correctedPos;
-        } else if (collisionResolvedPosition != null && this.getPosition().equals(collisionResolvedPosition)) {
+        } else if (this.getPosition().equals(collisionResolvedPosition)) {
             float acceptanceThreshold = this.server.getConfig().getMovement().getPositionAcceptanceThreshold();
             if (newPosition.distance(collisionResolvedPosition) > acceptanceThreshold) {
                 log.debug("[{}] movement corrected: claimed {} corrected to {} (collision)", this.getName(), newPosition, collisionResolvedPosition);
@@ -1842,12 +1841,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.lastUpdate = currentTick;
 
         try (Timing ignored = this.timing.startTiming()) {
-            if (this.fishing != null && this.server.getTick() % 20 == 0) {
-                if (this.getPosition().distance(fishing.getPosition()) > 33) {
-                    this.stopFishing(false);
-                }
-            }
-
             if (!this.isAlive() && this.spawned) {
                 ++this.deadTicks;
                 if (this.deadTicks >= 10) {
@@ -1867,6 +1860,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 }
 
                 this.entityBaseTick(tickDiff);
+                this.updateUnderwaterSound();
 
                 if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
                     if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
@@ -1929,6 +1923,22 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         return true;
+    }
+
+    private void updateUnderwaterSound() {
+        boolean underwater = this.isInsideOfWater();
+        if (this.wasUnderwater == underwater) {
+            return;
+        }
+        this.wasUnderwater = underwater;
+
+        LevelSoundEventPacket packet = new LevelSoundEventPacket();
+        packet.setSound(underwater ? SoundEvent.AMBIENT_UNDERWATER_ENTER : SoundEvent.AMBIENT_UNDERWATER_EXIT);
+        packet.setPosition(this.getPosition());
+        packet.setExtraData(-1);
+        packet.setIdentifier(EntityTypes.PLAYER.getIdentifier().toString());
+        packet.setEntityUniqueId(this.getUniqueId());
+        this.sendPacket(packet);
     }
 
     public void tryStartGliding() {
@@ -2643,8 +2653,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 if (this.loggedIn && ev.getAutoSave()) {
                     this.save();
                 }
-                if (this.fishing != null) {
-                    this.stopFishing(false);
+                if (this.fishingHook != null) {
+                    this.stopFishing();
                 }
             }
 
@@ -3159,8 +3169,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             params.clear();
         }
 
-        if (this.fishing != null) {
-            this.stopFishing(false);
+        if (this.fishingHook != null) {
+            this.stopFishing();
         }
 
         this.health = 0;
@@ -3436,6 +3446,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return this.inventory;
     }
 
+    @Override
+    public @Nullable FishingHook getFishingHook() {
+        return this.fishingHook;
+    }
+
     public CloudContainer getContainer() {
         return this.inventory.getContainer();
     }
@@ -3672,44 +3687,84 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.sendPacket(blockEntityDataPacket);
     }
 
-    /**
-     * Start fishing
-     *
-     * @param fishingRod fishing rod item
-     */
-    public void startFishing(ItemStack fishingRod) {
-        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight(), 0), this.getYaw(),
-                this.getPitch(), this.getLevel());
-        double f = 1.1;
-        FishingHook fishingHook = EntityRegistry.get().newEntity(EntityTypes.FISHING_HOOK, location);
+    public int useFishingRod(ItemStack fishingRod) {
+        if (this.fishingHook != null) {
+            return this.fishingHook.retrieve(fishingRod);
+        }
+
+        Vector3f castPosition = fishingHookCastPosition();
+        Location location = Location.from(castPosition, this.getYaw(), this.getPitch(), this.getLevel());
+        EntityFishingHook fishingHook = (EntityFishingHook) EntityRegistry.get()
+                .newEntity(EntityTypes.FISHING_HOOK, location);
         fishingHook.setPosition(location.getPosition());
         fishingHook.setOwner(this);
-        fishingHook.setMotion(Vector3f.from(-Math.sin(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f,
-                -Math.sin(Math.toRadians(this.getPitch())) * f * f, Math.cos(Math.toRadians(this.getYaw())) * Math.cos(Math.toRadians(this.getPitch())) * f * f));
+        fishingHook.setMotion(fishingHookCastMotion());
+        fishingHook.configure(fishingRod);
         ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
         this.getServer().getEventManager().fire(ev);
         if (ev.isCancelled()) {
             fishingHook.close();
         } else {
+            PlayerFishEvent fishEvent = new PlayerFishEvent(this, fishingHook, null, PlayerFishState.CAST);
+            this.getServer().getEventManager().fire(fishEvent);
+            if (fishEvent.isCancelled()) {
+                fishingHook.close();
+                return 0;
+            }
+
             fishingHook.spawnToAll();
-            this.fishing = fishingHook;
-            fishingHook.setRod(fishingRod);
+            this.fishingHook = fishingHook;
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.THROW, -1,
+                    Identifier.parse("minecraft:player"), false, false);
         }
+        return 0;
     }
 
-    /**
-     * Stop fishing
-     *
-     * @param click clicked or forced
-     */
-    public void stopFishing(boolean click) {
-        if (this.fishing != null && click) {
-            fishing.reelLine();
-        } else if (this.fishing != null) {
-            this.fishing.close();
+    private Vector3f fishingHookCastPosition() {
+        float yaw = (float) Math.toRadians(-this.getYaw()) - (float) Math.PI;
+        float yawSin = (float) Math.sin(yaw);
+        float yawCos = (float) Math.cos(yaw);
+        return Vector3f.from(this.getX() - yawSin * 0.3f,
+                this.getY() + this.getEyeHeight(), this.getZ() - yawCos * 0.3f);
+    }
+
+    private Vector3f fishingHookCastMotion() {
+        float yaw = (float) Math.toRadians(-this.getYaw()) - (float) Math.PI;
+        float pitch = (float) Math.toRadians(-this.getPitch());
+
+        float yawSin = (float) Math.sin(yaw);
+        float yawCos = (float) Math.cos(yaw);
+
+        float pitchSin = (float) Math.sin(pitch);
+        float pitchCos = -(float) Math.cos(pitch);
+
+        Vector3f direction = Vector3f.from(-yawSin,
+                Math.clamp(-(pitchSin / pitchCos), -5, 5), -yawCos);
+        float normalizedScale = 0.6f / direction.length();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        return Vector3f.from(
+                direction.getX() * (normalizedScale + triangular(random, 0.5f, 0.0103365f)),
+                direction.getY() * (normalizedScale + triangular(random, 0.5f, 0.0103365f)),
+                direction.getZ() * (normalizedScale + triangular(random, 0.5f, 0.0103365f)));
+    }
+
+    private static float triangular(ThreadLocalRandom random, float mean, float deviation) {
+        return mean + deviation * (random.nextFloat() - random.nextFloat());
+    }
+
+    public void stopFishing() {
+        if (this.fishingHook != null) {
+            this.fishingHook.close();
         }
 
-        this.fishing = null;
+        this.fishingHook = null;
+    }
+
+    public void clearFishingHook(FishingHook hook) {
+        if (this.fishingHook == hook) {
+            this.fishingHook = null;
+        }
     }
 
     @Override
@@ -3747,8 +3802,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 PlayerActionPacket ack = new PlayerActionPacket();
                 ack.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
                 ack.setRuntimeEntityId(this.getRuntimeId());
-                ack.setBlockPosition(org.cloudburstmc.math.vector.Vector3i.ZERO);
-                ack.setResultPosition(org.cloudburstmc.math.vector.Vector3i.ZERO);
+                ack.setBlockPosition(Vector3i.ZERO);
+                ack.setResultPosition(Vector3i.ZERO);
                 ack.setFace(0);
                 this.sendPacket(ack);
             }
@@ -3816,7 +3871,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     ItemStack item = ((DroppedItem) entity).getItem();
 
                     if (item != null) {
-                        if (this.isSurvival() && !this.getContainer().canAddItem(item)) {
+                        if (!this.getContainer().canAddItem(item)) {
                             return false;
                         }
 
@@ -3832,6 +3887,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                             this.awardAchievement("diamond");
                         }
 
+                        ItemStack[] remaining = this.getContainer().addItem(item);
+                        if (remaining.length != 0) {
+                            throw new IllegalStateException("Inventory accepted an item pickup but failed to insert it");
+                        }
+
                         TakeItemEntityPacket packet = new TakeItemEntityPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setItemRuntimeEntityId(entity.getRuntimeId());
@@ -3839,7 +3899,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                         this.sendPacket(packet);
 
                         entity.close();
-                        this.getContainer().addItem(item);
                         return true;
                     }
                 }
@@ -3851,7 +3910,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             if (experienceOrb.getPickupDelay() <= 0) {
                 int exp = experienceOrb.getExperience();
                 entity.kill();
-                this.getLevel().addSound(this.getPosition(), Sound.RANDOM_ORB);
+                LevelEventPacket sound = new LevelEventPacket();
+                sound.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
+                sound.setPosition(this.getPosition());
+                sound.setData(0);
+                this.sendPacket(sound);
                 pickedXPOrb = tick;
 
 //                TODO Enchantments implementation

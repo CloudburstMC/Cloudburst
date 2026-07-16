@@ -1,259 +1,526 @@
 package org.cloudburstmc.server.entity.projectile;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
-import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.entity.projectile.FishingHookState;
+import org.cloudburstmc.api.event.entity.FishingHookStateChangeEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
+import org.cloudburstmc.api.event.player.PlayerFishEvent;
+import org.cloudburstmc.api.event.player.PlayerFishState;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.misc.EntityDroppedItem;
 import org.cloudburstmc.server.item.loot.FishingLoot;
 import org.cloudburstmc.server.level.particle.BubbleParticle;
 import org.cloudburstmc.server.level.particle.WaterParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
-import java.util.Random;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+public final class EntityFishingHook extends EntityProjectile implements FishingHook {
+    private static final int MIN_WAIT_TIME = 100;
+    private static final int MAX_WAIT_TIME = 600;
+    private static final int MAX_GROUND_TIME = 1200;
 
-/**
- * Created by PetteriM1
- */
-public class EntityFishingHook extends EntityProjectile implements FishingHook {
-
-    public static final int WAIT_CHANCE = 120;
-    public static final int CHANCE = 40;
-
-    public boolean chance = false;
-    public int waitChance = WAIT_CHANCE * 2;
-    public boolean attracted = false;
-    public int attractTimer = 0;
-    public boolean caught = false;
-    public int coughtTimer = 0;
-
-    public Vector3f fish = null;
-
-    private ItemStack rod;
+    private FishingHookState fishingState = FishingHookState.FLYING;
+    private @Nullable Entity hookedEntity;
+    private int luck;
+    private int lureSpeed;
+    private int groundTime;
+    private int outOfWaterTime;
+    private int timeUntilLured;
+    private int timeUntilHooked;
+    private int biteTime;
+    private float fishAngle;
+    private boolean biting;
+    private boolean openWater = true;
 
     public EntityFishingHook(EntityType<FishingHook> type, Location location) {
         super(type, location);
+        this.closeOnCollide = false;
+    }
+
+    public void configure(ItemStack rod) {
+        Map<EnchantmentType, Enchantment> enchantments = rod.get(ItemKeys.ENCHANTMENTS);
+        Enchantment luckEnchantment = enchantments.get(EnchantmentTypes.LUCK_OF_THE_SEA);
+        Enchantment lureEnchantment = enchantments.get(EnchantmentTypes.LURE);
+        this.luck = luckEnchantment == null ? 0 : Math.max(0, luckEnchantment.level());
+        this.lureSpeed = lureEnchantment == null ? 0 : Math.max(0, lureEnchantment.level() * 100);
     }
 
     @Override
-    protected void initEntity() {
-        super.initEntity();
-        if (this.age > 0) {
-            this.close();
+    public FishingHookState getFishingState() {
+        return this.fishingState;
+    }
+
+    @Override
+    public @Nullable Entity getHookedEntity() {
+        return this.hookedEntity;
+    }
+
+    @Override
+    public void setHookedEntity(@Nullable Entity entity) {
+        if (entity != null && entity.getLevel() != this.getLevel()) {
+            throw new IllegalArgumentException("Hooked entity must be in the same level");
         }
+
+        this.hookedEntity = entity;
+        setFishingState(entity == null ? FishingHookState.FLYING : FishingHookState.HOOKED_IN_ENTITY);
+
+        if (entity != null) {
+            this.motion = Vector3f.ZERO;
+        }
+    }
+
+    @Override
+    public boolean pullHookedEntity() {
+        CloudPlayer owner = playerOwner();
+        if (owner == null || this.hookedEntity == null) {
+            return false;
+        }
+
+        pull(this.hookedEntity, owner);
+        return true;
+    }
+
+    @Override
+    public boolean isBiting() {
+        return this.biting;
+    }
+
+    @Override
+    public boolean isOpenWaterFishing() {
+        return this.openWater;
     }
 
     @Override
     public float getWidth() {
-        return 0.2f;
+        return 0.25f;
     }
 
     @Override
     public float getLength() {
-        return 0.2f;
+        return 0.25f;
     }
 
     @Override
     public float getHeight() {
-        return 0.2f;
+        return 0.25f;
     }
 
     @Override
     public float getGravity() {
-        return 0.07f;
+        return isInWaterBlock() ? 0 : 0.03f;
     }
 
     @Override
     public float getDrag() {
-        return 0.05f;
-    }
-
-    @Nullable
-    public ItemStack getRod() {
-        return rod;
-    }
-
-    public void setRod(@Nullable ItemStack rod) {
-        this.rod = rod;
+        return 0.08f;
     }
 
     @Override
     public boolean onUpdate(int currentTick) {
-        boolean hasUpdate = super.onUpdate(currentTick);
-        if (hasUpdate) {
+        CloudPlayer owner = playerOwner();
+        if (owner == null || shouldStopFishing(owner)) {
+            this.close();
             return false;
         }
 
-        if (this.isInsideOfWater()) {
-            this.motion = Vector3f.from(0, getGravity() * -0.04, 0);
-            hasUpdate = true;
-        } else if (this.isCollided) {
-            this.motion = Vector3f.ZERO;
-            hasUpdate = true;
+        if (this.onGround) {
+            if (++this.groundTime >= MAX_GROUND_TIME) {
+                this.close();
+                return false;
+            }
+        } else {
+            this.groundTime = 0;
         }
 
-        Random random = new Random();
-
-        if (this.isInsideOfWater()) {
-            if (!this.attracted) {
-                if (this.waitChance > 0) {
-                    --this.waitChance;
-                }
-                if (this.waitChance == 0) {
-                    if (random.nextInt(100) < 90) {
-                        this.attractTimer = (random.nextInt(40) + 20);
-                        this.spawnFish();
-                        this.caught = false;
-                        this.attracted = true;
-                    } else {
-                        this.waitChance = WAIT_CHANCE;
-                    }
-                }
-            } else if (!this.caught) {
-                if (this.attractFish()) {
-                    this.coughtTimer = (random.nextInt(20) + 30);
-                    this.fishBites();
-                    this.caught = true;
-                }
+        if (this.fishingState == FishingHookState.HOOKED_IN_ENTITY) {
+            if (this.hookedEntity == null || !this.hookedEntity.isAlive() || this.hookedEntity.getLevel() != this.getLevel()) {
+                setHookedEntity(null);
             } else {
-                if (this.coughtTimer > 0) {
-                    --this.coughtTimer;
-                }
-                if (this.coughtTimer == 0) {
-                    this.attracted = false;
-                    this.caught = false;
-                    this.waitChance = WAIT_CHANCE * 3;
-                }
+                this.setPosition(this.hookedEntity.getPosition().add(0, this.hookedEntity.getHeight() * 0.8f, 0));
+                this.motion = Vector3f.ZERO;
+                return true;
             }
         }
 
-        return hasUpdate;
-    }
-
-    public int getWaterHeight() {
-        for (int y = this.getPosition().getFloorY(); y < 256; y++) {
-            var id = this.getLevel().getBlockState(getPosition().getFloorX(), y, getPosition().getFloorZ()).getType();
-            if (id == BlockTypes.AIR) {
-                return y;
-            }
+        boolean bobbing = this.fishingState == FishingHookState.BOBBING;
+        if (bobbing) {
+            tickBobbing(isInWaterBlock(), owner);
         }
-        return this.getPosition().getFloorY();
+
+        boolean updated = super.onUpdate(currentTick);
+        if (this.closed) {
+            return false;
+        }
+
+        if (this.fishingState == FishingHookState.FLYING && isInWaterBlock()) {
+            setFishingState(FishingHookState.BOBBING);
+            this.motion = this.motion.mul(0.3f, 0.2f, 0.3f);
+        }
+
+        if (bobbing) {
+            updated = true;
+        }
+
+        this.motion = this.motion.mul(1 - this.getDrag());
+        this.updateMovement();
+        return updated;
     }
 
-    public void fishBites() {
-        EntityEventPacket hookPacket = new EntityEventPacket();
-        hookPacket.setRuntimeEntityId(this.getRuntimeId());
-        hookPacket.setType(EntityEventType.FISH_HOOK_TIME);
-        CloudServer.broadcastPacket(this.getViewers(), hookPacket);
+    private void tickBobbing(boolean inWater, CloudPlayer owner) {
+        if (!inWater) {
+            this.outOfWaterTime = Math.min(10, this.outOfWaterTime + 1);
+            return;
+        }
 
-        EntityEventPacket bubblePacket = new EntityEventPacket();
-        bubblePacket.setRuntimeEntityId(this.getRuntimeId());
-        bubblePacket.setType(EntityEventType.FISH_HOOK_BUBBLE);
-        CloudServer.broadcastPacket(this.getViewers(), bubblePacket);
+        this.outOfWaterTime = Math.max(0, this.outOfWaterTime - 1);
+        Vector3i position = this.getPosition().toInt();
+        float surface = position.getY() + this.getLevel().getLiquidHeight(position);
+        float force = this.getY() + this.motion.getY() - surface;
+        if (Math.abs(force) < 0.01f) {
+            force += Math.copySign(0.1f, force == 0 ? 1 : force);
+        }
 
-        EntityEventPacket teasePacket = new EntityEventPacket();
-        teasePacket.setRuntimeEntityId(this.getRuntimeId());
-        teasePacket.setType(EntityEventType.FISH_HOOK_TEASE);
-        CloudServer.broadcastPacket(this.getViewers(), teasePacket);
+        this.motion = Vector3f.from(this.motion.getX() * 0.9f,
+                this.motion.getY() - force * ThreadLocalRandom.current().nextFloat() * 0.2f,
+                this.motion.getZ() * 0.9f);
+        if (this.biting) {
+            ThreadLocalRandom random = ThreadLocalRandom.current();
+            this.motion = this.motion.add(0, -0.1f * random.nextFloat() * random.nextFloat(), 0);
+        }
 
-        Random random = ThreadLocalRandom.current();
+        if (this.biteTime <= 0 && this.timeUntilHooked <= 0) {
+            this.openWater = true;
+        } else {
+            this.openWater &= this.outOfWaterTime < 10 && calculateOpenWater(position);
+        }
+
+        catchFish(owner, position);
+    }
+
+    private void catchFish(CloudPlayer owner, Vector3i position) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        int speed = 1;
+        Vector3i above = Direction.UP.relative(position);
+        if (random.nextFloat() < 0.25f && this.getLevel().isRaining() && this.getLevel().canBlockSeeSky(above)) {
+            speed++;
+        }
+
+        if (random.nextFloat() < 0.5f && !this.getLevel().canBlockSeeSky(above)) {
+            speed--;
+        }
+
+        if (this.biteTime > 0) {
+            this.biteTime--;
+            if (this.biteTime <= 0) {
+                this.biting = false;
+                this.timeUntilLured = 0;
+                this.timeUntilHooked = 0;
+                fire(owner, PlayerFishState.FAILED_ATTEMPT, null);
+            }
+            return;
+        }
+
+        if (this.timeUntilHooked > 0) {
+            this.timeUntilHooked -= speed;
+            if (this.timeUntilHooked <= 0) {
+                if (fire(owner, PlayerFishState.BITE, null).isCancelled()) {
+                    return;
+                }
+                startBite(random);
+            } else {
+                spawnApproachParticle(random);
+            }
+            return;
+        }
+
+        if (this.timeUntilLured > 0) {
+            this.timeUntilLured -= speed;
+            if (this.timeUntilLured <= 0) {
+                this.fishAngle = random.nextFloat(360);
+                this.timeUntilHooked = random.nextInt(20, 81);
+                if (fire(owner, PlayerFishState.LURED, null).isCancelled()) {
+                    this.timeUntilHooked = 0;
+                }
+            } else if (random.nextFloat() < teaseChance()) {
+                spawnTeaseParticle(random);
+            }
+            return;
+        }
+
+        this.timeUntilLured = Math.max(1, random.nextInt(MIN_WAIT_TIME, MAX_WAIT_TIME + 1) - this.lureSpeed);
+    }
+
+    private void startBite(ThreadLocalRandom random) {
+        this.biteTime = random.nextInt(20, 41);
+        this.biting = true;
+        this.motion = Vector3f.from(this.motion.getX(), -0.4f * random.nextFloat(0.6f, 1), this.motion.getZ());
+
+        sendHookEvent(EntityEventType.FISH_HOOK_TIME);
+        sendHookEvent(EntityEventType.FISH_HOOK_BUBBLE);
+        sendHookEvent(EntityEventType.FISH_HOOK_TEASE);
+
         for (int i = 0; i < 5; i++) {
             this.getLevel().addParticle(new BubbleParticle(Vector3f.from(
-                    this.getX() + random.nextDouble() * 0.5 - 0.25,
-                    this.getWaterHeight(),
-                    this.getZ() + random.nextDouble() * 0.5 - 0.25
-            )));
+                    this.getX() + random.nextFloat(-0.25f, 0.25f),
+                    this.getY() + 0.5f,
+                    this.getZ() + random.nextFloat(-0.25f, 0.25f))));
         }
     }
 
-    public void spawnFish() {
-        Random random = new Random();
-        this.fish = Vector3f.from(
-                this.getX() + (random.nextDouble() * 1.2 + 1) * (random.nextBoolean() ? -1 : 1),
-                this.getWaterHeight(),
-                this.getZ() + (random.nextDouble() * 1.2 + 1) * (random.nextBoolean() ? -1 : 1)
-        );
-    }
-
-    public boolean attractFish() {
-        double multiply = 0.1;
-        this.fish = Vector3f.from(
-                this.fish.getX() + (this.getX() - this.fish.getX()) * multiply,
-                this.fish.getY(),
-                this.fish.getZ() + (this.getZ() - this.fish.getZ()) * multiply
-        );
-        if (new Random().nextInt(100) < 85) {
-            this.getLevel().addParticle(new WaterParticle(this.fish));
+    private float teaseChance() {
+        if (this.timeUntilLured < 20) {
+            return 0.15f + (20 - this.timeUntilLured) * 0.05f;
         }
-        double dist = Math.abs(Math.sqrt(this.getX() * this.getX() + this.getZ() * this.getZ()) - Math.sqrt(this.fish.getX() * this.fish.getX() + this.fish.getZ() * this.fish.getZ()));
-        return dist < 0.15;
+
+        if (this.timeUntilLured < 40) {
+            return 0.15f + (40 - this.timeUntilLured) * 0.02f;
+        }
+
+        if (this.timeUntilLured < 60) {
+            return 0.15f + (60 - this.timeUntilLured) * 0.01f;
+        }
+
+        return 0.15f;
     }
 
-    public void reelLine() {
-        Entity owner = this.getOwner();
-        if (owner instanceof CloudPlayer && this.caught) {
-            ItemStack item = FishingLoot.select();
-            int experience = new Random().nextInt((3 - 1) + 1) + 1;
-            Vector3f motion;
+    private void spawnApproachParticle(ThreadLocalRandom random) {
+        this.fishAngle += (float) ((random.nextDouble() - random.nextDouble()) * 9.188);
+        float angle = (float) Math.toRadians(this.fishAngle);
+        float distance = this.timeUntilHooked * 0.1f;
 
-            motion = owner.getPosition().sub(this.getPosition()).mul(0.1);
-            motion = motion.add(0, Math.sqrt(owner.getPosition().distance(this.getPosition())) * 0.08, 0);
+        Vector3f fish = Vector3f.from(this.getX() + Math.sin(angle) * distance,
+                (float) Math.floor(this.getY()) + 1, this.getZ() + Math.cos(angle) * distance);
+        if (!hasWaterBelow(fish)) {
+            return;
+        }
 
-            DroppedItem droppedItem = EntityRegistry.get().newEntity(EntityTypes.ITEM, this.getLocation());
-            droppedItem.setMotion(motion);
-            droppedItem.setHealth(5);
-            droppedItem.setItem(item);
-            droppedItem.setPickupDelay(1);
-            droppedItem.setOwner(owner);
-            droppedItem.spawnToAll();
+        if (random.nextFloat() < 0.15f) {
+            this.getLevel().addParticle(new BubbleParticle(fish.sub(0, 0.1f, 0)));
+        }
 
-            CloudPlayer player = (CloudPlayer) owner;
-            if (experience > 0) {
-                player.addExperience(experience);
+        this.getLevel().addParticle(new WaterParticle(fish));
+    }
+
+    private void spawnTeaseParticle(ThreadLocalRandom random) {
+        float angle = random.nextFloat((float) (Math.PI * 2));
+        float distance = random.nextFloat(2.5f, 6f);
+        Vector3f fish = Vector3f.from(this.getX() + Math.sin(angle) * distance,
+                (float) Math.floor(this.getY()) + 1, this.getZ() + Math.cos(angle) * distance);
+        if (hasWaterBelow(fish)) {
+            this.getLevel().addParticle(new WaterParticle(fish));
+        }
+    }
+
+    private boolean hasWaterBelow(Vector3f position) {
+        BlockType type = this.getLevel().getBlock(position.toInt().sub(0, 1, 0)).getState().getType();
+        return type == BlockTypes.WATER || type == BlockTypes.FLOWING_WATER;
+    }
+
+    private boolean calculateOpenWater(Vector3i origin) {
+        FishingOpenWaterType previous = FishingOpenWaterType.INVALID;
+        for (int y = -1; y <= 2; y++) {
+            FishingOpenWaterType layer = openWaterLayer(origin.add(-2, y, -2), origin.add(2, y, 2));
+            if (layer == FishingOpenWaterType.INVALID
+                    || layer == FishingOpenWaterType.ABOVE_WATER && previous == FishingOpenWaterType.INVALID
+                    || layer == FishingOpenWaterType.INSIDE_WATER && previous == FishingOpenWaterType.ABOVE_WATER) {
+                return false;
+            }
+
+            previous = layer;
+        }
+
+        return true;
+    }
+
+    private FishingOpenWaterType openWaterLayer(Vector3i from, Vector3i to) {
+        FishingOpenWaterType result = null;
+        for (int x = from.getX(); x <= to.getX(); x++) {
+            for (int y = from.getY(); y <= to.getY(); y++) {
+                for (int z = from.getZ(); z <= to.getZ(); z++) {
+                    Block block = this.getLevel().getBlock(x, y, z);
+                    FishingOpenWaterType type = openWaterType(block);
+
+                    if (result != null && result != type) {
+                        return FishingOpenWaterType.INVALID;
+                    }
+
+                    result = type;
+                }
             }
         }
-        if (owner instanceof CloudPlayer) {
-            EntityEventPacket packet = new EntityEventPacket();
-            packet.setRuntimeEntityId(this.getRuntimeId());
-            packet.setType(EntityEventType.FISH_HOOK_TEASE);
-            CloudServer.broadcastPacket(this.getViewers(), packet);
+
+        return result == null ? FishingOpenWaterType.INVALID : result;
+    }
+
+    private static FishingOpenWaterType openWaterType(Block block) {
+        if (block.getState() == BlockStates.AIR || block.getState().getType() == BlockTypes.WATERLILY) {
+            return FishingOpenWaterType.ABOVE_WATER;
         }
-        if (!this.closed) {
-            this.close();
-        }
+
+        LiquidState liquid = block.getLiquid();
+        return isWater(liquid) && liquid.isSource() && block.getState().getCollisionShape().isEmpty()
+                ? FishingOpenWaterType.INSIDE_WATER : FishingOpenWaterType.INVALID;
+    }
+
+    private boolean isInWaterBlock() {
+        Vector3i position = this.getPosition().toInt();
+        LiquidState liquid = this.getLevel().getLiquidState(position);
+        return isWater(liquid);
+    }
+
+    private static boolean isWater(LiquidState liquid) {
+        return liquid.getType().isSameFamily(LiquidTypes.WATER);
+    }
+
+    @Override
+    public boolean canCollideWith(Entity entity) {
+        return super.canCollideWith(entity) || entity instanceof DroppedItem && !this.onGround;
     }
 
     @Override
     public void onCollideWithEntity(Entity entity) {
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
-        float damage = this.getResultDamage();
+        setHookedEntity(entity);
+    }
 
-        Entity owner = this.getOwner();
-
-        EntityDamageEvent ev;
-        if (owner == null) {
-            ev = new EntityDamageByEntityEvent(this, entity, EntityDamageEvent.DamageCause.PROJECTILE, damage);
-        } else {
-            ev = new EntityDamageByChildEntityEvent(owner, this, entity, EntityDamageEvent.DamageCause.PROJECTILE, damage);
+    @Override
+    public int retrieve(ItemStack rod) {
+        CloudPlayer owner = playerOwner();
+        if (rod.getType() != ItemTypes.FISHING_ROD) {
+            throw new IllegalArgumentException("rod must be a fishing rod");
         }
 
-        entity.attack(ev);
+        if (owner == null) {
+            throw new IllegalStateException("Fishing hook has no player owner");
+        }
+
+        if (shouldStopFishing(owner)) {
+            this.close();
+            return 0;
+        }
+
+        int damage = 0;
+        if (this.hookedEntity != null) {
+            PlayerFishEvent event = fire(owner, PlayerFishState.CAUGHT_ENTITY, this.hookedEntity);
+            if (event.isCancelled()) {
+                return 0;
+            }
+
+            pull(this.hookedEntity, owner);
+            damage = this.hookedEntity instanceof DroppedItem ? 3 : 5;
+        } else if (this.biteTime > 0) {
+            ItemStack item = FishingLoot.select(this.luck, this.openWater);
+            DroppedItem dropped = createCaughtItem(item, owner);
+            PlayerFishEvent event = new PlayerFishEvent(owner, this, dropped, PlayerFishState.CAUGHT_ITEM);
+            event.setExperience(ThreadLocalRandom.current().nextInt(1, 7));
+            this.server.getEventManager().fire(event);
+            if (event.isCancelled()) {
+                dropped.close();
+                return 0;
+            }
+
+            dropped.spawnToAll();
+            if (event.getExperience() > 0) {
+                this.getLevel().spawnExperienceOrb(owner.getPosition().add(0, 0.5f, 0.5f),
+                        event.getExperience(), null, 0);
+            }
+
+            damage = 1;
+        } else {
+            PlayerFishState state = this.onGround ? PlayerFishState.IN_GROUND : PlayerFishState.REEL_IN;
+            if (fire(owner, state, null).isCancelled()) {
+                return 0;
+            }
+        }
+
+        if (this.onGround) {
+            damage = 2;
+        }
+
+        this.close();
+        return damage;
+    }
+
+    private DroppedItem createCaughtItem(ItemStack item, CloudPlayer owner) {
+        Vector3f delta = owner.getPosition().sub(this.getPosition());
+        Vector3f motion = delta.mul(0.1f).add(0, (float) Math.sqrt(Math.sqrt(delta.lengthSquared())) * 0.08f, 0);
+        DroppedItem dropped = EntityRegistry.get().newEntity(EntityTypes.ITEM, this.getLocation());
+        dropped.setItem(item);
+        dropped.setMotion(motion);
+        ((EntityDroppedItem) dropped).setFromFishing(true);
+        return dropped;
+    }
+
+    private static void pull(Entity entity, CloudPlayer owner) {
+        entity.setMotion(entity.getMotion().add(owner.getPosition().sub(entity.getPosition()).mul(0.1f)));
+    }
+
+    private PlayerFishEvent fire(CloudPlayer owner, PlayerFishState state, @Nullable Entity caught) {
+        PlayerFishEvent event = new PlayerFishEvent(owner, this, caught, state);
+        this.server.getEventManager().fire(event);
+        return event;
+    }
+
+    private void setFishingState(FishingHookState state) {
+        if (this.fishingState == state) {
+            return;
+        }
+
+        FishingHookState previous = this.fishingState;
+        this.fishingState = state;
+        this.server.getEventManager().fire(new FishingHookStateChangeEvent(this, previous, state));
+    }
+
+    private void sendHookEvent(EntityEventType type) {
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setType(type);
+        CloudServer.broadcastPacket(this.getViewers(), packet);
+    }
+
+    private boolean shouldStopFishing(CloudPlayer owner) {
+        ItemStack mainHand = owner.getInventory().getSelectedItem();
+        ItemStack offhand = owner.getOffhand().getOffhandItem();
+        return !owner.isAlive() || owner.getLevel() != this.getLevel()
+                || (mainHand.getType() != ItemTypes.FISHING_ROD
+                && offhand.getType() != ItemTypes.FISHING_ROD)
+                || owner.getPosition().distanceSquared(this.getPosition()) > 1024;
+    }
+
+    private @Nullable CloudPlayer playerOwner() {
+        return this.getOwner() instanceof CloudPlayer player ? player : null;
+    }
+
+    @Override
+    public void close() {
+        CloudPlayer owner = playerOwner();
+        if (owner != null) {
+            owner.clearFishingHook(this);
+        }
+
+        super.close();
     }
 
     @Override
@@ -263,6 +530,5 @@ public class EntityFishingHook extends EntityProjectile implements FishingHook {
 
     @Override
     public void setCritical(boolean critical) {
-        // no-op
     }
 }

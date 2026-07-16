@@ -124,7 +124,7 @@ public class LakePopulator extends ChancePopulator.Column {
                                 }
                             } else {
 //                                log.info("Getting behavior for {}", state.getType());
-                                if (CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get()) {
+                                if (state.getType().isLiquid()) {
                                     return;
                                 }
                             }

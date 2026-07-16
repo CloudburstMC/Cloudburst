@@ -154,6 +154,11 @@ level:
   # Capping this prevents TPS spikes during heavy redstone while still ensuring
   # all delayed ticks fire; excess ticks carry over to the next game tick.
   max-block-ticks: 65536
+  # Maximum number of scheduled liquid ticks executed per game tick.
+  # Excess ticks carry over to the next game tick.
+  max-liquid-ticks: 65536
+  # Tick delay for water when lava is horizontally adjacent.
+  water-over-lava-flow-speed: 5
   # Maximum number of chained neighbor-update callbacks that may fire from a
   # single block change before the chain is cut and a warning is logged.
   # Prevents runaway update loops from overflowing the call stack.
@@ -170,6 +175,8 @@ worlds:
   world:
     generator: cloudburst:standard
     options: overworld
+    # max-liquid-ticks: 65536
+    # water-over-lava-flow-speed: 5
   nether:
     generator: cloudburst:standard
     options: nether

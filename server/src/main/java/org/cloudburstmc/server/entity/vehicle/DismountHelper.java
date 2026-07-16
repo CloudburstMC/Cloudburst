@@ -2,9 +2,7 @@ package org.cloudburstmc.server.entity.vehicle;
 
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -34,10 +32,10 @@ public class DismountHelper {
 
     private static boolean isDangerous(Block block) {
         BlockType type = block.getState().getType();
+        LiquidType liquidType = block.getLiquid().getType();
         return type == BlockTypes.FIRE
                 || type == BlockTypes.SOUL_FIRE
-                || type == BlockTypes.LAVA
-                || type == BlockTypes.FLOWING_LAVA
+                || liquidType.isSameFamily(LiquidTypes.LAVA)
                 || type == BlockTypes.CACTUS
                 || type == BlockTypes.MAGMA
                 || type == BlockTypes.WITHER_ROSE;

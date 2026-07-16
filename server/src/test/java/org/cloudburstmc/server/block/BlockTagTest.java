@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block;
 
 import org.cloudburstmc.api.block.BlockTagKey;
+import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.Identifier;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class BlockTagTest {
     void blockStatesUseTheirTypeTags() {
         BlockTagKey key = BlockTagKey.of("test:holder_backed");
         BlockType type = BlockType.of(Identifier.parse("test:holder_backed"));
-        type.bindTags(Set.of(key));
+        BlockRegistrationAccess.bindTags(type, Set.of(key));
 
         assertTrue(type.is(key));
         assertTrue(type.getDefaultState().is(key));

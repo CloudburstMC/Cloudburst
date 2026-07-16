@@ -227,7 +227,7 @@ public final class LevelChunkManager {
         }
         if (tryUnload(chunkKey, loadingChunk, save)) {
             this.chunks.remove(mapKey(chunkKey), loadingChunk);
-            LevelChunkManager.this.level.getUpdateQueue().unregisterTickContainer(chunkKey);
+            LevelChunkManager.this.level.unregisterTickContainers(chunkKey);
             return true;
         }
         return false;
@@ -269,7 +269,7 @@ public final class LevelChunkManager {
 
             saveFuture.whenComplete((r, ex) -> {
                 LevelChunkManager.this.queueCallback(() -> {
-                    LevelChunkManager.this.level.getUpdateQueue().removeTickContainer(chunkKey);
+                    LevelChunkManager.this.level.removeTickContainers(chunkKey);
                     chunk.close();
                 });
             });
@@ -343,7 +343,7 @@ public final class LevelChunkManager {
             if (chunk == null) {
                 continue;
             }
-            this.level.getUpdateQueue().registerTickContainer(key);
+            this.level.registerTickContainers(key);
             loadingChunk.promote();
             this.level.getServer().getEventManager().fire(new ChunkLoadEvent(chunk, loadingChunk.isNewChunk()));
             chunk.replayDeferredUpdates();
@@ -408,7 +408,7 @@ public final class LevelChunkManager {
                     continue;
                 }
 
-                if (doTickSave && loadingChunk.isPromoted() && this.level.getUpdateQueue().isDirty(chunkKey, this.level.getCurrentTick())) {
+                if (doTickSave && loadingChunk.isPromoted() && this.level.areTicksDirty(chunkKey)) {
                     this.provider.savePendingTicks(chunk).exceptionally(throwable -> {
                         log.warn("Failed to incrementally save pending ticks for chunk ({}, {})", chunk.getX(), chunk.getZ(), throwable);
                         return null;

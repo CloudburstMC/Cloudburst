@@ -10,6 +10,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.LiquidState;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
@@ -652,6 +654,9 @@ public abstract class CloudEntity implements Entity {
 
         this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
 
+        this.initEntity();
+        this.recalculateBoundingBox();
+
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
             if (throwable == null) {
                 this.chunk = chunk1;
@@ -659,8 +664,6 @@ public abstract class CloudEntity implements Entity {
             }
         });
         this.level.addEntity(this);
-
-        this.initEntity();
 
         this.lastUpdate = this.server.getTick();
         this.getServer().getEventManager().fire(new EntitySpawnEvent(this));
@@ -1011,6 +1014,7 @@ public abstract class CloudEntity implements Entity {
             boolean hasUpdate = false;
 
             this.checkBlockCollision();
+            this.applyLiquidCurrent();
 
             if (this.position.getY() <= -16 && this.isAlive()) {
                 if (this instanceof CloudPlayer player) {
@@ -1415,7 +1419,7 @@ public abstract class CloudEntity implements Entity {
                 if (this instanceof EntityLiving) {
                     var liquid = this.level.getBlock(this.position.toInt()).getLiquid().getType();
 
-                    if (liquid != WATER && liquid != FLOWING_WATER) {
+                    if (!liquid.isSameFamily(LiquidTypes.WATER)) {
                         this.fall(fallDistance);
                     }
                 }
@@ -1559,20 +1563,13 @@ public abstract class CloudEntity implements Entity {
             return false;
         }
 
-        BlockState state = block.getLiquid();
-        var blockType = state.getType();
-
-        float percent;
-
-        ComponentMap behaviors = block.getComponents();
-        if (CloudBlockRegistry.REGISTRY.getComponent(state.getType(), BlockComponents.LIQUID).get()) {
-            percent = behaviors.get(BlockComponents.GET_LIQUID_HEIGHT).execute(state);
+        LiquidState state = block.getLiquid();
+        if (state.getType().isSameFamily(LiquidTypes.WATER)) {
+            float height = this.level.getLiquidHeight(block.getPosition());
+            return y < block.getY() + height;
         } else {
             return false;
         }
-
-        double f = (block.getPosition().getY() + 1) - (percent - 0.1111111);
-        return y < f;
     }
 
     public boolean isInsideOfSolid() {
@@ -1645,6 +1642,56 @@ public abstract class CloudEntity implements Entity {
      */
     public boolean canBeMovedByCurrents() {
         return true;
+    }
+
+    private void applyLiquidCurrent() {
+        boolean movesWithCurrent = this.canBeMovedByCurrents();
+        BoundingBox box = this.getBoundingBox().deflate(0.001f, 0.001f, 0.001f);
+
+        int minX = GenericMath.floor(box.getMinX());
+        int maxX = GenericMath.floor(box.getMaxX());
+        int minY = GenericMath.floor(box.getMinY());
+        int maxY = GenericMath.floor(box.getMaxY());
+        int minZ = GenericMath.floor(box.getMinZ());
+        int maxZ = GenericMath.floor(box.getMaxZ());
+
+        Vector3f total = Vector3f.ZERO;
+        int count = 0;
+        boolean touchingWater = false;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = this.level.getBlock(x, y, z);
+                    LiquidState liquid = block.getLiquid();
+                    if (liquid.isEmpty()) {
+                        continue;
+                    }
+
+                    float height = this.level.getLiquidHeight(block.getPosition());
+                    if (y + height <= box.getMinY()) {
+                        continue;
+                    }
+
+                    if (liquid.getType().isSameFamily(LiquidTypes.WATER)) {
+                        touchingWater = true;
+                    }
+
+                    if (movesWithCurrent) {
+                        total = total.add(this.level.getLiquidFlow(block.getPosition()));
+                        count++;
+                    }
+                }
+            }
+        }
+
+        if (count > 0 && total.lengthSquared() > 0) {
+            this.motion = this.motion.add(total.normalize().mul(0.014f));
+        }
+
+        if (touchingWater && this.fireTicks > 0) {
+            this.extinguish();
+        }
     }
 
     protected void checkBlockCollision() {

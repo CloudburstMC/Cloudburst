@@ -107,7 +107,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
         CloudChunkSection section = this.sections[y];
         if (section == null) {
-            section = new CloudChunkSection();
+            section = new CloudChunkSection(this.level.getServer().getBlockRegistry());
             this.sections[y] = section;
             this.setDirty();
         }

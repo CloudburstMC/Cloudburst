@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.utils;
 
-import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Comparator;
@@ -20,10 +20,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * </ul>
  *
  * <h2>Deduplication</h2>
- * <p>Equality and hashing are keyed on {@code (pos, BlockType)} only, so at most one
- * pending tick per position per block type is allowed at any time. Breaking and re-placing
- * the same block type at a position deduplicates against any pending tick there, preventing
- * stale ticks from firing on a freshly placed block.
+ * <p>Equality and hashing are keyed on position and the scheduled block type. Primary and
+ * secondary layer states can therefore retain independent ticks at the same position.
  *
  * <h2>Factories</h2>
  * <ul>
@@ -80,7 +78,7 @@ public final class BlockUpdateEntry {
     public final long delay;
 
     public final Vector3i pos;
-    public final Block block;
+    public final BlockType type;
 
     /**
      * Sub-tick insertion counter used as a tie-breaker in ordering.
@@ -92,9 +90,9 @@ public final class BlockUpdateEntry {
      */
     public final long id;
 
-    private BlockUpdateEntry(Vector3i pos, Block block, long delay, long id) {
+    private BlockUpdateEntry(Vector3i pos, BlockType type, long delay, long id) {
         this.pos = pos;
-        this.block = block;
+        this.type = type;
         this.delay = delay;
         this.id = id;
     }
@@ -103,11 +101,11 @@ public final class BlockUpdateEntry {
      * Creates a real scheduled entry. Increments the global sub-tick counter.
      *
      * @param pos   target block position
-     * @param block block to tick
+     * @param type scheduled block type
      * @param delay absolute target tick
      */
-    public static BlockUpdateEntry of(Vector3i pos, Block block, long delay) {
-        return new BlockUpdateEntry(pos, block, delay, nextId.getAndIncrement());
+    public static BlockUpdateEntry of(Vector3i pos, BlockType type, long delay) {
+        return new BlockUpdateEntry(pos, type, delay, nextId.getAndIncrement());
     }
 
     /**
@@ -117,8 +115,8 @@ public final class BlockUpdateEntry {
      * inserted into a queue or dedup set; it is only valid as an argument to
      * {@link #equals} and {@link #hashCode} lookups.
      */
-    public static BlockUpdateEntry probe(Vector3i pos, Block block) {
-        return new BlockUpdateEntry(pos, block, 0L, 0L);
+    public static BlockUpdateEntry probe(Vector3i pos, BlockType type) {
+        return new BlockUpdateEntry(pos, type, 0L, 0L);
     }
 
     /**
@@ -133,11 +131,11 @@ public final class BlockUpdateEntry {
      * game tick.
      *
      * @param pos   target block position
-     * @param block block to tick (state captured at load time)
+     * @param type scheduled block type
      * @param delay absolute target tick
      */
-    public static BlockUpdateEntry ofRestored(Vector3i pos, Block block, long delay) {
-        return new BlockUpdateEntry(pos, block, delay, restoredId.getAndIncrement());
+    public static BlockUpdateEntry ofRestored(Vector3i pos, BlockType type, long delay) {
+        return new BlockUpdateEntry(pos, type, delay, restoredId.getAndIncrement());
     }
 
     /**
@@ -147,23 +145,23 @@ public final class BlockUpdateEntry {
      * ordering of copied entries. The global {@link #nextId} counter is NOT advanced.
      *
      * @param pos   target block position
-     * @param block block to tick
+     * @param type scheduled block type
      * @param delay absolute target tick
      * @param id    sub-tick ordering id to use verbatim
      */
-    public static BlockUpdateEntry ofWithId(Vector3i pos, Block block, long delay, long id) {
-        return new BlockUpdateEntry(pos, block, delay, id);
+    public static BlockUpdateEntry ofWithId(Vector3i pos, BlockType type, long delay, long id) {
+        return new BlockUpdateEntry(pos, type, delay, id);
     }
 
     @Override
     public boolean equals(Object obj) {
         return obj instanceof BlockUpdateEntry other
                 && this.pos.equals(other.pos)
-                && this.block.getState().getType() == other.block.getState().getType();
+                && this.type == other.type;
     }
 
     @Override
     public int hashCode() {
-        return 31 * this.pos.hashCode() + this.block.getState().getType().hashCode();
+        return 31 * this.pos.hashCode() + this.type.hashCode();
     }
 }

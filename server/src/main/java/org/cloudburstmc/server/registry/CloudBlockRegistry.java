@@ -1,22 +1,20 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.component.StringTypeHandler;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockTypeData;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
@@ -28,13 +26,11 @@ import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 import tools.jackson.core.type.TypeReference;
 
-import java.awt.*;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.api.block.BlockTypes.*;
@@ -59,7 +55,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         }
     }
 
-    private final AtomicInteger customIdAllocator = new AtomicInteger(1000);
     private final BlockPalette palette = BlockPalette.INSTANCE;
     private final CloudItemRegistry itemRegistry;
     private NbtMap propertiesTag;
@@ -75,22 +70,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         REGISTRY = this; // TODO: Remove at some point
     }
 
-    @Override
-    public synchronized CloudComponentMap register(BlockType type) throws RegistryException {
-        checkNotNull(type, "type");
-        if (getComponentMap(type) != null) {
-            VanillaRegistryDiagnostics.duplicateBlock(type.getId());
-            return newUnregisteredComponentMap();
-        }
-
-        CloudComponentMap behaviors = registerVanilla(type);
-
-        // generate legacy ID (Not sure why we need to but it's a requirement)
-        int legacyId = this.customIdAllocator.getAndIncrement();
-        VANILLA_LEGACY_IDS.put(type.getId(), legacyId);
-        return behaviors;
-    }
-
     private CloudComponentMap registerVanilla(BlockType type) throws RegistryException {
         return this.registerVanilla(type, DefaultBlockSerializer.INSTANCE);
     }
@@ -101,8 +80,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         checkClosed();
 
         if (getComponentMap(type) != null) {
-            VanillaRegistryDiagnostics.duplicateVanillaBlock(type.getId());
-            return newUnregisteredComponentMap();
+            throw new RegistryException(type.getId() + " is already registered");
         }
 
         VanillaBlockTags.bind(type);
@@ -111,7 +89,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
         CloudComponentMap collection = new CloudComponentMap(this);
 
-        collection.bake();
         putComponents(type, collection);
 
         this.palette.addBlock(type, serializer);
@@ -131,17 +108,27 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
     @Override
     public VoxelShape getBlockSupportShape(BlockState state) {
-        return BlockSupport.getBlockSupportShape(state);
+        return BlockSupport.getBlockSupportShape(this, state);
     }
 
     @Override
     public boolean isFaceSturdy(BlockState state, Direction face, SupportType supportType) {
-        return BlockSupport.isFaceSturdy(state, face, supportType);
+        return BlockSupport.isFaceSturdy(this, state, face, supportType);
     }
 
     @Override
     public BlockTag getTag(BlockTagKey key) {
         return VanillaBlockTags.resolve(key);
+    }
+
+    @Override
+    public ComponentBuilder configure(BlockType type) {
+        checkClosed();
+        CloudComponentMap components = getComponentMap(checkNotNull(type, "type"));
+        if (components == null) {
+            throw new RegistryException(type.getId() + " is not registered");
+        }
+        return components;
     }
 
     public CloudBlockDefinition getDefinition(int runtimeId) {
@@ -259,6 +246,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     @Override
     public synchronized void close() throws RegistryException {
         checkClosed();
+        this.freezeComponentMaps();
         this.closed = true;
         this.palette.generateRuntimeIds();
         // generate cache
@@ -293,8 +281,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         return propertiesTag;
     }
 
-    public ImmutableList<BlockState> getBlockStates() {
-        return ImmutableList.copyOf(palette.getSerializedPalette().values());
+    public List<BlockState> getBlockStates() {
+        return List.copyOf(palette.getSerializedPalette().values());
     }
 
     private void registerVanillaBlocks() {
@@ -318,7 +306,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ACACIA_WOOD);
         this.registerPoweredRail(ACTIVATOR_RAIL);
         this.registerVanilla(AIR)
-                .set(BlockComponents.REPLACEABLE, () -> true)
                 .set(BlockComponents.GET_RESOURCE_COUNT, (block, random, bonusLevel) -> 0);
         this.registerVanilla(ALLIUM);
         this.registerVanilla(ALLOW);
@@ -458,7 +445,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BROWN_STAINED_GLASS_PANE);
         this.registerVanilla(BROWN_TERRACOTTA);
         this.registerVanilla(BROWN_WOOL);
-        this.registerVanilla(BUBBLE_COLUMN);
+        this.registerVanilla(BUBBLE_COLUMN)
+                .set(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> true)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.update(block))
+                .set(BlockComponents.ON_ENTITY_INSIDE, BubbleColumnBlockHandlers.ON_ENTITY_INSIDE);
         this.registerVanilla(BUBBLE_CORAL);
         this.registerVanilla(BUBBLE_CORAL_BLOCK);
         this.registerVanilla(BUBBLE_CORAL_FAN);
@@ -893,14 +883,16 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(FLETCHING_TABLE);
         this.registerVanilla(FLOWERING_AZALEA);
         this.registerVanilla(FLOWER_POT);
-        this.registerVanilla(FLOWING_LAVA, FluidBlockSerializer.INSTANCE)
-                .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true)
+        this.registerLiquid(FLOWING_LAVA, LiquidTypes.FLOWING_LAVA)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
+                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
-        this.registerVanilla(FLOWING_WATER, FluidBlockSerializer.INSTANCE)
-                .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true);
+        this.registerLiquid(FLOWING_WATER, LiquidTypes.FLOWING_WATER)
+                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
         this.registerVanilla(FRAME);
         this.registerVanilla(FROG_SPAWN);
         this.registerVanilla(FROSTED_ICE);
@@ -1044,9 +1036,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LAPIS_ORE);
         this.registerVanilla(LARGE_AMETHYST_BUD);
         this.registerVanilla(LARGE_FERN);
-        this.registerVanilla(LAVA, FluidBlockSerializer.INSTANCE)
-                .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true)
+        this.registerLiquid(LAVA, LiquidTypes.LAVA)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
+                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(LEAF_LITTER);
@@ -1140,7 +1134,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(MAGENTA_STAINED_GLASS_PANE);
         this.registerVanilla(MAGENTA_TERRACOTTA);
         this.registerVanilla(MAGENTA_WOOL);
-        this.registerVanilla(MAGMA);
+        this.registerVanilla(MAGMA)
+                .set(BlockComponents.ON_PLACE, BubbleColumnBlockHandlers.supportPlacement(this))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.updateAbove(block));
         this.registerWoodenButton(MANGROVE_BUTTON);
         this.registerDoor(MANGROVE_DOOR);
         this.registerVanilla(MANGROVE_DOUBLE_SLAB);
@@ -1349,7 +1345,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(POPPY);
         this.registerVanilla(PORTAL)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PortalBlockHandlers.ON_NEIGHBOUR_CHANGED)
-                .set(BlockComponents.CAN_RANDOM_TICK, () -> true)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, PortalBlockHandlers.ON_RANDOM_TICK);
         this.registerVanilla(POTATOES);
         this.registerVanilla(POTENT_SULFUR);
@@ -1495,10 +1491,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(SOUL_LANTERN);
         this.registerVanilla(SOUL_SAND)
-                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.FULL_BLOCK_SUPPORT_SHAPE);
+                .set(BlockComponents.ON_PLACE, BubbleColumnBlockHandlers.supportPlacement(this))
+                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.FULL_BLOCK_SUPPORT_SHAPE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.updateAbove(block));
         this.registerVanilla(SOUL_SOIL);
         this.registerTorch(SOUL_TORCH);
-        this.registerVanilla(SPONGE);
+        this.registerVanilla(SPONGE)
+                .set(BlockComponents.ON_PLACE, SpongeBlockHandlers.place(this))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> SpongeBlockHandlers.absorb(block));
         this.registerVanilla(SPORE_BLOSSOM);
         this.registerWoodenButton(SPRUCE_BUTTON);
         this.registerDoor(SPRUCE_DOOR);
@@ -1653,9 +1653,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerTrapdoor(WARPED_TRAPDOOR);
         this.registerVanilla(WARPED_WALL_SIGN);
         this.registerVanilla(WARPED_WART_BLOCK);
-        this.registerVanilla(WATER, FluidBlockSerializer.INSTANCE)
-                .set(BlockComponents.REPLACEABLE, () -> true)
-                .set(BlockComponents.LIQUID, () -> true);
+        this.registerLiquid(WATER, LiquidTypes.WATER)
+                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
         this.registerVanilla(WATERLILY);
         this.registerVanilla(WAXED_CHISELED_COPPER);
         this.registerVanilla(WAXED_COPPER);
@@ -1770,12 +1770,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(YELLOW_TERRACOTTA);
         this.registerVanilla(YELLOW_WOOL);
         this.registerVanilla(ZOMBIE_HEAD);
-        BlockTypeData.applyAll(this);
     }
 
     private void registerDoor(BlockType type) {
         this.registerVanilla(type)
-                .set(BlockComponents.ON_PLACE, new DoorPlaceHandler(this))
+                .set(BlockComponents.ON_PLACE, new DoorPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DoorBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.GET_RESOURCE, DoorBlockHandlers.GET_RESOURCE)
                 .set(BlockComponents.USE, DoorBlockHandlers.USE)
@@ -1800,6 +1799,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     private void registerLeaves(BlockType type) {
         this.registerVanilla(type)
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.EMPTY_BLOCK_SUPPORT_SHAPE);
+    }
+
+    private CloudComponentMap registerLiquid(BlockType blockType, LiquidType liquidType) {
+        BlockRegistrationAccess.bindLiquidType(blockType, liquidType);
+        return this.registerVanilla(blockType, FluidBlockSerializer.INSTANCE);
     }
 
     private void registerRail(BlockType type) {
@@ -1832,8 +1836,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     private void registerStoneButton(BlockType type) {
-        ButtonBlockHandlers.registerPressDuration(type, ButtonBlockHandlers.STONE_PRESS_TICKS);
         this.registerVanilla(type)
+                .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.STONE_PRESS_TICKS)
                 .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
@@ -1855,8 +1859,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     private void registerWoodenButton(BlockType type) {
-        ButtonBlockHandlers.registerPressDuration(type, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
         this.registerVanilla(type)
+                .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS)
                 .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
@@ -1865,43 +1869,19 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     private void registerVanillaBehaviors() {
-        this.registerComponent(BlockComponents.HARDNESS, () -> 0f);
-        this.registerComponent(BlockComponents.RESISTANCE, () -> 0f);
-        this.registerComponent(BlockComponents.FRICTION, () -> 0.6f);
-        this.registerComponent(BlockComponents.TRANSLUCENCY, () -> 0f);
-        this.registerComponent(BlockComponents.THICKNESS, () -> 0f);
-        this.registerComponent(BlockComponents.BURN_ODDS, () -> 0);
-        this.registerComponent(BlockComponents.FLAME_ODDS, () -> 0);
-        this.registerComponent(BlockComponents.LIGHT_DAMPENING, () -> 0);
-        this.registerComponent(BlockComponents.LIGHT_EMISSION, () -> 0);
-        this.registerComponent(BlockComponents.REQUIRES_CORRECT_TOOL, () -> false);
-        this.registerComponent(BlockComponents.REPLACEABLE, () -> false);
-        this.registerComponent(BlockComponents.MAP_COLOR, () -> "#00000000");
-        this.registerComponent(BlockComponents.LIQUID, () -> false);
-        this.registerComponent(BlockComponents.STAIRS, () -> false);
-        this.registerComponent(BlockComponents.SLAB, () -> false);
-        this.registerComponent(BlockComponents.SUPER_HOT, () -> false);
-        this.registerComponent(BlockComponents.FLAMMABLE, () -> false);
-        this.registerComponent(BlockComponents.FLOODABLE, () -> false);
-        this.registerComponent(BlockComponents.CAN_INSTATICK, () -> false);
-        this.registerComponent(BlockComponents.CAN_RANDOM_TICK, () -> false);
-        this.registerComponent(BlockComponents.TICK_DELAY, () -> 0);
-        this.registerComponent(BlockComponents.CAN_DAMAGE_ITEM, () -> false);
-        this.registerComponent(BlockComponents.USES_WATERLOGGING, () -> false);
-        this.registerComponent(BlockComponents.ALWAYS_DESTROYABLE, () -> true);
+        this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
+        this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);
+        this.registerComponent(BlockComponents.CAN_DAMAGE_ITEM, false);
         this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
-        this.registerComponent(BlockComponents.BLOCKS_MOTION, DefaultBlockHandlers.BLOCKS_MOTION);
-        this.registerComponent(BlockComponents.CAN_OCCLUDE, DefaultBlockHandlers.CAN_OCCLUDE);
-        this.registerComponent(BlockComponents.PASSABLE, DefaultBlockHandlers.PASSABLE);
         this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
         this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());
         this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
         this.registerComponent(BlockComponents.SUFFOCATING, DefaultBlockHandlers.SUFFOCATING);
-        this.registerComponent(BlockComponents.VIEW_BLOCKING, DefaultBlockHandlers.VIEW_BLOCKING);
+        this.registerComponent(BlockComponents.CAN_BE_REPLACED,
+                (block, replacement, player, face, click) -> block.getState().isReplaceable());
         this.registerComponent(BlockComponents.CAN_BE_SILK_TOUCHED, DefaultBlockHandlers.CAN_BE_SILK_TOUCHED);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
-        this.registerComponent(BlockComponents.CAN_CONTAIN_LIQUID, DefaultBlockHandlers.CAN_CONTAIN_LIQUID);
         this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
@@ -1944,19 +1924,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
         this.registerComponent(BlockComponents.START_FALLING, (block) -> {
         });
-        this.registerComponent(BlockComponents.GET_LIQUID_HEIGHT, (block) -> 0);
         this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {
         });
         this.registerComponent(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.ON_ENTITY_INSIDE);
         this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> {
-            StringTypeHandler mapColorHandler = getComponent(block.getState().getType(), BlockComponents.MAP_COLOR);
-            String hex = mapColorHandler != null ? mapColorHandler.get() : null;
-            if (hex == null || hex.length() < 9) return new Color(0, 0, 0, 0);
-            int r = Integer.parseInt(hex.substring(1, 3), 16);
-            int g = Integer.parseInt(hex.substring(3, 5), 16);
-            int b = Integer.parseInt(hex.substring(5, 7), 16);
-            int a = Integer.parseInt(hex.substring(7, 9), 16);
-            return new Color(r, g, b, a);
+            return block.getState().getMapColor();
         });
         this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
     }

@@ -142,7 +142,8 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                             }
                         }
                     }
-                    sections[arrayIndex] = new CloudChunkSection(blockStorage);
+
+                    sections[arrayIndex] = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry(), blockStorage);
                 } finally {
                     buf.release();
                 }
@@ -176,7 +177,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                         }
                         BiomeStorage bs = BiomeStorage.readFromDisk(biomeBuf, previous);
                         if (sections[arrayIndex] == null) {
-                            sections[arrayIndex] = new CloudChunkSection(new BlockStorage[]{new BlockStorage(), new BlockStorage()});
+                            sections[arrayIndex] = new CloudChunkSection(
+                                    chunkBuilder.getLevel().getServer().getBlockRegistry(),
+                                    new BlockStorage[]{new BlockStorage(), new BlockStorage()});
                         }
                         sections[arrayIndex].setBiomeStorage(bs);
                         previous = bs;

@@ -8,11 +8,13 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.*;
 
+/**
+ * A kind of block and its possible states.
+ */
 public final class BlockType {
 
     private static final BlockTrait<?>[] EMPTY = new BlockTrait[0];
@@ -24,6 +26,7 @@ public final class BlockType {
 
     private volatile Set<BlockTagKey> tags;
     private ItemType itemType;
+    private LiquidType liquidType;
 
     private BlockType(Identifier id, BlockTrait<?>[] traits) {
         this.id = id;
@@ -56,12 +59,8 @@ public final class BlockType {
             return new BlockType(id, EMPTY);
         }
 
-        LinkedHashSet<BlockTrait<?>> traitSet = new LinkedHashSet<>();
-        Collections.addAll(traitSet, traits);
-        BlockTrait<?>[] cleanedTraits = traitSet.toArray(new BlockTrait[traits.length]);
-        checkArgument(Arrays.equals(traits, cleanedTraits), "%s defines duplicate block traits", id);
-
-        return new BlockType(id, cleanedTraits);
+        BlockTrait<?>[] checkedTraits = checkTraits(id, traits);
+        return new BlockType(id, checkedTraits);
     }
 
     public Identifier getId() {
@@ -84,16 +83,64 @@ public final class BlockType {
         return traits;
     }
 
+    /** @return the hardness shared by states of this type */
+    public float getHardness() {
+        return this.defaultState.getHardness();
+    }
+
+    /** @return the explosion resistance shared by states of this type */
+    public float getExplosionResistance() {
+        return this.defaultState.getExplosionResistance();
+    }
+
+    /** @return the friction shared by states of this type */
+    public float getFriction() {
+        return this.defaultState.getFriction();
+    }
+
+    /** @return the translucency shared by states of this type */
+    public float getTranslucency() {
+        return this.defaultState.getTranslucency();
+    }
+
+    /** @return the thickness shared by states of this type */
+    public float getThickness() {
+        return this.defaultState.getThickness();
+    }
+
+    /** @return whether states of this type are solid */
+    public boolean isSolid() {
+        return this.defaultState.isSolid();
+    }
+
+    /** @return the burn odds shared by states of this type */
+    public int getBurnOdds() {
+        return this.defaultState.getBurnOdds();
+    }
+
+    /** @return the flame odds shared by states of this type */
+    public int getFlameOdds() {
+        return this.defaultState.getFlameOdds();
+    }
+
+    /** @return whether states of this type require the correct tool for drops */
+    public boolean requiresCorrectToolForDrops() {
+        return this.defaultState.requiresCorrectToolForDrops();
+    }
+
+    /**
+     * @return whether states of this type represent liquid
+     */
+    public boolean isLiquid() {
+        return this.traits.contains(BlockTraits.LIQUID_DEPTH);
+    }
+
     public List<BlockState> getStates() {
         return states;
     }
 
     public BlockState getDefaultState() {
         return defaultState;
-    }
-
-    public void forEachPermutation(Consumer<BlockState> action) {
-        this.states.forEach(action);
     }
 
     public Optional<ItemType> asItem() {
@@ -105,20 +152,31 @@ public final class BlockType {
         return id.toString();
     }
 
-    /**
-     * Assigns this type's tag membership during registration.
-     * This operation may be performed once.
-     *
-     * @param tags tag keys assigned to this type
-     * @throws IllegalStateException if tags are already bound
-     */
-    public synchronized void bindTags(Set<BlockTagKey> tags) {
+    synchronized void bindTags(Set<BlockTagKey> tags) {
         checkState(this.tags == null, "Block type tags have already been bound: %s", this.id);
         this.tags = Set.copyOf(checkNotNull(tags, "tags"));
     }
 
-    public void linkItemType(ItemType type) {
+    void linkItemType(ItemType type) {
         this.itemType = type;
+    }
+
+    synchronized void bindLiquidType(LiquidType liquidType) {
+        checkState(this.liquidType == null, "Liquid type has already been bound: %s", this.id);
+        this.liquidType = checkNotNull(liquidType, "liquidType");
+    }
+
+    LiquidType getLiquidType() {
+        checkState(this.liquidType != null, "Liquid type has not been bound: %s", this.id);
+        return this.liquidType;
+    }
+
+    private static BlockTrait<?>[] checkTraits(Identifier id, BlockTrait<?>[] traits) {
+        LinkedHashSet<BlockTrait<?>> traitSet = new LinkedHashSet<>();
+        Collections.addAll(traitSet, traits);
+        BlockTrait<?>[] checkedTraits = traitSet.toArray(new BlockTrait[traits.length]);
+        checkArgument(Arrays.equals(traits, checkedTraits), "%s defines duplicate block traits", id);
+        return checkedTraits;
     }
 
     private static List<BlockState> getPermutations(BlockType type, BlockTrait<?>[] traits) {
@@ -144,7 +202,9 @@ public final class BlockType {
                 next--;
             }
 
-            if (next < 0) break;
+            if (next < 0) {
+                break;
+            }
 
             indices[next]++;
 

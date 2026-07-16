@@ -14,7 +14,6 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -35,7 +34,7 @@ public final class CollisionEngine {
     }
 
     public boolean hasBlockCollision(@Nullable Entity entity, BlockState state, Vector3i position, BoundingBox boundingBox) {
-        VoxelShape collisionShape = CloudBlockRegistry.REGISTRY
+        VoxelShape collisionShape = this.level.getServer().getBlockRegistry()
                 .getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
                 .execute(state, BlockShapeContext.at(this.level, position), CollisionContext.of(entity));
         return !collisionShape.isEmpty()
@@ -97,7 +96,7 @@ public final class CollisionEngine {
             }
 
             BlockState state = block.getState();
-            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(this.level, Vector3i.from(position.x(), position.y(), position.z())), context);
             if (collisionShape.isEmpty() || !collisionShape.overlaps(boundingBox, position.x(), position.y(), position.z())) {
                 continue;
@@ -288,11 +287,11 @@ public final class CollisionEngine {
             }
 
             BlockState state = block.getState();
-            if (this.suffocatingOnly && !block.getComponents().get(BlockComponents.SUFFOCATING).execute(state)) {
+            if (this.suffocatingOnly && !block.getComponent(BlockComponents.SUFFOCATING).execute(state)) {
                 return null;
             }
 
-            VoxelShape collisionShape = block.getComponents().get(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(level, Vector3i.from(position.x(), position.y(), position.z())), this.context);
             return !collisionShape.isEmpty() && collisionShape.overlaps(this.boundingBox, position.x(), position.y(), position.z())
                     ? collisionShape.move(position.x(), position.y(), position.z())

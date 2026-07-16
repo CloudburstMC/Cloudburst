@@ -79,9 +79,9 @@ public class LevelData {
         return this.gameRules;
     }
 
-    public void checkTime(int tickRate) {
+    public void checkTime() {
         if (this.gameRules.get(GameRules.DO_DAYLIGHT_CYCLE)) {
-            this.time += tickRate;
+            this.time++;
         }
     }
 

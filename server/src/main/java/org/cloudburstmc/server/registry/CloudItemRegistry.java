@@ -6,9 +6,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.*;
@@ -109,14 +107,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         checkClosed();
 
         if (getComponentMap(type) != null) {
-            VanillaRegistryDiagnostics.duplicateVanillaItem(type.getId());
-            return newUnregisteredComponentMap();
+            throw new RegistryException(type.getId() + " is already registered");
         }
 
         CloudComponentMap collection = new CloudComponentMap(this);
 //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
 
-        collection.bake();
         putComponents(type, collection);
 
         if (serializer != null) {
@@ -132,7 +128,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         if (itemType == null) {
             itemType = ItemType.of(type.getId());
         }
-        type.linkItemType(itemType);
+        BlockRegistrationAccess.linkItem(type, itemType);
         this.typeMap.put(type.getId(), itemType);
 
         if (getComponentMap(itemType) != null) {
@@ -151,7 +147,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
             return Optional.of(state != null ? state : defaultState);
         });
 
-        collection.bake();
         putComponents(itemType, collection);
     }
 
@@ -259,6 +254,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         checkClosed();
         reconcileVanillaDefinitions();
         VanillaRegistryDiagnostics.flush();
+        this.freezeComponentMaps();
         this.closed = true;
 
         itemPalette.registerVanillaCreativeItems();
@@ -345,7 +341,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BROWN_EGG);
         registerVanilla(ItemTypes.BROWN_HARNESS);
         registerVanilla(ItemTypes.BRUSH);
-        registerVanilla(ItemTypes.BUCKET);
+        registerVanilla(ItemTypes.BUCKET)
+                .set(ItemComponents.USE_ON, BucketItemHandlers.PICK_UP);
         registerVanilla(ItemTypes.BUNDLE);
         registerVanilla(ItemTypes.BURN_POTTERY_SHERD);
         registerVanilla(ItemTypes.CAMEL_HUSK_SPAWN_EGG)
@@ -482,7 +479,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE, FireworkRocketItemHandlers.USE)
                 .set(ItemComponents.USE_ON, FireworkRocketItemHandlers.USE_ON);
         registerVanilla(ItemTypes.FIREWORK_STAR, new FireworkStarSerializer());
-        registerVanilla(ItemTypes.FISHING_ROD);
+        registerVanilla(ItemTypes.FISHING_ROD)
+                .set(ItemComponents.DAMAGEABLE, () -> true)
+                .set(ItemComponents.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE)
+                .set(ItemComponents.GET_MAX_DAMAGE, item -> 384)
+                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemComponents.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE)
+                .set(ItemComponents.USE, FishingRodItemHandlers.USE);
         registerVanilla(ItemTypes.FLINT);
         registerVanilla(ItemTypes.FLINT_AND_STEEL)
                 .set(ItemComponents.USE_ON, FlintAndSteelItemHandlers.USE_ON);
@@ -576,7 +579,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.JUNGLE_CHEST_BOAT);
         registerVanilla(ItemTypes.JUNGLE_SIGN);
         registerVanilla(ItemTypes.LAPIS_LAZULI);
-        registerVanilla(ItemTypes.LAVA_BUCKET);
+        registerVanilla(ItemTypes.LAVA_BUCKET)
+                .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.LAVA));
         registerVanilla(ItemTypes.LEAD);
         registerVanilla(ItemTypes.LEATHER);
         registerArmorBoots(ItemTypes.LEATHER_BOOTS);
@@ -851,7 +855,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WARDEN));
         registerVanilla(ItemTypes.WARPED_FUNGUS_ON_A_STICK);
         registerVanilla(ItemTypes.WARPED_SIGN);
-        registerVanilla(ItemTypes.WATER_BUCKET);
+        registerVanilla(ItemTypes.WATER_BUCKET)
+                .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
         registerVanilla(ItemTypes.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.WHEAT_SEEDS);
         registerVanilla(ItemTypes.WHITE_BUNDLE);
@@ -992,6 +997,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemComponents.IS_TOOL, (item) -> false);
         this.registerComponent(ItemComponents.MINE_BLOCK, (item, block, owner) -> item);
         this.registerComponent(ItemComponents.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemComponents.USE);
+        this.registerComponent(ItemComponents.USE_ON);
     }
 
     public void registerCreativeItem(ItemStack item) {

@@ -49,8 +49,8 @@ public class FoodChorusFruit extends FoodNormal {
             BlockState blockStateUp = level.getBlockState(x, y + 1, z);
             BlockState blockStateUp2 = level.getBlockState(x, y + 2, z);
 
-            if (BlockSupport.blocksMotion(blockStateUp) || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp.getType(), BlockComponents.LIQUID).get()
-                    || BlockSupport.blocksMotion(blockStateUp2) || CloudBlockRegistry.REGISTRY.getComponent(blockStateUp2.getType(), BlockComponents.LIQUID).get()) {
+            if (BlockSupport.blocksMotion(blockStateUp) || blockStateUp.getType().isLiquid()
+                    || BlockSupport.blocksMotion(blockStateUp2) || blockStateUp2.getType().isLiquid()) {
                 continue;
             }
 

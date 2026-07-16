@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block;
 import lombok.ToString;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -10,11 +11,9 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
+import static java.util.Objects.requireNonNull;
 import static org.cloudburstmc.api.block.BlockStates.AIR;
-import static org.cloudburstmc.api.block.BlockTypes.FLOWING_WATER;
-import static org.cloudburstmc.api.block.BlockTypes.WATER;
 
 @ToString(exclude = {"level"}, callSuper = true)
 public class CloudBlock extends CloudBlockSnapshot implements Block {
@@ -36,15 +35,13 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public Vector3i getPosition() {
-        return position;
+    public CloudChunk getChunk() {
+        return level.getChunk(position);
     }
 
     @Override
-    public ComponentMap getComponents() {
-        return CloudBlockRegistry.REGISTRY.getComponents(this.getState().getType());
-//        //TODO implementation
-//        return null;
+    public Vector3i getPosition() {
+        return position;
     }
 
     @Override
@@ -53,8 +50,23 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
+    public ComponentMap getComponents() {
+        BlockType type = this.getState().getType();
+        return requireNonNull(this.level.getServer().getBlockRegistry().getComponents(type),
+                "Block type is not registered: " + type);
+    }
+
+    @Override
+    public VoxelShape getCollisionShape() {
+        return requireNonNull(this.getComponent(BlockComponents.GET_COLLISION_SHAPE),
+                "Required block component is absent: " + BlockComponents.GET_COLLISION_SHAPE.getId())
+                .execute(this.getState(), BlockShapeContext.at(this.level, this.position), CollisionContext.empty());
+    }
+
+    @Override
     public VoxelShape getOutlineShape() {
-        return this.getComponents().get(BlockComponents.GET_OUTLINE_SHAPE)
+        return requireNonNull(this.getComponent(BlockComponents.GET_OUTLINE_SHAPE),
+                "Required block component is absent: " + BlockComponents.GET_OUTLINE_SHAPE.getId())
                 .execute(this.getState(), BlockShapeContext.at(this.level, this.position));
     }
 
@@ -66,11 +78,6 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public boolean isFaceSturdy(Direction face, SupportType supportType) {
         return BlockSupport.isFaceSturdy(this.level, this.position, face, supportType);
-    }
-
-    @Override
-    public CloudChunk getChunk() {
-        return level.getChunk(position);
     }
 
     @Override
@@ -96,12 +103,6 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public Block getRelative(int x, int y, int z) {
         return this.level.getBlock(this.position.add(x, y, z));
-    }
-
-    @Override
-    public boolean isWaterlogged() {
-        BlockState fluidState = this.getExtra();
-        return (fluidState.getType() == WATER || fluidState.getType() == FLOWING_WATER);
     }
 
     @Override
