@@ -2,6 +2,8 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Pufferfish;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
 /**
@@ -11,6 +13,11 @@ public class EntityPufferfish extends Animal implements Pufferfish {
 
     public EntityPufferfish(EntityType<Pufferfish> type, Location location) {
         super(type, location);
+    }
+
+    @Override
+    public ItemStack getBaseBucketItem() {
+        return ItemStack.from(ItemTypes.PUFFERFISH_BUCKET);
     }
 
     public String getName() {

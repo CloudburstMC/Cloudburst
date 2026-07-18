@@ -3,7 +3,8 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.EnderPearl;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.level.Location;
@@ -78,7 +79,11 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
         if (owner != null && owner.getLevel().getId().equals(this.getLevel().getId())) {
             owner.teleport(this.getPosition().floor().add(0.5, 0, 0.5), PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
             if (((CloudPlayer) owner).isAdventure() || ((CloudPlayer) owner).isSurvival()) {
-                owner.attack(new EntityDamageByEntityEvent(this, owner, EntityDamageEvent.DamageCause.PROJECTILE, 5f, 0f));
+                DamageSource source = DamageSource.builder(DamageTypes.PROJECTILE)
+                        .directEntity(this).causingEntity(owner).location(this.getLocation()).build();
+                EntityDamageEvent event = new EntityDamageEvent(owner, source, 5f);
+                event.setKnockback(0);
+                owner.attack(event);
             }
             this.level.addSound(this.getPosition(), Sound.MOB_ENDERMEN_PORTAL);
         }

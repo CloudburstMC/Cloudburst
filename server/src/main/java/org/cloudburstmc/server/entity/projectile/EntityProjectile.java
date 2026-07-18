@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -60,19 +62,21 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     public boolean attack(EntityDamageEvent source) {
-        return source.getCause() == EntityDamageEvent.DamageCause.VOID && super.attack(source);
+        return source.getDamageType() == DamageTypes.VOID && super.attack(source);
     }
 
     public void onCollideWithEntity(Entity entity) {
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
 
-        EntityDamageEvent ev;
-        if (this.getOwner() == null) {
-            ev = new EntityDamageByEntityEvent(this, entity, EntityDamageEvent.DamageCause.PROJECTILE, damage);
-        } else {
-            ev = new EntityDamageByChildEntityEvent(this.getOwner(), this, entity, EntityDamageEvent.DamageCause.PROJECTILE, damage);
+        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.PROJECTILE)
+                .directEntity(this).location(this.getLocation());
+        Entity owner = this.getOwner();
+        if (owner != null) {
+            sourceBuilder.causingEntity(owner);
         }
+        DamageSource source = sourceBuilder.build();
+        EntityDamageEvent ev = new EntityDamageEvent(entity, source, damage);
         if (entity.attack(ev)) {
             this.hadCollision = true;
 

@@ -7,8 +7,8 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
-import org.cloudburstmc.api.event.entity.EntityDamageByChildEntityEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -28,8 +28,10 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
+import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,11 +41,9 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityLiving extends CloudEntity implements Damageable, Living {
+
+    private boolean inPowderSnow;
 
     public EntityLiving(EntityType<?> type, Location location) {
         super(type, location);
@@ -109,6 +109,30 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
     @Override
     public boolean attack(EntityDamageEvent source) {
+        Entity directEntity = source.getDamageSource().getDirectEntity();
+        Entity causingEntity = source.getDamageSource().getCausingEntity();
+
+        boolean entityAttack = source.getDamageType().is(DamageTypeTags.IS_ENTITY_ATTACK);
+        boolean criticalHit = entityAttack && directEntity == causingEntity
+                && causingEntity instanceof CloudPlayer
+                && !causingEntity.isOnGround();
+
+        if (entityAttack && directEntity != null && directEntity == causingEntity) {
+            float attackMultiplier = 1f;
+            if (causingEntity.hasEffect(EffectTypes.STRENGTH)) {
+                attackMultiplier += 0.3f * (causingEntity.getEffect(EffectTypes.STRENGTH).getAmplifier() + 1);
+            }
+
+            if (causingEntity.hasEffect(EffectTypes.WEAKNESS)) {
+                attackMultiplier -= 0.2f * (causingEntity.getEffect(EffectTypes.WEAKNESS).getAmplifier() + 1);
+            }
+
+            source.setDamage(Math.max(0, source.getDamage() * attackMultiplier));
+            if (criticalHit) {
+                source.setDamage(source.getDamage() * 1.5f);
+            }
+        }
+
         if (this.attackTime > 0 || this.noDamageTicks > 0) {
             EntityDamageEvent lastCause = this.getLastDamageCause();
             if (lastCause != null && lastCause.getDamage() >= source.getDamage()) {
@@ -117,31 +141,24 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
         }
 
         if (super.attack(source)) {
-            if (source instanceof EntityDamageByEntityEvent) {
-                Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-                if (source instanceof EntityDamageByChildEntityEvent) {
-                    damager = ((EntityDamageByChildEntityEvent) source).getChild();
-                }
-
-                //Critical hit
-                if (damager instanceof CloudPlayer && !damager.isOnGround()) {
+            Entity impactEntity = directEntity != null ? directEntity : causingEntity;
+            if (impactEntity != null && !source.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {
+                if (criticalHit) {
                     AnimatePacket animate = new AnimatePacket();
                     animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
                     animate.setRuntimeEntityId(this.getRuntimeId());
 
-                    this.getLevel().addChunkPacket(damager.getPosition(), animate);
+                    this.getLevel().addChunkPacket(impactEntity.getPosition(), animate);
                     this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
-
-                    source.setDamage(source.getDamage() * 1.5f);
                 }
 
-                if (damager.isOnFire() && !(damager instanceof CloudPlayer)) {
+                if (impactEntity.isOnFire() && !(impactEntity instanceof CloudPlayer)) {
                     this.setOnFire(2 * this.server.getDifficulty().ordinal());
                 }
 
-                Vector2f diff = this.getPosition().sub(damager.getPosition()).toVector2(true);
+                Vector2f diff = this.getPosition().sub(impactEntity.getPosition()).toVector2(true);
 
-                this.knockBack(damager, ((EntityDamageByEntityEvent) source).getKnockBack(), diff.getX(), diff.getY());
+                this.knockBack(impactEntity, source.getKnockback(), diff.getX(), diff.getY());
             }
 
             EntityEventPacket pk = new EntityEventPacket();
@@ -216,12 +233,13 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             this.data.setFlag(BREATHING, isBreathing);
 
             boolean hasUpdate = super.entityBaseTick(tickDiff);
+            this.tickFreezing(tickDiff);
 
             if (this.isAlive()) {
 
                 if (this.isInsideOfSolid()) {
                     hasUpdate = true;
-                    this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 1));
+                    this.attack(new EntityDamageEvent(this, DamageTypes.SUFFOCATION, 1));
                 }
 
                 var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
@@ -240,7 +258,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                             if (airTicks <= -20) {
                                 airTicks = 0;
-                                this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.DROWNING, 2));
+                                this.attack(new EntityDamageEvent(this, DamageTypes.DROWNING, 2));
                             }
 
                             setAirTicks(airTicks);
@@ -253,7 +271,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                         if (airTicks <= -20) {
                             airTicks = 0;
-                            this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.SUFFOCATION, 2));
+                            this.attack(new EntityDamageEvent(this, DamageTypes.SUFFOCATION, 2));
                         }
 
                         setAirTicks(airTicks);
@@ -271,9 +289,9 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
                 this.attackTime -= tickDiff;
             }
 
-            if (this.vehicle == null) {
-                for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
-                    if (entity instanceof Rideable) {
+            if (this.vehicle == null && this.isPushable()) {
+                for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox)) {
+                    if (entity.isPushable()) {
                         this.collidingWith(entity);
                     }
                 }
@@ -281,9 +299,67 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
             // Used to check collisions with magma blocks
             Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
-            if (block.getState().getType() == MAGMA) block.getComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
+            if (block.getState().getType() == MAGMA) block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
             return hasUpdate;
         }
+    }
+
+    public void markInPowderSnow() {
+        this.inPowderSnow = true;
+    }
+
+    protected boolean canFreeze() {
+        if (this instanceof CloudPlayer player && player.isSpectator()) {
+            return false;
+        }
+
+        if (!EntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
+            return false;
+        }
+
+        if (!(this instanceof EntityCreature creature)) {
+            return true;
+        }
+
+        return creature.getArmor().getHelmet().getType() != ItemTypes.LEATHER_HELMET
+                && creature.getArmor().getChestplate().getType() != ItemTypes.LEATHER_CHESTPLATE
+                && creature.getArmor().getLeggings().getType() != ItemTypes.LEATHER_LEGGINGS
+                && creature.getArmor().getBoots().getType() != ItemTypes.LEATHER_BOOTS;
+    }
+
+    private void tickFreezing(int tickDiff) {
+        if (this.isFreezeTickingLocked()) {
+            this.consumeInPowderSnow();
+            return;
+        }
+
+        boolean canFreeze = this.canFreeze();
+        if (this.consumeInPowderSnow() && canFreeze) {
+            this.setFreezeTicks(this.getFreezeTicks() + tickDiff);
+        } else {
+            this.setFreezeTicks(this.getFreezeTicks() - 2 * tickDiff);
+        }
+
+        if (!this.isFrozen() || !canFreeze || !this.getLevel().getGameRules().get(GameRules.FREEZE_DAMAGE)) {
+            return;
+        }
+
+        int previousTicksLived = Math.max(0, this.ticksLived - tickDiff);
+        int damagePulses = this.ticksLived / 40 - previousTicksLived / 40;
+        for (int pulse = 0; pulse < damagePulses; pulse++) {
+            float multiplier = EntityRegistry.get()
+                    .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
+                    .execute(this);
+            if (this.attack(new EntityDamageEvent(this, DamageTypes.FREEZING, multiplier)) && this instanceof CloudPlayer) {
+                this.getLevel().addSound(this.getPosition(), Sound.MOB_PLAYER_HURT_FREEZE);
+            }
+        }
+    }
+
+    private boolean consumeInPowderSnow() {
+        boolean result = this.inPowderSnow;
+        this.inPowderSnow = false;
+        return result;
     }
 
     public ItemStack[] getDrops() {

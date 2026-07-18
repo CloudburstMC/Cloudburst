@@ -111,7 +111,7 @@ public class CloudChunkSection implements ChunkSection {
         }
 
         return Preconditions.checkNotNull(
-                this.blockRegistry.getComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK),
+                this.blockRegistry.requireComponent(state.getType(), BlockComponents.CAN_RANDOM_TICK),
                 "Random tick component is not registered for %s", state.getType());
     }
 

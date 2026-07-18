@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.entity.projectile;
 
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Snowball;
 import org.cloudburstmc.api.level.Location;
 
@@ -37,6 +39,12 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
     @Override
     public float getDrag() {
         return 0.01f;
+    }
+
+    @Override
+    public void onCollideWithEntity(Entity entity) {
+        this.setDamage(entity.getType() == EntityTypes.BLAZE ? 3 : 0);
+        super.onCollideWithEntity(entity);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.entity.damage.DamageType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
 /**
@@ -30,9 +32,9 @@ public class EnchantmentProtectionProjectile extends EnchantmentProtection {
 
     @Override
     public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent e) {
-        EntityDamageEvent.DamageCause cause = e.getCause();
+        DamageType damageType = e.getDamageType();
 
-        if (enchantment.getLevel() <= 0 || (cause != EntityDamageEvent.DamageCause.PROJECTILE)) {
+        if (enchantment.getLevel() <= 0 || !damageType.is(DamageTypeTags.IS_PROJECTILE)) {
             return 0;
         }
 

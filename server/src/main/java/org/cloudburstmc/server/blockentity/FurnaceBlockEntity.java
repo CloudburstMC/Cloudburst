@@ -120,7 +120,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     protected void checkFuel(ItemStack fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
-                (short) CloudItemRegistry.get().getComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get());
+                (short) CloudItemRegistry.get().requireComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get());
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -168,11 +168,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         BlockType blockType = state.getType();
         CloudFurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().getComponent(product.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(product)));
+                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().requireComponent(product.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(product)));
 
         if (
                 burnTime <= 0 && canSmelt
-                        && CloudItemRegistry.get().getComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get() > 0
+                        && CloudItemRegistry.get().requireComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get() > 0
                         && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }

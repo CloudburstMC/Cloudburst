@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
@@ -16,10 +17,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.StringJoiner;
 
-/**
- * Created on 2015/12/08 by Pub4Game.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
 public class KillCommand extends Command {
 
     public KillCommand() {
@@ -49,11 +46,12 @@ public class KillCommand extends Command {
             }
             CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
             if (player != null) {
-                EntityDamageEvent ev = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.SUICIDE, 1000);
+                EntityDamageEvent ev = new EntityDamageEvent(player, DamageTypes.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
+
                 player.setLastDamageCause(ev);
                 player.setHealth(0);
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful",
@@ -80,11 +78,13 @@ public class KillCommand extends Command {
                     sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
                     return true;
                 }
-                EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
+
+                EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, DamageTypes.SUICIDE, 1000);
                 sender.getServer().getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return true;
                 }
+
                 ((CloudPlayer) sender).setLastDamageCause(ev);
                 ((CloudPlayer) sender).setHealth(0);
                 sender.sendMessage(Component.translatable("commands.kill.successful",
@@ -113,11 +113,13 @@ public class KillCommand extends Command {
                 sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
                 return true;
             }
-            EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, EntityDamageEvent.DamageCause.SUICIDE, 1000);
+
+            EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, DamageTypes.SUICIDE, 1000);
             sender.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return true;
             }
+
             ((CloudPlayer) sender).setLastDamageCause(ev);
             ((CloudPlayer) sender).setHealth(0);
             sender.sendMessage(Component.translatable("commands.kill.successful",

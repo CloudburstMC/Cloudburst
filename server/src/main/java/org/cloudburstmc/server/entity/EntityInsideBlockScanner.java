@@ -67,7 +67,7 @@ public class EntityInsideBlockScanner {
 
             entity.level.forEachBlockCollision(entity, box, block -> {
                 if (collisionBlocks.add(block.getPosition())) {
-                    block.getComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, entity);
+                    block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, entity);
                 }
             });
         }
@@ -103,12 +103,12 @@ public class EntityInsideBlockScanner {
                     }
 
                     ComponentMap behaviors = block.getComponents();
-                    VoxelShape insideShape = behaviors.get(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE)
+                    VoxelShape insideShape = behaviors.require(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE)
                             .execute(state, CollisionContext.of(entity));
                     if (!insideShape.isEmpty()
                             && insideShape.overlaps(box, x, y, z)
                             && insideBlocks.add(block.getPosition())) {
-                        behaviors.get(BlockComponents.ON_ENTITY_INSIDE).execute(block, entity, true);
+                        behaviors.require(BlockComponents.ON_ENTITY_INSIDE).execute(block, entity, true);
                     }
                 }
             }

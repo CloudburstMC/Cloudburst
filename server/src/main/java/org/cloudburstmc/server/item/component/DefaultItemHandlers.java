@@ -2,14 +2,15 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
@@ -19,34 +20,23 @@ import java.util.concurrent.ThreadLocalRandom;
 @UtilityClass
 public class DefaultItemHandlers {
 
-    public static final DestroySpeedHandler GET_DESTROY_SPEED = (itemStack, block) -> 1.0F;
-
-    public static final FloatItemHandler GET_DESTROY_SPEED_BONUS = (itemStack) -> {
-        if (itemStack.isEmpty()) {
-            return 1.0F;
-        }
-        Enchantment enchantment = itemStack.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.EFFICIENCY);
-        if (enchantment != null && enchantment.level() > 0) {
-            return (enchantment.level() * enchantment.level()) + 1.0F;
-        }
-        return 0F;
-    };
-
     public static final DamageChanceHandler GET_DAMAGE_CHANCE = unbreakingLevel -> 100f / (unbreakingLevel + 1);
 
     public static final MineBlockHandler MINE_BLOCK = (itemStack, block, owner) -> {
-        if (block.getComponent(BlockComponents.CAN_DAMAGE_ITEM)) {
-            DamageItemHandler onDamage = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.ON_DAMAGE);
-            if (onDamage != null) {
-                return onDamage.execute(itemStack, 2, owner);
+        if (block.getState().getHardness() != 0) {
+            Tool tool = ToolUtils.getTool(itemStack);
+            if (tool == null || tool.damagePerBlock() == 0) {
+                return itemStack;
             }
+            return CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.ON_DAMAGE)
+                    .execute(itemStack, tool.damagePerBlock(), owner);
         }
         return itemStack;
     };
 
     public static final DamageItemHandler ON_DAMAGE = (itemStack, damage, owner) -> {
-        IntItemHandler getMaxDamage = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.GET_MAX_DAMAGE);
-        int maxDamage = getMaxDamage != null ? getMaxDamage.execute(itemStack) : -1;
+        IntItemHandler getMaxDamage = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.GET_MAX_DAMAGE);
+        int maxDamage = getMaxDamage.execute(itemStack);
 
         if (damage <= 0 || itemStack.isEmpty() || maxDamage <= 0 ||
                 !owner.isAlive() || itemStack.get(ItemKeys.UNBREAKABLE) == Boolean.TRUE) {
@@ -60,8 +50,8 @@ public class DefaultItemHandlers {
         Enchantment enchantment = itemStack.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.UNBREAKING);
         int enchantmentLevel = enchantment == null ? 0 : enchantment.level();
 
-        DamageChanceHandler getDamageChance = CloudItemRegistry.get().getComponent(itemStack.getType(), ItemComponents.GET_DAMAGE_CHANCE);
-        float damageChance = getDamageChance != null ? getDamageChance.execute(enchantmentLevel) : 100;
+        DamageChanceHandler getDamageChance = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.GET_DAMAGE_CHANCE);
+        float damageChance = getDamageChance.execute(enchantmentLevel);
 
         damageChance = Math.clamp(damageChance, 0, 100);
         int appliedDamage = 0;

@@ -1,217 +1,131 @@
 package org.cloudburstmc.api.event.entity;
 
-import com.google.common.collect.ImmutableMap;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.event.EventException;
 
-import java.util.EnumMap;
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
-public class EntityDamageEvent extends EntityEvent implements Cancellable {
+/**
+ * Called when an entity takes damage.
+ */
+public final class EntityDamageEvent extends EntityEvent implements Cancellable {
 
-    private final DamageCause cause;
-    private final Map<DamageModifier, Float> modifiers;
-    private final Map<DamageModifier, Float> originals;
+    private final DamageSource damageSource;
+    private final float originalDamage;
+    private float damage;
+    private float knockback = 1f;
     private int attackCooldown = 10;
 
-    public EntityDamageEvent(Entity entity, DamageCause cause, float damage) {
-        this(entity, cause, new EnumMap<DamageModifier, Float>(DamageModifier.class) {
-            {
-                put(DamageModifier.BASE, damage);
-            }
-        });
+    /**
+     * Creates an event for damage without a specific origin.
+     *
+     * @param entity the damaged entity
+     * @param damageType the damage type
+     * @param damage the non-negative damage
+     */
+    public EntityDamageEvent(Entity entity, DamageType damageType, float damage) {
+        this(entity, DamageSource.of(damageType), damage);
     }
 
-    public EntityDamageEvent(Entity entity, DamageCause cause, Map<DamageModifier, Float> modifiers) {
-        this.entity = entity;
-        this.cause = cause;
-        this.modifiers = new EnumMap<>(modifiers);
-
-        this.originals = ImmutableMap.copyOf(this.modifiers);
-
-        if (!this.modifiers.containsKey(DamageModifier.BASE)) {
-            throw new EventException("BASE Damage modifier missing");
-        }
-
-/*        if (entity.hasEffect(Effect.DAMAGE_RESISTANCE)) {
-            this.setDamage((float) -(this.getDamage(DamageModifier.BASE) * 0.20 * (entity.getEffect(Effect.DAMAGE_RESISTANCE).getAmplifier() + 1)), DamageModifier.RESISTANCE);
-        }*/ //TODO
+    /**
+     * Creates an event for damage from the supplied source.
+     *
+     * @param entity the damaged entity
+     * @param damageSource the damage source
+     * @param damage the non-negative damage
+     */
+    public EntityDamageEvent(Entity entity, DamageSource damageSource, float damage) {
+        this.entity = requireNonNull(entity, "entity");
+        this.damageSource = requireNonNull(damageSource, "damageSource");
+        checkArgument(damage >= 0, "damage must not be negative");
+        this.originalDamage = damage;
+        this.damage = damage;
     }
 
-    public DamageCause getCause() {
-        return cause;
+    /**
+     * Returns the kind of damage represented by this event.
+     *
+     * @return the damage type
+     */
+    public DamageType getDamageType() {
+        return this.damageSource.getDamageType();
     }
 
+    /**
+     * Returns the source of the damage.
+     *
+     * @return the damage source
+     */
+    public DamageSource getDamageSource() {
+        return this.damageSource;
+    }
+
+    /**
+     * Returns the damage supplied when this event was created.
+     *
+     * @return the original damage
+     */
     public float getOriginalDamage() {
-        return this.getOriginalDamage(DamageModifier.BASE);
+        return this.originalDamage;
     }
 
-    public float getOriginalDamage(DamageModifier type) {
-        if (this.originals.containsKey(type)) {
-            return this.originals.get(type);
-        }
-
-        return 0;
-    }
-
+    /**
+     * Returns the damage that will be applied.
+     *
+     * @return the current damage
+     */
     public float getDamage() {
-        return this.getDamage(DamageModifier.BASE);
+        return this.damage;
     }
 
+    /**
+     * Sets the damage that will be applied.
+     *
+     * @param damage the new non-negative damage
+     */
     public void setDamage(float damage) {
-        this.setDamage(damage, DamageModifier.BASE);
+        checkArgument(damage >= 0, "damage must not be negative");
+        this.damage = damage;
     }
 
-    public float getDamage(DamageModifier type) {
-        if (this.modifiers.containsKey(type)) {
-            return this.modifiers.get(type);
-        }
-
-        return 0;
+    /**
+     * Returns the multiplier applied to normal attack knockback.
+     *
+     * @return the knockback multiplier
+     */
+    public float getKnockback() {
+        return this.knockback;
     }
 
-    public void setDamage(float damage, DamageModifier type) {
-        this.modifiers.put(type, damage);
+    /**
+     * Sets the multiplier applied to normal attack knockback.
+     *
+     * @param knockback the new non-negative multiplier
+     */
+    public void setKnockback(float knockback) {
+        checkArgument(knockback >= 0, "knockback must not be negative");
+        this.knockback = knockback;
     }
 
-    public boolean isApplicable(DamageModifier type) {
-        return this.modifiers.containsKey(type);
-    }
-
-    public float getFinalDamage() {
-        float damage = 0;
-        for (Float d : this.modifiers.values()) {
-            if (d != null) {
-                damage += d;
-            }
-        }
-
-        return damage;
-    }
-
+    /**
+     * Returns the entity attack cooldown in ticks.
+     *
+     * @return the attack cooldown
+     */
     public int getAttackCooldown() {
         return this.attackCooldown;
     }
 
+    /**
+     * Sets the entity attack cooldown in ticks.
+     *
+     * @param attackCooldown the new non-negative cooldown
+     */
     public void setAttackCooldown(int attackCooldown) {
+        checkArgument(attackCooldown >= 0, "attackCooldown must not be negative");
         this.attackCooldown = attackCooldown;
-    }
-
-    public boolean canBeReducedByArmor() {
-        switch (this.cause) {
-            case FIRE_TICK:
-            case SUFFOCATION:
-            case DROWNING:
-            case HUNGER:
-            case FALL:
-            case VOID:
-            case MAGIC:
-            case SUICIDE:
-                return false;
-        }
-        return true;
-    }
-
-    public enum DamageModifier {
-        /**
-         * Raw amount of damage
-         */
-        BASE,
-        /**
-         * Damage reduction caused by wearing armor
-         */
-        ARMOR,
-        /**
-         * Additional damage caused by damager's Strength potion effect
-         */
-        STRENGTH,
-        /**
-         * Damage reduction caused by damager's Weakness potion effect
-         */
-        WEAKNESS,
-        /**
-         * Damage reduction caused by the Resistance potion effect
-         */
-        RESISTANCE,
-        /**
-         * Damage reduction caused by the Damage absorption effect
-         */
-        ABSORPTION,
-        /**
-         * Damage reduction caused by the armor enchantments worn.
-         */
-        ARMOR_ENCHANTMENTS
-    }
-
-    public enum DamageCause {
-        /**
-         * Damage caused by contact with a block such as a Cactus
-         */
-        CONTACT,
-        /**
-         * Damage caused by being attacked by another entity
-         */
-        ENTITY_ATTACK,
-        /**
-         * Damage caused by being hit by a projectile such as an Arrow
-         */
-        PROJECTILE,
-        /**
-         * Damage caused by being put in a block
-         */
-        SUFFOCATION,
-        /**
-         * Fall damage
-         */
-        FALL,
-        /**
-         * Damage caused by standing in fire
-         */
-        FIRE,
-        /**
-         * Burn damage
-         */
-        FIRE_TICK,
-        /**
-         * Damage caused by standing in lava
-         */
-        LAVA,
-        /**
-         * Damage caused by running out of air underwater
-         */
-        DROWNING,
-        /**
-         * Block explosion damage
-         */
-        BLOCK_EXPLOSION,
-        /**
-         * Entity explosion damage
-         */
-        ENTITY_EXPLOSION,
-        /**
-         * Damage caused by falling into the void
-         */
-        VOID,
-        /**
-         * Player commits suicide
-         */
-        SUICIDE,
-        /**
-         * Potion or spell damage
-         */
-        MAGIC,
-        /**
-         * Damage applied programmatically rather than by a built-in game mechanic.
-         */
-        CUSTOM,
-        /**
-         * Damage caused by being struck by lightning
-         */
-        LIGHTNING,
-        /**
-         * Damage caused by hunger
-         */
-        HUNGER
     }
 }

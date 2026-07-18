@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.potion;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.potion.PotionApplyEvent;
@@ -11,10 +12,6 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class CloudPotion extends Potion {
 
     private PotionType potion;
@@ -64,15 +61,17 @@ public class CloudPotion extends Potion {
         applyEffect = event.getApplyEffect();
 
         if (potion.getType() == EffectTypes.INSTANT_HEALTH) {
-            if (entity.isUndead())
-                entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
-            else
+            if (entity.isUndead()) {
+                entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
+            } else {
                 entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
+            }
         } else if (potion.getType() == EffectTypes.INSTANT_DAMAGE) {
-            if (entity.isUndead())
+            if (entity.isUndead()) {
                 entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-            else
-                entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
+            } else {
+                entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, (float) (health * (double) (6 << (applyEffect.getAmplifier() + 1)))));
+            }
         } else {
             int duration = (int) ((isSplash() ? health : 1) * (double) applyEffect.getDuration() + 0.5);
             applyEffect.setDuration(duration);

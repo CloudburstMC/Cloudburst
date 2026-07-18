@@ -17,11 +17,11 @@ import org.cloudburstmc.api.entity.component.BooleanEntityHandler;
 import org.cloudburstmc.api.entity.component.FloatEntityHandler;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.component.TickEntityHandler;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.component.ComponentMap;
-import org.cloudburstmc.server.registry.component.CloudComponentMap;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -29,11 +29,14 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
+import org.cloudburstmc.server.entity.component.BucketableEntityHandlers;
+import org.cloudburstmc.server.entity.component.SnowGolemEntityHandlers;
 import org.cloudburstmc.server.entity.hostile.*;
 import org.cloudburstmc.server.entity.misc.*;
 import org.cloudburstmc.server.entity.passive.*;
 import org.cloudburstmc.server.entity.projectile.*;
 import org.cloudburstmc.server.entity.vehicle.*;
+import org.cloudburstmc.server.registry.component.CloudComponentMap;
 import tools.jackson.core.type.TypeReference;
 
 import java.io.IOException;
@@ -95,6 +98,9 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
     private EntityRegistry() {
         this.registerVanillaEntityComponents();
         this.registerVanillaEntities();
+        this.registerBucketableEntities();
+        this.registerPowderSnowProperties();
+        this.registerSnowGolemComponents();
         customEntityStart = runtimeTypeAllocator;
     }
 
@@ -108,6 +114,38 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
         this.registerComponent(EntityComponents.ON_INTERACT, (InteractEntityHandler) (entity, player, item, clickedPos) -> false);
         this.registerComponent(EntityComponents.ON_TICK, (TickEntityHandler) (entity, currentTick) -> true);
         this.registerComponent(EntityComponents.CAN_BE_NAMED, (BooleanEntityHandler) entity -> true);
+        this.registerComponent(EntityComponents.CAN_FREEZE, (BooleanEntityHandler) entity -> true);
+        this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, (BooleanEntityHandler) entity -> false);
+        this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
+    }
+
+    private void registerPowderSnowProperties() {
+        for (EntityType<?> type : List.of(RABBIT, ENDERMITE, SILVERFISH, FOX)) {
+            getComponentMap(type).set(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> true);
+        }
+
+        for (EntityType<?> type : List.of(STRAY, POLAR_BEAR, SNOW_GOLEM, WITHER)) {
+            getComponentMap(type).set(EntityComponents.CAN_FREEZE, entity -> false);
+        }
+
+        for (EntityType<?> type : List.of(STRIDER, BLAZE, MAGMA_CUBE)) {
+            getComponentMap(type).set(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 5f);
+        }
+    }
+
+    private void registerSnowGolemComponents() {
+        getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
+    }
+
+    private void registerBucketableEntities() {
+        InteractEntityHandler waterBucket = BucketableEntityHandlers.capture(ItemTypes.WATER_BUCKET);
+        getComponentMap(AXOLOTL).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(COD).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(PUFFERFISH).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(SALMON).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(TADPOLE).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(TROPICAL_FISH).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(SULFUR_CUBE).set(EntityComponents.ON_INTERACT, BucketableEntityHandlers.capture(ItemTypes.BUCKET));
     }
 
     public static EntityRegistry get() {
@@ -239,7 +277,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
             }
             entityData = (EntityData<T>) UNKNOWN_ENTITY_DATA;
         }
-        return entityData.serviceProvider;
+        return entityData.serviceProvider();
     }
 
     @Override
@@ -247,7 +285,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
         checkClosed();
 
         // Bake registry providers
-        this.dataMap.values().forEach(entityData -> entityData.serviceProvider.bake());
+        this.dataMap.values().forEach(entityData -> entityData.serviceProvider().bake());
         this.freezeComponentMaps();
 
         // generate cache
@@ -260,7 +298,7 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
 
             entityIdentifiers.add(NbtMap.builder()
                     .putBoolean("summonable", true) // TODO: 07/01/2020 This affects the summon command auto completion
-                    .putBoolean("hasSpawnEgg", data.hasSpawnEgg)
+                    .putBoolean("hasSpawnEgg", data.hasSpawnEgg())
                     .putBoolean("experimental", true) // If there are experimental features, we may as well enable them
                     .putString("id", type.getIdentifier().toString())
                     .putString("bid", "") // ???
@@ -418,13 +456,9 @@ public class EntityRegistry extends CloudComponentRegistry<EntityType<?>> {
         registerVanilla(PLAYER, EntityHuman::new, 257);
     }
 
-    private static class EntityData<T extends Entity> {
-        private final boolean hasSpawnEgg;
-        private final RegistryServiceProvider<EntityFactory<T>> serviceProvider;
-
+    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {
         private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactory<T>> provider) {
-            this.hasSpawnEgg = hasSpawnEgg;
-            this.serviceProvider = new RegistryServiceProvider<>(provider);
+            this(hasSpawnEgg, new RegistryServiceProvider<>(provider));
         }
     }
 }

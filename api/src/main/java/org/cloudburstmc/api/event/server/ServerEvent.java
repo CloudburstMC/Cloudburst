@@ -3,8 +3,7 @@ package org.cloudburstmc.api.event.server;
 import org.cloudburstmc.api.event.Event;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Base class for server events.
  */
-abstract public class ServerEvent extends Event {
+public abstract class ServerEvent extends Event {
 }

@@ -19,7 +19,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
-import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.enchantment.Enchantment;
@@ -74,6 +73,7 @@ import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.SectionTickList;
@@ -84,6 +84,7 @@ import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.provider.LevelProvider;
+import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -939,6 +940,12 @@ public class CloudLevel implements Level {
                     int baseWorldZ = chunkZ << 4;
                     ThreadLocalRandom rng = ThreadLocalRandom.current();
 
+                    for (int i = 0; i < tickSpeed; i++) {
+                        if (rng.nextInt(48) == 0) {
+                            PrecipitationHandler.tickColumn(this, baseWorldX + rng.nextInt(16), baseWorldZ + rng.nextInt(16));
+                        }
+                    }
+
                     for (int sectionIdx = 0; sectionIdx < sections.length; sectionIdx++) {
                         ChunkSection section = sections[sectionIdx];
                         if (section == null) {
@@ -970,11 +977,8 @@ public class CloudLevel implements Level {
                             int worldY = sectionBaseY + ly;
                             int worldZ = baseWorldZ + lz;
 
-                            ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
-                            TickBlockHandler randomTick = behaviors.get(BlockComponents.ON_RANDOM_TICK);
-                            if (randomTick == null) {
-                                continue;
-                            }
+                            ComponentMap behaviors = this.blockRegistry.requireComponents(state.getType());
+                            TickBlockHandler randomTick = behaviors.require(BlockComponents.ON_RANDOM_TICK);
 
                             Block block = new CloudBlock(
                                     this,
@@ -1001,7 +1005,7 @@ public class CloudLevel implements Level {
             }
 
             Block block = this.getBlock(side.relative(pos));
-            block.getComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
+            block.requireComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
         }
     }
 
@@ -1086,10 +1090,7 @@ public class CloudLevel implements Level {
         BlockUpdateEvent event = new BlockUpdateEvent(block);
         this.getServer().getEventManager().fire(event);
         if (!event.isCancelled()) {
-            NeighborBlockHandler handler = block.getComponent(BlockComponents.ON_NEIGHBOUR_CHANGED);
-            if (handler != null) {
-                handler.execute(block, changed);
-            }
+            block.requireComponent(BlockComponents.ON_NEIGHBOUR_CHANGED).execute(block, changed);
         }
     }
 
@@ -1194,8 +1195,8 @@ public class CloudLevel implements Level {
     }
 
     public boolean isFullBlock(Vector3i pos, BlockState state) {
-        ComponentMap behaviors = this.blockRegistry.getComponents(state.getType());
-        VoxelShape shape = behaviors.get(BlockComponents.GET_COLLISION_SHAPE)
+        ComponentMap behaviors = this.blockRegistry.requireComponents(state.getType());
+        VoxelShape shape = behaviors.require(BlockComponents.GET_COLLISION_SHAPE)
                 .execute(state, BlockShapeContext.at(this, pos), CollisionContext.empty());
         return CloudVoxelShapes.isFullBlock(shape);
     }
@@ -1283,7 +1284,7 @@ public class CloudLevel implements Level {
         this.forEachLoadedBlockIntersecting(boundingBox, block -> {
             BlockState state = block.getState();
             Vector3i position = block.getPosition();
-            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.requireComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(this, position), context);
             if (!collisionShape.isEmpty() && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ())) {
                 consumer.accept(block);
@@ -1720,10 +1721,7 @@ public class CloudLevel implements Level {
             return;
         }
 
-        TickBlockHandler handler = block.getComponent(BlockComponents.ON_TICK);
-        if (handler != null) {
-            handler.execute(block, null);
-        }
+        block.requireComponent(BlockComponents.ON_TICK).execute(block, null);
     }
 
     private void tickLiquid(Vector3i position, BlockType scheduledType) {
@@ -1733,10 +1731,7 @@ public class CloudLevel implements Level {
             return;
         }
 
-        TickBlockHandler handler = this.blockRegistry.getComponent(scheduledType, BlockComponents.ON_TICK);
-        if (handler != null) {
-            handler.execute(block, null);
-        }
+        this.blockRegistry.requireComponent(scheduledType, BlockComponents.ON_TICK).execute(block, null);
     }
 
     private void addBlockChange(int x, int y, int z) {
@@ -1821,23 +1816,29 @@ public class CloudLevel implements Level {
         Block target = this.getBlock(pos);
         ItemStack[] drops;
         ComponentMap targetBehaviors = target.getComponents();
-        int dropExp = targetBehaviors.get(BlockComponents.GET_EXPERIENCE_DROP).execute(target.getState(), ThreadLocalRandom.current()); // TODO: Use global level RNG
+        int dropExp = targetBehaviors.require(BlockComponents.GET_EXPERIENCE_DROP).execute(target.getState(), ThreadLocalRandom.current()); // TODO: Use global level RNG
 
         boolean isSilkTouch = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null;
 
         if (player != null) {
-            ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.getComponents(item.getType());
-            if (player.getGameMode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.get(ItemComponents.CAN_DESTROY).execute(item, target))) {
+            ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.requireComponents(item.getType());
+            if (player.getGameMode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.require(ItemComponents.CAN_DESTROY).execute(item, target))) {
                 return null;
             }
 
-            double breakTime = targetBehaviors.get(BlockComponents.GET_DESTROY_SPEED).execute(target.getState());
+            if (player.isCreative() && !ToolUtils.canDestroyInCreative(item)) {
+                return null;
+            }
+
+            double breakTime = target.getState().getHardness();
             // this in
             // block
             // class
 
             if (player.isCreative() && breakTime > 0.15) {
                 breakTime = 0.15;
+            } else if (player.isSurvival()) {
+                breakTime /= ToolUtils.getMiningSpeed(item, target.getState());
             }
 
             if (player.hasEffect(EffectTypes.HASTE)) {
@@ -1859,21 +1860,24 @@ public class CloudLevel implements Level {
             ItemStack[] eventDrops;
             if (!player.isSurvival()) {
                 eventDrops = new ItemStack[0];
-            } else if (isSilkTouch && targetBehaviors.get(BlockComponents.CAN_BE_SILK_TOUCHED).execute(target)) {
-                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+            } else if (isSilkTouch && ToolUtils.isCorrectForDrops(item, target.getState())
+                    && targetBehaviors.require(BlockComponents.CAN_BE_SILK_TOUCHED).execute(target)) {
+                ItemStack itemStack = targetBehaviors.require(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
                 eventDrops = itemStack != null && !itemStack.isEmpty() ? new ItemStack[]{itemStack} : new ItemStack[0];
-            } else {
-                ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
-                int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
+            } else if (ToolUtils.isCorrectForDrops(item, target.getState())) {
+                ItemStack itemStack = targetBehaviors.require(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+                int count = targetBehaviors.require(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
                 eventDrops = new ItemStack[count];
                 Arrays.fill(eventDrops, itemStack);
+            } else {
+                eventDrops = new ItemStack[0];
             }
 
             BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
                     (((CloudPlayer) player).lastBreak + breakTime * 1000) > System.currentTimeMillis());
 
 
-            if (player.isSurvival() && !targetBehaviors.get(BlockComponents.IS_BREAKABLE).execute(target, item)) {
+            if (player.isSurvival() && !targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
                 ev.setCancelled();
             } else if (!player.isOp() && isInSpawnRadius(target.getPosition())) {
                 ev.setCancelled();
@@ -1892,16 +1896,19 @@ public class CloudLevel implements Level {
 
             drops = ev.getDrops();
             dropExp = ev.getDropExp();
-        } else if (!targetBehaviors.get(BlockComponents.IS_BREAKABLE).execute(target, item)) {
+        } else if (!targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
             return null;
-        } else if (item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null) {
-            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+        } else if (item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.SILK_TOUCH) != null
+                && ToolUtils.isCorrectForDrops(item, target.getState())) {
+            ItemStack itemStack = targetBehaviors.require(BlockComponents.GET_SILK_TOUCH_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
             drops = itemStack != null && !itemStack.isEmpty() ? new ItemStack[]{itemStack} : new ItemStack[0];
-        } else {
-            ItemStack itemStack = targetBehaviors.get(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
-            int count = targetBehaviors.get(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
+        } else if (ToolUtils.isCorrectForDrops(item, target.getState())) {
+            ItemStack itemStack = targetBehaviors.require(BlockComponents.GET_RESOURCE).execute(target, ThreadLocalRandom.current(), 0); // TODO: Use global level RNG & implement bonus level
+            int count = targetBehaviors.require(BlockComponents.GET_RESOURCE_COUNT).execute(target, ThreadLocalRandom.current(), 0);
             drops = new ItemStack[count];
             Arrays.fill(drops, itemStack);
+        } else {
+            drops = new ItemStack[0];
         }
 
         Block above = this.getLoadedBlock(target.getPosition().add(0, 1, 0));
@@ -1924,16 +1931,13 @@ public class CloudLevel implements Level {
             this.updateComparatorOutputLevel(target.getPosition());
         }
 
-        targetBehaviors.get(BlockComponents.ON_DESTROY).execute(target, player);
-        targetBehaviors.get(BlockComponents.POST_DESTROY).execute(target, player);
-
-        ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors != null) {
-            if (itemBehaviors.get(ItemComponents.IS_TOOL).execute(item) &&
-                    item.get(ItemKeys.DAMAGE) >= itemBehaviors.get(ItemComponents.GET_MAX_DAMAGE).execute(item)) {
-                item = ItemStack.EMPTY;
-            }
+        ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.requireComponents(item.getType());
+        if (itemBehaviors != null && player != null && player.isSurvival()) {
+            item = itemBehaviors.require(ItemComponents.MINE_BLOCK).execute(item, target, player);
         }
+
+        targetBehaviors.require(BlockComponents.ON_DESTROY).execute(target, player);
+        targetBehaviors.require(BlockComponents.POST_DESTROY).execute(target, player);
 
         if (this.getGameRules().get(GameRules.DO_TILE_DROPS)) {
             if (!isSilkTouch && player != null && player.isSurvival() && dropExp > 0 && drops.length != 0) {
@@ -2015,10 +2019,10 @@ public class CloudLevel implements Level {
                 return false;
             }
 
-            boolean canUse = targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, player);
-            return canUse && targetBehaviors.get(BlockComponents.USE).execute(target, player, face, item);
+            boolean canUse = targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, player);
+            return canUse && targetBehaviors.require(BlockComponents.USE).execute(target, player, face, item);
         } else {
-            return targetBehaviors.get(BlockComponents.CAN_BE_USED).execute(target, null) && targetBehaviors.get(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY);
+            return targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, null) && targetBehaviors.require(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY);
         }
     }
 
@@ -2029,10 +2033,7 @@ public class CloudLevel implements Level {
      * @return the updated ItemStack if the item was consumed/used, or null if not handled
      */
     public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
-        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors == null) {
-            return null;
-        }
+        ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         UseOnHandler useOnHandler = itemBehaviors.get(ItemComponents.USE_ON);
         if (useOnHandler == null) {
@@ -2050,10 +2051,7 @@ public class CloudLevel implements Level {
      * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
      */
     public ItemStack tryActivateItem(ItemStack item, Player player) {
-        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors == null) {
-            return null;
-        }
+        ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         UseHandler useHandler = itemBehaviors.get(ItemComponents.USE);
         if (useHandler == null) {
@@ -2071,13 +2069,10 @@ public class CloudLevel implements Level {
      * @return the updated ItemStack after placement, or null if placement was rejected
      */
     public ItemStack tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
-        ComponentMap itemBehaviors = this.itemRegistry.getComponents(item.getType());
-        if (itemBehaviors == null) {
-            return null;
-        }
+        ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         @SuppressWarnings("unchecked")
-        BlockState hand = ((Optional<BlockState>) itemBehaviors.get(ItemComponents.GET_BLOCK).execute(item)).orElse(null);
+        BlockState hand = ((Optional<BlockState>) itemBehaviors.require(ItemComponents.GET_BLOCK).execute(item)).orElse(null);
         if (hand == null) {
             return null;
         }
@@ -2093,9 +2088,16 @@ public class CloudLevel implements Level {
             return null;
         }
 
+        ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
+        hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE)
+                .execute(hand, block, player, face, clickPos);
         Vector3i blockPos = block.getPosition();
-        ComponentMap handBehaviors = this.blockRegistry.getComponents(hand.getType());
-        VoxelShape handShape = handBehaviors.get(BlockComponents.GET_COLLISION_SHAPE)
+        Block prospectiveBlock = new CloudBlock(this, blockPos, new BlockState[]{hand, block.getExtra()});
+        if (!handBehaviors.require(BlockComponents.CAN_SURVIVE).execute(prospectiveBlock)) {
+            return null;
+        }
+
+        VoxelShape handShape = handBehaviors.require(BlockComponents.GET_COLLISION_SHAPE)
                 .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.of(player))
                 .move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
@@ -2133,7 +2135,7 @@ public class CloudLevel implements Level {
 
         if (player != null) {
             BlockPlaceEvent event = new BlockPlaceEvent(player, hand, block, target, item);
-            if (player.getGameMode() == GameMode.ADVENTURE && !itemRegistry.getComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON).execute(item, target)) {
+            if (player.getGameMode() == GameMode.ADVENTURE && !itemRegistry.requireComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON).execute(item, target)) {
                 event.setCancelled();
             }
 
@@ -2148,7 +2150,7 @@ public class CloudLevel implements Level {
         }
 
         try {
-            if (!handBehaviors.get(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
+            if (!handBehaviors.require(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
                 return null;
             }
         } catch (Exception e) {
@@ -2207,7 +2209,7 @@ public class CloudLevel implements Level {
     }
 
     private boolean canReplace(Block block, BlockState replacement, @Nullable Player player, Direction face, Vector3f clickPosition) {
-        return this.blockRegistry.getComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
+        return this.blockRegistry.requireComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
                 .execute(block, replacement, player, face, clickPosition);
     }
 
@@ -2504,7 +2506,7 @@ public class CloudLevel implements Level {
         int y = chunk.getHighestBlock(x & 0x0f, z & 0x0f);
         while (y > 1) {
             Block block = getBlock(Vector3i.from(x, y, z));
-            Color mapColor = block.getComponent(BlockComponents.GET_MAP_COLOR).execute(block);
+            Color mapColor = block.requireComponent(BlockComponents.GET_MAP_COLOR).execute(block);
             if (mapColor.getAlpha() == 0x00) {
                 y--;
             } else {

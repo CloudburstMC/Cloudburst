@@ -35,7 +35,7 @@ public final class CollisionEngine {
 
     public boolean hasBlockCollision(@Nullable Entity entity, BlockState state, Vector3i position, BoundingBox boundingBox) {
         VoxelShape collisionShape = this.level.getServer().getBlockRegistry()
-                .getComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
+                .requireComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
                 .execute(state, BlockShapeContext.at(this.level, position), CollisionContext.of(entity));
         return !collisionShape.isEmpty()
                 && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ());
@@ -52,7 +52,7 @@ public final class CollisionEngine {
     }
 
     public Iterable<VoxelShape> getBlockCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
-        return () -> new BlockCollisionIterator(entity, boundingBox, false);
+        return this.getBlockCollisions(CollisionContext.of(entity), boundingBox);
     }
 
     public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
@@ -62,7 +62,7 @@ public final class CollisionEngine {
 
         List<VoxelShape> shapes = new ArrayList<>();
         for (Entity other : this.level.getCollidingEntities(entity, boundingBox.inflate(0.25f, 0.25f, 0.25f))) {
-            if (other.canBeCollidedWith(entity) || other.isPushable()) {
+            if (entity.canCollideWith(other)) {
                 BoundingBox box = other.getBoundingBox();
                 shapes.add(CloudVoxelShapes.box(
                         box.getMinX(), box.getMinY(), box.getMinZ(),
@@ -96,7 +96,7 @@ public final class CollisionEngine {
             }
 
             BlockState state = block.getState();
-            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.requireComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(this.level, Vector3i.from(position.x(), position.y(), position.z())), context);
             if (collisionShape.isEmpty() || !collisionShape.overlaps(boundingBox, position.x(), position.y(), position.z())) {
                 continue;
@@ -117,18 +117,28 @@ public final class CollisionEngine {
 
     public Vector3f collideBoundingBox(@Nullable Entity entity, Vector3f movement, BoundingBox boundingBox) {
         BoundingBox searchBox = boundingBox.expandTowards(movement);
-        List<VoxelShape> collisions = this.collectCollisions(entity, searchBox);
+        CollisionContext context = CollisionContext.of(entity, movement.getY() < 0);
+        List<VoxelShape> collisions = this.collectCollisions(entity, searchBox, context);
         return CloudVoxelShapes.collide(boundingBox, collisions, movement);
     }
 
     public List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
+        return this.collectCollisions(entity, boundingBox, CollisionContext.of(entity));
+    }
+
+    private List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox,
+                                               CollisionContext context) {
         List<VoxelShape> entityCollisions = this.getEntityCollisions(entity, boundingBox);
         List<VoxelShape> collisions = new ArrayList<>(entityCollisions.size() + 1);
         collisions.addAll(entityCollisions);
-        for (VoxelShape blockCollision : this.getBlockCollisions(entity, boundingBox)) {
+        for (VoxelShape blockCollision : this.getBlockCollisions(context, boundingBox)) {
             collisions.add(blockCollision);
         }
         return List.copyOf(collisions);
+    }
+
+    private Iterable<VoxelShape> getBlockCollisions(CollisionContext context, BoundingBox boundingBox) {
+        return () -> new BlockCollisionIterator(context, boundingBox, false);
     }
 
     private boolean scanBlockCollisions(@Nullable Entity entity, BoundingBox boundingBox, Predicate<VoxelShape> consumer) {
@@ -243,7 +253,11 @@ public final class CollisionEngine {
         private VoxelShape next;
 
         private BlockCollisionIterator(@Nullable Entity entity, BoundingBox boundingBox, boolean suffocatingOnly) {
-            this.context = CollisionContext.of(entity);
+            this(CollisionContext.of(entity), boundingBox, suffocatingOnly);
+        }
+
+        private BlockCollisionIterator(CollisionContext context, BoundingBox boundingBox, boolean suffocatingOnly) {
+            this.context = context;
             this.boundingBox = boundingBox;
             this.positions = intersectingBlockPositions(boundingBox).iterator();
             this.suffocatingOnly = suffocatingOnly;
@@ -287,11 +301,11 @@ public final class CollisionEngine {
             }
 
             BlockState state = block.getState();
-            if (this.suffocatingOnly && !block.getComponent(BlockComponents.SUFFOCATING).execute(state)) {
+            if (this.suffocatingOnly && !block.requireComponent(BlockComponents.SUFFOCATING).execute(state)) {
                 return null;
             }
 
-            VoxelShape collisionShape = block.getComponent(BlockComponents.GET_COLLISION_SHAPE)
+            VoxelShape collisionShape = block.requireComponent(BlockComponents.GET_COLLISION_SHAPE)
                     .execute(state, BlockShapeContext.at(level, Vector3i.from(position.x(), position.y(), position.z())), this.context);
             return !collisionShape.isEmpty() && collisionShape.overlaps(this.boundingBox, position.x(), position.y(), position.z())
                     ? collisionShape.move(position.x(), position.y(), position.z())

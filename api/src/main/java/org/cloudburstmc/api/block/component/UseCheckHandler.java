@@ -4,16 +4,15 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.player.Player;
 
 /**
- * Gate handler that decides whether a block's {@code USE} handler should fire
- * for a given player interaction.
- *
- * <p>Blocks with an interactive UI (containers, etc.) should return {@code false}
- * when the player is sneaking while holding an item, so the item's own placement
- * logic can run instead. Blocks that have no UI (such as the respawn anchor or
- * bed) should return {@code true} unconditionally.</p>
+ * Determines whether a block may handle a player interaction.
  */
 @FunctionalInterface
 public interface UseCheckHandler {
 
+    /**
+     * @param block the block being used
+     * @param player the interacting player
+     * @return whether the block may handle the interaction
+     */
     boolean execute(Block block, Player player);
 }

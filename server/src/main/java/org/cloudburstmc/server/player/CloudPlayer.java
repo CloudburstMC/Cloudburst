@@ -26,13 +26,12 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.Interactable;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
-import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
@@ -1524,10 +1523,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     @Override
     public void openContainer(Block block) {
         if (!canOpenInventory()) return;
-        if (!block.getComponent(BlockComponents.CAN_BE_USED).execute(block, this)) {
+        if (!block.requireComponent(BlockComponents.CAN_BE_USED).execute(block, this)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
-        block.getComponent(BlockComponents.USE).execute(block, this, Direction.DOWN, ItemStack.EMPTY);
+        block.requireComponent(BlockComponents.USE).execute(block, this, Direction.DOWN, ItemStack.EMPTY);
     }
 
     @Override
@@ -2016,7 +2015,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return false;
         }
 
-        IntItemHandler maxDamageHandler = CloudItemRegistry.get().getComponent(chestplate.getType(), ItemComponents.GET_MAX_DAMAGE);
+        IntItemHandler maxDamageHandler = CloudItemRegistry.get().requireComponent(chestplate.getType(), ItemComponents.GET_MAX_DAMAGE);
         if (maxDamageHandler == null) {
             return true;
         }
@@ -2852,13 +2851,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return false;
         }
 
-        if (this.isSpectator() || (this.isCreative() && source.getCause() != EntityDamageEvent.DamageCause.SUICIDE)) {
+        if (this.isSpectator() || (this.isCreative() && source.getDamageType() != DamageTypes.SUICIDE)) {
             //source.setCancelled();
             return false;
-        } else if (this.abilities.get(Ability.MAY_FLY) && source.getCause() == EntityDamageEvent.DamageCause.FALL) {
+        } else if (this.abilities.get(Ability.MAY_FLY) && source.getDamageType() == DamageTypes.FALL) {
             //source.setCancelled();
             return false;
-        } else if (source.getCause() == EntityDamageEvent.DamageCause.FALL) {
         }
         if (this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
@@ -2870,11 +2868,9 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (super.attack(source)) { //!source.isCancelled()
             if (this.getLastDamageCause() == source && this.spawned) {
-                if (source instanceof EntityDamageByEntityEvent) {
-                    Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-                    if (damager instanceof CloudPlayer) {
-                        ((CloudPlayer) damager).getFoodData().updateFoodExpLevel(0.3);
-                    }
+                Entity damager = source.getDamageSource().getCausingEntity();
+                if (damager instanceof CloudPlayer player) {
+                    player.getFoodData().updateFoodExpLevel(0.3);
                 }
                 EntityEventPacket packet = new EntityEventPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
@@ -3040,134 +3036,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         boolean showMessages = this.getLevel().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
-        String message = "death.attack.generic";
-
-        List<Component> params = new ArrayList<>();
-        params.add(this.displayName());
-        if (showMessages) {
-
-            EntityDamageEvent cause = this.getLastDamageCause();
-
-            switch (cause == null ? EntityDamageEvent.DamageCause.CUSTOM : cause.getCause()) {
-                case ENTITY_ATTACK:
-                    if (cause instanceof EntityDamageByEntityEvent) {
-                        Entity e = ((EntityDamageByEntityEvent) cause).getDamager();
-                        killer = e;
-                        if (e instanceof CloudPlayer) {
-                            message = "death.attack.player";
-                            params.add(((CloudPlayer) e).displayName());
-                            break;
-                        } else if (e instanceof EntityLiving) {
-                            message = "death.attack.mob";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
-                            break;
-                        } else {
-                            params.add(Component.text("Unknown"));
-                        }
-                    }
-                    break;
-                case PROJECTILE:
-                    if (cause instanceof EntityDamageByEntityEvent) {
-                        Entity e = ((EntityDamageByEntityEvent) cause).getDamager();
-                        killer = e;
-                        if (e instanceof CloudPlayer) {
-                            message = "death.attack.arrow";
-                            params.add(((CloudPlayer) e).displayName());
-                        } else if (e instanceof EntityLiving) {
-                            message = "death.attack.arrow";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
-                            break;
-                        } else {
-                            params.add(Component.text("Unknown"));
-                        }
-                    }
-                    break;
-                case SUICIDE:
-                    message = "death.attack.generic";
-                    break;
-                case VOID:
-                    message = "death.attack.outOfWorld";
-                    break;
-                case FALL:
-                    if (cause != null) {
-                        if (cause.getFinalDamage() > 2) {
-                            message = "death.fell.accident.generic";
-                            break;
-                        }
-                    }
-                    message = "death.attack.fall";
-                    break;
-
-                case SUFFOCATION:
-                    message = "death.attack.inWall";
-                    break;
-
-                case LAVA:
-                    BlockState state = this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt());
-                    if (state.getType() == BlockTypes.MAGMA) {
-                        message = "death.attack.magma";
-                        break;
-                    }
-                    message = "death.attack.lava";
-                    break;
-
-                case FIRE:
-                    message = "death.attack.onFire";
-                    break;
-
-                case FIRE_TICK:
-                    message = "death.attack.inFire";
-                    break;
-
-                case DROWNING:
-                    message = "death.attack.drown";
-                    break;
-
-                case CONTACT:
-                    if (cause instanceof EntityDamageByBlockEvent) {
-                        if (((EntityDamageByBlockEvent) cause).getDamager().getState().getType() == BlockTypes.CACTUS) {
-                            message = "death.attack.cactus";
-                        }
-                    }
-                    break;
-
-                case BLOCK_EXPLOSION:
-                case ENTITY_EXPLOSION:
-                    if (cause instanceof EntityDamageByEntityEvent) {
-                        Entity e = ((EntityDamageByEntityEvent) cause).getDamager();
-                        killer = e;
-                        if (e instanceof CloudPlayer) {
-                            message = "death.attack.explosion.player";
-                            params.add(((CloudPlayer) e).displayName());
-                        } else if (e instanceof EntityLiving) {
-                            message = "death.attack.explosion.player";
-                            params.add(!Objects.equals(e.getNameTag(), "") ? Component.text(e.getNameTag()) : Component.text(e.getName()));
-                            break;
-                        }
-                    } else {
-                        message = "death.attack.explosion";
-                    }
-                    break;
-
-                case MAGIC:
-                    message = "death.attack.magic";
-                    break;
-
-                case HUNGER:
-                    message = "death.attack.starve";
-                    break;
-
-                case CUSTOM:
-                    break;
-
-                default:
-                    break;
-
-            }
-        } else {
-            message = "";
-            params.clear();
-        }
+        DeathMessageResolver.Resolution death = DeathMessageResolver.resolve(this, this.getLastDamageCause());
+        this.killer = death.killer();
 
         if (this.fishingHook != null) {
             this.stopFishing();
@@ -3176,7 +3046,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.health = 0;
         this.scheduleUpdate();
 
-        PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), message.isEmpty() ? null : Component.translatable(message, params), this.getExperienceLevel());
+        PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), showMessages ? death.message() : null,
+                this.getExperienceLevel());
         ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
         ev.setKeepInventory(ev.getKeepExperience());
         this.server.getEventManager().fire(ev);

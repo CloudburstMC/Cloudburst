@@ -68,7 +68,7 @@ public class RailBlockHandlers {
         Vector3i pos = block.getPosition();
         BlockState state = block.getState();
 
-        ItemStack drop = block.getComponent(BlockComponents.GET_RESOURCE)
+        ItemStack drop = block.requireComponent(BlockComponents.GET_RESOURCE)
                 .execute(block, ThreadLocalRandom.current(), 0);
         if (!drop.isEmpty()) {
             level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);

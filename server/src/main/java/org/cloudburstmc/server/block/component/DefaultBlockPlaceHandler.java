@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.component;
 
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -34,8 +35,8 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
         }
 
         Level level = player.getLevel();
-        ComponentMap blockComponents = this.registry.getComponents(blockState.getType());
-        VoxelShape collisionShape = blockComponents.get(BlockComponents.GET_COLLISION_SHAPE)
+        ComponentMap blockComponents = this.registry.requireComponents(blockState.getType());
+        VoxelShape collisionShape = blockComponents.require(BlockComponents.GET_COLLISION_SHAPE)
                 .execute(blockState, BlockShapeContext.at(level, blockPosition), CollisionContext.of(player));
 
         if (!collisionShape.isEmpty() && level.hasEntityCollision(null, collisionShape, blockPosition)) {
@@ -43,7 +44,16 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
         }
 
         blockState = this.applyDirectionTraits(blockState, player, blockPosition, face);
-        return level.setBlockState(blockPosition, blockState, true, true);
+        if (!level.setBlockState(blockPosition, blockState, true, true)) {
+            return false;
+        }
+
+        Block placedBlock = level.getBlock(blockPosition);
+        if (placedBlock.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(placedBlock)) {
+            FallingBlockHandlers.scheduleFall(placedBlock);
+        }
+
+        return true;
     }
 
     protected BlockState applyDirectionTraits(BlockState blockState, Player player, Vector3i blockPosition, Direction face) {

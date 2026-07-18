@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.Painting;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -66,9 +65,9 @@ public class EntityPainting extends HangingEntity implements Painting {
     @Override
     public boolean attack(EntityDamageEvent source) {
         if (super.attack(source)) {
-            if (source instanceof EntityDamageByEntityEvent) {
-                Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-                if (damager instanceof CloudPlayer && ((CloudPlayer) damager).isSurvival() && this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+            Entity damager = source.getDamageSource().getCausingEntity();
+            if (damager instanceof CloudPlayer player) {
+                if (player.isSurvival() && this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
                     this.level.dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.PAINTING).build());
                 }
             }

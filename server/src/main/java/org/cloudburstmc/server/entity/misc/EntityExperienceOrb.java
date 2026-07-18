@@ -3,6 +3,8 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
@@ -86,10 +88,9 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return (source.getCause() == EntityDamageEvent.DamageCause.VOID ||
-                source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK ||
-                (source.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION ||
-                        source.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
+        return (source.getDamageType() == DamageTypes.VOID ||
+                source.getDamageType() ==  DamageTypes.FIRE_TICK ||
+                source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
                         !this.isInsideOfWater()) && super.attack(source);
     }
 

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
@@ -42,7 +43,7 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        if (source.getCause() == EntityDamageEvent.DamageCause.FIRE || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK || source.getCause() == EntityDamageEvent.DamageCause.LAVA) {
+        if (source.getDamageType().is(DamageTypeTags.IS_FIRE)) {
             return false;
         }
 

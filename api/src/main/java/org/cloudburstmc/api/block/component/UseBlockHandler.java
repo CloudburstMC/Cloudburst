@@ -5,12 +5,13 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 
+/**
+ * Handles a player using a block.
+ */
 @FunctionalInterface
 public interface UseBlockHandler {
 
     /**
-     * Called when a player right-clicks a block.
-     *
      * @param block     the block that was clicked
      * @param player    the interacting player, or {@code null} for non-player sources
      * @param direction the face that was clicked

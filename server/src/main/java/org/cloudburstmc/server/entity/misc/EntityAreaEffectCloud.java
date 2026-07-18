@@ -3,7 +3,8 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
@@ -316,7 +317,16 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 }
 
                                 if (damage) {
-                                    collidingEntity.attack(new EntityDamageByEntityEvent(this, collidingEntity, EntityDamageEvent.DamageCause.MAGIC, (float) (0.5 * (double) (6 << (effect.getAmplifier() + 1)))));
+                                    DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.MAGIC)
+                                            .directEntity(this).location(this.getLocation());
+                                    Entity owner = this.getOwner();
+                                    if (owner != null) {
+                                        sourceBuilder.causingEntity(owner);
+                                    }
+
+                                    DamageSource source = sourceBuilder.build();
+                                    collidingEntity.attack(new EntityDamageEvent(collidingEntity, source,
+                                            (float) (0.5 * (double) (6 << (effect.getAmplifier() + 1)))));
                                 } else {
                                     collidingEntity.heal(new EntityRegainHealthEvent(collidingEntity, (float) (0.5 * (double) (4 << (effect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
                                 }

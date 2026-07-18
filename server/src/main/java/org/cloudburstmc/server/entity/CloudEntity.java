@@ -7,16 +7,11 @@ import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.LiquidState;
-import org.cloudburstmc.api.block.LiquidTypes;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
@@ -34,7 +29,6 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
-import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.GenericMath;
@@ -59,7 +53,6 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
 
 import java.util.*;
@@ -68,7 +61,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.api.block.BlockTypes.*;
+import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
+import static org.cloudburstmc.api.block.BlockTypes.FIRE;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
 
@@ -77,6 +71,7 @@ public abstract class CloudEntity implements Entity {
 
     protected static final int PORTAL_TRANSFER_TICKS = 80;
     protected static final int PORTAL_COOLDOWN_TICKS = 300;
+    private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
 
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
@@ -141,6 +136,9 @@ public abstract class CloudEntity implements Entity {
     protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
+    private int freezeTicks;
+    private boolean freezeTickingLocked;
+    private boolean fromBucket;
     private volatile boolean initialized;
     private static final int MAX_MOVEMENT_SEGMENTS = 100;
     private final Deque<EntityMovementSegment> movementSegments = new ArrayDeque<>(MAX_MOVEMENT_SEGMENTS);
@@ -233,6 +231,7 @@ public abstract class CloudEntity implements Entity {
         this.data.set(AIR_SUPPLY_MAX, (short) 400);
         this.data.set(LEASH_HOLDER, -1L);
         this.data.set(SCALE, 1f);
+        this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
         this.updateNetworkBounds();
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
 
@@ -301,6 +300,12 @@ public abstract class CloudEntity implements Entity {
         tag.listenForBoolean("OnGround", this::setOnGround);
 
         tag.listenForBoolean("Invulnerable", this::setInvulnerable);
+        tag.listenForInt("TicksFrozen", this::setFreezeTicks);
+
+        if (this instanceof Bucketable) {
+            tag.listenForBoolean("FromBucket", this::setFromBucket);
+        }
+
         tag.listenForFloat("scale", this::setScale);
 
         if (tag.containsKey("ActiveEffects")) {
@@ -353,6 +358,15 @@ public abstract class CloudEntity implements Entity {
         tag.putShort("Air", this.data.get(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
         tag.putBoolean("Invulnerable", this.invulnerable);
+
+        if (this.freezeTicks > 0) {
+            tag.putInt("TicksFrozen", this.freezeTicks);
+        }
+
+        if (this instanceof Bucketable) {
+            tag.putBoolean("FromBucket", this.fromBucket);
+        }
+
         tag.putFloat("Scale", this.scale);
 
         if (!this.effects.isEmpty()) {
@@ -826,10 +840,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean attack(EntityDamageEvent source) {
-        if (hasEffect(EffectTypes.FIRE_RESISTANCE)
-                && (source.getCause() == EntityDamageEvent.DamageCause.FIRE
-                || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK
-                || source.getCause() == EntityDamageEvent.DamageCause.LAVA)) {
+        if (hasEffect(EffectTypes.FIRE_RESISTANCE) && source.getDamageType().is(DamageTypeTags.IS_FIRE)) {
             return false;
         }
 
@@ -837,16 +848,15 @@ public abstract class CloudEntity implements Entity {
         if (source.isCancelled()) {
             return false;
         }
-        if (this.absorption > 0) {  // Damage Absorption
-            this.setAbsorption(Math.max(0, this.getAbsorption() + source.getDamage(EntityDamageEvent.DamageModifier.ABSORPTION)));
-        }
         setLastDamageCause(source);
-        setHealth(getHealth() - source.getFinalDamage());
+        float absorbed = Math.min(this.getAbsorption(), source.getDamage());
+        this.setAbsorption(this.getAbsorption() - absorbed);
+        setHealth(getHealth() - (source.getDamage() - absorbed));
         return true;
     }
 
     public boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.CUSTOM, damage));
+        return this.attack(new EntityDamageEvent(this, DamageTypes.CUSTOM, damage));
     }
 
     public void heal(EntityRegainHealthEvent source) {
@@ -907,10 +917,40 @@ public abstract class CloudEntity implements Entity {
         this.maxHealth = maxHealth;
     }
 
+    @Override
+    public int getFreezeTicks() {
+        return this.freezeTicks;
+    }
+
+    @Override
+    public void setFreezeTicks(int ticks) {
+        int clampedTicks = Math.clamp(ticks, 0, this.getMaxFreezeTicks());
+        if (this.freezeTicks == clampedTicks) {
+            return;
+        }
+        this.freezeTicks = clampedTicks;
+        this.data.set(FREEZING_EFFECT_STRENGTH, this.freezeTicks / (float) this.getMaxFreezeTicks());
+    }
+
+    @Override
+    public int getMaxFreezeTicks() {
+        return DEFAULT_MAX_FREEZE_TICKS;
+    }
+
+    @Override
+    public boolean isFreezeTickingLocked() {
+        return this.freezeTickingLocked;
+    }
+
+    @Override
+    public void lockFreezeTicks(boolean locked) {
+        this.freezeTickingLocked = locked;
+    }
+
     public boolean canCollideWith(Entity entity) {
         return !this.justCreated
                 && entity != null
-                && (entity.canBeCollidedWith(this) || entity.isPushable())
+                && entity.canBeCollidedWith(this)
                 && !this.isPassengerOfSameVehicle(entity);
     }
 
@@ -1019,9 +1059,9 @@ public abstract class CloudEntity implements Entity {
             if (this.position.getY() <= -16 && this.isAlive()) {
                 if (this instanceof CloudPlayer player) {
                     if (player.getGameMode() != GameMode.CREATIVE)
-                        this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));
+                        this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 10));
                 } else {
-                    this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.VOID, 10));
+                    this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 10));
                     hasUpdate = true;
                 }
             }
@@ -1034,7 +1074,7 @@ public abstract class CloudEntity implements Entity {
                     }
                 } else {
                     if (!this.hasEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                        this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FIRE_TICK, 1));
+                        this.attack(new EntityDamageEvent(this, DamageTypes.FIRE_TICK, 1));
                     }
                     this.fireTicks -= tickDiff;
                 }
@@ -1183,12 +1223,14 @@ public abstract class CloudEntity implements Entity {
         int tickDiff = currentTick - this.lastUpdate;
 
         if (tickDiff <= 0) {
-            return false;
+            return true;
         }
 
         this.lastUpdate = currentTick;
 
         boolean hasUpdate = this.entityBaseTick(tickDiff);
+        hasUpdate |= EntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
+                .execute(this, currentTick);
 
         this.updateMovement();
 
@@ -1433,6 +1475,27 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void fall(float fallDistance) {
+        Block down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
+        down.requireComponent(BlockComponents.ON_FALL_ON).execute(down, this, fallDistance);
+
+        if (fallDistance > 0.75 && down.getState().getType() == FARMLAND) {
+            Event ev;
+
+            if (this instanceof CloudPlayer) {
+                ev = new PlayerInteractEvent((Player) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
+            } else {
+                ev = new EntityInteractEvent(this, down);
+            }
+
+            this.server.getEventManager().fire(ev);
+            if (ev.isCancelled()) {
+                return;
+            }
+            this.level.setBlockState(down.getPosition(), BlockStates.DIRT, false, true);
+        }
+    }
+
+    public void applyFallDamage(float fallDistance) {
         if (this.hasEffect(EffectTypes.SLOW_FALLING)) {
             return;
         }
@@ -1444,27 +1507,7 @@ public abstract class CloudEntity implements Entity {
         float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(EffectTypes.JUMP_BOOST) ? this.getEffect(EffectTypes.JUMP_BOOST).getAmplifier() + 1 : 0));
 
         if (damage > 0) {
-            this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.FALL, damage));
-        }
-
-        if (fallDistance > 0.75) {
-            Block down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
-
-            if (down.getState().getType() == FARMLAND) {
-                Event ev;
-
-                if (this instanceof CloudPlayer) {
-                    ev = new PlayerInteractEvent((Player) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
-                } else {
-                    ev = new EntityInteractEvent(this, down);
-                }
-
-                this.server.getEventManager().fire(ev);
-                if (ev.isCancelled()) {
-                    return;
-                }
-                this.level.setBlockState(down.getPosition(), BlockStates.DIRT, false, true);
-            }
+            this.attack(new EntityDamageEvent(this, DamageTypes.FALL, damage));
         }
     }
 
@@ -1507,7 +1550,9 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void onStruckByLightning(LightningBolt lightningBolt) {
-        if (this.attack(new EntityDamageByEntityEvent(lightningBolt, this, EntityDamageEvent.DamageCause.LIGHTNING, 5))) {
+        DamageSource source = DamageSource.builder(DamageTypes.LIGHTNING)
+                .directEntity(lightningBolt).causingEntity(lightningBolt).location(lightningBolt.getLocation()).build();
+        if (this.attack(new EntityDamageEvent(this, source, 5))) {
             if (this.fireTicks < 8 * 20) {
                 this.setOnFire(8);
             }
@@ -1515,11 +1560,23 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+        if (EntityRegistry.get().requireComponent(this.type, EntityComponents.ON_INTERACT)
+                .execute(this, player, item, clickedPos)) {
+            return true;
+        }
         return onInteract(player, item);
     }
 
     public boolean onInteract(Player player, ItemStack item) {
         return false;
+    }
+
+    public boolean isFromBucket() {
+        return this.fromBucket;
+    }
+
+    public void setFromBucket(boolean fromBucket) {
+        this.fromBucket = fromBucket;
     }
 
     protected boolean switchLevel(CloudLevel targetLevel) {

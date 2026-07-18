@@ -46,6 +46,20 @@ public final class CollisionContext {
     }
 
     /**
+     * Creates a context with an explicit movement direction.
+     *
+     * @param entity the entity, or {@code null} for the empty context
+     * @param descending whether the collision query is moving downward
+     * @return the collision context
+     */
+    public static CollisionContext of(@Nullable Entity entity, boolean descending) {
+        if (entity == null) {
+            return empty();
+        }
+        return new CollisionContext(entity, descending, entity.getBoundingBox().getMinY());
+    }
+
+    /**
      * Returns whether this context contains an entity.
      *
      * @return {@code true} if an entity is present

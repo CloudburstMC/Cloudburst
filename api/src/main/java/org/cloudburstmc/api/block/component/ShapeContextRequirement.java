@@ -13,6 +13,10 @@ public enum ShapeContextRequirement {
      */
     LEVEL,
     /**
+     * The colliding entity may affect the shape.
+     */
+    ENTITY,
+    /**
      * Block-entity state may affect the shape.
      */
     BLOCK_ENTITY

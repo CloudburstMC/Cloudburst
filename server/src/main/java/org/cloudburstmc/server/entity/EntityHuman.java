@@ -3,7 +3,7 @@ package org.cloudburstmc.server.entity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemComponents;
@@ -337,7 +337,7 @@ public class EntityHuman extends EntityCreature implements Human {
             return false;
         }
 
-        if (source.getCause() != EntityDamageEvent.DamageCause.VOID && source.getCause() != EntityDamageEvent.DamageCause.CUSTOM && source.getCause() != EntityDamageEvent.DamageCause.MAGIC) {
+        if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)) {
             int armorPoints = 0;
             int epf = 0;
             int toughness = 0;
@@ -351,22 +351,14 @@ public class EntityHuman extends EntityCreature implements Human {
                 //toughness += armor.getToughness();
             }
 
-            if (source.canBeReducedByArmor()) {
-                source.setDamage(-source.getFinalDamage() * armorPoints * 0.04f, EntityDamageEvent.DamageModifier.ARMOR);
-            }
-
-            source.setDamage(-source.getFinalDamage() * Math.min(GenericMath.ceil(Math.min(epf, 25) * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f,
-                    EntityDamageEvent.DamageModifier.ARMOR_ENCHANTMENTS);
-
-            source.setDamage(-Math.min(this.getAbsorption(), source.getFinalDamage()), EntityDamageEvent.DamageModifier.ABSORPTION);
+            float damage = source.getDamage() * (1 - armorPoints * 0.04f);
+            float enchantmentReduction = Math.min(GenericMath.ceil(Math.min(epf, 25)
+                    * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f;
+            source.setDamage(Math.max(0, damage * (1 - enchantmentReduction)));
         }
 
         if (super.attack(source)) {
-            Entity damager = null;
-
-            if (source instanceof EntityDamageByEntityEvent) {
-                damager = ((EntityDamageByEntityEvent) source).getDamager();
-            }
+            Entity damager = source.getDamageSource().getCausingEntity();
 
             for (int slot = 0; slot < 4; slot++) {
                 ItemStack armor = this.getArmor().getItem(slot);
@@ -397,7 +389,7 @@ public class EntityHuman extends EntityCreature implements Human {
                             .data(ItemKeys.DAMAGE, damage - 1)
                             .build();
 
-                    int maxDurability = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.GET_MAX_DAMAGE).execute(armor);
+                    int maxDurability = this.server.getItemRegistry().requireComponent(armor.getType(), ItemComponents.GET_MAX_DAMAGE).execute(armor);
                     if (damage + 1 >= maxDurability) {
                         getArmor().setItem(slot, ItemStack.EMPTY);
                     } else {

@@ -70,7 +70,7 @@ public class GiveCommand extends Command {
             return false;
         }
 
-        int maxStackSize = registry.getComponent(type, ItemComponents.GET_MAX_STACK_SIZE).execute(ItemStack.from(type, 1));
+        int maxStackSize = registry.requireComponent(type, ItemComponents.GET_MAX_STACK_SIZE).execute(ItemStack.from(type, 1));
         ItemStack stack;
         try {
             stack = ItemStack.from(type, GenericMath.clamp(Integer.parseInt(args[2]), 1, maxStackSize));

@@ -1,12 +1,10 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
 import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.entity.damage.DamageType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EnchantmentProtectionAll extends EnchantmentProtection {
 
     public EnchantmentProtectionAll() {
@@ -30,9 +28,8 @@ public class EnchantmentProtectionAll extends EnchantmentProtection {
 
     @Override
     public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent e) {
-        EntityDamageEvent.DamageCause cause = e.getCause();
-
-        if (enchantment.getLevel() <= 0 || cause == EntityDamageEvent.DamageCause.VOID || cause == EntityDamageEvent.DamageCause.CUSTOM || cause == EntityDamageEvent.DamageCause.MAGIC) {
+        DamageType damageType = e.getDamageType();
+        if (enchantment.getLevel() <= 0 || damageType.is(DamageTypeTags.BYPASSES_ARMOR)) {
             return 0;
         }
 

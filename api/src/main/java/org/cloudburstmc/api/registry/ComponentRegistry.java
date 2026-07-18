@@ -42,8 +42,36 @@ public interface ComponentRegistry<T> extends Registry<T> {
     @Nullable
     ComponentMap getComponents(T type);
 
+    /**
+     * Returns the component map for a type required to be registered by the caller.
+     *
+     * @param type registered type
+     * @return resolved component map
+     * @throws IllegalStateException if the type is not registered
+     */
+    default ComponentMap requireComponents(T type) {
+        ComponentMap map = getComponents(type);
+        if (map == null) {
+            throw new IllegalStateException("Components are not available for unregistered type: " + type);
+        }
+        return map;
+    }
+
     default <H> @Nullable H getComponent(T type, ComponentType<H> componentType) {
         ComponentMap map = getComponents(type);
         return map == null ? null : map.get(componentType);
+    }
+
+    /**
+     * Returns a component that the registry contract requires for the supplied type.
+     *
+     * @param type registered type
+     * @param componentType component type
+     * @param <H> component value type
+     * @return resolved component
+     * @throws IllegalStateException if the registered type does not provide the component
+     */
+    default <H> H requireComponent(T type, ComponentType<H> componentType) {
+        return requireComponents(type).require(componentType);
     }
 }

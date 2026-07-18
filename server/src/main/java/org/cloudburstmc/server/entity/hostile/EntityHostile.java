@@ -30,6 +30,10 @@ public abstract class EntityHostile extends EntityCreature implements EntityAgea
 
     @Override
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+        if (super.onInteract(player, item, clickedPos)) {
+            return true;
+        }
+
         if (item.getType() == ItemTypes.NAME_TAG) {
             if (item.get(ItemKeys.CUSTOM_NAME) != null) {
                 this.setNameTag(item.get(ItemKeys.CUSTOM_NAME));

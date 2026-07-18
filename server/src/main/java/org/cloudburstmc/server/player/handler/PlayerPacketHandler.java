@@ -18,10 +18,11 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.item.ItemComponents;
@@ -63,6 +64,7 @@ import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -313,8 +315,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
         if (!player.isCreative()) {
-            double breakTime = Math.ceil(block.getComponent(BlockComponents.GET_DESTROY_SPEED)
-                    .execute(targetState) * 20);
+            double breakTime = Math.ceil(targetState.getHardness() * 20 / ToolUtils.getMiningSpeed(player.getInventory().getSelectedItem(), targetState));
             if (breakTime > 0) {
                 LevelEventPacket levelEvent = new LevelEventPacket();
                 levelEvent.setType(LevelEvent.BLOCK_START_BREAK);
@@ -968,7 +969,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        ItemStack item = block.getComponent(BlockComponents.GET_PICK_BLOCK)
+        ItemStack item = block.requireComponent(BlockComponents.GET_PICK_BLOCK)
                 .execute(block);
         if (packet.isAddUserData()) {
             BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
@@ -1372,7 +1373,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         float damage = 0f;
-                        FloatItemHandler attackBonus = CloudItemRegistry.get().getComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE_BONUS);
+                        FloatItemHandler attackBonus = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE_BONUS);
                         if (attackBonus != null) {
                             damage = attackBonus.execute(heldItem);
                         }
@@ -1381,7 +1382,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             damage = 1f;
                         }
 
-                        EntityDamageByEntityEvent damageEvent = new EntityDamageByEntityEvent(player, target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+                        DamageSource source = DamageSource.builder(DamageTypes.ENTITY_ATTACK)
+                                .directEntity(player).causingEntity(player).location(player.getLocation()).build();
+                        EntityDamageEvent damageEvent = new EntityDamageEvent(target, source, damage);
                         target.attack(damageEvent);
 
                         AnimatePacket swingPkt = new AnimatePacket();
@@ -1459,7 +1462,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 Block block = lectern.getBlock();
                 BlockState state = block.getState();
                 if (state.getType() == BlockTypes.LECTERN) {
-                    block.getComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
+                    block.requireComponent(BlockComponents.ON_REDSTONE_UPDATE).execute(block);
                 }
             }
         }

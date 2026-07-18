@@ -61,7 +61,7 @@ public class TripwireHookBlockHandlers {
     private void breakHook(Block block, BlockState state, CloudLevel level, Vector3i pos) {
         level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));
 
-        ItemStack drop = block.getComponent(BlockComponents.GET_RESOURCE)
+        ItemStack drop = block.requireComponent(BlockComponents.GET_RESOURCE)
                 .execute(block, ThreadLocalRandom.current(), 0);
         if (!drop.isEmpty()) {
             level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);

@@ -18,8 +18,6 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 @UtilityClass
 public class BlockSupport {
 
@@ -112,8 +110,7 @@ public class BlockSupport {
     }
 
     private static BlockSupportShapeHandler getSupportShapeHandler(BlockRegistry registry, BlockState state) {
-        return checkNotNull(registry.getComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE),
-                "Block support shape component is not registered for %s", state.getType());
+        return registry.requireComponent(state.getType(), BlockComponents.GET_BLOCK_SUPPORT_SHAPE);
     }
 
     private static boolean getCachedFaceSupport(BlockRegistry registry, BlockState state, Direction direction,

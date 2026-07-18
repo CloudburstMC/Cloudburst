@@ -24,7 +24,7 @@ public final class FishingRodItemHandlers {
             return rod;
         }
 
-        DamageItemHandler handler = CloudItemRegistry.get().getComponent(rod.getType(), ItemComponents.ON_DAMAGE);
+        DamageItemHandler handler = CloudItemRegistry.get().requireComponent(rod.getType(), ItemComponents.ON_DAMAGE);
         return handler == null ? rod : handler.execute(rod, damage, player);
     }
 }

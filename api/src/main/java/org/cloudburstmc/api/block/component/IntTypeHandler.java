@@ -1,10 +1,13 @@
 package org.cloudburstmc.api.block.component;
 
 /**
- * Type-level handler that returns an {@code int} value.
- * Used for per-type block properties such as burnOdds, flameOdds, lightDampening, lightEmission, tickDelay, etc.
+ * Provides an integer property of a block type.
  */
 @FunctionalInterface
 public interface IntTypeHandler {
+
+    /**
+     * @return the property value
+     */
     int get();
 }

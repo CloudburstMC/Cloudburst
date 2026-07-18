@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplosionPrimeEvent;
@@ -17,9 +18,6 @@ import org.cloudburstmc.server.level.Explosion;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
-/**
- * @author MagicDroidX
- */
 public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive {
 
     protected int fuse = 80;
@@ -65,7 +63,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return source.getCause() == EntityDamageEvent.DamageCause.VOID && super.attack(source);
+        return source.getDamageType() == DamageTypes.VOID && super.attack(source);
     }
 
     protected void initEntity() {

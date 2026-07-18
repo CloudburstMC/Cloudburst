@@ -4,6 +4,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
@@ -183,7 +184,7 @@ public interface Entity {
     Set<? extends Player> getViewers();
 
     default boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, EntityDamageEvent.DamageCause.CUSTOM, damage));
+        return this.attack(new EntityDamageEvent(this, DamageTypes.CUSTOM, damage));
     }
 
     boolean attack(EntityDamageEvent source);
@@ -201,6 +202,50 @@ public interface Entity {
     int getMaxHealth();
 
     void setMaxHealth(int maxHealth);
+
+    /**
+     * Returns the number of ticks this entity has been freezing.
+     *
+     * @return the current freeze ticks
+     */
+    int getFreezeTicks();
+
+    /**
+     * Sets the number of ticks this entity has been freezing.
+     *
+     * @param ticks the new freeze ticks
+     */
+    void setFreezeTicks(int ticks);
+
+    /**
+     * Returns the number of freeze ticks required to fully freeze this entity.
+     *
+     * @return the maximum freeze ticks
+     */
+    int getMaxFreezeTicks();
+
+    /**
+     * Returns whether this entity is fully frozen.
+     *
+     * @return {@code true} if this entity is fully frozen
+     */
+    default boolean isFrozen() {
+        return getFreezeTicks() >= getMaxFreezeTicks();
+    }
+
+    /**
+     * Returns whether automatic freezing and thawing are disabled.
+     *
+     * @return {@code true} if freeze ticks are locked
+     */
+    boolean isFreezeTickingLocked();
+
+    /**
+     * Sets whether automatic freezing and thawing are disabled.
+     *
+     * @param locked whether freeze ticks are locked
+     */
+    void lockFreezeTicks(boolean locked);
 
     default boolean isAlive() {
         return getHealth() > 0;

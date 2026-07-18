@@ -2,12 +2,19 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Axolotl;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
 public class EntityAxolotl extends Animal implements Axolotl {
 
     public EntityAxolotl(EntityType<Axolotl> type, Location location) {
         super(type, location);
+    }
+
+    @Override
+    public ItemStack getBaseBucketItem() {
+        return ItemStack.from(ItemTypes.AXOLOTL_BUCKET);
     }
 
     @Override

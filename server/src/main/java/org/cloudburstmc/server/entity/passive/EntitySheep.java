@@ -4,7 +4,6 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -13,6 +12,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.level.Sound;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -92,6 +92,7 @@ public class EntitySheep extends Animal implements Sheep {
 
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
+        this.level.addSound(this.getPosition(), Sound.MOB_SHEEP_SHEAR);
 
         ItemStack itemStack = ItemStack.builder(getWoolState(getColor()))
                 .amount(ThreadLocalRandom.current().nextInt(2) + 1)
@@ -103,7 +104,7 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public ItemStack[] getDrops() {
-        if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
+        if (this.lastDamageCause != null && this.lastDamageCause.getDamageSource().getCausingEntity() != null) {
             return new ItemStack[]{ItemStack.builder(getWoolState(getColor()))
                     .amount(1)
                     .build()};

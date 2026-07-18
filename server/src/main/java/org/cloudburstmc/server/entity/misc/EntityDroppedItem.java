@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
@@ -110,11 +112,10 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return (source.getCause() == EntityDamageEvent.DamageCause.VOID ||
-                source.getCause() == EntityDamageEvent.DamageCause.CONTACT ||
-                source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK ||
-                (source.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION ||
-                        source.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
+        return (source.getDamageType() == DamageTypes.VOID ||
+                source.getDamageType() == DamageTypes.CONTACT ||
+                source.getDamageType() == DamageTypes.FIRE_TICK ||
+                source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
                         !this.isInsideOfWater() && (this.item == null ||
                         this.item.getType() != ItemTypes.NETHER_STAR)) && super.attack(source);
     }
@@ -136,7 +137,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < CloudItemRegistry.get().getComponents(getItem().getType()).get(ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
+            if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
@@ -150,7 +151,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
-                        if (newAmount > CloudItemRegistry.get().getComponents(getItem().getType()).get(ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
+                        if (newAmount > CloudItemRegistry.get().requireComponent(getItem().getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
                             continue;
                         }
                         entity.close();

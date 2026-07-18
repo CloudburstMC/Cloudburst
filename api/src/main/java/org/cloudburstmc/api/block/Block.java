@@ -55,6 +55,18 @@ public interface Block extends BlockSnapshot {
     }
 
     /**
+     * Gets a behavioral component required by this block operation.
+     *
+     * @param type the component type
+     * @param <H> the component value type
+     * @return the component
+     * @throws IllegalStateException if this block does not have the component
+     */
+    default <H> H requireComponent(ComponentType<H> type) {
+        return this.getComponents().require(type);
+    }
+
+    /**
      * Gets the level-aware collision shape of this block.
      *
      * @return the collision shape

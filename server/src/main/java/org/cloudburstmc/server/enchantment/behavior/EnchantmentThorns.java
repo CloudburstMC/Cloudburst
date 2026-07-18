@@ -5,7 +5,8 @@ import org.cloudburstmc.api.enchantment.EnchantmentInstance;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -14,10 +15,6 @@ import org.cloudburstmc.server.entity.EntityHuman;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EnchantmentThorns extends EnchantmentBehavior {
 
     @Override
@@ -50,7 +47,12 @@ public class EnchantmentThorns extends EnchantmentBehavior {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
         if (shouldHit(random, thornsLevel)) {
-            attacker.attack(new EntityDamageByEntityEvent(entity, attacker, EntityDamageEvent.DamageCause.ENTITY_ATTACK, getDamage(random, enchantment.getLevel()), 0f));
+            DamageSource source = DamageSource.builder(DamageTypes.THORNS)
+                    .directEntity(entity).causingEntity(entity).location(entity.getLocation()).build();
+            EntityDamageEvent event = new EntityDamageEvent(attacker, source,
+                    getDamage(random, enchantment.getLevel()));
+            event.setKnockback(0);
+            attacker.attack(event);
         }
     }
 

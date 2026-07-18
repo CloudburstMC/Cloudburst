@@ -1,10 +1,13 @@
 package org.cloudburstmc.api.block.component;
 
 /**
- * Type-level handler that returns a {@code float} value.
- * Used for per-type block properties such as hardness, friction, resistance, etc.
+ * Provides a floating-point property of a block type.
  */
 @FunctionalInterface
 public interface FloatTypeHandler {
+
+    /**
+     * @return the property value
+     */
     float get();
 }

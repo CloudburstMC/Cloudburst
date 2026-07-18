@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.player;
 
 import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
@@ -9,9 +10,6 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.item.food.Food;
 
-/**
- * Created by funcraft on 2015/11/11.
- */
 public class PlayerFood {
 
     private int foodLevel = 20;
@@ -152,7 +150,7 @@ public class PlayerFood {
             } else if (this.getLevel() == 0) {
                 this.foodTickTimer += tickDiff;
                 if (this.foodTickTimer >= 80) {
-                    EntityDamageEvent ev = new EntityDamageEvent(this.getPlayer(), EntityDamageEvent.DamageCause.HUNGER, 1);
+                    EntityDamageEvent ev = new EntityDamageEvent(this.getPlayer(), DamageTypes.HUNGER, 1);
                     float now = this.getPlayer().getHealth();
                     if (diff == Difficulty.EASY) {
                         if (now > 10) this.getPlayer().attack(ev);

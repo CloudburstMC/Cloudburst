@@ -6,6 +6,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
+import org.cloudburstmc.api.item.data.BucketEntityData;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -60,6 +61,15 @@ public class DefaultItemSerializer implements ItemSerializer {
 
             tag.putList("ench", NbtType.COMPOUND, enchantments);
         }
+
+        BucketEntityData bucketEntityData = item.get(ItemKeys.BUCKET_ENTITY_DATA);
+        if (bucketEntityData != null) {
+            tag.putCompound("BucketEntityData", NbtMap.builder()
+                    .putFloat("Health", bucketEntityData.health())
+                    .putBoolean("Invulnerable", bucketEntityData.invulnerable())
+                    .putBoolean("NoAI", bucketEntityData.immobile())
+                    .build());
+        }
     }
 
     @Override
@@ -98,6 +108,14 @@ public class DefaultItemSerializer implements ItemSerializer {
             });
 
             builder.data(ItemKeys.ENCHANTMENTS, enchantments);
+        }
+
+        if (tag.containsKey("BucketEntityData", NbtType.COMPOUND)) {
+            NbtMap bucketEntityData = tag.getCompound("BucketEntityData");
+            builder.data(ItemKeys.BUCKET_ENTITY_DATA, new BucketEntityData(
+                    bucketEntityData.getFloat("Health"),
+                    bucketEntityData.getBoolean("Invulnerable", false),
+                    bucketEntityData.getBoolean("NoAI", false)));
         }
     }
 }

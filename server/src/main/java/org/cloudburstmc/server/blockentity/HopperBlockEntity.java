@@ -256,7 +256,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                     continue;
                 }
 
-                int maxStackSize = CloudItemRegistry.get().getComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
+                int maxStackSize = CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
                 int firstEmpty = -1;
                 int firstPartial = -1;
                 for (int s = 0; s < container.size(); s++) {

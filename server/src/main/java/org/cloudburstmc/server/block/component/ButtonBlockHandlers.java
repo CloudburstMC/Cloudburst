@@ -56,7 +56,7 @@ public class ButtonBlockHandlers {
             return;
         }
 
-        ItemStack drop = block.getComponent(BlockComponents.GET_RESOURCE)
+        ItemStack drop = block.requireComponent(BlockComponents.GET_RESOURCE)
                 .execute(block, ThreadLocalRandom.current(), 0);
         if (!drop.isEmpty()) {
             level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);
@@ -81,7 +81,7 @@ public class ButtonBlockHandlers {
         int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(pressed);
         level.addLevelSoundEvent(pos, SoundEvent.BUTTON_CLICK_ON, soundData);
 
-        int pressDurationTicks = block.getComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS);
+        int pressDurationTicks = block.requireComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS);
         level.scheduleUpdate(level.getBlock(pos), pressDurationTicks);
 
         return true;

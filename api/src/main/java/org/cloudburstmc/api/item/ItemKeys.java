@@ -36,6 +36,8 @@ public final class ItemKeys {
 
     public static final SimpleDataKey<Bucket> BUCKET_DATA = DataKey.simple(Identifier.parse("bucket_data"), Bucket.class);
 
+    public static final SimpleDataKey<BucketEntityData> BUCKET_ENTITY_DATA = DataKey.simple(Identifier.parse("bucket_entity_data"), BucketEntityData.class);
+
     public static final ListDataKey<BlockType> CAN_DESTROY = DataKey.list(Identifier.parse("can_destroy"), BlockType.class);
 
     public static final ListDataKey<BlockType> CAN_PLACE_ON = DataKey.list(Identifier.parse("can_place_on"), BlockType.class);

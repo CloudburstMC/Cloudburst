@@ -19,6 +19,7 @@ class VanillaBlockTags {
     private static final Map<BlockTagKey, BlockTag> RESOLVED = new IdentityHashMap<>();
 
     static {
+        initReplaceable();
         initSolid();
         initTransparent();
         initStairs();
@@ -43,6 +44,7 @@ class VanillaBlockTags {
         initPlanks();
         initSapling();
         initLeaves();
+        initMineableWithShovel();
 
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
         inherit(TRANSPARENT, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
@@ -120,6 +122,18 @@ class VanillaBlockTags {
         public Set<BlockType> getValues() {
             return this.values;
         }
+    }
+
+    private static void initReplaceable() {
+        tag(REPLACEABLE,
+                AIR, BUBBLE_COLUMN, CRIMSON_ROOTS, DEADBUSH, FERN, FIRE, FLOWING_LAVA, FLOWING_WATER,
+                GLOW_LICHEN, LARGE_FERN, LAVA, LEAF_LITTER, NETHER_SPROUTS, PINK_PETALS, RESIN_CLUMP,
+                SCULK_VEIN, SEAGRASS, SHORT_GRASS, SNOW_LAYER, SOUL_FIRE, TALL_GRASS, VINE, WARPED_ROOTS,
+                WATER, WILDFLOWERS,
+                LIGHT_BLOCK_0, LIGHT_BLOCK_1, LIGHT_BLOCK_2, LIGHT_BLOCK_3,
+                LIGHT_BLOCK_4, LIGHT_BLOCK_5, LIGHT_BLOCK_6, LIGHT_BLOCK_7,
+                LIGHT_BLOCK_8, LIGHT_BLOCK_9, LIGHT_BLOCK_10, LIGHT_BLOCK_11,
+                LIGHT_BLOCK_12, LIGHT_BLOCK_13, LIGHT_BLOCK_14, LIGHT_BLOCK_15);
     }
 
     private static void initSolid() {
@@ -1427,6 +1441,19 @@ class VanillaBlockTags {
                 PALE_OAK_LEAVES,
                 SPRUCE_LEAVES
         );
+    }
+
+    private static void initMineableWithShovel() {
+        tag(MINEABLE_WITH_SHOVEL,
+                CLAY, DIRT, COARSE_DIRT, PODZOL, FARMLAND, GRASS_BLOCK, GRAVEL, MYCELIUM,
+                SAND, RED_SAND, SNOW, SNOW_LAYER, SOUL_SAND, GRASS_PATH, SOUL_SOIL,
+                DIRT_WITH_ROOTS, MUDDY_MANGROVE_ROOTS, MUD, SUSPICIOUS_SAND, SUSPICIOUS_GRAVEL,
+                BLACK_CONCRETE_POWDER, BLUE_CONCRETE_POWDER, BROWN_CONCRETE_POWDER,
+                CYAN_CONCRETE_POWDER, GRAY_CONCRETE_POWDER, GREEN_CONCRETE_POWDER,
+                LIGHT_BLUE_CONCRETE_POWDER, LIGHT_GRAY_CONCRETE_POWDER, LIME_CONCRETE_POWDER,
+                MAGENTA_CONCRETE_POWDER, ORANGE_CONCRETE_POWDER, PINK_CONCRETE_POWDER,
+                PURPLE_CONCRETE_POWDER, RED_CONCRETE_POWDER, WHITE_CONCRETE_POWDER,
+                YELLOW_CONCRETE_POWDER);
     }
 
     private static void initShulkerBox() {

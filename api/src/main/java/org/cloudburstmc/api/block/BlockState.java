@@ -192,7 +192,7 @@ public final class BlockState {
      * @return whether this state may be replaced by normal block placement
      */
     public boolean isReplaceable() {
-        return this.type == BlockTypes.AIR || this.type.isLiquid() || getLiquidReaction().removesBlock();
+        return this.type.is(BlockTags.REPLACEABLE);
     }
 
     LiquidState asLiquidState() {

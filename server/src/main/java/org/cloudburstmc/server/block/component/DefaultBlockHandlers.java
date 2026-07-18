@@ -4,6 +4,9 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageType;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -15,6 +18,7 @@ import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -127,28 +131,28 @@ public class DefaultBlockHandlers {
     };
 
     public static final EntityInsideBlockHandler CACTUS_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.CONTACT, 1));
+            entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.CONTACT, block), 1));
 
     public static final EntityInsideBlockHandler FIRE_ENTITY_INSIDE = (block, entity, precise) -> {
         entity.setOnFire(8);
-        entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.FIRE, 1));
+        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.FIRE, block), 1));
     };
 
     public static final EntityInsideBlockHandler LAVA_ENTITY_INSIDE = (block, entity, precise) -> {
         entity.setOnFire(15);
-        entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.LAVA, 4));
+        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.LAVA, block), 4));
     };
 
     public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) ->
             entity.makeStuckInBlock(block.getState(), Vector3f.from(0.25f, 0.05f, 0.25f));
 
-    public static final EntityInsideBlockHandler POWDER_SNOW_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.makeStuckInBlock(block.getState(), Vector3f.from(0.9f, 1.5f, 0.9f));
-
     public static final EntityInsideBlockHandler SWEET_BERRY_BUSH_ENTITY_INSIDE = (block, entity, precise) ->
             entity.makeStuckInBlock(block.getState(), Vector3f.from(0.8f, 0.75f, 0.8f));
 
     public static final VoxelShapeBlockHandler FULL_ENTITY_INSIDE_COLLISION_SHAPE = (state, context) -> CloudVoxelShapes.block();
+
+    public static final FallOnBlockHandler ON_FALL_ON = (block, entity, fallDistance) ->
+            ((CloudEntity) entity).applyFallDamage(fallDistance);
 
     public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, entity) -> {
     };
@@ -174,29 +178,24 @@ public class DefaultBlockHandlers {
     };
 
     public static final PlayerBlockHandler POST_DESTROY = (block, player) -> {
-        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
-        if (getResource != null) {
-            getResource.execute(block, ThreadLocalRandom.current(), 0);
-        }
+        block.requireComponent(BlockComponents.GET_RESOURCE).execute(block, ThreadLocalRandom.current(), 0);
     };
 
     public static final SpawnResourcesBlockHandler SPAWN_RESOURCES = (block, random, tool, bonusLootLevel) -> {
-        ResourceCountBlockHandler getResourceCount = block.getComponent(BlockComponents.GET_RESOURCE_COUNT);
-        int resourceCount = getResourceCount != null ? getResourceCount.execute(block, random, bonusLootLevel) : 1;
+        ResourceCountBlockHandler getResourceCount = block.requireComponent(BlockComponents.GET_RESOURCE_COUNT);
+        int resourceCount = getResourceCount.execute(block, random, bonusLootLevel);
         if (resourceCount < 1) {
             return;
         }
 
-        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
-        DropResourceBlockHandler dropResource = block.getComponent(BlockComponents.DROP_RESOURCE);
+        ResourceBlockHandler getResource = block.requireComponent(BlockComponents.GET_RESOURCE);
+        DropResourceBlockHandler dropResource = block.requireComponent(BlockComponents.DROP_RESOURCE);
 
         for (int i = 0; i < resourceCount; i++) {
             if (!Randoms.chanceFloatGreaterThan(random, 0)) {
-                if (getResource != null) {
-                    ItemStack itemStack = getResource.execute(block, random, bonusLootLevel);
-                    if (!itemStack.isEmpty() && dropResource != null) {
-                        dropResource.execute(block, itemStack);
-                    }
+                ItemStack itemStack = getResource.execute(block, random, bonusLootLevel);
+                if (!itemStack.isEmpty()) {
+                    dropResource.execute(block, itemStack);
                 }
             }
         }
@@ -234,8 +233,7 @@ public class DefaultBlockHandlers {
     };
 
     public static final ResourceBlockHandler GET_SILK_TOUCH_RESOURCE = (block, random, bonusLevel) -> {
-        ResourceBlockHandler getResource = block.getComponent(BlockComponents.GET_RESOURCE);
-        return getResource != null ? getResource.execute(block, random, bonusLevel) : ItemStack.EMPTY;
+        return block.requireComponent(BlockComponents.GET_RESOURCE).execute(block, random, bonusLevel);
     };
 
     public static final PickBlockHandler GET_PICK_BLOCK = (block) -> {
@@ -253,4 +251,8 @@ public class DefaultBlockHandlers {
     public static final BooleanBlockHandler CAN_BE_SILK_TOUCHED = (block) -> true;
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;
+
+    private static DamageSource blockDamageSource(DamageType damageType, Block block) {
+        return DamageSource.builder(damageType).block(block).build();
+    }
 }

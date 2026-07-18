@@ -7,6 +7,9 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 
+/**
+ * Determines whether block placement may replace an existing block.
+ */
 @FunctionalInterface
 public interface ReplaceBlockHandler {
 

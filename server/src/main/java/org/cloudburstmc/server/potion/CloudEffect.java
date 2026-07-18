@@ -2,6 +2,7 @@ package org.cloudburstmc.server.potion;
 
 import lombok.NonNull;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.player.Player;
@@ -16,10 +17,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.INVISIBLE;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class CloudEffect extends Effect {
 
     private static final String TAG_ID = "Id";
@@ -84,10 +81,10 @@ public class CloudEffect extends Effect {
     public void applyEffect(Entity entity) {
         if (EffectTypes.POISON.equals(this.getType().getId())) {
             if (entity.getHealth() > 1) {
-                entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, 1));
+                entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, 1));
             }
         } else if (EffectTypes.WITHER.equals(this.getType().getId())) {
-            entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.MAGIC, 1));
+            entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, 1));
         } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) {
             if (entity.getHealth() < entity.getMaxHealth()) {
                 entity.heal(new EntityRegainHealthEvent(entity, 1, EntityRegainHealthEvent.CAUSE_MAGIC));

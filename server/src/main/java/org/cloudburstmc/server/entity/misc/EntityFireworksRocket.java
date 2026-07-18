@@ -2,6 +2,8 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemKeys;
@@ -174,10 +176,9 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return (source.getCause() == EntityDamageEvent.DamageCause.VOID ||
-                source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK ||
-                source.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION ||
-                source.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)
+        return (source.getDamageType() == DamageTypes.VOID ||
+                source.getDamageType() == DamageTypes.FIRE_TICK ||
+                source.getDamageType().is(DamageTypeTags.IS_EXPLOSION))
                 && super.attack(source);
     }
 

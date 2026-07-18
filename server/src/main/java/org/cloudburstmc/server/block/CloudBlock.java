@@ -12,7 +12,6 @@ import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
-import static java.util.Objects.requireNonNull;
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 
 @ToString(exclude = {"level"}, callSuper = true)
@@ -52,21 +51,18 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     @Override
     public ComponentMap getComponents() {
         BlockType type = this.getState().getType();
-        return requireNonNull(this.level.getServer().getBlockRegistry().getComponents(type),
-                "Block type is not registered: " + type);
+        return this.level.getServer().getBlockRegistry().requireComponents(type);
     }
 
     @Override
     public VoxelShape getCollisionShape() {
-        return requireNonNull(this.getComponent(BlockComponents.GET_COLLISION_SHAPE),
-                "Required block component is absent: " + BlockComponents.GET_COLLISION_SHAPE.getId())
+        return this.requireComponent(BlockComponents.GET_COLLISION_SHAPE)
                 .execute(this.getState(), BlockShapeContext.at(this.level, this.position), CollisionContext.empty());
     }
 
     @Override
     public VoxelShape getOutlineShape() {
-        return requireNonNull(this.getComponent(BlockComponents.GET_OUTLINE_SHAPE),
-                "Required block component is absent: " + BlockComponents.GET_OUTLINE_SHAPE.getId())
+        return this.requireComponent(BlockComponents.GET_OUTLINE_SHAPE)
                 .execute(this.getState(), BlockShapeContext.at(this.level, this.position));
     }
 

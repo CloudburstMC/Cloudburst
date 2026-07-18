@@ -1,10 +1,13 @@
 package org.cloudburstmc.api.block.component;
 
 /**
- * Type-level handler that returns a {@link String} value.
- * Used for per-type block properties such as map color.
+ * Provides a string property of a block type.
  */
 @FunctionalInterface
 public interface StringTypeHandler {
+
+    /**
+     * @return the property value
+     */
     String get();
 }

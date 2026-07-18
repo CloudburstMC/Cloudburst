@@ -30,7 +30,7 @@ public class EnchantmentDurability extends EnchantmentBehavior {
 
     @Override
     public boolean canEnchant(EnchantmentInstance enchantment, ItemStack item) {
-        return CloudItemRegistry.get().getComponent(item.getType(), ItemComponents.GET_MAX_DAMAGE).execute(item) >= 0 || super.canEnchant(enchantment, item);
+        return CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_MAX_DAMAGE).execute(item) >= 0 || super.canEnchant(enchantment, item);
     }
 
 //    TODO Method isn't used?

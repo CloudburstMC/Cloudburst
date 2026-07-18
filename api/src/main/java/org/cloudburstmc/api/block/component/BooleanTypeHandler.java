@@ -1,16 +1,13 @@
 package org.cloudburstmc.api.block.component;
 
 /**
- * Type-level handler that returns a {@code boolean} value.
- * Used for per-type block properties such as liquid, replaceable, flammable, etc.
+ * Provides a boolean property of a block type.
  */
 @FunctionalInterface
 public interface BooleanTypeHandler {
 
     /**
-     * Gets the boolean value for the component.
-     *
-     * @return the component value
+     * @return the property value
      */
     boolean get();
 }

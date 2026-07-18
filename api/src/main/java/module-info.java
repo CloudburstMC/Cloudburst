@@ -29,6 +29,8 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.enchantment;
     exports org.cloudburstmc.api.enchantment.behavior;
     exports org.cloudburstmc.api.entity;
+    exports org.cloudburstmc.api.entity.component;
+    exports org.cloudburstmc.api.entity.damage;
     exports org.cloudburstmc.api.entity.hostile;
     exports org.cloudburstmc.api.entity.misc;
     exports org.cloudburstmc.api.entity.passive;
@@ -48,7 +50,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.inventory.view;
     exports org.cloudburstmc.api.item;
     exports org.cloudburstmc.api.item.component;
-    exports org.cloudburstmc.api.entity.component;
     exports org.cloudburstmc.api.item.data;
     exports org.cloudburstmc.api.level;
     exports org.cloudburstmc.api.level.chunk;

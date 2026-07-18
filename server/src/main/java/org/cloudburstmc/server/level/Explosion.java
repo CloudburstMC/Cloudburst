@@ -8,13 +8,14 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.LiquidType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.Explosive;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.entity.EntityDamageByBlockEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -122,7 +123,7 @@ public class Explosion {
 
         LongArraySet updateBlocks = new LongArraySet();
 
-        Vector3f source = Vector3f.from(this.source).floor();
+        Vector3f explosionPosition = this.source.floor();
         double yield = (1d / this.size) * 100d;
 
         if (this.what instanceof Entity) {
@@ -156,12 +157,17 @@ public class Explosion {
                 double impact = (1 - distance) * exposure;
                 int damage = this.doesDamage ? (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1) : 0;
 
-                if (this.what instanceof Entity) {
-                    entity.attack(new EntityDamageByEntityEvent((Entity) this.what, entity, EntityDamageEvent.DamageCause.ENTITY_EXPLOSION, damage));
-                } else if (this.what instanceof Block) {
-                    entity.attack(new EntityDamageByBlockEvent((Block) this.what, entity, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION, damage));
+                if (this.what instanceof Entity sourceEntity) {
+                    DamageSource source = DamageSource.builder(DamageTypes.ENTITY_EXPLOSION)
+                            .directEntity(sourceEntity).causingEntity(sourceEntity)
+                            .location(Location.from(this.source, this.level)).build();
+                    entity.attack(new EntityDamageEvent(entity, source, damage));
+                } else if (this.what instanceof Block sourceBlock) {
+                    DamageSource source = DamageSource.builder(DamageTypes.BLOCK_EXPLOSION)
+                            .block(sourceBlock).location(Location.from(sourceBlock.getPosition(), this.level)).build();
+                    entity.attack(new EntityDamageEvent(entity, source, damage));
                 } else {
-                    entity.attack(new EntityDamageEvent(entity, EntityDamageEvent.DamageCause.BLOCK_EXPLOSION, damage));
+                    entity.attack(new EntityDamageEvent(entity, DamageTypes.BLOCK_EXPLOSION, damage));
                 }
 
                 if (!(entity instanceof DroppedItem || entity instanceof ExperienceOrb)) {
@@ -206,7 +212,7 @@ public class Explosion {
 //        }
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
-        this.level.addLevelSoundEvent(source, SoundEvent.EXPLODE);
+        this.level.addLevelSoundEvent(explosionPosition, SoundEvent.EXPLODE);
 
         return true;
     }

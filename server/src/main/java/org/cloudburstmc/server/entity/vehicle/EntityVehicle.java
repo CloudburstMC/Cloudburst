@@ -4,7 +4,6 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Interactable;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
-import org.cloudburstmc.api.event.entity.EntityDamageByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDestroyEvent;
@@ -85,7 +84,8 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        VehicleDamageEvent event = new VehicleDamageEvent(this, source.getEntity(), source.getFinalDamage());
+        Entity attacker = source.getDamageSource().getCausingEntity();
+        VehicleDamageEvent event = new VehicleDamageEvent(this, attacker, source.getDamage());
         getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return false;
@@ -93,13 +93,10 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
 
         boolean instantKill = false;
 
-        if (source instanceof EntityDamageByEntityEvent) {
-            Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-            instantKill = damager instanceof CloudPlayer && ((CloudPlayer) damager).isCreative();
-        }
+        instantKill = attacker instanceof CloudPlayer player && player.isCreative();
 
-        if (instantKill || getHealth() - source.getFinalDamage() < 1) {
-            VehicleDestroyEvent event2 = new VehicleDestroyEvent(this, source.getEntity());
+        if (instantKill || getHealth() - source.getDamage() < 1) {
+            VehicleDestroyEvent event2 = new VehicleDestroyEvent(this, attacker);
             getServer().getEventManager().fire(event2);
 
             if (event2.isCancelled()) {

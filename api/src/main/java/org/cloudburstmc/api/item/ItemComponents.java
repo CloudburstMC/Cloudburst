@@ -24,11 +24,9 @@ public class ItemComponents {
     public static final ComponentType<FloatItemHandler> GET_ATTACK_DAMAGE_BONUS = ComponentType.of("get_attack_damage_bonus", FloatItemHandler.class);
     public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
     public static final ComponentType<DamageChanceHandler> GET_DAMAGE_CHANCE = ComponentType.of("get_damage_chance", DamageChanceHandler.class);
-    public static final ComponentType<DestroySpeedHandler> GET_DESTROY_SPEED = ComponentType.of("get_destroy_speed", DestroySpeedHandler.class);
-    public static final ComponentType<FloatItemHandler> GET_DESTROY_SPEED_BONUS = ComponentType.of("get_destroy_speed_bonus", FloatItemHandler.class);
     public static final ComponentType<IntItemHandler> GET_MAX_DAMAGE = ComponentType.of("get_max_damage", IntItemHandler.class);
     public static final ComponentType<IntItemHandler> GET_MAX_STACK_SIZE = ComponentType.of("get_max_stack_size", IntItemHandler.class);
-    public static final ComponentType<BooleanItemHandler> IS_TOOL = ComponentType.of("is_tool", BooleanItemHandler.class);
+    public static final ComponentType<GetToolHandler> GET_TOOL = ComponentType.of("get_tool", GetToolHandler.class);
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
     public static final ComponentType<DamageItemHandler> ON_DAMAGE = ComponentType.of("on_damage", DamageItemHandler.class);
     public static final ComponentType<UseHandler> USE = ComponentType.of("use", UseHandler.class);

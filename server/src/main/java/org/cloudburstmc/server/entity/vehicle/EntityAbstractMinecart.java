@@ -175,7 +175,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         int tickDiff = currentTick - this.lastUpdate;
 
         if (tickDiff <= 0) {
-            return false;
+            return true;
         }
 
         this.lastUpdate = currentTick;

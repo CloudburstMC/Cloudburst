@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Bucketable;
 
-public interface Pufferfish extends Entity {
+public interface Pufferfish extends Bucketable {
 }
