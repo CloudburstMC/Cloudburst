@@ -7,7 +7,7 @@ jackson = "3.2.0"
 jline = "4.2.1"
 junit = "6.1.0"
 log4j = "2.26.0"
-protocol = "3.0.0.Beta12-20260609.111529-27"
+protocol = "3.0.0.Beta12-20260717.220826-29"
 
 [libraries]
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }

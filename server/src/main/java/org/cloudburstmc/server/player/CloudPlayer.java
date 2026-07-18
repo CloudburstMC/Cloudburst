@@ -1416,16 +1416,20 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         this.noPhysics = this.isSpectator();
-
         this.abilities = buildAbilitiesForGameMode(gamemode);
 
-        UpdatePlayerGameTypePacket gameTypePk = new UpdatePlayerGameTypePacket();
-        gameTypePk.setGameType(GameType.from(gamemode.getVanillaId()));
-        gameTypePk.setEntityId(this.getUniqueId());
-        gameTypePk.setTick(this.clientTick);
         if (this.spawned) {
-            this.sendPacket(gameTypePk);
-            CloudServer.broadcastPacket(this.getViewers(), gameTypePk);
+            SetPlayerGameTypePacket localGameType = new SetPlayerGameTypePacket();
+            localGameType.setGamemode(gamemode.getVanillaId());
+            this.sendPacket(localGameType);
+
+            UpdatePlayerGameTypePacket gameType = new UpdatePlayerGameTypePacket();
+            gameType.setGameType(GameType.from(gamemode.getVanillaId()));
+            gameType.setEntityId(this.getUniqueId());
+            gameType.setTick(this.clientTick);
+            CloudServer.broadcastPacket(this.getViewers(), gameType);
+
+            this.abilities.update();
         }
 
         boolean collisionAfter = gamemode != GameMode.SPECTATOR;
