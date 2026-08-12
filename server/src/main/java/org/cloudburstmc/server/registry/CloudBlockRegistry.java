@@ -353,13 +353,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(BEACON)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.BEACON);
-        this.registerVanilla(BED)
-                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
-                .set(BlockComponents.USE, BedBlockHandlers.BED)
-                .set(BlockComponents.ON_PLACE, BedBlockHandlers.PLACE)
-                .set(BlockComponents.ON_DESTROY, BedBlockHandlers.ON_DESTROY)
-                .set(BlockComponents.GET_RESOURCE, BedBlockHandlers.GET_RESOURCE)
-                .set(BlockComponents.GET_PICK_BLOCK, BedBlockHandlers.GET_PICK_BLOCK);
+        this.registerBed(BED);
         this.registerVanilla(BEDROCK);
         this.registerVanilla(BEEHIVE);
         this.registerVanilla(BEETROOT);
@@ -1221,6 +1215,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ORANGE_CONCRETE);
         this.registerConcretePowder(ORANGE_CONCRETE_POWDER, ORANGE_CONCRETE);
         this.registerVanilla(ORANGE_GLAZED_TERRACOTTA);
+        this.registerLeaves(ORANGE_POPLAR_LEAVES);
         this.registerShulkerBox(ORANGE_SHULKER_BOX);
         this.registerVanilla(ORANGE_STAINED_GLASS);
         this.registerVanilla(ORANGE_STAINED_GLASS_PANE);
@@ -1291,6 +1286,23 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(PITCHER_PLANT);
         this.registerVanilla(PLAYER_HEAD);
         this.registerVanilla(PODZOL);
+        this.registerWoodenButton(POPLAR_BUTTON);
+        this.registerDoor(POPLAR_DOOR);
+        this.registerVanilla(POPLAR_DOUBLE_SLAB);
+        this.registerVanilla(POPLAR_FENCE);
+        this.registerFenceGate(POPLAR_FENCE_GATE);
+        this.registerHangingSign(POPLAR_HANGING_SIGN);
+        this.registerVanilla(POPLAR_LOG);
+        this.registerVanilla(POPLAR_PLANKS);
+        this.registerVanilla(POPLAR_PRESSURE_PLATE);
+        this.registerVanilla(POPLAR_SAPLING);
+        this.registerVanilla(POPLAR_SHELF);
+        this.registerVanilla(POPLAR_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(POPLAR_DOUBLE_SLAB));
+        this.registerStairs(POPLAR_STAIRS);
+        this.registerVanilla(POPLAR_STANDING_SIGN);
+        this.registerTrapdoor(POPLAR_TRAPDOOR);
+        this.registerVanilla(POPLAR_WALL_SIGN);
+        this.registerVanilla(POPLAR_WOOD);
         this.registerVanilla(POINTED_DRIPSTONE);
         this.registerVanilla(POLISHED_ANDESITE);
         this.registerVanilla(POLISHED_ANDESITE_DOUBLE_SLAB);
@@ -1404,6 +1416,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RED_GLAZED_TERRACOTTA);
         this.registerVanilla(RED_MUSHROOM);
         this.registerVanilla(RED_MUSHROOM_BLOCK);
+        this.registerLeaves(RED_POPLAR_LEAVES);
         this.registerVanilla(RED_NETHER_BRICK);
         this.registerVanilla(RED_NETHER_BRICK_DOUBLE_SLAB);
         this.registerVanilla(RED_NETHER_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(RED_NETHER_BRICK_DOUBLE_SLAB));
@@ -1565,10 +1578,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STRIPPED_OAK_WOOD);
         this.registerVanilla(STRIPPED_PALE_OAK_LOG);
         this.registerVanilla(STRIPPED_PALE_OAK_WOOD);
+        this.registerVanilla(STRIPPED_POPLAR_LOG);
+        this.registerVanilla(STRIPPED_POPLAR_WOOD);
         this.registerVanilla(STRIPPED_SPRUCE_LOG);
         this.registerVanilla(STRIPPED_SPRUCE_WOOD);
         this.registerVanilla(STRIPPED_WARPED_HYPHAE);
         this.registerVanilla(STRIPPED_WARPED_STEM);
+        this.registerBed(STRAW_BED);
         this.registerVanilla(STRUCTURE_BLOCK);
         this.registerVanilla(STRUCTURE_VOID);
         this.registerVanilla(SULFUR);
@@ -1772,6 +1788,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(YELLOW_CONCRETE);
         this.registerConcretePowder(YELLOW_CONCRETE_POWDER, YELLOW_CONCRETE);
         this.registerVanilla(YELLOW_GLAZED_TERRACOTTA);
+        this.registerLeaves(YELLOW_POPLAR_LEAVES);
         this.registerShulkerBox(YELLOW_SHULKER_BOX);
         this.registerVanilla(YELLOW_STAINED_GLASS);
         this.registerVanilla(YELLOW_STAINED_GLASS_PANE);
@@ -1786,6 +1803,16 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.ON_PLACE, new AnvilPlaceHandler(this))
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ANVIL);
+    }
+
+    private void registerBed(BlockType type) {
+        this.registerVanilla(type)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, BedBlockHandlers.BED)
+                .set(BlockComponents.ON_PLACE, BedBlockHandlers.PLACE)
+                .set(BlockComponents.ON_DESTROY, BedBlockHandlers.ON_DESTROY)
+                .set(BlockComponents.GET_RESOURCE, BedBlockHandlers.GET_RESOURCE)
+                .set(BlockComponents.GET_PICK_BLOCK, BedBlockHandlers.GET_PICK_BLOCK);
     }
 
     private void registerConcretePowder(BlockType powderType, BlockType concreteType) {

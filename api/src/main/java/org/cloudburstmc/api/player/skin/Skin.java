@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.player.skin;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.ToString;
 import org.cloudburstmc.api.player.skin.data.ImageData;
 import org.cloudburstmc.api.player.skin.data.PersonaPiece;
@@ -17,7 +18,8 @@ public class Skin {
 
     private final String fullSkinId;
     private String skinId;
-    private String playFabId;
+    @NonNull
+    private String playFabId = "";
     private String skinResourcePatch = GEOMETRY_CUSTOM;
     private ImageData skinData;
     private final List<SkinAnimation> animations = new ArrayList<>();
@@ -25,6 +27,7 @@ public class Skin {
     private final List<PersonaPieceTint> tintColors = new ArrayList<>();
     private ImageData capeData;
     private String geometryData;
+    private String geometryDataEngineVersion = "0.0.0";
     private String animationData;
     private boolean premium;
     private boolean persona;
@@ -32,7 +35,10 @@ public class Skin {
     private String capeId;
     private String skinColor = "#0";
     private String armSize = "wide";
-    private boolean trusted = false;
+    private boolean trusted = true;
+    private boolean overridingPlayerAppearance = true;
+    @NonNull
+    private String profileHash = "";
 
     public static final String GEOMETRY_CUSTOM = convertLegacyGeometryName("geometry.humanoid.custom");
     public static final String GEOMETRY_CUSTOM_SLIM = convertLegacyGeometryName("geometry.humanoid.customSlim");

@@ -135,6 +135,7 @@ public final class ItemIds {
     public static final Identifier BLACK_CARPET = Identifier.parse("black_carpet");
     public static final Identifier BLACK_CONCRETE = Identifier.parse("black_concrete");
     public static final Identifier BLACK_CONCRETE_POWDER = Identifier.parse("black_concrete_powder");
+    public static final Identifier BLACK_CUSHION = Identifier.parse("black_cushion");
     public static final Identifier BLACK_DYE = Identifier.parse("black_dye");
     public static final Identifier BLACK_GLAZED_TERRACOTTA = Identifier.parse("black_glazed_terracotta");
     public static final Identifier BLACK_HARNESS = Identifier.parse("black_harness");
@@ -155,6 +156,7 @@ public final class ItemIds {
     public static final Identifier BLUE_CARPET = Identifier.parse("blue_carpet");
     public static final Identifier BLUE_CONCRETE = Identifier.parse("blue_concrete");
     public static final Identifier BLUE_CONCRETE_POWDER = Identifier.parse("blue_concrete_powder");
+    public static final Identifier BLUE_CUSHION = Identifier.parse("blue_cushion");
     public static final Identifier BLUE_DYE = Identifier.parse("blue_dye");
     public static final Identifier BLUE_EGG = Identifier.parse("blue_egg");
     public static final Identifier BLUE_GLAZED_TERRACOTTA = Identifier.parse("blue_glazed_terracotta");
@@ -199,6 +201,7 @@ public final class ItemIds {
     public static final Identifier BROWN_CARPET = Identifier.parse("brown_carpet");
     public static final Identifier BROWN_CONCRETE = Identifier.parse("brown_concrete");
     public static final Identifier BROWN_CONCRETE_POWDER = Identifier.parse("brown_concrete_powder");
+    public static final Identifier BROWN_CUSHION = Identifier.parse("brown_cushion");
     public static final Identifier BROWN_DYE = Identifier.parse("brown_dye");
     public static final Identifier BROWN_EGG = Identifier.parse("brown_egg");
     public static final Identifier BROWN_GLAZED_TERRACOTTA = Identifier.parse("brown_glazed_terracotta");
@@ -426,6 +429,7 @@ public final class ItemIds {
     public static final Identifier CYAN_CARPET = Identifier.parse("cyan_carpet");
     public static final Identifier CYAN_CONCRETE = Identifier.parse("cyan_concrete");
     public static final Identifier CYAN_CONCRETE_POWDER = Identifier.parse("cyan_concrete_powder");
+    public static final Identifier CYAN_CUSHION = Identifier.parse("cyan_cushion");
     public static final Identifier CYAN_DYE = Identifier.parse("cyan_dye");
     public static final Identifier CYAN_GLAZED_TERRACOTTA = Identifier.parse("cyan_glazed_terracotta");
     public static final Identifier CYAN_HARNESS = Identifier.parse("cyan_harness");
@@ -803,6 +807,7 @@ public final class ItemIds {
     public static final Identifier GRAY_CARPET = Identifier.parse("gray_carpet");
     public static final Identifier GRAY_CONCRETE = Identifier.parse("gray_concrete");
     public static final Identifier GRAY_CONCRETE_POWDER = Identifier.parse("gray_concrete_powder");
+    public static final Identifier GRAY_CUSHION = Identifier.parse("gray_cushion");
     public static final Identifier GRAY_DYE = Identifier.parse("gray_dye");
     public static final Identifier GRAY_GLAZED_TERRACOTTA = Identifier.parse("gray_glazed_terracotta");
     public static final Identifier GRAY_HARNESS = Identifier.parse("gray_harness");
@@ -817,6 +822,7 @@ public final class ItemIds {
     public static final Identifier GREEN_CARPET = Identifier.parse("green_carpet");
     public static final Identifier GREEN_CONCRETE = Identifier.parse("green_concrete");
     public static final Identifier GREEN_CONCRETE_POWDER = Identifier.parse("green_concrete_powder");
+    public static final Identifier GREEN_CUSHION = Identifier.parse("green_cushion");
     public static final Identifier GREEN_DYE = Identifier.parse("green_dye");
     public static final Identifier GREEN_GLAZED_TERRACOTTA = Identifier.parse("green_glazed_terracotta");
     public static final Identifier GREEN_HARNESS = Identifier.parse("green_harness");
@@ -989,6 +995,7 @@ public final class ItemIds {
     public static final Identifier LIGHT_BLUE_CARPET = Identifier.parse("light_blue_carpet");
     public static final Identifier LIGHT_BLUE_CONCRETE = Identifier.parse("light_blue_concrete");
     public static final Identifier LIGHT_BLUE_CONCRETE_POWDER = Identifier.parse("light_blue_concrete_powder");
+    public static final Identifier LIGHT_BLUE_CUSHION = Identifier.parse("light_blue_cushion");
     public static final Identifier LIGHT_BLUE_DYE = Identifier.parse("light_blue_dye");
     public static final Identifier LIGHT_BLUE_GLAZED_TERRACOTTA = Identifier.parse("light_blue_glazed_terracotta");
     public static final Identifier LIGHT_BLUE_HARNESS = Identifier.parse("light_blue_harness");
@@ -1003,6 +1010,7 @@ public final class ItemIds {
     public static final Identifier LIGHT_GRAY_CARPET = Identifier.parse("light_gray_carpet");
     public static final Identifier LIGHT_GRAY_CONCRETE = Identifier.parse("light_gray_concrete");
     public static final Identifier LIGHT_GRAY_CONCRETE_POWDER = Identifier.parse("light_gray_concrete_powder");
+    public static final Identifier LIGHT_GRAY_CUSHION = Identifier.parse("light_gray_cushion");
     public static final Identifier LIGHT_GRAY_DYE = Identifier.parse("light_gray_dye");
     public static final Identifier LIGHT_GRAY_HARNESS = Identifier.parse("light_gray_harness");
     public static final Identifier LIGHT_GRAY_SHULKER_BOX = Identifier.parse("light_gray_shulker_box");
@@ -1019,6 +1027,7 @@ public final class ItemIds {
     public static final Identifier LIME_CARPET = Identifier.parse("lime_carpet");
     public static final Identifier LIME_CONCRETE = Identifier.parse("lime_concrete");
     public static final Identifier LIME_CONCRETE_POWDER = Identifier.parse("lime_concrete_powder");
+    public static final Identifier LIME_CUSHION = Identifier.parse("lime_cushion");
     public static final Identifier LIME_DYE = Identifier.parse("lime_dye");
     public static final Identifier LIME_GLAZED_TERRACOTTA = Identifier.parse("lime_glazed_terracotta");
     public static final Identifier LIME_HARNESS = Identifier.parse("lime_harness");
@@ -1046,6 +1055,7 @@ public final class ItemIds {
     public static final Identifier MAGENTA_CARPET = Identifier.parse("magenta_carpet");
     public static final Identifier MAGENTA_CONCRETE = Identifier.parse("magenta_concrete");
     public static final Identifier MAGENTA_CONCRETE_POWDER = Identifier.parse("magenta_concrete_powder");
+    public static final Identifier MAGENTA_CUSHION = Identifier.parse("magenta_cushion");
     public static final Identifier MAGENTA_DYE = Identifier.parse("magenta_dye");
     public static final Identifier MAGENTA_GLAZED_TERRACOTTA = Identifier.parse("magenta_glazed_terracotta");
     public static final Identifier MAGENTA_HARNESS = Identifier.parse("magenta_harness");
@@ -1205,9 +1215,11 @@ public final class ItemIds {
     public static final Identifier ORANGE_CARPET = Identifier.parse("orange_carpet");
     public static final Identifier ORANGE_CONCRETE = Identifier.parse("orange_concrete");
     public static final Identifier ORANGE_CONCRETE_POWDER = Identifier.parse("orange_concrete_powder");
+    public static final Identifier ORANGE_CUSHION = Identifier.parse("orange_cushion");
     public static final Identifier ORANGE_DYE = Identifier.parse("orange_dye");
     public static final Identifier ORANGE_GLAZED_TERRACOTTA = Identifier.parse("orange_glazed_terracotta");
     public static final Identifier ORANGE_HARNESS = Identifier.parse("orange_harness");
+    public static final Identifier ORANGE_POPLAR_LEAVES = Identifier.parse("orange_poplar_leaves");
     public static final Identifier ORANGE_SHULKER_BOX = Identifier.parse("orange_shulker_box");
     public static final Identifier ORANGE_STAINED_GLASS = Identifier.parse("orange_stained_glass");
     public static final Identifier ORANGE_STAINED_GLASS_PANE = Identifier.parse("orange_stained_glass_pane");
@@ -1280,6 +1292,7 @@ public final class ItemIds {
     public static final Identifier PINK_CARPET = Identifier.parse("pink_carpet");
     public static final Identifier PINK_CONCRETE = Identifier.parse("pink_concrete");
     public static final Identifier PINK_CONCRETE_POWDER = Identifier.parse("pink_concrete_powder");
+    public static final Identifier PINK_CUSHION = Identifier.parse("pink_cushion");
     public static final Identifier PINK_DYE = Identifier.parse("pink_dye");
     public static final Identifier PINK_GLAZED_TERRACOTTA = Identifier.parse("pink_glazed_terracotta");
     public static final Identifier PINK_HARNESS = Identifier.parse("pink_harness");
@@ -1346,6 +1359,26 @@ public final class ItemIds {
     public static final Identifier POLISHED_TUFF_SLAB = Identifier.parse("polished_tuff_slab");
     public static final Identifier POLISHED_TUFF_STAIRS = Identifier.parse("polished_tuff_stairs");
     public static final Identifier POLISHED_TUFF_WALL = Identifier.parse("polished_tuff_wall");
+    public static final Identifier POPLAR_BOAT = Identifier.parse("poplar_boat");
+    public static final Identifier POPLAR_BUTTON = Identifier.parse("poplar_button");
+    public static final Identifier POPLAR_CHEST_BOAT = Identifier.parse("poplar_chest_boat");
+    public static final Identifier POPLAR_DOOR = Identifier.parse("poplar_door");
+    public static final Identifier POPLAR_DOUBLE_SLAB = Identifier.parse("poplar_double_slab");
+    public static final Identifier POPLAR_FENCE = Identifier.parse("poplar_fence");
+    public static final Identifier POPLAR_FENCE_GATE = Identifier.parse("poplar_fence_gate");
+    public static final Identifier POPLAR_HANGING_SIGN = Identifier.parse("poplar_hanging_sign");
+    public static final Identifier POPLAR_LOG = Identifier.parse("poplar_log");
+    public static final Identifier POPLAR_PLANKS = Identifier.parse("poplar_planks");
+    public static final Identifier POPLAR_PRESSURE_PLATE = Identifier.parse("poplar_pressure_plate");
+    public static final Identifier POPLAR_SAPLING = Identifier.parse("poplar_sapling");
+    public static final Identifier POPLAR_SHELF = Identifier.parse("poplar_shelf");
+    public static final Identifier POPLAR_SIGN = Identifier.parse("poplar_sign");
+    public static final Identifier POPLAR_SLAB = Identifier.parse("poplar_slab");
+    public static final Identifier POPLAR_STAIRS = Identifier.parse("poplar_stairs");
+    public static final Identifier POPLAR_STANDING_SIGN = Identifier.parse("poplar_standing_sign");
+    public static final Identifier POPLAR_TRAPDOOR = Identifier.parse("poplar_trapdoor");
+    public static final Identifier POPLAR_WALL_SIGN = Identifier.parse("poplar_wall_sign");
+    public static final Identifier POPLAR_WOOD = Identifier.parse("poplar_wood");
     public static final Identifier POPPED_CHORUS_FRUIT = Identifier.parse("popped_chorus_fruit");
     public static final Identifier POPPY = Identifier.parse("poppy");
     public static final Identifier PORKCHOP = Identifier.parse("porkchop");
@@ -1383,6 +1416,7 @@ public final class ItemIds {
     public static final Identifier PURPLE_CARPET = Identifier.parse("purple_carpet");
     public static final Identifier PURPLE_CONCRETE = Identifier.parse("purple_concrete");
     public static final Identifier PURPLE_CONCRETE_POWDER = Identifier.parse("purple_concrete_powder");
+    public static final Identifier PURPLE_CUSHION = Identifier.parse("purple_cushion");
     public static final Identifier PURPLE_DYE = Identifier.parse("purple_dye");
     public static final Identifier PURPLE_GLAZED_TERRACOTTA = Identifier.parse("purple_glazed_terracotta");
     public static final Identifier PURPLE_HARNESS = Identifier.parse("purple_harness");
@@ -1432,6 +1466,7 @@ public final class ItemIds {
     public static final Identifier RED_CARPET = Identifier.parse("red_carpet");
     public static final Identifier RED_CONCRETE = Identifier.parse("red_concrete");
     public static final Identifier RED_CONCRETE_POWDER = Identifier.parse("red_concrete_powder");
+    public static final Identifier RED_CUSHION = Identifier.parse("red_cushion");
     public static final Identifier RED_DYE = Identifier.parse("red_dye");
     public static final Identifier RED_GLAZED_TERRACOTTA = Identifier.parse("red_glazed_terracotta");
     public static final Identifier RED_HARNESS = Identifier.parse("red_harness");
@@ -1442,6 +1477,7 @@ public final class ItemIds {
     public static final Identifier RED_NETHER_BRICK_SLAB = Identifier.parse("red_nether_brick_slab");
     public static final Identifier RED_NETHER_BRICK_STAIRS = Identifier.parse("red_nether_brick_stairs");
     public static final Identifier RED_NETHER_BRICK_WALL = Identifier.parse("red_nether_brick_wall");
+    public static final Identifier RED_POPLAR_LEAVES = Identifier.parse("red_poplar_leaves");
     public static final Identifier RED_SAND = Identifier.parse("red_sand");
     public static final Identifier RED_SANDSTONE = Identifier.parse("red_sandstone");
     public static final Identifier RED_SANDSTONE_DOUBLE_SLAB = Identifier.parse("red_sandstone_double_slab");
@@ -1600,6 +1636,7 @@ public final class ItemIds {
     public static final Identifier STONE_SPEAR = Identifier.parse("stone_spear");
     public static final Identifier STONE_STAIRS = Identifier.parse("stone_stairs");
     public static final Identifier STONE_SWORD = Identifier.parse("stone_sword");
+    public static final Identifier STRAW_BED = Identifier.parse("straw_bed");
     public static final Identifier STRAY_SPAWN_EGG = Identifier.parse("stray_spawn_egg");
     public static final Identifier STRIDER_SPAWN_EGG = Identifier.parse("strider_spawn_egg");
     public static final Identifier STRING = Identifier.parse("string");
@@ -1622,6 +1659,8 @@ public final class ItemIds {
     public static final Identifier STRIPPED_OAK_WOOD = Identifier.parse("stripped_oak_wood");
     public static final Identifier STRIPPED_PALE_OAK_LOG = Identifier.parse("stripped_pale_oak_log");
     public static final Identifier STRIPPED_PALE_OAK_WOOD = Identifier.parse("stripped_pale_oak_wood");
+    public static final Identifier STRIPPED_POPLAR_LOG = Identifier.parse("stripped_poplar_log");
+    public static final Identifier STRIPPED_POPLAR_WOOD = Identifier.parse("stripped_poplar_wood");
     public static final Identifier STRIPPED_SPRUCE_LOG = Identifier.parse("stripped_spruce_log");
     public static final Identifier STRIPPED_SPRUCE_WOOD = Identifier.parse("stripped_spruce_wood");
     public static final Identifier STRIPPED_WARPED_HYPHAE = Identifier.parse("stripped_warped_hyphae");
@@ -1828,6 +1867,7 @@ public final class ItemIds {
     public static final Identifier WHITE_CARPET = Identifier.parse("white_carpet");
     public static final Identifier WHITE_CONCRETE = Identifier.parse("white_concrete");
     public static final Identifier WHITE_CONCRETE_POWDER = Identifier.parse("white_concrete_powder");
+    public static final Identifier WHITE_CUSHION = Identifier.parse("white_cushion");
     public static final Identifier WHITE_DYE = Identifier.parse("white_dye");
     public static final Identifier WHITE_GLAZED_TERRACOTTA = Identifier.parse("white_glazed_terracotta");
     public static final Identifier WHITE_HARNESS = Identifier.parse("white_harness");
@@ -1864,9 +1904,11 @@ public final class ItemIds {
     public static final Identifier YELLOW_CARPET = Identifier.parse("yellow_carpet");
     public static final Identifier YELLOW_CONCRETE = Identifier.parse("yellow_concrete");
     public static final Identifier YELLOW_CONCRETE_POWDER = Identifier.parse("yellow_concrete_powder");
+    public static final Identifier YELLOW_CUSHION = Identifier.parse("yellow_cushion");
     public static final Identifier YELLOW_DYE = Identifier.parse("yellow_dye");
     public static final Identifier YELLOW_GLAZED_TERRACOTTA = Identifier.parse("yellow_glazed_terracotta");
     public static final Identifier YELLOW_HARNESS = Identifier.parse("yellow_harness");
+    public static final Identifier YELLOW_POPLAR_LEAVES = Identifier.parse("yellow_poplar_leaves");
     public static final Identifier YELLOW_SHULKER_BOX = Identifier.parse("yellow_shulker_box");
     public static final Identifier YELLOW_STAINED_GLASS = Identifier.parse("yellow_stained_glass");
     public static final Identifier YELLOW_STAINED_GLASS_PANE = Identifier.parse("yellow_stained_glass_pane");

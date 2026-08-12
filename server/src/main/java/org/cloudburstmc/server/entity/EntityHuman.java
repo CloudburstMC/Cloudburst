@@ -167,12 +167,17 @@ public class EntityHuman extends EntityCreature implements Human {
                     }
                 }
                 skinTag.listenForString("GeometryName", skin::geometryName);
+                skinTag.listenForString("PlayFabId", skin::playFabId);
                 skinTag.listenForString("SkinResourcePatch", skin::skinResourcePatch);
                 skinTag.listenForByteArray("GeometryData", bytes -> skin.geometryData(new String(bytes, UTF_8)));
+                skinTag.listenForString("GeometryDataEngineVersion", skin::geometryDataEngineVersion);
                 skinTag.listenForByteArray("SkinAnimationData", bytes -> skin.animationData(new String(bytes, UTF_8)));
                 skinTag.listenForBoolean("PremiumSkin", skin::premium);
                 skinTag.listenForBoolean("PersonaSkin", skin::persona);
                 skinTag.listenForBoolean("CapeOnClassicSkin", skin::capeOnClassic);
+                skinTag.listenForBoolean("TrustedSkin", skin::trusted);
+                skinTag.listenForBoolean("OverrideSkin", skin::overridingPlayerAppearance);
+                skinTag.listenForString("ProfileHash", skin::profileHash);
                 if (skinTag.containsKey("AnimatedImageData")) {
                     List<NbtMap> list = skinTag.getList("AnimatedImageData", NbtType.COMPOUND);
                     List<AnimationData> animations = new ArrayList<>();
@@ -206,16 +211,21 @@ public class EntityHuman extends EntityCreature implements Human {
                     .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
                     .putInt("SkinImageHeight", nbtSkin.getSkinData().getHeight())
                     .putString("ModelId", nbtSkin.getSkinId())
+                    .putString("PlayFabId", nbtSkin.getPlayFabId())
                     .putString("CapeId", nbtSkin.getCapeId())
                     .putByteArray("CapeData", nbtSkin.getCapeData().getImage())
                     .putInt("CapeImageWidth", nbtSkin.getCapeData().getWidth())
                     .putInt("CapeImageHeight", nbtSkin.getCapeData().getHeight())
                     .putByteArray("SkinResourcePatch", nbtSkin.getSkinResourcePatch().getBytes(UTF_8))
                     .putByteArray("GeometryData", nbtSkin.getGeometryData().getBytes(UTF_8))
+                    .putString("GeometryDataEngineVersion", nbtSkin.getGeometryDataEngineVersion())
                     .putByteArray("SkinAnimationData", nbtSkin.getAnimationData().getBytes(UTF_8))
                     .putBoolean("PremiumSkin", nbtSkin.isPremium())
                     .putBoolean("PersonaSkin", nbtSkin.isPersona())
-                    .putBoolean("CapeOnClassicSkin", nbtSkin.isCapeOnClassic());
+                    .putBoolean("CapeOnClassicSkin", nbtSkin.isCapeOnClassic())
+                    .putBoolean("TrustedSkin", nbtSkin.isTrusted())
+                    .putBoolean("OverrideSkin", nbtSkin.isOverridingPlayerAppearance())
+                    .putString("ProfileHash", nbtSkin.getProfileHash());
             List<AnimationData> animations = nbtSkin.getAnimations();
             if (!animations.isEmpty()) {
                 List<NbtMap> animationsTag = new ArrayList<>();
@@ -287,7 +297,6 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setSkin(skin);
         packet.setNewSkinName(skin.getSkinId());
         packet.setOldSkinName("");
-        packet.setTrustedSkin(true);
         return packet;
     }
 

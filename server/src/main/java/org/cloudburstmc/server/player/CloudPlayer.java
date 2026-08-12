@@ -809,7 +809,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 Vector3i pos = this.respawnConfig.pos();
                 Block block = spawnLevel.getBlock(pos);
                 BlockType type = block.getState().getType();
-                if (type != BlockTypes.BED && type != BlockTypes.RESPAWN_ANCHOR) {
+                if (!type.is(BlockTags.BEDS) && type != BlockTypes.RESPAWN_ANCHOR) {
                     this.spawnLocation = null;
                     this.respawnConfig = null;
                     return this.getServer().getDefaultLevel().getSafeSpawn();
@@ -889,7 +889,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         BlockType type = block.getState().getType();
 
         if (this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED) {
-            if (type != BlockTypes.BED) {
+            if (!type.is(BlockTags.BEDS)) {
                 this.spawnLocation = null;
                 this.respawnConfig = null;
                 return null;
@@ -910,7 +910,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         Vector3f standUpPosition = this.respawnConfig.spawnType() == RespawnConfig.SpawnType.BED
                 ? BedBlockHandlers.findStandUpPosition(spawnLevel, pos,
-                block.getState().ensureTrait(BlockTraits.DIRECTION), respawnYaw)
+                BedBlockHandlers.getFacing(block.getState()), respawnYaw)
                 : RespawnAnchorBlockHandlers.findStandUpPosition(spawnLevel, pos);
         if (standUpPosition == null) {
             this.spawnLocation = null;
@@ -1048,11 +1048,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (dim != CloudLevel.DIMENSION_OVERWORLD) {
             BlockState headState = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
-            Direction facing = Direction.NORTH;
-            try {
-                facing = headState.ensureTrait(BlockTraits.DIRECTION);
-            } catch (Exception ignored) {
-            }
+            Direction facing = BedBlockHandlers.getFacing(headState);
 
             Vector3i footPos = Vector3i.from(
                     pos.getX() - facing.getStepX(),
@@ -2109,7 +2105,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(this.getUniqueId());
         startGamePacket.setRuntimeEntityId(this.getRuntimeId());
-        startGamePacket.setPlayerGameType(GameType.from(this.getGameMode().getVanillaId()));
+        GameType initialGameType = this.isSpectator() ? GameType.SURVIVAL : GameType.from(this.getGameMode().getVanillaId());
+        startGamePacket.setPlayerGameType(initialGameType);
         startGamePacket.setPlayerPosition(pos);
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1L);
@@ -2179,6 +2176,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
         availableEntityIdentifiersPacket.setIdentifiers(EntityRegistry.get().getEntityIdentifiersPalette());
         this.sendPacket(availableEntityIdentifiersPacket);
+
+        if (this.isSpectator()) {
+            SetPlayerGameTypePacket gameTypePacket = new SetPlayerGameTypePacket();
+            gameTypePacket.setGamemode(GameMode.SPECTATOR.getVanillaId());
+            this.sendPacket(gameTypePacket);
+        }
 
         this.loggedIn = true;
 

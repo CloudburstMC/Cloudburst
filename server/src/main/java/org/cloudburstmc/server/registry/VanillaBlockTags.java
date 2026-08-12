@@ -25,6 +25,7 @@ class VanillaBlockTags {
         initStairs();
         initSlab();
         initDoubleSlab();
+        initBed();
         initDoor();
         initTrapdoor();
         initLiquid();
@@ -47,7 +48,7 @@ class VanillaBlockTags {
         initMineableWithShovel();
 
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
-        inherit(TRANSPARENT, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
+        inherit(TRANSPARENT, BEDS, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
     }
 
     static void bind(BlockType type) {
@@ -688,7 +689,6 @@ class VanillaBlockTags {
                 BAMBOO_SAPLING,
                 BARRIER,
                 BEACON,
-                BED,
                 BELL,
                 BIG_DRIPLEAF,
                 BIRCH_LEAVES,
@@ -819,6 +819,10 @@ class VanillaBlockTags {
                 OAK_LEAVES,
                 OAK_SAPLING,
                 OBSERVER,
+                ORANGE_POPLAR_LEAVES,
+                PALE_OAK_LEAVES,
+                PALE_OAK_SAPLING,
+                POPLAR_SAPLING,
                 ORANGE_CARPET,
                 ORANGE_TULIP,
                 OXEYE_DAISY,
@@ -842,6 +846,7 @@ class VanillaBlockTags {
                 REDSTONE_WIRE,
                 RED_CARPET,
                 RED_MUSHROOM,
+                RED_POPLAR_LEAVES,
                 RED_TULIP,
                 REEDS,
                 ROSE_BUSH,
@@ -902,6 +907,7 @@ class VanillaBlockTags {
                 WITHER_ROSE,
                 WITHER_SKELETON_SKULL,
                 YELLOW_CARPET,
+                YELLOW_POPLAR_LEAVES,
                 ZOMBIE_HEAD
         );
     }
@@ -939,6 +945,7 @@ class VanillaBlockTags {
                 OAK_STAIRS,
                 OXIDIZED_CUT_COPPER_STAIRS,
                 PALE_OAK_STAIRS,
+                POPLAR_STAIRS,
                 POLISHED_ANDESITE_STAIRS,
                 POLISHED_BLACKSTONE_BRICK_STAIRS,
                 POLISHED_BLACKSTONE_STAIRS,
@@ -1010,6 +1017,7 @@ class VanillaBlockTags {
                 OAK_SLAB,
                 OXIDIZED_CUT_COPPER_SLAB,
                 PALE_OAK_SLAB,
+                POPLAR_SLAB,
                 PETRIFIED_OAK_SLAB,
                 POLISHED_ANDESITE_SLAB,
                 POLISHED_BLACKSTONE_BRICK_SLAB,
@@ -1080,6 +1088,7 @@ class VanillaBlockTags {
                 NETHER_BRICK_DOUBLE_SLAB,
                 OAK_DOUBLE_SLAB,
                 PALE_OAK_DOUBLE_SLAB,
+                POPLAR_DOUBLE_SLAB,
                 PETRIFIED_OAK_DOUBLE_SLAB,
                 POLISHED_ANDESITE_DOUBLE_SLAB,
                 POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB,
@@ -1113,6 +1122,10 @@ class VanillaBlockTags {
         );
     }
 
+    private static void initBed() {
+        tag(BEDS, BlockTypes.BED, STRAW_BED);
+    }
+
     private static void initDoor() {
         tag(DOOR,
                 ACACIA_DOOR,
@@ -1125,6 +1138,8 @@ class VanillaBlockTags {
                 JUNGLE_DOOR,
                 MANGROVE_DOOR,
                 OAK_DOOR,
+                PALE_OAK_DOOR,
+                POPLAR_DOOR,
                 SPRUCE_DOOR,
                 WARPED_DOOR
         );
@@ -1142,6 +1157,8 @@ class VanillaBlockTags {
                 JUNGLE_TRAPDOOR,
                 MANGROVE_TRAPDOOR,
                 OAK_TRAPDOOR,
+                PALE_OAK_TRAPDOOR,
+                POPLAR_TRAPDOOR,
                 SPRUCE_TRAPDOOR,
                 WARPED_TRAPDOOR
         );
@@ -1239,6 +1256,9 @@ class VanillaBlockTags {
                 PALE_OAK_HANGING_SIGN,
                 PALE_OAK_STANDING_SIGN,
                 PALE_OAK_WALL_SIGN,
+                POPLAR_HANGING_SIGN,
+                POPLAR_STANDING_SIGN,
+                POPLAR_WALL_SIGN,
                 SPRUCE_HANGING_SIGN,
                 SPRUCE_STANDING_SIGN,
                 SPRUCE_WALL_SIGN,
@@ -1266,7 +1286,9 @@ class VanillaBlockTags {
                 JUNGLE_BUTTON,
                 MANGROVE_BUTTON,
                 OAK_BUTTON,
+                PALE_OAK_BUTTON,
                 POLISHED_BLACKSTONE_BUTTON,
+                POPLAR_BUTTON,
                 SPRUCE_BUTTON,
                 STONE_BUTTON,
                 WARPED_BUTTON
@@ -1286,7 +1308,9 @@ class VanillaBlockTags {
                 LIGHT_WEIGHTED_PRESSURE_PLATE,
                 MANGROVE_PRESSURE_PLATE,
                 OAK_PRESSURE_PLATE,
+                PALE_OAK_PRESSURE_PLATE,
                 POLISHED_BLACKSTONE_PRESSURE_PLATE,
+                POPLAR_PRESSURE_PLATE,
                 SPRUCE_PRESSURE_PLATE,
                 STONE_PRESSURE_PLATE,
                 WARPED_PRESSURE_PLATE
@@ -1327,6 +1351,8 @@ class VanillaBlockTags {
                 MANGROVE_FENCE,
                 NETHER_BRICK_FENCE,
                 OAK_FENCE,
+                PALE_OAK_FENCE,
+                POPLAR_FENCE,
                 SPRUCE_FENCE,
                 WARPED_FENCE
         );
@@ -1343,6 +1369,8 @@ class VanillaBlockTags {
                 JUNGLE_FENCE_GATE,
                 MANGROVE_FENCE_GATE,
                 OAK_FENCE_GATE,
+                PALE_OAK_FENCE_GATE,
+                POPLAR_FENCE_GATE,
                 SPRUCE_FENCE_GATE,
                 WARPED_FENCE_GATE
         );
@@ -1380,6 +1408,7 @@ class VanillaBlockTags {
                 MANGROVE_LOG,
                 OAK_LOG,
                 PALE_OAK_LOG,
+                POPLAR_LOG,
                 SPRUCE_LOG,
                 STRIPPED_ACACIA_LOG,
                 STRIPPED_BIRCH_LOG,
@@ -1389,6 +1418,8 @@ class VanillaBlockTags {
                 STRIPPED_JUNGLE_LOG,
                 STRIPPED_MANGROVE_LOG,
                 STRIPPED_OAK_LOG,
+                STRIPPED_PALE_OAK_LOG,
+                STRIPPED_POPLAR_LOG,
                 STRIPPED_SPRUCE_LOG,
                 STRIPPED_WARPED_STEM,
                 WARPED_STEM
@@ -1408,6 +1439,7 @@ class VanillaBlockTags {
                 MANGROVE_PLANKS,
                 OAK_PLANKS,
                 PALE_OAK_PLANKS,
+                POPLAR_PLANKS,
                 SPRUCE_PLANKS,
                 WARPED_PLANKS
         );
@@ -1423,6 +1455,7 @@ class VanillaBlockTags {
                 JUNGLE_SAPLING,
                 OAK_SAPLING,
                 PALE_OAK_SAPLING,
+                POPLAR_SAPLING,
                 SPRUCE_SAPLING
         );
     }
@@ -1438,8 +1471,11 @@ class VanillaBlockTags {
                 JUNGLE_LEAVES,
                 MANGROVE_LEAVES,
                 OAK_LEAVES,
+                ORANGE_POPLAR_LEAVES,
                 PALE_OAK_LEAVES,
-                SPRUCE_LEAVES
+                RED_POPLAR_LEAVES,
+                SPRUCE_LEAVES,
+                YELLOW_POPLAR_LEAVES
         );
     }
 

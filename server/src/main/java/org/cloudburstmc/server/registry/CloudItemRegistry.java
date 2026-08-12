@@ -321,6 +321,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BIRCH_CHEST_BOAT);
         registerVanilla(ItemTypes.BIRCH_SIGN);
         registerVanilla(ItemTypes.BLACK_BUNDLE);
+        registerVanilla(ItemTypes.BLACK_CUSHION);
         registerVanilla(ItemTypes.BLACK_DYE);
         registerVanilla(ItemTypes.BLACK_HARNESS);
         registerVanilla(ItemTypes.BLADE_POTTERY_SHERD);
@@ -330,6 +331,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BLAZE));
         registerVanilla(ItemTypes.BLEACH);
         registerVanilla(ItemTypes.BLUE_BUNDLE);
+        registerVanilla(ItemTypes.BLUE_CUSHION);
         registerVanilla(ItemTypes.BLUE_DYE);
         registerVanilla(ItemTypes.BLUE_EGG);
         registerVanilla(ItemTypes.BLUE_HARNESS);
@@ -350,6 +352,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BREWER_POTTERY_SHERD);
         registerVanilla(ItemTypes.BRICK);
         registerVanilla(ItemTypes.BROWN_BUNDLE);
+        registerVanilla(ItemTypes.BROWN_CUSHION);
         registerVanilla(ItemTypes.BROWN_DYE);
         registerVanilla(ItemTypes.BROWN_EGG);
         registerVanilla(ItemTypes.BROWN_HARNESS);
@@ -431,6 +434,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CRIMSON_SIGN);
         registerVanilla(ItemTypes.CROSSBOW);
         registerVanilla(ItemTypes.CYAN_BUNDLE);
+        registerVanilla(ItemTypes.CYAN_CUSHION);
         registerVanilla(ItemTypes.CYAN_DYE);
         registerVanilla(ItemTypes.CYAN_HARNESS);
         registerVanilla(ItemTypes.DANGER_POTTERY_SHERD);
@@ -544,9 +548,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLDEN_SPEAR);
         registerVanilla(ItemTypes.GOLDEN_SWORD);
         registerVanilla(ItemTypes.GRAY_BUNDLE);
+        registerVanilla(ItemTypes.GRAY_CUSHION);
         registerVanilla(ItemTypes.GRAY_DYE);
         registerVanilla(ItemTypes.GRAY_HARNESS);
         registerVanilla(ItemTypes.GREEN_BUNDLE);
+        registerVanilla(ItemTypes.GREEN_CUSHION);
         registerVanilla(ItemTypes.GREEN_DYE);
         registerVanilla(ItemTypes.GREEN_HARNESS);
         registerVanilla(ItemTypes.GUARDIAN_SPAWN_EGG)
@@ -603,12 +609,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LEATHER_HORSE_ARMOR);
         registerArmorLeggings(ItemTypes.LEATHER_LEGGINGS);
         registerVanilla(ItemTypes.LIGHT_BLUE_BUNDLE);
+        registerVanilla(ItemTypes.LIGHT_BLUE_CUSHION);
         registerVanilla(ItemTypes.LIGHT_BLUE_DYE);
         registerVanilla(ItemTypes.LIGHT_BLUE_HARNESS);
         registerVanilla(ItemTypes.LIGHT_GRAY_BUNDLE);
+        registerVanilla(ItemTypes.LIGHT_GRAY_CUSHION);
         registerVanilla(ItemTypes.LIGHT_GRAY_DYE);
         registerVanilla(ItemTypes.LIGHT_GRAY_HARNESS);
         registerVanilla(ItemTypes.LIME_BUNDLE);
+        registerVanilla(ItemTypes.LIME_CUSHION);
         registerVanilla(ItemTypes.LIME_DYE);
         registerVanilla(ItemTypes.LIME_HARNESS);
         registerVanilla(ItemTypes.LINGERING_POTION);
@@ -617,6 +626,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LODESTONE_COMPASS);
         registerVanilla(ItemTypes.MACE);
         registerVanilla(ItemTypes.MAGENTA_BUNDLE);
+        registerVanilla(ItemTypes.MAGENTA_CUSHION);
         registerVanilla(ItemTypes.MAGENTA_DYE);
         registerVanilla(ItemTypes.MAGENTA_HARNESS);
         registerVanilla(ItemTypes.MAGMA_CREAM);
@@ -693,6 +703,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.OMINOUS_BOTTLE);
         registerVanilla(ItemTypes.OMINOUS_TRIAL_KEY);
         registerVanilla(ItemTypes.ORANGE_BUNDLE);
+        registerVanilla(ItemTypes.ORANGE_CUSHION);
         registerVanilla(ItemTypes.ORANGE_DYE);
         registerVanilla(ItemTypes.ORANGE_HARNESS);
         registerVanilla(ItemTypes.PAINTING);
@@ -719,6 +730,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.PILLAGER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.PILLAGER));
         registerVanilla(ItemTypes.PINK_BUNDLE);
+        registerVanilla(ItemTypes.PINK_CUSHION);
         registerVanilla(ItemTypes.PINK_DYE);
         registerVanilla(ItemTypes.PINK_HARNESS);
         registerVanilla(ItemTypes.PITCHER_POD);
@@ -727,6 +739,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.POLAR_BEAR_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.POLAR_BEAR));
         registerVanilla(ItemTypes.POPPED_CHORUS_FRUIT);
+        registerVanilla(ItemTypes.POPLAR_BOAT);
+        registerVanilla(ItemTypes.POPLAR_CHEST_BOAT);
+        registerVanilla(ItemTypes.POPLAR_SIGN);
         registerVanilla(ItemTypes.PORKCHOP);
         registerVanilla(ItemTypes.POTATO);
         registerVanilla(ItemTypes.POTION);
@@ -744,6 +759,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.PUMPKIN_PIE);
         registerVanilla(ItemTypes.PUMPKIN_SEEDS);
         registerVanilla(ItemTypes.PURPLE_BUNDLE);
+        registerVanilla(ItemTypes.PURPLE_CUSHION);
         registerVanilla(ItemTypes.PURPLE_DYE);
         registerVanilla(ItemTypes.PURPLE_HARNESS);
         registerVanilla(ItemTypes.QUARTZ);
@@ -762,6 +778,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.RAW_IRON);
         registerVanilla(ItemTypes.RECOVERY_COMPASS);
         registerVanilla(ItemTypes.RED_BUNDLE);
+        registerVanilla(ItemTypes.RED_CUSHION);
         registerVanilla(ItemTypes.RED_DYE);
         registerVanilla(ItemTypes.RED_HARNESS);
         registerVanilla(ItemTypes.REDSTONE);
@@ -881,6 +898,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.WHEAT_SEEDS);
         registerVanilla(ItemTypes.WHITE_BUNDLE);
+        registerVanilla(ItemTypes.WHITE_CUSHION);
         registerVanilla(ItemTypes.WHITE_DYE);
         registerVanilla(ItemTypes.WHITE_HARNESS);
         registerVanilla(ItemTypes.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
@@ -903,6 +921,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WRITABLE_BOOK);
         registerVanilla(ItemTypes.WRITTEN_BOOK);
         registerVanilla(ItemTypes.YELLOW_BUNDLE);
+        registerVanilla(ItemTypes.YELLOW_CUSHION);
         registerVanilla(ItemTypes.YELLOW_DYE);
         registerVanilla(ItemTypes.YELLOW_HARNESS);
         registerVanilla(ItemTypes.ZOGLIN_SPAWN_EGG)

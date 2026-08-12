@@ -81,7 +81,6 @@ import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 
-import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -263,16 +262,6 @@ public class CloudServer implements Server {
 
     public static void broadcastPacket(Set<CloudPlayer> players, BedrockPacket packet) {
         broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
-    }
-
-    private static Color parseSkinColor(String skinColor) {
-        if (skinColor != null && skinColor.startsWith("#") && skinColor.length() == 7) {
-            try {
-                return Color.decode(skinColor);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return Color.WHITE;
     }
 
     public static CloudServer getInstance() {
@@ -766,7 +755,9 @@ public class CloudServer implements Server {
 
     public void addOnlinePlayer(Player player) {
         this.playerList.put(player.getServerId(), (CloudPlayer) player);
-        this.updatePlayerListData(player.getServerId(), player.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(player.displayName()), ((CloudPlayer) player).getSerializedSkin(), player.getXuid());
+        this.updatePlayerListData(player.getServerId(), player.getUniqueId(),
+                BedrockLegacyTextSerializer.getInstance().serialize(player.displayName()),
+                ((CloudPlayer) player).getSerializedSkin(), player.getXuid(), this.playerList.values());
     }
 
     public void removeOnlinePlayer(Player player) {
@@ -774,8 +765,9 @@ public class CloudServer implements Server {
             this.playerList.remove(player.getServerId());
 
             PlayerListPacket packet = new PlayerListPacket();
-            packet.setAction(PlayerListPacket.Action.REMOVE);
-            packet.getEntries().add(new PlayerListPacket.Entry(player.getServerId()));
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(player.getServerId());
+            entry.setAction(PlayerListPacket.Action.REMOVE);
+            packet.getEntries().add(entry);
 
             CloudServer.broadcastPacket(this.playerList.values().toArray(new CloudPlayer[0]), packet);
         }
@@ -795,15 +787,14 @@ public class CloudServer implements Server {
 
     public void updatePlayerListData(UUID uuid, long entityId, String name, SerializedSkin skin, String xboxUserId, CloudPlayer[] players) {
         PlayerListPacket packet = new PlayerListPacket();
-        packet.setAction(PlayerListPacket.Action.ADD);
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
+        entry.setAction(PlayerListPacket.Action.ADD);
         entry.setEntityId(entityId);
         entry.setName(name);
         entry.setSkin(skin);
-        entry.setTrustedSkin(true);
         entry.setXuid(xboxUserId);
         entry.setPlatformChatId("");
-        entry.setColor(parseSkinColor(skin.getSkinColor()));
+        entry.setColor(skin.getColor());
         packet.getEntries().add(entry);
         CloudServer.broadcastPacket(players, packet);
     }
@@ -821,8 +812,9 @@ public class CloudServer implements Server {
 
     public void removePlayerListData(UUID uuid, CloudPlayer[] players) {
         PlayerListPacket packet = new PlayerListPacket();
-        packet.setAction(PlayerListPacket.Action.REMOVE);
-        packet.getEntries().add(new PlayerListPacket.Entry(uuid));
+        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
+        entry.setAction(PlayerListPacket.Action.REMOVE);
+        packet.getEntries().add(entry);
         CloudServer.broadcastPacket(players, packet);
     }
 
@@ -832,17 +824,16 @@ public class CloudServer implements Server {
 
     public void sendFullPlayerListData(CloudPlayer player) {
         PlayerListPacket packet = new PlayerListPacket();
-        packet.setAction(PlayerListPacket.Action.ADD);
         packet.getEntries().addAll(this.playerList.values().stream()
                 .map(p -> {
                     PlayerListPacket.Entry entry = new PlayerListPacket.Entry(p.getServerId());
+                    entry.setAction(PlayerListPacket.Action.ADD);
                     entry.setEntityId(p.getUniqueId());
                     entry.setName(BedrockLegacyTextSerializer.getInstance().serialize(p.displayName()));
                     entry.setSkin(p.getSerializedSkin());
-                    entry.setTrustedSkin(true);
                     entry.setXuid(p.getXuid());
                     entry.setPlatformChatId("");
-                    entry.setColor(parseSkinColor(p.getSerializedSkin().getSkinColor()));
+                    entry.setColor(p.getSerializedSkin().getColor());
                     return entry;
                 }).collect(Collectors.toList()));
 

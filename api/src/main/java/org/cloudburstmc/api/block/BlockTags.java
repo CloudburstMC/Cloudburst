@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class BlockTags {
+    public static final BlockTagKey BEDS = tag("beds");
     public static final BlockTagKey BUTTON = tag("button");
     public static final BlockTagKey CROPS = tag("crops");
     public static final BlockTagKey DOOR = tag("door");

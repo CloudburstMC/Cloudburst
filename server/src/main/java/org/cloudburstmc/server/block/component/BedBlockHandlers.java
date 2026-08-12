@@ -11,6 +11,7 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -21,7 +22,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.List;
 
@@ -80,13 +80,11 @@ public class BedBlockHandlers {
             return false;
         }
 
-        BlockState footState = blockState
-                .withTrait(BlockTraits.DIRECTION, facing)
+        BlockState footState = withFacing(blockState, facing)
                 .withTrait(BlockTraits.IS_HEAD_PIECE, false)
                 .withTrait(BlockTraits.IS_OCCUPIED, false);
 
-        BlockState headState = blockState
-                .withTrait(BlockTraits.DIRECTION, facing)
+        BlockState headState = withFacing(blockState, facing)
                 .withTrait(BlockTraits.IS_HEAD_PIECE, true)
                 .withTrait(BlockTraits.IS_OCCUPIED, false);
 
@@ -216,12 +214,25 @@ public class BedBlockHandlers {
     public static @Nullable Vector3f findStandUpPosition(CloudLevel level, Vector3i position, Direction forward, float yaw) {
         Direction right = forward.rotateClockwise();
         Direction side = right.isFacing(yaw) ? right.getOpposite() : right;
-        if (level.getBlockState(position.sub(0, 1, 0)).getType() == BlockTypes.BED) {
+        if (level.getBlockState(position.sub(0, 1, 0)).is(BlockTags.BEDS)) {
             return findBunkBedStandUpPosition(level, position, forward, side);
         }
 
         Vector3f safePosition = findBedStandUpPosition(level, position, forward, side, true);
         return safePosition != null ? safePosition : findBedStandUpPosition(level, position, forward, side, false);
+    }
+
+    public static Direction getFacing(BlockState state) {
+        if (state.getType().getTraits().contains(BlockTraits.DIRECTION)) {
+            return state.ensureTrait(BlockTraits.DIRECTION);
+        }
+
+        if (state.getType().getTraits().contains(BlockTraits.CARDINAL_DIRECTION)) {
+            CardinalDirection direction = state.ensureTrait(BlockTraits.CARDINAL_DIRECTION);
+            return direction.toDirection();
+        }
+
+        throw new IllegalArgumentException("Block state does not define a bed facing direction: " + state);
     }
 
     private static @Nullable Vector3f findBunkBedStandUpPosition(CloudLevel level, Vector3i position, Direction forward, Direction side) {
@@ -287,7 +298,7 @@ public class BedBlockHandlers {
             return block.getPosition();
         }
 
-        Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
+        Direction facing = getFacing(state);
         Vector3i foot = block.getPosition();
         return Vector3i.from(
                 foot.getX() + facing.getStepX(),
@@ -298,7 +309,7 @@ public class BedBlockHandlers {
 
     private static Vector3i resolvePartnerPos(Block block) {
         BlockState state = block.getState();
-        Direction facing = state.ensureTrait(BlockTraits.DIRECTION);
+        Direction facing = getFacing(state);
         boolean isHead = state.ensureTrait(BlockTraits.IS_HEAD_PIECE);
         Vector3i pos = block.getPosition();
         int stepX = facing.getStepX();
@@ -309,6 +320,13 @@ public class BedBlockHandlers {
         } else {
             return Vector3i.from(pos.getX() + stepX, pos.getY(), pos.getZ() + stepZ);
         }
+    }
+
+    private static BlockState withFacing(BlockState state, Direction direction) {
+        if (state.getType().getTraits().contains(BlockTraits.DIRECTION)) {
+            return state.withTrait(BlockTraits.DIRECTION, direction);
+        }
+        return state.withTrait(BlockTraits.CARDINAL_DIRECTION, direction.getCardinalDirection());
     }
 
     private record RelativeOffset(int sideSteps, int forwardSteps) {

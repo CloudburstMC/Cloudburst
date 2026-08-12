@@ -41,6 +41,7 @@ public class ItemTypes {
     public static final ItemType BIRCH_CHEST_BOAT = ItemType.of(ItemIds.BIRCH_CHEST_BOAT);
     public static final ItemType BIRCH_SIGN = ItemType.of(ItemIds.BIRCH_SIGN);
     public static final ItemType BLACK_BUNDLE = ItemType.of(ItemIds.BLACK_BUNDLE);
+    public static final ItemType BLACK_CUSHION = ItemType.of(ItemIds.BLACK_CUSHION);
     public static final ItemType BLACK_DYE = ItemType.of(ItemIds.BLACK_DYE);
     public static final ItemType BLACK_HARNESS = ItemType.of(ItemIds.BLACK_HARNESS);
     public static final ItemType BLADE_POTTERY_SHERD = ItemType.of(ItemIds.BLADE_POTTERY_SHERD);
@@ -49,6 +50,7 @@ public class ItemTypes {
     public static final ItemType BLAZE_SPAWN_EGG = ItemType.of(ItemIds.BLAZE_SPAWN_EGG);
     public static final ItemType BLEACH = ItemType.of(ItemIds.BLEACH);
     public static final ItemType BLUE_BUNDLE = ItemType.of(ItemIds.BLUE_BUNDLE);
+    public static final ItemType BLUE_CUSHION = ItemType.of(ItemIds.BLUE_CUSHION);
     public static final ItemType BLUE_DYE = ItemType.of(ItemIds.BLUE_DYE);
     public static final ItemType BLUE_EGG = ItemType.of(ItemIds.BLUE_EGG);
     public static final ItemType BLUE_HARNESS = ItemType.of(ItemIds.BLUE_HARNESS);
@@ -68,6 +70,7 @@ public class ItemTypes {
     public static final ItemType BREWING_STAND = ItemType.of(ItemIds.BREWING_STAND);
     public static final ItemType BRICK = ItemType.of(ItemIds.BRICK);
     public static final ItemType BROWN_BUNDLE = ItemType.of(ItemIds.BROWN_BUNDLE);
+    public static final ItemType BROWN_CUSHION = ItemType.of(ItemIds.BROWN_CUSHION);
     public static final ItemType BROWN_DYE = ItemType.of(ItemIds.BROWN_DYE);
     public static final ItemType BROWN_EGG = ItemType.of(ItemIds.BROWN_EGG);
     public static final ItemType BROWN_HARNESS = ItemType.of(ItemIds.BROWN_HARNESS);
@@ -139,6 +142,7 @@ public class ItemTypes {
     public static final ItemType CRIMSON_SIGN = ItemType.of(ItemIds.CRIMSON_SIGN);
     public static final ItemType CROSSBOW = ItemType.of(ItemIds.CROSSBOW);
     public static final ItemType CYAN_BUNDLE = ItemType.of(ItemIds.CYAN_BUNDLE);
+    public static final ItemType CYAN_CUSHION = ItemType.of(ItemIds.CYAN_CUSHION);
     public static final ItemType CYAN_DYE = ItemType.of(ItemIds.CYAN_DYE);
     public static final ItemType CYAN_HARNESS = ItemType.of(ItemIds.CYAN_HARNESS);
     public static final ItemType DANGER_POTTERY_SHERD = ItemType.of(ItemIds.DANGER_POTTERY_SHERD);
@@ -232,9 +236,11 @@ public class ItemTypes {
     public static final ItemType GOLD_INGOT = ItemType.of(ItemIds.GOLD_INGOT);
     public static final ItemType GOLD_NUGGET = ItemType.of(ItemIds.GOLD_NUGGET);
     public static final ItemType GRAY_BUNDLE = ItemType.of(ItemIds.GRAY_BUNDLE);
+    public static final ItemType GRAY_CUSHION = ItemType.of(ItemIds.GRAY_CUSHION);
     public static final ItemType GRAY_DYE = ItemType.of(ItemIds.GRAY_DYE);
     public static final ItemType GRAY_HARNESS = ItemType.of(ItemIds.GRAY_HARNESS);
     public static final ItemType GREEN_BUNDLE = ItemType.of(ItemIds.GREEN_BUNDLE);
+    public static final ItemType GREEN_CUSHION = ItemType.of(ItemIds.GREEN_CUSHION);
     public static final ItemType GREEN_DYE = ItemType.of(ItemIds.GREEN_DYE);
     public static final ItemType GREEN_HARNESS = ItemType.of(ItemIds.GREEN_HARNESS);
     public static final ItemType GUARDIAN_SPAWN_EGG = ItemType.of(ItemIds.GUARDIAN_SPAWN_EGG);
@@ -285,12 +291,15 @@ public class ItemTypes {
     public static final ItemType LEATHER_HORSE_ARMOR = ItemType.of(ItemIds.LEATHER_HORSE_ARMOR);
     public static final ItemType LEATHER_LEGGINGS = ItemType.of(ItemIds.LEATHER_LEGGINGS);
     public static final ItemType LIGHT_BLUE_BUNDLE = ItemType.of(ItemIds.LIGHT_BLUE_BUNDLE);
+    public static final ItemType LIGHT_BLUE_CUSHION = ItemType.of(ItemIds.LIGHT_BLUE_CUSHION);
     public static final ItemType LIGHT_BLUE_DYE = ItemType.of(ItemIds.LIGHT_BLUE_DYE);
     public static final ItemType LIGHT_BLUE_HARNESS = ItemType.of(ItemIds.LIGHT_BLUE_HARNESS);
     public static final ItemType LIGHT_GRAY_BUNDLE = ItemType.of(ItemIds.LIGHT_GRAY_BUNDLE);
+    public static final ItemType LIGHT_GRAY_CUSHION = ItemType.of(ItemIds.LIGHT_GRAY_CUSHION);
     public static final ItemType LIGHT_GRAY_DYE = ItemType.of(ItemIds.LIGHT_GRAY_DYE);
     public static final ItemType LIGHT_GRAY_HARNESS = ItemType.of(ItemIds.LIGHT_GRAY_HARNESS);
     public static final ItemType LIME_BUNDLE = ItemType.of(ItemIds.LIME_BUNDLE);
+    public static final ItemType LIME_CUSHION = ItemType.of(ItemIds.LIME_CUSHION);
     public static final ItemType LIME_DYE = ItemType.of(ItemIds.LIME_DYE);
     public static final ItemType LIME_HARNESS = ItemType.of(ItemIds.LIME_HARNESS);
     public static final ItemType LINGERING_POTION = ItemType.of(ItemIds.LINGERING_POTION);
@@ -298,6 +307,7 @@ public class ItemTypes {
     public static final ItemType LODESTONE_COMPASS = ItemType.of(ItemIds.LODESTONE_COMPASS);
     public static final ItemType MACE = ItemType.of(ItemIds.MACE);
     public static final ItemType MAGENTA_BUNDLE = ItemType.of(ItemIds.MAGENTA_BUNDLE);
+    public static final ItemType MAGENTA_CUSHION = ItemType.of(ItemIds.MAGENTA_CUSHION);
     public static final ItemType MAGENTA_DYE = ItemType.of(ItemIds.MAGENTA_DYE);
     public static final ItemType MAGENTA_HARNESS = ItemType.of(ItemIds.MAGENTA_HARNESS);
     public static final ItemType MAGMA_CREAM = ItemType.of(ItemIds.MAGMA_CREAM);
@@ -369,6 +379,7 @@ public class ItemTypes {
     public static final ItemType OMINOUS_BOTTLE = ItemType.of(ItemIds.OMINOUS_BOTTLE);
     public static final ItemType OMINOUS_TRIAL_KEY = ItemType.of(ItemIds.OMINOUS_TRIAL_KEY);
     public static final ItemType ORANGE_BUNDLE = ItemType.of(ItemIds.ORANGE_BUNDLE);
+    public static final ItemType ORANGE_CUSHION = ItemType.of(ItemIds.ORANGE_CUSHION);
     public static final ItemType ORANGE_DYE = ItemType.of(ItemIds.ORANGE_DYE);
     public static final ItemType ORANGE_HARNESS = ItemType.of(ItemIds.ORANGE_HARNESS);
     public static final ItemType PAINTING = ItemType.of(ItemIds.PAINTING);
@@ -387,12 +398,16 @@ public class ItemTypes {
     public static final ItemType PIG_SPAWN_EGG = ItemType.of(ItemIds.PIG_SPAWN_EGG);
     public static final ItemType PILLAGER_SPAWN_EGG = ItemType.of(ItemIds.PILLAGER_SPAWN_EGG);
     public static final ItemType PINK_BUNDLE = ItemType.of(ItemIds.PINK_BUNDLE);
+    public static final ItemType PINK_CUSHION = ItemType.of(ItemIds.PINK_CUSHION);
     public static final ItemType PINK_DYE = ItemType.of(ItemIds.PINK_DYE);
     public static final ItemType PINK_HARNESS = ItemType.of(ItemIds.PINK_HARNESS);
     public static final ItemType PITCHER_POD = ItemType.of(ItemIds.PITCHER_POD);
     public static final ItemType PLENTY_POTTERY_SHERD = ItemType.of(ItemIds.PLENTY_POTTERY_SHERD);
     public static final ItemType POISONOUS_POTATO = ItemType.of(ItemIds.POISONOUS_POTATO);
     public static final ItemType POLAR_BEAR_SPAWN_EGG = ItemType.of(ItemIds.POLAR_BEAR_SPAWN_EGG);
+    public static final ItemType POPLAR_BOAT = ItemType.of(ItemIds.POPLAR_BOAT);
+    public static final ItemType POPLAR_CHEST_BOAT = ItemType.of(ItemIds.POPLAR_CHEST_BOAT);
+    public static final ItemType POPLAR_SIGN = ItemType.of(ItemIds.POPLAR_SIGN);
     public static final ItemType POPPED_CHORUS_FRUIT = ItemType.of(ItemIds.POPPED_CHORUS_FRUIT);
     public static final ItemType PORKCHOP = ItemType.of(ItemIds.PORKCHOP);
     public static final ItemType POTATO = ItemType.of(ItemIds.POTATO);
@@ -407,6 +422,7 @@ public class ItemTypes {
     public static final ItemType PUMPKIN_PIE = ItemType.of(ItemIds.PUMPKIN_PIE);
     public static final ItemType PUMPKIN_SEEDS = ItemType.of(ItemIds.PUMPKIN_SEEDS);
     public static final ItemType PURPLE_BUNDLE = ItemType.of(ItemIds.PURPLE_BUNDLE);
+    public static final ItemType PURPLE_CUSHION = ItemType.of(ItemIds.PURPLE_CUSHION);
     public static final ItemType PURPLE_DYE = ItemType.of(ItemIds.PURPLE_DYE);
     public static final ItemType PURPLE_HARNESS = ItemType.of(ItemIds.PURPLE_HARNESS);
     public static final ItemType QUARTZ = ItemType.of(ItemIds.QUARTZ);
@@ -424,6 +440,7 @@ public class ItemTypes {
     public static final ItemType RECOVERY_COMPASS = ItemType.of(ItemIds.RECOVERY_COMPASS);
     public static final ItemType REDSTONE = ItemType.of(ItemIds.REDSTONE);
     public static final ItemType RED_BUNDLE = ItemType.of(ItemIds.RED_BUNDLE);
+    public static final ItemType RED_CUSHION = ItemType.of(ItemIds.RED_CUSHION);
     public static final ItemType RED_DYE = ItemType.of(ItemIds.RED_DYE);
     public static final ItemType RED_HARNESS = ItemType.of(ItemIds.RED_HARNESS);
     public static final ItemType REPEATER = ItemType.of(ItemIds.REPEATER);
@@ -476,6 +493,7 @@ public class ItemTypes {
     public static final ItemType STONE_SHOVEL = ItemType.of(ItemIds.STONE_SHOVEL);
     public static final ItemType STONE_SPEAR = ItemType.of(ItemIds.STONE_SPEAR);
     public static final ItemType STONE_SWORD = ItemType.of(ItemIds.STONE_SWORD);
+    public static final ItemType STRAW_BED = ItemType.of(ItemIds.STRAW_BED);
     public static final ItemType STRAY_SPAWN_EGG = ItemType.of(ItemIds.STRAY_SPAWN_EGG);
     public static final ItemType STRIDER_SPAWN_EGG = ItemType.of(ItemIds.STRIDER_SPAWN_EGG);
     public static final ItemType STRING = ItemType.of(ItemIds.STRING);
@@ -514,6 +532,7 @@ public class ItemTypes {
     public static final ItemType WHEAT = ItemType.of(ItemIds.WHEAT);
     public static final ItemType WHEAT_SEEDS = ItemType.of(ItemIds.WHEAT_SEEDS);
     public static final ItemType WHITE_BUNDLE = ItemType.of(ItemIds.WHITE_BUNDLE);
+    public static final ItemType WHITE_CUSHION = ItemType.of(ItemIds.WHITE_CUSHION);
     public static final ItemType WHITE_DYE = ItemType.of(ItemIds.WHITE_DYE);
     public static final ItemType WHITE_HARNESS = ItemType.of(ItemIds.WHITE_HARNESS);
     public static final ItemType WILD_ARMOR_TRIM_SMITHING_TEMPLATE = ItemType.of(ItemIds.WILD_ARMOR_TRIM_SMITHING_TEMPLATE);
@@ -532,6 +551,7 @@ public class ItemTypes {
     public static final ItemType WRITABLE_BOOK = ItemType.of(ItemIds.WRITABLE_BOOK);
     public static final ItemType WRITTEN_BOOK = ItemType.of(ItemIds.WRITTEN_BOOK);
     public static final ItemType YELLOW_BUNDLE = ItemType.of(ItemIds.YELLOW_BUNDLE);
+    public static final ItemType YELLOW_CUSHION = ItemType.of(ItemIds.YELLOW_CUSHION);
     public static final ItemType YELLOW_DYE = ItemType.of(ItemIds.YELLOW_DYE);
     public static final ItemType YELLOW_HARNESS = ItemType.of(ItemIds.YELLOW_HARNESS);
     public static final ItemType ZOGLIN_SPAWN_EGG = ItemType.of(ItemIds.ZOGLIN_SPAWN_EGG);

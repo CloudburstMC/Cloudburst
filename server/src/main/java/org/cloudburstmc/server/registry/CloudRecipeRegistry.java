@@ -758,9 +758,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                             addShulkerBoxToPacket(packet, (CloudShapelessRecipe) recipe, entry.getKey(), blockTag, netId);
                     case SHAPED, SHAPED_CHEMISTRY ->
                             addShapedToPacket(packet, (CloudShapedRecipe) recipe, entry.getKey(), blockTag, netId);
-                    case COOKING -> packet.getCraftingData().add(((CloudFurnaceRecipe) recipe).toNetwork(entry.getKey(), netId));
+                    case COOKING -> packet.getShapelessData().add(((CloudFurnaceRecipe) recipe).toNetwork(entry.getKey(), netId));
                     case COMPLEX ->
-                            packet.getCraftingData().add(MultiRecipeData.of(((CloudComplexRecipe) recipe).uuid(), netId));
+                            packet.getMultiData().add(MultiRecipeData.of(((CloudComplexRecipe) recipe).uuid(), netId));
                     case SMITHING_TRANSFORM ->
                             addSmithingTransformToPacket(packet, (CloudSmithingTransformRecipe) recipe, blockTag, netId);
                     case SMITHING_TRIM ->
@@ -786,7 +786,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         if (recipe.getType() == RecipeType.SHAPELESS_CHEMISTRY) {
-            packet.getCraftingData().add(ShapelessRecipeData.shapelessChemistry(
+            packet.getShapelessChemistryData().add(ShapelessRecipeData.shapelessChemistry(
                     recipe.getId().toString(),
                     descriptors,
                     ItemUtils.toNetworkRecipe(recipe.getAllResults()),
@@ -795,7 +795,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     recipe.getPriority(),
                     netId));
         } else {
-            packet.getCraftingData().add(ShapelessRecipeData.shapeless(
+            packet.getShapelessData().add(ShapelessRecipeData.shapeless(
                     recipe.getId().toString(),
                     descriptors,
                     ItemUtils.toNetworkRecipe(recipe.getAllResults()),
@@ -808,7 +808,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addStonecuttingToPacket(CraftingDataPacket packet, CloudStonecuttingRecipe recipe, UUID uuid, String blockTag, int netId) {
-        packet.getCraftingData().add(ShapelessRecipeData.shapeless(
+        packet.getShapelessData().add(ShapelessRecipeData.shapeless(
                 recipe.getId().toString(),
                 ItemUtils.toRecipeDescriptors(recipe.getInputDescriptors()),
                 ItemUtils.toNetworkRecipe(List.of(recipe.getResult())),
@@ -820,7 +820,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addShulkerBoxToPacket(CraftingDataPacket packet, CloudShapelessRecipe recipe, UUID uuid, String blockTag, int netId) {
-        packet.getCraftingData().add(ShapelessRecipeData.shulkerBox(
+        packet.getShapelessUserData().add(ShapelessRecipeData.shulkerBox(
                 recipe.getId().toString(),
                 resolveDescriptors(recipe),
                 ItemUtils.toNetworkRecipe(recipe.getAllResults()),
@@ -838,7 +838,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         if (recipe.getType() == RecipeType.SHAPED_CHEMISTRY) {
-            packet.getCraftingData().add(ShapedRecipeData.shapedChemistry(
+            packet.getShapedChemistryData().add(ShapedRecipeData.shapedChemistry(
                     recipe.getId().toString(),
                     recipe.getWidth(),
                     recipe.getHeight(),
@@ -850,7 +850,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     netId,
                     recipe.isAssumeSymmetry()));
         } else {
-            packet.getCraftingData().add(ShapedRecipeData.shaped(
+            packet.getShapedData().add(ShapedRecipeData.shaped(
                     recipe.getId().toString(),
                     recipe.getWidth(),
                     recipe.getHeight(),
@@ -866,7 +866,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addSmithingTransformToPacket(CraftingDataPacket packet, CloudSmithingTransformRecipe recipe, String blockTag, int netId) {
-        packet.getCraftingData().add(SmithingTransformRecipeData.of(
+        packet.getSmithingTransformData().add(SmithingTransformRecipeData.of(
                 recipe.getId().toString(),
                 ItemUtils.toRecipeDescriptors(List.of(recipe.getTemplateDescriptor())).getFirst(),
                 ItemUtils.toRecipeDescriptors(List.of(recipe.getBaseDescriptor())).getFirst(),
@@ -877,7 +877,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addSmithingTrimToPacket(CraftingDataPacket packet, CloudSmithingTrimRecipe recipe, String blockTag, int netId) {
-        packet.getCraftingData().add(SmithingTrimRecipeData.of(
+        packet.getSmithingTrimData().add(SmithingTrimRecipeData.of(
                 recipe.getId().toString(),
                 recipe.getBaseDescriptor(),
                 recipe.getAdditionDescriptor(),

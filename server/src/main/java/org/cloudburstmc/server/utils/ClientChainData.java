@@ -117,6 +117,7 @@ public final class ClientChainData implements LoginChainData {
         if (skinToken.has("DefaultInputMode")) this.defaultInputMode = skinToken.get("DefaultInputMode").intValue();
         if (skinToken.has("UIProfile")) this.UIProfile = skinToken.get("UIProfile").intValue();
         this.skin = SkinUtils.fromToken(skinToken);
+        this.skin.setGeometryDataEngineVersion(this.gameVersion);
     }
 
     @Override

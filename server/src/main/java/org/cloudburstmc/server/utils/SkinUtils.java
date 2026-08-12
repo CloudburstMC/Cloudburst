@@ -9,6 +9,7 @@ import org.cloudburstmc.api.player.skin.data.PersonaPieceTint;
 import org.cloudburstmc.api.player.skin.data.SkinAnimation;
 import org.cloudburstmc.protocol.bedrock.data.skin.*;
 
+import java.awt.Color;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -32,17 +33,21 @@ public class SkinUtils {
                     data.getExpressionType().ordinal()));
         }
         skin.getPersonaPieces().forEach((piece) -> newSkin.getPersonaPieces().add(new PersonaPiece(piece.getId(), piece.getType(), piece.getPackId(), piece.isDefault(), piece.getProductId())));
-        skin.getTintColors().forEach(color -> newSkin.getTintColors().add(new PersonaPieceTint(color.getType(), color.getColors())));
+        skin.getTintColors().forEach(tint -> newSkin.getTintColors().add(new PersonaPieceTint(
+                tint.getType(), tint.getColorsNew().stream().map(SkinUtils::formatColor).toList())));
         newSkin.setCapeData(new ImageData(skin.getCapeData().getWidth(), skin.getCapeData().getHeight(), skin.getCapeData().getImage()));
         newSkin.setGeometryData(skin.getGeometryData());
+        newSkin.setGeometryDataEngineVersion(skin.getGeometryDataEngineVersion());
         newSkin.setAnimationData(skin.getAnimationData());
         newSkin.setPremium(skin.isPremium());
         newSkin.setPersona(skin.isPersona());
         newSkin.setCapeOnClassic(skin.isCapeOnClassic());
         newSkin.setCapeId(skin.getCapeId());
-        newSkin.setSkinColor(skin.getSkinColor());
+        newSkin.setSkinColor(formatColor(skin.getColor()));
         newSkin.setArmSize(skin.getArmSize());
-        newSkin.setTrusted(false);
+        newSkin.setTrusted(skin.isTrusted());
+        newSkin.setOverridingPlayerAppearance(skin.isOverridingPlayerAppearance());
+        newSkin.setProfileHash(skin.getProfileHash());
         return newSkin;
     }
 
@@ -55,13 +60,17 @@ public class SkinUtils {
                 .skinData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(skin.getSkinData().getWidth(), skin.getSkinData().getHeight(), skin.getSkinData().getImage()))
                 .capeData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(skin.getCapeData().getWidth(), skin.getCapeData().getHeight(), skin.getCapeData().getImage()))
                 .geometryData(skin.getGeometryData())
+                .geometryDataEngineVersion(skin.getGeometryDataEngineVersion())
                 .animationData(skin.getAnimationData())
                 .premium(skin.isPremium())
                 .persona(skin.isPersona())
                 .capeOnClassic(skin.isCapeOnClassic())
                 .capeId(skin.getCapeId())
-                .skinColor(skin.getSkinColor())
-                .armSize(skin.getArmSize());
+                .color(parseColor(skin.getSkinColor()))
+                .armSize(skin.getArmSize())
+                .trusted(skin.isTrusted())
+                .overridingPlayerAppearance(skin.isOverridingPlayerAppearance())
+                .profileHash(skin.getProfileHash());
 
         List<AnimationData> animations = new ArrayList<>();
         List<PersonaPieceData> personas = new ArrayList<>();
@@ -69,7 +78,9 @@ public class SkinUtils {
 
         skin.getAnimations().forEach(animation -> animations.add(new AnimationData(org.cloudburstmc.protocol.bedrock.data.skin.ImageData.of(animation.getImage().getWidth(), animation.getImage().getHeight(), animation.getImage().getImage()), AnimatedTextureType.values()[animation.getType()], animation.getFrames(), AnimationExpressionType.values()[animation.getExpression()])));
         skin.getPersonaPieces().forEach(piece -> personas.add(new PersonaPieceData(piece.getId(), piece.getType(), piece.getPackId(), piece.isDefault(), piece.getProductId())));
-        skin.getTintColors().forEach(color -> tints.add(new PersonaPieceTintData(color.getPieceType(), color.getColors())));
+        skin.getTintColors().forEach(tint -> tints.add(new PersonaPieceTintData(
+                PersonaPieceType.fromName(tint.getPieceType()),
+                tint.getColors().stream().map(SkinUtils::parseColor).toList())));
 
         builder.animations(animations).personaPieces(personas).tintColors(tints);
 
@@ -150,6 +161,9 @@ public class SkinUtils {
         if (skinToken.has("ArmSize")) {
             newSkin.setArmSize(skinToken.get("ArmSize").stringValue());
         }
+        if (skinToken.has("ProfileHash")) {
+            newSkin.setProfileHash(skinToken.get("ProfileHash").stringValue());
+        }
 
         return newSkin;
     }
@@ -167,6 +181,30 @@ public class SkinUtils {
         return new SkinAnimation(new ImageData(width, height, data), type, frames, expression);
     }
 
+    private static Color parseColor(String value) {
+        if (value == null || value.isBlank() || value.equals("#0")) {
+            return new Color(0, true);
+        }
+
+        String hexadecimal = value.startsWith("#") ? value.substring(1) : value;
+        try {
+            return switch (hexadecimal.length()) {
+                case 6 -> new Color(Integer.parseUnsignedInt(hexadecimal, 16));
+                case 8 -> new Color((int) Long.parseLong(hexadecimal, 16), true);
+                default -> throw new IllegalArgumentException("Invalid skin color: " + value);
+            };
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Invalid skin color: " + value, exception);
+        }
+    }
+
+    private static String formatColor(Color color) {
+        if (color == null || color.getAlpha() == 0) {
+            return "#0";
+        }
+        return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+    }
+
     private static ImageData getImage(JsonNode token, String name) {
         if (token.has(name + "Data")) {
             byte[] skinImage = Base64.getDecoder().decode(token.get(name + "Data").stringValue());
@@ -175,18 +213,13 @@ public class SkinUtils {
                 int height = token.get(name + "ImageHeight").intValue();
                 return new ImageData(width, height, skinImage);
             } else {
-                switch (skinImage.length / 4) {
-                    case 2048:
-                        return new ImageData(64, 32, skinImage);
-                    case 4096:
-                        return new ImageData(64, 64, skinImage);
-                    case 8192:
-                        return new ImageData(128, 64, skinImage);
-                    case 16384:
-                        return new ImageData(128, 128, skinImage);
-                    default:
-                        return ImageData.EMPTY;
-                }
+                return switch (skinImage.length / 4) {
+                    case 2048 -> new ImageData(64, 32, skinImage);
+                    case 4096 -> new ImageData(64, 64, skinImage);
+                    case 8192 -> new ImageData(128, 64, skinImage);
+                    case 16384 -> new ImageData(128, 128, skinImage);
+                    default -> ImageData.EMPTY;
+                };
             }
         }
         return ImageData.EMPTY;

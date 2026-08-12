@@ -28,7 +28,12 @@ public class FloatingTextParticle extends Particle {
     static {
         EMPTY_SKIN = SerializedSkin.builder()
                 .skinId("FloatingText")
-                .skinData(SKIN_DATA).build();
+                .fullSkinId("FloatingText")
+                .skinResourcePatch("{\"geometry\":{\"default\":\"geometry.humanoid.custom\"}}")
+                .skinData(SKIN_DATA)
+                .geometryData("{}")
+                .trusted(true)
+                .build();
     }
 
     protected final CloudLevel level;
@@ -128,6 +133,7 @@ public class FloatingTextParticle extends Particle {
 
         if (!this.invisible) {
             PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
+            entry.setAction(PlayerListPacket.Action.ADD);
             entry.setEntityId(entityId);
             entry.setName(dataMap.get(NAME));
             entry.setSkin(EMPTY_SKIN);
@@ -136,7 +142,6 @@ public class FloatingTextParticle extends Particle {
             entry.setColor(Color.WHITE);
             PlayerListPacket playerAdd = new PlayerListPacket();
             playerAdd.getEntries().add(entry);
-            playerAdd.setAction(PlayerListPacket.Action.ADD);
             packets.add(playerAdd);
 
             AddPlayerPacket packet = new AddPlayerPacket();
@@ -157,8 +162,9 @@ public class FloatingTextParticle extends Particle {
             packets.add(packet);
 
             PlayerListPacket playerRemove = new PlayerListPacket();
-            playerRemove.getEntries().add(entry);
-            playerRemove.setAction(PlayerListPacket.Action.REMOVE);
+            PlayerListPacket.Entry removal = new PlayerListPacket.Entry(uuid);
+            removal.setAction(PlayerListPacket.Action.REMOVE);
+            playerRemove.getEntries().add(removal);
             packets.add(playerRemove);
         }
 

@@ -19,7 +19,7 @@ class VanillaBlockEntityBlocks {
     static final Set<BlockType> BANNERS = Set.of(WALL_BANNER, STANDING_BANNER);
     static final Set<BlockType> BARRELS = Set.of(BARREL);
     static final Set<BlockType> BEACONS = Set.of(BEACON);
-    static final Set<BlockType> BEDS = Set.of(BED);
+    static final Set<BlockType> BEDS = Set.of(BED, STRAW_BED);
     static final Set<BlockType> BELLS = Set.of(BELL);
     static final Set<BlockType> BLAST_FURNACES = Set.of(BLAST_FURNACE, LIT_BLAST_FURNACE);
     static final Set<BlockType> BREWING_STANDS = Set.of(BREWING_STAND);
@@ -64,6 +64,7 @@ class VanillaBlockEntityBlocks {
             MANGROVE_HANGING_SIGN, MANGROVE_STANDING_SIGN, MANGROVE_WALL_SIGN,
             OAK_HANGING_SIGN, OAK_STANDING_SIGN, OAK_WALL_SIGN,
             PALE_OAK_HANGING_SIGN, PALE_OAK_STANDING_SIGN, PALE_OAK_WALL_SIGN,
+            POPLAR_HANGING_SIGN, POPLAR_STANDING_SIGN, POPLAR_WALL_SIGN,
             SPRUCE_HANGING_SIGN, SPRUCE_STANDING_SIGN, SPRUCE_WALL_SIGN,
             WARPED_HANGING_SIGN, WARPED_STANDING_SIGN, WARPED_WALL_SIGN);
     static final Set<BlockType> SKULLS = Set.of(

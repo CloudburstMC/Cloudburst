@@ -1506,7 +1506,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
             if (sectionY < minSectionY || sectionY > maxSectionY) {
                 subChunkData.setResult(SubChunkRequestResult.INDEX_OUT_OF_BOUNDS);
-                subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1518,7 +1517,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
             if (chunk == null) {
                 subChunkData.setResult(SubChunkRequestResult.CHUNK_NOT_FOUND);
-                subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 subChunkData.setHeightMapType(HeightMapDataType.NO_DATA);
                 subChunkData.setRenderHeightMapType(HeightMapDataType.NO_DATA);
                 responseChunks.add(subChunkData);
@@ -1548,12 +1546,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         } else {
                             heightSectionCoord = highestY >> 4;
                         }
-                        int idx = (hx << 4) | hz;
+                        int idx = (hz << 4) | hx;
                         if (heightSectionCoord > sectionY) {
                             heightMap[idx] = 16;
                             allLower = false;
                         } else if (heightSectionCoord < sectionY) {
-                            heightMap[idx] = 0;
+                            heightMap[idx] = -1;
                             allHigher = false;
                         } else {
                             heightMap[idx] = (byte) (highestY & 0xf);
@@ -1564,25 +1562,22 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 }
 
                 HeightMapDataType hMapType;
-                ByteBuf heightMapBuf;
                 if (allHigher) {
                     hMapType = HeightMapDataType.TOO_HIGH;
-                    heightMapBuf = Unpooled.EMPTY_BUFFER;
                 } else if (allLower) {
                     hMapType = HeightMapDataType.TOO_LOW;
-                    heightMapBuf = Unpooled.EMPTY_BUFFER;
                 } else {
                     hMapType = HeightMapDataType.HAS_DATA;
-                    heightMapBuf = Unpooled.copiedBuffer(heightMap);
                 }
                 subChunkData.setHeightMapType(hMapType);
-                subChunkData.setHeightMapData(heightMapBuf);
                 subChunkData.setRenderHeightMapType(hMapType);
-                subChunkData.setRenderHeightMapData(hMapType == HeightMapDataType.HAS_DATA ? Unpooled.copiedBuffer(heightMap) : Unpooled.EMPTY_BUFFER);
+                if (hMapType == HeightMapDataType.HAS_DATA) {
+                    subChunkData.setHeightMapData(Unpooled.copiedBuffer(heightMap));
+                    subChunkData.setRenderHeightMapData(Unpooled.copiedBuffer(heightMap));
+                }
 
                 if (section == null || section.isEmpty()) {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS_ALL_AIR);
-                    subChunkData.setData(Unpooled.EMPTY_BUFFER);
                 } else {
                     subChunkData.setResult(SubChunkRequestResult.SUCCESS);
 
