@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -234,6 +235,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     @Override
     public CloudItemDefinition getDefinition(int runtimeId) {
         return itemPalette.getDefinition(runtimeId);
+    }
+
+    @Nullable
+    @Override
+    public CloudItemDefinition getDefinition(String identifier) {
+        return itemPalette.getDefinition(Identifier.parse(identifier));
     }
 
     @Override
