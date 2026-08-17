@@ -14,6 +14,18 @@ public final class VanillaTools {
                 .build();
     }
 
+    public static Tool pickaxe(float speed) {
+        return Tool.builder()
+                .addRule(Tool.Rule.tag(BlockTags.MINEABLE_WITH_PICKAXE, speed, true))
+                .build();
+    }
+
+    public static Tool axe(float speed) {
+        return Tool.builder()
+                .addRule(Tool.Rule.tag(BlockTags.MINEABLE_WITH_AXE, speed, true))
+                .build();
+    }
+
     public static Tool shears() {
         return Tool.builder().build();
     }

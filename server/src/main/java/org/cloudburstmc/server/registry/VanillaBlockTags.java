@@ -46,6 +46,8 @@ class VanillaBlockTags {
         initSapling();
         initLeaves();
         initMineableWithShovel();
+        initMineableWithPickaxe();
+        initMineableWithAxe();
 
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
         inherit(TRANSPARENT, BEDS, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
@@ -1490,6 +1492,35 @@ class VanillaBlockTags {
                 MAGENTA_CONCRETE_POWDER, ORANGE_CONCRETE_POWDER, PINK_CONCRETE_POWDER,
                 PURPLE_CONCRETE_POWDER, RED_CONCRETE_POWDER, WHITE_CONCRETE_POWDER,
                 YELLOW_CONCRETE_POWDER);
+    }
+
+    private static void initMineableWithPickaxe() {
+        tag(MINEABLE_WITH_PICKAXE,
+                STONE,
+                GRANITE,
+                POLISHED_GRANITE,
+                DIORITE,
+                POLISHED_DIORITE,
+                ANDESITE,
+                POLISHED_ANDESITE); // TODO Add more!
+    }
+
+    private static void initMineableWithAxe() {
+        tag(MINEABLE_WITH_AXE,
+                OAK_LOG,
+                ACACIA_LOG,
+                PALE_OAK_LOG,
+                SPRUCE_LOG,
+                DARK_OAK_LOG,
+                JUNGLE_LOG,
+                BIRCH_LOG,
+                STRIPPED_OAK_LOG,
+                STRIPPED_ACACIA_LOG,
+                STRIPPED_PALE_OAK_LOG,
+                STRIPPED_SPRUCE_LOG,
+                STRIPPED_DARK_OAK_LOG,
+                STRIPPED_JUNGLE_LOG,
+                STRIPPED_BIRCH_LOG); // TODO Add more!
     }
 
     private static void initShulkerBox() {
