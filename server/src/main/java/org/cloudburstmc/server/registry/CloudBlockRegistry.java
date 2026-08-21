@@ -1562,24 +1562,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STICKY_PISTON);
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
         this.registerVanilla(STONE)
-                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel)->
-                        COBBLESTONE.asItem()
-                                .map(itemType -> ItemStack.builder()
-                                        .itemType(itemType)
-                                        .data(ItemKeys.BLOCK_STATE, STONE.getDefaultState())
-                                        .amount(1)
-                                        .build())
-                                .orElse(ItemStack.EMPTY)
-                )
-                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel)->
-                        STONE.asItem()
-                                .map(itemType -> ItemStack.builder()
-                                        .itemType(itemType)
-                                        .data(ItemKeys.BLOCK_STATE, STONE.getDefaultState())
-                                        .amount(1)
-                                        .build())
-                                .orElse(ItemStack.EMPTY)
-                );
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel)-> ItemStack.from(BlockTypes.COBBLESTONE.getDefaultState()))
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel)-> ItemStack.from(BlockTypes.STONE.getDefaultState()));
         this.registerVanilla(STONECUTTER)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);
