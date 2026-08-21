@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.collect.HashBiMap;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.registry.BlockRegistry;
@@ -903,7 +904,25 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GRANITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(GRANITE_DOUBLE_SLAB));
         this.registerStairs(GRANITE_STAIRS);
         this.registerVanilla(GRANITE_WALL);
-        this.registerVanilla(GRASS_BLOCK);
+        this.registerVanilla(GRASS_BLOCK)
+            .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) ->
+                    BlockTypes.DIRT.asItem()
+                                   .map(itemType -> ItemStack.builder()
+                                           .itemType(itemType)
+                                           .data(ItemKeys.BLOCK_STATE, BlockTypes.DIRT.getDefaultState())
+                                           .amount(1)
+                                           .build())
+                                   .orElse(ItemStack.EMPTY)
+            )
+            .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) ->
+                    BlockTypes.GRASS_BLOCK.asItem()
+                                      .map(itemType -> ItemStack.builder()
+                                              .itemType(itemType)
+                                              .data(ItemKeys.BLOCK_STATE, BlockTypes.GRASS_BLOCK.getDefaultState())
+                                              .amount(1)
+                                              .build())
+                                      .orElse(ItemStack.EMPTY)
+            );
         this.registerVanilla(GRASS_PATH);
         this.registerFalling(GRAVEL, Sound.LAND_GRAVEL, Sound.DIG_GRAVEL);
         this.registerVanilla(GRAY_CANDLE);
@@ -1542,7 +1561,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(STANDING_BANNER);
         this.registerVanilla(STICKY_PISTON);
         this.registerVanilla(STICKY_PISTON_ARM_COLLISION);
-        this.registerVanilla(STONE);
+        this.registerVanilla(STONE)
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel)-> ItemStack.from(BlockTypes.COBBLESTONE.getDefaultState()))
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel)-> ItemStack.from(BlockTypes.STONE.getDefaultState()));
         this.registerVanilla(STONECUTTER)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.STONECUTTER);

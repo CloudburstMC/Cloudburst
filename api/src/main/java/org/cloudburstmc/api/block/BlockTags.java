@@ -19,6 +19,8 @@ public class BlockTags {
     public static final BlockTagKey LIQUID = tag("liquid");
     public static final BlockTagKey LOG = tag("log");
     public static final BlockTagKey MINEABLE_WITH_SHOVEL = tag("mineable_with_shovel");
+    public static final BlockTagKey MINEABLE_WITH_PICKAXE = tag("mineable_with_pickaxe");
+    public static final BlockTagKey MINEABLE_WITH_AXE = tag("mineable_with_axe");
     public static final BlockTagKey PLANKS = tag("planks");
     public static final BlockTagKey PRESSURE_PLATE = tag("pressure_plate");
     public static final BlockTagKey RAIL = tag("rail");

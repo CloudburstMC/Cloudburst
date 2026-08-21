@@ -415,7 +415,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COOKED_RABBIT);
         registerVanilla(ItemTypes.COOKED_SALMON);
         registerVanilla(ItemTypes.COOKIE);
-        registerVanilla(ItemTypes.COPPER_AXE);
+        registerTool(ItemTypes.COPPER_AXE, VanillaTools.axe(5), 190);
         registerArmorBoots(ItemTypes.COPPER_BOOTS);
         registerArmorChestplate(ItemTypes.COPPER_CHESTPLATE);
         registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG)
@@ -427,7 +427,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerArmorLeggings(ItemTypes.COPPER_LEGGINGS);
         registerVanilla(ItemTypes.COPPER_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.COPPER_NUGGET);
-        registerVanilla(ItemTypes.COPPER_PICKAXE);
+        registerTool(ItemTypes.COPPER_PICKAXE, VanillaTools.pickaxe(5), 190);
         registerTool(ItemTypes.COPPER_SHOVEL, VanillaTools.shovel(5), 190);
         registerVanilla(ItemTypes.COPPER_SPEAR);
         registerVanilla(ItemTypes.COPPER_SWORD);
@@ -449,7 +449,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DARK_OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.DARK_OAK_SIGN);
         registerVanilla(ItemTypes.DIAMOND);
-        registerVanilla(ItemTypes.DIAMOND_AXE);
+        registerTool(ItemTypes.DIAMOND_AXE, VanillaTools.axe(8), 1561);
         registerArmorBoots(ItemTypes.DIAMOND_BOOTS);
         registerArmorChestplate(ItemTypes.DIAMOND_CHESTPLATE);
         registerArmorHelmet(ItemTypes.DIAMOND_HELMET);
@@ -457,7 +457,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DIAMOND_HORSE_ARMOR);
         registerArmorLeggings(ItemTypes.DIAMOND_LEGGINGS);
         registerVanilla(ItemTypes.DIAMOND_NAUTILUS_ARMOR);
-        registerVanilla(ItemTypes.DIAMOND_PICKAXE);
+        registerTool(ItemTypes.DIAMOND_PICKAXE, VanillaTools.pickaxe(8), 1561);
         registerTool(ItemTypes.DIAMOND_SHOVEL, VanillaTools.shovel(8), 1561);
         registerVanilla(ItemTypes.DIAMOND_SPEAR);
         registerVanilla(ItemTypes.DIAMOND_SWORD);
@@ -541,7 +541,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLD_INGOT);
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.GOLDEN_APPLE);
-        registerVanilla(ItemTypes.GOLDEN_AXE);
+        registerTool(ItemTypes.GOLDEN_AXE, VanillaTools.axe(12), 32);
         registerArmorBoots(ItemTypes.GOLDEN_BOOTS);
         registerVanilla(ItemTypes.GOLDEN_CARROT);
         registerArmorChestplate(ItemTypes.GOLDEN_CHESTPLATE);
@@ -550,7 +550,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLDEN_HORSE_ARMOR);
         registerArmorLeggings(ItemTypes.GOLDEN_LEGGINGS);
         registerVanilla(ItemTypes.GOLDEN_NAUTILUS_ARMOR);
-        registerVanilla(ItemTypes.GOLDEN_PICKAXE);
+        registerTool(ItemTypes.GOLDEN_PICKAXE, VanillaTools.axe(12), 32);
         registerTool(ItemTypes.GOLDEN_SHOVEL, VanillaTools.shovel(12), 32);
         registerVanilla(ItemTypes.GOLDEN_SPEAR);
         registerVanilla(ItemTypes.GOLDEN_SWORD);
@@ -586,7 +586,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HUSK));
         registerVanilla(ItemTypes.ICE_BOMB);
         registerVanilla(ItemTypes.INK_SAC);
-        registerVanilla(ItemTypes.IRON_AXE);
+        registerTool(ItemTypes.IRON_AXE, VanillaTools.axe(6), 250);
         registerArmorBoots(ItemTypes.IRON_BOOTS);
         registerArmorChestplate(ItemTypes.IRON_CHESTPLATE);
         registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG)
@@ -598,7 +598,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerArmorLeggings(ItemTypes.IRON_LEGGINGS);
         registerVanilla(ItemTypes.IRON_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.IRON_NUGGET);
-        registerVanilla(ItemTypes.IRON_PICKAXE);
+        registerTool(ItemTypes.IRON_PICKAXE, VanillaTools.pickaxe(6), 250);
         registerTool(ItemTypes.IRON_SHOVEL, VanillaTools.shovel(6), 250);
         registerVanilla(ItemTypes.IRON_SPEAR);
         registerVanilla(ItemTypes.IRON_SWORD);
@@ -685,7 +685,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NAUTILUS));
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.NETHERBRICK);
-        registerVanilla(ItemTypes.NETHERITE_AXE);
+        registerTool(ItemTypes.NETHERITE_AXE, VanillaTools.axe(9), 2031);
         registerArmorBoots(ItemTypes.NETHERITE_BOOTS);
         registerArmorChestplate(ItemTypes.NETHERITE_CHESTPLATE);
         registerArmorHelmet(ItemTypes.NETHERITE_HELMET);
@@ -694,7 +694,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.NETHERITE_INGOT);
         registerArmorLeggings(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_NAUTILUS_ARMOR);
-        registerVanilla(ItemTypes.NETHERITE_PICKAXE);
+        registerTool(ItemTypes.NETHERITE_PICKAXE, VanillaTools.pickaxe(9), 2031);
         registerVanilla(ItemTypes.NETHERITE_SCRAP);
         registerTool(ItemTypes.NETHERITE_SHOVEL, VanillaTools.shovel(9), 2031);
         registerVanilla(ItemTypes.NETHERITE_SPEAR);
@@ -844,9 +844,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SQUID_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SQUID));
         registerVanilla(ItemTypes.STICK);
-        registerVanilla(ItemTypes.STONE_AXE);
+        registerTool(ItemTypes.STONE_AXE, VanillaTools.axe(4), 131);
         registerVanilla(ItemTypes.STONE_HOE);
-        registerVanilla(ItemTypes.STONE_PICKAXE);
+        registerTool(ItemTypes.STONE_PICKAXE, VanillaTools.pickaxe(4), 131);
         registerTool(ItemTypes.STONE_SHOVEL, VanillaTools.shovel(4), 131);
         registerVanilla(ItemTypes.STONE_SPEAR);
         registerVanilla(ItemTypes.STONE_SWORD);
@@ -919,9 +919,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WOLF_ARMOR);
         registerVanilla(ItemTypes.WOLF_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WOLF));
-        registerVanilla(ItemTypes.WOODEN_AXE);
+        registerTool(ItemTypes.WOODEN_AXE, VanillaTools.axe(2), 59);
         registerVanilla(ItemTypes.WOODEN_HOE);
-        registerVanilla(ItemTypes.WOODEN_PICKAXE);
+        registerTool(ItemTypes.WOODEN_PICKAXE, VanillaTools.pickaxe(2), 59);
         registerTool(ItemTypes.WOODEN_SHOVEL, VanillaTools.shovel(2), 59);
         registerVanilla(ItemTypes.WOODEN_SPEAR);
         registerVanilla(ItemTypes.WOODEN_SWORD);
