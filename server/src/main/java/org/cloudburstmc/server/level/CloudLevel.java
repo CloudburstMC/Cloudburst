@@ -21,7 +21,6 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
-import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -50,7 +49,6 @@ import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -117,6 +115,7 @@ public class CloudLevel implements Level {
 
     // Lower values use less memory
     public static final int MAX_BLOCK_CACHE = 512;
+    private static final double MINIMUM_PREDICTED_BREAK_PROGRESS = 0.7D;
 
     private final Set<BlockEntity> blockEntities = Collections.newSetFromMap(new IdentityHashMap<>());
 
@@ -1807,6 +1806,14 @@ public class CloudLevel implements Level {
     }
 
     public ItemStack useBreakOn(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles) {
+        return useBreakOn(pos, face, item, player, createParticles, null);
+    }
+
+    public ItemStack useBreakOnPredicted(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride) {
+        return useBreakOn(pos, face, item, player, createParticles, fastBreakOverride);
+    }
+
+    private ItemStack useBreakOn(Vector3i pos, Direction face, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride) {
         if (player != null && player.getGameMode() == GameMode.SPECTATOR) {
             return null;
         }
@@ -1830,32 +1837,7 @@ public class CloudLevel implements Level {
                 return null;
             }
 
-            double breakTime = target.getState().getHardness();
-            // this in
-            // block
-            // class
-
-            if (player.isCreative() && breakTime > 0.15) {
-                breakTime = 0.15;
-            } else if (player.isSurvival()) {
-                breakTime /= ToolUtils.getMiningSpeed(item, target.getState());
-            }
-
-            if (player.hasEffect(EffectTypes.HASTE)) {
-                breakTime *= 1 - (0.2 * (player.getEffect(EffectTypes.HASTE).getAmplifier() + 1));
-            }
-
-            if (player.hasEffect(EffectTypes.MINING_FATIGUE)) {
-                breakTime *= 1 - (0.3 * (player.getEffect(EffectTypes.MINING_FATIGUE).getAmplifier() + 1));
-            }
-
-            Enchantment eff = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.EFFICIENCY);
-
-            if (eff != null && eff.level() > 0) {
-                breakTime *= 1 - (0.3 * eff.level());
-            }
-
-            breakTime -= 0.15;
+            long breakTimeMillis = player.isCreative() ? 0 : Math.round(ToolUtils.getBreakTicks(player, item, target.getState()) * 50L * MINIMUM_PREDICTED_BREAK_PROGRESS);
 
             ItemStack[] eventDrops;
             if (!player.isSurvival()) {
@@ -1873,8 +1855,10 @@ public class CloudLevel implements Level {
                 eventDrops = new ItemStack[0];
             }
 
-            BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(),
-                    (((CloudPlayer) player).lastBreak + breakTime * 1000) > System.currentTimeMillis());
+            boolean fastBreak = fastBreakOverride != null
+                    ? fastBreakOverride
+                    : (((CloudPlayer) player).lastBreak + breakTimeMillis) > System.currentTimeMillis();
+            BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, dropExp, player.isCreative(), fastBreak);
 
 
             if (player.isSurvival() && !targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
@@ -1919,7 +1903,7 @@ public class CloudLevel implements Level {
         }
 
         if (createParticles) {
-            this.addParticle(new DestroyBlockParticle(target.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), target.getState()));
+            this.addBlockDestroyParticle(target, player);
         }
 
         // Close BlockEntity before we check onBreak
@@ -1954,6 +1938,20 @@ public class CloudLevel implements Level {
         }
 
         return item;
+    }
+
+    private void addBlockDestroyParticle(Block target, @Nullable Player player) {
+        Vector3f position = target.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
+        Particle particle = new DestroyBlockParticle(position, target.getState());
+        List<Player> viewers = new ArrayList<>(this.getChunkPlayers(position.getFloorX() >> 4, position.getFloorZ() >> 4));
+
+        if (player != null && !viewers.contains(player)) {
+            viewers.add(player);
+        }
+
+        if (!viewers.isEmpty()) {
+            this.addParticle(particle, viewers);
+        }
     }
 
     public void dropExpOrb(Vector3i source, int exp) {

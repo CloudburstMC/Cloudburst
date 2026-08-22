@@ -274,7 +274,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkRecipeBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.get(ItemKeys.DAMAGE) != null ? item.get(ItemKeys.DAMAGE) : 0;
+        int damage = item.getDamage();
         ItemDefinition rawDefinition = registry.getDefinition(identifier, damage);
 
         ItemDefinition recipeDefinition = rawDefinition != null
@@ -345,7 +345,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.get(ItemKeys.DAMAGE) != null ? item.get(ItemKeys.DAMAGE) : 0;
+        int damage = item.getDamage();
         ItemDefinition definition = registry.getDefinition(identifier, damage);
 
         String[] canPlace = new String[0];

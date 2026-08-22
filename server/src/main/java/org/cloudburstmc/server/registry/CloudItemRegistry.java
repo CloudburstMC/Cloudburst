@@ -2,10 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.DataKey;
@@ -42,7 +39,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 
     private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectLinkedOpenHashMap<>();
     private final ItemPalette itemPalette = new ItemPalette(this);
     private int hardcodedBlockingId;
     private volatile boolean closed;
@@ -61,10 +58,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return INSTANCE;
     }
 
-    public synchronized <T> void registerDataSerializer(DataKey<T, T> dataKey, ItemDataSerializer<T> serializer) {
+    public synchronized <T> void registerDataSerializer(DataKey<T, T> dataKey, ItemDataSerializer<T> serializer) throws RegistryException {
         Preconditions.checkNotNull(dataKey, "dataKey");
         Preconditions.checkNotNull(serializer, "serializer");
+        checkClosed();
         this.dataSerializers.put(dataKey, serializer);
+    }
+
+    public List<DataKey<?, ?>> getSerializedDataKeys() {
+        return List.copyOf(this.dataSerializers.keySet());
     }
 
     @Override
@@ -167,7 +169,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public ItemDataSerializer<?> getSerializer(DataKey<?, ?> dataKey) {
+    public ItemDataSerializer<?> getDataSerializer(DataKey<?, ?> dataKey) {
         return dataSerializers.get(dataKey);
     }
 
@@ -415,7 +417,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COOKED_RABBIT);
         registerVanilla(ItemTypes.COOKED_SALMON);
         registerVanilla(ItemTypes.COOKIE);
-        registerTool(ItemTypes.COPPER_AXE, VanillaTools.axe(5), 190);
+        registerTool(ItemTypes.COPPER_AXE,
+                VanillaTools.axe(ToolMaterials.COPPER),
+                ToolMaterials.COPPER.getDurability());
         registerArmorBoots(ItemTypes.COPPER_BOOTS);
         registerArmorChestplate(ItemTypes.COPPER_CHESTPLATE);
         registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG)
@@ -427,8 +431,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerArmorLeggings(ItemTypes.COPPER_LEGGINGS);
         registerVanilla(ItemTypes.COPPER_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.COPPER_NUGGET);
-        registerTool(ItemTypes.COPPER_PICKAXE, VanillaTools.pickaxe(5), 190);
-        registerTool(ItemTypes.COPPER_SHOVEL, VanillaTools.shovel(5), 190);
+        registerTool(ItemTypes.COPPER_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.COPPER),
+                ToolMaterials.COPPER.getDurability());
+        registerTool(ItemTypes.COPPER_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.COPPER.getSpeed()),
+                ToolMaterials.COPPER.getDurability());
         registerVanilla(ItemTypes.COPPER_SPEAR);
         registerVanilla(ItemTypes.COPPER_SWORD);
         registerVanilla(ItemTypes.COW_SPAWN_EGG)
@@ -449,7 +457,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DARK_OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.DARK_OAK_SIGN);
         registerVanilla(ItemTypes.DIAMOND);
-        registerTool(ItemTypes.DIAMOND_AXE, VanillaTools.axe(8), 1561);
+        registerTool(ItemTypes.DIAMOND_AXE,
+                VanillaTools.axe(ToolMaterials.DIAMOND),
+                ToolMaterials.DIAMOND.getDurability());
         registerArmorBoots(ItemTypes.DIAMOND_BOOTS);
         registerArmorChestplate(ItemTypes.DIAMOND_CHESTPLATE);
         registerArmorHelmet(ItemTypes.DIAMOND_HELMET);
@@ -457,8 +467,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DIAMOND_HORSE_ARMOR);
         registerArmorLeggings(ItemTypes.DIAMOND_LEGGINGS);
         registerVanilla(ItemTypes.DIAMOND_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.DIAMOND_PICKAXE, VanillaTools.pickaxe(8), 1561);
-        registerTool(ItemTypes.DIAMOND_SHOVEL, VanillaTools.shovel(8), 1561);
+        registerTool(ItemTypes.DIAMOND_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.DIAMOND),
+                ToolMaterials.DIAMOND.getDurability());
+        registerTool(ItemTypes.DIAMOND_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.DIAMOND.getSpeed()),
+                ToolMaterials.DIAMOND.getDurability());
         registerVanilla(ItemTypes.DIAMOND_SPEAR);
         registerVanilla(ItemTypes.DIAMOND_SWORD);
         registerVanilla(ItemTypes.DISC_FRAGMENT_5);
@@ -541,7 +555,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLD_INGOT);
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.GOLDEN_APPLE);
-        registerTool(ItemTypes.GOLDEN_AXE, VanillaTools.axe(12), 32);
+        registerTool(ItemTypes.GOLDEN_AXE, VanillaTools.axe(ToolMaterials.GOLD), ToolMaterials.GOLD.getDurability());
         registerArmorBoots(ItemTypes.GOLDEN_BOOTS);
         registerVanilla(ItemTypes.GOLDEN_CARROT);
         registerArmorChestplate(ItemTypes.GOLDEN_CHESTPLATE);
@@ -550,8 +564,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLDEN_HORSE_ARMOR);
         registerArmorLeggings(ItemTypes.GOLDEN_LEGGINGS);
         registerVanilla(ItemTypes.GOLDEN_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.GOLDEN_PICKAXE, VanillaTools.axe(12), 32);
-        registerTool(ItemTypes.GOLDEN_SHOVEL, VanillaTools.shovel(12), 32);
+        registerTool(ItemTypes.GOLDEN_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.GOLD),
+                ToolMaterials.GOLD.getDurability());
+        registerTool(ItemTypes.GOLDEN_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.GOLD.getSpeed()),
+                ToolMaterials.GOLD.getDurability());
         registerVanilla(ItemTypes.GOLDEN_SPEAR);
         registerVanilla(ItemTypes.GOLDEN_SWORD);
         registerVanilla(ItemTypes.GRAY_BUNDLE);
@@ -586,7 +604,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HUSK));
         registerVanilla(ItemTypes.ICE_BOMB);
         registerVanilla(ItemTypes.INK_SAC);
-        registerTool(ItemTypes.IRON_AXE, VanillaTools.axe(6), 250);
+        registerTool(ItemTypes.IRON_AXE, VanillaTools.axe(ToolMaterials.IRON), ToolMaterials.IRON.getDurability());
         registerArmorBoots(ItemTypes.IRON_BOOTS);
         registerArmorChestplate(ItemTypes.IRON_CHESTPLATE);
         registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG)
@@ -598,8 +616,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerArmorLeggings(ItemTypes.IRON_LEGGINGS);
         registerVanilla(ItemTypes.IRON_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.IRON_NUGGET);
-        registerTool(ItemTypes.IRON_PICKAXE, VanillaTools.pickaxe(6), 250);
-        registerTool(ItemTypes.IRON_SHOVEL, VanillaTools.shovel(6), 250);
+        registerTool(ItemTypes.IRON_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.IRON),
+                ToolMaterials.IRON.getDurability());
+        registerTool(ItemTypes.IRON_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.IRON.getSpeed()),
+                ToolMaterials.IRON.getDurability());
         registerVanilla(ItemTypes.IRON_SPEAR);
         registerVanilla(ItemTypes.IRON_SWORD);
         registerVanilla(ItemTypes.JUNGLE_BOAT);
@@ -685,7 +707,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NAUTILUS));
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.NETHERBRICK);
-        registerTool(ItemTypes.NETHERITE_AXE, VanillaTools.axe(9), 2031);
+        registerTool(ItemTypes.NETHERITE_AXE,
+                VanillaTools.axe(ToolMaterials.NETHERITE),
+                ToolMaterials.NETHERITE.getDurability());
         registerArmorBoots(ItemTypes.NETHERITE_BOOTS);
         registerArmorChestplate(ItemTypes.NETHERITE_CHESTPLATE);
         registerArmorHelmet(ItemTypes.NETHERITE_HELMET);
@@ -694,9 +718,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.NETHERITE_INGOT);
         registerArmorLeggings(ItemTypes.NETHERITE_LEGGINGS);
         registerVanilla(ItemTypes.NETHERITE_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.NETHERITE_PICKAXE, VanillaTools.pickaxe(9), 2031);
+        registerTool(ItemTypes.NETHERITE_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.NETHERITE),
+                ToolMaterials.NETHERITE.getDurability());
         registerVanilla(ItemTypes.NETHERITE_SCRAP);
-        registerTool(ItemTypes.NETHERITE_SHOVEL, VanillaTools.shovel(9), 2031);
+        registerTool(ItemTypes.NETHERITE_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.NETHERITE.getSpeed()),
+                ToolMaterials.NETHERITE.getDurability());
         registerVanilla(ItemTypes.NETHERITE_SPEAR);
         registerVanilla(ItemTypes.NETHERITE_SWORD);
         registerVanilla(ItemTypes.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
@@ -754,7 +782,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.POTION);
         registerVanilla(ItemTypes.POWDER_SNOW_BUCKET)
                 .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.POWDER_SNOW.getDefaultState()))
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placePowderSnow(BlockTypes.POWDER_SNOW.getDefaultState()));
+                .set(ItemComponents.USE_ON,
+                        BucketItemHandlers.placePowderSnow(BlockTypes.POWDER_SNOW.getDefaultState()));
         registerVanilla(ItemTypes.PRISMARINE_CRYSTALS);
         registerVanilla(ItemTypes.PRISMARINE_SHARD);
         registerVanilla(ItemTypes.PRIZE_POTTERY_SHERD);
@@ -844,10 +873,14 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SQUID_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SQUID));
         registerVanilla(ItemTypes.STICK);
-        registerTool(ItemTypes.STONE_AXE, VanillaTools.axe(4), 131);
+        registerTool(ItemTypes.STONE_AXE, VanillaTools.axe(ToolMaterials.STONE), ToolMaterials.STONE.getDurability());
         registerVanilla(ItemTypes.STONE_HOE);
-        registerTool(ItemTypes.STONE_PICKAXE, VanillaTools.pickaxe(4), 131);
-        registerTool(ItemTypes.STONE_SHOVEL, VanillaTools.shovel(4), 131);
+        registerTool(ItemTypes.STONE_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.STONE),
+                ToolMaterials.STONE.getDurability());
+        registerTool(ItemTypes.STONE_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.STONE.getSpeed()),
+                ToolMaterials.STONE.getDurability());
         registerVanilla(ItemTypes.STONE_SPEAR);
         registerVanilla(ItemTypes.STONE_SWORD);
         registerVanilla(ItemTypes.STRAY_SPAWN_EGG)
@@ -879,7 +912,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.TRIDENT);
         registerVanilla(ItemTypes.TROPICAL_FISH);
         registerVanilla(ItemTypes.TROPICAL_FISH_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
+                .set(ItemComponents.USE_ON,
+                        BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
         registerVanilla(ItemTypes.TROPICAL_FISH_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TROPICAL_FISH));
         registerArmorHelmet(ItemTypes.TURTLE_HELMET);
@@ -919,10 +953,14 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WOLF_ARMOR);
         registerVanilla(ItemTypes.WOLF_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WOLF));
-        registerTool(ItemTypes.WOODEN_AXE, VanillaTools.axe(2), 59);
+        registerTool(ItemTypes.WOODEN_AXE, VanillaTools.axe(ToolMaterials.WOOD), ToolMaterials.WOOD.getDurability());
         registerVanilla(ItemTypes.WOODEN_HOE);
-        registerTool(ItemTypes.WOODEN_PICKAXE, VanillaTools.pickaxe(2), 59);
-        registerTool(ItemTypes.WOODEN_SHOVEL, VanillaTools.shovel(2), 59);
+        registerTool(ItemTypes.WOODEN_PICKAXE,
+                VanillaTools.pickaxe(ToolMaterials.WOOD),
+                ToolMaterials.WOOD.getDurability());
+        registerTool(ItemTypes.WOODEN_SHOVEL,
+                VanillaTools.shovel(ToolMaterials.WOOD.getSpeed()),
+                ToolMaterials.WOOD.getDurability());
         registerVanilla(ItemTypes.WOODEN_SPEAR);
         registerVanilla(ItemTypes.WOODEN_SWORD);
         registerVanilla(ItemTypes.WRITABLE_BOOK);
@@ -1015,7 +1053,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return true;
     }
 
-    private void registerVanillaDataSerializers() {
+    private void registerVanillaDataSerializers() throws RegistryException {
         this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
         this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
         this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));

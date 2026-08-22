@@ -25,7 +25,7 @@ public record Tool(List<Rule> rules, float defaultMiningSpeed, int damagePerBloc
     public Tool {
         checkArgument(defaultMiningSpeed > 0, "defaultMiningSpeed must be positive");
         checkArgument(damagePerBlock >= 0, "damagePerBlock cannot be negative");
-        rules = List.copyOf(rules);
+        rules = List.copyOf(checkNotNull(rules, "rules"));
     }
 
     public static Builder builder() {
@@ -71,8 +71,8 @@ public record Tool(List<Rule> rules, float defaultMiningSpeed, int damagePerBloc
     public record Rule(Set<BlockType> blocks, Set<BlockTagKey> tags, @Nullable Float speed, @Nullable Boolean correctForDrops) {
 
         public Rule {
-            blocks = Set.copyOf(blocks);
-            tags = Set.copyOf(tags);
+            blocks = Set.copyOf(checkNotNull(blocks, "blocks"));
+            tags = Set.copyOf(checkNotNull(tags, "tags"));
             checkArgument(!blocks.isEmpty() || !tags.isEmpty(), "A tool rule must match at least one block or tag");
             checkArgument(speed == null || speed > 0, "speed must be positive");
         }
@@ -89,6 +89,48 @@ public record Tool(List<Rule> rules, float defaultMiningSpeed, int damagePerBloc
          */
         public static Rule tag(BlockTagKey tag, @Nullable Float speed, @Nullable Boolean correctForDrops) {
             return new Rule(Set.of(), Set.of(checkNotNull(tag, "tag")), speed, correctForDrops);
+        }
+
+        /**
+         * Creates a rule that mines matching blocks at the supplied speed and marks the tool correct for drops.
+         */
+        public static Rule minesAndDrops(Collection<BlockType> blocks, float speed) {
+            return blocks(blocks, speed, true);
+        }
+
+        /**
+         * Creates a rule that mines matching blocks at the supplied speed and marks the tool correct for drops.
+         */
+        public static Rule minesAndDrops(BlockTagKey tag, float speed) {
+            return tag(tag, speed, true);
+        }
+
+        /**
+         * Creates a rule that denies drops for matching blocks.
+         */
+        public static Rule deniesDrops(Collection<BlockType> blocks) {
+            return blocks(blocks, null, false);
+        }
+
+        /**
+         * Creates a rule that denies drops for matching blocks.
+         */
+        public static Rule deniesDrops(BlockTagKey tag) {
+            return tag(tag, null, false);
+        }
+
+        /**
+         * Creates a rule that only overrides the mining speed for matching blocks.
+         */
+        public static Rule overrideSpeed(Collection<BlockType> blocks, float speed) {
+            return blocks(blocks, speed, null);
+        }
+
+        /**
+         * Creates a rule that only overrides the mining speed for matching blocks.
+         */
+        public static Rule overrideSpeed(BlockTagKey tag, float speed) {
+            return tag(tag, speed, null);
         }
 
         /**
@@ -150,7 +192,7 @@ public record Tool(List<Rule> rules, float defaultMiningSpeed, int damagePerBloc
          * Appends mining rules in iteration order.
          */
         public Builder addRules(Collection<Rule> rules) {
-            rules.forEach(this::addRule);
+            checkNotNull(rules, "rules").forEach(this::addRule);
             return this;
         }
 

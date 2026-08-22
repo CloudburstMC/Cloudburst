@@ -1,22 +1,24 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ToolUtils;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-@Slf4j
 @UtilityClass
 public class DefaultItemHandlers {
 
@@ -35,15 +37,14 @@ public class DefaultItemHandlers {
     };
 
     public static final DamageItemHandler ON_DAMAGE = (itemStack, damage, owner) -> {
+        if (damage <= 0 || itemStack.isEmpty() || !owner.isAlive() || itemStack.isUnbreakable()) {
+            return itemStack;
+        }
+
         IntItemHandler getMaxDamage = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.GET_MAX_DAMAGE);
         int maxDamage = getMaxDamage.execute(itemStack);
 
-        if (damage <= 0 || itemStack.isEmpty() || maxDamage <= 0 ||
-                !owner.isAlive() || itemStack.get(ItemKeys.UNBREAKABLE) == Boolean.TRUE) {
-            if (damage < 0) {
-                log.debug("Tried to damage {} with a negative value of {}", itemStack, damage);
-            }
-
+        if (maxDamage <= 0) {
             return itemStack;
         }
 
@@ -66,19 +67,20 @@ public class DefaultItemHandlers {
             return itemStack;
         }
 
-        Integer damageKey = itemStack.get(ItemKeys.DAMAGE);
-        int damageValue = damageKey == null ? 0 : damageKey;
-
-        damageValue += appliedDamage;
+        int damageValue = itemStack.getDamage() + appliedDamage;
 
         if (damageValue >= maxDamage) {
-            // TODO: Make the break sound
+            if (owner.getLevel() instanceof CloudLevel level) {
+                level.addLevelSoundEvent(owner.getPosition(), SoundEvent.BREAK);
+                for (int i = 0; i < 5; i++) {
+                    level.addParticle(new ItemBreakParticle(owner.getPosition().add(0, owner.getEyeHeight(), 0), itemStack));
+                }
+            }
+
             return ItemStack.EMPTY;
         }
 
-        return itemStack.toBuilder()
-                .data(ItemKeys.DAMAGE, damageValue)
-                .build();
+        return itemStack.withDamage(damageValue);
     };
 
     public static final UseOnHandler USE_ON = (itemStack, entity, blockPosition, face, clickPosition) -> {

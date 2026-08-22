@@ -6,24 +6,14 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
+/**
+ * Serializes the persistent map identity and color payload stored on filled map items.
+ */
 public class MapSerializer implements ItemDataSerializer<MapItem> {
 
-    private static final String TAG_ID = "mapId"; // Long
-    private static final String TAG_PARENT_ID = "parentMapId"; // Long
-    private static final String TAG_DIMENSION = "dimension"; // Byte
-    private static final String TAG_X_CENTER = "xCenter"; // Int
-    private static final String TAG_Z_CENTER = "zCenter"; // Int
-    private static final String TAG_SCALE = "scale"; // Byte
-    private static final String TAG_UNLIMITED_TRACKING = "unlimitedTracking"; // Boolean
-    private static final String TAG_PREVIEW_INCOMPLETE = "previewIncomplete"; // Boolean
-    private static final String TAG_WIDTH = "width"; // Short
-    private static final String TAG_HEIGHT = "height"; // Short
-    private static final String TAG_COLORS = "colors"; // Byte array
-    private static final String TAG_FULLY_EXPLORED = "fullyExplored"; // Boolean
-    private static final String TAG_DECORATIONS = "decorations"; // List<NbtMap>
-    private static final String TAG_DECORATION_DATA = "data"; // NbtMap - MapDecoration::load
-    private static final String TAG_DECORATION_KEY = "key"; // NbtMap - MapItemTrackedActor::UniqueId::load
-    private static final String TAG_LOCKED = "mapLocked"; // Boolean
+    private static final String TAG_ID = "mapId";
+    private static final String TAG_PARENT_ID = "parentMapId";
+    private static final String TAG_COLORS = "colors";
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, MapItem value) {

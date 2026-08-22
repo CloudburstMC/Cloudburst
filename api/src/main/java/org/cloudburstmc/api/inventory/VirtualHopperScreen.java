@@ -8,7 +8,7 @@ import org.cloudburstmc.api.inventory.view.HopperView;
  * <p>Example usage:</p>
  * <pre>{@code
  * VirtualHopperScreen view = player.createVirtualHopper("Quick Menu");
- * view.getHopper().setItem(0, ItemStack.builder(ItemTypes.ARROW).count(1).build());
+ * view.getHopper().setItem(0, ItemStack.builder(ItemTypes.ARROW).amount(1).build());
  * player.openInventory(view);
  * }</pre>
  *

@@ -7,17 +7,13 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-/**
- * Created on 2015/11/21 by xtypr.
- * Package cn.nukkit.level.particle in project Nukkit .
- */
-public class DestroyBlockParticle extends Particle {
+public final class DestroyBlockParticle extends Particle {
 
-    protected final int data;
+    private final int runtimeId;
 
     public DestroyBlockParticle(Vector3f pos, BlockState blockState) {
         super(pos);
-        this.data = CloudBlockRegistry.REGISTRY.getDefinition(blockState).getRuntimeId();
+        this.runtimeId = CloudBlockRegistry.REGISTRY.getRuntimeId(blockState);
     }
 
     @Override
@@ -25,7 +21,7 @@ public class DestroyBlockParticle extends Particle {
         LevelEventPacket packet = new LevelEventPacket();
         packet.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
         packet.setPosition(this.getPosition());
-        packet.setData(this.data);
+        packet.setData(this.runtimeId);
 
         return new BedrockPacket[]{packet};
     }

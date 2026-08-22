@@ -25,6 +25,7 @@ public class CloudHudScreen extends CloudInventoryScreen implements HudScreen {
 
     @Override
     protected void setupMappings() {
+        this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR, this.hotbar, 9));
         this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR_AND_INVENTORY, this.hotbar, 9));
         this.addMapping(SimpleContainerMapping.offhandView(this.player.getOffhand()));
     }

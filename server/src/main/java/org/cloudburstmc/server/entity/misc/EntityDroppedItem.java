@@ -144,7 +144,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (closeItem == null || !closeItem.isSimilarMetadata(getItem())) {
+                        if (closeItem == null || !closeItem.isStackableWith(getItem())) {
                             continue;
                         }
                         if (!entity.isOnGround()) {

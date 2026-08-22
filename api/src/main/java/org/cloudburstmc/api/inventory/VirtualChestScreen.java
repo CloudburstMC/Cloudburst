@@ -6,7 +6,7 @@ package org.cloudburstmc.api.inventory;
  * <p>Example usage:</p>
  * <pre>{@code
  * VirtualChestScreen view = player.createVirtualChest("Shop");
- * view.getStorage().setItem(0, ItemStack.builder(ItemTypes.DIAMOND).count(1).build());
+ * view.getStorage().setItem(0, ItemStack.builder(ItemTypes.DIAMOND).amount(1).build());
  * player.openInventory(view);
  * }</pre>
  *

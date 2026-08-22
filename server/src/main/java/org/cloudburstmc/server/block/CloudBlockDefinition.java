@@ -11,8 +11,8 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class CloudBlockDefinition implements BlockDefinition {
-    BlockState cloudState;
-    NbtMap state;
-    int runtimeId;
-    long blockStateHash;
+    private final BlockState cloudState;
+    private final NbtMap state;
+    private final int runtimeId;
+    private final long blockStateHash;
 }

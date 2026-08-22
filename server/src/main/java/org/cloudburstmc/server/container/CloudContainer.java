@@ -149,7 +149,7 @@ public class CloudContainer implements Container {
         int count = Math.max(1, item.getCount());
         for (int i = 0; i < this.size(); i++) {
             ItemStack slot = this.getItem(i);
-            if (item.equals(slot)) {
+            if (slot.isStackableWith(item)) {
                 count -= slot.getCount();
                 if (count <= 0) {
                     return true;
@@ -165,7 +165,7 @@ public class CloudContainer implements Container {
         Map<Integer, ItemStack> slots = new HashMap<>();
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (item.equals(slot)) {
+            if (slot.isStackableWith(item)) {
                 slots.put(i, slot);
             }
         }
@@ -176,7 +176,7 @@ public class CloudContainer implements Container {
     @Override
     public void remove(ItemStack item) {
         for (int i = 0; i < this.size(); ++i) {
-            if (item.equals(this.getItem(i))) {
+            if (this.getItem(i).isStackableWith(item)) {
                 this.setItem(i, ItemStack.EMPTY);
             }
         }
@@ -187,7 +187,7 @@ public class CloudContainer implements Container {
         int count = Math.max(1, item.getCount());
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (item.equals(slot) && (slot.getCount() == count || (!exact && slot.getCount() > count))) {
+            if (slot.isStackableWith(item) && (slot.getCount() == count || (!exact && slot.getCount() >= count))) {
                 return i;
             }
         }
@@ -219,12 +219,26 @@ public class CloudContainer implements Container {
 
     @Override
     public int firstFit(ItemStack item, boolean single) {
+        if (item.isEmpty()) {
+            return firstEmpty();
+        }
+
         int count = single ? 1 : item.getCount();
-        int maxStackSize = this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
+        int maxStackSize = Math.min(
+                this.maxStackSize,
+                this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)
+        );
 
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (slot.getCount() + count <= maxStackSize && slot.isSimilarMetadata(item)) {
+            if (slot.isEmpty()) {
+                if (count <= maxStackSize) {
+                    return i;
+                }
+                continue;
+            }
+
+            if (slot.getCount() + count <= maxStackSize && slot.isStackableWith(item)) {
                 return i;
             }
         }
@@ -258,15 +272,20 @@ public class CloudContainer implements Container {
             return true;
         }
 
+        int maxStackSize = Math.min(
+                this.maxStackSize,
+                this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)
+        );
+
         for (int i = 0; i < this.size(); ++i) {
             ItemStack slot = this.getItem(i);
-            if (slot.isSimilarMetadata(item)) {
+            if (slot.isStackableWith(item)) {
                 int diff;
-                if ((diff = this.itemRegistry.requireComponent(slot.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(slot) - slot.getCount()) > 0) {
+                if ((diff = maxStackSize - slot.getCount()) > 0) {
                     count -= diff;
                 }
             } else if (slot.isEmpty() || slot.getCount() == 0) {
-                count -= this.getMaxStackSize();
+                count -= maxStackSize;
             }
 
             if (count <= 0) {
@@ -304,11 +323,10 @@ public class CloudContainer implements Container {
 
             int maxStack = this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
 
-            ArrayList<ItemStack> copy = new ArrayList<>(itemSlots);
-            for (int j = 0; j < copy.size(); j++) {
-                ItemStack slot = copy.get(j);
+            for (int j = 0; j < itemSlots.size(); j++) {
+                ItemStack slot = itemSlots.get(j);
 
-                if (slot.isSimilarMetadata(item) && item.getCount() < maxStack) {
+                if (slot.isStackableWith(item) && item.getCount() < maxStack) {
                     int amount = Math.min(maxStack - item.getCount(), slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
                     if (amount > 0) {
@@ -317,6 +335,7 @@ public class CloudContainer implements Container {
 
                         if (slot.getCount() <= 0) {
                             itemSlots.remove(j);
+                            j--;
                         } else {
                             itemSlots.set(j, slot);
                         }
@@ -371,7 +390,7 @@ public class CloudContainer implements Container {
         for (int i = 0; i < this.size(); i++) {
             ItemStack content = this.getItem(i);
 
-            if (content.isSimilarMetadata(item)) {
+            if (content.isStackableWith(item)) {
                 combinable.put(i, content);
             }
         }
@@ -406,7 +425,7 @@ public class CloudContainer implements Container {
 
             for (int j = 0; j < itemSlots.size(); j++) {
                 ItemStack slot = itemSlots.get(j);
-                if (slot.equals(item)) {
+                if (item.isStackableWith(slot)) {
                     int count = Math.min(item.getCount(), slot.getCount());
                     slot = slot.decreaseCount(count);
                     item = item.decreaseCount(count);
@@ -533,7 +552,7 @@ public class CloudContainer implements Container {
                 continue;
             }
 
-            if (slot.isSimilarMetadata(item)) {
+            if (slot.isStackableWith(item)) {
                 space += maxStackSize - slot.getCount();
             }
         }

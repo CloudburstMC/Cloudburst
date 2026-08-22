@@ -119,15 +119,15 @@ public interface SlotGroup {
     }
 
     /**
-     * Returns {@code true} if this slot group contains at least one stack that matches
-     * the given item (same type and metadata, regardless of count).
+     * Returns {@code true} if this slot group contains at least one stack that can stack
+     * with the given item, regardless of count.
      *
      * @param item the item to search for
      * @return {@code true} if a matching stack is present
      */
     default boolean contains(ItemStack item) {
         for (int i = 0; i < size(); i++) {
-            if (getItem(i).isSimilarMetadata(item)) {
+            if (getItem(i).isStackableWith(item)) {
                 return true;
             }
         }
@@ -136,7 +136,7 @@ public interface SlotGroup {
 
     /**
      * Returns {@code true} if this slot group contains at least {@code amount} items in total
-     * across all stacks that match the given item (same type and metadata).
+     * across all stacks that can stack with the given item.
      *
      * @param item   the item to search for
      * @param amount the minimum total count required
@@ -146,7 +146,7 @@ public interface SlotGroup {
         int found = 0;
         for (int i = 0; i < size(); i++) {
             ItemStack slot = getItem(i);
-            if (slot.isSimilarMetadata(item)) {
+            if (slot.isStackableWith(item)) {
                 found += slot.getCount();
                 if (found >= amount) {
                     return true;
@@ -157,15 +157,15 @@ public interface SlotGroup {
     }
 
     /**
-     * Returns the index of the first slot whose item matches the given item
-     * (same type and metadata, regardless of count), or {@code -1} if none.
+     * Returns the index of the first slot whose item can stack with the given item,
+     * regardless of count, or {@code -1} if none.
      *
      * @param item the item to search for
      * @return the first matching slot index, or {@code -1}
      */
     default int first(ItemStack item) {
         for (int i = 0; i < size(); i++) {
-            if (getItem(i).isSimilarMetadata(item)) {
+            if (getItem(i).isStackableWith(item)) {
                 return i;
             }
         }
@@ -173,8 +173,8 @@ public interface SlotGroup {
     }
 
     /**
-     * Returns the index of the first slot whose item matches the given item
-     * (same type and metadata) <em>and</em> whose count is at least {@code amount},
+     * Returns the index of the first slot whose item can stack with the given item
+     * <em>and</em> whose count is at least {@code amount},
      * or {@code -1} if no such slot exists.
      *
      * @param item   the item to search for
@@ -184,7 +184,7 @@ public interface SlotGroup {
     default int first(ItemStack item, int amount) {
         for (int i = 0; i < size(); i++) {
             ItemStack slot = getItem(i);
-            if (slot.isSimilarMetadata(item) && slot.getCount() >= amount) {
+            if (slot.isStackableWith(item) && slot.getCount() >= amount) {
                 return i;
             }
         }
@@ -192,14 +192,13 @@ public interface SlotGroup {
     }
 
     /**
-     * Removes all stacks in this slot group that match the given item
-     * (same type and metadata, regardless of count).
+     * Removes all stacks in this slot group that can stack with the given item.
      *
      * @param item the item to remove
      */
     default void remove(ItemStack item) {
         for (int i = 0; i < size(); i++) {
-            if (getItem(i).isSimilarMetadata(item)) {
+            if (getItem(i).isStackableWith(item)) {
                 setItem(i, ItemStack.EMPTY);
             }
         }
@@ -216,7 +215,7 @@ public interface SlotGroup {
 
     /**
      * Attempts to add the given item stacks to this slot group, first filling existing partial
-     * stacks of matching type and metadata, then occupying empty slots.
+     * stacks that can stack with the given items, then occupying empty slots.
      *
      * <p>Per-slot stack limits are respected by calling {@link #getMaxStackSize(int)} for each
      * slot. Implementations that host items with special stack limits (e.g. tools with a max of 1)
@@ -237,7 +236,7 @@ public interface SlotGroup {
             }
             for (int j = 0; j < remaining.size(); j++) {
                 ItemStack toAdd = remaining.get(j);
-                if (!slot.isSimilarMetadata(toAdd)) {
+                if (!slot.isStackableWith(toAdd)) {
                     continue;
                 }
                 int space = maxStack - slot.getCount();

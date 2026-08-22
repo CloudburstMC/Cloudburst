@@ -13,6 +13,9 @@ import org.cloudburstmc.nbt.NbtType;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Serializes banner base color, type, and pattern layers from the banner item tag.
+ */
 public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
@@ -34,6 +37,10 @@ public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
 
     @Override
     public BannerData deserialize(Identifier id, NbtMap tag) {
+        if (!tag.containsKey("Base") && !tag.containsKey("Type") && !tag.containsKey("Patterns")) {
+            return null;
+        }
+
         var base = DyeColor.getByDyeData(tag.getInt("Base", 0));
         var bannerType = tag.getInt("Type", 0);
 

@@ -41,7 +41,6 @@ import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.IntItemHandler;
@@ -2021,8 +2020,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         int maxDamage = maxDamageHandler.execute(chestplate);
-        Integer currentDamage = chestplate.get(ItemKeys.DAMAGE);
-        return maxDamage <= 0 || currentDamage == null || currentDamage < maxDamage - 1;
+        return maxDamage <= 0 || chestplate.getDamage() < maxDamage - 1;
     }
 
     private void sendArmorEquipmentToViewers() {
@@ -3759,7 +3757,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                             return false;
                         }
 
-                        if (((Object) item.getType()) instanceof BlockType blockType && blockType.is(BlockTags.LOG)) {
+                        if (item.getBlockState().filter(state -> state.is(BlockTags.LOG)).isPresent()) {
                             this.awardAchievement("mineWood");
                         } else if (item.getType() == ItemTypes.DIAMOND) {
                             this.awardAchievement("diamond");

@@ -99,6 +99,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Inject
     GlobalRegistry globalRegistry;
     private Vector3i lastBreakPosition = Vector3i.ZERO;
+    private @Nullable BlockBreakSession blockBreakSession;
 
     public PlayerPacketHandler(CloudPlayer player) {
         this.player = player;
@@ -166,6 +167,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             processBlockActions(packet);
+        } else {
+            refreshBlockBreak();
         }
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
@@ -206,6 +209,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             log.debug("[{}] movement packet dropped: non-finite position/rotation {}/{}", player.getName(), rawPos, rawRot);
             return;
         }
+
+        boolean verticalCollision = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
+        boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
+        boolean onGround = verticalCollision && packet.getDelta().getY() <= 0;
+
+        player.isCollidedVertically = verticalCollision;
+        player.isCollidedHorizontally = horizontalCollision;
+        player.setOnGround(onGround);
 
         Vector3f newPos = rawPos.sub(0, player.getBaseOffset(), 0);
         Vector3f currentPos = player.getPosition();
@@ -271,21 +282,21 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     private void processBlockActions(PlayerAuthInputPacket packet) {
         for (PlayerBlockActionData actionData : packet.getPlayerActions()) {
             Vector3i blockPos = actionData.getBlockPosition();
-            Direction face = Direction.fromIndex(actionData.getFace());
 
             switch (actionData.getAction()) {
                 case START_BREAK:
-                    handleStartBreak(blockPos, face);
+                    handleStartBreak(blockPos, Direction.fromIndex(actionData.getFace()));
                     break;
                 case ABORT_BREAK:
                 case STOP_BREAK:
                     handleStopBreak(blockPos);
                     break;
                 case CONTINUE_BREAK:
-                    handleContinueBreak(blockPos, face);
+                case BLOCK_CONTINUE_DESTROY:
+                    handleContinueBreak(blockPos, Direction.fromIndex(actionData.getFace()));
                     break;
                 case BLOCK_PREDICT_DESTROY:
-                    handleBlockPredictDestroy(blockPos, face);
+                    handleBlockPredictDestroy(blockPos, Direction.fromIndex(actionData.getFace()));
                     break;
                 default:
                     break;
@@ -314,16 +325,18 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             player.getLevel().addLevelSoundEvent(block.getPosition(), SoundEvent.EXTINGUISH_FIRE);
             return;
         }
+
         if (!player.isCreative()) {
-            double breakTime = Math.ceil(targetState.getHardness() * 20 / ToolUtils.getMiningSpeed(player.getInventory().getSelectedItem(), targetState));
-            if (breakTime > 0) {
-                LevelEventPacket levelEvent = new LevelEventPacket();
-                levelEvent.setType(LevelEvent.BLOCK_START_BREAK);
-                levelEvent.setPosition(blockPos.toFloat());
-                levelEvent.setData((int) (65535 / breakTime));
-                player.sendPacket(levelEvent);
-                player.getLevel().addChunkPacket(blockPos, levelEvent);
+            int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), targetState);
+            if (breakTicks > 0) {
+                sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(targetState));
+                sendBlockBreakParticle(blockPos, targetState, face);
+                this.blockBreakSession = new BlockBreakSession(blockPos, targetState, face, getDestroyProgress(targetState));
+            } else {
+                this.blockBreakSession = null;
             }
+        } else {
+            this.blockBreakSession = null;
         }
 
         player.breakingBlock = target;
@@ -332,19 +345,74 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void handleStopBreak(Vector3i blockPos) {
-        LevelEventPacket levelEvent = new LevelEventPacket();
-        levelEvent.setType(LevelEvent.BLOCK_STOP_BREAK);
-        levelEvent.setPosition(blockPos.toFloat());
-        levelEvent.setData(0);
-        player.sendPacket(levelEvent);
-        player.getLevel().addChunkPacket(blockPos, levelEvent);
+        sendBlockBreakEvent(LevelEvent.BLOCK_STOP_BREAK, blockPos, 0);
         player.breakingBlock = null;
+        this.blockBreakSession = null;
     }
 
     private void handleContinueBreak(Vector3i blockPos, Direction face) {
-        if (player.isBreakingBlock()) {
-            Block block = player.getLevel().getBlock(blockPos);
-            player.getLevel().addParticle(new PunchBlockParticle(blockPos.toFloat(), block.getState(), face));
+        if (!player.isBreakingBlock() || this.blockBreakSession == null) {
+            startBreakFromContinue(blockPos, face);
+            return;
+        }
+
+        if (!this.blockBreakSession.matches(blockPos)) {
+            handleStopBreak(this.blockBreakSession.position());
+            startBreakFromContinue(blockPos, face);
+            return;
+        }
+
+        Block block = player.getLevel().getBlock(blockPos);
+        BlockState state = block.getState();
+        if (!state.equals(this.blockBreakSession.state())) {
+            handleStopBreak(blockPos);
+            return;
+        }
+
+        sendBlockBreakParticle(blockPos, state, face);
+
+        int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), state);
+        if (breakTicks > 0) {
+            this.blockBreakSession = this.blockBreakSession.withProgress(state, face, getDestroyProgress(state));
+            sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(state));
+        }
+    }
+
+    private void startBreakFromContinue(Vector3i blockPos, Direction face) {
+        handleStartBreak(blockPos, face);
+
+        if (this.blockBreakSession == null || !this.blockBreakSession.matches(blockPos)) {
+            return;
+        }
+
+        BlockState state = this.blockBreakSession.state();
+        int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), state);
+        if (breakTicks <= 0) {
+            return;
+        }
+
+        sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(state));
+    }
+
+    private void refreshBlockBreak() {
+        if (!player.isBreakingBlock() || this.blockBreakSession == null) {
+            return;
+        }
+
+        Vector3i blockPos = this.blockBreakSession.position();
+        BlockState state = player.getLevel().getBlock(blockPos).getState();
+        if (!state.equals(this.blockBreakSession.state())) {
+            handleStopBreak(blockPos);
+            return;
+        }
+
+        int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), state);
+        if (breakTicks > 0) {
+            this.blockBreakSession = this.blockBreakSession.withProgress(state, this.blockBreakSession.face(), getDestroyProgress(state));
+            if (player.getServer().getTick() % 5 == 0) {
+                sendBlockBreakParticle(blockPos, state, this.blockBreakSession.face());
+            }
+            sendBlockBreakEvent(LevelEvent.BLOCK_UPDATE_BREAK, blockPos, encodeBreakEventData(state));
         }
     }
 
@@ -353,19 +421,27 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        player.breakingBlock = null;
+        Block predictedBlock = player.getLevel().getBlock(blockPos);
+        BlockState predictedState = predictedBlock.getState();
+        boolean hasMatchingSession = this.blockBreakSession != null
+                && this.blockBreakSession.matches(blockPos)
+                && this.blockBreakSession.state().equals(predictedState);
+        if (!hasMatchingSession) {
+            startBreakFromContinue(blockPos, face);
+        }
+        Boolean fastBreak = hasMatchingSession ? getPredictedFastBreak(blockPos, predictedState) : null;
 
-        LevelEventPacket levelEvent = new LevelEventPacket();
-        levelEvent.setType(LevelEvent.BLOCK_STOP_BREAK);
-        levelEvent.setPosition(blockPos.toFloat());
-        levelEvent.setData(0);
-        player.getLevel().addChunkPacket(blockPos, levelEvent);
+        player.breakingBlock = null;
+        this.blockBreakSession = null;
+
+        sendBlockBreakEvent(LevelEvent.BLOCK_STOP_BREAK, blockPos, 0);
+        sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(predictedState));
 
         ItemStack selectedItem = player.getInventory().getSelectedItem();
         ItemStack oldItem = selectedItem;
 
         if (player.canInteract(blockPos.toFloat().add(0.5f, 0.5f, 0.5f), player.isCreative() ? 13 : 7)) {
-            selectedItem = player.getLevel().useBreakOn(blockPos, face, selectedItem, player, true);
+            selectedItem = player.getLevel().useBreakOnPredicted(blockPos, face, selectedItem, player, true, fastBreak);
             if (selectedItem != null) {
                 if (player.isSurvival() || player.isAdventure()) {
                     player.getFoodData().updateFoodExpLevel(0.025);
@@ -385,6 +461,58 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (blockEntity != null && blockEntity.isSpawnable()) {
             blockEntity.spawnTo(player);
+        }
+    }
+
+    private void sendBlockBreakEvent(LevelEvent event, Vector3i blockPos, int data) {
+        LevelEventPacket levelEvent = new LevelEventPacket();
+        levelEvent.setType(event);
+        levelEvent.setPosition(blockPos.toFloat());
+        levelEvent.setData(data);
+        player.sendPacket(levelEvent);
+        player.getLevel().addChunkPacket(blockPos, levelEvent);
+    }
+
+    private void sendBlockBreakParticle(Vector3i blockPos, BlockState state, Direction face) {
+        if (state.equals(BlockStates.AIR)) {
+            return;
+        }
+
+        Vector3f position = blockPos.toFloat().add(0.5f, 0.5f, 0.5f);
+        for (BedrockPacket packet : new PunchBlockParticle(position, state, face).encode()) {
+            player.sendPacket(packet);
+            player.getLevel().addChunkPacket(blockPos, packet);
+        }
+    }
+
+    private @Nullable Boolean getPredictedFastBreak(Vector3i blockPos, BlockState state) {
+        if (this.blockBreakSession == null || !this.blockBreakSession.matches(blockPos) || !this.blockBreakSession.state().equals(state)) {
+            return null;
+        }
+
+        return this.blockBreakSession.progress() < 0.7D;
+    }
+
+    private int encodeBreakEventData(BlockState state) {
+        double progress = getDestroyProgress(state);
+        if (progress <= 0 || !Double.isFinite(progress)) {
+            return 0;
+        }
+        return Math.max(1, (int) (65535 * progress));
+    }
+
+    private double getDestroyProgress(BlockState state) {
+        return ToolUtils.getDestroyProgress(player, player.getInventory().getSelectedItem(), state);
+    }
+
+    private record BlockBreakSession(Vector3i position, BlockState state, Direction face, double progress) {
+
+        private boolean matches(Vector3i position) {
+            return this.position.equals(position);
+        }
+
+        private BlockBreakSession withProgress(BlockState state, Direction face, double progress) {
+            return new BlockBreakSession(this.position, state, face, this.progress + progress);
         }
     }
 
@@ -1656,6 +1784,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!inventoryItem.isSimilar(pickedItem)) {
             return false;
         }
-        return Objects.equals(inventoryItem.get(ItemKeys.DAMAGE), pickedItem.get(ItemKeys.DAMAGE));
+        return inventoryItem.getDamage() == pickedItem.getDamage();
     }
 }

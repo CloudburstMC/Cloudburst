@@ -7,7 +7,6 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
@@ -386,23 +385,13 @@ public class EntityHuman extends EntityCreature implements Human {
 //                        continue;
 //                }
 
-                var damage = armor.get(ItemKeys.DAMAGE);
-                Boolean unbreakable = armor.get(ItemKeys.UNBREAKABLE);
-
-                if (damage != null) {
-                    if (unbreakable != null && unbreakable) {
-                        continue;
-                    }
-
-                    armor = armor.toBuilder()
-                            .data(ItemKeys.DAMAGE, damage - 1)
-                            .build();
-
-                    int maxDurability = this.server.getItemRegistry().requireComponent(armor.getType(), ItemComponents.GET_MAX_DAMAGE).execute(armor);
-                    if (damage + 1 >= maxDurability) {
-                        getArmor().setItem(slot, ItemStack.EMPTY);
-                    } else {
-                        getArmor().setItem(slot, armor);
+                if (!armor.isEmpty()) {
+                    int durabilityDamage = Math.max((int) (source.getDamage() / 4), 1);
+                    ItemStack damagedArmor = this.server.getItemRegistry()
+                            .requireComponent(armor.getType(), ItemComponents.ON_DAMAGE)
+                            .execute(armor, durabilityDamage, this);
+                    if (!damagedArmor.equals(armor)) {
+                        getArmor().setItem(slot, damagedArmor);
                     }
                 }
             }

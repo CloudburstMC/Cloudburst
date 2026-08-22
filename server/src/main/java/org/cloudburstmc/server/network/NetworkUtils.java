@@ -4,8 +4,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.item.ItemKeys;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -13,9 +11,6 @@ import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
-import org.cloudburstmc.server.container.CloudContainer;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -23,8 +18,7 @@ import java.util.List;
 
 /**
  * Utility class providing static helpers for protocol conversions: potion and effect type ↔ protocol ID,
- * {@link org.cloudburstmc.api.item.ItemStack} ↔ {@code ItemData}, attribute and game-rule serialisation,
- * and slot data helpers.
+ * attribute and game-rule serialisation, and address formatting.
  */
 @UtilityClass
 public class NetworkUtils {
@@ -154,23 +148,5 @@ public class NetworkUtils {
         }
 
         return String.valueOf(address);
-    }
-
-    public static ItemStackResponseSlot itemStackToNetwork(ItemStackRequestSlotData data, CloudContainer inv) {
-        ItemStack item = inv.getItem(data.getSlot());
-        Integer damage = item.get(ItemKeys.DAMAGE);
-        String customName = item.get(ItemKeys.CUSTOM_NAME);
-
-//        if (item.getStackNetworkId() == -1) {
-//            item.getNetworkData(); // Will regen and assign stack ID
-//        }
-
-        return new ItemStackResponseSlot(data.getSlot(),
-                data.getSlot(),
-                item.getCount(),
-                -1, // FIXME: item.getStackNetworkId(),
-                customName == null ? "" : customName,
-                damage == null ? 0 : damage,
-                "");
     }
 }

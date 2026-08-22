@@ -1,33 +1,31 @@
 package org.cloudburstmc.api.item;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
-import org.cloudburstmc.api.enchantment.EnchantmentType;
-import org.cloudburstmc.api.util.Identifier;
 
-import java.util.Collection;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.api.item.ItemKeys.BLOCK_STATE;
 
+/**
+ * Mutable builder for immutable {@link ItemStack} instances.
+ *
+ * <p>The builder only stores the item type, amount, and explicit metadata supplied by the caller.
+ * Block item state is not inferred from the item type; use {@link ItemStack#builder(org.cloudburstmc.api.block.BlockState)}
+ * or set {@link ItemKeys#BLOCK_STATE} explicitly when creating a block item stack.</p>
+ */
 public final class ItemStackBuilder {
 
+    private final Map<DataKey<?, ?>, Object> metadata;
     private ItemType itemType;
     private int amount;
-    private final Map<DataKey<?, ?>, Object> metadata;
 
     ItemStackBuilder(ItemType itemType, int amount, Map<DataKey<?, ?>, ?> metadata) {
         this.itemType = itemType;
         this.amount = amount;
-        this.metadata = new IdentityHashMap<>(metadata);
+        this.metadata = new IdentityHashMap<>(checkNotNull(metadata, "metadata"));
     }
 
     public ItemStackBuilder itemType(@NonNull ItemType itemType) {
@@ -36,17 +34,25 @@ public final class ItemStackBuilder {
         return this;
     }
 
-    public ItemStackBuilder amount(@NonNegative int amount) {
-        checkArgument(amount > 0, "amount cannot be less than zero");
+    /**
+     * Sets the stack amount.
+     *
+     * @param amount the positive stack amount
+     * @return this builder
+     */
+    public ItemStackBuilder amount(int amount) {
+        checkArgument(amount > 0, "amount must be positive");
         this.amount = amount;
         return this;
     }
 
-    public ItemStackBuilder clearData() {
-        this.metadata.clear();
-        return this;
-    }
-
+    /**
+     * Stores an explicit metadata value.
+     *
+     * @param key the metadata key
+     * @param value the metadata value
+     * @return this builder
+     */
     public <T, M> ItemStackBuilder data(DataKey<T, M> key, M value) {
         checkNotNull(key, "key");
         checkNotNull(value, "value");
@@ -54,14 +60,38 @@ public final class ItemStackBuilder {
         return this;
     }
 
+    /**
+     * Removes an explicitly stored metadata value from the stack being built.
+     *
+     * <p>After removal, reads for the key use the key's default value.</p>
+     *
+     * @param key the metadata key to remove
+     * @return this builder
+     */
+    public ItemStackBuilder removeData(@NonNull DataKey<?, ?> key) {
+        checkNotNull(key, "key");
+        this.metadata.remove(key);
+        return this;
+    }
+
+    /**
+     * Removes all explicitly stored metadata values from the stack being built.
+     *
+     * @return this builder
+     */
+    public ItemStackBuilder clearData() {
+        this.metadata.clear();
+        return this;
+    }
+
+    /**
+     * Builds an immutable item stack.
+     *
+     * @return the built stack
+     */
     public ItemStack build() {
         checkNotNull(this.itemType, "itemType is null");
-        checkArgument(this.amount > 0, "amount cannot be less than zero");
-        if(((Object) this.itemType) instanceof BlockType blockType && !this.metadata.containsKey(BLOCK_STATE)) {
-            this.metadata.put(BLOCK_STATE, blockType.getDefaultState());
-        }
-//        checkArgument(!(this.itemType instanceof BlockType) || this.metadata.containsKey(BLOCK_STATE),
-//                "ItemStack with a BlockType requires BlockState data");
+        checkArgument(this.amount > 0, "amount must be positive");
         return new ItemStack(itemType, amount, metadata);
     }
 }

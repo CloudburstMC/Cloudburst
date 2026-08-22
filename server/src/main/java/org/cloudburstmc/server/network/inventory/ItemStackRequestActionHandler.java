@@ -86,13 +86,14 @@ public class ItemStackRequestActionHandler {
             case CraftCreativeAction craft -> handleCraftCreative(craft);
             case RecipeItemStackRequestAction recipe when isCraftRecipeAction(recipe) -> handleCraftRecipe(recipe);
             case ConsumeAction consume -> handleConsume(consume);
+            case MineBlockAction mineBlock -> handleMineBlock(mineBlock);
             default -> handleUnsupportedAction(action);
         }
     }
 
     private void handleUnsupportedAction(ItemStackRequestAction action) {
         switch (action.getType()) {
-            case MINE_BLOCK, CRAFT_RESULTS_DEPRECATED, CREATE -> {
+            case CRAFT_RESULTS_DEPRECATED, CREATE -> {
             }
             case CRAFT_RECIPE_OPTIONAL,
                  CRAFT_REPAIR_AND_DISENCHANT,
@@ -134,7 +135,7 @@ public class ItemStackRequestActionHandler {
         if (destItem.isEmpty()) {
             newDest = sourceItem.withCount(count);
         } else {
-            if (!destItem.isSimilarMetadata(sourceItem)) {
+            if (!destItem.isStackableWith(sourceItem)) {
                 throw new IllegalArgumentException("Cannot merge incompatible items in transfer");
             }
             newDest = destItem.withCount(destItem.getCount() + count);
@@ -414,6 +415,15 @@ public class ItemStackRequestActionHandler {
         trackAffectedSlot(sourceContainer, sourceSlot);
     }
 
+    private void handleMineBlock(MineBlockAction action) {
+        int hotbarSlot = action.getHotbarSlot();
+        if (hotbarSlot < 0 || hotbarSlot >= HOTBAR_SIZE) {
+            throw new IllegalArgumentException("Invalid mining hotbar slot " + hotbarSlot);
+        }
+
+        trackAffectedSlot(ContainerSlotType.HOTBAR, hotbarSlot);
+    }
+
     private CraftingRecipe resolveCraftingRecipe(int networkId) {
         Recipe recipe = CloudRecipeRegistry.get().getRecipeFromNetId(networkId);
         if (!(recipe instanceof CraftingRecipe craftingRecipe)) {
@@ -678,7 +688,6 @@ public class ItemStackRequestActionHandler {
         }
 
         int netId = NetworkItemStack.getNetId(item);
-        Integer damage = item.get(ItemKeys.DAMAGE);
         String customName = item.get(ItemKeys.CUSTOM_NAME);
 
         return new ItemStackResponseSlot(
@@ -687,7 +696,7 @@ public class ItemStackRequestActionHandler {
                 item.getCount(),
                 netId,
                 customName == null ? "" : customName,
-                damage == null ? 0 : damage,
+                item.getDamage(),
                 ""
         );
     }

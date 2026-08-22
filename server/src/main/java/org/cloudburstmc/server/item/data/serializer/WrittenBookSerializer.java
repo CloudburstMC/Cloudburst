@@ -13,6 +13,9 @@ import org.cloudburstmc.server.utils.PageContent;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Serializes written book metadata, including title, author, generation, resolved state, and pages.
+ */
 public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
 
     private static final int MAX_GENERATION = 2;
@@ -45,6 +48,10 @@ public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
 
     @Override
     public WrittenBook deserialize(Identifier id, NbtMap tag) {
+        if (!tag.containsKey(TAG_TITLE) && !tag.containsKey(TAG_AUTHOR) && !tag.containsKey(TAG_PAGES)) {
+            return null;
+        }
+
         List<Page> pages;
         List<NbtMap> pageTags = tag.getList(TAG_PAGES, NbtType.COMPOUND);
 

@@ -98,12 +98,7 @@ public class BedBlockHandlers {
             return false;
         }
 
-        int damage = 0;
-        Integer rawDamage = cloudPlayer.getInventory().getSelectedItem().get(ItemKeys.DAMAGE);
-        if (rawDamage != null) {
-            damage = rawDamage;
-        }
-        DyeColor color = DyeColor.getByWoolData(damage);
+        DyeColor color = DyeColor.getByWoolData(cloudPlayer.getInventory().getSelectedItem().getDamage());
 
         spawnBedEntity(level, footPos, color);
         spawnBedEntity(level, headPos, color);

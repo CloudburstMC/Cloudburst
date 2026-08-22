@@ -48,6 +48,7 @@ class VanillaBlockTags {
         initMineableWithShovel();
         initMineableWithPickaxe();
         initMineableWithAxe();
+        initToolTierRequirements();
 
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
         inherit(TRANSPARENT, BEDS, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
@@ -1491,36 +1492,175 @@ class VanillaBlockTags {
                 LIGHT_BLUE_CONCRETE_POWDER, LIGHT_GRAY_CONCRETE_POWDER, LIME_CONCRETE_POWDER,
                 MAGENTA_CONCRETE_POWDER, ORANGE_CONCRETE_POWDER, PINK_CONCRETE_POWDER,
                 PURPLE_CONCRETE_POWDER, RED_CONCRETE_POWDER, WHITE_CONCRETE_POWDER,
-                YELLOW_CONCRETE_POWDER);
+                YELLOW_CONCRETE_POWDER
+        );
     }
 
     private static void initMineableWithPickaxe() {
         tag(MINEABLE_WITH_PICKAXE,
-                STONE,
-                GRANITE,
-                POLISHED_GRANITE,
-                DIORITE,
-                POLISHED_DIORITE,
+                ANCIENT_DEBRIS,
                 ANDESITE,
-                POLISHED_ANDESITE); // TODO Add more!
+                BASALT,
+                BREWING_STAND,
+                BRICK_BLOCK,
+                BRICK_STAIRS,
+                CHISELED_SANDSTONE,
+                CHISELED_STONE_BRICKS,
+                COAL_ORE,
+                COBBLESTONE,
+                COBBLESTONE_STAIRS,
+                COPPER_ORE,
+                CRACKED_STONE_BRICKS,
+                CRAFTER,
+                CRYING_OBSIDIAN,
+                CUT_SANDSTONE,
+                DEEPSLATE,
+                DEEPSLATE_COAL_ORE,
+                DEEPSLATE_COPPER_ORE,
+                DEEPSLATE_DIAMOND_ORE,
+                DEEPSLATE_EMERALD_ORE,
+                DEEPSLATE_GOLD_ORE,
+                DEEPSLATE_IRON_ORE,
+                DEEPSLATE_LAPIS_ORE,
+                DEEPSLATE_REDSTONE_ORE,
+                DIAMOND_BLOCK,
+                DIAMOND_ORE,
+                DIORITE,
+                DISPENSER,
+                EMERALD_BLOCK,
+                EMERALD_ORE,
+                ENCHANTING_TABLE,
+                ENDER_CHEST,
+                END_STONE,
+                FURNACE,
+                GOLD_BLOCK,
+                GOLD_ORE,
+                GRANITE,
+                HEAVY_WEIGHTED_PRESSURE_PLATE,
+                IRON_BLOCK,
+                IRON_DOOR,
+                IRON_ORE,
+                LAPIS_BLOCK,
+                LAPIS_ORE,
+                LIGHT_WEIGHTED_PRESSURE_PLATE,
+                MOSSY_COBBLESTONE,
+                MOSSY_STONE_BRICKS,
+                NETHERITE_BLOCK,
+                NETHERRACK,
+                NETHER_BRICK,
+                NETHER_BRICK_FENCE,
+                NETHER_BRICK_STAIRS,
+                NETHER_GOLD_ORE,
+                OBSIDIAN,
+                POLISHED_ANDESITE,
+                POLISHED_BASALT,
+                POLISHED_DIORITE,
+                POLISHED_GRANITE,
+                RAW_COPPER_BLOCK,
+                RAW_GOLD_BLOCK,
+                RAW_IRON_BLOCK,
+                REDSTONE_BLOCK,
+                REDSTONE_ORE,
+                RESPAWN_ANCHOR,
+                SANDSTONE,
+                SANDSTONE_STAIRS,
+                STONE,
+                STONE_BRICKS,
+                STONE_BRICK_STAIRS,
+                STONE_PRESSURE_PLATE,
+                TUFF
+        );
+        inherit(MINEABLE_WITH_PICKAXE, WALLS);
     }
 
     private static void initMineableWithAxe() {
         tag(MINEABLE_WITH_AXE,
-                OAK_LOG,
-                ACACIA_LOG,
-                PALE_OAK_LOG,
-                SPRUCE_LOG,
-                DARK_OAK_LOG,
-                JUNGLE_LOG,
-                BIRCH_LOG,
-                STRIPPED_OAK_LOG,
-                STRIPPED_ACACIA_LOG,
-                STRIPPED_PALE_OAK_LOG,
-                STRIPPED_SPRUCE_LOG,
-                STRIPPED_DARK_OAK_LOG,
-                STRIPPED_JUNGLE_LOG,
-                STRIPPED_BIRCH_LOG); // TODO Add more!
+                BAMBOO,
+                BAMBOO_MOSAIC,
+                BAMBOO_MOSAIC_SLAB,
+                BAMBOO_MOSAIC_STAIRS,
+                BARREL,
+                BEEHIVE,
+                BEE_NEST,
+                BIG_DRIPLEAF,
+                BOOKSHELF,
+                BROWN_MUSHROOM_BLOCK,
+                CAMPFIRE,
+                CARTOGRAPHY_TABLE,
+                CARVED_PUMPKIN,
+                CHEST,
+                CHISELED_BOOKSHELF,
+                CHORUS_FLOWER,
+                CHORUS_PLANT,
+                COCOA,
+                COMPOSTER,
+                CRAFTING_TABLE,
+                CREAKING_HEART,
+                DAYLIGHT_DETECTOR,
+                FLETCHING_TABLE,
+                GLOW_LICHEN,
+                JUKEBOX,
+                LADDER,
+                LECTERN,
+                LOOM,
+                MANGROVE_ROOTS,
+                MUSHROOM_STEM,
+                NOTE_BLOCK,
+                PUMPKIN,
+                RED_MUSHROOM_BLOCK,
+                SMITHING_TABLE,
+                SOUL_CAMPFIRE,
+                TRAPPED_CHEST,
+                VINE
+        );
+        inherit(MINEABLE_WITH_AXE, FENCE_GATE, LOG, PLANKS, SIGN);
+    }
+
+    private static void initToolTierRequirements() {
+        tag(NEEDS_DIAMOND_TOOL,
+                ANCIENT_DEBRIS,
+                CRYING_OBSIDIAN,
+                NETHERITE_BLOCK,
+                OBSIDIAN,
+                RESPAWN_ANCHOR
+        );
+
+        tag(NEEDS_IRON_TOOL,
+                DEEPSLATE_DIAMOND_ORE,
+                DEEPSLATE_EMERALD_ORE,
+                DEEPSLATE_GOLD_ORE,
+                DEEPSLATE_REDSTONE_ORE,
+                DIAMOND_BLOCK,
+                DIAMOND_ORE,
+                EMERALD_BLOCK,
+                EMERALD_ORE,
+                GOLD_BLOCK,
+                GOLD_ORE,
+                RAW_GOLD_BLOCK,
+                REDSTONE_ORE
+        );
+
+        tag(NEEDS_STONE_TOOL,
+                COPPER_ORE,
+                CRAFTER,
+                DEEPSLATE_COPPER_ORE,
+                DEEPSLATE_IRON_ORE,
+                DEEPSLATE_LAPIS_ORE,
+                IRON_BLOCK,
+                IRON_ORE,
+                LAPIS_BLOCK,
+                LAPIS_ORE,
+                RAW_COPPER_BLOCK,
+                RAW_IRON_BLOCK
+        );
+
+        tag(INCORRECT_FOR_NETHERITE_TOOL);
+        tag(INCORRECT_FOR_DIAMOND_TOOL);
+        inherit(INCORRECT_FOR_IRON_TOOL, NEEDS_DIAMOND_TOOL);
+        inherit(INCORRECT_FOR_STONE_TOOL, NEEDS_DIAMOND_TOOL, NEEDS_IRON_TOOL);
+        inherit(INCORRECT_FOR_COPPER_TOOL, NEEDS_DIAMOND_TOOL, NEEDS_IRON_TOOL);
+        inherit(INCORRECT_FOR_GOLD_TOOL, NEEDS_DIAMOND_TOOL, NEEDS_IRON_TOOL, NEEDS_STONE_TOOL);
+        inherit(INCORRECT_FOR_WOODEN_TOOL, NEEDS_DIAMOND_TOOL, NEEDS_IRON_TOOL, NEEDS_STONE_TOOL);
     }
 
     private static void initShulkerBox() {
