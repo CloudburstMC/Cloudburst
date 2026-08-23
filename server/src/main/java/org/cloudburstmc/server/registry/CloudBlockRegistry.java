@@ -525,7 +525,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(CLIENT_REQUEST_PLACEHOLDER_BLOCK);
         this.registerVanilla(CLOSED_EYEBLOSSOM);
         this.registerVanilla(COAL_BLOCK);
-        this.registerVanilla(COAL_ORE);
+        this.registerOre(COAL_ORE, ItemStack.from(ItemTypes.COAL));
         this.registerVanilla(COARSE_DIRT);
         this.registerVanilla(COBBLED_DEEPSLATE);
         this.registerVanilla(COBBLED_DEEPSLATE_DOUBLE_SLAB);
@@ -555,7 +555,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(COPPER_GOLEM_STATUE);
         this.registerVanilla(COPPER_GRATE);
         this.registerVanilla(COPPER_LANTERN);
-        this.registerVanilla(COPPER_ORE);
+        this.registerOre(COPPER_ORE, ItemStack.from(ItemTypes.RAW_COPPER));
         this.registerTorch(COPPER_TORCH);
         this.registerTrapdoor(COPPER_TRAPDOOR);
         this.registerVanilla(CORNFLOWER);
@@ -685,7 +685,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DEPRECATED_PURPUR_BLOCK_2);
         this.registerPoweredRail(DETECTOR_RAIL);
         this.registerVanilla(DIAMOND_BLOCK);
-        this.registerVanilla(DIAMOND_ORE);
+        this.registerOre(DIAMOND_ORE, ItemStack.from(ItemTypes.DIAMOND));
         this.registerVanilla(DIORITE);
         this.registerVanilla(DIORITE_DOUBLE_SLAB);
         this.registerVanilla(DIORITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DIORITE_DOUBLE_SLAB));
@@ -826,7 +826,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(ELEMENT_118);
         this.registerVanilla(ELEMENT_CONSTRUCTOR);
         this.registerVanilla(EMERALD_BLOCK);
-        this.registerVanilla(EMERALD_ORE);
+        this.registerOre(EMERALD_ORE, ItemStack.from(ItemTypes.EMERALD));
         this.registerVanilla(ENCHANTING_TABLE)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ContainerBlockHandlers.ENCHANTING_TABLE);
@@ -898,7 +898,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(GOLDEN_DANDELION);
         this.registerPoweredRail(GOLDEN_RAIL);
         this.registerVanilla(GOLD_BLOCK);
-        this.registerVanilla(GOLD_ORE);
+        this.registerOre(GOLD_ORE, ItemStack.from(ItemTypes.RAW_GOLD));
         this.registerVanilla(GRANITE);
         this.registerVanilla(GRANITE_DOUBLE_SLAB);
         this.registerVanilla(GRANITE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(GRANITE_DOUBLE_SLAB));
@@ -1013,7 +1013,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(IRON_BLOCK);
         this.registerVanilla(IRON_CHAIN);
         this.registerDoor(IRON_DOOR);
-        this.registerVanilla(IRON_ORE);
+        this.registerOre(IRON_ORE, ItemStack.from(ItemTypes.RAW_IRON));
         this.registerTrapdoor(IRON_TRAPDOOR);
         this.registerVanilla(JIGSAW);
         this.registerVanilla(JUKEBOX);
@@ -1040,7 +1040,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(LADDER);
         this.registerVanilla(LANTERN);
         this.registerVanilla(LAPIS_BLOCK);
-        this.registerVanilla(LAPIS_ORE);
+        this.registerOre(LAPIS_ORE, ItemStack.from(ItemTypes.LAPIS_LAZULI));
         this.registerVanilla(LARGE_AMETHYST_BUD);
         this.registerVanilla(LARGE_FERN);
         this.registerLiquid(LAVA, LiquidTypes.LAVA)
@@ -1424,7 +1424,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(RAW_IRON_BLOCK);
         this.registerVanilla(REDSTONE_BLOCK);
         this.registerVanilla(REDSTONE_LAMP);
-        this.registerVanilla(REDSTONE_ORE);
+        this.registerOre(REDSTONE_ORE, ItemStack.from(ItemTypes.REDSTONE));
         this.registerTorch(REDSTONE_TORCH);
         this.registerVanilla(REDSTONE_WIRE);
         this.registerVanilla(RED_CANDLE);
@@ -1949,6 +1949,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
                 .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ButtonBlockHandlers.ON_NEIGHBOUR_CHANGED);
+    }
+
+    private void registerOre(BlockType type, ItemStack itemDrop) {
+        this.registerVanilla(type)
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> itemDrop)
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(type.getDefaultState()));
     }
 
     private void registerVanillaBehaviors() {
