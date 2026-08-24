@@ -666,14 +666,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(DEEPSLATE_BRICK_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DEEPSLATE_BRICK_DOUBLE_SLAB));
         this.registerStairs(DEEPSLATE_BRICK_STAIRS);
         this.registerVanilla(DEEPSLATE_BRICK_WALL);
-        this.registerVanilla(DEEPSLATE_COAL_ORE);
-        this.registerVanilla(DEEPSLATE_COPPER_ORE);
-        this.registerVanilla(DEEPSLATE_DIAMOND_ORE);
-        this.registerVanilla(DEEPSLATE_EMERALD_ORE);
-        this.registerVanilla(DEEPSLATE_GOLD_ORE);
-        this.registerVanilla(DEEPSLATE_IRON_ORE);
-        this.registerVanilla(DEEPSLATE_LAPIS_ORE);
-        this.registerVanilla(DEEPSLATE_REDSTONE_ORE);
+        this.registerOre(DEEPSLATE_COAL_ORE, ItemStack.from(ItemTypes.COAL));
+        this.registerOre(DEEPSLATE_COPPER_ORE, ItemStack.from(ItemTypes.RAW_COPPER));
+        this.registerOre(DEEPSLATE_DIAMOND_ORE, ItemStack.from(ItemTypes.DIAMOND));
+        this.registerOre(DEEPSLATE_EMERALD_ORE, ItemStack.from(ItemTypes.EMERALD));
+        this.registerOre(DEEPSLATE_GOLD_ORE, ItemStack.from(ItemTypes.RAW_GOLD));
+        this.registerOre(DEEPSLATE_IRON_ORE, ItemStack.from(ItemTypes.RAW_IRON));
+        this.registerOre(DEEPSLATE_LAPIS_ORE, ItemStack.from(ItemTypes.LAPIS_LAZULI));
+        this.registerOre(DEEPSLATE_REDSTONE_ORE, ItemStack.from(ItemTypes.REDSTONE));
         this.registerVanilla(DEEPSLATE_TILES);
         this.registerVanilla(DEEPSLATE_TILE_DOUBLE_SLAB);
         this.registerVanilla(DEEPSLATE_TILE_SLAB).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(DEEPSLATE_TILE_DOUBLE_SLAB));
@@ -905,25 +905,11 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerStairs(GRANITE_STAIRS);
         this.registerVanilla(GRANITE_WALL);
         this.registerVanilla(GRASS_BLOCK)
-            .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) ->
-                    BlockTypes.DIRT.asItem()
-                                   .map(itemType -> ItemStack.builder()
-                                           .itemType(itemType)
-                                           .data(ItemKeys.BLOCK_STATE, BlockTypes.DIRT.getDefaultState())
-                                           .amount(1)
-                                           .build())
-                                   .orElse(ItemStack.EMPTY)
-            )
-            .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) ->
-                    BlockTypes.GRASS_BLOCK.asItem()
-                                      .map(itemType -> ItemStack.builder()
-                                              .itemType(itemType)
-                                              .data(ItemKeys.BLOCK_STATE, BlockTypes.GRASS_BLOCK.getDefaultState())
-                                              .amount(1)
-                                              .build())
-                                      .orElse(ItemStack.EMPTY)
-            );
-        this.registerVanilla(GRASS_PATH);
+            .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.DIRT.getDefaultState()))
+            .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.GRASS_BLOCK.getDefaultState()));
+        this.registerVanilla(GRASS_PATH)
+            .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.DIRT.getDefaultState()))
+            .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.GRASS_PATH.getDefaultState()));
         this.registerFalling(GRAVEL, Sound.LAND_GRAVEL, Sound.DIG_GRAVEL);
         this.registerVanilla(GRAY_CANDLE);
         this.registerVanilla(GRAY_CANDLE_CAKE);
@@ -1484,7 +1470,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerVanilla(SEA_LANTERN);
         this.registerVanilla(SEA_PICKLE);
         this.registerVanilla(SHORT_DRY_GRASS);
-        this.registerVanilla(SHORT_GRASS);
+        this.registerVanilla(SHORT_GRASS)
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> random.nextInt(5) == 0 ? ItemStack.from(BlockTypes.AIR.getDefaultState()) : ItemStack.from(ItemTypes.WHEAT_SEEDS))
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.SHORT_GRASS.getDefaultState()));
         this.registerVanilla(SHROOMLIGHT);
         this.registerVanilla(SKELETON_SKULL);
         this.registerVanilla(SLIME);
@@ -1626,7 +1614,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
         this.registerVanilla(TALL_DRY_GRASS);
-        this.registerVanilla(TALL_GRASS);
+        this.registerVanilla(TALL_GRASS)
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> random.nextInt(5) == 0 ? ItemStack.from(BlockTypes.AIR.getDefaultState()) : ItemStack.from(ItemTypes.WHEAT_SEEDS))
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.TALL_GRASS.getDefaultState()));
         this.registerVanilla(TARGET);
         this.registerVanilla(TINTED_GLASS);
         this.registerVanilla(TNT);
@@ -1881,7 +1871,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
     private void registerLeaves(BlockType type) {
         this.registerVanilla(type)
-                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.EMPTY_BLOCK_SUPPORT_SHAPE);
+                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.EMPTY_BLOCK_SUPPORT_SHAPE)
+                .set(BlockComponents.GET_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(BlockTypes.AIR.getDefaultState()))
+                .set(BlockComponents.GET_SILK_TOUCH_RESOURCE, (block, random, bonusLevel) -> ItemStack.from(type.getDefaultState()))
+        ;
     }
 
     private CloudComponentMap registerLiquid(BlockType blockType, LiquidType liquidType) {
