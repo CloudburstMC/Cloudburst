@@ -261,6 +261,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.lastSkinChange = -1;
 
         this.loginChainData = chainData;
+        this.locale.set(parseClientLocale(chainData.getLanguageCode()));
         super.setSkin(chainData.getSkin());
 
         this.randomClientId = chainData.getClientId();
@@ -282,6 +283,15 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
         return oldPos.getFloorX() >> 4 != newPos.getFloorX() >> 4 || oldPos.getFloorZ() >> 4 != newPos.getFloorZ() >> 4;
+    }
+
+    private static Locale parseClientLocale(String languageCode) {
+        if (languageCode == null || languageCode.isBlank()) {
+            return Locale.US;
+        }
+
+        Locale locale = Locale.forLanguageTag(languageCode.replace('_', '-'));
+        return locale.getLanguage().isBlank() ? Locale.US : locale;
     }
 
     private static int distance(int centerX, int centerZ, int x, int z) {
@@ -2432,7 +2442,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     @Override
     public void sendMessage(Component message) {
-        this.sendPacket(BedrockTextPacketFactory.message(message));
+        this.sendPacket(BedrockTextPacketFactory.message(message, getLocale()));
     }
 
     @Override
@@ -2455,17 +2465,17 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public void sendChat(String source, Component message) {
-        this.sendPacket(BedrockTextPacketFactory.chat(source, message));
+        this.sendPacket(BedrockTextPacketFactory.chat(source, message, getLocale()));
     }
 
     @Override
     public void sendPopup(Component message) {
-        this.sendPacket(BedrockTextPacketFactory.popup(message));
+        this.sendPacket(BedrockTextPacketFactory.popup(message, getLocale()));
     }
 
     @Override
     public void sendTip(Component message) {
-        this.sendPacket(BedrockTextPacketFactory.tip(message));
+        this.sendPacket(BedrockTextPacketFactory.tip(message, getLocale()));
     }
 
     @Override
