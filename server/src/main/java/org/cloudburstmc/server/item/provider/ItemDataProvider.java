@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.item.provider;
 
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
@@ -41,15 +42,18 @@ public abstract class ItemDataProvider {
         return null;
     }
 
-    public Set<EnchantmentInstance> getEnchantments() {
-        Set<EnchantmentInstance> enchantments = new HashSet<>();
+    public Set<Enchantment> getEnchantments() {
+        Set<Enchantment> enchantments = new HashSet<>();
         var registry = EnchantmentRegistry.get();
 
         tag.listenForList("ench", NbtType.COMPOUND, tags -> {
             for (NbtMap entry : tags) {
                 short id = entry.getShort("id");
                 int level = entry.getShort("lvl");
-                enchantments.add(registry.getEnchantment(registry.getType(id), level));
+                EnchantmentType type = registry.getType(id);
+                if (type != null && level > 0) {
+                    enchantments.add(registry.getEnchantment(type, level));
+                }
             }
         });
 

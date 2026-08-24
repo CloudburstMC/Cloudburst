@@ -10,7 +10,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.crafting.MixRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.crafting.RecipeType;
@@ -44,8 +44,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
-import static org.cloudburstmc.api.block.BlockIds.LIT_BLAST_FURNACE;
 
 @Log4j2
 public class CloudRecipeRegistry implements RecipeRegistry {
@@ -466,7 +464,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             if (craftingBlock == Identifiers.FURNACE
                     || craftingBlock == Identifiers.LIT_FURNACE
                     || craftingBlock == Identifiers.BLAST_FURNACE
-                    || craftingBlock == Identifiers.LIT_BLAST_FURNACE) {
+                    || Identifiers.LIT_BLAST_FURNACE.equals(craftingBlock)) {
                 List<ItemStack> flat = flattenGrid(inputMap);
                 return matchFurnaceRecipe(flat.getFirst(), output, craftingBlock);
             }
@@ -970,9 +968,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private static Identifier normalizeFurnaceBlock(Identifier block) {
-        if (block == BlockIds.LIT_SMOKER) return BlockIds.SMOKER;
-        if (block == LIT_BLAST_FURNACE) return BlockIds.BLAST_FURNACE;
-        if (block == BlockIds.LIT_FURNACE) return BlockIds.FURNACE;
+        if (BlockTypes.LIT_SMOKER.getId().equals(block)) return BlockTypes.SMOKER.getId();
+        if (BlockTypes.LIT_BLAST_FURNACE.getId().equals(block)) return BlockTypes.BLAST_FURNACE.getId();
+        if (BlockTypes.LIT_FURNACE.getId().equals(block)) return BlockTypes.FURNACE.getId();
         return block;
     }
 

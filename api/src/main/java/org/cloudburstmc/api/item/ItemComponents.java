@@ -19,11 +19,15 @@ public class ItemComponents {
     public static final ComponentType<BooleanTypeHandler> CAN_BE_DEPLETED = ComponentType.of("can_be_depleted", BooleanTypeHandler.class);
     public static final ComponentType<CanDestroyHandler> CAN_DESTROY = ComponentType.of("can_destroy", CanDestroyHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_DESTROY_IN_CREATIVE = ComponentType.of("can_destroy_in_creative", BooleanTypeHandler.class);
+    public static final ComponentType<CanEnchantWithHandler> CAN_ENCHANT_WITH = ComponentType.of("can_enchant_with", CanEnchantWithHandler.class);
+    public static final ComponentType<CanRepairWithHandler> CAN_REPAIR_WITH = ComponentType.of("can_repair_with", CanRepairWithHandler.class);
+    public static final ComponentType<BooleanTypeHandler> CAN_STORE_ENCHANTMENTS = ComponentType.of("can_store_enchantments", BooleanTypeHandler.class);
     public static final ComponentType<BooleanTypeHandler> DAMAGEABLE = ComponentType.of("damageable", BooleanTypeHandler.class);
     public static final ComponentType<FloatTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", FloatTypeHandler.class);
     public static final ComponentType<FloatItemHandler> GET_ATTACK_DAMAGE_BONUS = ComponentType.of("get_attack_damage_bonus", FloatItemHandler.class);
     public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
     public static final ComponentType<DamageChanceHandler> GET_DAMAGE_CHANCE = ComponentType.of("get_damage_chance", DamageChanceHandler.class);
+    public static final ComponentType<GetEquipmentSlotHandler> GET_EQUIPMENT_SLOT = ComponentType.of("get_equipment_slot", GetEquipmentSlotHandler.class);
     public static final ComponentType<IntItemHandler> GET_MAX_DAMAGE = ComponentType.of("get_max_damage", IntItemHandler.class);
     public static final ComponentType<IntItemHandler> GET_MAX_STACK_SIZE = ComponentType.of("get_max_stack_size", IntItemHandler.class);
     public static final ComponentType<GetToolHandler> GET_TOOL = ComponentType.of("get_tool", GetToolHandler.class);

@@ -6,19 +6,16 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
-/**
- * View-layer slot group for the anvil. Holds three item slots (input, material, result),
- * a repair cost, a rename text, and a maximum repair cost.
- * This is an ephemeral section with no block entity backing.
- */
 public class CloudAnvilView extends CloudSlotGroupBase implements AnvilView {
 
-    private static final int DEFAULT_MAX_REPAIR_COST = 39;
+    private static final int DEFAULT_MAX_REPAIR_COST = 40;
 
     private int cost;
+    private int repairItemCountCost;
     @Nullable
     private String renameText;
     private int maxRepairCost = DEFAULT_MAX_REPAIR_COST;
+    private boolean bypassEnchantmentLevelRestriction;
 
     public CloudAnvilView() {
         super(SlotGroupTypes.ANVIL, new CloudContainer(3));
@@ -61,7 +58,23 @@ public class CloudAnvilView extends CloudSlotGroupBase implements AnvilView {
 
     @Override
     public void setRepairCost(int cost) {
+        if (cost < 0) {
+            throw new IllegalArgumentException("Repair cost must be non-negative, got: " + cost);
+        }
         this.cost = cost;
+    }
+
+    @Override
+    public int getRepairItemCountCost() {
+        return repairItemCountCost;
+    }
+
+    @Override
+    public void setRepairItemCountCost(int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("Repair item count cost must be non-negative, got: " + count);
+        }
+        this.repairItemCountCost = count;
     }
 
     @Override
@@ -85,5 +98,15 @@ public class CloudAnvilView extends CloudSlotGroupBase implements AnvilView {
             throw new IllegalArgumentException("Maximum repair cost must be non-negative, got: " + cost);
         }
         this.maxRepairCost = cost;
+    }
+
+    @Override
+    public boolean bypassesEnchantmentLevelRestriction() {
+        return bypassEnchantmentLevelRestriction;
+    }
+
+    @Override
+    public void bypassEnchantmentLevelRestriction(boolean bypass) {
+        this.bypassEnchantmentLevelRestriction = bypass;
     }
 }

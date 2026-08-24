@@ -7,17 +7,20 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * A registered kind of item.
+ */
 public final class ItemType {
 
     private final Identifier id;
     private final Set<DataKey<?, ?>> dataKeys;
 
     public ItemType(Identifier id, Set<DataKey<?, ?>> dataKeys) {
-        this.id = id;
-        this.dataKeys = dataKeys;
+        this.id = checkNotNull(id, "id");
+        this.dataKeys = Set.copyOf(checkNotNull(dataKeys, "dataKeys"));
     }
 
-    public final Identifier getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -36,6 +39,7 @@ public final class ItemType {
 
     public static ItemType of(Identifier id, DataKey<?, ?>... dataKeys) {
         checkNotNull(id, "id");
+        checkNotNull(dataKeys, "dataKeys");
 
         return new ItemType(id, Set.of(dataKeys));
     }

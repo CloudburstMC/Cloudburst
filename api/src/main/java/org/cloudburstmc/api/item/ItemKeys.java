@@ -26,6 +26,8 @@ public final class ItemKeys {
 
     public static final SimpleDataKey<Integer> DAMAGE = DataKey.simple(Identifier.parse("item_damage"), Integer.class);
 
+    public static final SimpleDataKey<Integer> REPAIR_COST = DataKey.simple(Identifier.parse("repair_cost"), Integer.class);
+
     public static final SimpleDataKey<Boolean> UNBREAKABLE = DataKey.simple(Identifier.parse("unbreakable"), Boolean.class);
 
     public static final SimpleDataKey<DyeColor> COLOR = DataKey.simple(Identifier.parse("dye_color"), DyeColor.class);

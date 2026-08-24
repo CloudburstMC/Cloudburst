@@ -6,8 +6,11 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.DataKey;
+import org.cloudburstmc.api.enchantment.EnchantmentTarget;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.component.CanEnchantWithHandler;
+import org.cloudburstmc.api.item.component.CanRepairWithHandler;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -24,20 +27,18 @@ import org.cloudburstmc.server.item.VanillaTools;
 import org.cloudburstmc.server.item.component.*;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.*;
+import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
-    private static final CloudItemRegistry INSTANCE = new CloudItemRegistry(); // Needs to be initialized afterwards
     private static final String ITEM_ALIAS_PREFIX = "item.";
+    private static final CloudItemRegistry INSTANCE = new CloudItemRegistry();
 
-    private final Reference2ReferenceMap<Identifier, ItemType> typeMap = new Reference2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, ItemType> typeMap = new Object2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers = new Reference2ObjectLinkedOpenHashMap<>();
     private final ItemPalette itemPalette = new ItemPalette(this);
@@ -48,6 +49,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         try {
             this.registerVanillaBehaviors();
             this.registerVanillaItems();
+            VanillaItemTags.freeze();
             this.registerVanillaDataSerializers();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
@@ -82,39 +84,192 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return registerVanilla(type, null);
     }
 
-    private void registerArmorHelmet(ItemType type) throws RegistryException {
-        this.registerVanilla(type)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
-                .set(ItemComponents.USE, ArmorItemHandlers.helmet());
+    private void registerArmorHelmet(ItemType type, int materialDurability, CanRepairWithHandler repairWith, Sound equipSound) throws RegistryException {
+        this.registerDamageableVanilla(type, 11 * materialDurability, repairWith)
+                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.HEAD)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.ARMOR,
+                        EnchantmentTarget.ARMOR_HEAD,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE,
+                        EnchantmentTarget.WEARABLE))
+                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.HEAD, equipSound));
     }
 
-    private void registerArmorChestplate(ItemType type) throws RegistryException {
-        this.registerVanilla(type)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
-                .set(ItemComponents.USE, ArmorItemHandlers.chestplate());
+    private void registerArmorChestplate(ItemType type, int materialDurability, CanRepairWithHandler repairWith, Sound equipSound) throws RegistryException {
+        this.registerDamageableVanilla(type, 16 * materialDurability, repairWith)
+                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.ARMOR,
+                        EnchantmentTarget.ARMOR_CHEST,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE,
+                        EnchantmentTarget.WEARABLE))
+                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, equipSound));
     }
 
-    private void registerArmorLeggings(ItemType type) throws RegistryException {
-        this.registerVanilla(type)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
-                .set(ItemComponents.USE, ArmorItemHandlers.leggings());
+    private void registerArmorLeggings(ItemType type, int materialDurability, CanRepairWithHandler repairWith, Sound equipSound) throws RegistryException {
+        this.registerDamageableVanilla(type, 15 * materialDurability, repairWith)
+                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.LEGS)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.ARMOR,
+                        EnchantmentTarget.ARMOR_LEGS,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE,
+                        EnchantmentTarget.WEARABLE))
+                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.LEGS, equipSound));
     }
 
-    private void registerArmorBoots(ItemType type) throws RegistryException {
-        this.registerVanilla(type)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
-                .set(ItemComponents.USE, ArmorItemHandlers.boots());
+    private void registerArmorBoots(ItemType type, int materialDurability, CanRepairWithHandler repairWith, Sound equipSound) throws RegistryException {
+        this.registerDamageableVanilla(type, 13 * materialDurability, repairWith)
+                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.FEET)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.ARMOR,
+                        EnchantmentTarget.ARMOR_FEET,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE,
+                        EnchantmentTarget.WEARABLE))
+                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.FEET, equipSound));
     }
 
-    private void registerTool(ItemType type, Tool tool, int maxDamage) throws RegistryException {
-        this.registerVanilla(type)
-                .set(ItemComponents.DAMAGEABLE, () -> true)
-                .set(ItemComponents.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE)
-                .set(ItemComponents.GET_MAX_DAMAGE, item -> maxDamage)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
+    private void registerElytra(ItemType type, CanRepairWithHandler repairWith) throws RegistryException {
+        this.registerDamageableVanilla(type, 432, repairWith)
+                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE,
+                        EnchantmentTarget.WEARABLE))
+                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, Sound.ARMOR_EQUIP_ELYTRA));
+    }
+
+    private void registerTool(ItemType type, Tool tool, int maxDamage, CanRepairWithHandler repairWith, EnchantmentTarget... additionalEnchantmentTargets) throws RegistryException {
+        this.registerDamageableVanilla(type, maxDamage, repairWith)
+                .set(ItemComponents.CAN_ENCHANT_WITH, toolEnchantableWith(additionalEnchantmentTargets))
                 .set(ItemComponents.GET_TOOL, item -> tool)
-                .set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK)
-                .set(ItemComponents.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE);
+                .set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+    }
+
+    private void registerAxe(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        registerTool(type, VanillaTools.axe(material), material.getDurability(), repairWith,
+                EnchantmentTarget.SHARP_WEAPON,
+                EnchantmentTarget.WEAPON);
+    }
+
+    private void registerPickaxe(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        registerTool(type, VanillaTools.pickaxe(material), material.getDurability(), repairWith);
+    }
+
+    private void registerShovel(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        registerTool(type, VanillaTools.shovel(material.getSpeed()), material.getDurability(), repairWith);
+    }
+
+    private void registerHoe(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        registerTool(type, VanillaTools.hoe(material), material.getDurability(), repairWith);
+    }
+
+    private void registerSword(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        this.registerDamageableVanilla(type, material.getDurability(), repairWith)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.FIRE_ASPECT,
+                        EnchantmentTarget.MELEE_WEAPON,
+                        EnchantmentTarget.SHARP_WEAPON,
+                        EnchantmentTarget.WEAPON,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE))
+                .set(ItemComponents.GET_TOOL, item -> VanillaTools.sword())
+                .set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+    }
+
+    private void registerSpear(ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) throws RegistryException {
+        this.registerDamageableVanilla(type, material.getDurability(), repairWith)
+                .set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(
+                        EnchantmentTarget.FIRE_ASPECT,
+                        EnchantmentTarget.MELEE_WEAPON,
+                        EnchantmentTarget.SHARP_WEAPON,
+                        EnchantmentTarget.SPEAR,
+                        EnchantmentTarget.WEAPON,
+                        EnchantmentTarget.BREAKABLE,
+                        EnchantmentTarget.VANISHABLE));
+    }
+
+    private CloudComponentMap registerDamageableEnchantable(ItemType type, int maxDamage, CanRepairWithHandler repairWith,
+                                                            EnchantmentTarget... enchantmentTargets) throws RegistryException {
+        CloudComponentMap components = this.registerDamageableVanilla(type, maxDamage, repairWith);
+        components.set(ItemComponents.CAN_ENCHANT_WITH, enchantableWith(enchantmentTargets));
+        return components;
+    }
+
+    private void registerDamageableEnchantableTool(ItemType type, Tool tool, int maxDamage,
+                                                   CanRepairWithHandler repairWith,
+                                                   EnchantmentTarget... enchantmentTargets) throws RegistryException {
+        CloudComponentMap components = this.registerDamageableEnchantable(type, maxDamage, repairWith, enchantmentTargets);
+        components.set(ItemComponents.GET_TOOL, item -> tool);
+        components.set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+    }
+
+    private CloudComponentMap registerDamageableVanilla(ItemType type, int maxDamage, CanRepairWithHandler repairWith) throws RegistryException {
+        CloudComponentMap components = this.registerVanilla(type);
+        components.set(ItemComponents.DAMAGEABLE, () -> true);
+        components.set(ItemComponents.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE);
+        components.set(ItemComponents.GET_MAX_DAMAGE, item -> maxDamage);
+        components.set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1);
+        components.set(ItemComponents.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE);
+        components.set(ItemComponents.CAN_REPAIR_WITH, repairWith);
+        return components;
+    }
+
+    private static CanEnchantWithHandler enchantableWith(EnchantmentTarget... targets) {
+        Preconditions.checkNotNull(targets, "targets");
+        for (EnchantmentTarget target : targets) {
+            Preconditions.checkNotNull(target, "target");
+        }
+
+        Set<EnchantmentTarget> supportedTargets = targets.length == 0 ? Set.of() : EnumSet.copyOf(List.of(targets));
+        return (item, enchantment) -> enchantment != null && supportedTargets.contains(enchantment.target());
+    }
+
+    private static CanEnchantWithHandler toolEnchantableWith(EnchantmentTarget... additionalTargets) {
+        Preconditions.checkNotNull(additionalTargets, "additionalTargets");
+        for (EnchantmentTarget target : additionalTargets) {
+            Preconditions.checkNotNull(target, "additionalTarget");
+        }
+
+        EnumSet<EnchantmentTarget> targets = EnumSet.of(
+                EnchantmentTarget.TOOL,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
+        targets.addAll(List.of(additionalTargets));
+        return enchantableWith(targets.toArray(EnchantmentTarget[]::new));
+    }
+
+    private static CanRepairWithHandler repairWith(Identifier... materials) {
+        Preconditions.checkNotNull(materials, "materials");
+        for (Identifier repairMaterial : materials) {
+            Preconditions.checkNotNull(repairMaterial, "repairMaterial");
+        }
+
+        return (item, material) -> {
+            if (item.isEmpty() || material.isEmpty() || material.getType() == null) {
+                return false;
+            }
+
+            Identifier materialId = material.getType().getId();
+            for (Identifier repairMaterial : materials) {
+                if (repairMaterial.equals(materialId)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+    }
+
+    private static CanRepairWithHandler repairWith(ItemTagKey tag) {
+        Preconditions.checkNotNull(tag, "tag");
+        return (item, material) -> !item.isEmpty()
+                && !material.isEmpty()
+                && material.getType() != null
+                && VanillaItemTags.isTagged(material.getType(), tag);
     }
 
     private synchronized CloudComponentMap registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
@@ -141,7 +296,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     protected synchronized void registerBlock(BlockType type) {
         ItemType itemType = this.typeMap.get(type.getId());
         if (itemType == null) {
-            itemType = ItemType.of(type.getId());
+            itemType = ItemTypes.get(type.getId()).orElseGet(() -> ItemType.of(type.getId()));
         }
         BlockRegistrationAccess.linkItem(type, itemType);
         this.typeMap.put(type.getId(), itemType);
@@ -179,6 +334,32 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 
     public ItemType getType(int legacyId) {
         return getType(getIdentifier(legacyId));
+    }
+
+    @Override
+    public boolean isTagged(ItemType type, ItemTagKey key) {
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(key, "key");
+        return VanillaItemTags.isTagged(type, key);
+    }
+
+    @Override
+    public boolean isTagged(ItemStack item, ItemTagKey key) {
+        Objects.requireNonNull(item, "item");
+        Objects.requireNonNull(key, "key");
+        return !item.isEmpty()
+                && item.getType() != null
+                && VanillaItemTags.isTagged(item.getType(), key);
+    }
+
+    @Override
+    public ItemTag getTag(ItemTagKey key) {
+        return VanillaItemTags.resolve(key);
+    }
+
+    @Override
+    public Collection<ItemTag> getTags() {
+        return VanillaItemTags.all();
     }
 
     @Deprecated
@@ -352,7 +533,10 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BONE_MEAL);
         registerVanilla(ItemTypes.BOOK);
         registerVanilla(ItemTypes.BORDURE_INDENTED_BANNER_PATTERN);
-        registerVanilla(ItemTypes.BOW);
+        registerDamageableEnchantable(ItemTypes.BOW, 384, repairWith(),
+                EnchantmentTarget.BOW,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.BOWL);
         registerVanilla(ItemTypes.BREAD);
         registerVanilla(ItemTypes.BREEZE_ROD);
@@ -365,7 +549,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.BROWN_DYE);
         registerVanilla(ItemTypes.BROWN_EGG);
         registerVanilla(ItemTypes.BROWN_HARNESS);
-        registerVanilla(ItemTypes.BRUSH);
+        registerDamageableEnchantable(ItemTypes.BRUSH, 64, repairWith(),
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.BUCKET)
                 .set(ItemComponents.USE_ON, BucketItemHandlers.PICK_UP);
         registerVanilla(ItemTypes.BUNDLE);
@@ -375,15 +561,17 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CAMEL_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAMEL));
         registerVanilla(ItemTypes.CARROT);
-        registerVanilla(ItemTypes.CARROT_ON_A_STICK);
+        registerDamageableEnchantable(ItemTypes.CARROT_ON_A_STICK, 25, repairWith(),
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.CAT_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAT));
         registerVanilla(ItemTypes.CAVE_SPIDER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CAVE_SPIDER));
-        registerArmorBoots(ItemTypes.CHAINMAIL_BOOTS);
-        registerArmorChestplate(ItemTypes.CHAINMAIL_CHESTPLATE);
-        registerArmorHelmet(ItemTypes.CHAINMAIL_HELMET);
-        registerArmorLeggings(ItemTypes.CHAINMAIL_LEGGINGS);
+        registerArmorBoots(ItemTypes.CHAINMAIL_BOOTS, 15, repairWith(ItemTags.REPAIRS_CHAIN_ARMOR), Sound.ARMOR_EQUIP_CHAIN);
+        registerArmorChestplate(ItemTypes.CHAINMAIL_CHESTPLATE, 15, repairWith(ItemTags.REPAIRS_CHAIN_ARMOR), Sound.ARMOR_EQUIP_CHAIN);
+        registerArmorHelmet(ItemTypes.CHAINMAIL_HELMET, 15, repairWith(ItemTags.REPAIRS_CHAIN_ARMOR), Sound.ARMOR_EQUIP_CHAIN);
+        registerArmorLeggings(ItemTypes.CHAINMAIL_LEGGINGS, 15, repairWith(ItemTags.REPAIRS_CHAIN_ARMOR), Sound.ARMOR_EQUIP_CHAIN);
         registerVanilla(ItemTypes.CHARCOAL);
         registerVanilla(ItemTypes.CHERRY_BOAT);
         registerVanilla(ItemTypes.CHERRY_CHEST_BOAT);
@@ -417,28 +605,22 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.COOKED_RABBIT);
         registerVanilla(ItemTypes.COOKED_SALMON);
         registerVanilla(ItemTypes.COOKIE);
-        registerTool(ItemTypes.COPPER_AXE,
-                VanillaTools.axe(ToolMaterials.COPPER),
-                ToolMaterials.COPPER.getDurability());
-        registerArmorBoots(ItemTypes.COPPER_BOOTS);
-        registerArmorChestplate(ItemTypes.COPPER_CHESTPLATE);
+        registerAxe(ItemTypes.COPPER_AXE, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
+        registerArmorBoots(ItemTypes.COPPER_BOOTS, 11, repairWith(ItemTags.REPAIRS_COPPER_ARMOR), Sound.ARMOR_EQUIP_COPPER);
+        registerArmorChestplate(ItemTypes.COPPER_CHESTPLATE, 11, repairWith(ItemTags.REPAIRS_COPPER_ARMOR), Sound.ARMOR_EQUIP_COPPER);
         registerVanilla(ItemTypes.COPPER_GOLEM_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COPPER_GOLEM));
-        registerArmorHelmet(ItemTypes.COPPER_HELMET);
-        registerVanilla(ItemTypes.COPPER_HOE);
+        registerArmorHelmet(ItemTypes.COPPER_HELMET, 11, repairWith(ItemTags.REPAIRS_COPPER_ARMOR), Sound.ARMOR_EQUIP_COPPER);
+        registerHoe(ItemTypes.COPPER_HOE, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
         registerVanilla(ItemTypes.COPPER_HORSE_ARMOR);
         registerVanilla(ItemTypes.COPPER_INGOT);
-        registerArmorLeggings(ItemTypes.COPPER_LEGGINGS);
+        registerArmorLeggings(ItemTypes.COPPER_LEGGINGS, 11, repairWith(ItemTags.REPAIRS_COPPER_ARMOR), Sound.ARMOR_EQUIP_COPPER);
         registerVanilla(ItemTypes.COPPER_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.COPPER_NUGGET);
-        registerTool(ItemTypes.COPPER_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.COPPER),
-                ToolMaterials.COPPER.getDurability());
-        registerTool(ItemTypes.COPPER_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.COPPER.getSpeed()),
-                ToolMaterials.COPPER.getDurability());
-        registerVanilla(ItemTypes.COPPER_SPEAR);
-        registerVanilla(ItemTypes.COPPER_SWORD);
+        registerPickaxe(ItemTypes.COPPER_PICKAXE, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
+        registerShovel(ItemTypes.COPPER_SHOVEL, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
+        registerSpear(ItemTypes.COPPER_SPEAR, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
+        registerSword(ItemTypes.COPPER_SWORD, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
         registerVanilla(ItemTypes.COW_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.COW));
         registerVanilla(ItemTypes.CREAKING_SPAWN_EGG)
@@ -447,7 +629,10 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CREEPER_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CREEPER));
         registerVanilla(ItemTypes.CRIMSON_SIGN);
-        registerVanilla(ItemTypes.CROSSBOW);
+        registerDamageableEnchantable(ItemTypes.CROSSBOW, 465, repairWith(),
+                EnchantmentTarget.CROSSBOW,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.CYAN_BUNDLE);
         registerVanilla(ItemTypes.CYAN_CUSHION);
         registerVanilla(ItemTypes.CYAN_DYE);
@@ -457,24 +642,18 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.DARK_OAK_CHEST_BOAT);
         registerVanilla(ItemTypes.DARK_OAK_SIGN);
         registerVanilla(ItemTypes.DIAMOND);
-        registerTool(ItemTypes.DIAMOND_AXE,
-                VanillaTools.axe(ToolMaterials.DIAMOND),
-                ToolMaterials.DIAMOND.getDurability());
-        registerArmorBoots(ItemTypes.DIAMOND_BOOTS);
-        registerArmorChestplate(ItemTypes.DIAMOND_CHESTPLATE);
-        registerArmorHelmet(ItemTypes.DIAMOND_HELMET);
-        registerVanilla(ItemTypes.DIAMOND_HOE);
+        registerAxe(ItemTypes.DIAMOND_AXE, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
+        registerArmorBoots(ItemTypes.DIAMOND_BOOTS, 33, repairWith(ItemTags.REPAIRS_DIAMOND_ARMOR), Sound.ARMOR_EQUIP_DIAMOND);
+        registerArmorChestplate(ItemTypes.DIAMOND_CHESTPLATE, 33, repairWith(ItemTags.REPAIRS_DIAMOND_ARMOR), Sound.ARMOR_EQUIP_DIAMOND);
+        registerArmorHelmet(ItemTypes.DIAMOND_HELMET, 33, repairWith(ItemTags.REPAIRS_DIAMOND_ARMOR), Sound.ARMOR_EQUIP_DIAMOND);
+        registerHoe(ItemTypes.DIAMOND_HOE, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
         registerVanilla(ItemTypes.DIAMOND_HORSE_ARMOR);
-        registerArmorLeggings(ItemTypes.DIAMOND_LEGGINGS);
+        registerArmorLeggings(ItemTypes.DIAMOND_LEGGINGS, 33, repairWith(ItemTags.REPAIRS_DIAMOND_ARMOR), Sound.ARMOR_EQUIP_DIAMOND);
         registerVanilla(ItemTypes.DIAMOND_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.DIAMOND_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.DIAMOND),
-                ToolMaterials.DIAMOND.getDurability());
-        registerTool(ItemTypes.DIAMOND_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.DIAMOND.getSpeed()),
-                ToolMaterials.DIAMOND.getDurability());
-        registerVanilla(ItemTypes.DIAMOND_SPEAR);
-        registerVanilla(ItemTypes.DIAMOND_SWORD);
+        registerPickaxe(ItemTypes.DIAMOND_PICKAXE, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
+        registerShovel(ItemTypes.DIAMOND_SHOVEL, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
+        registerSpear(ItemTypes.DIAMOND_SPEAR, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
+        registerSword(ItemTypes.DIAMOND_SWORD, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
         registerVanilla(ItemTypes.DISC_FRAGMENT_5);
         registerVanilla(ItemTypes.DOLPHIN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.DOLPHIN));
@@ -489,10 +668,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.EGG);
         registerVanilla(ItemTypes.ELDER_GUARDIAN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ELDER_GUARDIAN));
-        registerArmorChestplate(ItemTypes.ELYTRA);
+        registerElytra(ItemTypes.ELYTRA, repairWith(ItemTypes.PHANTOM_MEMBRANE.getId()));
         registerVanilla(ItemTypes.EMERALD);
         registerVanilla(ItemTypes.EMPTY_MAP);
-        registerVanilla(ItemTypes.ENCHANTED_BOOK);
+        registerVanilla(ItemTypes.ENCHANTED_BOOK)
+                .set(ItemComponents.CAN_ENCHANT_WITH, (item, enchantment) -> true);
         registerVanilla(ItemTypes.ENCHANTED_GOLDEN_APPLE);
         registerVanilla(ItemTypes.END_CRYSTAL);
         registerVanilla(ItemTypes.ENDER_DRAGON_SPAWN_EGG)
@@ -518,12 +698,10 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE, FireworkRocketItemHandlers.USE)
                 .set(ItemComponents.USE_ON, FireworkRocketItemHandlers.USE_ON);
         registerVanilla(ItemTypes.FIREWORK_STAR, new FireworkStarSerializer());
-        registerVanilla(ItemTypes.FISHING_ROD)
-                .set(ItemComponents.DAMAGEABLE, () -> true)
-                .set(ItemComponents.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE)
-                .set(ItemComponents.GET_MAX_DAMAGE, item -> 384)
-                .set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1)
-                .set(ItemComponents.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE)
+        registerDamageableEnchantable(ItemTypes.FISHING_ROD, 64, repairWith(),
+                EnchantmentTarget.FISHING_ROD,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE)
                 .set(ItemComponents.USE, FishingRodItemHandlers.USE);
         registerVanilla(ItemTypes.FLINT);
         registerVanilla(ItemTypes.FLINT_AND_STEEL)
@@ -555,23 +733,19 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.GOLD_INGOT);
         registerVanilla(ItemTypes.GOLD_NUGGET);
         registerVanilla(ItemTypes.GOLDEN_APPLE);
-        registerTool(ItemTypes.GOLDEN_AXE, VanillaTools.axe(ToolMaterials.GOLD), ToolMaterials.GOLD.getDurability());
-        registerArmorBoots(ItemTypes.GOLDEN_BOOTS);
+        registerAxe(ItemTypes.GOLDEN_AXE, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
+        registerArmorBoots(ItemTypes.GOLDEN_BOOTS, 7, repairWith(ItemTags.REPAIRS_GOLD_ARMOR), Sound.ARMOR_EQUIP_GOLD);
         registerVanilla(ItemTypes.GOLDEN_CARROT);
-        registerArmorChestplate(ItemTypes.GOLDEN_CHESTPLATE);
-        registerArmorHelmet(ItemTypes.GOLDEN_HELMET);
-        registerVanilla(ItemTypes.GOLDEN_HOE);
+        registerArmorChestplate(ItemTypes.GOLDEN_CHESTPLATE, 7, repairWith(ItemTags.REPAIRS_GOLD_ARMOR), Sound.ARMOR_EQUIP_GOLD);
+        registerArmorHelmet(ItemTypes.GOLDEN_HELMET, 7, repairWith(ItemTags.REPAIRS_GOLD_ARMOR), Sound.ARMOR_EQUIP_GOLD);
+        registerHoe(ItemTypes.GOLDEN_HOE, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
         registerVanilla(ItemTypes.GOLDEN_HORSE_ARMOR);
-        registerArmorLeggings(ItemTypes.GOLDEN_LEGGINGS);
+        registerArmorLeggings(ItemTypes.GOLDEN_LEGGINGS, 7, repairWith(ItemTags.REPAIRS_GOLD_ARMOR), Sound.ARMOR_EQUIP_GOLD);
         registerVanilla(ItemTypes.GOLDEN_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.GOLDEN_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.GOLD),
-                ToolMaterials.GOLD.getDurability());
-        registerTool(ItemTypes.GOLDEN_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.GOLD.getSpeed()),
-                ToolMaterials.GOLD.getDurability());
-        registerVanilla(ItemTypes.GOLDEN_SPEAR);
-        registerVanilla(ItemTypes.GOLDEN_SWORD);
+        registerPickaxe(ItemTypes.GOLDEN_PICKAXE, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
+        registerShovel(ItemTypes.GOLDEN_SHOVEL, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
+        registerSpear(ItemTypes.GOLDEN_SPEAR, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
+        registerSword(ItemTypes.GOLDEN_SWORD, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
         registerVanilla(ItemTypes.GRAY_BUNDLE);
         registerVanilla(ItemTypes.GRAY_CUSHION);
         registerVanilla(ItemTypes.GRAY_DYE);
@@ -604,26 +778,22 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.HUSK));
         registerVanilla(ItemTypes.ICE_BOMB);
         registerVanilla(ItemTypes.INK_SAC);
-        registerTool(ItemTypes.IRON_AXE, VanillaTools.axe(ToolMaterials.IRON), ToolMaterials.IRON.getDurability());
-        registerArmorBoots(ItemTypes.IRON_BOOTS);
-        registerArmorChestplate(ItemTypes.IRON_CHESTPLATE);
+        registerAxe(ItemTypes.IRON_AXE, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
+        registerArmorBoots(ItemTypes.IRON_BOOTS, 15, repairWith(ItemTags.REPAIRS_IRON_ARMOR), Sound.ARMOR_EQUIP_IRON);
+        registerArmorChestplate(ItemTypes.IRON_CHESTPLATE, 15, repairWith(ItemTags.REPAIRS_IRON_ARMOR), Sound.ARMOR_EQUIP_IRON);
         registerVanilla(ItemTypes.IRON_GOLEM_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.IRON_GOLEM));
-        registerArmorHelmet(ItemTypes.IRON_HELMET);
-        registerVanilla(ItemTypes.IRON_HOE);
+        registerArmorHelmet(ItemTypes.IRON_HELMET, 15, repairWith(ItemTags.REPAIRS_IRON_ARMOR), Sound.ARMOR_EQUIP_IRON);
+        registerHoe(ItemTypes.IRON_HOE, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         registerVanilla(ItemTypes.IRON_HORSE_ARMOR);
         registerVanilla(ItemTypes.IRON_INGOT);
-        registerArmorLeggings(ItemTypes.IRON_LEGGINGS);
+        registerArmorLeggings(ItemTypes.IRON_LEGGINGS, 15, repairWith(ItemTags.REPAIRS_IRON_ARMOR), Sound.ARMOR_EQUIP_IRON);
         registerVanilla(ItemTypes.IRON_NAUTILUS_ARMOR);
         registerVanilla(ItemTypes.IRON_NUGGET);
-        registerTool(ItemTypes.IRON_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.IRON),
-                ToolMaterials.IRON.getDurability());
-        registerTool(ItemTypes.IRON_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.IRON.getSpeed()),
-                ToolMaterials.IRON.getDurability());
-        registerVanilla(ItemTypes.IRON_SPEAR);
-        registerVanilla(ItemTypes.IRON_SWORD);
+        registerPickaxe(ItemTypes.IRON_PICKAXE, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
+        registerShovel(ItemTypes.IRON_SHOVEL, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
+        registerSpear(ItemTypes.IRON_SPEAR, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
+        registerSword(ItemTypes.IRON_SWORD, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         registerVanilla(ItemTypes.JUNGLE_BOAT);
         registerVanilla(ItemTypes.JUNGLE_CHEST_BOAT);
         registerVanilla(ItemTypes.JUNGLE_SIGN);
@@ -632,11 +802,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.LAVA));
         registerVanilla(ItemTypes.LEAD);
         registerVanilla(ItemTypes.LEATHER);
-        registerArmorBoots(ItemTypes.LEATHER_BOOTS);
-        registerArmorChestplate(ItemTypes.LEATHER_CHESTPLATE);
-        registerArmorHelmet(ItemTypes.LEATHER_HELMET);
+        registerArmorBoots(ItemTypes.LEATHER_BOOTS, 5, repairWith(ItemTags.REPAIRS_LEATHER_ARMOR), Sound.ARMOR_EQUIP_LEATHER);
+        registerArmorChestplate(ItemTypes.LEATHER_CHESTPLATE, 5, repairWith(ItemTags.REPAIRS_LEATHER_ARMOR), Sound.ARMOR_EQUIP_LEATHER);
+        registerArmorHelmet(ItemTypes.LEATHER_HELMET, 5, repairWith(ItemTags.REPAIRS_LEATHER_ARMOR), Sound.ARMOR_EQUIP_LEATHER);
         registerVanilla(ItemTypes.LEATHER_HORSE_ARMOR);
-        registerArmorLeggings(ItemTypes.LEATHER_LEGGINGS);
+        registerArmorLeggings(ItemTypes.LEATHER_LEGGINGS, 5, repairWith(ItemTags.REPAIRS_LEATHER_ARMOR), Sound.ARMOR_EQUIP_LEATHER);
         registerVanilla(ItemTypes.LIGHT_BLUE_BUNDLE);
         registerVanilla(ItemTypes.LIGHT_BLUE_CUSHION);
         registerVanilla(ItemTypes.LIGHT_BLUE_DYE);
@@ -653,7 +823,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.LLAMA_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.LLAMA));
         registerVanilla(ItemTypes.LODESTONE_COMPASS);
-        registerVanilla(ItemTypes.MACE);
+        registerDamageableEnchantableTool(ItemTypes.MACE, VanillaTools.weapon(), 500, repairWith(ItemTypes.BREEZE_ROD.getId()),
+                EnchantmentTarget.FIRE_ASPECT,
+                EnchantmentTarget.MACE,
+                EnchantmentTarget.WEAPON,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.MAGENTA_BUNDLE);
         registerVanilla(ItemTypes.MAGENTA_CUSHION);
         registerVanilla(ItemTypes.MAGENTA_DYE);
@@ -707,26 +882,20 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NAUTILUS));
         registerVanilla(ItemTypes.NETHER_STAR);
         registerVanilla(ItemTypes.NETHERBRICK);
-        registerTool(ItemTypes.NETHERITE_AXE,
-                VanillaTools.axe(ToolMaterials.NETHERITE),
-                ToolMaterials.NETHERITE.getDurability());
-        registerArmorBoots(ItemTypes.NETHERITE_BOOTS);
-        registerArmorChestplate(ItemTypes.NETHERITE_CHESTPLATE);
-        registerArmorHelmet(ItemTypes.NETHERITE_HELMET);
-        registerVanilla(ItemTypes.NETHERITE_HOE);
+        registerAxe(ItemTypes.NETHERITE_AXE, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
+        registerArmorBoots(ItemTypes.NETHERITE_BOOTS, 37, repairWith(ItemTags.REPAIRS_NETHERITE_ARMOR), Sound.ARMOR_EQUIP_NETHERITE);
+        registerArmorChestplate(ItemTypes.NETHERITE_CHESTPLATE, 37, repairWith(ItemTags.REPAIRS_NETHERITE_ARMOR), Sound.ARMOR_EQUIP_NETHERITE);
+        registerArmorHelmet(ItemTypes.NETHERITE_HELMET, 37, repairWith(ItemTags.REPAIRS_NETHERITE_ARMOR), Sound.ARMOR_EQUIP_NETHERITE);
+        registerHoe(ItemTypes.NETHERITE_HOE, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
         registerVanilla(ItemTypes.NETHERITE_HORSE_ARMOR);
         registerVanilla(ItemTypes.NETHERITE_INGOT);
-        registerArmorLeggings(ItemTypes.NETHERITE_LEGGINGS);
+        registerArmorLeggings(ItemTypes.NETHERITE_LEGGINGS, 37, repairWith(ItemTags.REPAIRS_NETHERITE_ARMOR), Sound.ARMOR_EQUIP_NETHERITE);
         registerVanilla(ItemTypes.NETHERITE_NAUTILUS_ARMOR);
-        registerTool(ItemTypes.NETHERITE_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.NETHERITE),
-                ToolMaterials.NETHERITE.getDurability());
+        registerPickaxe(ItemTypes.NETHERITE_PICKAXE, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
         registerVanilla(ItemTypes.NETHERITE_SCRAP);
-        registerTool(ItemTypes.NETHERITE_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.NETHERITE.getSpeed()),
-                ToolMaterials.NETHERITE.getDurability());
-        registerVanilla(ItemTypes.NETHERITE_SPEAR);
-        registerVanilla(ItemTypes.NETHERITE_SWORD);
+        registerShovel(ItemTypes.NETHERITE_SHOVEL, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
+        registerSpear(ItemTypes.NETHERITE_SPEAR, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
+        registerSword(ItemTypes.NETHERITE_SWORD, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
         registerVanilla(ItemTypes.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.NPC_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.NPC));
@@ -832,7 +1001,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.SHEAF_POTTERY_SHERD);
-        registerTool(ItemTypes.SHEARS, VanillaTools.shears(), 238);
+        registerTool(ItemTypes.SHEARS, VanillaTools.shears(), 238, repairWith());
         registerVanilla(ItemTypes.SHEEP_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SHEEP));
         registerVanilla(ItemTypes.SHELTER_POTTERY_SHERD);
@@ -873,16 +1042,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SQUID_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SQUID));
         registerVanilla(ItemTypes.STICK);
-        registerTool(ItemTypes.STONE_AXE, VanillaTools.axe(ToolMaterials.STONE), ToolMaterials.STONE.getDurability());
-        registerVanilla(ItemTypes.STONE_HOE);
-        registerTool(ItemTypes.STONE_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.STONE),
-                ToolMaterials.STONE.getDurability());
-        registerTool(ItemTypes.STONE_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.STONE.getSpeed()),
-                ToolMaterials.STONE.getDurability());
-        registerVanilla(ItemTypes.STONE_SPEAR);
-        registerVanilla(ItemTypes.STONE_SWORD);
+        registerAxe(ItemTypes.STONE_AXE, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        registerHoe(ItemTypes.STONE_HOE, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        registerPickaxe(ItemTypes.STONE_PICKAXE, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        registerShovel(ItemTypes.STONE_SHOVEL, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        registerSpear(ItemTypes.STONE_SPEAR, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        registerSword(ItemTypes.STONE_SWORD, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         registerVanilla(ItemTypes.STRAY_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.STRAY));
         registerVanilla(ItemTypes.STRIDER_SPAWN_EGG)
@@ -909,14 +1074,18 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.TRADER_LLAMA_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TRADER_LLAMA));
         registerVanilla(ItemTypes.TRIAL_KEY);
-        registerVanilla(ItemTypes.TRIDENT);
+        registerDamageableEnchantableTool(ItemTypes.TRIDENT, VanillaTools.weapon(), 250, repairWith(),
+                EnchantmentTarget.TRIDENT,
+                EnchantmentTarget.WEAPON,
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.TROPICAL_FISH);
         registerVanilla(ItemTypes.TROPICAL_FISH_BUCKET)
                 .set(ItemComponents.USE_ON,
                         BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
         registerVanilla(ItemTypes.TROPICAL_FISH_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TROPICAL_FISH));
-        registerArmorHelmet(ItemTypes.TURTLE_HELMET);
+        registerArmorHelmet(ItemTypes.TURTLE_HELMET, 25, repairWith(ItemTags.REPAIRS_TURTLE_HELMET), Sound.ARMOR_EQUIP_GENERIC);
         registerVanilla(ItemTypes.TURTLE_SCUTE);
         registerVanilla(ItemTypes.TURTLE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.TURTLE));
@@ -932,7 +1101,9 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WARD_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.WARDEN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WARDEN));
-        registerVanilla(ItemTypes.WARPED_FUNGUS_ON_A_STICK);
+        registerDamageableEnchantable(ItemTypes.WARPED_FUNGUS_ON_A_STICK, 100, repairWith(),
+                EnchantmentTarget.BREAKABLE,
+                EnchantmentTarget.VANISHABLE);
         registerVanilla(ItemTypes.WARPED_SIGN);
         registerVanilla(ItemTypes.WATER_BUCKET)
                 .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
@@ -953,16 +1124,12 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.WOLF_ARMOR);
         registerVanilla(ItemTypes.WOLF_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.WOLF));
-        registerTool(ItemTypes.WOODEN_AXE, VanillaTools.axe(ToolMaterials.WOOD), ToolMaterials.WOOD.getDurability());
-        registerVanilla(ItemTypes.WOODEN_HOE);
-        registerTool(ItemTypes.WOODEN_PICKAXE,
-                VanillaTools.pickaxe(ToolMaterials.WOOD),
-                ToolMaterials.WOOD.getDurability());
-        registerTool(ItemTypes.WOODEN_SHOVEL,
-                VanillaTools.shovel(ToolMaterials.WOOD.getSpeed()),
-                ToolMaterials.WOOD.getDurability());
-        registerVanilla(ItemTypes.WOODEN_SPEAR);
-        registerVanilla(ItemTypes.WOODEN_SWORD);
+        registerAxe(ItemTypes.WOODEN_AXE, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        registerHoe(ItemTypes.WOODEN_HOE, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        registerPickaxe(ItemTypes.WOODEN_PICKAXE, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        registerShovel(ItemTypes.WOODEN_SHOVEL, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        registerSpear(ItemTypes.WOODEN_SPEAR, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        registerSword(ItemTypes.WOODEN_SWORD, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
         registerVanilla(ItemTypes.WRITABLE_BOOK);
         registerVanilla(ItemTypes.WRITTEN_BOOK);
         registerVanilla(ItemTypes.YELLOW_BUNDLE);
@@ -1056,6 +1223,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     private void registerVanillaDataSerializers() throws RegistryException {
         this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
         this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
+        this.registerDataSerializer(ItemKeys.REPAIR_COST, new PrimitiveSerializer<>("RepairCost", Integer.class));
         this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
         this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
         this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
@@ -1070,11 +1238,15 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemComponents.CAN_BE_PLACED_ON, DefaultItemHandlers.CAN_BE_PLACED_ON);
         this.registerComponent(ItemComponents.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
         this.registerComponent(ItemComponents.CAN_DESTROY_IN_CREATIVE, () -> true);
+        this.registerComponent(ItemComponents.CAN_ENCHANT_WITH, (item, enchantment) -> false);
+        this.registerComponent(ItemComponents.CAN_REPAIR_WITH, (item, material) -> false);
+        this.registerComponent(ItemComponents.CAN_STORE_ENCHANTMENTS, () -> true);
         this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
         this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);
         this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE_BONUS, (item) -> 0f);
         this.registerComponent(ItemComponents.GET_BLOCK, (item) -> Optional.empty());
         this.registerComponent(ItemComponents.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
+        this.registerComponent(ItemComponents.GET_EQUIPMENT_SLOT, item -> null);
         this.registerComponent(ItemComponents.GET_MAX_DAMAGE, (item) -> 0);
         this.registerComponent(ItemComponents.GET_MAX_STACK_SIZE, (item) -> 64);
         this.registerComponent(ItemComponents.GET_TOOL, item -> null);

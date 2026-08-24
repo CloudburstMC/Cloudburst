@@ -1,5 +1,8 @@
 package org.cloudburstmc.api.enchantment;
 
+/**
+ * Item category that controls whether an enchantment can be applied to an item.
+ */
 public enum EnchantmentTarget {
     ARMOR,
     ARMOR_CHEST,
@@ -9,7 +12,12 @@ public enum EnchantmentTarget {
     BOW,
     BREAKABLE,
     CROSSBOW,
+    FIRE_ASPECT,
     FISHING_ROD,
+    MACE,
+    MELEE_WEAPON,
+    SHARP_WEAPON,
+    SPEAR,
     TOOL,
     TRIDENT,
     VANISHABLE,

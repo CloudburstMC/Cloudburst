@@ -22,6 +22,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
+import org.cloudburstmc.server.container.screen.CloudAnvilContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudBlockContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -70,8 +71,7 @@ public class ItemStackRequestActionHandler {
         try {
             dispatchAction(action);
         } catch (Exception e) {
-            log.warn("Failed to handle inventory action {} for {}: {}",
-                    action.getType(), player.getName(), e.getMessage());
+            log.warn("Failed to handle inventory action {} for {}", action.getType(), player.getName(), e);
             requestFailed = true;
         }
     }
@@ -85,6 +85,7 @@ public class ItemStackRequestActionHandler {
             case DestroyAction destroy -> handleDestroy(destroy);
             case CraftCreativeAction craft -> handleCraftCreative(craft);
             case RecipeItemStackRequestAction recipe when isCraftRecipeAction(recipe) -> handleCraftRecipe(recipe);
+            case CraftRecipeOptionalAction craftOptional -> handleCraftRecipeOptional(craftOptional);
             case ConsumeAction consume -> handleConsume(consume);
             case MineBlockAction mineBlock -> handleMineBlock(mineBlock);
             default -> handleUnsupportedAction(action);
@@ -95,8 +96,7 @@ public class ItemStackRequestActionHandler {
         switch (action.getType()) {
             case CRAFT_RESULTS_DEPRECATED, CREATE -> {
             }
-            case CRAFT_RECIPE_OPTIONAL,
-                 CRAFT_REPAIR_AND_DISENCHANT,
+            case CRAFT_REPAIR_AND_DISENCHANT,
                  CRAFT_LOOM,
                  CRAFT_NON_IMPLEMENTED_DEPRECATED,
                  BEACON_PAYMENT,
@@ -115,6 +115,17 @@ public class ItemStackRequestActionHandler {
     private void handleTransfer(TransferItemStackRequestAction action) {
         ItemStackRequestSlotData srcSlot = action.getSource();
         ItemStackRequestSlotData dstSlot = action.getDestination();
+        ContainerSlotType srcContainer = container(srcSlot);
+        ContainerSlotType dstContainer = container(dstSlot);
+
+        if (screen instanceof CloudAnvilContainerScreen anvilScreen && anvilScreen.isResultSlot(srcContainer, srcSlot.getSlot())) {
+            handleAnvilResultTransfer(anvilScreen, action);
+            return;
+        }
+
+        if (screen instanceof CloudAnvilContainerScreen anvilScreen && anvilScreen.isResultSlot(dstContainer, dstSlot.getSlot())) {
+            throw new IllegalArgumentException("Cannot place into anvil result slot");
+        }
 
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
@@ -141,26 +152,22 @@ public class ItemStackRequestActionHandler {
             newDest = destItem.withCount(destItem.getCount() + count);
         }
 
-        ContainerSlotType srcContainer = container(srcSlot);
-        ContainerSlotType dstContainer = container(dstSlot);
-        SlotGroup srcGroup = screen.resolveSlotGroup(srcContainer);
-        int srcViewSlot = screen.resolveInventorySlot(srcContainer, srcSlot.getSlot());
-        SlotGroup dstGroup = screen.resolveSlotGroup(dstContainer);
-        int dstViewSlot = screen.resolveInventorySlot(dstContainer, dstSlot.getSlot());
+        ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
+        ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
 
         InventoryClickEvent.ActionType actionType = actionType(action);
         InventoryClickEvent.ClickType clickType = clickType(action, sourceItem, count);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
-                .slot(srcViewSlot)
-                .slotGroup(srcGroup)
+                .slot(srcResolvedSlot.inventorySlot())
+                .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(destItem)
                 .actionType(actionType)
                 .clickType(clickType)
-                .destinationSlot(dstViewSlot)
-                .destinationSlotGroup(dstGroup)
+                .destinationSlot(dstResolvedSlot.inventorySlot())
+                .destinationSlotGroup(dstResolvedSlot.slotGroup())
                 .resultItem(newDest)
                 .build();
         player.getServer().getEventManager().fire(event);
@@ -185,6 +192,62 @@ public class ItemStackRequestActionHandler {
                 }
             }
         }
+    }
+
+    private void handleAnvilResultTransfer(CloudAnvilContainerScreen anvilScreen, TransferItemStackRequestAction action) {
+        if (action.getType() != ItemStackRequestActionType.TAKE && action.getType() != ItemStackRequestActionType.PLACE) {
+            throw new IllegalArgumentException("Unsupported anvil result transfer action " + action.getType());
+        }
+
+        ItemStackRequestSlotData dstSlot = action.getDestination();
+        ItemStack sourceItem = getSlot(action.getSource());
+        ItemStack destItem = getSlot(dstSlot);
+        int count = action.getCount();
+
+        if (sourceItem.isEmpty() || sourceItem.getCount() != count) {
+            throw new IllegalArgumentException("Anvil result request did not match the server result");
+        }
+
+        ItemStack newDest;
+        if (destItem.isEmpty()) {
+            newDest = sourceItem;
+        } else {
+            if (!destItem.isStackableWith(sourceItem)) {
+                throw new IllegalArgumentException("Cannot merge incompatible anvil result");
+            }
+            newDest = destItem.withCount(destItem.getCount() + count);
+        }
+
+        ResolvedRequestSlot srcResolvedSlot = resolveSlot(action.getSource());
+        ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
+
+        InventoryClickEvent event = new InventoryClickEvent.Builder()
+                .screen(screen)
+                .slot(srcResolvedSlot.inventorySlot())
+                .slotGroup(srcResolvedSlot.slotGroup())
+                .sourceItem(sourceItem)
+                .cursorItem(destItem)
+                .actionType(InventoryClickEvent.ActionType.TAKE)
+                .clickType(takeClickType(sourceItem, count))
+                .destinationSlot(dstResolvedSlot.inventorySlot())
+                .destinationSlotGroup(dstResolvedSlot.slotGroup())
+                .resultItem(newDest)
+                .build();
+        player.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            requestFailed = true;
+            return;
+        }
+
+        ItemStack taken = anvilScreen.takeResult();
+        if (taken.isEmpty()) {
+            requestFailed = true;
+            return;
+        }
+
+        ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : newDest;
+        setSlot(dstSlot, resolvedDest);
+        anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
     }
 
     private InventoryClickEvent.ActionType actionType(TransferItemStackRequestAction action) {
@@ -234,23 +297,19 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
 
-        ContainerSlotType srcContainer = container(srcSlot);
-        ContainerSlotType dstContainer = container(dstSlot);
-        SlotGroup srcGroup = screen.resolveSlotGroup(srcContainer);
-        int srcViewSlot = screen.resolveInventorySlot(srcContainer, srcSlot.getSlot());
-        SlotGroup dstGroup = screen.resolveSlotGroup(dstContainer);
-        int dstViewSlot = screen.resolveInventorySlot(dstContainer, dstSlot.getSlot());
+        ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
+        ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
-                .slot(srcViewSlot)
-                .slotGroup(srcGroup)
+                .slot(srcResolvedSlot.inventorySlot())
+                .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(destItem)
                 .actionType(InventoryClickEvent.ActionType.SWAP)
                 .clickType(InventoryClickEvent.ClickType.UNKNOWN)
-                .destinationSlot(dstViewSlot)
-                .destinationSlotGroup(dstGroup)
+                .destinationSlot(dstResolvedSlot.inventorySlot())
+                .destinationSlotGroup(dstResolvedSlot.slotGroup())
                 .resultItem(sourceItem)
                 .build();
         player.getServer().getEventManager().fire(event);
@@ -283,14 +342,12 @@ public class ItemStackRequestActionHandler {
             newSource = sourceItem.withCount(sourceItem.getCount() - count);
         }
 
-        ContainerSlotType srcContainer = container(srcSlot);
-        SlotGroup srcGroup = screen.resolveSlotGroup(srcContainer);
-        int srcViewSlot = screen.resolveInventorySlot(srcContainer, srcSlot.getSlot());
+        ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
-                .slot(srcViewSlot)
-                .slotGroup(srcGroup)
+                .slot(srcResolvedSlot.inventorySlot())
+                .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(ItemStack.EMPTY)
                 .actionType(InventoryClickEvent.ActionType.DROP)
@@ -315,14 +372,12 @@ public class ItemStackRequestActionHandler {
             throw new IllegalArgumentException("Source item is empty");
         }
 
-        ContainerSlotType srcContainer = container(srcSlot);
-        SlotGroup srcGroup = screen.resolveSlotGroup(srcContainer);
-        int srcViewSlot = screen.resolveInventorySlot(srcContainer, srcSlot.getSlot());
+        ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
-                .slot(srcViewSlot)
-                .slotGroup(srcGroup)
+                .slot(srcResolvedSlot.inventorySlot())
+                .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(ItemStack.EMPTY)
                 .actionType(InventoryClickEvent.ActionType.DESTROY)
@@ -354,13 +409,12 @@ public class ItemStackRequestActionHandler {
 
         creativeItem = creativeItem.withCount(64); // TODO: Use actual creative item size
 
-        SlotGroup createdOutputGroup = screen.resolveSlotGroup(ContainerSlotType.CREATED_OUTPUT);
-        int createdOutputViewSlot = screen.resolveInventorySlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
+        ResolvedRequestSlot createdOutputSlot = resolveSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
-                .slot(createdOutputViewSlot)
-                .slotGroup(createdOutputGroup)
+                .slot(createdOutputSlot.inventorySlot())
+                .slotGroup(createdOutputSlot.slotGroup())
                 .sourceItem(ItemStack.EMPTY)
                 .cursorItem(creativeItem)
                 .actionType(InventoryClickEvent.ActionType.CRAFT_CREATIVE)
@@ -386,8 +440,36 @@ public class ItemStackRequestActionHandler {
         placeRecipeOutput(recipe, numberOfCrafts);
     }
 
+    private void handleCraftRecipeOptional(CraftRecipeOptionalAction action) {
+        if (!(screen instanceof CloudAnvilContainerScreen anvilScreen)) {
+            log.debug("Optional craft request from {} targeted unsupported screen type {}", player.getName(), screen.getType().getIdentifier());
+            requestFailed = true;
+            return;
+        }
+
+        String[] filterStrings = currentRequest.getFilterStrings();
+        if (filterStrings != null && filterStrings.length != 0) {
+            int index = action.getFilteredStringIndex();
+            if (index < 0 || index >= filterStrings.length) {
+                log.debug("Anvil rename request from {} used invalid filter string index {}", player.getName(), index);
+                requestFailed = true;
+                return;
+            }
+
+            anvilScreen.updateRenameText(filterStrings[index]);
+        }
+
+        anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
+    }
+
     private void handleConsume(ConsumeAction action) {
         ContainerSlotType sourceContainer = container(action.getSource());
+        if (screen instanceof CloudAnvilContainerScreen anvilScreen
+                && (sourceContainer == ContainerSlotType.ANVIL_INPUT || sourceContainer == ContainerSlotType.ANVIL_MATERIAL)) {
+            anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
+            return;
+        }
+
         if (sourceContainer != ContainerSlotType.CRAFTING_INPUT) {
             log.debug("Consume action from {} targeted non-crafting-input container {}", player.getName(), sourceContainer);
             requestFailed = true;
@@ -454,6 +536,24 @@ public class ItemStackRequestActionHandler {
         ItemStack result = recipe.getResult().withCount(recipe.getResult().getCount() * numberOfCrafts);
         this.screen.setSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT, result);
         trackAffectedSlot(ContainerSlotType.CREATED_OUTPUT, CREATED_OUTPUT_PROTOCOL_SLOT);
+    }
+
+    private ResolvedRequestSlot resolveSlot(ItemStackRequestSlotData slotData) {
+        return resolveSlot(container(slotData), slotData.getSlot());
+    }
+
+    private ResolvedRequestSlot resolveSlot(ContainerSlotType containerType, int protocolSlot) {
+        SlotGroup slotGroup = this.screen.resolveSlotGroup(containerType);
+        if (slotGroup == null) {
+            throw new IllegalArgumentException("Screen for slot type " + containerType + " not found");
+        }
+
+        int inventorySlot = this.screen.resolveInventorySlot(containerType, protocolSlot);
+        if (inventorySlot < 0) {
+            throw new IllegalArgumentException("Slot " + protocolSlot + " is not valid for slot type " + containerType);
+        }
+
+        return new ResolvedRequestSlot(slotGroup, inventorySlot);
     }
 
     private ItemStack getSlot(ItemStackRequestSlotData slotData) {
@@ -526,6 +626,8 @@ public class ItemStackRequestActionHandler {
             case DropAction drop -> trackCurrentStateSlot(slots, screen, drop.getSource());
             case DestroyAction destroy -> trackCurrentStateSlot(slots, screen, destroy.getSource());
             case ConsumeAction consume -> trackCurrentStateSlot(slots, screen, consume.getSource());
+            case CraftRecipeOptionalAction ignored when screen instanceof CloudAnvilContainerScreen anvilScreen ->
+                    anvilScreen.trackAnvilSlots((type, slot) -> putCurrentStateSlot(slots, type, slot, screen.getSlot(type, slot)));
             default -> {
             }
         }
@@ -602,7 +704,6 @@ public class ItemStackRequestActionHandler {
 
         if (containerType == ContainerSlotType.OFFHAND) {
             putCurrentStateSlot(slots, ContainerSlotType.OFFHAND, slot, this.player.getOffhand().getOffhandItem());
-            return;
         }
     }
 
@@ -703,5 +804,8 @@ public class ItemStackRequestActionHandler {
 
     public void addFilteredStrings(int requestId, String[] filterStrings) {
         // TODO: Implement text filtering
+    }
+
+    private record ResolvedRequestSlot(SlotGroup slotGroup, int inventorySlot) {
     }
 }

@@ -9,16 +9,16 @@ import org.cloudburstmc.api.util.Identifier;
  */
 @UtilityClass
 public final class SmithingUpgrades {
-    public static final SmithingUpgrade AXE = new SmithingUpgrade(Identifier.parse("smithing_netherite_axe"), ItemIds.DIAMOND_AXE, ItemIds.NETHERITE_AXE);
-    public static final SmithingUpgrade BOOTS = new SmithingUpgrade(Identifier.parse("smithing_netherite_boots"), ItemIds.DIAMOND_BOOTS, ItemIds.NETHERITE_BOOTS);
-    public static final SmithingUpgrade CHESTPLATE = new SmithingUpgrade(Identifier.parse("smithing_netherite_chestplate"), ItemIds.DIAMOND_CHESTPLATE, ItemIds.NETHERITE_CHESTPLATE);
-    public static final SmithingUpgrade HELMET = new SmithingUpgrade(Identifier.parse("smithing_netherite_helmet"), ItemIds.DIAMOND_HELMET, ItemIds.NETHERITE_HELMET);
-    public static final SmithingUpgrade HOE = new SmithingUpgrade(Identifier.parse("smithing_netherite_hoe"), ItemIds.DIAMOND_HOE, ItemIds.NETHERITE_HOE);
-    public static final SmithingUpgrade HORSE_ARMOR = new SmithingUpgrade(Identifier.parse("smithing_netherite_horse_armor"), ItemIds.DIAMOND_HORSE_ARMOR, ItemIds.NETHERITE_HORSE_ARMOR);
-    public static final SmithingUpgrade LEGGINGS = new SmithingUpgrade(Identifier.parse("smithing_netherite_leggings"), ItemIds.DIAMOND_LEGGINGS, ItemIds.NETHERITE_LEGGINGS);
-    public static final SmithingUpgrade NAUTILUS_ARMOR = new SmithingUpgrade(Identifier.parse("smithing_netherite_nautilus_armor"), ItemIds.DIAMOND_NAUTILUS_ARMOR, ItemIds.NETHERITE_NAUTILUS_ARMOR);
-    public static final SmithingUpgrade PICKAXE = new SmithingUpgrade(Identifier.parse("smithing_netherite_pickaxe"), ItemIds.DIAMOND_PICKAXE, ItemIds.NETHERITE_PICKAXE);
-    public static final SmithingUpgrade SHOVEL = new SmithingUpgrade(Identifier.parse("smithing_netherite_shovel"), ItemIds.DIAMOND_SHOVEL, ItemIds.NETHERITE_SHOVEL);
-    public static final SmithingUpgrade SPEAR = new SmithingUpgrade(Identifier.parse("smithing_netherite_spear"), ItemIds.DIAMOND_SPEAR, ItemIds.NETHERITE_SPEAR);
-    public static final SmithingUpgrade SWORD = new SmithingUpgrade(Identifier.parse("smithing_netherite_sword"), ItemIds.DIAMOND_SWORD, ItemIds.NETHERITE_SWORD);
+    public static final SmithingUpgrade AXE = new SmithingUpgrade(Identifier.parse("smithing_netherite_axe"), ItemTypes.DIAMOND_AXE.getId(), ItemTypes.NETHERITE_AXE.getId());
+    public static final SmithingUpgrade BOOTS = new SmithingUpgrade(Identifier.parse("smithing_netherite_boots"), ItemTypes.DIAMOND_BOOTS.getId(), ItemTypes.NETHERITE_BOOTS.getId());
+    public static final SmithingUpgrade CHESTPLATE = new SmithingUpgrade(Identifier.parse("smithing_netherite_chestplate"), ItemTypes.DIAMOND_CHESTPLATE.getId(), ItemTypes.NETHERITE_CHESTPLATE.getId());
+    public static final SmithingUpgrade HELMET = new SmithingUpgrade(Identifier.parse("smithing_netherite_helmet"), ItemTypes.DIAMOND_HELMET.getId(), ItemTypes.NETHERITE_HELMET.getId());
+    public static final SmithingUpgrade HOE = new SmithingUpgrade(Identifier.parse("smithing_netherite_hoe"), ItemTypes.DIAMOND_HOE.getId(), ItemTypes.NETHERITE_HOE.getId());
+    public static final SmithingUpgrade HORSE_ARMOR = new SmithingUpgrade(Identifier.parse("smithing_netherite_horse_armor"), ItemTypes.DIAMOND_HORSE_ARMOR.getId(), ItemTypes.NETHERITE_HORSE_ARMOR.getId());
+    public static final SmithingUpgrade LEGGINGS = new SmithingUpgrade(Identifier.parse("smithing_netherite_leggings"), ItemTypes.DIAMOND_LEGGINGS.getId(), ItemTypes.NETHERITE_LEGGINGS.getId());
+    public static final SmithingUpgrade NAUTILUS_ARMOR = new SmithingUpgrade(Identifier.parse("smithing_netherite_nautilus_armor"), ItemTypes.DIAMOND_NAUTILUS_ARMOR.getId(), ItemTypes.NETHERITE_NAUTILUS_ARMOR.getId());
+    public static final SmithingUpgrade PICKAXE = new SmithingUpgrade(Identifier.parse("smithing_netherite_pickaxe"), ItemTypes.DIAMOND_PICKAXE.getId(), ItemTypes.NETHERITE_PICKAXE.getId());
+    public static final SmithingUpgrade SHOVEL = new SmithingUpgrade(Identifier.parse("smithing_netherite_shovel"), ItemTypes.DIAMOND_SHOVEL.getId(), ItemTypes.NETHERITE_SHOVEL.getId());
+    public static final SmithingUpgrade SPEAR = new SmithingUpgrade(Identifier.parse("smithing_netherite_spear"), ItemTypes.DIAMOND_SPEAR.getId(), ItemTypes.NETHERITE_SPEAR.getId());
+    public static final SmithingUpgrade SWORD = new SmithingUpgrade(Identifier.parse("smithing_netherite_sword"), ItemTypes.DIAMOND_SWORD.getId(), ItemTypes.NETHERITE_SWORD.getId());
 }

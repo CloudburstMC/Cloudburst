@@ -43,7 +43,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
     //Runtime ID mappings
     private final Reference2ReferenceMap<BlockState, CloudBlockDefinition> stateDefinitionMap = new Reference2ReferenceOpenHashMap<>();
     private final Int2ReferenceMap<CloudBlockDefinition> runtimeDefinitionMap = new Int2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, CloudBlockDefinition> identifierFirstDefinitionMap = new Reference2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, CloudBlockDefinition> identifierFirstDefinitionMap = new Object2ReferenceOpenHashMap<>();
 
     //NBT Mappings
     private final Object2ReferenceMap<NbtMap, BlockState> serializedStateMap = new Object2ReferenceLinkedOpenCustomHashMap<>(
@@ -59,14 +59,14 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                 }
             });
     private final Reference2ObjectMap<BlockState, NbtMap> stateSerializedMap = new Reference2ObjectLinkedOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Reference2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, Object2ReferenceMap<NbtMap, BlockState>> stateTraitMap = new Object2ReferenceOpenHashMap<>();
 
-    private final Reference2ReferenceMap<Identifier, BlockType> typeMap = new Reference2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, BlockState> defaultStateMap = new Reference2ReferenceOpenHashMap<>();
-    private final Reference2ReferenceMap<Identifier, BlockState> identifier2stateMap = new Reference2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, BlockType> typeMap = new Object2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, BlockState> defaultStateMap = new Object2ReferenceOpenHashMap<>();
+    private final Object2ReferenceMap<Identifier, BlockState> identifier2stateMap = new Object2ReferenceOpenHashMap<>();
     private final Reference2ReferenceMap<BlockState, Identifier> state2identifierMap = new Reference2ReferenceOpenHashMap<>();
 
-    private final Reference2ObjectMap<BlockType, ReferenceSet<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
+    private final Reference2ObjectMap<BlockType, Set<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
 
@@ -77,7 +77,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
 
         this.defaultStateMap.put(type.getId(), type.getDefaultState());
 
-        ReferenceOpenHashSet<Identifier> typeIdentifiers = new ReferenceOpenHashSet<>();
+        Set<Identifier> typeIdentifiers = new ObjectOpenHashSet<>();
         type.getStates().forEach(state -> {
             List<NbtMap> tags = (List<NbtMap>) serialize(type, serializer, state.getTraits());
             for (NbtMap nbt : tags) {
@@ -154,7 +154,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
     }
 
     public Set<Identifier> getTypeIdentifiers(BlockType type) {
-        ReferenceSet<Identifier> identifiers = type2identifierMap.get(type);
+        Set<Identifier> identifiers = type2identifierMap.get(type);
         if (identifiers == null) {
             return Collections.emptySet();
         }

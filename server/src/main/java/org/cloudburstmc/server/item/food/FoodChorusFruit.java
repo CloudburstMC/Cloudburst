@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.food;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
-import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.util.BlockSupport;
@@ -17,7 +17,7 @@ public class FoodChorusFruit extends FoodNormal {
 
     public FoodChorusFruit() {
         super(4, 2.4F);
-        setMetadata(ItemIds.CHORUS_FRUIT);
+        setMetadata(ItemTypes.CHORUS_FRUIT.getId());
     }
 
     @Override

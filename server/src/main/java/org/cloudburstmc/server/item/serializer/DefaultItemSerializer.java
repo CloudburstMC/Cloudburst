@@ -92,7 +92,7 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     private static NbtMap serializeEnchantment(Enchantment enchantment) {
         return NbtMap.builder()
-                .putShort(TAG_ENCHANTMENT_ID, enchantment.type().getId())
+                .putShort(TAG_ENCHANTMENT_ID, enchantment.type().id())
                 .putShort(TAG_ENCHANTMENT_LEVEL, (short) enchantment.level())
                 .build();
     }
@@ -186,7 +186,13 @@ public class DefaultItemSerializer implements ItemSerializer {
             return null;
         }
 
-        return new Enchantment(type, enchantmentTag.getShort(TAG_ENCHANTMENT_LEVEL, (short) 1));
+        short level = enchantmentTag.getShort(TAG_ENCHANTMENT_LEVEL, (short) 1);
+        if (level <= 0) {
+            log.debug("Ignoring enchantment {} with invalid level {}", enchantmentId, level);
+            return null;
+        }
+
+        return new Enchantment(type, level);
     }
 
     private static void deserializeBucketEntityData(ItemStackBuilder builder, NbtMap tag) {

@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -40,7 +41,7 @@ public class RespawnAnchorBlockHandlers {
         int currentCharge = block.getState().ensureTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE);
 
         if (!item.isEmpty()
-                && item.getType().getId() == BlockTypes.GLOWSTONE.getId()
+                && item.getType() == ItemTypes.GLOWSTONE
                 && currentCharge < MAX_CHARGES) {
             int newCharge = currentCharge + 1;
             BlockState newState = block.getState().withTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE, newCharge);

@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.crafting;
 
-import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.crafting.ComplexRecipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -39,6 +39,6 @@ public final class CloudComplexRecipe implements ComplexRecipe {
 
     @Override
     public Identifier getBlock() {
-        return BlockIds.AIR;
+        return BlockTypes.AIR.getId();
     }
 }

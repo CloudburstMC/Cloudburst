@@ -6,27 +6,21 @@ import com.google.common.collect.HashBiMap;
 import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.enchantment.behavior.EnchantmentBehavior;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.enchantment.CloudEnchantmentInstance;
 import org.cloudburstmc.server.enchantment.behavior.*;
-import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowFlame;
-import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowInfinity;
-import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowKnockback;
-import org.cloudburstmc.server.enchantment.behavior.bow.EnchantmentBowPower;
 import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageAll;
 import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageArthropods;
 import org.cloudburstmc.server.enchantment.behavior.damage.EnchantmentDamageSmite;
 import org.cloudburstmc.server.enchantment.behavior.protection.*;
-import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentChanneling;
 import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentImpaling;
-import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentLoyalty;
-import org.cloudburstmc.server.enchantment.behavior.trident.EnchantmentTridentRiptide;
 
 import java.util.Map;
 
@@ -55,10 +49,6 @@ public class EnchantmentRegistry implements Registry {
         this.registerVanillaEnchantments();
     }
 
-    public synchronized void register(@NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
-        throw new UnsupportedOperationException("Custom enchantments are not currently supported!");
-    }
-
     private synchronized void registerVanilla(@NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
         this.checkClosed();
         Preconditions.checkNotNull(type, "type");
@@ -66,23 +56,52 @@ public class EnchantmentRegistry implements Registry {
         Preconditions.checkState(!behaviorMap.containsKey(type), "Enchantment %s already registered", type);
 
         behaviorMap.put(type, behavior);
-        idMap.put(type, type.getId());
-        identifierMap.put(type, type.getType());
+        idMap.put(type, type.id());
+        identifierMap.put(type, type.identifier());
     }
 
-    public EnchantmentInstance getEnchantment(@NonNull EnchantmentType type) {
+    public Enchantment getEnchantment(@NonNull EnchantmentType type) {
         return getEnchantment(type, 1);
     }
 
-    public EnchantmentInstance getEnchantment(@NonNull EnchantmentType type, int level) {
+    public Enchantment getEnchantment(@NonNull EnchantmentType type, int level) {
         Preconditions.checkNotNull(type, "type");
+        Preconditions.checkArgument(level > 0, "level must be positive");
+        getBehavior(type);
 
-        return new CloudEnchantmentInstance(type, level);
+        return new Enchantment(type, level);
     }
 
-    public EnchantmentBehavior getBehavior(@NonNull EnchantmentType type) {
+    public boolean canEnchant(@NonNull Enchantment enchantment, @NonNull ItemStack item) {
+        Preconditions.checkNotNull(enchantment, "enchantment");
+        Preconditions.checkNotNull(item, "item");
+        return getBehavior(enchantment.type()).canEnchant(enchantment, item);
+    }
+
+    public boolean areCompatible(@NonNull Enchantment first, @NonNull Enchantment second) {
+        Preconditions.checkNotNull(first, "first");
+        Preconditions.checkNotNull(second, "second");
+        return !first.type().conflictsWith(second.type());
+    }
+
+    public float getProtectionFactor(@NonNull Enchantment enchantment, @NonNull EntityDamageEvent event) {
+        Preconditions.checkNotNull(enchantment, "enchantment");
+        Preconditions.checkNotNull(event, "event");
+        return getBehavior(enchantment.type()).getProtectionFactor(enchantment, event);
+    }
+
+    public void doPostAttack(@NonNull Enchantment enchantment, @NonNull Entity entity, @NonNull Entity attacker) {
+        Preconditions.checkNotNull(enchantment, "enchantment");
+        Preconditions.checkNotNull(entity, "entity");
+        Preconditions.checkNotNull(attacker, "attacker");
+        getBehavior(enchantment.type()).doPostAttack(enchantment, entity, attacker);
+    }
+
+    private EnchantmentBehavior getBehavior(@NonNull EnchantmentType type) {
         Preconditions.checkNotNull(type, "type");
-        return behaviorMap.get(type);
+        EnchantmentBehavior behavior = behaviorMap.get(type);
+        Preconditions.checkArgument(behavior != null, "Unregistered enchantment type: %s", type);
+        return behavior;
     }
 
     public EnchantmentType getType(short id) {
@@ -110,36 +129,41 @@ public class EnchantmentRegistry implements Registry {
         this.registerVanilla(EnchantmentTypes.BLAST_PROTECTION, new EnchantmentProtectionExplosion());
         this.registerVanilla(EnchantmentTypes.PROJECTILE_PROTECTION, new EnchantmentProtectionProjectile());
         this.registerVanilla(EnchantmentTypes.THORNS, new EnchantmentThorns());
-        this.registerVanilla(EnchantmentTypes.RESPIRATION, new EnchantmentWaterBreath());
-        this.registerVanilla(EnchantmentTypes.DEPTH_STRIDER, new EnchantmentWaterWalker());
-        this.registerVanilla(EnchantmentTypes.AQUA_AFFINITY, new EnchantmentWaterWorker());
+        this.registerVanilla(EnchantmentTypes.RESPIRATION, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.DEPTH_STRIDER, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.AQUA_AFFINITY, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.SHARPNESS, new EnchantmentDamageAll());
         this.registerVanilla(EnchantmentTypes.SMITE, new EnchantmentDamageSmite());
         this.registerVanilla(EnchantmentTypes.BANE_OF_ARTHROPODS, new EnchantmentDamageArthropods());
-        this.registerVanilla(EnchantmentTypes.KNOCKBACK, new EnchantmentKnockback());
+        this.registerVanilla(EnchantmentTypes.KNOCKBACK, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.FIRE_ASPECT, new EnchantmentFireAspect());
         this.registerVanilla(EnchantmentTypes.LOOTING, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.EFFICIENCY, new EnchantmentEfficiency());
-        this.registerVanilla(EnchantmentTypes.SILK_TOUCH, new EnchantmentSilkTouch());
+        this.registerVanilla(EnchantmentTypes.EFFICIENCY, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.SILK_TOUCH, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.UNBREAKING, new EnchantmentDurability());
         this.registerVanilla(EnchantmentTypes.FORTUNE, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.POWER, new EnchantmentBowPower());
-        this.registerVanilla(EnchantmentTypes.PUNCH, new EnchantmentBowKnockback());
-        this.registerVanilla(EnchantmentTypes.FLAME, new EnchantmentBowFlame());
-        this.registerVanilla(EnchantmentTypes.INFINITY, new EnchantmentBowInfinity());
+        this.registerVanilla(EnchantmentTypes.POWER, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.PUNCH, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.FLAME, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.INFINITY, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.LUCK_OF_THE_SEA, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla(EnchantmentTypes.LURE, new EnchantmentLure());
-        this.registerVanilla(EnchantmentTypes.FROST_WALKER, new EnchantmentFrostWalker());
-        this.registerVanilla(EnchantmentTypes.MENDING, new EnchantmentMending());
-        this.registerVanilla(EnchantmentTypes.BINDING, new EnchantmentBindingCurse());
-        this.registerVanilla(EnchantmentTypes.VANISHING, new EnchantmentVanishingCurse());
+        this.registerVanilla(EnchantmentTypes.LURE, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.FROST_WALKER, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.MENDING, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.BINDING, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.VANISHING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.IMPALING, new EnchantmentTridentImpaling());
-        this.registerVanilla(EnchantmentTypes.RIPTIDE, new EnchantmentTridentRiptide());
-        this.registerVanilla(EnchantmentTypes.LOYALTY, new EnchantmentTridentLoyalty());
-        this.registerVanilla(EnchantmentTypes.CHANNELING, new EnchantmentTridentChanneling());
-        this.registerVanilla(EnchantmentTypes.MULTISHOT, NoopEnchantmentBehavior.INSTANCE); //TODO: implement
+        this.registerVanilla(EnchantmentTypes.RIPTIDE, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.LOYALTY, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.CHANNELING, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.MULTISHOT, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.PIERCING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.QUICK_CHARGE, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla(EnchantmentTypes.SOUL_SPEED, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.SWIFT_SNEAK, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.WIND_BURST, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.DENSITY, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.BREACH, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla(EnchantmentTypes.LUNGE, NoopEnchantmentBehavior.INSTANCE);
     }
 }

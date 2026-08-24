@@ -103,6 +103,11 @@ public class BlockTags {
     public static final BlockTagKey MINEABLE_WITH_AXE = tag("mineable/axe");
 
     /**
+     * Blocks mined most effectively with hoes.
+     */
+    public static final BlockTagKey MINEABLE_WITH_HOE = tag("mineable/hoe");
+
+    /**
      * Blocks mined most effectively with pickaxes.
      */
     public static final BlockTagKey MINEABLE_WITH_PICKAXE = tag("mineable/pickaxe");
@@ -171,6 +176,16 @@ public class BlockTags {
      * Blocks treated as solid for vanilla support and collision checks.
      */
     public static final BlockTagKey SOLID = tag("solid");
+
+    /**
+     * Blocks that swords break faster than hand mining.
+     */
+    public static final BlockTagKey SWORD_EFFICIENT = tag("sword_efficient");
+
+    /**
+     * Blocks that swords break instantly.
+     */
+    public static final BlockTagKey SWORD_INSTANTLY_MINES = tag("sword_instantly_mines");
 
     /**
      * Blocks that are stairs.

@@ -1,6 +1,6 @@
 package org.cloudburstmc.api.crafting;
 
-import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 
@@ -38,7 +38,7 @@ public interface Recipe {
      *   <li>Smithing recipes ({@link SmithingRecipe}): {@code minecraft:smithing_table}.
      *   <li>Stonecutting recipes ({@link StonecuttingRecipe}): {@code minecraft:stonecutter}.
      *   <li>Brewing recipes ({@link MixRecipe}): {@code minecraft:brewing_stand}.
-     *   <li>Complex recipes ({@link ComplexRecipe}): {@link BlockIds#AIR}, no physical station.
+     *   <li>Complex recipes ({@link ComplexRecipe}): {@link BlockTypes#AIR}, no physical station.
      * </ul>
      */
     Identifier getBlock();

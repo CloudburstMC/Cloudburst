@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
-import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Campfire;
@@ -85,7 +85,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         for (int i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 if (++itemTimes[i] >= 600) {
-                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockIds.CAMPFIRE).getResult();
+                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockTypes.CAMPFIRE.getId()).getResult();
                     this.getLevel().dropItem(this.getPosition(), output);
                     items[i] = null;
                     itemTimes[i] = 0;
@@ -119,7 +119,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public boolean putItemInFire(ItemStack item) {
 //        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 //
-//        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockIds.CAMPFIRE) != null) {
+//        if (CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockTypes.CAMPFIRE.getId()) != null) {
 //            for (int i = 0; i < items.length; i++) {
 //                if (items[i] == null) {
 //                    items[i] = item.withAmount(1);

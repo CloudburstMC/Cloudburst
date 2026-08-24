@@ -3,7 +3,6 @@ package org.cloudburstmc.server.level.feature;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 /**
@@ -12,8 +11,8 @@ import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter {
     @Override
     public boolean test(BlockState state) {
-        Identifier id = state.getType().getId();
-        return id == BlockIds.AIR || state.is(BlockTags.LEAVES) || (!state.getType().isLiquid() && state.isReplaceable());
+        BlockType type = state.getType();
+        return type == BlockTypes.AIR || state.is(BlockTags.LEAVES) || (!type.isLiquid() && state.isReplaceable());
     }
 
     public boolean testOrLiquid(BlockState state) {
@@ -25,14 +24,14 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      * Replaces the block at the given coordinates with dirt if it is a grassy block type.
      * <p>
      * The following blocks are considered "grassy":
-     * - {@link BlockIds#GRASS_BLOCK}
-     * - {@link BlockIds#MYCELIUM}
-     * - {@link BlockIds#PODZOL}
+     * - {@link BlockTypes#GRASS_BLOCK}
+     * - {@link BlockTypes#MYCELIUM}
+     * - {@link BlockTypes#PODZOL}
      */
     public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
-            Identifier id = level.getBlockState(x, y, z).getType().getId();
-            if (id == BlockIds.GRASS_BLOCK || id == BlockIds.MYCELIUM || id == BlockIds.PODZOL) {
+            BlockType type = level.getBlockState(x, y, z).getType();
+            if (type == BlockTypes.GRASS_BLOCK || type == BlockTypes.MYCELIUM || type == BlockTypes.PODZOL) {
                 level.setBlockState(x, y, z, BlockStates.DIRT);
             }
         }

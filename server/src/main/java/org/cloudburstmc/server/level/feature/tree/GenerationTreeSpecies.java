@@ -3,10 +3,10 @@ package org.cloudburstmc.server.level.feature.tree;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.api.block.BlockIds;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.server.level.feature.FeatureChorusTree;
@@ -16,8 +16,6 @@ import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 /**
  * The different tree varieties in Minecraft.
- *
- * @author DaPorkchop_
  */
 @RequiredArgsConstructor
 @Getter
@@ -127,7 +125,7 @@ public enum GenerationTreeSpecies {
     },
     MUSHROOM_RED(BlockStates.RED_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM),
             BlockStates.RED_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.ALL),
-            BlockIds.RED_MUSHROOM, 0) {
+            BlockTypes.RED_MUSHROOM.getId(), 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomRed(height);
@@ -135,13 +133,17 @@ public enum GenerationTreeSpecies {
     },
     MUSHROOM_BROWN(BlockStates.BROWN_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.STEM),
             BlockStates.BROWN_MUSHROOM_BLOCK,//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomBrown.ALL),
-            BlockIds.BROWN_MUSHROOM, 0) {
+            BlockTypes.BROWN_MUSHROOM.getId(), 0) {
         @Override
         public WorldFeature getDefaultGenerator(@NonNull IntRange height) {
             return new FeatureMushroomBrown(height);
         }
     },
-    CHORUS(BlockStates.CHORUS_PLANT, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5), BlockIds.CHORUS_FLOWER, 0) {
+    CHORUS(BlockStates.CHORUS_PLANT,
+            BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5),
+            BlockTypes.CHORUS_FLOWER.getId(),
+            0
+    ) {
         @Override
         public WorldFeature getDefaultGenerator() {
             return this.getDefaultGenerator(FeatureChorusTree.DEFAULT_BRANCH_HEIGHT);
@@ -154,22 +156,10 @@ public enum GenerationTreeSpecies {
     };
 
     private static final GenerationTreeSpecies[] VALUES = values();
-
-    public static GenerationTreeSpecies fromItem(Identifier id, int damage) {
-        for (GenerationTreeSpecies species : VALUES) {
-            if (species.itemId == id && species.itemDamage == damage) {
-                return species;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Unknown tree species item %s:%d", id, damage));
-    }
-
     protected final BlockState log;
     protected final BlockState leaves;
-
     protected final Identifier itemId;
     protected final int itemDamage;
-
     GenerationTreeSpecies(@NonNull TreeSpecies species) {
         this(species, true);
     }
@@ -178,6 +168,15 @@ public enum GenerationTreeSpecies {
         this(getLogState(species),
                 getLeavesState(species),
                 hasSapling ? getSaplingId(species) : null, hasSapling ? species.ordinal() : -1);
+    }
+
+    public static GenerationTreeSpecies fromItem(Identifier id, int damage) {
+        for (GenerationTreeSpecies species : VALUES) {
+            if (species.itemId == id && species.itemDamage == damage) {
+                return species;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Unknown tree species item %s:%d", id, damage));
     }
 
     private static BlockState getLogState(TreeSpecies species) {
@@ -210,15 +209,15 @@ public enum GenerationTreeSpecies {
 
     private static Identifier getSaplingId(TreeSpecies species) {
         return switch (species) {
-            case OAK -> BlockIds.OAK_SAPLING;
-            case SPRUCE -> BlockIds.SPRUCE_SAPLING;
-            case BIRCH -> BlockIds.BIRCH_SAPLING;
-            case JUNGLE -> BlockIds.JUNGLE_SAPLING;
-            case ACACIA -> BlockIds.ACACIA_SAPLING;
-            case DARK_OAK -> BlockIds.DARK_OAK_SAPLING;
-            case CRIMSON -> BlockIds.CRIMSON_FUNGUS;
-            case WARPED -> BlockIds.WARPED_FUNGUS;
-            case MANGROVE -> BlockIds.MANGROVE_PROPAGULE;
+            case OAK -> BlockTypes.OAK_SAPLING.getId();
+            case SPRUCE -> BlockTypes.SPRUCE_SAPLING.getId();
+            case BIRCH -> BlockTypes.BIRCH_SAPLING.getId();
+            case JUNGLE -> BlockTypes.JUNGLE_SAPLING.getId();
+            case ACACIA -> BlockTypes.ACACIA_SAPLING.getId();
+            case DARK_OAK -> BlockTypes.DARK_OAK_SAPLING.getId();
+            case CRIMSON -> BlockTypes.CRIMSON_FUNGUS.getId();
+            case WARPED -> BlockTypes.WARPED_FUNGUS.getId();
+            case MANGROVE -> BlockTypes.MANGROVE_PROPAGULE.getId();
         };
     }
 

@@ -1,43 +1,29 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class EnchantmentProtectionFire extends EnchantmentProtection {
+public final class EnchantmentProtectionFire extends EnchantmentProtection {
 
     public EnchantmentProtectionFire() {
-        super(TYPE.FIRE);
+        super(EnchantmentProtectionType.FIRE);
     }
 
     @Override
-    public int getMinEnchantAbility(int level) {
-        return 10 + (level - 1) * 8;
-    }
-
-    @Override
-    public int getMaxEnchantAbility(int level) {
-        return this.getMinEnchantAbility(level) + 12;
-    }
-
-    @Override
-    public double getTypeModifier() {
+    protected double getTypeModifier() {
         return 2;
     }
 
     @Override
-    public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent e) {
+    public float getProtectionFactor(Enchantment enchantment, EntityDamageEvent e) {
         DamageType damageType = e.getDamageType();
 
-        if (enchantment.getLevel() <= 0 || !damageType.is(DamageTypeTags.IS_FIRE)) {
+        if (enchantment.level() <= 0 || !damageType.is(DamageTypeTags.IS_FIRE)) {
             return 0;
         }
 
-        return (float) (enchantment.getLevel() * getTypeModifier());
+        return (float) (enchantment.level() * getTypeModifier());
     }
 }

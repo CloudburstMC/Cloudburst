@@ -27,7 +27,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.crafting;
     exports org.cloudburstmc.api.data;
     exports org.cloudburstmc.api.enchantment;
-    exports org.cloudburstmc.api.enchantment.behavior;
     exports org.cloudburstmc.api.entity;
     exports org.cloudburstmc.api.entity.component;
     exports org.cloudburstmc.api.entity.damage;

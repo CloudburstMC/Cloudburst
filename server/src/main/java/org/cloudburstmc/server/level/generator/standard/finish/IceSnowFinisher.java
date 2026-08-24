@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.cloudburstmc.api.block.BlockIds;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.SupportType;
@@ -37,7 +37,7 @@ public class IceSnowFinisher implements Finisher {
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, y, blockZ & 0xF));
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
             BlockState state = level.getBlockState(blockX, y, blockZ, 0);
-            if (state.getType().getId() == BlockIds.WATER) {
+            if (state.getType() == BlockTypes.WATER) {
                 level.setBlockState(blockX, y, blockZ, 0, BlockStates.ICE);
             } else if (y < 255 && BlockSupport.isFaceSturdy(CloudBlockRegistry.REGISTRY, state, Direction.UP, SupportType.FULL)) {
                 level.setBlockState(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);

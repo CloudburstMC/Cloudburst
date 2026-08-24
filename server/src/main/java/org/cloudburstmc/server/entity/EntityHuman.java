@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.entity;
 
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
@@ -7,6 +9,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
@@ -30,6 +33,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayerAbilities;
+import org.cloudburstmc.server.registry.EnchantmentRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -250,7 +254,8 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public void spawnTo(CloudPlayer player) {
-        if (this == player || this.hasSpawned.contains(player) || this.chunk == null || !player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
+        if (this == player || this.hasSpawned.contains(player) || this.chunk == null || !player.isChunkSent(this.chunk.getX(),
+                this.chunk.getZ())) {
             return;
         }
 
@@ -264,10 +269,21 @@ public class EntityHuman extends EntityCreature implements Human {
         SerializedSkin playerSkin = null;
         if (this instanceof CloudPlayer cloudPlayer) {
             SerializedSkin serializedSkin = cloudPlayer.getSerializedSkin();
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(cloudPlayer.displayName()), serializedSkin, cloudPlayer.getXuid(), new CloudPlayer[]{player});
+            this.getServer().updatePlayerListData(this.getServerId(),
+                    this.getUniqueId(),
+                    BedrockLegacyTextSerializer.getInstance().serialize(cloudPlayer.displayName()),
+                    serializedSkin,
+                    cloudPlayer.getXuid(),
+                    new CloudPlayer[]{player}
+            );
             playerSkin = serializedSkin;
         } else {
-            this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), this.getName(), SkinUtils.toSerialized(currentSkin), new CloudPlayer[]{player});
+            this.getServer().updatePlayerListData(this.getServerId(),
+                    this.getUniqueId(),
+                    this.getName(),
+                    SkinUtils.toSerialized(currentSkin),
+                    new CloudPlayer[]{player}
+            );
         }
 
         player.sendPacket(this.createAddEntityPacket());
@@ -279,7 +295,13 @@ public class EntityHuman extends EntityCreature implements Human {
 
         if (this.vehicle != null) {
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
-            EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(), this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0);
+            EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(),
+                    this.getUniqueId(),
+                    EntityLinkData.Type.RIDER,
+                    true,
+                    false,
+                    0
+            );
             packet.setEntityLink(link);
 
             player.sendPacket(packet);
@@ -370,20 +392,11 @@ public class EntityHuman extends EntityCreature implements Human {
 
             for (int slot = 0; slot < 4; slot++) {
                 ItemStack armor = this.getArmor().getItem(slot);
-                //TODO: Enchantments implementation
-//                List<Enchantment> enchantments = armor.get(ItemKeys.ENCHANTMENTS);
-//
-//                if (enchantments != null) {
-//                    if (damager != null) {
-//                        for (EnchantmentInstance enchantment : armor.getEnchantments().values()) {
-//                            enchantment.getBehavior().doPostAttack(enchantment, damager, this);
-//                        }
-//                    }
-//
-//                    EnchantmentInstance durability = armor.getEnchantment(EnchantmentTypes.UNBREAKING);
-//                    if (durability != null && durability.getLevel() > 0 && (100 / (durability.getLevel() + 1)) <= new Random().nextInt(100))
-//                        continue;
-//                }
+                if (damager != null) {
+                    for (Enchantment enchantment : armor.get(ItemKeys.ENCHANTMENTS).values()) {
+                        EnchantmentRegistry.get().doPostAttack(enchantment, damager, this);
+                    }
+                }
 
                 if (!armor.isEmpty()) {
                     int durabilityDamage = Math.max((int) (source.getDamage() / 4), 1);
@@ -402,18 +415,11 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
-    //TODO: Enchantments implementation
     protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
-//        List<Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
-//        if (enchantments == null) {
-//            return 0;
-//        }
-
         double epf = 0;
-
-//        for (EnchantmentInstance ench : enchantments) {
-//            epf += ench.getBehavior().getProtectionFactor(ench, source);
-//        }
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            epf += EnchantmentRegistry.get().getProtectionFactor(enchantment, source);
+        }
 
         return epf;
     }
@@ -422,14 +428,14 @@ public class EntityHuman extends EntityCreature implements Human {
     public void setOnFire(int seconds) {
         int level = 0;
 
-        //TODO: Enchantments implementation
-//        for (ItemStack armor : this.getInventory().getArmorContents()) {
-//            EnchantmentInstance fireProtection = armor.getEnchantment(EnchantmentTypes.FIRE_PROTECTION);
-//
-//            if (fireProtection != null && fireProtection.getLevel() > 0) {
-//                level = Math.max(level, fireProtection.getLevel());
-//            }
-//        }
+        ArmorView armorView = getArmor();
+        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+            Enchantment fireProtection = armorView.getItem(armorSlot).get(ItemKeys.ENCHANTMENTS)
+                    .get(EnchantmentTypes.FIRE_PROTECTION);
+            if (fireProtection != null) {
+                level = Math.max(level, fireProtection.level());
+            }
+        }
 
         seconds = (int) (seconds * (1 - level * 0.15));
 

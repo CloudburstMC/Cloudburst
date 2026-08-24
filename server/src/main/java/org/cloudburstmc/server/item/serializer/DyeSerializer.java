@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.serializer;
 
-import org.cloudburstmc.api.item.ItemIds;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
@@ -26,22 +26,22 @@ public class DyeSerializer extends DefaultItemSerializer {
         DyeColor color = item.get(ItemKeys.COLOR);
 
         id = switch (color) {
-            case BLACK -> ItemIds.INK_SAC;
-            case RED -> ItemIds.RED_DYE;
-            case GREEN -> ItemIds.GREEN_DYE;
-            case BROWN -> ItemIds.COCOA_BEANS;
-            case BLUE -> ItemIds.LAPIS_LAZULI;
-            case PURPLE -> ItemIds.PURPLE_DYE;
-            case CYAN -> ItemIds.CYAN_DYE;
-            case LIGHT_GRAY -> ItemIds.LIGHT_GRAY_DYE;
-            case GRAY -> ItemIds.GRAY_DYE;
-            case PINK -> ItemIds.PINK_DYE;
-            case LIME -> ItemIds.LIME_DYE;
-            case YELLOW -> ItemIds.YELLOW_DYE;
-            case LIGHT_BLUE -> ItemIds.LIGHT_BLUE_DYE;
-            case MAGENTA -> ItemIds.MAGENTA_DYE;
-            case ORANGE -> ItemIds.ORANGE_DYE;
-            default -> ItemIds.BONE_MEAL;
+            case BLACK -> ItemTypes.INK_SAC.getId();
+            case RED -> ItemTypes.RED_DYE.getId();
+            case GREEN -> ItemTypes.GREEN_DYE.getId();
+            case BROWN -> ItemTypes.COCOA_BEANS.getId();
+            case BLUE -> ItemTypes.LAPIS_LAZULI.getId();
+            case PURPLE -> ItemTypes.PURPLE_DYE.getId();
+            case CYAN -> ItemTypes.CYAN_DYE.getId();
+            case LIGHT_GRAY -> ItemTypes.LIGHT_GRAY_DYE.getId();
+            case GRAY -> ItemTypes.GRAY_DYE.getId();
+            case PINK -> ItemTypes.PINK_DYE.getId();
+            case LIME -> ItemTypes.LIME_DYE.getId();
+            case YELLOW -> ItemTypes.YELLOW_DYE.getId();
+            case LIGHT_BLUE -> ItemTypes.LIGHT_BLUE_DYE.getId();
+            case MAGENTA -> ItemTypes.MAGENTA_DYE.getId();
+            case ORANGE -> ItemTypes.ORANGE_DYE.getId();
+            default -> ItemTypes.BONE_MEAL.getId();
         };
 
         itemTag.putString(NAME_TAG, id.toString());
@@ -51,69 +51,69 @@ public class DyeSerializer extends DefaultItemSerializer {
     public void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag) {
         super.deserialize(id, meta, builder, tag);
 
-        if (id == ItemIds.INK_SAC || id == ItemIds.BLACK_DYE) {
+        if (ItemTypes.INK_SAC.getId().equals(id) || ItemTypes.BLACK_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.BLACK);
             return;
         }
 
-        if (id == ItemIds.RED_DYE) {
+        if (ItemTypes.RED_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.RED);
             return;
         }
 
-        if (id == ItemIds.GREEN_DYE) {
+        if (ItemTypes.GREEN_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.GREEN);
             return;
         }
-        if (id == ItemIds.COCOA_BEANS || id == ItemIds.BROWN_DYE) {
+        if (ItemTypes.COCOA_BEANS.getId().equals(id) || ItemTypes.BROWN_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.BROWN);
             return;
         }
-        if (id == ItemIds.LAPIS_LAZULI || id == ItemIds.BLUE_DYE) {
+        if (ItemTypes.LAPIS_LAZULI.getId().equals(id) || ItemTypes.BLUE_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.BLUE);
             return;
         }
-        if (id == ItemIds.PURPLE_DYE) {
+        if (ItemTypes.PURPLE_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.PURPLE);
             return;
         }
-        if (id == ItemIds.CYAN_DYE) {
+        if (ItemTypes.CYAN_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.CYAN);
             return;
         }
-        if (id == ItemIds.LIGHT_GRAY_DYE) {
+        if (ItemTypes.LIGHT_GRAY_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.LIGHT_GRAY);
             return;
         }
-        if (id == ItemIds.GRAY_DYE) {
+        if (ItemTypes.GRAY_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.GRAY);
             return;
         }
-        if (id == ItemIds.PINK_DYE) {
+        if (ItemTypes.PINK_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.PINK);
             return;
         }
-        if (id == ItemIds.LIME_DYE) {
+        if (ItemTypes.LIME_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.LIME);
             return;
         }
-        if (id == ItemIds.YELLOW_DYE) {
+        if (ItemTypes.YELLOW_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.YELLOW);
             return;
         }
-        if (id == ItemIds.LIGHT_BLUE_DYE) {
+        if (ItemTypes.LIGHT_BLUE_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.LIGHT_BLUE);
             return;
         }
-        if (id == ItemIds.MAGENTA_DYE) {
+        if (ItemTypes.MAGENTA_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.MAGENTA);
             return;
         }
-        if (id == ItemIds.ORANGE_DYE) {
+        if (ItemTypes.ORANGE_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.ORANGE);
             return;
         }
-        if (id == ItemIds.BONE_MEAL || id == ItemIds.WHITE_DYE) {
+        if (ItemTypes.BONE_MEAL.getId().equals(id) || ItemTypes.WHITE_DYE.getId().equals(id)) {
             builder.data(ItemKeys.COLOR, DyeColor.WHITE);
             return;
         }

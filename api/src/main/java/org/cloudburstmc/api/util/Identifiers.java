@@ -566,7 +566,9 @@ public class Identifiers {
     public static final Identifier BANE_OF_ARTHROPODS = Identifier.parse("bane_of_arthropods");
     public static final Identifier BINDING = Identifier.parse("binding");
     public static final Identifier BLAST_PROTECTION = Identifier.parse("blast_protection");
+    public static final Identifier BREACH = Identifier.parse("breach");
     public static final Identifier CHANNELING = Identifier.parse("channeling");
+    public static final Identifier DENSITY = Identifier.parse("density");
     public static final Identifier DEPTH_STRIDER = Identifier.parse("depth_strider");
     public static final Identifier EFFICIENCY = Identifier.parse("efficiency");
     public static final Identifier FEATHER_FALLING = Identifier.parse("feather_falling");
@@ -581,6 +583,7 @@ public class Identifiers {
     public static final Identifier LOOTING = Identifier.parse("looting");
     public static final Identifier LOYALTY = Identifier.parse("loyalty");
     public static final Identifier LUCK_OF_THE_SEA = Identifier.parse("luck_of_the_sea");
+    public static final Identifier LUNGE = Identifier.parse("lunge");
     public static final Identifier LURE = Identifier.parse("lure");
     public static final Identifier MENDING = Identifier.parse("mending");
     public static final Identifier MULTISHOT = Identifier.parse("multishot");
@@ -596,9 +599,11 @@ public class Identifiers {
     public static final Identifier SILK_TOUCH = Identifier.parse("silk_touch");
     public static final Identifier SMITE = Identifier.parse("smite");
     public static final Identifier SOUL_SPEED = Identifier.parse("soul_speed");
+    public static final Identifier SWIFT_SNEAK = Identifier.parse("swift_sneak");
     public static final Identifier THORNS = Identifier.parse("thorns");
     public static final Identifier UNBREAKING = Identifier.parse("unbreaking");
     public static final Identifier VANISHING = Identifier.parse("vanishing");
+    public static final Identifier WIND_BURST = Identifier.parse("wind_burst");
 
     //Effects
     public static final Identifier ABSORPTION = Identifier.parse("absorption");

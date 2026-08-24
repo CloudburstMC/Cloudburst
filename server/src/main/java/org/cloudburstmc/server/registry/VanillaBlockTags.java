@@ -48,6 +48,8 @@ class VanillaBlockTags {
         initMineableWithShovel();
         initMineableWithPickaxe();
         initMineableWithAxe();
+        initMineableWithHoe();
+        initSwordMining();
         initToolTierRequirements();
 
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
@@ -1614,6 +1616,38 @@ class VanillaBlockTags {
                 VINE
         );
         inherit(MINEABLE_WITH_AXE, FENCE_GATE, LOG, PLANKS, SIGN);
+    }
+
+    private static void initMineableWithHoe() {
+        tag(MINEABLE_WITH_HOE,
+                CALIBRATED_SCULK_SENSOR,
+                DRIED_KELP_BLOCK,
+                HANGING_ROOTS,
+                HAY_BLOCK,
+                LEAF_LITTER,
+                MOSS_BLOCK,
+                MOSS_CARPET,
+                NETHER_WART_BLOCK,
+                PALE_MOSS_BLOCK,
+                PALE_MOSS_CARPET,
+                PINK_PETALS,
+                SCULK,
+                SCULK_CATALYST,
+                SCULK_SENSOR,
+                SCULK_SHRIEKER,
+                SCULK_VEIN,
+                SHROOMLIGHT,
+                SPONGE,
+                TARGET,
+                WARPED_WART_BLOCK,
+                WET_SPONGE
+        );
+        inherit(MINEABLE_WITH_HOE, LEAVES);
+    }
+
+    private static void initSwordMining() {
+        tag(SWORD_EFFICIENT, BAMBOO, BAMBOO_SAPLING, WEB);
+        tag(SWORD_INSTANTLY_MINES, BAMBOO, BAMBOO_SAPLING);
     }
 
     private static void initToolTierRequirements() {

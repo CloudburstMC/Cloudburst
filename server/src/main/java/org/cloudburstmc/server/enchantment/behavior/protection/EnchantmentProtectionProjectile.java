@@ -1,43 +1,29 @@
 package org.cloudburstmc.server.enchantment.behavior.protection;
 
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class EnchantmentProtectionProjectile extends EnchantmentProtection {
+public final class EnchantmentProtectionProjectile extends EnchantmentProtection {
 
     public EnchantmentProtectionProjectile() {
-        super(TYPE.PROJECTILE);
+        super(EnchantmentProtectionType.PROJECTILE);
     }
 
     @Override
-    public int getMinEnchantAbility(int level) {
-        return 3 + (level - 1) * 6;
-    }
-
-    @Override
-    public int getMaxEnchantAbility(int level) {
-        return this.getMinEnchantAbility(level) + 15;
-    }
-
-    @Override
-    public double getTypeModifier() {
+    protected double getTypeModifier() {
         return 3;
     }
 
     @Override
-    public float getProtectionFactor(EnchantmentInstance enchantment, EntityDamageEvent e) {
+    public float getProtectionFactor(Enchantment enchantment, EntityDamageEvent e) {
         DamageType damageType = e.getDamageType();
 
-        if (enchantment.getLevel() <= 0 || !damageType.is(DamageTypeTags.IS_PROJECTILE)) {
+        if (enchantment.level() <= 0 || !damageType.is(DamageTypeTags.IS_PROJECTILE)) {
             return 0;
         }
 
-        return (float) (enchantment.getLevel() * getTypeModifier());
+        return (float) (enchantment.level() * getTypeModifier());
     }
 }

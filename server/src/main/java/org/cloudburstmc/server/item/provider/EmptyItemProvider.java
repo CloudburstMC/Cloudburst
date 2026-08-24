@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.item.provider;
 
-import org.cloudburstmc.api.enchantment.EnchantmentInstance;
+import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.util.Collections;
@@ -26,7 +26,7 @@ public class EmptyItemProvider extends ItemDataProvider {
     }
 
     @Override
-    public Set<EnchantmentInstance> getEnchantments() {
+    public Set<Enchantment> getEnchantments() {
         return Collections.emptySet();
     }
 

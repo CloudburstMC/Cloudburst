@@ -22,6 +22,7 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -40,9 +41,7 @@ import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.IntItemHandler;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
@@ -97,7 +96,6 @@ import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
-import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
@@ -290,6 +288,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         int dx = centerX - x;
         int dz = centerZ - z;
         return dx * dx + dz * dz;
+    }
+
+    private static int durabilityToRepairFromXp(int experience) {
+        return Math.toIntExact(Math.min(Integer.MAX_VALUE, (long) experience * 2));
     }
 
     public static int calculateRequireExperience(int level) {
@@ -3793,38 +3795,70 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 this.sendPacket(sound);
                 pickedXPOrb = tick;
 
-//                TODO Enchantments implementation
-//                //Mending
-//                ArrayList<Integer> itemsWithMending = new ArrayList<>();
-//                for (int i = 0; i < 4; i++) {
-//                    if (getInventory().getArmorItem(i).getEnchantment(EnchantmentTypes.MENDING) != null) {
-//                        itemsWithMending.add(getInventory().getSize() + i);
-//                    }
-//                }
-//                if (getInventory().getSelectedItem().getEnchantment(EnchantmentTypes.MENDING) != null) {
-//                    itemsWithMending.add(getInventory().getHeldItemIndex());
-//                }
-//                if (itemsWithMending.size() > 0) {
-//                    Random rand = new Random();
-//                    Integer itemToRepair = itemsWithMending.get(rand.nextInt(itemsWithMending.size()));
-//                    ItemStack toRepair = getInventory().getItem(itemToRepair);
-//                    var behavior = toRepair.getBehavior();
-//                    if (behavior.isTool(toRepair) || behavior.isArmor()) {
-//                        var damage = toRepair.getMetadata(Damageable.class);
-//
-//                        if (damage.getDurability() > 0) {
-//                            getInventory().setItem(itemToRepair, toRepair.withData(damage.repair(2)));
-//                            return true;
-//                        }
-//                    }
-//                }
-
-                this.addExperience(exp);
+                int remainingExperience = this.repairMendingItems(exp);
+                if (remainingExperience > 0) {
+                    this.addExperience(remainingExperience);
+                }
                 return true;
             }
         }
 
         return false;
+    }
+
+    private int repairMendingItems(int experience) {
+        if (experience <= 0) {
+            return 0;
+        }
+
+        List<MendingRepairSlot> slots = getMendingRepairSlots();
+        if (slots.isEmpty()) {
+            return experience;
+        }
+
+        MendingRepairSlot slot = slots.get(ThreadLocalRandom.current().nextInt(slots.size()));
+        ItemStack item = slot.item();
+        int durabilityToRepair = durabilityToRepairFromXp(experience);
+        int repairAmount = Math.min(durabilityToRepair, item.getDamage());
+
+        slot.setItem(item.repair(repairAmount));
+        int remainingExperience = experience - (int) ((long) repairAmount * experience / durabilityToRepair);
+        return repairAmount > 0 && remainingExperience > 0 ? repairMendingItems(remainingExperience) : remainingExperience;
+    }
+
+    private List<MendingRepairSlot> getMendingRepairSlots() {
+        List<MendingRepairSlot> slots = new ArrayList<>();
+        PlayerInventoryView inventory = this.getInventory();
+        addMendingRepairSlot(slots, inventory, inventory.getSelectedSlot());
+        addMendingRepairSlot(slots, this.getOffhand(), 0);
+
+        ArmorView armor = this.getArmor();
+        for (int slot = 0; slot < armor.size(); slot++) {
+            addMendingRepairSlot(slots, armor, slot);
+        }
+        return slots;
+    }
+
+    private static void addMendingRepairSlot(List<MendingRepairSlot> slots, SlotGroup slotGroup, int slot) {
+        ItemStack item = slotGroup.getItem(slot);
+        if (isMendingRepairCandidate(item)) {
+            slots.add(new MendingRepairSlot(slotGroup, slot, item));
+        }
+    }
+
+    private static boolean isMendingRepairCandidate(ItemStack item) {
+        ItemType type = item.getType();
+        return type != null
+                && item.hasDamage()
+                && CloudItemRegistry.get().requireComponent(type, ItemComponents.DAMAGEABLE).get()
+                && item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.MENDING);
+    }
+
+    private record MendingRepairSlot(SlotGroup slotGroup, int slot, ItemStack item) {
+
+        public void setItem(ItemStack item) {
+            this.slotGroup.setItem(this.slot, item);
+        }
     }
 
     @Override
