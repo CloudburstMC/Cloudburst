@@ -71,7 +71,7 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     @Override
     public void onBreak() {
         for (ItemStack content : this.container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
         this.container.clear(); // Stop items from being moved around by another player in the inventory
     }

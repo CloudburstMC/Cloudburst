@@ -173,6 +173,13 @@ public interface Entity {
 
     String getName();
 
+    /**
+     * Adds this configured entity to its level.
+     *
+     * @return whether the entity was spawned
+     */
+    boolean spawn();
+
     void spawnTo(Player player);
 
     void spawnToAll();

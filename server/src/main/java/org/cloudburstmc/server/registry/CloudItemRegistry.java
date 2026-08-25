@@ -268,8 +268,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         Preconditions.checkNotNull(tag, "tag");
         return (item, material) -> !item.isEmpty()
                 && !material.isEmpty()
-                && material.getType() != null
-                && VanillaItemTags.isTagged(material.getType(), tag);
+                && VanillaItemTags.resolve(tag).isTagged(material.getType());
     }
 
     private synchronized CloudComponentMap registerVanilla(ItemType type, ItemSerializer serializer) throws RegistryException {
@@ -334,22 +333,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 
     public ItemType getType(int legacyId) {
         return getType(getIdentifier(legacyId));
-    }
-
-    @Override
-    public boolean isTagged(ItemType type, ItemTagKey key) {
-        Objects.requireNonNull(type, "type");
-        Objects.requireNonNull(key, "key");
-        return VanillaItemTags.isTagged(type, key);
-    }
-
-    @Override
-    public boolean isTagged(ItemStack item, ItemTagKey key) {
-        Objects.requireNonNull(item, "item");
-        Objects.requireNonNull(key, "key");
-        return !item.isEmpty()
-                && item.getType() != null
-                && VanillaItemTags.isTagged(item.getType(), key);
     }
 
     @Override

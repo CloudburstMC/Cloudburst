@@ -96,6 +96,10 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     @Override
     public void onBreak() {
-        this.dropItem();
+        if (!this.recordItem.isEmpty()) {
+            this.stop();
+            this.dropItemOnBreak(this.recordItem);
+            this.recordItem = ItemStack.EMPTY;
+        }
     }
 }

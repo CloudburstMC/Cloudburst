@@ -24,26 +24,6 @@ public interface ItemRegistry extends ComponentRegistry<ItemType> {
     ItemType getType(int runtimeId, int data);
 
     /**
-     * Returns whether an item type belongs to the supplied item tag.
-     *
-     * @param type item type to test
-     * @param key  tag key to test
-     * @return {@code true} if the item type is a member
-     * @throws IllegalArgumentException if the key is unknown
-     */
-    boolean isTagged(ItemType type, ItemTagKey key);
-
-    /**
-     * Returns whether a stack's item type belongs to the supplied item tag.
-     *
-     * @param item item stack to test
-     * @param key  tag key to test
-     * @return {@code true} if the stack is non-empty and its item type is a member
-     * @throws IllegalArgumentException if the key is unknown
-     */
-    boolean isTagged(ItemStack item, ItemTagKey key);
-
-    /**
      * Returns the item tag identified by a key.
      *
      * @param key tag key to resolve

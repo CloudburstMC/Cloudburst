@@ -2,12 +2,11 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.component.BlockLootHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.block.component.PlayerBlockHandler;
-import org.cloudburstmc.api.block.component.ResourceBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.block.component.UseCheckHandler;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.PlacementSupport;
@@ -15,17 +14,17 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
 
 @UtilityClass
 public class DoorBlockHandlers {
 
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> block.getState().getType() != BlockTypes.IRON_DOOR;
 
-    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) ->
+    public static final BlockLootHandler GET_LOOT = (block, context) ->
             block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)
-                    ? ItemStack.EMPTY
-                    : DefaultBlockHandlers.GET_RESOURCE.execute(block, random, bonusLevel);
+                    ? List.of()
+                    : DefaultBlockHandlers.GET_LOOT.execute(block, context);
 
     public static final UseBlockHandler USE = (block, player, direction, item) -> {
         BlockState state = block.getState();
@@ -73,11 +72,7 @@ public class DoorBlockHandlers {
         }
 
         if (!isUpperBlock) {
-            ItemStack drop = block.requireComponent(BlockComponents.GET_RESOURCE)
-                    .execute(block, ThreadLocalRandom.current(), 0);
-            if (!drop.isEmpty()) {
-                level.dropItem(pos.toFloat().add(0.5f, 0.5f, 0.5f), drop);
-            }
+            DefaultBlockHandlers.dropLoot(block);
         }
 
         level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));

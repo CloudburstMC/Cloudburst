@@ -91,7 +91,7 @@ public final class SpongeBlockHandlers {
             boolean changed;
             BlockState primary = block.getState();
             if (block.getLiquidLayer() == 1 && isAquaticPlant(primary)) {
-                level.useBreakOn(position);
+                level.breakBlock(position);
                 changed = level.getBlock(position).getLiquid().isEmpty();
             } else {
                 changed = level.removeLiquid(position);

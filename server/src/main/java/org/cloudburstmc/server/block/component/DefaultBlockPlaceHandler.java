@@ -33,7 +33,6 @@ public class DefaultBlockPlaceHandler implements PlaceBlockHandler {
         if (player == null) {
             return false;
         }
-
         Level level = player.getLevel();
         ComponentMap blockComponents = this.registry.requireComponents(blockState.getType());
         VoxelShape collisionShape = blockComponents.require(BlockComponents.GET_COLLISION_SHAPE)

@@ -77,7 +77,7 @@ public class DropperBlockEntity extends ContainerBlockEntity implements Dropper,
     @Override
     public void onBreak() {
         for (ItemStack content : this.container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
         this.container.clear();
     }

@@ -441,7 +441,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStack oldItem = selectedItem;
 
         if (player.canInteract(blockPos.toFloat().add(0.5f, 0.5f, 0.5f), player.isCreative() ? 13 : 7)) {
-            selectedItem = player.getLevel().useBreakOnPredicted(blockPos, face, selectedItem, player, true, fastBreak);
+            selectedItem = player.getLevel().breakBlockPredicted(blockPos, selectedItem, player, true, fastBreak);
             if (selectedItem != null) {
                 if (player.isSurvival() || player.isAdventure()) {
                     player.getFoodData().updateFoodExpLevel(0.025);

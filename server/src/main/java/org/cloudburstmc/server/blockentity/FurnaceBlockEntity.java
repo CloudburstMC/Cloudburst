@@ -110,7 +110,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     @Override
     public void onBreak() {
         for (ItemStack content : container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
     }
 

@@ -118,7 +118,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     @Override
     public void onBreak() {
         for (ItemStack content : container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
     }
 

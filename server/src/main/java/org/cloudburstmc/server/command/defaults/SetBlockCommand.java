@@ -91,7 +91,7 @@ public class SetBlockCommand extends Command {
 
             if (existing != BlockStates.AIR) {
                 if (setType == SetType.DESTROY) {
-                    p.getLevel().useBreakOn(pos);
+                    p.getLevel().breakBlock(pos);
                 } else {
                     sender.sendMessage(Component.translatable("commands.setblock.noChange").color(NamedTextColor.RED));
                     return true;

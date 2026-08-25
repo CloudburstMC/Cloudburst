@@ -231,7 +231,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     @Override
     public void onBreak() {
         for (ItemStack content : container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
     }
 

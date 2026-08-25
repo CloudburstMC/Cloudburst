@@ -130,6 +130,7 @@ public class EntitySerializer {
                         CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
                         if (entity != null) {
                             entity.loadAdditionalData(entityTag);
+                            entity.spawn();
                         }
                     } catch (RegistryException e) {
                         dirty = true;

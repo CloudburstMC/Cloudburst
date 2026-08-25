@@ -13,17 +13,16 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.Randoms;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.random.RandomGenerator;
+import java.util.List;
 
 public class DefaultBlockHandlers {
 
@@ -173,45 +172,7 @@ public class DefaultBlockHandlers {
     };
 
     public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
-        // TODO: Fire block destroy level event.
         block.set(BlockStates.AIR);
-    };
-
-    public static final PlayerBlockHandler POST_DESTROY = (block, player) -> {
-        block.requireComponent(BlockComponents.GET_RESOURCE).execute(block, ThreadLocalRandom.current(), 0);
-    };
-
-    public static final SpawnResourcesBlockHandler SPAWN_RESOURCES = (block, random, tool, bonusLootLevel) -> {
-        ResourceCountBlockHandler getResourceCount = block.requireComponent(BlockComponents.GET_RESOURCE_COUNT);
-        int resourceCount = getResourceCount.execute(block, random, bonusLootLevel);
-        if (resourceCount < 1) {
-            return;
-        }
-
-        ResourceBlockHandler getResource = block.requireComponent(BlockComponents.GET_RESOURCE);
-        DropResourceBlockHandler dropResource = block.requireComponent(BlockComponents.DROP_RESOURCE);
-
-        for (int i = 0; i < resourceCount; i++) {
-            if (!Randoms.chanceFloatGreaterThan(random, 0)) {
-                ItemStack itemStack = getResource.execute(block, random, bonusLootLevel);
-                if (!itemStack.isEmpty()) {
-                    dropResource.execute(block, itemStack);
-                }
-            }
-        }
-    };
-
-    public static final DropResourceBlockHandler DROP_RESOURCE = (block, itemStack) -> {
-        // TODO: Check if game rule DO_TILE_DROPS is disabled?
-        RandomGenerator random = ThreadLocalRandom.current(); // TODO: Use Level RNG
-
-        Vector3f dropPos = block.getPosition().toFloat().add(
-                (random.nextFloat() * 0.7f) + 0.15f,
-                (random.nextFloat() * 0.7f) + 0.15f,
-                (random.nextFloat() * 0.7f) + 0.15f
-        );
-
-        return block.getLevel().dropItem(dropPos, itemStack, null, 10);
     };
 
     // ON_REMOVE fires before a block is removed (e.g. by pistons or neighbour updates),
@@ -219,22 +180,20 @@ public class DefaultBlockHandlers {
     public static final ComplexBlockHandler ON_REMOVE = (block) -> {
     };
 
-    public static final ResourceCountBlockHandler GET_RESOURCE_COUNT = (block, random, bonusLevel) -> 1;
-
-    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) -> {
+    public static final BlockLootHandler GET_LOOT = (block, context) -> {
         BlockState state = block.getState();
         ItemType itemType = CloudItemRegistry.get().getType(state.getType().getId(), 0);
-        if (itemType == null) return ItemStack.EMPTY;
-        return ItemStack.builder()
+        if (itemType == null) {
+            return List.of();
+        }
+        return List.of(ItemStack.builder()
                 .itemType(itemType)
                 .data(ItemKeys.BLOCK_STATE, state.getType().getDefaultState())
                 .amount(1)
-                .build();
+                .build());
     };
 
-    public static final ResourceBlockHandler GET_SILK_TOUCH_RESOURCE = (block, random, bonusLevel) -> {
-        return block.requireComponent(BlockComponents.GET_RESOURCE).execute(block, random, bonusLevel);
-    };
+    public static final BlockExperienceHandler GET_EXPERIENCE = (block, context) -> 0;
 
     public static final PickBlockHandler GET_PICK_BLOCK = (block) -> {
         BlockState defaultState = block.getState().getType().getDefaultState();
@@ -248,9 +207,18 @@ public class DefaultBlockHandlers {
     };
 
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
-    public static final BooleanBlockHandler CAN_BE_SILK_TOUCHED = (block) -> true;
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;
+
+    public static void dropLoot(Block block) {
+        CloudLevel level = (CloudLevel) block.getLevel();
+        BlockLootContext context = BlockLootContext.empty(level.getRandom());
+        for (ItemStack drop : block.requireComponent(BlockComponents.GET_LOOT).execute(block, context)) {
+            if (drop != null && !drop.isEmpty()) {
+                level.dropBlockItem(block.getPosition(), drop);
+            }
+        }
+    }
 
     private static DamageSource blockDamageSource(DamageType damageType, Block block) {
         return DamageSource.builder(damageType).block(block).build();

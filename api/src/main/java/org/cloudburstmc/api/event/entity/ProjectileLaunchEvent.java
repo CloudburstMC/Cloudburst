@@ -1,15 +1,20 @@
 package org.cloudburstmc.api.event.entity;
 
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.event.Cancellable;
+import org.cloudburstmc.api.entity.Projectile;
 
-public final class ProjectileLaunchEvent extends EntityEvent implements Cancellable {
+import static java.util.Objects.requireNonNull;
 
-    public ProjectileLaunchEvent(Entity entity) {
-        this.entity = entity;
+/**
+ * Called before a projectile is added to a level.
+ */
+public class ProjectileLaunchEvent extends EntitySpawnEvent {
+
+    public ProjectileLaunchEvent(Projectile projectile) {
+        super(requireNonNull(projectile, "projectile"));
     }
 
-    public Entity getEntity() {
-        return this.entity;
+    @Override
+    public Projectile getEntity() {
+        return (Projectile) this.entity;
     }
 }

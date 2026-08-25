@@ -225,6 +225,7 @@ public class AnvilConverter {
                 try {
                     CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
                     entity.loadAdditionalData(entityTag);
+                    entity.spawn();
                 } catch (Exception e) {
                     log.warn("Skipping invalid legacy entity data in chunk {},{}: {}", chunk.getX(), chunk.getZ(), e.toString());
                     log.debug("Invalid legacy entity data", e);

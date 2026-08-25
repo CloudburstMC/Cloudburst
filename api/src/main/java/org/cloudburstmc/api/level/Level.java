@@ -10,7 +10,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -122,23 +121,50 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
 
     int getFullLight(Vector3i position);
 
-    default ItemStack useBreakOn(Vector3i position) {
-        return this.useBreakOn(position, null);
+    /**
+     * Breaks a block without a player or tool.
+     *
+     * @param position the block position
+     * @return the resulting tool stack, or {@code null} if the block was not broken
+     */
+    default @Nullable ItemStack breakBlock(Vector3i position) {
+        return this.breakBlock(position, null);
     }
 
-    default ItemStack useBreakOn(Vector3i position, ItemStack item) {
-        return this.useBreakOn(position, item, null);
+    /**
+     * Breaks a block using a tool without a player.
+     *
+     * @param position the block position
+     * @param item the tool, or {@code null} for an empty hand
+     * @return the resulting tool stack, or {@code null} if the block was not broken
+     */
+    default @Nullable ItemStack breakBlock(Vector3i position, @Nullable ItemStack item) {
+        return this.breakBlock(position, item, null);
     }
 
-    default ItemStack useBreakOn(Vector3i position, ItemStack item, Player player) {
-        return this.useBreakOn(position, item, player, false);
+    /**
+     * Breaks a block on behalf of a player.
+     *
+     * @param position the block position
+     * @param item the tool, or {@code null} for an empty hand
+     * @param player the player, or {@code null} for no player
+     * @return the resulting tool stack, or {@code null} if the block was not broken
+     */
+    default @Nullable ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player) {
+        return this.breakBlock(position, item, player, false);
     }
 
-    default ItemStack useBreakOn(Vector3i position, ItemStack item, Player player, boolean createParticles) {
-        return useBreakOn(position, null, item, player, createParticles);
-    }
-
-    ItemStack useBreakOn(Vector3i position, Direction face, ItemStack item, Player player, boolean createParticles);
+    /**
+     * Breaks a block on behalf of a player.
+     *
+     * @param position the block position
+     * @param item the tool, or {@code null} for an empty hand
+     * @param player the player, or {@code null} for no player
+     * @param createParticles whether to send block-break particles
+     * @return the resulting tool stack, or {@code null} if the block was not broken
+     */
+    @Nullable
+    ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player, boolean createParticles);
 
     Map<Long, ? extends Player> getPlayers();
 

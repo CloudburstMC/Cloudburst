@@ -2,87 +2,55 @@ package org.cloudburstmc.api.event.block;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.event.Cancellable;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.Direction;
+
+import static java.util.Objects.requireNonNull;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Called when a player breaks a block.
  */
-public final class BlockBreakEvent extends BlockEvent implements Cancellable {
+public class BlockBreakEvent extends BlockExpEvent implements Cancellable {
 
-    protected final Player player;
+    private final Player player;
+    private boolean dropItems = true;
 
-    protected final ItemStack item;
-    protected final Direction face;
-
-    protected boolean instaBreak = false;
-    protected ItemStack[] blockDrops = new ItemStack[0];
-    protected int blockXP = 0;
-
-    protected boolean fastBreak = false;
-
-    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops) {
-        this(player, block, item, drops, false, false);
+    /**
+     * Creates an event for a player breaking a block.
+     *
+     * @param block the block being broken
+     * @param player the player breaking the block
+     */
+    public BlockBreakEvent(Block block, Player player) {
+        super(block, 0);
+        this.player = requireNonNull(player, "player");
     }
 
-    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops, boolean instaBreak) {
-        this(player, block, item, drops, instaBreak, false);
-    }
-
-    public BlockBreakEvent(Player player, Block block, ItemStack item, ItemStack[] drops, boolean instaBreak, boolean fastBreak) {
-        this(player, block, null, item, drops, 0, instaBreak, fastBreak);
-    }
-
-    public BlockBreakEvent(Player player, Block block, Direction face, ItemStack item, ItemStack[] drops, int dropExp, boolean instaBreak, boolean fastBreak) {
-        super(block);
-        this.face = face;
-        this.item = item;
-        this.player = player;
-        this.instaBreak = instaBreak;
-        this.blockDrops = drops;
-        this.fastBreak = fastBreak;
-        this.blockXP = dropExp;
-    }
-
+    /**
+     * Returns the player breaking the block.
+     *
+     * @return the player breaking the block
+     */
     public Player getPlayer() {
-        return player;
+        return this.player;
     }
 
-    public Direction getFace() {
-        return face;
+    /**
+     * Returns whether the block's normal item drops will be produced.
+     * When this is {@code false}, {@link BlockDropItemEvent} is not fired.
+     *
+     * @return whether normal item drops will be produced
+     */
+    public boolean isDropItems() {
+        return this.dropItems;
     }
 
-    public ItemStack getItem() {
-        return item;
-    }
-
-    public boolean getInstaBreak() {
-        return this.instaBreak;
-    }
-
-    public ItemStack[] getDrops() {
-        return blockDrops;
-    }
-
-    public void setDrops(ItemStack[] drops) {
-        this.blockDrops = drops;
-    }
-
-    public int getDropExp() {
-        return this.blockXP;
-    }
-
-    public void setDropExp(int xp) {
-        this.blockXP = xp;
-    }
-
-    public void setInstaBreak(boolean instaBreak) {
-        this.instaBreak = instaBreak;
-    }
-
-    public boolean isFastBreak() {
-        return this.fastBreak;
+    /**
+     * Sets whether the block's normal item drops should be produced.
+     * When set to {@code false}, {@link BlockDropItemEvent} is not fired.
+     *
+     * @param dropItems whether normal item drops should be produced
+     */
+    public void setDropItems(boolean dropItems) {
+        this.dropItems = dropItems;
     }
 }

@@ -158,6 +158,21 @@ public class BlockTags {
     public static final BlockTagKey SAPLING = tag("sapling");
 
     /**
+     * Blocks that shears break at their highest mining speed.
+     */
+    public static final BlockTagKey SHEARS_EXTREME_BREAKING_SPEED = tag("shears_extreme_breaking_speed");
+
+    /**
+     * Blocks that shears break at their primary mining speed.
+     */
+    public static final BlockTagKey SHEARS_MAJOR_BREAKING_SPEED = tag("shears_major_breaking_speed");
+
+    /**
+     * Blocks that shears break faster than hand mining.
+     */
+    public static final BlockTagKey SHEARS_MINOR_BREAKING_SPEED = tag("shears_minor_breaking_speed");
+
+    /**
      * Blocks that are shulker boxes.
      */
     public static final BlockTagKey SHULKER_BOXES = tag("shulker_boxes");

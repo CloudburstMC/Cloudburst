@@ -16,6 +16,7 @@ import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
 
+import java.util.List;
 import java.util.Set;
 
 @UtilityClass
@@ -23,8 +24,8 @@ public class TripwireBlockHandlers {
 
     private static final int WIRE_RECHECK_TICKS = 10;
 
-    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) ->
-            ItemStack.builder().itemType(ItemTypes.STRING).amount(1).build();
+    public static final BlockLootHandler GET_LOOT = (block, context) ->
+            List.of(ItemStack.builder().itemType(ItemTypes.STRING).amount(1).build());
 
     public static final PickBlockHandler GET_PICK_BLOCK = (block) ->
             ItemStack.builder().itemType(ItemTypes.STRING).amount(1).build();

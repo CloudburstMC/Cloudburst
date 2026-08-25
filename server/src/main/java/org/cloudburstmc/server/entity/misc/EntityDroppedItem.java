@@ -10,7 +10,6 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
-import org.cloudburstmc.api.event.entity.ItemSpawnEvent;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
@@ -83,8 +82,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         super.initEntity();
 
         this.setMaxHealth(5);
-
-        this.server.getEventManager().fire(new ItemSpawnEvent(this));
     }
 
     @Override
@@ -258,7 +255,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     @Override
     public void setItem(@NonNull ItemStack item) {
         checkNotNull(item, "item");
-        checkArgument(this.item == null, "Item has already been set");
+        checkArgument(!item.isEmpty(), "item must not be empty");
         this.item = item;
     }
 

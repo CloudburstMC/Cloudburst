@@ -45,6 +45,7 @@ class VanillaBlockTags {
         initPlanks();
         initSapling();
         initLeaves();
+        initShearsMining();
         initMineableWithShovel();
         initMineableWithPickaxe();
         initMineableWithAxe();
@@ -1482,6 +1483,12 @@ class VanillaBlockTags {
                 SPRUCE_LEAVES,
                 YELLOW_POPLAR_LEAVES
         );
+    }
+
+    private static void initShearsMining() {
+        inherit(SHEARS_EXTREME_BREAKING_SPEED, LEAVES);
+        inherit(SHEARS_MAJOR_BREAKING_SPEED, WOOL);
+        tag(SHEARS_MINOR_BREAKING_SPEED, GLOW_LICHEN, VINE);
     }
 
     private static void initMineableWithShovel() {

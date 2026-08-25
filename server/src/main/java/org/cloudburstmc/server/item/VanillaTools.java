@@ -62,6 +62,11 @@ public final class VanillaTools {
     }
 
     public static Tool shears() {
-        return Tool.builder().build();
+        return Tool.builder()
+                .addRule(Tool.Rule.minesAndDrops(List.of(BlockTypes.WEB), 15.0f))
+                .addRule(Tool.Rule.overrideSpeed(BlockTags.SHEARS_EXTREME_BREAKING_SPEED, 15.0f))
+                .addRule(Tool.Rule.overrideSpeed(BlockTags.SHEARS_MAJOR_BREAKING_SPEED, 5.0f))
+                .addRule(Tool.Rule.overrideSpeed(BlockTags.SHEARS_MINOR_BREAKING_SPEED, 2.0f))
+                .build();
     }
 }

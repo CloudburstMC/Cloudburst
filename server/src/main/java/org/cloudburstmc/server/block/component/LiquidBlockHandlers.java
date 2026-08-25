@@ -591,7 +591,7 @@ public final class LiquidBlockHandlers {
         }
 
         if (reaction == LiquidReaction.POPPED) {
-            level.useBreakOn(target.getPosition());
+            level.breakBlock(target.getPosition());
         } else {
             target.set(BlockStates.AIR);
         }

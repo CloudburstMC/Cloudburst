@@ -34,7 +34,6 @@ import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
@@ -3588,23 +3587,22 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         fishingHook.setOwner(this);
         fishingHook.setMotion(fishingHookCastMotion());
         fishingHook.configure(fishingRod);
-        ProjectileLaunchEvent ev = new ProjectileLaunchEvent(fishingHook);
-        this.getServer().getEventManager().fire(ev);
-        if (ev.isCancelled()) {
-            fishingHook.close();
-        } else {
-            PlayerFishEvent fishEvent = new PlayerFishEvent(this, fishingHook, null, PlayerFishState.CAST);
-            this.getServer().getEventManager().fire(fishEvent);
-            if (fishEvent.isCancelled()) {
-                fishingHook.close();
-                return 0;
-            }
 
-            fishingHook.spawnToAll();
-            this.fishingHook = fishingHook;
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.THROW, -1,
-                    Identifier.parse("minecraft:player"), false, false);
+        PlayerFishEvent fishEvent = new PlayerFishEvent(this, fishingHook, null, PlayerFishState.CAST);
+        this.getServer().getEventManager().fire(fishEvent);
+        if (fishEvent.isCancelled()) {
+            fishingHook.close();
+            return 0;
         }
+
+        if (!fishingHook.spawn()) {
+            return 0;
+        }
+
+        fishingHook.spawnToAll();
+        this.fishingHook = fishingHook;
+        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.THROW, -1,
+                Identifier.parse("minecraft:player"), false, false);
         return 0;
     }
 

@@ -10,10 +10,9 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.EntityRegistry;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FallingBlockHandlers {
@@ -38,7 +37,8 @@ public final class FallingBlockHandlers {
     public static final FallingLandBlockHandler ANVIL_LAND = (entity, target, fallDistance) -> {
         int effectiveDistance = (int) Math.ceil(fallDistance - 1);
         if (Math.floor(effectiveDistance * entity.getDamagePerBlock()) <= 0
-                || ThreadLocalRandom.current().nextFloat() >= 0.05f + effectiveDistance * 0.05f) {
+                || ((CloudLevel) entity.getLevel()).getRandom().nextFloat()
+                >= 0.05f + effectiveDistance * 0.05f) {
             return;
         }
 

@@ -139,6 +139,7 @@ public abstract class CloudEntity implements Entity {
     private int freezeTicks;
     private boolean freezeTickingLocked;
     private boolean fromBucket;
+    private volatile boolean spawned;
     private volatile boolean initialized;
     private static final int MAX_MOVEMENT_SEGMENTS = 100;
     private final Deque<EntityMovementSegment> movementSegments = new ArrayDeque<>(MAX_MOVEMENT_SEGMENTS);
@@ -671,18 +672,11 @@ public abstract class CloudEntity implements Entity {
         this.initEntity();
         this.recalculateBoundingBox();
 
-        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk1, throwable) -> {
-            if (throwable == null) {
-                this.chunk = chunk1;
-                chunk1.addEntity(this);
-            }
-        });
-        this.level.addEntity(this);
-
         this.lastUpdate = this.server.getTick();
-        this.getServer().getEventManager().fire(new EntitySpawnEvent(this));
 
-        this.scheduleUpdate();
+        if (this.isPlayer) {
+            this.registerInLevel(location);
+        }
     }
 
     //@Override
@@ -700,11 +694,60 @@ public abstract class CloudEntity implements Entity {
     }
 
     @Override
+    public boolean spawn() {
+        if (this.closed || this.spawned) {
+            return false;
+        }
+
+        EntitySpawnEvent event;
+        if (this instanceof org.cloudburstmc.api.entity.misc.DroppedItem droppedItem) {
+            event = new ItemSpawnEvent(droppedItem);
+        } else if (this instanceof Projectile projectile) {
+            event = new ProjectileLaunchEvent(projectile);
+        } else {
+            event = new EntitySpawnEvent(this);
+        }
+
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            this.closed = true;
+            return false;
+        }
+
+        this.registerInLevel(this.getLocation());
+        return true;
+    }
+
+    private void registerInLevel(Location location) {
+        if (this.spawned) {
+            return;
+        }
+
+        this.spawned = true;
+        this.level.addEntity(this);
+        this.scheduleUpdate();
+
+        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
+            if (throwable != null || this.closed || !this.spawned) {
+                return;
+            }
+
+            this.chunk = chunk;
+            chunk.addEntity(this);
+            this.spawnToAll();
+        });
+    }
+
+    @Override
     public void spawnTo(Player player) {
         this.spawnTo(((CloudPlayer) player));
     }
 
     public void spawnTo(CloudPlayer player) {
+        if (!this.spawned || this.chunk == null || this.closed) {
+            return;
+        }
+
         boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
         boolean added = sent && this.getViewers().add(player);
         if (!sent || !added) {
@@ -1937,6 +1980,10 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void spawnToAll() {
+        if (!this.spawned && !this.spawn()) {
+            return;
+        }
+
         if (this.chunk == null || this.closed) {
             return;
         }
@@ -1957,7 +2004,10 @@ public abstract class CloudEntity implements Entity {
     public void close() {
         if (!this.closed) {
             this.closed = true;
-            this.server.getEventManager().fire(new EntityDespawnEvent(this));
+            if (this.spawned) {
+                this.server.getEventManager().fire(new EntityDespawnEvent(this));
+            }
+
             this.despawnFromAll();
             if (this.chunk != null) {
                 this.chunk.removeEntity(this);

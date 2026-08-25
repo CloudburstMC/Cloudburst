@@ -8,6 +8,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -344,6 +345,12 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     public void onBreak() {
 
+    }
+
+    protected final void dropItemOnBreak(ItemStack item) {
+        if (item != null && !item.isEmpty()) {
+            this.level.dropBlockItem(this.position, item);
+        }
     }
 
     public void setDirty() {

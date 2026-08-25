@@ -104,7 +104,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     public void onBreak() {
         for (ItemStack item : items) {
             if (item != null) {
-                this.getLevel().dropItem(this.getPosition(), item);
+                this.dropItemOnBreak(item);
             }
         }
     }

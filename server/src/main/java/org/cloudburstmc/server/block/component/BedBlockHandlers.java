@@ -143,7 +143,7 @@ public class BedBlockHandlers {
      * Returns one bed item whose damage encodes the bed's color. Always drops exactly one item regardless
      * of whether the foot or head was broken.
      */
-    public static final ResourceBlockHandler GET_RESOURCE = (block, random, bonusLevel) -> {
+    public static final BlockLootHandler GET_LOOT = (block, context) -> {
         DyeColor color = DyeColor.WHITE;
         CloudLevel level = (CloudLevel) block.getLevel();
         BlockEntity be = level.getBlockEntity(block.getPosition());
@@ -162,7 +162,7 @@ public class BedBlockHandlers {
         try {
             builder = ItemStack.from(defaultState).toBuilder().amount(1);
         } catch (IllegalArgumentException e) {
-            return ItemStack.EMPTY;
+            return List.of();
         }
 
         int woolData = color.getWoolData();
@@ -170,7 +170,7 @@ public class BedBlockHandlers {
             builder.data(ItemKeys.DAMAGE, woolData);
         }
 
-        return builder.build();
+        return List.of(builder.build());
     };
 
     /**

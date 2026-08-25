@@ -1,16 +1,16 @@
 package org.cloudburstmc.api.event.entity;
 
 import org.cloudburstmc.api.entity.misc.DroppedItem;
-import org.cloudburstmc.api.event.Cancellable;
+
+import static java.util.Objects.requireNonNull;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Called before a dropped item is added to a level.
  */
-public final class ItemSpawnEvent extends EntityEvent implements Cancellable {
+public class ItemSpawnEvent extends EntitySpawnEvent {
 
     public ItemSpawnEvent(DroppedItem item) {
-        this.entity = item;
+        super(requireNonNull(item, "item"));
     }
 
     @Override

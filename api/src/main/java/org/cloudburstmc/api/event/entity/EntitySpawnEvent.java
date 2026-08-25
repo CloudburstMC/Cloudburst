@@ -3,16 +3,18 @@ package org.cloudburstmc.api.event.entity;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.level.Location;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Called before an entity is added to a level.
  */
-public final class EntitySpawnEvent extends EntityEvent {
+public class EntitySpawnEvent extends EntityEvent implements Cancellable {
 
     public EntitySpawnEvent(Entity entity) {
-        this.entity = entity;
+        this.entity = requireNonNull(entity, "entity");
     }
 
     public Location getLocation() {

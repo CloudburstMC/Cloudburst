@@ -77,7 +77,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     @Override
     public void onBreak() {
         if (this.book != null) {
-            this.getLevel().dropItem(this.getPosition(), book);
+            this.dropItemOnBreak(this.book);
         }
     }
 

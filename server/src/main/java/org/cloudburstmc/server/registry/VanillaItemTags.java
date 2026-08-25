@@ -30,27 +30,9 @@ public class VanillaItemTags {
         initArmorRepairMaterials();
     }
 
-    public static boolean isTagged(ItemType type, ItemTagKey tag) {
-        checkNotNull(type, "type");
-        return requireIds(tag).contains(type.getId());
-    }
-
     public static void freeze() {
         for (ItemTagKey key : keys()) {
             RESOLVED.put(key, new ResolvedItemTag(key, ids(key)));
-        }
-    }
-
-    private static Set<ItemTagKey> keys() {
-        Set<ItemTagKey> keys = Collections.newSetFromMap(new IdentityHashMap<>());
-        keys.addAll(DIRECT.keySet());
-        return keys;
-    }
-
-    private static void tag(ItemTagKey tag, ItemType... types) {
-        Set<Identifier> values = DIRECT.computeIfAbsent(tag, ignored -> new HashSet<>());
-        for (ItemType type : types) {
-            values.add(type.getId());
         }
     }
 
@@ -64,6 +46,19 @@ public class VanillaItemTags {
 
     public static Collection<ItemTag> all() {
         return Set.copyOf(RESOLVED.values());
+    }
+
+    private static Set<ItemTagKey> keys() {
+        Set<ItemTagKey> keys = Collections.newSetFromMap(new IdentityHashMap<>());
+        keys.addAll(DIRECT.keySet());
+        return keys;
+    }
+
+    private static void tag(ItemTagKey tag, ItemType... types) {
+        Set<Identifier> values = DIRECT.computeIfAbsent(tag, ignored -> new HashSet<>());
+        for (ItemType type : types) {
+            values.add(type.getId());
+        }
     }
 
     private static Set<Identifier> ids(ItemTagKey tag) {

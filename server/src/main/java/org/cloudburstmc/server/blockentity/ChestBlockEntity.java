@@ -113,7 +113,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
             unpair();
         }
         for (ItemStack content : container.getContents()) {
-            this.getLevel().dropItem(this.getPosition(), content);
+            this.dropItemOnBreak(content);
         }
         container.clear(); // Stop items from being moved around by another player in the inventory
     }

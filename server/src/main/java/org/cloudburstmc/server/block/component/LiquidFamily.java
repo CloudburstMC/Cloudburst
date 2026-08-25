@@ -6,8 +6,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * Simulation rules shared by the source and flowing block types of a liquid.
  */
@@ -95,7 +93,7 @@ enum LiquidFamily {
         int delay = tickDelay(level, position);
         if (this == LAVA && !oldState.isFalling() && !newState.isFalling()
                 && newState.getAmount() > oldState.getAmount()
-                && ThreadLocalRandom.current().nextInt(4) != 0) {
+                && level.getRandom().nextInt(4) != 0) {
             delay *= 4;
         }
 
