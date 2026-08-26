@@ -11,7 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Immutable definition for an enchantment type.
  *
- * @param id                  the numeric runtime ID used by the Bedrock protocol
+ * @param id                  the numeric runtime ID used by the network protocol
  * @param identifier          the namespaced enchantment identifier
  * @param maxLevel            the highest supported enchantment level
  * @param rarity              the enchantment rarity used for weighted selection

@@ -71,7 +71,7 @@ public class GameMode implements Translatable {
      * Spectator mode: the player is invulnerable, always flying, passes through
      * blocks, and cannot interact with anything.
      */
-    public static final GameMode SPECTATOR = GameMode.builder(4, "spectator", "spc")
+    public static final GameMode SPECTATOR = GameMode.builder(3, "spectator", "spc")
             .register()
             .abilities(
                     Ability.BUILD,
@@ -124,11 +124,12 @@ public class GameMode implements Translatable {
      */
     @NotNull
     public static GameMode from(int id) {
-        return switch (id & 0x03) {
+        return switch (id) {
             case 0 -> SURVIVAL;
             case 1 -> CREATIVE;
             case 2 -> ADVENTURE;
-            default -> SPECTATOR;
+            case 3 -> SPECTATOR;
+            default -> SURVIVAL;
         };
     }
 
@@ -182,8 +183,8 @@ public class GameMode implements Translatable {
 
         /**
          * Registers this game mode in the global name map so it can be
-         * resolved by {@link GameMode#from(String)} and
-         * {@link GameMode#from(int)}.
+         * resolved by {@link GameMode#from(String)} using its name, aliases,
+         * or numeric ID string.
          *
          * @return this builder
          */

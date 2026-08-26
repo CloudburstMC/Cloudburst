@@ -74,6 +74,9 @@ public class PlayerData {
                     .putFloat(TAG_SPAWN_YAW, this.spawnYaw);
         }
 
+        if (this.gamemode != null) {
+            tag.putInt(TAG_GAME_TYPE, this.gamemode.getVanillaId());
+        }
     }
 
     public OptionalLong getFirstPlayed() {

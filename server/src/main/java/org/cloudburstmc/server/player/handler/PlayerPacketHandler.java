@@ -70,6 +70,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.particle.PunchBlockParticle;
+import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -1312,7 +1313,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Override
     public PacketSignal handle(SetPlayerGameTypePacket packet) {
         SetPlayerGameTypePacket correction = new SetPlayerGameTypePacket();
-        correction.setGamemode(player.getGameMode().getVanillaId());
+        correction.setGamemode(GameModeNetworkMapping.playerTypeId(player.getGameMode()));
         player.sendPacket(correction);
         player.getAbilities().update();
         return PacketSignal.HANDLED;

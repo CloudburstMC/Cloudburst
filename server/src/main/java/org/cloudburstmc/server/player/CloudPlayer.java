@@ -106,6 +106,7 @@ import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
+import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.PermissibleBase;
@@ -535,7 +536,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
-        packet.setGameType(GameType.from(this.getGameMode().getVanillaId()));
+        packet.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
         packet.setCommandPermission(this.isOp() ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY);
         packet.setPlayerPermission(this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
         packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
@@ -1426,11 +1427,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (this.spawned) {
             SetPlayerGameTypePacket localGameType = new SetPlayerGameTypePacket();
-            localGameType.setGamemode(gamemode.getVanillaId());
+            localGameType.setGamemode(GameModeNetworkMapping.playerTypeId(this.getGameMode()));
             this.sendPacket(localGameType);
 
             UpdatePlayerGameTypePacket gameType = new UpdatePlayerGameTypePacket();
-            gameType.setGameType(GameType.from(gamemode.getVanillaId()));
+            gameType.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
             gameType.setEntityId(this.getUniqueId());
             gameType.setTick(this.clientTick);
             CloudServer.broadcastPacket(this.getViewers(), gameType);
@@ -2114,14 +2115,13 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(this.getUniqueId());
         startGamePacket.setRuntimeEntityId(this.getRuntimeId());
-        GameType initialGameType = this.isSpectator() ? GameType.SURVIVAL : GameType.from(this.getGameMode().getVanillaId());
-        startGamePacket.setPlayerGameType(initialGameType);
+        startGamePacket.setPlayerGameType(GameModeNetworkMapping.forStartGame(this.getGameMode()));
         startGamePacket.setPlayerPosition(pos);
         startGamePacket.setRotation(Vector2f.from(this.getYaw(), this.getPitch()));
         startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(this.getLevel().getDimension());
         startGamePacket.setTrustingPlayers(false);
-        startGamePacket.setLevelGameType(GameType.from(this.getGameMode().getVanillaId()));
+        startGamePacket.setLevelGameType(GameModeNetworkMapping.forStartGame(this.server.getGameMode()));
         startGamePacket.setDifficulty(this.server.getDifficulty().ordinal());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
         startGamePacket.setAchievementsDisabled(true);
@@ -2188,7 +2188,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (this.isSpectator()) {
             SetPlayerGameTypePacket gameTypePacket = new SetPlayerGameTypePacket();
-            gameTypePacket.setGamemode(GameMode.SPECTATOR.getVanillaId());
+            gameTypePacket.setGamemode(GameModeNetworkMapping.playerTypeId(this.getGameMode()));
             this.sendPacket(gameTypePacket);
         }
 
@@ -2973,8 +2973,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         super.loadAdditionalData(tag);
 
-        tag.listenForInt("GameType", (id) -> this.playerData.setGamemode(GameMode.from(id)));
-
         int exp = tag.getInt("EXP");
         int expLevel = tag.getInt("expLevel");
         this.setExperience(exp, expLevel);
@@ -3017,8 +3015,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         this.playerData.saveData(tag);
-
-        tag.putInt("GameType", this.getGameMode().getVanillaId());
 
         tag.putInt("EXP", this.getExperience());
         tag.putInt("expLevel", this.getExperienceLevel());

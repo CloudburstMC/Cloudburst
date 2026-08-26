@@ -19,7 +19,7 @@ public class PrimitiveSerializer<T> implements ItemDataSerializer<T> {
      * Creates a serializer for a single tag key.
      *
      * @param key the NBT tag key
-     * @param type the expected value type; boolean values also accept Bedrock byte booleans when reading
+     * @param type the expected value type; boolean values also accept byte-backed booleans when reading
      */
     public PrimitiveSerializer(String key, Class<T> type) {
         this.key = key;

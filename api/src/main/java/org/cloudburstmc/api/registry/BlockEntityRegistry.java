@@ -29,7 +29,7 @@ public interface BlockEntityRegistry {
      *
      * @param type custom, non-{@code minecraft} namespaced type key
      * @param factory factory used to create instances
-     * @param persistentId unique Bedrock persistent identifier
+     * @param persistentId unique persistent identifier
      * @param validBlocks non-empty set of block types that may host the entity
      * @throws RegistryException if registration is closed, the type is already registered,
      *                           or the persistent identifier is already in use
