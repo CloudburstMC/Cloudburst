@@ -90,12 +90,6 @@ public class BlockStorage {
     }
 
     public void writeToNetwork(ByteBuf buffer) {
-        if (isEmpty()) {
-            buffer.writeByte(0x01);
-            VarInts.writeInt(buffer, CloudBlockRegistry.REGISTRY.getRuntimeId(AIR));
-            return;
-        }
-
         buffer.writeByte(getPaletteHeader(bitArray.getVersion(), true));
 
         for (int word : bitArray.getWords()) {
