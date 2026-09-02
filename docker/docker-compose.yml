@@ -1,8 +1,10 @@
+name: cloudburst
+
 services:
   cloudburst:
     build:
       context: ../
-      dockerfile: server/Dockerfile
+      dockerfile: docker/Dockerfile
     image: cloudburstmc/server:latest
     container_name: cloudburst
     ports:

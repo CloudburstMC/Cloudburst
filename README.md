@@ -45,7 +45,7 @@ Information on Cloudburst's API can be found at the [wiki](https://cloudburstmc.
 Run from the repo root:
 
 ```
-docker compose -f server/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 The default language is `en_US`. To change it, append `--language <locale>` to the command.
