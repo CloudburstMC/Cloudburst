@@ -213,9 +213,9 @@ public final class StandardGenerator implements Generator {
                                 int blockZ = sectionZ * STEP_Z | stepZ;
 
                                 if (iz > 0.0d) {
-                                    chunk.setBlock(blockX, blockY, blockZ, 0, this.ground);
+                                    chunk.setBlockState(blockX, blockY, blockZ, 0, this.ground);
                                 } else if (blockY <= this.seaLevel) {
-                                    chunk.setBlock(blockX, blockY, blockZ, 0, this.sea);
+                                    chunk.setBlockState(blockX, blockY, blockZ, 0, this.sea);
                                 }
                             }
                         }

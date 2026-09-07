@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -51,7 +50,7 @@ public class SubmergedOrePopulator extends ChancePopulator.Column {
         Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         int y = chunk.getHighestBlock(blockX & 0xF, blockZ & 0xF);
         for (; y > 0; y--) {
-            if (this.replace.test(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0))) {
+            if (this.replace.test(chunk.getBlockState(blockX & 0xF, y, blockZ & 0xF, 0))) {
                 break;
             }
         }

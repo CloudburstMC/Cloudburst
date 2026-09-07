@@ -3,6 +3,7 @@ package org.cloudburstmc.api.level.chunk;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
@@ -25,23 +26,23 @@ public interface Chunk extends Comparable<Chunk> {
 
     ChunkSection[] getSections();
 
-    default BlockState getBlock(int x, int y, int z) {
-        return this.getBlock(x, y, z, 0);
+    default BlockState getBlockState(int x, int y, int z) {
+        return this.getBlockState(x, y, z, 0);
     }
 
-    BlockState getBlock(int x, int y, int z, @NonNegative int layer);
+    BlockState getBlockState(int x, int y, int z, @NonNegative int layer);
 
-    default BlockState getAndSetBlock(int x, int y, int z, BlockState blockState) {
-        return this.getAndSetBlock(x, y, z, 0, blockState);
+    default BlockState getAndSetBlockState(int x, int y, int z, BlockState blockState) {
+        return this.getAndSetBlockState(x, y, z, 0, blockState);
     }
 
-    BlockState getAndSetBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
+    BlockState getAndSetBlockState(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
-    default void setBlock(int x, int y, int z, BlockState blockState) {
-        this.setBlock(x, y, z, 0, blockState);
+    default void setBlockState(int x, int y, int z, BlockState blockState) {
+        this.setBlockState(x, y, z, 0, blockState);
     }
 
-    void setBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
+    void setBlockState(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
     int getBiome(int x, int y, int z);
 

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
-import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -77,8 +76,8 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         final int minHeight = this.seaLevel + this.getDepthNoise(random, blockX, blockZ);
 
         for (int y = chunk.getHighestBlock(x, z); y >= minHeight; y--) {
-            if (chunk.getBlock(x, y, z, 0) == ground) {
-                chunk.setBlock(x, y, z, 0, this.getBand(blockX, y, blockZ));
+            if (chunk.getBlockState(x, y, z, 0) == ground) {
+                chunk.setBlockState(x, y, z, 0, this.getBand(blockX, y, blockZ));
             }
         }
     }

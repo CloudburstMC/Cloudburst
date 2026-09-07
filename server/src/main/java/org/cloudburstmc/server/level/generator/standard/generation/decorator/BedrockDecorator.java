@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
@@ -36,20 +35,20 @@ public class BedrockDecorator extends AbstractGenerationPass implements Decorato
         final BlockState state = this.block.state();
 
         for (int y = this.base.min, max = this.base.max; y < max; y++) {
-            chunk.setBlock(x, y, z, 0, state);
+            chunk.setBlockState(x, y, z, 0, state);
         }
 
         if (!this.fade.empty()) {
             if (this.reverseFade) {
                 for (int y = this.fade.min, i = 1, size = this.fade.size() + 1; i < size; y++, i++) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlock(x, y, z, 0, state);
+                        chunk.setBlockState(x, y, z, 0, state);
                     }
                 }
             } else {
                 for (int y = this.fade.min, i = this.fade.size(), size = i + 1; i > 0; y++, i--) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlock(x, y, z, 0, state);
+                        chunk.setBlockState(x, y, z, 0, state);
                     }
                 }
             }

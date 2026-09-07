@@ -130,7 +130,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getBlock(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
         if (this.level.isOutsideBuildHeight(y)) {
             return BlockStates.AIR;
@@ -147,14 +147,14 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getAndSetBlock(int x, int y, int z, int layer, BlockState blockState) {
-        BlockState previousBlockState = this.getBlock(x, y, z, layer);
-        this.setBlock(x, y, z, layer, blockState);
+    public BlockState getAndSetBlockState(int x, int y, int z, int layer, BlockState blockState) {
+        BlockState previousBlockState = this.getBlockState(x, y, z, layer);
+        this.setBlockState(x, y, z, layer, blockState);
         return previousBlockState;
     }
 
     @Override
-    public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
+    public void setBlockState(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
         if (this.level.isOutsideBuildHeight(y)) {
             return;

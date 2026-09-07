@@ -9,6 +9,7 @@ import lombok.NonNull;
 import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
@@ -178,10 +179,10 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getBlock(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         this.readLock.lock();
         try {
-            return unsafe.getBlock(x, y, z, layer);
+            return unsafe.getBlockState(x, y, z, layer);
         } finally {
             this.readLock.unlock();
         }
@@ -189,20 +190,20 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getAndSetBlock(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState getAndSetBlockState(int x, int y, int z, int layer, BlockState blockState) {
         this.writeLock.lock();
         try {
-            return unsafe.getAndSetBlock(x, y, z, layer, blockState);
+            return unsafe.getAndSetBlockState(x, y, z, layer, blockState);
         } finally {
             this.writeLock.unlock();
         }
     }
 
     @Override
-    public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
+    public void setBlockState(int x, int y, int z, int layer, BlockState blockState) {
         this.writeLock.lock();
         try {
-            unsafe.setBlock(x, y, z, layer, blockState);
+            unsafe.setBlockState(x, y, z, layer, blockState);
         } finally {
             this.writeLock.unlock();
         }

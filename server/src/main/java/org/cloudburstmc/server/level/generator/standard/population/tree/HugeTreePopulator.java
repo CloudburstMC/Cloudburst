@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -66,9 +65,9 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int min = this.height.min;
 
             Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            BlockState lastId = chunk.getBlock(blockX & 0xF, max + 1, blockZ & 0xF, 0);
+            BlockState lastId = chunk.getBlockState(blockX & 0xF, max + 1, blockZ & 0xF, 0);
             for (int y = max; y >= min; y--) {
-                BlockState id = chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0);
+                BlockState id = chunk.getBlockState(blockX & 0xF, y, blockZ & 0xF, 0);
 
                 if (replace.test(lastId) && on.test(id)) {
                     this.placeTree(random, level, blockX, y, blockZ);
