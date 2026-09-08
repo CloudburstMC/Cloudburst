@@ -11,13 +11,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * DummyBossBar
- * ===============
- * author: boybook
- * Nukkit Project
- * ===============
- */
 public class DummyBossBar {
 
     private final CloudPlayer player;
@@ -142,7 +135,6 @@ public class DummyBossBar {
     private void sendShowBossBar() {
         BossEventPacket pkBoss = new BossEventPacket();
         pkBoss.setBossUniqueEntityId(bossBarId);
-        pkBoss.setPlayerUniqueEntityId(player.getUniqueId());
         pkBoss.setAction(BossEventPacket.Action.CREATE);
         pkBoss.setTitle(text);
         pkBoss.setHealthPercentage(this.length / 100);
@@ -152,7 +144,6 @@ public class DummyBossBar {
     private void sendHideBossBar() {
         BossEventPacket pkBoss = new BossEventPacket();
         pkBoss.setBossUniqueEntityId(bossBarId);
-        pkBoss.setPlayerUniqueEntityId(player.getUniqueId());
         pkBoss.setAction(BossEventPacket.Action.REMOVE);
         player.sendPacket(pkBoss);
     }
@@ -160,7 +151,6 @@ public class DummyBossBar {
     private void sendSetBossBarTexture() {
         BossEventPacket pk = new BossEventPacket();
         pk.setBossUniqueEntityId(this.bossBarId);
-        pk.setPlayerUniqueEntityId(this.player.getUniqueId());
         pk.setAction(BossEventPacket.Action.UPDATE_STYLE);
         pk.setColor(color.ordinal());
         player.sendPacket(pk);
@@ -169,7 +159,6 @@ public class DummyBossBar {
     private void sendSetBossBarTitle() {
         BossEventPacket pkBoss = new BossEventPacket();
         pkBoss.setBossUniqueEntityId(this.bossBarId);
-        pkBoss.setPlayerUniqueEntityId(this.player.getUniqueId());
         pkBoss.setAction(BossEventPacket.Action.UPDATE_NAME);
         pkBoss.setTitle(text);
         pkBoss.setHealthPercentage(this.length / 100);
@@ -179,7 +168,6 @@ public class DummyBossBar {
     private void sendSetBossBarLength() {
         BossEventPacket pkBoss = new BossEventPacket();
         pkBoss.setBossUniqueEntityId(this.bossBarId);
-        pkBoss.setPlayerUniqueEntityId(this.player.getUniqueId());
         pkBoss.setAction(BossEventPacket.Action.UPDATE_PERCENTAGE);
         pkBoss.setHealthPercentage(this.length / 100);
         player.sendPacket(pkBoss);
