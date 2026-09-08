@@ -987,7 +987,7 @@ public class CloudLevel implements Level {
                             Block block = new CloudBlock(
                                     this,
                                     Vector3i.from(worldX, worldY, worldZ),
-                                    new BlockState[]{state, section.getBlock(lx, ly, lz, 1)}
+                                    new BlockState[]{state, section.getBlockState(lx, ly, lz, 1)}
                             );
 
                             randomTick.execute(block, rng);
@@ -1553,7 +1553,7 @@ public class CloudLevel implements Level {
             }
         }
 
-        BlockState oldState = chunk.getAndSetBlockState(x & 0xF, y, z & 0xF, layer, state);
+        BlockState oldState = chunk.setBlockState(x & 0xF, y, z & 0xF, layer, state);
         if (oldState == state) {
             return false;
         }
@@ -1562,18 +1562,18 @@ public class CloudLevel implements Level {
             BlockState extra = chunk.getBlockState(x & 0xf, y, z & 0xf, 1);
             if (extra == BlockStates.AIR && oldState.getType().isLiquid() && LiquidState.of(oldState).isSource()
                     && canContainLiquid(state, oldState)) {
-                chunk.getAndSetBlockState(x & 0xf, y, z & 0xf, 1, oldState);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, oldState);
                 addBlockChange(x, y, z);
             } else if (extra.getType().isLiquid() && state == BlockStates.AIR) {
                 if (LiquidState.of(extra).isSource()) {
-                    chunk.getAndSetBlockState(x & 0xf, y, z & 0xf, 0, extra);
+                    chunk.setBlockState(x & 0xf, y, z & 0xf, 0, extra);
                     state = extra;
                 }
 
-                chunk.getAndSetBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
                 addBlockChange(x, y, z);
             } else if (extra.getType().isLiquid() && !canContainLiquid(state, extra)) {
-                chunk.getAndSetBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
                 addBlockChange(x, y, z);
             }
         }

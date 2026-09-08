@@ -189,20 +189,10 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getAndSetBlockState(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
         this.writeLock.lock();
         try {
-            return unsafe.getAndSetBlockState(x, y, z, layer, blockState);
-        } finally {
-            this.writeLock.unlock();
-        }
-    }
-
-    @Override
-    public void setBlockState(int x, int y, int z, int layer, BlockState blockState) {
-        this.writeLock.lock();
-        try {
-            unsafe.setBlockState(x, y, z, layer, blockState);
+            return unsafe.setBlockState(x, y, z, layer, blockState);
         } finally {
             this.writeLock.unlock();
         }

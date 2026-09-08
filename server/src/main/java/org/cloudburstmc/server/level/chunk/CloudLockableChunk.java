@@ -55,13 +55,8 @@ public final class CloudLockableChunk extends LockableChunk {
     }
 
     @Override
-    public BlockState getAndSetBlockState(int x, int y, int z, int layer, BlockState blockState) {
-        return unsafe.getAndSetBlockState(x, y, z, layer, blockState);
-    }
-
-    @Override
-    public void setBlockState(int x, int y, int z, int layer, BlockState blockState) {
-        this.unsafe.setBlockState(x, y, z, layer, blockState);
+    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
+        return this.unsafe.setBlockState(x, y, z, layer, blockState);
     }
 
     @Override

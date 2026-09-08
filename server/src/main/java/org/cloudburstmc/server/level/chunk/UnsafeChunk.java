@@ -140,36 +140,31 @@ public final class UnsafeChunk implements Chunk, Closeable {
         if (section == null) {
             blockState = BlockStates.AIR;
         } else {
-            blockState = section.getBlock(x, y & 0xf, z, layer);
+            blockState = section.getBlockState(x, y & 0xf, z, layer);
         }
         return blockState;
     }
 
     @NonNull
     @Override
-    public BlockState getAndSetBlockState(int x, int y, int z, int layer, BlockState blockState) {
-        BlockState previousBlockState = this.getBlockState(x, y, z, layer);
-        this.setBlockState(x, y, z, layer, blockState);
-        return previousBlockState;
-    }
-
-    @Override
-    public void setBlockState(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
         if (this.level.isOutsideBuildHeight(y)) {
-            return;
+            return BlockStates.AIR;
         }
+
         CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         if (section == null) {
             if (blockState.getType() == BlockTypes.AIR) {
                 // Setting air in an empty section.
-                return;
+                return BlockStates.AIR;
             }
             section = this.getOrCreateSection(this.level.getSectionIndex(y));
         }
 
-        section.setBlock(x, y & 0xf, z, layer, blockState);
+        BlockState previousBlockState = section.setBlockState(x, y & 0xf, z, layer, blockState);
         this.setDirty();
+        return previousBlockState;
     }
 
     @Override
@@ -247,7 +242,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
             CloudChunkSection section = this.sections[sectionIdx];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
-                    if (section.getBlock(x, y, z, 0) != BlockStates.AIR) {
+                    if (section.getBlockState(x, y, z, 0) != BlockStates.AIR) {
                         return ((sectionIdx + this.level.getMinSectionY()) << 4) | y;
                     }
                 }
