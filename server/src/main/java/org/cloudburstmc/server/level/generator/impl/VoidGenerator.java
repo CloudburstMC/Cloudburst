@@ -27,7 +27,7 @@ public final class VoidGenerator implements Generator {
             //both chunk coordinates are either 0 or 1
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    chunk.setBlock(x, 64, z, 0, BlockStates.STONE);
+                    chunk.setBlockState(x, 64, z, 0, BlockStates.STONE);
                 }
             }
         }

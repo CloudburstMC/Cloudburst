@@ -24,7 +24,7 @@ public class CloudChunkSection implements ChunkSection {
     private final NibbleArray skyLight;
     /**
      * Compact position index of all randomly-ticking blocks in this section.
-     * Kept in sync with {@link #tickingBlockCount} by {@link #setBlock}.
+     * Kept in sync with {@link #tickingBlockCount} by {@link #setBlockState}.
      * Used by the random-tick loop for O(1) rejection of non-ticking rolls.
      */
     private final SectionTickList tickingList;
@@ -32,7 +32,7 @@ public class CloudChunkSection implements ChunkSection {
     /**
      * Number of blocks in layer 0 of this section that have the
      * {@code CAN_RANDOM_TICK} component set to {@code true}.
-     * Maintained incrementally in {@link #setBlock}.
+     * Maintained incrementally in {@link #setBlockState}.
      */
     private short tickingBlockCount;
 
@@ -119,7 +119,7 @@ public class CloudChunkSection implements ChunkSection {
         checkElementIndex(layer, this.storage.length, "Invalid block layer");
     }
 
-    public BlockState getBlock(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, int layer) {
         checkBounds(x, y, z);
         checkLayer(layer);
         return this.storage[layer].getBlock(blockIndex(x, y, z));
@@ -130,13 +130,14 @@ public class CloudChunkSection implements ChunkSection {
      * {@link #tickingBlockCount} counter and {@link #tickingList} index
      * incrementally for layer 0 only.
      */
-    public void setBlock(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
         checkBounds(x, y, z);
         checkLayer(layer);
         int idx = blockIndex(x, y, z);
 
+        BlockState oldState = this.storage[layer].getBlock(idx);
         if (layer == 0) {
-            BlockState old = this.storage[0].getBlock(idx);
+            BlockState old = oldState;
             boolean oldTicks = canRandomTick(old);
             boolean newTicks = canRandomTick(blockState);
 
@@ -153,6 +154,7 @@ public class CloudChunkSection implements ChunkSection {
         }
 
         this.storage[layer].setBlock(idx, blockState);
+        return oldState;
     }
 
     /**

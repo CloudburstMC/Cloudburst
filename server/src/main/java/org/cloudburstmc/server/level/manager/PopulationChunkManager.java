@@ -55,12 +55,12 @@ public final class PopulationChunkManager implements ChunkManager {
 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
-        return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, 0);
+        return this.chunkFromBlock(x, z).getBlockState(x & 0xF, y, z & 0xF, 0);
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z, int layer) {
-        return this.chunkFromBlock(x, z).getBlock(x & 0xF, y, z & 0xF, layer);
+        return this.chunkFromBlock(x, z).getBlockState(x & 0xF, y, z & 0xF, layer);
     }
 
     // TODO
@@ -76,13 +76,13 @@ public final class PopulationChunkManager implements ChunkManager {
 
     @Override
     public boolean setBlockState(int x, int y, int z, BlockState state) {
-        this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, 0, state);
+        this.chunkFromBlock(x, z).setBlockState(x & 0xF, y, z & 0xF, 0, state);
         return true;
     }
 
     @Override
     public boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
-        this.chunkFromBlock(x, z).setBlock(x & 0xF, y, z & 0xF, layer, state);
+        this.chunkFromBlock(x, z).setBlockState(x & 0xF, y, z & 0xF, layer, state);
         return true;
     }
 

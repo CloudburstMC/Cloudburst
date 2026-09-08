@@ -3,7 +3,6 @@ package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -51,9 +50,9 @@ public class ScatteredCoverDecorator implements Decorator {
 
         for (int y = min(chunk.getHighestBlock(x, z), 254); y >= 0; y--) {
             if (random.nextDouble() < chance
-                    && on.test(chunk.getBlock(x, y, z, 0))
-                    && replace.test(chunk.getBlock(x, y + 1, z, 0))) {
-                chunk.setBlock(x, y + 1, z, 0, block.selectWeighted(random));
+                    && on.test(chunk.getBlockState(x, y, z, 0))
+                    && replace.test(chunk.getBlockState(x, y + 1, z, 0))) {
+                chunk.setBlockState(x, y + 1, z, 0, block.selectWeighted(random));
             }
         }
     }

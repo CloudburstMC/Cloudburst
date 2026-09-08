@@ -25,23 +25,56 @@ public interface Chunk extends Comparable<Chunk> {
 
     ChunkSection[] getSections();
 
-    default BlockState getBlock(int x, int y, int z) {
-        return this.getBlock(x, y, z, 0);
+    /**
+     * Returns the primary-layer block state at chunk-local coordinates.
+     *
+     * @param x the X coordinate from {@code 0} to {@code 15}
+     * @param y the absolute Y coordinate
+     * @param z the Z coordinate from {@code 0} to {@code 15}
+     * @return the block state
+     */
+    default BlockState getBlockState(int x, int y, int z) {
+        return this.getBlockState(x, y, z, 0);
     }
 
-    BlockState getBlock(int x, int y, int z, @NonNegative int layer);
+    /**
+     * Returns the block state at chunk-local coordinates and storage layer.
+     *
+     * @param x     the X coordinate from {@code 0} to {@code 15}
+     * @param y     the absolute Y coordinate
+     * @param z     the Z coordinate from {@code 0} to {@code 15}
+     * @param layer the storage layer
+     * @return the block state
+     */
+    BlockState getBlockState(int x, int y, int z, @NonNegative int layer);
 
-    default BlockState getAndSetBlock(int x, int y, int z, BlockState blockState) {
-        return this.getAndSetBlock(x, y, z, 0, blockState);
+    /**
+     * Replaces the primary-layer block state at chunk-local coordinates.
+     *
+     * @param x          the X coordinate from {@code 0} to {@code 15}
+     * @param y          the absolute Y coordinate
+     * @param z          the Z coordinate from {@code 0} to {@code 15}
+     * @param blockState the replacement state
+     * @return the state that was previously stored
+     */
+    default BlockState setBlockState(int x, int y, int z, BlockState blockState) {
+        return this.setBlockState(x, y, z, 0, blockState);
     }
 
-    BlockState getAndSetBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
-
-    default void setBlock(int x, int y, int z, BlockState blockState) {
-        this.setBlock(x, y, z, 0, blockState);
-    }
-
-    void setBlock(int x, int y, int z, @NonNegative int layer, BlockState blockState);
+    /**
+     * Replaces the block state at chunk-local coordinates and storage layer.
+     *
+     * <p>This mutates chunk storage directly. Use the level mutation API when
+     * block updates, events, or client notifications are required.
+     *
+     * @param x          the X coordinate from {@code 0} to {@code 15}
+     * @param y          the absolute Y coordinate
+     * @param z          the Z coordinate from {@code 0} to {@code 15}
+     * @param layer      the storage layer
+     * @param blockState the replacement state
+     * @return the state that was previously stored
+     */
+    BlockState setBlockState(int x, int y, int z, @NonNegative int layer, BlockState blockState);
 
     int getBiome(int x, int y, int z);
 

@@ -730,7 +730,7 @@ public class CloudLevel implements Level {
             int chunkZ = chunk.getZ() * 16;
             Vector3f vector = this.adjustPosToNearbyEntity(Vector3f.from(chunkX + (LCG & 0xf), 0, chunkZ + (LCG >> 8 & 0xf)));
 
-            BlockType blockType = chunk.getBlock(vector.getFloorX() & 0xf, vector.getFloorY(), vector.getFloorZ() & 0xf).getType();
+            BlockType blockType = chunk.getBlockState(vector.getFloorX() & 0xf, vector.getFloorY(), vector.getFloorZ() & 0xf).getType();
             if (blockType != BlockTypes.TALL_GRASS && !blockType.isLiquid())
                 vector = vector.add(0, 1, 0);
 
@@ -987,7 +987,7 @@ public class CloudLevel implements Level {
                             Block block = new CloudBlock(
                                     this,
                                     Vector3i.from(worldX, worldY, worldZ),
-                                    new BlockState[]{state, section.getBlock(lx, ly, lz, 1)}
+                                    new BlockState[]{state, section.getBlockState(lx, ly, lz, 1)}
                             );
 
                             randomTick.execute(block, rng);
@@ -1377,8 +1377,8 @@ public class CloudLevel implements Level {
 
         return new CloudBlock(this, Vector3i.from(x, y, z),
                 new BlockState[]{
-                        chunk.getBlock(x & 0xf, y, z & 0xf, 0),
-                        chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+                        chunk.getBlockState(x & 0xf, y, z & 0xf, 0),
+                        chunk.getBlockState(x & 0xf, y, z & 0xf, 1)
                 }
         );
     }
@@ -1395,8 +1395,8 @@ public class CloudLevel implements Level {
         }
 
         return new CloudBlock(this, Vector3i.from(x, y, z), new BlockState[]{
-                chunk.getBlock(x & 0xf, y, z & 0xf, 0),
-                chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+                chunk.getBlockState(x & 0xf, y, z & 0xf, 0),
+                chunk.getBlockState(x & 0xf, y, z & 0xf, 1)
         });
     }
 
@@ -1431,8 +1431,8 @@ public class CloudLevel implements Level {
                     int lcz = position.getZ() & 0xF;
                     int oldLevel = chunk.getBlockLight(lcx, position.getY(), lcz);
                     Block block = new CloudBlock(this, Vector3i.from(lcx, position.getY(), lcz), new BlockState[]{
-                            chunk.getBlock(lcx, position.getY(), lcz, 0),
-                            chunk.getBlock(lcx, position.getY(), lcz, 1)
+                            chunk.getBlockState(lcx, position.getY(), lcz, 0),
+                            chunk.getBlockState(lcx, position.getY(), lcz, 1)
                     });
                     int newLevel = block.getState().getLightEmission();
                     if (oldLevel != newLevel) {
@@ -1547,33 +1547,33 @@ public class CloudLevel implements Level {
 
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
         if (layer == 1 && state != BlockStates.AIR) {
-            BlockState primary = chunk.getBlock(x & 0xf, y, z & 0xf);
+            BlockState primary = chunk.getBlockState(x & 0xf, y, z & 0xf);
             if (!state.getType().isLiquid() || !canContainLiquid(primary, state)) {
                 return false;
             }
         }
 
-        BlockState oldState = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, state);
+        BlockState oldState = chunk.setBlockState(x & 0xF, y, z & 0xF, layer, state);
         if (oldState == state) {
             return false;
         }
 
         if (layer == 0) {
-            BlockState extra = chunk.getBlock(x & 0xf, y, z & 0xf, 1);
+            BlockState extra = chunk.getBlockState(x & 0xf, y, z & 0xf, 1);
             if (extra == BlockStates.AIR && oldState.getType().isLiquid() && LiquidState.of(oldState).isSource()
                     && canContainLiquid(state, oldState)) {
-                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, oldState);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, oldState);
                 addBlockChange(x, y, z);
             } else if (extra.getType().isLiquid() && state == BlockStates.AIR) {
                 if (LiquidState.of(extra).isSource()) {
-                    chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 0, extra);
+                    chunk.setBlockState(x & 0xf, y, z & 0xf, 0, extra);
                     state = extra;
                 }
 
-                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
                 addBlockChange(x, y, z);
             } else if (extra.getType().isLiquid() && !canContainLiquid(state, extra)) {
-                chunk.getAndSetBlock(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
+                chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
                 addBlockChange(x, y, z);
             }
         }
@@ -1584,8 +1584,8 @@ public class CloudLevel implements Level {
 
         Vector3i position = Vector3i.from(x, y, z);
         Block newBlock = new CloudBlock(this, position, new BlockState[]{
-                layer == 0 ? state : chunk.getBlock(x & 0xf, y, z & 0xf),
-                layer == 1 ? state : chunk.getBlock(x & 0xf, y, z & 0xf, 1)
+                layer == 0 ? state : chunk.getBlockState(x & 0xf, y, z & 0xf),
+                layer == 1 ? state : chunk.getBlockState(x & 0xf, y, z & 0xf, 1)
         });
 
         if (direct) {
@@ -2454,7 +2454,7 @@ public class CloudLevel implements Level {
     @Override
     public BlockState getBlockState(int x, int y, int z, int layer) {
         Chunk chunk = this.getChunk(x >> 4, z >> 4);
-        return chunk.getBlock(x & 0x0f, y, z & 0x0f, layer);
+        return chunk.getBlockState(x & 0x0f, y, z & 0x0f, layer);
     }
 
     public int getBiomeId(int x, int y, int z) {
@@ -2721,13 +2721,13 @@ public class CloudLevel implements Level {
             return null;
         }
 
-        BlockState topBlock = chunk.getBlock(lx, motionBlockingY, lz);
+        BlockState topBlock = chunk.getBlockState(lx, motionBlockingY, lz);
         if (topBlock.is(BlockTags.LIQUID)) {
             return null;
         }
 
         for (int y = motionBlockingY; y >= getMinHeight(); y--) {
-            BlockState state = chunk.getBlock(lx, y, lz);
+            BlockState state = chunk.getBlockState(lx, y, lz);
             if (state.is(BlockTags.LIQUID)) {
                 break;
             }
@@ -2738,8 +2738,8 @@ public class CloudLevel implements Level {
             if (collisionFloor) {
                 int standY = y + 1;
                 if (standY + 1 <= 255) {
-                    BlockState feet = chunk.getBlock(lx, standY, lz);
-                    BlockState head = chunk.getBlock(lx, standY + 1, lz);
+                    BlockState feet = chunk.getBlockState(lx, standY, lz);
+                    BlockState head = chunk.getBlockState(lx, standY + 1, lz);
                     boolean feetClear = this.isSpawnSpaceClear(feet, x, standY, z);
                     boolean headClear = this.isSpawnSpaceClear(head, x, standY + 1, z);
                     if (feetClear && headClear) {
@@ -2766,8 +2766,8 @@ public class CloudLevel implements Level {
         int y = GenericMath.clamp(startY, getMinHeight(), 254);
 
         while (y < 254) {
-            BlockState feet = chunk.getBlock(lx, y, lz);
-            BlockState head = chunk.getBlock(lx, y + 1, lz);
+            BlockState feet = chunk.getBlockState(lx, y, lz);
+            BlockState head = chunk.getBlockState(lx, y + 1, lz);
             boolean feetClear = this.isSpawnSpaceClear(feet, x, y, z);
             boolean headClear = this.isSpawnSpaceClear(head, x, y + 1, z);
             if (feetClear && headClear) {
@@ -2777,8 +2777,8 @@ public class CloudLevel implements Level {
         }
 
         while (y > getMinHeight()) {
-            BlockState feet = chunk.getBlock(lx, y - 1, lz);
-            BlockState head = chunk.getBlock(lx, y, lz);
+            BlockState feet = chunk.getBlockState(lx, y - 1, lz);
+            BlockState head = chunk.getBlockState(lx, y, lz);
             boolean feetClear = this.isSpawnSpaceClear(feet, x, y - 1, z);
             boolean headClear = this.isSpawnSpaceClear(head, x, y, z);
             if (!feetClear || !headClear) {

@@ -45,7 +45,7 @@ public final class FlatGenerator implements Generator {
             for (int i = 0, size = layer.weight(); i < size; i++, y++) {
                 for (int x = 15; x >= 0; x--) {
                     for (int z = 15; z >= 0; z--) {
-                        chunk.setBlock(x, y, z, state);
+                        chunk.setBlockState(x, y, z, state);
                     }
                 }
             }

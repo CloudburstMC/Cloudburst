@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.level.ChunkManager;
@@ -52,7 +51,7 @@ public class CocoaPopulator extends ChancePopulator {
 
         final Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
         for (int y = this.height.min, max = this.height.max; y < max; y++) {
-            if (random.nextDouble() >= chance || !replace.test(chunk.getBlock(blockX & 0xF, y, blockZ & 0xF, 0))) {
+            if (random.nextDouble() >= chance || !replace.test(chunk.getBlockState(blockX & 0xF, y, blockZ & 0xF, 0))) {
                 continue;
             }
 
