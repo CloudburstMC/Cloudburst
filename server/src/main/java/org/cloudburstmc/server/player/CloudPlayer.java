@@ -51,13 +51,15 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.permission.Permission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
+import org.cloudburstmc.api.player.*;
 import org.cloudburstmc.api.player.Ability;
-import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.*;
+import org.cloudburstmc.api.util.BoundingBox;
+import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -116,7 +118,6 @@ import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.registry.EntityRegistry;
-import org.cloudburstmc.server.utils.ClientChainData;
 import org.cloudburstmc.server.utils.DummyBossBar;
 import org.jspecify.annotations.NonNull;
 import tools.jackson.core.JacksonException;
@@ -239,12 +240,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private int expLevel = 0;
     private int loaderId;
     private Entity killer = null;
-    private LoginChainData loginChainData;
+    private final AuthenticatedPlayerData connectionData;
     private PermissibleBase perm = null;
     private String buttonText = "Button";
     private String clientSecret;
 
-    public CloudPlayer(BedrockServerSession session, ClientChainData chainData) {
+    public CloudPlayer(BedrockServerSession session, AuthenticatedPlayerData connectionData) {
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
@@ -260,13 +261,13 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
         this.lastSkinChange = -1;
 
-        this.loginChainData = chainData;
-        this.locale.set(parseClientLocale(chainData.getLanguageCode()));
-        super.setSkin(chainData.getSkin());
+        this.connectionData = connectionData;
+        this.locale.set(connectionData.getLocale());
+        super.setSkin(connectionData.getSkin());
 
-        this.randomClientId = chainData.getClientId();
-        this.identity = chainData.getClientUUID();
-        this.username = PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(chainData.getUsername()));
+        this.randomClientId = connectionData.getClientId();
+        this.identity = connectionData.getUniqueId();
+        this.username = PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(connectionData.getName()));
         this.iusername = username.toLowerCase();
         this.displayName(Component.text(this.username));
         this.setNameTag(this.username);
@@ -283,15 +284,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
         return oldPos.getFloorX() >> 4 != newPos.getFloorX() >> 4 || oldPos.getFloorZ() >> 4 != newPos.getFloorZ() >> 4;
-    }
-
-    private static Locale parseClientLocale(String languageCode) {
-        if (languageCode == null || languageCode.isBlank()) {
-            return Locale.US;
-        }
-
-        Locale locale = Locale.forLanguageTag(languageCode.replace('_', '-'));
-        return locale.getLanguage().isBlank() ? Locale.US : locale;
     }
 
     private static int distance(int centerX, int centerZ, int x, int z) {
@@ -728,14 +720,28 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return this.playerData.getAchievements().contains(achievementId);
     }
 
+    public UUID getServerId() {
+        return this.connectionData.getUniqueId();
+    }
+
+    @Override
+    public PlayerProfile getProfile() {
+        return this.connectionData;
+    }
+
+    @Override
+    public PlayerClientInfo getClientInfo() {
+        return this.connectionData;
+    }
+
     @Override
     public Skin getSkin() {
-        return this.loginChainData.getSkin();
+        return this.connectionData.getSkin();
     }
 
     @Override
     public void setSkin(Skin skin) {
-        this.loginChainData.setSkin(skin);
+        this.connectionData.setSkin(skin);
         super.setSkin(skin);
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
@@ -743,7 +749,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public void setSkin(SerializedSkin skin) {
-        ((ClientChainData) this.loginChainData).setSkin(skin);
+        this.connectionData.setSkin(skin);
         super.setSkin(this.getSkin());
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
@@ -751,11 +757,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public SerializedSkin getSerializedSkin() {
-        return ((ClientChainData) this.loginChainData).getSerializedSkin();
-    }
-
-    public UUID getServerId() {
-        return this.loginChainData.getClientUUID();
+        return this.connectionData.getSerializedSkin();
     }
 
     public SocketAddress getSocketAddress() {
@@ -2290,7 +2292,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return;
         }
 
-        if (loginChainData.isXboxAuthed() && server.getConfig().isXboxAuth() || !server.getConfig().isXboxAuth()) {
+        if (this.connectionData.isAuthenticated() && server.getConfig().isXboxAuth() || !server.getConfig().isXboxAuth()) {
             server.updateName(this.identity, this.username);
         }
 
@@ -2436,7 +2438,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public String getXuid() {
-        return this.getLoginChainData().isXboxAuthed() ? this.getLoginChainData().getXUID() : "";
+        return this.connectionData.isAuthenticated() ? this.connectionData.getXuid() : "";
     }
 
     @Override
@@ -3503,14 +3505,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         pk.setAddress(hostName);
         pk.setPort(port);
         this.sendPacket(pk);
-    }
-
-    public LoginChainData getLoginChainData() {
-        return this.loginChainData;
-    }
-
-    public void setLoginChainData(LoginChainData loginChainData) {
-        this.loginChainData = loginChainData;
     }
 
     @Override

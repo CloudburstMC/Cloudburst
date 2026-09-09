@@ -32,7 +32,26 @@ public interface Player extends Creature, CommandSender {
      */
     boolean isOnline();
 
+    /**
+     * Returns the identifier used for this player's current server connection.
+     *
+     * @return the server connection identifier
+     */
     UUID getServerId();
+
+    /**
+     * Returns this player's connection profile.
+     *
+     * @return the player profile
+     */
+    PlayerProfile getProfile();
+
+    /**
+     * Returns the settings reported by this player's client.
+     *
+     * @return the client information
+     */
+    PlayerClientInfo getClientInfo();
 
     /**
      * Checks if this player is banned.

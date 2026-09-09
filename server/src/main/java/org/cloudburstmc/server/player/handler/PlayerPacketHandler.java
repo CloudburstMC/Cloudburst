@@ -134,7 +134,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, player.getLoginChainData().getSkin());
+        PlayerChangeSkinEvent playerChangeSkinEvent = new PlayerChangeSkinEvent(player, player.getProfile().getSkin());
         playerChangeSkinEvent.setCancelled(TimeUnit.SECONDS.toMillis(player.getServer().getPlayerSkinChangeCooldown()) > System.currentTimeMillis() - player.lastSkinChange);
         player.getServer().getEventManager().fire(playerChangeSkinEvent);
         if (!playerChangeSkinEvent.isCancelled()) {

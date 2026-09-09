@@ -49,7 +49,7 @@ public class CloudMetrics {
                 Map<String, Integer> valueMap = new HashMap<>();
 
                 server.getOnlinePlayers().forEach((uuid, player) -> {
-                    String deviceOS = mapDeviceOSToString(player.getLoginChainData().getDeviceOS());
+                    String deviceOS = player.getClientInfo().getDevicePlatform().getDisplayName();
                     if (!valueMap.containsKey(deviceOS)) {
                         valueMap.put(deviceOS, 1);
                     } else {
@@ -63,7 +63,7 @@ public class CloudMetrics {
                 Map<String, Integer> valueMap = new HashMap<>();
 
                 server.getOnlinePlayers().forEach((uuid, player) -> {
-                    String gameVersion = player.getLoginChainData().getGameVersion();
+                    String gameVersion = player.getClientInfo().getGameVersion();
                     if (!valueMap.containsKey(gameVersion)) {
                         valueMap.put(gameVersion, 1);
                     } else {
@@ -149,23 +149,4 @@ public class CloudMetrics {
         }
     }
 
-    private String mapDeviceOSToString(int os) {
-        switch (os) {
-            case 1: return "Android";
-            case 2: return "iOS";
-            case 3: return "macOS";
-            case 4: return "FireOS";
-            case 5: return "Gear VR";
-            case 6: return "Hololens";
-            case 7: return "Windows 10";
-            case 8: return "Windows";
-            case 9: return "Dedicated";
-            case 10: return "PS4";
-            case 11: return "Switch";
-            case 12: return "Switch";
-            case 13: return "Xbox One";
-            case 14: return "Windows Phone";
-        }
-        return "Unknown";
-    }
 }

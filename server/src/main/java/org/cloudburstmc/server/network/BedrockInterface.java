@@ -28,7 +28,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.player.handler.LoginPacketHandler;
+import org.cloudburstmc.server.player.handler.NetworkSettingsPacketHandler;
 import org.cloudburstmc.server.utils.Utils;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -124,7 +124,7 @@ public class BedrockInterface implements AdvancedSourceInterface {
                     protected void initSession(BedrockServerSession session) {
                         session.getPeer().getCodecHelper().setTextConverter(new AdventureTextConverter());
                         session.setLogging(false);
-                        session.setPacketHandler(new LoginPacketHandler(session, server, BedrockInterface.this));
+                        session.setPacketHandler(new NetworkSettingsPacketHandler(session, server, BedrockInterface.this));
                     }
                 })
                 .localAddress(this.server.getIp(), this.server.getPort());
