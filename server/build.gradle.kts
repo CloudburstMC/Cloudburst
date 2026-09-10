@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.terminal.console.appender)
     implementation(libs.jline.terminal)
     implementation(libs.jline.reader)
+    runtimeOnly(libs.jline.terminal.ffm)
+    runtimeOnly(libs.jline.terminal.jni)
 
     implementation(libs.log4j.api)
     implementation(libs.log4j.core)
