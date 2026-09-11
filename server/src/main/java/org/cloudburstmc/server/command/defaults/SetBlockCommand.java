@@ -1,113 +1,90 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.resolver.BlockPositionResolver;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-public class SetBlockCommand extends Command {
+import java.util.Locale;
+
+public class SetBlockCommand extends AdvertisedCommand {
 
     public SetBlockCommand() {
-        super("setblock", CommandData.builder("setblock")
-                .setDescription("commands.setblock.description")
-                .setUsageMessage("/setblock <position> <tileName> [tileData] [replace|destroy|keep]")
-                .setPermissions("cloudburst.command.setblock")
-                .setParameters(
-                        new CommandParameter[]{
-                                new CommandParameter("position", CommandParamType.BLOCK_POSITION, false),
-                                new CommandParameter("Block", new String[]{}),
-                                new CommandParameter("tileData", CommandParamType.INT, true),
-                                new CommandParameter("oldBlockHandling", true, new String[]{"replace", "destroy", "keep"})
-                        })
-                .build());
+        super("setblock", "commands.setblock.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.setblock");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!(sender instanceof Player)) {
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("position", CommandArgumentTypes.blockPosition())
+                .then(Commands.argument("tileName", arguments.block())
+                        .executes(this::executeCommand)
+                        .then(Commands.argument("tileData", CommandArgumentTypes.integer())
+                                .executes(this::executeCommand)
+                                .then(Commands.argument("oldBlockHandling", CommandArgumentTypes.fixedEnumNamed("oldBlockHandling", "SetBlockMode", "replace", "destroy", "keep"))
+                                        .executes(this::executeCommand)))));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-            return true;
+            return success();
         }
 
-        if (args.length < 4) {
-            return false;
-        }
-
-        Player p = (Player) sender;
-        Vector3i pos = CommandUtils.parseVector3f(args, p.getPosition()).map(v -> v.floor().toInt()).orElse(null);
-
-        if (pos == null) {
-            return false;
-        }
+        Vector3i pos = argumentValue(context, "position", BlockPositionResolver.class)
+                .resolve(context.getSource());
 
         if (pos.getY() < 0 || pos.getY() > 255) {
             sender.sendMessage(Component.translatable("commands.setblock.outOfWorld").color(NamedTextColor.RED));
-            return true;
+            return success();
         }
 
-        Identifier id = Identifier.parse(args[3]);
-        int meta;
-        if (args.length >= 5) {
-            try {
-                meta = Integer.parseInt(args[4]);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        } else {
-            meta = 0;
-        }
+        BlockType type = argumentValue(context, "tileName", BlockType.class);
+        int meta = hasArgument(context, "tileData") ? argumentValue(context, "tileData", Integer.class) : 0;
 
-        BlockState state = BlockStateMetaMappings.getStateFromMeta(id, meta);
-
+        BlockState state = BlockStateMetaMappings.getStateFromMeta(type.getId(), meta);
         if (state == null) {
-            sender.sendMessage(Component.translatable("commands.setblock.notFound", Component.text(args[3])).color(NamedTextColor.RED));
-            return true;
+            sender.sendMessage(Component.translatable("commands.setblock.notFound", Component.text(type.getId().toString())).color(NamedTextColor.RED));
+            return success();
         }
 
-        SetType setType;
+        SetBlockMode setType = hasArgument(context, "oldBlockHandling")
+                ? SetBlockMode.valueOf(argumentValue(context, "oldBlockHandling").toUpperCase(Locale.ROOT))
+                : SetBlockMode.REPLACE;
 
-        if (args.length >= 6) {
-            try {
-                setType = SetType.valueOf(args[5]);
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
-        } else {
-            setType = SetType.REPLACE;
-        }
-
-        if (setType != SetType.REPLACE) {
-            BlockState existing = p.getLevel().getBlockState(pos);
+        if (setType != SetBlockMode.REPLACE) {
+            BlockState existing = player.getLevel().getBlockState(pos);
 
             if (existing != BlockStates.AIR) {
-                if (setType == SetType.DESTROY) {
-                    p.getLevel().breakBlock(pos);
+                if (setType == SetBlockMode.DESTROY) {
+                    player.getLevel().breakBlock(pos);
                 } else {
                     sender.sendMessage(Component.translatable("commands.setblock.noChange").color(NamedTextColor.RED));
-                    return true;
+                    return success();
                 }
             }
         }
 
-        p.getLevel().setBlockState(pos, state);
+        player.getLevel().setBlockState(pos, state);
         sender.sendMessage(Component.translatable("commands.setblock.success"));
 
-        return true;
-    }
-
-    public enum SetType {
-        REPLACE,
-        DESTROY,
-        KEEP
+        return success();
     }
 }

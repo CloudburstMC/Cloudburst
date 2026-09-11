@@ -2,12 +2,14 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.particle.ParticleType;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
@@ -15,7 +17,6 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -39,7 +40,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     private static final String TAG_OWNER_ID = "OwnerID";
     private static final String TAG_POTION_ID = "PotionId";
     private static final String TAG_RADIUS = "Radius";
-    private static final String TAG_PARTICLE_ID = "ParticleId";
     private static final String TAG_MOB_EFFECTS = "mobEffects";
     private static final String TAG_PARTICLE_COLOR = "ParticleColor";
     private static final String TAG_SPAWN_TICK = "SpawnTick";
@@ -123,8 +123,8 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    public void setPotionColor(int argp) {
-        this.data.set(EFFECT_COLOR, argp);
+    public void setPotionColor(int argb) {
+        this.data.set(EFFECT_COLOR, argb);
     }
 
     @Override
@@ -193,13 +193,13 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    public int getParticleId() {
-        return this.data.get(AREA_EFFECT_CLOUD_PARTICLE).ordinal();
+    public ParticleType getParticle() {
+        return NetworkUtils.particleFromNetwork(this.data.get(AREA_EFFECT_CLOUD_PARTICLE));
     }
 
     @Override
-    public void setParticleId(int particleId) {
-        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, ParticleType.values()[particleId]);
+    public void setParticle(ParticleType particle) {
+        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, NetworkUtils.particleToNetwork(particle));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         this.invulnerable = true;
         this.data.setFlag(FIRE_IMMUNE, true);
         this.data.setFlag(NO_AI, true);
-        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, ParticleType.MOB_SPELL_AMBIENT);
+        this.setParticle(ParticleTypes.MOB_SPELL_AMBIENT);
         this.data.set(AREA_EFFECT_CLOUD_SPAWN_TIME, (int) this.level.getCurrentTick());
         this.data.set(AREA_EFFECT_CLOUD_PICKUP_COUNT, 0);
         this.setPotionType(PotionTypes.WATER);

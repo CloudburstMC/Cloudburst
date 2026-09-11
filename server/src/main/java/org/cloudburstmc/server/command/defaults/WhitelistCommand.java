@@ -1,67 +1,75 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
+import java.util.List;
 import java.util.StringJoiner;
 
-public class WhitelistCommand extends Command {
+public class WhitelistCommand extends AdvertisedCommand {
 
     public WhitelistCommand() {
-        super("whitelist", CommandData.builder("whitelist")
-                .setDescription("commands.whitelist.description")
-                .setUsageMessage("/whitelist <on|off|reload|list>\n/whitelist <add|remove> <player>")
-                .setPermissions("cloudburst.command.whitelist.reload",
-                        "cloudburst.command.whitelist.enable",
-                        "cloudburst.command.whitelist.disable",
-                        "cloudburst.command.whitelist.list",
-                        "cloudburst.command.whitelist.add",
-                        "cloudburst.command.whitelist.remove")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("on|off|list|reload", CommandParamType.STRING, false)
-                }, new CommandParameter[]{
-                        new CommandParameter("add|remove", CommandParamType.STRING, false),
-                        new CommandParameter("player", CommandParamType.TARGET, false)
-                })
-                .build());
+        super("allowlist", "commands.whitelist.description", List.of("whitelist"), CommandNetworkData.OWNER,
+                "cloudburst.command.whitelist.reload",
+                "cloudburst.command.whitelist.enable", "cloudburst.command.whitelist.disable",
+                "cloudburst.command.whitelist.list", "cloudburst.command.whitelist.add",
+                "cloudburst.command.whitelist.remove");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.literal("on")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.enable"))
+                .executes(this::executeCommand));
+        builder.then(Commands.literal("off")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.disable"))
+                .executes(this::executeCommand));
+        builder.then(Commands.literal("list")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.list"))
+                .executes(this::executeCommand));
+        builder.then(Commands.literal("reload")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.reload"))
+                .executes(this::executeCommand));
+        builder.then(Commands.literal("add")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.add"))
+                .then(Commands.argument("player", CommandArgumentTypes.string())
+                        .executes(this::executeCommand)));
+        builder.then(Commands.literal("remove")
+                .requires(Commands.requiresPermission("cloudburst.command.whitelist.remove"))
+                .then(Commands.argument("player", CommandArgumentTypes.string())
+                        .executes(this::executeCommand)));
+    }
 
-        if (args.length == 0 || args.length > 2) {
-            return false;
-        }
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         CloudServer server = (CloudServer) sender.getServer();
+        String action = action(context);
 
-        if (args.length == 1) {
-            if (this.badPerm(sender, args[0].toLowerCase())) {
-                return false;
-            }
-
-            switch (args[0].toLowerCase()) {
+        if (!hasArgument(context, "player")) {
+            switch (action) {
                 case "reload":
                     server.reloadWhitelist();
                     CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.reloaded"));
-                    return true;
+                    return success();
                 case "on":
                     server.getConfig().setWhitelist(true);
                     CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
-                    return true;
+                    return success();
                 case "off":
                     server.getConfig().setWhitelist(false);
                     CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
-                    return true;
+                    return success();
                 case "list":
                     StringJoiner result = new StringJoiner(", ");
                     int count = 0;
@@ -71,35 +79,32 @@ public class WhitelistCommand extends Command {
                     }
                     sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
                     sender.sendMessage(Component.text(result.toString()));
-                    return true;
-                case "add":
-                case "remove":
-                    return false;
+                    return success();
             }
         } else {
-            if (this.badPerm(sender, args[0].toLowerCase())) {
-                return false;
-            }
-            switch (args[0].toLowerCase()) {
+            String player = argumentValue(context, "player");
+            switch (action) {
                 case "add":
-                    server.getOfflinePlayer(args[1]).setWhitelisted(true);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(args[1])));
-                    return true;
+                    server.getOfflinePlayer(player).setWhitelisted(true);
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(player)));
+                    return success();
                 case "remove":
-                    server.getOfflinePlayer(args[1]).setWhitelisted(false);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(args[1])));
-                    return true;
+                    server.getOfflinePlayer(player).setWhitelisted(false);
+                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(player)));
+                    return success();
             }
         }
 
-        return true;
+        return success();
     }
 
-    private boolean badPerm(CommandSender sender, String perm) {
-        if (!sender.hasPermission("cloudburst.command.whitelist." + perm)) {
-            sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-            return true;
+    private static String action(CommandContext<CommandSourceStack> context) {
+        for (String action : new String[]{"on", "off", "list", "reload", "add", "remove"}) {
+            if (hasArgument(context, action)) {
+                return action;
+            }
         }
-        return false;
+
+        throw new IllegalStateException("Whitelist command has no action");
     }
 }

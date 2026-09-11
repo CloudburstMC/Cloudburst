@@ -20,10 +20,9 @@ public interface CrafterScreen extends ContainerScreen {
     /**
      * Returns the output slot view for the crafted result.
      *
-     * <p>The output slot is a transient network-side slot that holds the item the
-     * crafter would produce given the current grid contents. It is only meaningful
-     * while this screen is open; the crafter block entity itself has no persistent
-     * output slot.</p>
+     * <p>The output slot is transient and holds the item the crafter would produce
+     * from the current grid contents. It is only meaningful while this screen is
+     * open; the crafter block entity itself has no persistent output slot.</p>
      *
      * @return the created-output slot group, never {@code null}
      */

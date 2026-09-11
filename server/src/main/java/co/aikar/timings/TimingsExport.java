@@ -31,7 +31,7 @@ import org.apache.logging.log4j.Level;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.ConsoleCommandSender;
+import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.timings.JsonUtil;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -216,7 +216,7 @@ public class TimingsExport extends Thread {
             String location = con.getHeaderField("Location");
             this.sender.sendMessage(Component.translatable("cloudburst.command.timings.timingsLocation",
                     Component.text(location)));
-            if (!(this.sender instanceof ConsoleCommandSender)) {
+            if (!(this.sender instanceof CloudConsoleCommandSender)) {
                 log.info(CloudServer.getInstance().getLanguage().translate("cloudburst.command.timings.timingsLocation", location));
             }
 

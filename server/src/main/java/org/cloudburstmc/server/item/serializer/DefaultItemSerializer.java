@@ -13,8 +13,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.EnchantmentRegistry;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -92,7 +92,7 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     private static NbtMap serializeEnchantment(Enchantment enchantment) {
         return NbtMap.builder()
-                .putShort(TAG_ENCHANTMENT_ID, enchantment.type().id())
+                .putShort(TAG_ENCHANTMENT_ID, CloudEnchantmentRegistry.get().getSerializedId(enchantment.type()))
                 .putShort(TAG_ENCHANTMENT_LEVEL, (short) enchantment.level())
                 .build();
     }
@@ -180,7 +180,7 @@ public class DefaultItemSerializer implements ItemSerializer {
 
     private static Enchantment deserializeEnchantment(NbtMap enchantmentTag) {
         short enchantmentId = enchantmentTag.getShort(TAG_ENCHANTMENT_ID);
-        EnchantmentType type = EnchantmentRegistry.get().getType(enchantmentId);
+        EnchantmentType type = CloudEnchantmentRegistry.get().getType(enchantmentId);
         if (type == null) {
             log.debug("Unknown enchantment id: {}", enchantmentId);
             return null;

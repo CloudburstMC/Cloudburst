@@ -10,7 +10,6 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
@@ -20,7 +19,6 @@ import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
-import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
 
@@ -182,15 +180,13 @@ public class DefaultBlockHandlers {
 
     public static final BlockLootHandler GET_LOOT = (block, context) -> {
         BlockState state = block.getState();
-        ItemType itemType = CloudItemRegistry.get().getType(state.getType().getId(), 0);
-        if (itemType == null) {
-            return List.of();
-        }
-        return List.of(ItemStack.builder()
-                .itemType(itemType)
-                .data(ItemKeys.BLOCK_STATE, state.getType().getDefaultState())
-                .amount(1)
-                .build());
+        return state.getType().asItem()
+                .<List<ItemStack>>map(itemType -> List.of(ItemStack.builder()
+                        .itemType(itemType)
+                        .data(ItemKeys.BLOCK_STATE, state.getType().getDefaultState())
+                        .amount(1)
+                        .build()))
+                .orElseGet(List::of);
     };
 
     public static final BlockExperienceHandler GET_EXPERIENCE = (block, context) -> 0;

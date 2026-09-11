@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
-import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -14,6 +14,7 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.server.level.biome.BiomeBuilder;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkState;
 import static org.cloudburstmc.api.level.biome.BiomeIds.*;
 
-@Singleton
 public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
     private static final CloudBiomeRegistry INSTANCE;
 
@@ -95,12 +95,18 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
         return this.idToRuntimeMap.getOrDefault(id, -1);
     }
 
-    public CloudBiome getBiome(Identifier identifier) {
+    @Override
+    public @Nullable CloudBiome getBiome(Identifier identifier) {
         return this.getBiome(this.getRuntimeId(identifier));
     }
 
     public CloudBiome getBiome(int runtimeId) {
         return this.runtimeToBiomeMap.get(runtimeId);
+    }
+
+    @Override
+    public Collection<CloudBiome> values() {
+        return List.copyOf(this.runtimeToBiomeMap.values());
     }
 
     public Identifier getId(int runtimeId) {

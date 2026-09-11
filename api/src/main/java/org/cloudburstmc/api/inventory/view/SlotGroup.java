@@ -9,9 +9,9 @@ import java.util.List;
 /**
  * Represents a named group of item slots within an open inventory screen.
  *
- * <p>A slot group corresponds directly to a {@code ContainerSlotType} bucket;
- * for example the furnace ingredient slot, the player's 36-slot main inventory, or an armor
- * equipment section. Multiple slot groups are combined inside a single
+ * <p>A slot group models one logical section of a screen, such as the furnace
+ * ingredient slot, the player's 36-slot main inventory, or an armor equipment
+ * section. Multiple slot groups are combined inside a single
  * {@link org.cloudburstmc.api.inventory.InventoryScreen} to form the complete window shown
  * to the player.</p>
  *
@@ -27,6 +27,13 @@ public interface SlotGroup {
      * @return the slot group type
      */
     SlotGroupType<? extends SlotGroup> getSlotGroupType();
+
+    /**
+     * Returns the number of slots in this group.
+     *
+     * @return the slot count
+     */
+    int size();
 
     /**
      * Returns the item at the given slot index within this group.
@@ -45,18 +52,11 @@ public interface SlotGroup {
     void setItem(int slot, ItemStack itemStack);
 
     /**
-     * Returns the number of slots in this group.
-     *
-     * @return the slot count
-     */
-    int size();
-
-    /**
      * Returns the maximum number of items that can stack in the given slot.
      *
      * <p>The default implementation returns {@code 64}, which is correct for most slots.
-     * Implementations should override this when a slot has a different limit (for example,
-     * a slot that only accepts tools (max-stack 1) or a slot whose limit is item-dependent.
+     * Implementations should override this when a slot has a different limit, such as a
+     * tool-only slot with max-stack 1, or a slot whose limit is item-dependent.
      * When the limit depends on the item currently in the slot, implementations should
      * inspect {@link #getItem(int)} to decide.</p>
      *
@@ -102,20 +102,6 @@ public interface SlotGroup {
         for (int i = 0; i < contents.length; i++) {
             setItem(i, contents[i] != null ? contents[i] : ItemStack.EMPTY);
         }
-    }
-
-    /**
-     * Returns the index of the first empty slot in this group, or {@code -1} if all slots are occupied.
-     *
-     * @return the first empty slot index, or {@code -1}
-     */
-    default int firstEmpty() {
-        for (int i = 0; i < size(); i++) {
-            if (getItem(i).isEmpty()) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     /**
@@ -192,25 +178,17 @@ public interface SlotGroup {
     }
 
     /**
-     * Removes all stacks in this slot group that can stack with the given item.
+     * Returns the index of the first empty slot in this group, or {@code -1} if all slots are occupied.
      *
-     * @param item the item to remove
+     * @return the first empty slot index, or {@code -1}
      */
-    default void remove(ItemStack item) {
+    default int firstEmpty() {
         for (int i = 0; i < size(); i++) {
-            if (getItem(i).isStackableWith(item)) {
-                setItem(i, ItemStack.EMPTY);
+            if (getItem(i).isEmpty()) {
+                return i;
             }
         }
-    }
-
-    /**
-     * Clears all slots in this group, setting every slot to {@link ItemStack#EMPTY}.
-     */
-    default void clear() {
-        for (int i = 0; i < size(); i++) {
-            setItem(i, ItemStack.EMPTY);
-        }
+        return -1;
     }
 
     /**
@@ -272,5 +250,27 @@ public interface SlotGroup {
         }
 
         return remaining.toArray(new ItemStack[0]);
+    }
+
+    /**
+     * Removes all stacks in this slot group that can stack with the given item.
+     *
+     * @param item the item to remove
+     */
+    default void remove(ItemStack item) {
+        for (int i = 0; i < size(); i++) {
+            if (getItem(i).isStackableWith(item)) {
+                setItem(i, ItemStack.EMPTY);
+            }
+        }
+    }
+
+    /**
+     * Clears all slots in this group, setting every slot to {@link ItemStack#EMPTY}.
+     */
+    default void clear() {
+        for (int i = 0; i < size(); i++) {
+            setItem(i, ItemStack.EMPTY);
+        }
     }
 }

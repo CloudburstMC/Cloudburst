@@ -20,10 +20,23 @@ public final class ItemType {
         this.dataKeys = Set.copyOf(checkNotNull(dataKeys, "dataKeys"));
     }
 
+    /**
+     * Creates an item type without supported metadata keys.
+     *
+     * @param id the item identifier
+     * @return the item type
+     */
     public static ItemType of(Identifier id) {
         return of(id, new DataKey[0]);
     }
 
+    /**
+     * Creates an item type with its supported metadata keys.
+     *
+     * @param id       the item identifier
+     * @param dataKeys the metadata keys supported by the item
+     * @return the item type
+     */
     public static ItemType of(Identifier id, DataKey<?, ?>... dataKeys) {
         checkNotNull(id, "id");
         checkNotNull(dataKeys, "dataKeys");
@@ -31,10 +44,29 @@ public final class ItemType {
         return new ItemType(id, Set.of(dataKeys));
     }
 
+    /**
+     * Returns the item identifier.
+     *
+     * @return the item identifier
+     */
     public Identifier getId() {
         return id;
     }
 
+    /**
+     * Returns whether stacks of this type are empty.
+     *
+     * @return {@code true} for {@code minecraft:air}
+     */
+    public boolean isAir() {
+        return "minecraft".equals(id.getNamespace()) && "air".equals(id.getName());
+    }
+
+    /**
+     * Returns the metadata keys supported by this item type.
+     *
+     * @return an immutable set of supported metadata keys
+     */
     public Set<DataKey<?, ?>> getDataKeys() {
         return dataKeys;
     }

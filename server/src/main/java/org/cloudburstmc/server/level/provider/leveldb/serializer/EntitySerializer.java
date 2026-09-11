@@ -12,7 +12,7 @@ import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.WriteBatch;
 
@@ -118,13 +118,8 @@ public class EntitySerializer {
                     }
 
                     Identifier identifier = Identifier.parse(entityTag.getString("identifier"));
-                    EntityRegistry registry = EntityRegistry.get();
-                    EntityType<?> type = registry.getEntityType(identifier);
-                    if (type == null) {
-                        log.warn("Unknown entity type {}", identifier);
-                        dirty = true;
-                        continue;
-                    }
+                    CloudEntityRegistry registry = CloudEntityRegistry.get();
+                    EntityType<?> type = registry.getOrCreateUnknownType(identifier);
 
                     try {
                         CloudEntity entity = (CloudEntity) registry.newEntity(type, location);

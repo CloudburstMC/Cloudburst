@@ -7,7 +7,7 @@ import org.cloudburstmc.api.entity.projectile.LingeringPotion;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.misc.EntityAreaEffectCloud;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.LINGERING;
 
@@ -27,7 +27,7 @@ public class EntityLingeringPotion extends EntitySplashPotion implements Lingeri
     protected void splash(Entity collidedWith) {
         super.splash(collidedWith);
 
-        EntityAreaEffectCloud entity = (EntityAreaEffectCloud) EntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, this.getLocation());
+        EntityAreaEffectCloud entity = (EntityAreaEffectCloud) CloudEntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, this.getLocation());
         entity.setPosition(this.getLocation().getPosition());
         entity.setPotionType(this.getPotionType());
         if (this.getPotionType().getType() != null) {

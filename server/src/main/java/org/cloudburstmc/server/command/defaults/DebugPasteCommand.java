@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.registry.CommandRegistry;
 import org.cloudburstmc.server.utils.HastebinUtility;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -17,24 +17,19 @@ import java.lang.management.ManagementFactory;
 import java.nio.file.Path;
 
 @Log4j2
-public class DebugPasteCommand extends Command {
+public class DebugPasteCommand extends AdvertisedCommand {
 
     public DebugPasteCommand() {
-        super("debugpaste", CommandData.builder("debugpaste")
-                .setDescription("commands.debug.description")
-                .setPermissions("cloudburst.command.debug.perform")
-                .build());
+        super("debugpaste", "commands.debug.description", "cloudburst.command.debug.perform");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         CloudServer server = CloudServer.getInstance();
         server.getAsyncScheduler().runNow(null, t -> {
             try {
-                CommandRegistry.get().dispatch(sender, "status");
+                server.getCommandRegistry().dispatch(sender, "status");
                 Path dataPath = server.getDataPath();
                 String cloudburstYML = HastebinUtility.upload(dataPath.resolve("cloudburst.yml").toFile());
                 String serverProperties = HastebinUtility.upload(dataPath.resolve("server.properties").toFile());
@@ -82,6 +77,7 @@ public class DebugPasteCommand extends Command {
                 log.error("Error creating debug paste", e);
             }
         });
-        return true;
+
+        return success();
     }
 }

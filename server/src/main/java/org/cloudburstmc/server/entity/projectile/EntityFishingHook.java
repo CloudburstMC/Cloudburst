@@ -31,7 +31,7 @@ import org.cloudburstmc.server.item.loot.FishingLoot;
 import org.cloudburstmc.server.level.particle.BubbleParticle;
 import org.cloudburstmc.server.level.particle.WaterParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -466,7 +466,7 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     private DroppedItem createCaughtItem(ItemStack item, CloudPlayer owner) {
         Vector3f delta = owner.getPosition().sub(this.getPosition());
         Vector3f motion = delta.mul(0.1f).add(0, (float) Math.sqrt(Math.sqrt(delta.lengthSquared())) * 0.08f, 0);
-        DroppedItem dropped = EntityRegistry.get().newEntity(EntityTypes.ITEM, this.getLocation());
+        DroppedItem dropped = CloudEntityRegistry.get().newEntity(EntityTypes.ITEM, this.getLocation());
         dropped.setItem(item);
         dropped.setMotion(motion);
         ((EntityDroppedItem) dropped).setFromFishing(true);

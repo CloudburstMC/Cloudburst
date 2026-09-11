@@ -10,7 +10,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @UtilityClass
 public class MinecartItemHandlers {
@@ -31,7 +31,7 @@ public class MinecartItemHandlers {
             float spawnZ = blockPos.getZ() + 0.5f;
 
             Location location = Location.from(spawnX, spawnY, spawnZ, level);
-            CloudEntity spawned = (CloudEntity) EntityRegistry.get().newEntity(entityType, location);
+            CloudEntity spawned = (CloudEntity) CloudEntityRegistry.get().newEntity(entityType, location);
             spawned.spawnToAll();
 
             if (((Player) entity).isCreative()) {

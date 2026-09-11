@@ -49,8 +49,15 @@ extraJavaModuleInfo {
     automaticModule(libs.block.state.updater, "org.cloudburstmc.blockstateupdater") {
         overrideModuleName()
     }
-    automaticModule(libs.math.immutable, "org.cloudburstmc.math.immutable") {
+    module(libs.brigadier, "com.mojang.brigadier") {
         overrideModuleName()
+        exportAllPackages()
+        requireAllDefinedDependencies()
+    }
+    module(libs.math.immutable, "org.cloudburstmc.math.immutable") {
+        overrideModuleName()
+        exportAllPackages()
+        requireAllDefinedDependencies()
     }
     automaticModule(libs.noise, "net.daporkchop.lib.noise")
     automaticModule(libs.upnp, "org.cloudburstmc.upnp")

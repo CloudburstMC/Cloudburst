@@ -15,11 +15,9 @@ import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.component.ComponentMap;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
-import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -31,7 +29,6 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
@@ -249,7 +246,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         }
 
         return (item, material) -> {
-            if (item.isEmpty() || material.isEmpty() || material.getType() == null) {
+            if (item.isEmpty() || material.isEmpty()) {
                 return false;
             }
 
@@ -327,12 +324,18 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return dataSerializers.get(dataKey);
     }
 
-    public ItemType getType(Identifier id) {
-        return this.typeMap.get(id);
+    @Override
+    public Optional<ItemType> get(Identifier id) {
+        return Optional.ofNullable(this.typeMap.get(id));
     }
 
-    public ItemType getType(int legacyId) {
-        return getType(getIdentifier(legacyId));
+    @Override
+    public Collection<ItemType> values() {
+        LinkedHashSet<ItemType> values = new LinkedHashSet<>();
+        for (Identifier id : this.getItems()) {
+            this.get(id).ifPresent(values::add);
+        }
+        return ImmutableList.copyOf(values);
     }
 
     @Override
@@ -345,57 +348,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return VanillaItemTags.all();
     }
 
-    @Deprecated
-    public ItemStack getItemLegacy(int legacyId) {
-        return ItemStack.from(getType(legacyId), 1);
-    }
-
-    @Deprecated
-    public ItemStack getItemLegacy(int legacyId, short damage) {
-        return getItemLegacy(legacyId, damage, 1);
-    }
-
-    @Deprecated
-    public ItemStack getItemLegacy(int legacyId, short damage, int amount) {
-        return ItemUtils.deserializeItem(getIdentifier(legacyId), damage, amount, NbtMap.EMPTY);
-    }
-
-    public Collection<Identifier> getIdentifiers(ItemType type) {
-        return this.typeMap.entrySet().stream().filter((e) -> e.getValue() == type).map(Entry::getKey).collect(Collectors.toSet());
-    }
-
     public Identifier fromLegacy(int legacyId, int meta) throws RegistryException {
         return itemPalette.fromLegacy(legacyId, meta);
-    }
-
-    public Identifier fromLegacy(int legacyId) throws RegistryException {
-        return itemPalette.fromLegacy(legacyId, 0);
-    }
-
-    @Override
-    public Identifier getIdentifier(int runtimeId) throws RegistryException {
-        Identifier identifier = itemPalette.getIdByRuntime(runtimeId);
-
-        if (identifier == null) {
-            throw new RegistryException("Runtime ID " + runtimeId + " does not exist");
-        }
-        return identifier;
-    }
-
-    @Override
-    public ItemType getType(Identifier runtimeId, int data) {
-        var blockType = BlockPalette.INSTANCE.getType(runtimeId);
-
-        if (blockType != null) {
-            return blockType.asItem().orElse(ItemTypes.UNKNOWN);
-        }
-
-        return typeMap.getOrDefault(runtimeId, ItemTypes.UNKNOWN);
-    }
-
-    @Override
-    public ItemType getType(int runtimeId, int data) {
-        return null;
     }
 
     @Override
@@ -427,7 +381,6 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return definition;
     }
 
-    @Override
     public ImmutableList<Identifier> getItems() {
         return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
                 .map(itemDefinition -> Identifier.parse(itemDefinition.getIdentifier()))

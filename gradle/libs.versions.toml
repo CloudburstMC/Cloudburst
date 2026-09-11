@@ -1,12 +1,13 @@
 [versions]
 adventure = "4.26.1"
 asm = "9.10.1"
-checker-framework = "4.2.0"
+checker-framework = "4.2.2"
+brigadier = "1.3.10"
 fastutil = "8.5.13-SNAPSHOT"
-jackson = "3.2.0"
-jline = "4.2.1"
-junit = "6.1.0"
-log4j = "2.26.0"
+jackson = "3.2.2"
+jline = "4.4.1"
+junit = "6.1.3"
+log4j = "2.26.1"
 protocol = "3.0.0.Beta13-20260907.175719-23"
 
 [libraries]
@@ -20,9 +21,8 @@ adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asm-commons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 
-checker = { group = "org.checkerframework", name = "checker", version.ref = "checker-framework" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checker-framework" }
-javapoet = { group = "com.palantir.javapoet", name = "javapoet", version = "0.11.0" }
+javapoet = { group = "com.palantir.javapoet", name = "javapoet", version = "0.19.0" }
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 jline-terminal = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
 jline-terminal-ffm = { group = "org.jline", name = "jline-terminal-ffm", version.ref = "jline" }
@@ -30,7 +30,7 @@ jline-terminal-jni = { group = "org.jline", name = "jline-terminal-jni", version
 junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
-lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.46" }
+lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.48" }
 math-immutable = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 terminal-console-appender = { group = "net.minecrell", name = "terminalconsoleappender", version = "1.3.0" }
 
@@ -47,7 +47,7 @@ jackson-dataformat-properties = { group = "tools.jackson.dataformat", name = "ja
 jackson-dataformat-yaml = { group = "tools.jackson.dataformat", name = "jackson-dataformat-yaml", version.ref = "jackson" }
 
 disruptor = { group = "com.lmax", name = "disruptor", version = "4.0.0" }
-guava = { group = "com.google.guava", name = "guava", version = "33.6.0-jre" }
+guava = { group = "com.google.guava", name = "guava", version = "33.7.1-jre" }
 guice = { group = "com.google.inject", name = "guice", version = "7.0.0" }
 
 fastutil-int-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-int-maps", version.ref = "fastutil" }
@@ -70,15 +70,16 @@ fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-
 bedrock-adventure = { group = "org.cloudburstmc.protocol", name = "adventure", version.ref = "protocol" }
 bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.110-SNAPSHOT" }
+brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }
 jakarta-inject = { group = "jakarta.inject", name = "jakarta.inject-api", version = "2.0.1" }
 jopt-simple = { group = "net.sf.jopt-simple", name = "jopt-simple", version = "5.0.4" }
-jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "10.7" }
+jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version = "10.9.1" }
 leveldb-mcpe-jni = { group = "net.daporkchop", name = "leveldb-mcpe-jni", version = "0.0.10-SNAPSHOT" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version = "4.1.101.Final" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version = "4.1.101.Final" }
 noise = { group = "net.daporkchop.lib", name = "noise", version = "0.5.8-SNAPSHOT" }
 picocli = { group = "info.picocli", name = "picocli", version = "4.7.7" }
-spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version = "4.10.2" }
+spotbugs-annotations = { group = "com.github.spotbugs", name = "spotbugs-annotations", version = "4.10.4" }
 upnp = { group = "org.cloudburstmc", name = "upnp", version = "1.1.1" }
 
 [bundles]
@@ -89,7 +90,6 @@ fastutil = ["fastutil-object-int-maps", "fastutil-object-reference-maps", "fastu
     "fastutil-short-sets", "fastutil-short-object-maps"]
 
 [plugins]
-checkerframework = { id = "org.checkerframework", version = "0.6.61" }
-shadow = { id = "com.gradleup.shadow", version = "9.4.3" }
-extra-java-module-info = { id = "org.gradlex.extra-java-module-info", version = "1.13.1" }
-git-properties = { id = "com.gorylenko.gradle-git-properties", version = "2.5.7" }
+shadow = { id = "com.gradleup.shadow", version = "9.6.1" }
+extra-java-module-info = { id = "org.gradlex.extra-java-module-info", version = "1.14.2" }
+git-properties = { id = "com.gorylenko.gradle-git-properties", version = "4.0.1" }

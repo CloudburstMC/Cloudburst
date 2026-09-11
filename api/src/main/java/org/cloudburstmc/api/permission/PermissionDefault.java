@@ -1,81 +1,38 @@
 package org.cloudburstmc.api.permission;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 /**
- * Represents the possible default grant states for a {@link Permission}.
- *
- * <p>The default controls whether a {@link Permissible} has the permission before any
- * {@link PermissionAttachment} is applied.</p>
+ * Defines who receives a permission when no attachment overrides it.
  */
 public enum PermissionDefault {
     /**
-     * Granted to everyone regardless of operator status.
+     * Grants the permission to every subject.
      */
-    TRUE("true"),
+    EVERYONE,
     /**
-     * Denied to everyone by default; must be explicitly granted.
+     * Denies the permission to every subject.
      */
-    FALSE("false"),
+    NONE,
     /**
-     * Granted only to operators.
+     * Grants the permission to operators.
      */
-    OP("op", "isop", "operator", "isoperator", "admin", "isadmin"),
+    OPERATORS,
     /**
-     * Granted to non-operators only.
+     * Grants the permission to non-operators.
      */
-    NOT_OP("!op", "notop", "!operator", "notoperator", "!admin", "notadmin");
-
-    private static final Map<String, PermissionDefault> LOOKUP = new HashMap<>();
-
-    static {
-        for (PermissionDefault value : values()) {
-            for (String name : value.names) {
-                LOOKUP.put(name, value);
-            }
-        }
-    }
-
-    private final String[] names;
-
-    PermissionDefault(String... names) {
-        this.names = names;
-    }
+    NON_OPERATORS;
 
     /**
-     * Looks up a {@code PermissionDefault} by name, accepting all known aliases.
+     * Resolves this policy for an operator state.
      *
-     * @param name the name to look up (case-insensitive, non-alpha characters ignored except '!')
-     * @return the matching default, or {@code null} if not recognized
+     * @param operator whether the subject is an operator
+     * @return whether the permission is granted
      */
-    public static @Nullable PermissionDefault getByName(String name) {
-        if (name == null) {
-            return null;
-        }
-        return LOOKUP.get(name.toLowerCase(Locale.ROOT).replaceAll("[^a-z!]", ""));
-    }
-
-    /**
-     * Returns whether this default grants the permission for the given operator state.
-     *
-     * @param op whether the subject is an operator
-     * @return true if the permission is granted by default
-     */
-    public boolean getValue(boolean op) {
+    public boolean grants(boolean operator) {
         return switch (this) {
-            case TRUE -> true;
-            case FALSE -> false;
-            case OP -> op;
-            case NOT_OP -> !op;
+            case EVERYONE -> true;
+            case NONE -> false;
+            case OPERATORS -> operator;
+            case NON_OPERATORS -> !operator;
         };
-    }
-
-    @Override
-    public String toString() {
-        return names[0];
     }
 }

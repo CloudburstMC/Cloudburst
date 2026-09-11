@@ -116,10 +116,6 @@ level:
   water-over-lava-flow-speed: 7
   max-chained-neighbor-updates: 34567
 
-# Aliases for commands
-aliases:
-  savestop: [save-all, stop]
-
 # These settings will override the generator set in server.properties and allows loading multiple levels
 worlds:
   world:

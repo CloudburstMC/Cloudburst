@@ -28,36 +28,11 @@ public class CloudburstYaml {
     public static CloudburstYaml fromFile(Path file) {
         final CloudburstYaml yaml = new CloudburstYaml();
         try (InputStream stream = Files.newInputStream(file)) {
-            CloudburstYaml mapped = Bootstrap.YAML_MAPPER.readerForUpdating(yaml).readValue(stream);
-            //fix: when writing commandAlias in yaml but have no item, mapper will treat it as null
-            if (mapped.getAliases() == null) {
-                mapped = new CloudburstYaml(
-                        Collections.emptyMap(),
-                        mapped.timings,
-                        mapped.settings,
-                        mapped.network,
-                        mapped.levelSettings,
-                        mapped.chunkSending,
-                        mapped.chunkTicking,
-                        mapped.chunkGeneration,
-                        mapped.spawnLimits,
-                        mapped.ticksPer,
-                        mapped.debug,
-                        mapped.player,
-                        mapped.movement,
-                        mapped.interaction,
-                        mapped.level,
-                        mapped.worlds
-                );
-            }
-            return mapped;
+            return Bootstrap.YAML_MAPPER.readerForUpdating(yaml).readValue(stream);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read configuration file", e);
         }
     }
-
-    @Builder.Default
-    private Map<String, List<String>> aliases = new HashMap<>();
 
     @Builder.Default
     private ServerConfig.Timings timings = new ServerConfig.Timings();

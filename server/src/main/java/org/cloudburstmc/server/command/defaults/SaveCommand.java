@@ -1,33 +1,25 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * Created on 2015/11/13 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class SaveCommand extends Command {
+public class SaveCommand extends AdvertisedCommand {
 
     public SaveCommand() {
-        super("save-all", CommandData.builder("save-all")
-                .setDescription("commands.save.description")
-                .setPermissions("cloudburst.command.save.perform")
-                .build());
+        super("save-all", "commands.save.description", CommandNetworkData.OWNER, "cloudburst.command.save.perform");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.start"));
 
         for (CloudPlayer player : ((CloudServer) sender.getServer()).getOnlinePlayers().values()) {
@@ -39,6 +31,6 @@ public class SaveCommand extends Command {
         }
 
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.success"));
-        return true;
+        return success();
     }
 }

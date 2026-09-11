@@ -1,67 +1,48 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.resolver.PositionResolver;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.*;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class ParticleCommand extends Command {
-    private static final String[] ENUM_VALUES = new String[]{"explode", "hugeexplosion", "hugeexplosionseed", "bubble"
-            , "splash", "wake", "water", "crit", "smoke", "spell", "instantspell", "dripwater", "driplava", "townaura"
-            , "spore", "portal", "flame", "lava", "reddust", "snowballpoof", "slime", "itembreak", "terrain", "heart"
-            , "ink", "droplet", "enchantmenttable", "happyvillager", "angryvillager", "forcefield"};
-
+public class ParticleCommand extends AdvertisedCommand {
     public ParticleCommand() {
-        super("particle", CommandData.builder("particle")
-                .setDescription("commands.particle.description")
-                .setUsageMessage("/particle <particle> <position> [count] [data]")
-                .setPermissions("cloudburst.command.particle")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("name", false, ENUM_VALUES),
-                        new CommandParameter("position", CommandParamType.POSITION, false),
-                        new CommandParameter("count", CommandParamType.INT, true),
-                        new CommandParameter("data", true)
-                })
-                .build());
-    }
-
-    private static float getFloat(String arg, float defaultValue) {
-        if (arg.startsWith("~")) {
-            String relativePos = arg.substring(1);
-            if (relativePos.isEmpty()) {
-                return defaultValue;
-            }
-            return defaultValue + Float.parseFloat(relativePos);
-        }
-        return Float.parseFloat(arg);
+        super("particle", "commands.particle.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.particle");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("particle", arguments.particle())
+                .then(Commands.argument("position", CommandArgumentTypes.position())
+                        .executes(this::executeCommand)
+                        .then(Commands.argument("count", CommandArgumentTypes.integer(1))
+                                .executes(this::executeCommand)
+                                .then(Commands.argument("data", CommandArgumentTypes.integer())
+                                        .executes(this::executeCommand)))));
+    }
 
-        if (args.length < 4) {
-            return false;
-        }
-
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
         Location defaultLocation;
         if (sender instanceof CloudPlayer) {
             defaultLocation = ((CloudPlayer) sender).getLocation();
@@ -69,132 +50,69 @@ public class ParticleCommand extends Command {
             defaultLocation = Location.from(Vector3f.ZERO, sender.getServer().getDefaultLevel());
         }
 
-        String name = args[0].toLowerCase();
+        Vector3f parsedPosition = argumentValue(context, "position", PositionResolver.class)
+                .resolve(context.getSource());
+        Location location = Location.from(parsedPosition, defaultLocation.getLevel());
 
-        float x;
-        float y;
-        float z;
+        int count = hasArgument(context, "count") ? argumentValue(context, "count", Integer.class) : 1;
 
-        try {
-            x = getFloat(args[1], defaultLocation.getX());
-            y = getFloat(args[2], defaultLocation.getY());
-            z = getFloat(args[3], defaultLocation.getZ());
-        } catch (Exception e) {
-            return false;
-        }
-        Location location = Location.from(Vector3f.from(x, y, z), defaultLocation.getLevel());
+        int data = hasArgument(context, "data") ? argumentValue(context, "data", Integer.class) : -1;
 
-        int count = 1;
-        if (args.length > 4) {
-            try {
-                double c = Double.parseDouble(args[4]);
-                count = (int) c;
-            } catch (Exception e) {
-                //ignore
-            }
-        }
-        count = Math.max(1, count);
-
-        int data = -1;
-        if (args.length > 5) {
-            try {
-                double d = Double.parseDouble(args[5]);
-                data = (int) d;
-            } catch (Exception e) {
-                //ignore
-            }
-        }
-
-        Particle particle = this.getParticle(name, location, data);
-
-        if (particle == null) {
-            ((CloudLevel) location.getLevel()).addParticleEffect(location.getPosition(), Identifier.parse(args[0]), -1, ((CloudLevel) location.getLevel()).getDimension());
-            return true;
-        }
+        ParticleType type = argumentValue(context, "particle", ParticleType.class);
+        String name = type.id().getName();
 
         sender.sendMessage(Component.translatable("commands.particle.success",
                 Component.text(name), Component.text(count)));
 
-        Random random = new Random(System.currentTimeMillis());
+        CloudLevel level = (CloudLevel) location.getLevel();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
 
         for (int i = 0; i < count; i++) {
-            particle.setPosition(location.getPosition()
-                    .add(random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1));
-            ((CloudLevel) location.getLevel()).addParticle(particle);
+            Vector3f position = location.getPosition()
+                    .add(random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1, random.nextFloat() * 2 - 1);
+            Particle particle = this.createParticle(type, position, data);
+            if (particle == null) {
+                level.spawnParticle(type, position);
+            } else {
+                level.addParticle(particle);
+            }
         }
 
-        return true;
+        return success();
     }
 
-    private Particle getParticle(String name, Location loc, int data) {
-        Vector3f pos = loc.getPosition();
-        switch (name) {
-            case "explode":
-                return new ExplodeParticle(pos);
-            case "hugeexplosion":
-                return new HugeExplodeParticle(pos);
-            case "hugeexplosionseed":
-                return new HugeExplodeSeedParticle(pos);
-            case "bubble":
-                return new BubbleParticle(pos);
-            case "splash":
-                return new SplashParticle(pos);
-            case "wake":
-            case "water":
-                return new WaterParticle(pos);
-            case "crit":
-                return new CriticalParticle(pos);
-            case "smoke":
-                return new SmokeParticle(pos, data != -1 ? data : 0);
-            case "spell":
-                return new EnchantParticle(pos);
-            case "instantspell":
-                return new InstantEnchantParticle(pos);
-            case "dripwater":
-                return new WaterDripParticle(pos);
-            case "driplava":
-                return new LavaDripParticle(pos);
-            case "townaura":
-            case "spore":
-                return new SporeParticle(pos);
-            case "portal":
-                return new PortalParticle(pos);
-            case "flame":
-                return new FlameParticle(pos);
-            case "lava":
-                return new LavaParticle(pos);
-            case "reddust":
-                return new RedstoneParticle(pos, data != -1 ? data : 1);
-            case "snowballpoof":
-                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SNOWBALL).build());
-            case "slime":
-                return new ItemBreakParticle(pos, ItemStack.builder().itemType(ItemTypes.SLIME_BALL).build());
-            case "itembreak":
-                if (data != -1 && data != 0) {
-//                    return new ItemBreakParticle(pos, CloudItemRegistry.get().getItem(data)); //TODO: item name
-                }
-                break;
-            case "terrain":
-                if (data != -1 && data != 0) {
-//                    return new TerrainParticle(pos, BlockRegistry.get().getBlock(data)); //TODO: block name
-                }
-                break;
-            case "heart":
-                return new HeartParticle(pos, data != -1 ? data : 0);
-            case "ink":
-                return new InkParticle(pos, data != -1 ? data : 0);
-            case "droplet":
-                return new RainSplashParticle(pos);
-            case "enchantmenttable":
-                return new EnchantmentTableParticle(pos);
-            case "happyvillager":
-                return new HappyVillagerParticle(pos);
-            case "angryvillager":
-                return new AngryVillagerParticle(pos);
-            case "forcefield":
-                return new BlockForceFieldParticle(pos);
-        }
-
-        return null;
+    private Particle createParticle(ParticleType type, Vector3f pos, int data) {
+        String name = type.id().getName();
+        return switch (name) {
+            case "explode" -> new ExplodeParticle(pos);
+            case "large_explode" -> new HugeExplodeSeedParticle(pos);
+            case "huge_explosion" -> new HugeExplodeParticle(pos);
+            case "bubble" -> new BubbleParticle(pos);
+            case "water_splash" -> new SplashParticle(pos);
+            case "water_wake" -> new WaterParticle(pos);
+            case "crit" -> new CriticalParticle(pos);
+            case "smoke" -> new SmokeParticle(pos, data != -1 ? data : 0);
+            case "mob_spell" -> new EnchantParticle(pos);
+            case "mob_spell_instantaneous" -> new InstantEnchantParticle(pos);
+            case "drip_water" -> new WaterDripParticle(pos);
+            case "drip_lava" -> new LavaDripParticle(pos);
+            case "town_aura" -> new SporeParticle(pos);
+            case "portal" -> new PortalParticle(pos);
+            case "flame" -> new FlameParticle(pos);
+            case "lava" -> new LavaParticle(pos);
+            case "red_dust" -> new RedstoneParticle(pos, data != -1 ? data : 1);
+            case "snowball_poof" -> new ItemBreakParticle(pos,
+                    ItemStack.builder().itemType(ItemTypes.SNOWBALL).build());
+            case "slime" -> new ItemBreakParticle(pos,
+                    ItemStack.builder().itemType(ItemTypes.SLIME_BALL).build());
+            case "heart" -> new HeartParticle(pos, data != -1 ? data : 0);
+            case "ink" -> new InkParticle(pos, data != -1 ? data : 0);
+            case "rain_splash" -> new RainSplashParticle(pos);
+            case "enchanting_table" -> new EnchantmentTableParticle(pos);
+            case "villager_happy" -> new HappyVillagerParticle(pos);
+            case "villager_angry" -> new AngryVillagerParticle(pos);
+            case "block_force_field" -> new BlockForceFieldParticle(pos);
+            default -> null;
+        };
     }
 }

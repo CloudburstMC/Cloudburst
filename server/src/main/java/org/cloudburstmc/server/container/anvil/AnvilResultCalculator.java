@@ -7,7 +7,7 @@ import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.EnchantmentRegistry;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -260,7 +260,7 @@ public final class AnvilResultCalculator {
     }
 
     private static boolean canEnchant(Enchantment enchantment, ItemStack item) {
-        return EnchantmentRegistry.get().canEnchant(enchantment, item);
+        return CloudEnchantmentRegistry.get().canEnchant(enchantment, item);
     }
 
     private static boolean isSameDamageableItem(ItemStack first, ItemStack second) {
@@ -268,13 +268,11 @@ public final class AnvilResultCalculator {
     }
 
     private static boolean isEnchantedBook(ItemStack item) {
-        return !item.isEmpty()
-                && item.getType() != null
-                && ItemTypes.ENCHANTED_BOOK.getId().equals(item.getType().getId());
+        return !item.isEmpty() && ItemTypes.ENCHANTED_BOOK.getId().equals(item.getType().getId());
     }
 
     private static boolean areCompatible(Enchantment first, Enchantment second) {
-        return EnchantmentRegistry.get().areCompatible(first, second);
+        return CloudEnchantmentRegistry.get().areCompatible(first, second);
     }
 
     @Nullable

@@ -25,7 +25,7 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.level.particle.DestroyBlockNoSoundParticle;
 import org.cloudburstmc.server.level.particle.FizzEffectParticle;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PowderSnowBlockHandlers {
@@ -93,7 +93,7 @@ public final class PowderSnowBlockHandlers {
     }
 
     private static boolean canWalkOnPowderSnow(Entity entity) {
-        return EntityRegistry.get().requireComponent(entity.getType(), EntityComponents.CAN_WALK_ON_POWDER_SNOW)
+        return CloudEntityRegistry.get().requireComponent(entity.getType(), EntityComponents.CAN_WALK_ON_POWDER_SNOW)
                 .execute(entity)
                 || entity instanceof EntityCreature creature
                 && creature.getArmor().getBoots().getType() == ItemTypes.LEATHER_BOOTS;

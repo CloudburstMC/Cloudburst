@@ -64,7 +64,7 @@ public final class BlockEntityType<T extends BlockEntity> {
         return typed;
     }
 
-    public Identifier getIdentifier() {
+    public Identifier getId() {
         return identifier;
     }
 

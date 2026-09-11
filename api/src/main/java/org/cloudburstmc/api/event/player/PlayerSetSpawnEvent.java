@@ -13,7 +13,7 @@ import org.cloudburstmc.api.player.Player;
  * the server clears it on respawn.
  *
  * <p>This event is {@link Cancellable}. Cancelling it prevents the spawn point from being
- * updated; the player will not receive a {@code SetSpawnPositionPacket}.</p>
+ * updated or sent to the player.</p>
  *
  * <p>Redirect the spawn to a different location by calling
  * {@link #setNewSpawn(Location)}.</p>

@@ -30,7 +30,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.server.command.ServerCommand;
 import org.cloudburstmc.server.config.ServerConfig;
 
 import java.lang.reflect.Method;
@@ -212,9 +212,8 @@ public final class Timings {
         TimingsManager.reset();
     }
 
-
-    public static Timing getCommandTiming(Command command) {
-        return TimingsManager.getTiming(DEFAULT_GROUP.name, "Command: " + command.getLabel(), commandTimer);
+    public static Timing getCommandTiming(ServerCommand command) {
+        return TimingsManager.getTiming(DEFAULT_GROUP.name, "Command: " + command.getName(), commandTimer);
     }
 
     public static Timing getPluginEventTiming(Class<? extends Event> event, Object listener, Method method, PluginContainer plugin) {
@@ -226,7 +225,7 @@ public final class Timings {
     }
 
     public static Timing getEntityTiming(EntityType<?> type) {
-        return TimingsManager.getTiming(DEFAULT_GROUP.name, "## Entity Tick: " + type.getIdentifier(), tickEntityTimer);
+        return TimingsManager.getTiming(DEFAULT_GROUP.name, "## Entity Tick: " + type.getId(), tickEntityTimer);
     }
 
     public static Timing getBlockEntityTiming(BlockEntity blockEntity) {

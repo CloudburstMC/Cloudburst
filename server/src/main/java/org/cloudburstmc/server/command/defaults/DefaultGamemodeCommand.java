@@ -1,46 +1,51 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-public class DefaultGamemodeCommand extends Command {
+import java.util.Locale;
+
+public class DefaultGamemodeCommand extends AdvertisedCommand {
 
     public DefaultGamemodeCommand() {
-        super("defaultgamemode", CommandData.builder("defaultgamemode")
-                .setDescription("commands.defaultgamemode.description")
-                .setUsageMessage("/defaultgamemode <mode>")
-                .setPermissions("cloudburst.command.defaultgamemode")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("mode", CommandParamType.INT, false)
-                }, new CommandParameter[]{
-                        new CommandParameter("mode", new String[]{"survival", "creative", "s", "c",
-                                "adventure", "a", "spectator", "view", "v"})
-                })
-                .build());
+        super("defaultgamemode", "commands.defaultgamemode.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.defaultgamemode");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-        if (args.length == 0) {
-            return false;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("gameMode", CommandArgumentTypes.fixedEnumNamed("gameMode", "DefaultGameMode",
+                        "survival", "creative", "adventure", "spectator", "s", "c", "a", "view", "v"))
+                .executes(this::executeCommand));
+        builder.then(Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode", 0, 3))
+                .executes(this::executeCommand));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         try {
-            GameMode gameMode = GameMode.from(args[0].toLowerCase());
+            String gameModeValue = hasArgument(context, "gameMode")
+                    ? argumentValue(context, "gameMode")
+                    : String.valueOf(argumentValue(context, "gameModeValue", Integer.class));
+            GameMode gameMode = GameMode.from(gameModeValue.toLowerCase(Locale.ROOT));
 
             ((CloudServer) sender.getServer()).getConfig().setGamemode(gameMode);
             sender.sendMessage(Component.translatable("commands.defaultgamemode.success", Component.translatable(gameMode)));
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(Component.text("Unknown game mode")); //TODO: translate?
+            return failure(context, Component.text("Unknown game mode"));
         }
-        return true;
+
+        return success();
     }
 }

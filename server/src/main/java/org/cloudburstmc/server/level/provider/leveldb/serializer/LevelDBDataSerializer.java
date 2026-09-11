@@ -3,12 +3,13 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 import tools.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.level.gamerule.GameRule;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.nbt.util.stream.LittleEndianDataInputStream;
 import org.cloudburstmc.nbt.util.stream.LittleEndianDataOutputStream;
 import org.cloudburstmc.server.level.LevelData;
+import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.cloudburstmc.server.utils.LoadState;
@@ -88,18 +89,10 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
                 .putFloat("lightningLevel", data.getLightningLevel())
                 .putBoolean("Hardcore", data.isHardcore());
 
-        // Gamerules - No idea why these aren't in a separate tag
-        GameRuleMap gameRules = data.getGameRules();
-        gameRules.forEach((gameRule, o) -> {
-            String name = gameRule.getName().toLowerCase();
-            if (gameRule.getValueClass() == Boolean.class) {
-                tag.putBoolean(name, (boolean) o);
-            } else if (gameRule.getValueClass() == Integer.class) {
-                tag.putInt(name, (int) o);
-            } else if (gameRule.getValueClass() == Float.class) {
-                tag.putFloat(name, (float) o);
-            }
-        });
+        CloudGameRules gameRules = data.getGameRules();
+        for (LevelGameRules.Entry<?> entry : gameRules) {
+            writeGameRule(tag, entry);
+        }
 
         byte[] tagBytes;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -108,7 +101,6 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
             tagBytes = stream.toByteArray();
         }
 
-        // Write
         try (LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(Files.newOutputStream(levelDatPath))) {
             stream.writeInt(STORAGE_VERSION);
             stream.writeInt(tagBytes.length);
@@ -161,10 +153,30 @@ public class LevelDBDataSerializer implements LevelDataSerializer {
             Object value = tag.get(rule.getName().toLowerCase());
 
             if (value instanceof Byte byteValue) {
-                data.getGameRules().setValue(rule, byteValue != 0);
+                loadBooleanGameRule(data, rule, byteValue != 0);
             } else if (value instanceof Integer || value instanceof Float) {
-                data.getGameRules().setValue(rule, value);
+                loadGameRule(data, rule, value);
             }
         });
+    }
+
+    private static <T extends Comparable<T>> void writeGameRule(NbtMapBuilder tag, LevelGameRules.Entry<T> entry) {
+        String name = entry.rule().getName().toLowerCase();
+        T value = entry.value();
+        if (value instanceof Boolean booleanValue) {
+            tag.putBoolean(name, booleanValue);
+        } else if (value instanceof Integer integerValue) {
+            tag.putInt(name, integerValue);
+        } else if (value instanceof Float floatValue) {
+            tag.putFloat(name, floatValue);
+        }
+    }
+
+    private static <T extends Comparable<T>> void loadBooleanGameRule(LevelData data, GameRule<T> gameRule, boolean value) {
+        loadGameRule(data, gameRule, value);
+    }
+
+    private static <T extends Comparable<T>> void loadGameRule(LevelData data, GameRule<T> gameRule, Object value) {
+        data.getGameRules().load(gameRule, gameRule.getValueClass().cast(value));
     }
 }

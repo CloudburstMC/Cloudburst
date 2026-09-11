@@ -1,29 +1,21 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class SeedCommand extends Command {
+public class SeedCommand extends AdvertisedCommand {
 
     public SeedCommand() {
-        super("seed", CommandData.builder("seed")
-                .setPermissions("cloudburst.command.seed")
-                .build());
+        super("seed", "", "cloudburst.command.seed");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         long seed;
         if (sender instanceof CloudPlayer) {
             seed = ((CloudPlayer) sender).getLevel().getSeed();
@@ -33,6 +25,6 @@ public class SeedCommand extends Command {
 
         sender.sendMessage(Component.translatable("commands.seed.success", Component.text(seed)));
 
-        return true;
+        return success();
     }
 }

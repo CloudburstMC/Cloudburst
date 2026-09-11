@@ -7,7 +7,8 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.LevelGameRules;
+import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.VoxelShape;
@@ -49,7 +50,7 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
 
     boolean unload(boolean force);
 
-    GameRuleMap getGameRules();
+    LevelGameRules getGameRules();
 
     void doTick(int currentTick);
 
@@ -97,7 +98,7 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * Checks whether liquid can occupy the primary or secondary block layer.
      *
      * @param position the block position
-     * @param liquid the liquid state
+     * @param liquid   the liquid state
      * @return whether the liquid can be placed
      */
     boolean canSetLiquidState(Vector3i position, LiquidState liquid);
@@ -106,7 +107,7 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * Places liquid in the primary layer or in a block state that can contain it.
      *
      * @param position the block position
-     * @param liquid the liquid state to place
+     * @param liquid   the liquid state to place
      * @return whether the liquid was placed
      */
     boolean setLiquidState(Vector3i position, LiquidState liquid);
@@ -135,7 +136,7 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * Breaks a block using a tool without a player.
      *
      * @param position the block position
-     * @param item the tool, or {@code null} for an empty hand
+     * @param item     the tool, or {@code null} for an empty hand
      * @return the resulting tool stack, or {@code null} if the block was not broken
      */
     default @Nullable ItemStack breakBlock(Vector3i position, @Nullable ItemStack item) {
@@ -146,8 +147,8 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * Breaks a block on behalf of a player.
      *
      * @param position the block position
-     * @param item the tool, or {@code null} for an empty hand
-     * @param player the player, or {@code null} for no player
+     * @param item     the tool, or {@code null} for an empty hand
+     * @param player   the player, or {@code null} for no player
      * @return the resulting tool stack, or {@code null} if the block was not broken
      */
     default @Nullable ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player) {
@@ -157,9 +158,9 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     /**
      * Breaks a block on behalf of a player.
      *
-     * @param position the block position
-     * @param item the tool, or {@code null} for an empty hand
-     * @param player the player, or {@code null} for no player
+     * @param position        the block position
+     * @param item            the tool, or {@code null} for an empty hand
+     * @param player          the player, or {@code null} for no player
      * @param createParticles whether to send block-break particles
      * @return the resulting tool stack, or {@code null} if the block was not broken
      */
@@ -167,6 +168,13 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player, boolean createParticles);
 
     Map<Long, ? extends Player> getPlayers();
+
+    /**
+     * Returns the entities currently loaded in this level.
+     *
+     * @return loaded entities
+     */
+    Set<? extends Entity> getEntities();
 
     int getBiomeId(int x, int y, int z);
 
@@ -221,6 +229,23 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     void addEntity(Entity entity);
 
     void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw);
+
+    /**
+     * Spawns a particle at a position for players tracking the surrounding chunk.
+     *
+     * @param particle the particle to spawn
+     * @param position the particle position
+     */
+    void spawnParticle(ParticleType particle, Vector3f position);
+
+    /**
+     * Spawns a particle at a position for specific players.
+     *
+     * @param particle the particle to spawn
+     * @param position the particle position
+     * @param players  the players to receive the particle
+     */
+    void spawnParticle(ParticleType particle, Vector3f position, Player... players);
 
     void scheduleEntityUpdate(Entity entity);
 
@@ -296,8 +321,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @return {@code true} if any entity collision shape overlaps the placed shape
      */
     boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position);
-
-    Entity getEntity(long runtimeId);
 
     BlockEntity getBlockEntity(Vector3i position);
 

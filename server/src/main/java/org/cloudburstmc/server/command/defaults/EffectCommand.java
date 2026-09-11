@@ -1,117 +1,107 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.potion.CloudEffect;
 
-public class EffectCommand extends Command {
+import java.util.List;
+
+public class EffectCommand extends AdvertisedCommand {
     public EffectCommand() {
-        super("effect", CommandData.builder("effect")
-                .setDescription("commands.effect.description")
-                .setUsageMessage("/effect <player> <clear|effect> [seconds] [amplifier] [hideParticles]")
-                .setPermissions("cloudburst.command.effect")
-                .setParameters(
-                        new CommandParameter[]{
-                                new CommandParameter("player", CommandParamType.TARGET, false),
-                                new CommandParameter("effect", CommandParamType.STRING, false),
-                                new CommandParameter("seconds", CommandParamType.INT, true),
-                                new CommandParameter("amplifier", true),
-                                new CommandParameter("hideParticle", true, new String[]{"true", "false"})
-                        }, new CommandParameter[]{
-                                new CommandParameter("player", CommandParamType.TARGET, false),
-                                new CommandParameter("clear", new String[]{"clear"})
-                        })
-                .build());
+        super("effect", "commands.effect.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.effect");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("player", arguments.entities())
+                .then(Commands.argument("clear", CommandArgumentTypes.fixedEnumNamed("effect", "EffectClear", "clear"))
+                        .executes(this::executeCommand))
+                .then(Commands.argument("effectName", arguments.effect())
+                        .executes(this::executeCommand)
+                        .then(Commands.argument("seconds", CommandArgumentTypes.integer(0, 1_000_000))
+                                .executes(this::executeCommand)
+                                .then(Commands.argument("amplifier", CommandArgumentTypes.integer(0, 255))
+                                        .executes(this::executeCommand)
+                                        .then(Commands.argument("hideParticles", CommandArgumentTypes.bool())
+                                                .executes(this::executeCommand))))));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        List<Entity> targets = CommandArgumentTypes.entities(context, "player");
+        if (targets.isEmpty()) {
+            return success();
         }
-        if (args.length < 2) {
-            return false;
-        }
-        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
-        if (player == null) {
-            sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
-            return true;
-        }
-        if (args[1].equalsIgnoreCase("clear")) {
-            for (Effect effect : player.getEffects().values()) {
-                player.removeEffect(effect.getType());
+
+        if (hasArgument(context, "clear")) {
+            for (Entity target : targets) {
+                target.removeAllEffects();
+                sender.sendMessage(Component.translatable("commands.effect.success.removed.all",
+                        Component.text(target.getName())));
             }
-            sender.sendMessage(Component.translatable("commands.effect.success.removed.all", player.displayName()));
-            return true;
+            return success();
         }
-        CloudEffect effect;
-        try {
-            effect = new CloudEffect(NetworkUtils.effectFromLegacy((byte) Integer.parseInt(args[1])));
-        } catch (NumberFormatException | ServerException a) {
-            try {
-                effect = new CloudEffect(EffectType.byName(args[1]));
-            } catch (Exception e) {
-                sender.sendMessage(Component.translatable("commands.effect.notFound", Component.text(args[1])));
-                return true;
-            }
-        }
+
+        EffectType effectType = argumentValue(context, "effectName", EffectType.class);
         int duration = 300;
         int amplification = 0;
-        if (args.length >= 3) {
-            try {
-                duration = Integer.parseInt(args[2]);
-            } catch (NumberFormatException a) {
-                return false;
-            }
-            if (effect.getType() == EffectTypes.INSTANT_HEALTH || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
-                duration *= 1;
-            } else {
+        if (hasArgument(context, "seconds")) {
+            duration = argumentValue(context, "seconds", Integer.class);
+            if (effectType != EffectTypes.INSTANT_HEALTH && effectType != EffectTypes.INSTANT_DAMAGE) {
                 duration *= 20;
             }
         }
-        if (args.length >= 4) {
-            try {
-                amplification = Integer.parseInt(args[3]);
-            } catch (NumberFormatException a) {
-                return false;
-            }
+
+        if (hasArgument(context, "amplifier")) {
+            amplification = argumentValue(context, "amplifier", Integer.class);
         }
-        if (args.length >= 5) {
-            String v = args[4].toLowerCase();
-            if (v.matches("(?i)|on|true|t|1")) {
-                effect.setVisible(false);
-            }
-        }
-        if (duration == 0) {
-            if (!player.hasEffect(effect.getType())) {
-                if (player.getEffects().isEmpty()) {
-                    sender.sendMessage(Component.translatable("commands.effect.failure.notActive.all", player.displayName()));
+
+        boolean visible = !hasArgument(context, "hideParticles")
+                || !argumentValue(context, "hideParticles", Boolean.class);
+
+        for (Entity target : targets) {
+            if (duration == 0) {
+                if (!target.hasEffect(effectType)) {
+                    if (target.getEffects().isEmpty()) {
+                        sender.sendMessage(Component.translatable("commands.effect.failure.notActive.all",
+                                Component.text(target.getName())));
+                    } else {
+                        sender.sendMessage(Component.translatable("commands.effect.failure.notActive",
+                                Component.text(effectType.getId().toString()), Component.text(target.getName())));
+                    }
                 } else {
-                    sender.sendMessage(Component.translatable("commands.effect.failure.notActive", Component.text(effect.getName()), player.displayName()));
+                    target.removeEffect(effectType);
+                    sender.sendMessage(Component.translatable("commands.effect.success.removed",
+                            Component.text(effectType.getId().toString()), Component.text(target.getName())));
                 }
-                return true;
+                continue;
             }
-            player.removeEffect(effect.getType());
-            sender.sendMessage(Component.translatable("commands.effect.success.removed", Component.text(effect.getName()), player.displayName()));
-        } else {
-            effect.setDuration(duration).setAmplifier(amplification);
-            player.addEffect(effect);
+
+            CloudEffect effect = new CloudEffect(effectType)
+                    .setDuration(duration)
+                    .setAmplifier(amplification)
+                    .setVisible(visible);
+            target.addEffect(effect);
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.effect.success",
                     Component.text(effect.getName()), Component.text(effect.getAmplifier()),
-                    player.displayName(), Component.text(effect.getDuration() / 20)));
+                    Component.text(target.getName()), Component.text(effect.getDuration() / 20)));
         }
-        return true;
+
+        return success();
     }
 }

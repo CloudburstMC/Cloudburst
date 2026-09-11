@@ -2,11 +2,11 @@ package org.cloudburstmc.server.level;
 
 
 import lombok.ToString;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 
 import java.util.Map;
 import java.util.Objects;
@@ -17,7 +17,7 @@ public class LevelData {
     private static final AtomicLongFieldUpdater<LevelData> currentTickUpdater = AtomicLongFieldUpdater.newUpdater(
             LevelData.class, "currentTick");
 
-    private final GameRuleMap gameRules = new GameRuleMap();
+    private final CloudGameRules gameRules = new CloudGameRules();
     private volatile long currentTick;
     private Long randomSeed;
     private int dimension;
@@ -61,7 +61,7 @@ public class LevelData {
     }
 
     public LevelData(LevelData levelData) {
-        this.gameRules.putAll(levelData.gameRules);
+        this.gameRules.loadFrom(levelData.gameRules);
         this.generator = levelData.generator;
         this.generatorOptions = levelData.generatorOptions;
         this.name = levelData.name;
@@ -75,7 +75,7 @@ public class LevelData {
         this.difficulty = levelData.difficulty;
     }
 
-    public GameRuleMap getGameRules() {
+    public CloudGameRules getGameRules() {
         return this.gameRules;
     }
 

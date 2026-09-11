@@ -44,8 +44,8 @@ import org.cloudburstmc.api.level.LevelException;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -57,7 +57,6 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
-import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -76,6 +75,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.SectionTickList;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.level.collision.CollisionEngine;
+import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -83,10 +83,11 @@ import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
@@ -201,7 +202,7 @@ public class CloudLevel implements Level {
     CloudItemRegistry itemRegistry;
 
     @Inject
-    EntityRegistry entityRegistry;
+    CloudEntityRegistry entityRegistry;
 
     @Inject
     GeneratorRegistry generatorRegistry;
@@ -368,7 +369,7 @@ public class CloudLevel implements Level {
     }
 
     public void addLevelSoundEvent(Vector3f pos, SoundEvent event, int data, EntityType<?> type, boolean isBaby, boolean isGlobal) {
-        addLevelSoundEvent(pos, event, data, type.getIdentifier(), isBaby, isGlobal);
+        addLevelSoundEvent(pos, event, data, type.getId(), isBaby, isGlobal);
     }
 
     public void addLevelSoundEvent(Vector3i pos, SoundEvent event) {
@@ -421,6 +422,20 @@ public class CloudLevel implements Level {
 
     public void addParticle(Particle particle, Collection<Player> players) {
         this.addParticle(particle, players.toArray(new Player[0]));
+    }
+
+    @Override
+    public void spawnParticle(ParticleType particle, Vector3f position) {
+        checkNotNull(particle, "particle");
+        checkNotNull(position, "position");
+        this.addParticleEffect(position, particle.id());
+    }
+
+    @Override
+    public void spawnParticle(ParticleType particle, Vector3f position, Player... players) {
+        checkNotNull(particle, "particle");
+        checkNotNull(position, "position");
+        this.addParticleEffect(position, particle.id(), -1, this.levelData.getDimension(), players);
     }
 
     public void addParticleEffect(Vector3f pos, Identifier identifier) {
@@ -558,7 +573,8 @@ public class CloudLevel implements Level {
         sendTime(this.players.values().toArray(new Player[0]));
     }
 
-    public GameRuleMap getGameRules() {
+    @Override
+    public CloudGameRules getGameRules() {
         return this.levelData.getGameRules();
     }
 
@@ -710,12 +726,9 @@ public class CloudLevel implements Level {
 
                 if (this.levelData.getGameRules().isDirty()) {
                     GameRulesChangedPacket packet = new GameRulesChangedPacket();
-                    //this.levelData.getGameRules().toNetwork(packet.getGameRules());
-                    this.levelData.getGameRules().forEach((gameRule, o) -> {
-                        packet.getGameRules().add(new GameRuleData<>(gameRule.getName(), o));
-                    });
+                    NetworkUtils.gameRulesToNetwork(this.levelData.getGameRules(), packet.getGameRules());
                     CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
-                    this.levelData.getGameRules().refresh();
+                    this.levelData.getGameRules().markClean();
                 }
             }
         }
@@ -2301,12 +2314,13 @@ public class CloudLevel implements Level {
         return false;
     }
 
-    public Entity getEntity(long entityId) {
+    public Entity getEntityByRuntimeId(long entityId) {
         return this.entities.get(entityId);
     }
 
-    public Entity[] getEntities() {
-        return entities.values().toArray(new Entity[0]);
+    @Override
+    public Set<Entity> getEntities() {
+        return Set.copyOf(this.entities.values());
     }
 
     public Set<Entity> getCollidingEntities(BoundingBox boundingBox) {
@@ -2818,12 +2832,12 @@ public class CloudLevel implements Level {
     }
 
     public void stopTime() {
-        this.getGameRules().put(GameRules.DO_DAYLIGHT_CYCLE, false);
+        this.getGameRules().set(GameRules.DO_DAYLIGHT_CYCLE, false);
         this.sendTime();
     }
 
     public void startTime() {
-        this.getGameRules().put(GameRules.DO_DAYLIGHT_CYCLE, true);
+        this.getGameRules().set(GameRules.DO_DAYLIGHT_CYCLE, true);
         this.sendTime();
     }
 
@@ -2861,7 +2875,7 @@ public class CloudLevel implements Level {
 
     public void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw) {
         MoveEntityAbsolutePacket packet = new MoveEntityAbsolutePacket();
-        packet.setRuntimeEntityId(entity.getRuntimeId());
+        packet.setRuntimeEntityId(((CloudEntity) entity).getRuntimeId());
         packet.setPosition(Vector3f.from(x, y, z));
         packet.setRotation(Vector3f.from(pitch, yaw, headYaw));
 

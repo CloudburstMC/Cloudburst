@@ -249,6 +249,13 @@ public interface Player extends Creature, CommandSender {
     }
 
     /**
+     * Returns the player's experience level.
+     *
+     * @return the experience level
+     */
+    int getExperienceLevel();
+
+    /**
      * Returns the display name of this player.
      *
      * @return the display name component

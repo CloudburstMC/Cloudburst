@@ -1,17 +1,18 @@
 open module org.cloudburstmc.api {
     requires static lombok;
-    requires static org.checkerframework.checker.qual;
+    requires static transitive org.checkerframework.checker.qual;
+
+    requires transitive com.google.common;
+    requires transitive com.google.guice;
+    requires transitive com.mojang.brigadier;
+    requires transitive java.desktop;
+    requires transitive net.kyori.adventure;
+    requires transitive net.kyori.examination.api;
+    requires transitive org.cloudburstmc.math.immutable;
+    requires transitive org.slf4j;
+
     requires com.fasterxml.jackson.annotation;
-    requires com.google.common;
-    requires com.google.guice;
-    requires jakarta.inject;
-    requires java.desktop;
-    requires java.sql;
     requires net.kyori.adventure.text.serializer.legacy;
-    requires net.kyori.adventure;
-    requires net.kyori.examination.api;
-    requires org.cloudburstmc.math.immutable;
-    requires org.slf4j;
     requires tools.jackson.core;
     requires tools.jackson.databind;
     requires tools.jackson.dataformat.properties;
@@ -24,6 +25,8 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.block.trait;
     exports org.cloudburstmc.api.blockentity;
     exports org.cloudburstmc.api.command;
+    exports org.cloudburstmc.api.command.argument;
+    exports org.cloudburstmc.api.command.argument.resolver;
     exports org.cloudburstmc.api.crafting;
     exports org.cloudburstmc.api.data;
     exports org.cloudburstmc.api.enchantment;
@@ -53,6 +56,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.level;
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
+    exports org.cloudburstmc.api.level.particle;
     exports org.cloudburstmc.api.pack;
     exports org.cloudburstmc.api.pack.loader;
     exports org.cloudburstmc.api.permission;

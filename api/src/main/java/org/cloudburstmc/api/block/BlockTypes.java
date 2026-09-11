@@ -4,10 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.lang.reflect.Field;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @UtilityClass
 public class BlockTypes {
@@ -1402,6 +1399,15 @@ public class BlockTypes {
         return Optional.ofNullable(Lookup.VALUES.get(id));
     }
 
+    /**
+     * Returns all generated block type constants in declaration order.
+     *
+     * @return generated block type constants
+     */
+    public static Collection<BlockType> values() {
+        return Lookup.VALUES.values();
+    }
+
     private static final class Lookup {
         private static final Map<Identifier, BlockType> VALUES = create();
 
@@ -1420,7 +1426,7 @@ public class BlockTypes {
                 }
             }
 
-            return Map.copyOf(values);
+            return Collections.unmodifiableMap(values);
         }
     }
 }

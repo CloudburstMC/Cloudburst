@@ -1,134 +1,107 @@
 package org.cloudburstmc.api.permission;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import net.kyori.adventure.util.TriState;
 import org.cloudburstmc.api.plugin.PluginContainer;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents an object that can hold and check permissions.
+ * Represents a subject whose access is controlled by permission definitions and attachments.
  *
- * <p>Permissions are evaluated by first checking the effective permission map built from
- * defaults and {@link PermissionAttachment}s. If no explicit value is present, the
- * {@link Permission}'s {@link PermissionDefault} is consulted against the subject's
- * operator status.</p>
+ * <p>A directly granted default takes precedence over a value inherited from another default.
+ * Attachment values override defaults, direct values take precedence over values inherited by the
+ * same attachment, and later attachments take precedence over earlier attachments.</p>
  */
 public interface Permissible extends ServerOperator {
 
     /**
-     * Returns whether the named permission has been explicitly set (via defaults or an attachment).
+     * Returns whether a permission has an effective value supplied by a default or attachment.
      *
-     * @param name the permission name (case-insensitive)
-     * @return true if the permission is explicitly set
+     * @param name permission node name
+     * @return whether the permission is explicitly resolved
      */
     boolean isPermissionSet(String name);
 
     /**
-     * Returns whether the given permission has been explicitly set.
+     * Returns whether a permission has an effective value supplied by a default or attachment.
      *
-     * @param permission the permission to check
-     * @return true if the permission is explicitly set
+     * @param permission permission definition
+     * @return whether the permission is explicitly resolved
      */
-    boolean isPermissionSet(Permission permission);
+    default boolean isPermissionSet(Permission permission) {
+        return isPermissionSet(permission.name());
+    }
 
     /**
-     * Returns whether this subject currently has the named permission.
+     * Checks the effective value of a permission.
      *
-     * <p>Falls back to the registered {@link Permission}'s {@link PermissionDefault} when the
-     * permission has not been explicitly set. Returns the global default if unregistered.</p>
-     *
-     * @param name the permission name (case-insensitive)
-     * @return true if the permission is granted
+     * @param name permission node name
+     * @return whether access is granted
      */
     boolean hasPermission(String name);
 
     /**
-     * Returns whether this subject currently has the given permission.
+     * Checks the effective value of a permission.
      *
-     * @param permission the permission to check
-     * @return true if the permission is granted
+     * @param permission permission definition
+     * @return whether access is granted
      */
-    boolean hasPermission(Permission permission);
+    default boolean hasPermission(Permission permission) {
+        return hasPermission(permission.name());
+    }
 
     /**
-     * Adds a new {@link PermissionAttachment} for the given plugin, with no initial permissions.
+     * Returns the resolved override state without collapsing an unset permission to {@code false}.
      *
-     * @param plugin the owning plugin; must be loaded
-     * @return the new attachment
-     * @throws IllegalArgumentException if the plugin is not loaded
+     * @param name permission node name
+     * @return the resolved state
+     */
+    default TriState permissionValue(String name) {
+        return isPermissionSet(name) ? TriState.byBoolean(hasPermission(name)) : TriState.NOT_SET;
+    }
+
+    /**
+     * Returns the resolved override state without collapsing an unset permission to {@code false}.
+     *
+     * @param permission permission definition
+     * @return the resolved state
+     */
+    default TriState permissionValue(Permission permission) {
+        return permissionValue(permission.name());
+    }
+
+    /**
+     * Creates an empty plugin-owned attachment.
+     *
+     * @param plugin owning plugin
+     * @return the attachment
      */
     PermissionAttachment addAttachment(PluginContainer plugin);
 
     /**
-     * Adds a new {@link PermissionAttachment} with a single initial permission set to {@code true}.
+     * Creates a plugin-owned attachment with its initial overrides applied atomically.
      *
-     * @param plugin the owning plugin; must be loaded
-     * @param name   the permission node name; must not be {@code null}
-     * @return the new attachment
-     * @throws IllegalArgumentException if the plugin is not loaded or {@code name} is null
+     * @param plugin      owning plugin
+     * @param permissions initial overrides
+     * @return the attachment
      */
-    PermissionAttachment addAttachment(PluginContainer plugin, String name);
+    PermissionAttachment addAttachment(PluginContainer plugin, Map<String, Boolean> permissions);
 
     /**
-     * Adds a new {@link PermissionAttachment} with a single initial permission set to the given value.
+     * Creates an attachment that is removed after a number of server ticks.
      *
-     * @param plugin the owning plugin; must be loaded
-     * @param name   the permission node name
-     * @param value  the permission value
-     * @return the new attachment
-     * @throws IllegalArgumentException if the plugin is not loaded
+     * @param plugin      owning plugin
+     * @param permissions initial overrides
+     * @param ticks       lifetime in server ticks
+     * @return the attachment
      */
-    PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value);
+    PermissionAttachment addTemporaryAttachment(PluginContainer plugin, Map<String, Boolean> permissions, long ticks);
 
     /**
-     * Adds a new {@link PermissionAttachment} that is automatically removed after the given
-     * number of ticks.
+     * Returns the currently resolved permission values.
      *
-     * @param plugin the owning plugin; must be loaded
-     * @param ticks  number of server ticks before the attachment is automatically removed
-     * @return the new attachment, or {@code null} if the timed removal could not be scheduled
-     * @throws IllegalArgumentException if the plugin is not loaded or ticks is not positive
+     * @return immutable snapshot of effective permissions
      */
-    @Nullable
-    PermissionAttachment addAttachment(PluginContainer plugin, long ticks);
-
-    /**
-     * Adds a new {@link PermissionAttachment} with a single initial permission that is
-     * automatically removed after the given number of ticks.
-     *
-     * @param plugin the owning plugin; must be loaded
-     * @param name   the permission node name
-     * @param value  the permission value
-     * @param ticks  number of server ticks before the attachment is automatically removed
-     * @return the new attachment, or {@code null} if the timed removal could not be scheduled
-     * @throws IllegalArgumentException if the plugin is not loaded or ticks is not positive
-     */
-    @Nullable
-    PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value, long ticks);
-
-    /**
-     * Removes the given {@link PermissionAttachment} and triggers permission recalculation.
-     *
-     * @param attachment the attachment to remove
-     * @throws IllegalArgumentException if the attachment does not belong to this permissible
-     */
-    void removeAttachment(PermissionAttachment attachment);
-
-    /**
-     * Recalculates all effective permissions by replaying defaults and all attachments.
-     *
-     * <p>This is called automatically when attachments are added or removed, or when
-     * permission defaults change. Does not normally need to be called directly.</p>
-     */
-    void recalculatePermissions();
-
-    /**
-     * Returns an unmodifiable snapshot of all currently effective permissions.
-     *
-     * <p>Each entry captures the resolved boolean value and the source attachment, or
-     * {@code null} for default-sourced permissions.</p>
-     *
-     * @return set of effective permission info records
-     */
-    Set<PermissionAttachmentInfo> getEffectivePermissions();
+    Set<EffectivePermission> getEffectivePermissions();
 }

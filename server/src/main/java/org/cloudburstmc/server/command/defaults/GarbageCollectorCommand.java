@@ -1,31 +1,25 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.utils.ThreadCache;
 
-public class GarbageCollectorCommand extends Command {
+public class GarbageCollectorCommand extends AdvertisedCommand {
 
     public GarbageCollectorCommand() {
-        super("gc", CommandData.builder("gc")
-                .setDescription("commands.gc.description")
-                .setUsageMessage("/gc")
-                .setPermissions("cloudburst.command.gc")
-                .build());
+        super("gc", "commands.gc.description", "cloudburst.command.gc");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         int chunksCollected = 0;
         int entitiesCollected = 0;
         int tilesCollected = 0;
@@ -33,11 +27,11 @@ public class GarbageCollectorCommand extends Command {
 
         for (CloudLevel level : ((CloudServer) sender.getServer()).getLevels()) {
             int chunksCount = level.getChunkCount();
-            int entitiesCount = level.getEntities().length;
+            int entitiesCount = level.getEntities().size();
             int tilesCount = level.getBlockEntities().size();
             level.doChunkGarbageCollection();
             chunksCollected += chunksCount - level.getChunkCount();
-            entitiesCollected += entitiesCount - level.getEntities().length;
+            entitiesCollected += entitiesCount - level.getEntities().size();
             tilesCollected += tilesCount - level.getBlockEntities().size();
         }
 
@@ -55,6 +49,6 @@ public class GarbageCollectorCommand extends Command {
                 .append(Component.text(tilesCollected).color(NamedTextColor.RED)));
         sender.sendMessage(Component.text("Memory freed: ").color(NamedTextColor.GOLD)
                 .append(Component.text(GenericMath.round((freedMemory / 1024d / 1024d), 2) + " MB").color(NamedTextColor.RED)));
-        return true;
+        return success();
     }
 }

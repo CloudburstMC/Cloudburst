@@ -58,6 +58,11 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
 
     @Override
     public @Nullable String getName() {
+        Optional<Player> player = this.getPlayer();
+        if (player.isPresent()) {
+            return player.get().getName();
+        }
+
         return this.name;
     }
 
@@ -153,7 +158,7 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
     @Override
     public void setOp(boolean value) {
         String name = this.requireName();
-        if (value == this.isOp()) {
+        if (value == this.server.isOp(name)) {
             return;
         }
 
@@ -165,10 +170,11 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
     }
 
     private String requireName() {
-        if (this.name == null || this.name.isBlank()) {
+        String name = this.getName();
+        if (name == null || name.isBlank()) {
             throw new IllegalStateException("Offline player has no known name");
         }
 
-        return this.name;
+        return name;
     }
 }

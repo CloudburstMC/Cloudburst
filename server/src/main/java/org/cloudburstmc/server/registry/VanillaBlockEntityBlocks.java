@@ -77,7 +77,7 @@ class VanillaBlockEntityBlocks {
     static Set<BlockType> get(BlockEntityType<?> type) {
         Set<BlockType> blocks = BY_TYPE.get(type);
         if (blocks == null) {
-            throw new IllegalArgumentException("No vanilla block family for " + type.getIdentifier());
+            throw new IllegalArgumentException("No vanilla block family for " + type.getId());
         }
         return blocks;
     }

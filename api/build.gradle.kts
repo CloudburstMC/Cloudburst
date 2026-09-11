@@ -1,3 +1,7 @@
+plugins {
+    alias(libs.plugins.extra.java.module.info)
+}
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -9,6 +13,7 @@ publishing {
 
 dependencies {
     api(libs.adventure.api)
+    api(libs.brigadier)
     api(libs.adventure.text.minimessage)
     api(libs.adventure.text.serializer.legacy)
     api(libs.slf4j.api)
@@ -24,4 +29,28 @@ dependencies {
     api(libs.asm)
     api(libs.asm.commons)
     api(libs.jakarta.inject)
+}
+
+extraJavaModuleInfo {
+    failOnAutomaticModules.set(false)
+    module(libs.adventure.api, "net.kyori.adventure")
+    module("net.kyori:adventure-key", "net.kyori.adventure.key")
+    knownModule("net.kyori:examination-api", "net.kyori.examination.api")
+    knownModule("net.kyori:examination-string", "net.kyori.examination.string")
+    knownModule("org.jetbrains:annotations", "org.jetbrains.annotations")
+    module(libs.brigadier, "com.mojang.brigadier") {
+        overrideModuleName()
+        exportAllPackages()
+        requireAllDefinedDependencies()
+    }
+    module(libs.guice, "com.google.guice")
+    knownModule(libs.guava, "com.google.common")
+    knownModule(libs.jakarta.inject, "jakarta.inject")
+    module(libs.math.immutable, "org.cloudburstmc.math.immutable") {
+        overrideModuleName()
+        exportAllPackages()
+        requireAllDefinedDependencies()
+    }
+    automaticModule("aopalliance:aopalliance", "aopalliance.aop")
+    automaticModule("com.google.guava:listenablefuture", "com.google.guava.listenablefuture")
 }

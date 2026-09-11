@@ -21,7 +21,7 @@ import org.cloudburstmc.server.level.provider.LegacyBlockConverter;
 import org.cloudburstmc.server.level.provider.anvil.palette.BiomePalette;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
@@ -204,7 +204,7 @@ public class AnvilConverter {
     private record DataLoader(List<NbtMap> entityTags) implements ChunkDataLoader {
         @Override
         public boolean load(CloudChunk chunk) {
-            EntityRegistry registry = EntityRegistry.get();
+            CloudEntityRegistry registry = CloudEntityRegistry.get();
             boolean dirty = false;
             for (NbtMap entityTag : entityTags) {
                 if (!entityTag.containsKey("id")) {
@@ -221,7 +221,7 @@ public class AnvilConverter {
                     dirty = true;
                     continue;
                 }
-                EntityType<?> type = registry.getEntityType(identifier);
+                EntityType<?> type = registry.getOrCreateUnknownType(identifier);
                 try {
                     CloudEntity entity = (CloudEntity) registry.newEntity(type, location);
                     entity.loadAdditionalData(entityTag);

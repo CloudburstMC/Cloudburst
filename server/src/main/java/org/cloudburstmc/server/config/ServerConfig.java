@@ -139,10 +139,6 @@ public class ServerConfig {
         properties.modifyDifficulty(difficulty);
     }
 
-    public Map<String, List<String>> getCommandAliases() {
-        return cloudburstYaml.getAliases();
-    }
-
     public Timings getTimings() {
         return cloudburstYaml.getTimings();
     }

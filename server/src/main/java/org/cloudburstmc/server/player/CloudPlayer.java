@@ -17,6 +17,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -48,9 +49,8 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.permission.Permission;
+import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
-import org.cloudburstmc.api.permission.PermissionAttachmentInfo;
 import org.cloudburstmc.api.player.*;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.skin.Skin;
@@ -87,6 +87,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.BedBlockHandlers;
 import org.cloudburstmc.server.block.component.RespawnAnchorBlockHandlers;
 import org.cloudburstmc.server.blockentity.SignBlockEntity;
+import org.cloudburstmc.server.command.network.CommandNetworkCompiler;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -111,15 +112,13 @@ import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
-import org.cloudburstmc.server.permission.PermissibleBase;
+import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
-import org.cloudburstmc.server.registry.CommandRegistry;
-import org.cloudburstmc.server.registry.EntityRegistry;
 import org.cloudburstmc.server.utils.DummyBossBar;
-import org.jspecify.annotations.NonNull;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -233,6 +232,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private boolean teleportAcknowledged;
     private boolean pendingTeleportEntityViewRefresh;
     private boolean initialized;
+    private boolean clientCommandsEnabledStateSent;
+    private boolean clientCommandDataSent;
+    private boolean lastSentClientCommandsEnabled;
+    private boolean lastSentOperatorAbilities;
     private boolean changingDimension = false;
     private boolean wasUnderwater;
     private byte containerIdCounter = 1;
@@ -241,7 +244,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private int loaderId;
     private Entity killer = null;
     private final AuthenticatedPlayerData connectionData;
-    private PermissibleBase perm = null;
+    private CloudPermissible perm = null;
     private String buttonText = "Button";
     private String clientSecret;
 
@@ -268,11 +271,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.randomClientId = connectionData.getClientId();
         this.identity = connectionData.getUniqueId();
         this.username = PlainTextComponentSerializer.plainText().serialize(BedrockLegacyTextSerializer.getInstance().deserialize(connectionData.getName()));
-        this.iusername = username.toLowerCase();
+        this.iusername = username.toLowerCase(Locale.ROOT);
         this.displayName(Component.text(this.username));
         this.setNameTag(this.username);
 
-        this.perm = new PermissibleBase(this.server.getPermissionManager(), this);
+        this.perm = new CloudPermissible(this.server.getPermissionManager(), this, this::onPermissionsChanged);
 
         this.creationTime = System.currentTimeMillis();
 
@@ -409,8 +412,15 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return initialized;
     }
 
-    public void setInitialized(boolean initialized) {
-        this.initialized = initialized;
+    public void completeClientInitialization() {
+        if (this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+        if (this.spawned) {
+            this.syncClientAuthorityState(true);
+        }
     }
 
     @Override
@@ -529,8 +539,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
-        packet.setCommandPermission(this.isOp() ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY);
-        packet.setPlayerPermission(this.isOp() ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
+        packet.setCommandPermission(CommandPermission.ANY);
+        packet.setPlayerPermission(PlayerPermission.MEMBER);
         packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
         this.getData().putAllIn(packet.getMetadata());
         return packet;
@@ -557,11 +567,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         } else {
             this.server.removeOp(this);
         }
-
-        this.recalculatePermissions();
-        this.abilities = buildAbilitiesForGameMode(this.getGameMode());
-        this.abilities.update();
-        this.sendCommandData();
     }
 
     @Override
@@ -576,21 +581,20 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     @Override
-    public boolean isPermissionSet(Permission permission) {
-        if (this.perm == null) return false;
-        return this.perm.isPermissionSet(permission);
-    }
-
-    @Override
     public boolean hasPermission(String name) {
         if (this.perm == null) return false;
         return this.perm.hasPermission(name);
     }
 
-    @Override
-    public boolean hasPermission(Permission permission) {
-        if (this.perm == null) return false;
-        return this.perm.hasPermission(permission);
+    /**
+     * Rebuilds operator-derived abilities and permission defaults after the operator list changes.
+     */
+    public void refreshOperatorStatus() {
+        this.abilities = buildAbilitiesForGameMode(this.getGameMode());
+        CloudPermissible permissions = this.perm;
+        if (permissions != null) {
+            permissions.refresh();
+        }
     }
 
     @Override
@@ -600,53 +604,27 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, String name) {
-        if (this.perm == null) throw new IllegalStateException("Player is offline");
-        return this.perm.addAttachment(plugin, name);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value) {
-        if (this.perm == null) throw new IllegalStateException("Player is offline");
-        return this.perm.addAttachment(plugin, name, value);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, long ticks) {
-        if (this.perm == null) throw new IllegalStateException("Player is offline");
-        return this.perm.addAttachment(plugin, ticks);
-    }
-
-    @Override
-    public PermissionAttachment addAttachment(PluginContainer plugin, String name, boolean value, long ticks) {
-        if (this.perm == null) throw new IllegalStateException("Player is offline");
-        return this.perm.addAttachment(plugin, name, value, ticks);
-    }
-
-    @Override
-    public void removeAttachment(PermissionAttachment attachment) {
-        if (this.perm == null) throw new IllegalStateException("Player is offline");
-        this.perm.removeAttachment(attachment);
-    }
-
-    @Override
-    public void recalculatePermissions() {
-        PermissibleBase localPerm = this.perm;
-        if (localPerm == null) return;
-        localPerm.recalculatePermissions();
-
-        this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
-        this.server.getPermissionManager().unsubscribeFromPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
-
-        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_USERS)) {
-            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_USERS, this);
+    public PermissionAttachment addAttachment(PluginContainer plugin, Map<String, Boolean> permissions) {
+        if (this.perm == null) {
+            throw new IllegalStateException("Player is offline");
         }
 
-        if (this.hasPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE)) {
-            this.server.getPermissionManager().subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this);
+        return this.perm.addAttachment(plugin, permissions);
+    }
+
+    @Override
+    public PermissionAttachment addTemporaryAttachment(PluginContainer plugin, Map<String, Boolean> permissions, long ticks) {
+        if (this.perm == null) {
+            throw new IllegalStateException("Player is offline");
         }
 
-        if (this.isEnableClientCommand() && spawned) this.sendCommandData();
+        return this.perm.addTemporaryAttachment(plugin, permissions, ticks);
+    }
+
+    private void onPermissionsChanged() {
+        if (this.spawned) {
+            this.syncClientAuthorityState(true);
+        }
     }
 
     public boolean isEnableClientCommand() {
@@ -655,10 +633,70 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     public void setEnableClientCommand(boolean enable) {
         this.enableClientCommand = enable;
+        if (this.spawned) {
+            this.syncClientCommandState();
+        }
+    }
+
+    private void syncClientAuthorityState() {
+        this.syncClientAuthorityState(false);
+    }
+
+    private void syncClientAuthorityState(boolean forceCommandData) {
+        boolean commandStateChanged = this.syncClientCommandsEnabled();
+        this.sendAdventureSettings();
+        this.abilities.update();
+        this.syncClientCommandData(commandStateChanged, forceCommandData);
+    }
+
+    private void syncClientCommandState() {
+        boolean commandStateChanged = this.syncClientCommandsEnabled();
+        this.syncClientCommandData(commandStateChanged, false);
+    }
+
+    private boolean syncClientCommandsEnabled() {
+        boolean commandsEnabled = this.isEnableClientCommand();
+        boolean operatorAbilities = this.isOp();
+        boolean enabledStateChanged = !this.clientCommandsEnabledStateSent
+                || this.lastSentClientCommandsEnabled != commandsEnabled
+                || this.lastSentOperatorAbilities != operatorAbilities;
+
+        if (enabledStateChanged) {
+            this.sendClientCommandsEnabled(commandsEnabled);
+            this.clientCommandsEnabledStateSent = true;
+            this.lastSentClientCommandsEnabled = commandsEnabled;
+            this.lastSentOperatorAbilities = operatorAbilities;
+        }
+
+        return enabledStateChanged;
+    }
+
+    private void syncClientCommandData(boolean commandStateChanged, boolean forceCommandData) {
+        boolean commandsEnabled = this.isEnableClientCommand();
+
+        if (this.spawned && this.initialized && commandsEnabled
+                && (forceCommandData || commandStateChanged || !this.clientCommandDataSent)) {
+            this.sendCommandData();
+            this.clientCommandDataSent = true;
+        } else if (!commandsEnabled) {
+            this.clientCommandDataSent = false;
+        }
+    }
+
+    private void sendClientCommandsEnabled(boolean commandsEnabled) {
         SetCommandsEnabledPacket packet = new SetCommandsEnabledPacket();
-        packet.setCommandsEnabled(enable);
+        packet.setCommandsEnabled(commandsEnabled);
         this.sendPacket(packet);
-        if (enable) this.sendCommandData();
+    }
+
+    private void sendAdventureSettings() {
+        UpdateAdventureSettingsPacket packet = new UpdateAdventureSettingsPacket();
+        packet.setNoPvM(false);
+        packet.setNoMvP(false);
+        packet.setImmutableWorld(this.isAdventure() || this.isSpectator());
+        packet.setShowNameTags(false);
+        packet.setAutoJump(true);
+        this.sendPacket(packet);
     }
 
     @Override
@@ -672,7 +710,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     @Override
-    public Set<PermissionAttachmentInfo> getEffectivePermissions() {
+    public Set<EffectivePermission> getEffectivePermissions() {
         if (this.perm == null) return Set.of();
         return this.perm.getEffectivePermissions();
     }
@@ -687,12 +725,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
     }
 
-    public boolean isPlayer() {
-        return true;
-    }
-
     public void sendCommandData() {
-        this.sendPacket(CommandRegistry.get().createPacketFor(this));
+        this.sendPacket(CommandNetworkCompiler.compile(this.server.getCommandRegistry(), this));
     }
 
     public void removeAchievement(String achievementId) {
@@ -959,10 +993,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     protected void doFirstSpawn() {
         this.spawned = true;
 
-        this.setEnableClientCommand(true);
-
-        this.abilities.update();
-
         this.sendPotionEffects(this);
         this.sendData(this);
         this.invManager.sendAllInventories();
@@ -989,11 +1019,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         CreativeContentPacket creativePacket = CloudItemRegistry.get().getCreativeContent();
         this.sendPacket(creativePacket);
 
+        this.getServer().sendRecipeList(this);
+        this.syncClientAuthorityState();
         this.sendPlayStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
 
         this.noDamageTicks = 60;
-
-        this.getServer().sendRecipeList(this);
 
         this.getChunkManager().getViewChunks().forEach((LongConsumer) chunkKey -> {
             int chunkX = CloudChunk.fromKeyX(chunkKey);
@@ -1438,7 +1468,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             gameType.setTick(this.clientTick);
             CloudServer.broadcastPacket(this.getViewers(), gameType);
 
-            this.abilities.update();
+            this.syncClientAuthorityState();
         }
 
         boolean collisionAfter = gamemode != GameMode.SPECTATOR;
@@ -1948,7 +1978,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setSound(underwater ? SoundEvent.AMBIENT_UNDERWATER_ENTER : SoundEvent.AMBIENT_UNDERWATER_EXIT);
         packet.setPosition(this.getPosition());
         packet.setExtraData(-1);
-        packet.setIdentifier(EntityTypes.PLAYER.getIdentifier().toString());
+        packet.setIdentifier(EntityTypes.PLAYER.getId().toString());
         packet.setEntityUniqueId(this.getUniqueId());
         this.sendPacket(packet);
     }
@@ -2185,7 +2215,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
-        availableEntityIdentifiersPacket.setIdentifiers(EntityRegistry.get().getEntityIdentifiersPalette());
+        availableEntityIdentifiersPacket.setIdentifiers(CloudEntityRegistry.get().getEntityIdentifiersPalette());
         this.sendPacket(availableEntityIdentifiersPacket);
 
         if (this.isSpectator()) {
@@ -2274,7 +2304,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             nbt = tag.build();
             oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
         } else {
-            File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase() + ".dat");
+            File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase(Locale.ROOT) + ".dat");
             File dataFile = new File(server.getDataPath() + "players/" + this.identity.toString() + ".dat");
             if (legacyDataFile.exists() && !dataFile.exists()) {
                 nbt = this.server.getOfflinePlayerData(this.username, false);
@@ -2442,7 +2472,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     @Override
-    public void sendMessage(Component message) {
+    public void sendMessage(@NonNull Component message) {
         this.sendPacket(BedrockTextPacketFactory.message(message, getLocale()));
     }
 
@@ -2779,6 +2809,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         setExperience(exp, this.getExperienceLevel());
     }
 
+    @Override
     public int getExperienceLevel() {
         return this.expLevel;
     }
@@ -3571,7 +3602,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         Vector3f castPosition = fishingHookCastPosition();
         Location location = Location.from(castPosition, this.getYaw(), this.getPitch(), this.getLevel());
-        EntityFishingHook fishingHook = (EntityFishingHook) EntityRegistry.get()
+        EntityFishingHook fishingHook = (EntityFishingHook) CloudEntityRegistry.get()
                 .newEntity(EntityTypes.FISHING_HOOK, location);
         fishingHook.setPosition(location.getPosition());
         fishingHook.setOwner(this);
@@ -3696,6 +3727,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         if (near) {
+            CloudEntity cloudEntity = (CloudEntity) entity;
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
                 ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
                 if (this.isSurvival() && !this.getContainer().canAddItem(item)) {
@@ -3716,8 +3748,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
-                packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), packet);
+                packet.setItemRuntimeEntityId(cloudEntity.getRuntimeId());
+                CloudServer.broadcastPacket(cloudEntity.getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3733,8 +3765,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
                 TakeItemEntityPacket packet = new TakeItemEntityPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
-                packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), packet);
+                packet.setItemRuntimeEntityId(cloudEntity.getRuntimeId());
+                CloudServer.broadcastPacket(cloudEntity.getViewers(), packet);
                 this.sendPacket(packet);
 
                 if (!this.isCreative()) {
@@ -3770,8 +3802,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
                         TakeItemEntityPacket packet = new TakeItemEntityPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
-                        packet.setItemRuntimeEntityId(entity.getRuntimeId());
-                        CloudServer.broadcastPacket(((CloudEntity) entity).getViewers(), packet);
+                        packet.setItemRuntimeEntityId(cloudEntity.getRuntimeId());
+                        CloudServer.broadcastPacket(cloudEntity.getViewers(), packet);
                         this.sendPacket(packet);
 
                         entity.close();
