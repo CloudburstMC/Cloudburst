@@ -1,21 +1,14 @@
 package org.cloudburstmc.server.permission;
 
-import tools.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.cloudburstmc.server.Bootstrap;
+import tools.jackson.core.type.TypeReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 public class BanEntry {
     public static final String format = "yyyy-MM-dd HH:mm:ss Z";
@@ -31,7 +24,7 @@ public class BanEntry {
     private String reason = "Banned by an operator.";
 
     public BanEntry(String name) {
-        this.name = name.toLowerCase();
+        this.name = name.toLowerCase(Locale.ROOT);
         this.creationDate = new Date();
     }
 

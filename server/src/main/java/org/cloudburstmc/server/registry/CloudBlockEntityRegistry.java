@@ -12,13 +12,12 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.*;
@@ -69,8 +68,8 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
         checkNotNull(validBlocks, "validBlocks");
-        checkArgument(!type.getIdentifier().getNamespace().equals("minecraft"),
-                "Custom block entity types must use a non-minecraft namespace: %s", type.getIdentifier());
+        checkArgument(!type.getId().getNamespace().equals("minecraft"),
+                "Custom block entity types must use a non-minecraft namespace: %s", type.getId());
         checkArgument(!persistentId.isBlank(), "persistentId cannot be blank");
         checkArgument(!validBlocks.isEmpty(), "validBlocks cannot be empty");
         checkArgument(!this.providers.containsKey(type), "Block entity type is already registered: %s", type);
@@ -84,6 +83,19 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
     public String getPersistentId(BlockEntityType<?> type) {
         String persistentId = this.persistentMap.get(type);
         return persistentId != null ? persistentId : this.unknownPersistentIds.get(type);
+    }
+
+    @Override
+    public Optional<BlockEntityType<?>> get(Identifier id) {
+        checkNotNull(id, "id");
+        return this.providers.keySet().stream()
+                .filter(type -> type.getId().equals(id))
+                .findFirst();
+    }
+
+    @Override
+    public Collection<BlockEntityType<?>> values() {
+        return List.copyOf(this.providers.keySet());
     }
 
     @NonNull
@@ -136,7 +148,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         RegistryServiceProvider<BlockEntityFactory<T>> service = (RegistryServiceProvider) this.providers.get(type);
         if (service == null) {
             if (type.getBlockEntityClass() != UnknownBlockEntity.class) {
-                throw new RegistryException(type.getIdentifier() + " is not a registered entity");
+                throw new RegistryException(type.getId() + " is not a registered entity");
             }
 
             service = (RegistryServiceProvider) UNKNOWN_PROVIDER;
@@ -144,6 +156,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         return service;
     }
 
+    @Override
     public synchronized void close() throws RegistryException {
         checkClosed();
 

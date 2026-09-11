@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.PotionType;
 
@@ -19,7 +20,7 @@ public interface AreaEffectCloud extends Entity {
 
     int getPotionColor();
 
-    void setPotionColor(int argp);
+    void setPotionColor(int argb);
 
     void setPotionColor(int alpha, int red, int green, int blue);
 
@@ -47,9 +48,19 @@ public interface AreaEffectCloud extends Entity {
 
     void setRadius(float radius);
 
-    int getParticleId();
+    /**
+     * Returns the particle shown by this cloud.
+     *
+     * @return the particle type
+     */
+    ParticleType getParticle();
 
-    void setParticleId(int particleId);
+    /**
+     * Sets the particle shown by this cloud.
+     *
+     * @param particle the particle type
+     */
+    void setParticle(ParticleType particle);
 
     List<? extends Effect> getCloudEffects();
 }

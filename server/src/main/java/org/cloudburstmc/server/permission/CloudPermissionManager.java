@@ -1,262 +1,180 @@
 package org.cloudburstmc.server.permission;
 
 import com.google.inject.Singleton;
-import org.cloudburstmc.api.permission.Permissible;
 import org.cloudburstmc.api.permission.Permission;
-import org.cloudburstmc.api.permission.PermissionDefault;
 import org.cloudburstmc.api.permission.PermissionManager;
 
 import java.util.*;
 
 /**
- * Server-side {@link PermissionManager} implementation.
- *
- * <p>Permissions are indexed in two default sets ({@code op} and {@code non-op}) and tracked via
- * weak-reference subscription maps so that offline or GC'd permissibles are cleaned up
- * automatically.</p>
- *
- * <p>Subscriber maps use {@code WeakHashMap<Permissible, Boolean>} with value {@code Boolean.TRUE}
- * as a weak set. This is the standard Java idiom: the value holds no reference to the key,
- * so GC can evict entries for unreachable permissibles.</p>
- *
- * <p>This class is NOT thread-safe. All access must occur on the server's primary thread.</p>
+ * Stores permission definitions and refreshes active subjects when the graph changes.
  */
 @Singleton
 public class CloudPermissionManager implements PermissionManager {
 
-    private final Map<String, Permission> permissions = new HashMap<>();
-
-    /**
-     * Permissions granted to non-operators by default.
-     */
-    private final Map<String, Permission> defaultPerms = new HashMap<>();
-
-    /**
-     * Permissions granted to operators by default.
-     */
-    private final Map<String, Permission> defaultPermsOp = new HashMap<>();
-
-    /**
-     * Per-permission subscriber index. Inner map is a weak set keyed on {@link Permissible}.
-     */
-    private final Map<String, WeakHashMap<Permissible, Boolean>> permSubs = new HashMap<>();
-
-    /**
-     * Default-set subscribers keyed by op status. {@code true} = operator subscribers,
-     * {@code false} = non-operator subscribers. Both inner maps are weak sets.
-     * The outer map is immutable (both keys pre-initialized); only the inner maps are mutated.
-     */
-    private final Map<Boolean, WeakHashMap<Permissible, Boolean>> defSubs = Map.of(
-            Boolean.TRUE, new WeakHashMap<>(),
-            Boolean.FALSE, new WeakHashMap<>()
-    );
+    private final Map<String, Permission> permissions = new LinkedHashMap<>();
+    private final Set<CloudPermissible> subjects = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
     public Optional<Permission> getPermission(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("Permission name cannot be null");
-        }
-        return Optional.ofNullable(permissions.get(name.toLowerCase(Locale.ROOT)));
-    }
-
-    @Override
-    public void addPermission(Permission permission) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission cannot be null");
-        }
-
-        String key = permission.getName().toLowerCase(Locale.ROOT);
-        if (permissions.containsKey(key)) {
-            throw new IllegalArgumentException("The permission " + key + " is already defined!");
-        }
-
-        permissions.put(key, permission);
-        calculatePermissionDefault(permission, true);
-    }
-
-    @Override
-    public void removePermission(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("Permission name cannot be null");
-        }
-        String key = name.toLowerCase(Locale.ROOT);
-
-        boolean wasOp = defaultPermsOp.remove(key) != null;
-        boolean wasNonOp = defaultPerms.remove(key) != null;
-
-        permissions.remove(key);
-
-        Set<Permissible> affected = new HashSet<>();
-
-        WeakHashMap<Permissible, Boolean> directSubs = permSubs.remove(key);
-        if (directSubs != null) {
-            affected.addAll(directSubs.keySet());
-        }
-
-        if (wasOp) {
-            affected.addAll(getDefaultPermSubscriptions(true));
-        }
-
-        if (wasNonOp) {
-            affected.addAll(getDefaultPermSubscriptions(false));
-        }
-
-        for (Permissible p : affected) {
-            p.recalculatePermissions();
+        synchronized (this.permissions) {
+            return Optional.ofNullable(this.permissions.get(Permission.normalizeName(name)));
         }
     }
 
     @Override
-    public void removePermission(Permission permission) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission cannot be null");
-        }
-        removePermission(permission.getName());
-    }
-
-    /**
-     * Returns a snapshot copy of permissions that are granted by default for the given
-     * operator status.
-     *
-     * @param op {@code true} to query the operator defaults, {@code false} for non-operator defaults
-     * @return a mutable snapshot; modifications have no effect on the manager
-     */
-    @Override
-    public Map<String, Permission> getDefaultPermissions(boolean op) {
-        return new HashMap<>(op ? defaultPermsOp : defaultPerms);
-    }
-
-    @Override
-    public void recalculatePermissionDefaults(Permission permission) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission cannot be null");
-        }
-
-        String key = permission.getName().toLowerCase(Locale.ROOT);
-        if (!permissions.containsKey(key)) {
+    public void registerAll(Collection<Permission> permissions) {
+        Objects.requireNonNull(permissions, "permissions");
+        if (permissions.isEmpty()) {
             return;
         }
 
-        boolean wasOp = defaultPermsOp.remove(key) != null;
-        boolean wasNonOp = defaultPerms.remove(key) != null;
-
-        calculatePermissionDefault(permission, false);
-
-        boolean nowOp = defaultPermsOp.containsKey(key);
-        boolean nowNonOp = defaultPerms.containsKey(key);
-
-        if (wasOp || nowOp) {
-            dirtyPermissibles(true);
-        }
-
-        if (wasNonOp || nowNonOp) {
-            dirtyPermissibles(false);
-        }
-    }
-
-    /**
-     * Adds the permission to the appropriate default sets and optionally notifies subscribers.
-     *
-     * @param permission the permission to categorize
-     * @param dirty      if {@code true}, calls {@link #dirtyPermissibles} after inserting into a set
-     */
-    private void calculatePermissionDefault(Permission permission, boolean dirty) {
-        String key = permission.getName().toLowerCase(Locale.ROOT);
-        PermissionDefault def = permission.getDefault();
-        if (def == PermissionDefault.OP || def == PermissionDefault.TRUE) {
-            defaultPermsOp.put(key, permission);
-            if (dirty) {
-                dirtyPermissibles(true);
+        synchronized (this.permissions) {
+            LinkedHashMap<String, Permission> candidate = new LinkedHashMap<>(this.permissions);
+            for (Permission permission : permissions) {
+                Permission definition = Objects.requireNonNull(permission, "permission");
+                String name = definition.name();
+                if (candidate.putIfAbsent(name, definition) != null) {
+                    throw new IllegalArgumentException("Permission is already registered: " + name);
+                }
             }
+
+            validateGraph(candidate);
+            this.permissions.clear();
+            this.permissions.putAll(candidate);
         }
 
-        if (def == PermissionDefault.NOT_OP || def == PermissionDefault.TRUE) {
-            defaultPerms.put(key, permission);
-            if (dirty) {
-                dirtyPermissibles(false);
-            }
-        }
-    }
-
-    private void dirtyPermissibles(boolean op) {
-        for (Permissible p : getDefaultPermSubscriptions(op)) {
-            p.recalculatePermissions();
-        }
+        this.refreshSubjects();
     }
 
     @Override
-    public void subscribeToPermission(String permission, Permissible permissible) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission name cannot be null");
+    public void replace(Permission permission) {
+        Permission definition = Objects.requireNonNull(permission, "permission");
+        String name = definition.name();
+        synchronized (this.permissions) {
+            if (!this.permissions.containsKey(name)) {
+                throw new IllegalArgumentException("Permission is not registered: " + name);
+            }
+
+            if (definition.equals(this.permissions.get(name))) {
+                return;
+            }
+
+            LinkedHashMap<String, Permission> candidate = new LinkedHashMap<>(this.permissions);
+            candidate.put(name, definition);
+            validateGraph(candidate);
+            this.permissions.put(name, definition);
         }
 
-        if (permissible == null) {
-            throw new IllegalArgumentException("Permissible cannot be null");
-        }
-
-        permSubs.computeIfAbsent(permission.toLowerCase(Locale.ROOT), k -> new WeakHashMap<>())
-                .put(permissible, Boolean.TRUE);
+        this.refreshSubjects();
     }
 
     @Override
-    public void unsubscribeFromPermission(String permission, Permissible permissible) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission name cannot be null");
+    public Optional<Permission> unregister(String name) {
+        String normalizedName = Permission.normalizeName(name);
+        Permission removed;
+        synchronized (this.permissions) {
+            removed = this.permissions.get(normalizedName);
+            if (removed == null) {
+                return Optional.empty();
+            }
+
+            LinkedHashMap<String, Permission> candidate = withoutPermission(this.permissions, normalizedName);
+            this.permissions.clear();
+            this.permissions.putAll(candidate);
         }
 
-        if (permissible == null) {
-            throw new IllegalArgumentException("Permissible cannot be null");
+        this.refreshSubjects();
+        return Optional.of(removed);
+    }
+
+    @Override
+    public Collection<Permission> permissions() {
+        synchronized (this.permissions) {
+            return List.copyOf(this.permissions.values());
+        }
+    }
+
+    public void attach(CloudPermissible subject) {
+        synchronized (this.subjects) {
+            this.subjects.add(Objects.requireNonNull(subject, "subject"));
+        }
+    }
+
+    public void detach(CloudPermissible subject) {
+        synchronized (this.subjects) {
+            this.subjects.remove(Objects.requireNonNull(subject, "subject"));
+        }
+    }
+
+    private void refreshSubjects() {
+        Set<CloudPermissible> snapshot;
+        synchronized (this.subjects) {
+            snapshot = Set.copyOf(this.subjects);
         }
 
-        String key = permission.toLowerCase(Locale.ROOT);
-        WeakHashMap<Permissible, Boolean> subs = permSubs.get(key);
-        if (subs == null) {
+        for (CloudPermissible subject : snapshot) {
+            subject.refresh();
+        }
+    }
+
+    private static LinkedHashMap<String, Permission> withoutPermission(
+            Map<String, Permission> definitions,
+            String removedName
+    ) {
+        LinkedHashMap<String, Permission> candidate = new LinkedHashMap<>(definitions);
+        candidate.remove(removedName);
+        for (Map.Entry<String, Permission> entry : candidate.entrySet()) {
+            Permission permission = entry.getValue();
+            if (!permission.children().containsKey(removedName)) {
+                continue;
+            }
+
+            LinkedHashMap<String, Boolean> children = new LinkedHashMap<>(permission.children());
+            children.remove(removedName);
+            entry.setValue(permission.toBuilder().children(children).build());
+        }
+        return candidate;
+    }
+
+    private static void validateGraph(Map<String, Permission> definitions) {
+        for (Permission permission : definitions.values()) {
+            for (String child : permission.children().keySet()) {
+                if (!definitions.containsKey(child)) {
+                    throw new IllegalArgumentException("Permission " + permission.name()
+                            + " references an unregistered child: " + child);
+                }
+            }
+        }
+
+        Set<String> visited = new LinkedHashSet<>();
+        Set<String> path = new LinkedHashSet<>();
+        for (String name : definitions.keySet()) {
+            visit(name, definitions, visited, path);
+        }
+    }
+
+    private static void visit(String name, Map<String, Permission> definitions, Set<String> visited,
+                              Set<String> path) {
+        if (visited.contains(name)) {
             return;
         }
 
-        subs.remove(permissible);
-        if (subs.isEmpty()) {
-            permSubs.remove(key);
-        }
-    }
-
-    @Override
-    public Set<Permissible> getPermissionSubscriptions(String permission) {
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission name cannot be null");
+        if (!path.add(name)) {
+            throw new IllegalArgumentException("Permission inheritance cycle: "
+                    + String.join(" -> ", path) + " -> " + name);
         }
 
-        WeakHashMap<Permissible, Boolean> subs = permSubs.get(permission.toLowerCase(Locale.ROOT));
-        if (subs == null) {
-            return Set.of();
+        Permission permission = definitions.get(name);
+        if (permission != null) {
+            for (String child : permission.children().keySet()) {
+                if (definitions.containsKey(child)) {
+                    visit(child, definitions, visited, path);
+                }
+            }
         }
 
-        return new HashSet<>(subs.keySet());
-    }
-
-    @Override
-    public void subscribeToDefaultPerms(boolean op, Permissible permissible) {
-        if (permissible == null) {
-            throw new IllegalArgumentException("Permissible cannot be null");
-        }
-        defSubs.get(op).put(permissible, Boolean.TRUE);
-    }
-
-    @Override
-    public void unsubscribeFromDefaultPerms(boolean op, Permissible permissible) {
-        if (permissible == null) {
-            throw new IllegalArgumentException("Permissible cannot be null");
-        }
-        defSubs.get(op).remove(permissible);
-    }
-
-    @Override
-    public Set<Permissible> getDefaultPermSubscriptions(boolean op) {
-        return new HashSet<>(defSubs.get(op).keySet());
-    }
-
-    @Override
-    public Map<String, Permission> getPermissions() {
-        return new HashMap<>(permissions);
+        path.remove(name);
+        visited.add(name);
     }
 }

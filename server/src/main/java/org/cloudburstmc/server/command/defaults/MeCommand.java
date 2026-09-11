@@ -1,42 +1,34 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
+import org.cloudburstmc.server.player.CloudPlayer;
 
-
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class MeCommand extends Command {
+public class MeCommand extends AdvertisedCommand {
 
     public MeCommand() {
-        super("me", CommandData.builder("me")
-                .setDescription("commands.me.description")
-                .setUsageMessage("/me <action>")
-                .setPermissions("cloudburst.command.me")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("action ...", CommandParamType.TEXT, false)
-                })
-                .build());
+        super("me", "commands.me.description", CommandNetworkData.ANY_MESSAGE_NOT_CHEAT,
+                "cloudburst.command.me");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("action", CommandArgumentTypes.message())
+                .executes(this::executeCommand));
+    }
 
-        if (args.length == 0) {
-            return false;
-        }
-
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         Component senderName;
         if (sender instanceof CloudPlayer) {
             senderName = ((CloudPlayer) sender).displayName();
@@ -44,10 +36,10 @@ public class MeCommand extends Command {
             senderName = sender.name();
         }
 
-        String msg = String.join(" ", args);
+        String msg = argumentValue(context, "action");
         ((CloudServer) sender.getServer()).broadcastMessage(
                 Component.translatable("chat.type.emote", senderName, Component.text(msg)));
 
-        return true;
+        return success();
     }
 }

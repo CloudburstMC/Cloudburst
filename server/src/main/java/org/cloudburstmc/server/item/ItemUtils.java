@@ -10,6 +10,7 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -172,9 +173,7 @@ public class ItemUtils {
     public static ItemStack deserializeItem(Identifier id, short damage, int amount, NbtMap tag) {
         ItemStackBuilder builder = ItemStack.builder();
         if (amount > 0) {
-            ItemType type = CloudItemRegistry.get().getType(id, damage);
-
-//            log.info(id + " - " + damage + " > " + type + " - " + type.getId());
+            ItemType type = registry.get(id).orElse(ItemTypes.UNKNOWN);
             builder.itemType(type);
             builder.amount(amount);
 

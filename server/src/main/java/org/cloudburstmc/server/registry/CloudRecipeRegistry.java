@@ -16,7 +16,6 @@ import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.crafting.RecipeType;
 import org.cloudburstmc.api.crafting.RecipeUnlockContext;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RecipeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -49,8 +48,8 @@ import java.util.stream.Collectors;
 public class CloudRecipeRegistry implements RecipeRegistry {
 
     public static final Comparator<ItemStack> recipeComparator = Comparator
-            .comparing((ItemStack i) -> i.isEmpty() || i.getType() == null ? "" : i.getType().getId().toString())
-            .thenComparingInt(i -> i.isEmpty() || i.getType() == null ? 0 : ItemUtils.toNetwork(i).getDamage())
+            .comparing((ItemStack i) -> i.isEmpty() ? "" : i.getType().getId().toString())
+            .thenComparingInt(i -> i.isEmpty() ? 0 : ItemUtils.toNetwork(i).getDamage())
             .thenComparingInt(ItemStack::getCount);
 
     private static final String UNLABELED_PREFIX = "minecraft:crafting_recipe_";
@@ -118,8 +117,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private TrimDataPacket trimData;
     private UnlockedRecipesPacket unlockedRecipes;
 
-    public CloudRecipeRegistry(ItemRegistry registry) {
-        this.itemRegistry = (CloudItemRegistry) registry;
+    private CloudRecipeRegistry(CloudItemRegistry registry) {
+        this.itemRegistry = registry;
         try {
             loadFromFile(Thread.currentThread().getContextClassLoader().getResource("data/recipes.json").toURI());
         } catch (URISyntaxException | NullPointerException e) {

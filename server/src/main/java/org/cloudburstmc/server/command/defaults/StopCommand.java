@@ -1,30 +1,25 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-public class StopCommand extends Command {
+public class StopCommand extends AdvertisedCommand {
 
     public StopCommand() {
-        super("stop", CommandData.builder("stop")
-                .setDescription("commands.stop.description")
-                .setPermissions("cloudburst.command.stop")
-                .build());
+        super("stop", "commands.stop.description", CommandNetworkData.OWNER, "cloudburst.command.stop");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.stop.start"));
-
         sender.getServer().shutdown();
 
-        return true;
+        return success();
     }
 }

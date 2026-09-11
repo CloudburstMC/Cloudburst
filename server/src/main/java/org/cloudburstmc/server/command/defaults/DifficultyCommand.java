@@ -1,46 +1,46 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Set;
 
-public class DifficultyCommand extends Command {
+public class DifficultyCommand extends AdvertisedCommand {
 
     public DifficultyCommand() {
-        super("difficulty", CommandData.builder("difficulty")
-                .setDescription("commands.difficulty.description")
-                .setUsageMessage("commands.difficulty.usage")
-                .setPermissions("cloudburst.command.difficulty")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("difficulty", CommandParamType.INT, false)
-                }, new CommandParameter[]{
-                        new CommandParameter("difficulty", new String[]{"peaceful", "p", "easy", "e",
-                                "normal", "n", "hard", "h"})
-                })
-                .build());
+        super("difficulty", "commands.difficulty.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.difficulty");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("difficulty", CommandArgumentTypes.integer(0, 3))
+                .executes(this::executeCommand));
+        builder.then(Commands.argument("difficultyName", CommandArgumentTypes.fixedEnumNamed("difficulty", "Difficulty",
+                        "peaceful", "p", "easy", "e", "normal", "n", "hard", "h"))
+                .executes(this::executeCommand));
+    }
 
-        if (args.length != 1) {
-            return false;
-        }
-
-        Difficulty difficulty = Difficulty.fromString(args[0]);
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        String difficultyValue = hasArgument(context, "difficulty")
+                ? String.valueOf(argumentValue(context, "difficulty", Integer.class))
+                : argumentValue(context, "difficultyName");
+        Difficulty difficulty = Difficulty.fromString(difficultyValue);
 
         if (((CloudServer) sender.getServer()).isHardcore()) {
             difficulty = Difficulty.HARD;
@@ -55,9 +55,9 @@ public class DifficultyCommand extends Command {
 
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.difficulty.success", Component.translatable(difficulty)));
         } else {
-            return false;
+            return usage();
         }
 
-        return true;
+        return success();
     }
 }

@@ -14,7 +14,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.misc.EntityFireworksRocket;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.Objects;
 
@@ -82,7 +82,7 @@ public class FireworkRocketItemHandlers {
 
         CloudLevel level = player.getLevel();
         Location location = Location.from(position, level);
-        FireworksRocket entity = EntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, location);
+        FireworksRocket entity = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET, location);
         if (!(entity instanceof EntityFireworksRocket rocket)) {
             throw new IllegalStateException("Fireworks rocket registry returned " + entity.getClass().getName());
         }

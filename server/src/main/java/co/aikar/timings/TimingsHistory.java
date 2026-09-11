@@ -103,15 +103,15 @@ public class TimingsHistory {
 
                 //count entities
                 for (Entity entity : chunk.getEntities()) {
-                    if (!entityCounts.containsKey(entity.getType().getIdentifier()))
-                        entityCounts.put(entity.getType().getIdentifier(), new AtomicInteger(0));
-                    entityCounts.get(entity.getType().getIdentifier()).incrementAndGet();
-                    entityMap.put(entity.getType().getIdentifier(), entity.getClass().getSimpleName());
+                    if (!entityCounts.containsKey(entity.getType().getId()))
+                        entityCounts.put(entity.getType().getId(), new AtomicInteger(0));
+                    entityCounts.get(entity.getType().getId()).incrementAndGet();
+                    entityMap.put(entity.getType().getId(), entity.getClass().getSimpleName());
                 }
 
                 //count block entities
                 for (BlockEntity blockEntity : chunk.getBlockEntities()) {
-                    var type = blockEntity.getType().getIdentifier();
+                    var type = blockEntity.getType().getId();
 
                     if (!blockEntityCounts.containsKey(type))
                         blockEntityCounts.put(type, new AtomicInteger(0));

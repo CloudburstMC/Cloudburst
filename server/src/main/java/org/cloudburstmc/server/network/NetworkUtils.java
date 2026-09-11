@@ -4,27 +4,32 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.LevelGameRules;
+import org.cloudburstmc.api.level.particle.ParticleType;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.server.registry.CloudParticleRegistry;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.List;
+import java.util.*;
 
 /**
  * Utility class providing static helpers for protocol conversions: potion and effect type ↔ protocol ID,
- * attribute and game-rule serialisation, and address formatting.
+ * attribute and game-rule serialization, and address formatting.
  */
 @UtilityClass
 public class NetworkUtils {
 
     private final BiMap<PotionType, Short> potionTypeMap = HashBiMap.create();
     private final BiMap<EffectType, Byte> effectTypeMap = HashBiMap.create();
+    private final Map<ParticleType, org.cloudburstmc.protocol.bedrock.data.ParticleType> particleTypeMap = createParticleTypeMap();
 
     static {
         potionTypeMap.put(PotionTypes.WATER, (short) 0);
@@ -113,13 +118,19 @@ public class NetworkUtils {
     }
 
     public static AttributeData attributeToNetwork(Attribute attr) {
-        return new AttributeData(attr.getName(), attr.getMinValue(), attr.getMaxValue(), attr.getValue(), attr.getDefaultValue());
+        return new AttributeData(
+                attr.getName(),
+                attr.getMinValue(),
+                attr.getMaxValue(),
+                attr.getValue(),
+                attr.getDefaultValue()
+        );
     }
 
-    public static void gameRulesToNetwork(GameRuleMap gameRules, List<GameRuleData<?>> networkRules) {
-        gameRules.forEach((rule, o) -> {
-            networkRules.add(new GameRuleData<>(rule.getName(), o));
-        });
+    public static void gameRulesToNetwork(LevelGameRules gameRules, List<GameRuleData<?>> networkRules) {
+        for (LevelGameRules.Entry<?> entry : gameRules) {
+            networkRules.add(new GameRuleData<>(entry.rule().getName(), entry.value()));
+        }
     }
 
     public static short potionToNetwork(PotionType type) {
@@ -136,6 +147,27 @@ public class NetworkUtils {
 
     public static EffectType effectFromLegacy(byte effectId) {
         return effectTypeMap.inverse().get(effectId);
+    }
+
+    public static org.cloudburstmc.protocol.bedrock.data.ParticleType particleToNetwork(ParticleType type) {
+        Objects.requireNonNull(type, "type");
+        return particleTypeMap.getOrDefault(type, org.cloudburstmc.protocol.bedrock.data.ParticleType.UNDEFINED);
+    }
+
+    public static ParticleType particleFromNetwork(org.cloudburstmc.protocol.bedrock.data.ParticleType type) {
+        Objects.requireNonNull(type, "type");
+        Identifier id = Identifier.parse(type.name().toLowerCase(Locale.ROOT));
+        return CloudParticleRegistry.get().get(id).orElse(ParticleTypes.UNDEFINED);
+    }
+
+    private static Map<ParticleType, org.cloudburstmc.protocol.bedrock.data.ParticleType> createParticleTypeMap() {
+        Map<ParticleType, org.cloudburstmc.protocol.bedrock.data.ParticleType> values = new HashMap<>();
+        for (org.cloudburstmc.protocol.bedrock.data.ParticleType type :
+                org.cloudburstmc.protocol.bedrock.data.ParticleType.values()) {
+            Identifier id = Identifier.parse(type.name().toLowerCase(Locale.ROOT));
+            CloudParticleRegistry.get().get(id).ifPresent(apiType -> values.put(apiType, type));
+        }
+        return Map.copyOf(values);
     }
 
     public static String loggableAddress(SocketAddress address, boolean logAddress) {

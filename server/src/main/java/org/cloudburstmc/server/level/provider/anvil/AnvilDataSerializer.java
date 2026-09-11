@@ -2,12 +2,13 @@ package org.cloudburstmc.server.level.provider.anvil;
 
 import tools.jackson.core.type.TypeReference;
 import org.cloudburstmc.api.level.gamerule.GameRule;
-import org.cloudburstmc.api.level.gamerule.GameRuleMap;
+import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.LevelData;
+import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.provider.LevelDataSerializer;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.cloudburstmc.server.utils.LoadState;
@@ -79,14 +80,12 @@ public class AnvilDataSerializer implements LevelDataSerializer {
                 .putBoolean("hardcore", data.isHardcore());
 
         NbtMapBuilder gameRulesTag = NbtMap.builder();
-        GameRuleMap gameRules = data.getGameRules();
-        gameRules.forEach((gameRule, o) -> {
-            String name = gameRule.getName();
-            gameRulesTag.putString(name, o.toString());
-        });
+        CloudGameRules gameRules = data.getGameRules();
+        for (LevelGameRules.Entry<?> entry : gameRules) {
+            writeGameRule(gameRulesTag, entry);
+        }
         tag.putCompound("GameRules", gameRulesTag.build());
 
-        // Write
         try (NBTOutputStream stream = NbtUtils.createWriter(Files.newOutputStream(levelDatPath))) {
             stream.writeTag(NbtMap.builder()
                     .putCompound("Data", tag.build())
@@ -125,9 +124,16 @@ public class AnvilDataSerializer implements LevelDataSerializer {
         tag.listenForBoolean("hardcore", data::setHardcore);
 
         NbtMap gameRulesTag = tag.getCompound("GameRules");
-        CloudGameRuleRegistry.get().getRules().forEach(rule -> {
-            String value = gameRulesTag.getString(rule.getName());
-            data.getGameRules().parseAndSet(rule, value);
-        });
+        CloudGameRuleRegistry.get().getRules().forEach(rule -> readGameRule(data, gameRulesTag, rule));
+    }
+
+    private static <T extends Comparable<T>> void writeGameRule(NbtMapBuilder tag, LevelGameRules.Entry<T> entry) {
+        tag.putString(entry.rule().getName(), entry.rule().serialize(entry.value()));
+    }
+
+    private static <T extends Comparable<T>> void readGameRule(LevelData data, NbtMap tag, GameRule<T> gameRule) {
+        if (tag.containsKey(gameRule.getName())) {
+            data.getGameRules().load(gameRule, gameRule.parse(tag.getString(gameRule.getName())));
+        }
     }
 }

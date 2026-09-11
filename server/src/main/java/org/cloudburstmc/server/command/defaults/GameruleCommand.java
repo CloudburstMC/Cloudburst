@@ -1,126 +1,92 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.level.gamerule.*;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.level.gamerule.GameRule;
+import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamOption;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Locale;
 import java.util.StringJoiner;
 
-public class GameruleCommand extends Command {
-    private static final GameRuleRegistry registry = CloudServer.getInstance().getGameRuleRegistry();
+public class GameruleCommand extends AdvertisedCommand {
+    private static final GameRuleRegistry REGISTRY = CloudServer.getInstance().getGameRuleRegistry();
 
     public GameruleCommand() {
-        super("gamerule", CommandData.builder("gamerule")
-                .setDescription("commands.gamerule.description")
-                .setUsageMessage("/gamerule <gamerule> [value]")
-                .setPermissions("cloudburst.command.gamerule")
-                .setParameters(createParameters())
-                .build());
+        super("gamerule", "commands.gamerule.description", CommandNetworkData.GAME_DIRECTORS_NOT_CHEAT,
+                "cloudburst.command.gamerule");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.executes(this::executeCommand);
 
+        for (GameRule<?> rule : REGISTRY.getRules()) {
+            builder.then(ruleBranch(rule));
+        }
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         if (!(sender instanceof CloudPlayer)) {
             sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-            return true;
+            return success();
         }
-        GameRuleMap rules = ((CloudPlayer) sender).getLevel().getGameRules();
 
-        switch (args.length) {
-            case 0:
-                StringJoiner rulesJoiner = new StringJoiner(", ");
-                for (String rule : registry.getRuleNames()) {
-                    rulesJoiner.add(rule.toLowerCase());
-                }
-                sender.sendMessage(Component.text(rulesJoiner.toString()));
-                return true;
-            case 1:
-                GameRule<?> gameRule = registry.fromString(args[0]);
-                if (gameRule == null || !rules.contains(gameRule)) {
-                    sender.sendMessage(Component.translatable("commands.generic.syntax",
-                            Component.text("/gamerule"), Component.text(args[0])));
-                    return true;
-                }
-
-                sender.sendMessage(Component.text(gameRule.getName() + " = " + formatValue(gameRule, rules.getValue(gameRule))));
-                return true;
-            default:
-                gameRule = registry.fromString(args[0]);
-
-                if (gameRule == null) {
-                    sender.sendMessage(Component.translatable("commands.generic.syntax",
-                            Component.text("/gamerule "), Component.text(args[0]),
-                            Component.text(" " + String.join(" ", Arrays.copyOfRange(args, 1, args.length)))));
-                    return true;
-                }
-
-                try {
-                    rules.parseAndSet(gameRule, args[1]);
-                    sender.sendMessage(Component.translatable("commands.gamerule.success", Component.text(gameRule.getName()), Component.text(args[1])));
-                } catch (IllegalArgumentException e) {
-                    sender.sendMessage(Component.translatable("commands.generic.syntax",
-                            Component.text("/gamerule " + args[0] + " "), Component.text(args[1]),
-                            Component.text(" " + String.join(" ", Arrays.copyOfRange(args, 2, args.length)))));
-                }
-                return true;
+        StringJoiner rulesJoiner = new StringJoiner(", ");
+        for (String rule : REGISTRY.getRuleNames()) {
+            rulesJoiner.add(rule.toLowerCase(Locale.ROOT));
         }
+        sender.sendMessage(Component.text(rulesJoiner.toString()));
+        return success();
     }
 
-    private static String formatValue(GameRule<?> gameRule, Object value) {
-        if (gameRule instanceof EnumGameRule<?> enumGameRule) {
-            return enumGameRule.getSerializedValue((int) value);
-        }
-        return value.toString();
+    private static <T extends Comparable<T>> LiteralArgumentBuilder<CommandSourceStack> ruleBranch(GameRule<T> gameRule) {
+        return Commands.literal(gameRule.getName())
+                .executes(context -> queryRule(context, gameRule))
+                .then(Commands.argument("value", gameRule.argumentType())
+                        .executes(context -> setRule(context, gameRule)));
     }
 
-    private static List<CommandParameter[]> createParameters() {
-        List<CommandParameter[]> parameters = new ArrayList<>();
-        List<String> booleanRules = new ArrayList<>();
-        List<String> integerRules = new ArrayList<>();
-
-        parameters.add(new CommandParameter[]{});
-        for (GameRule<?> rule : registry.getRules()) {
-            if (rule instanceof EnumGameRule<?> enumGameRule) {
-                parameters.add(new CommandParameter[]{
-                        new CommandParameter("rule", false, enumGameRule.getName() + "Rule", new String[]{enumGameRule.getName()}),
-                        new CommandParameter("value", false, enumGameRule.getName() + "Values", enumGameRule.getValues().toArray(new String[0]))
-                });
-            } else if (rule instanceof BooleanGameRule) {
-                booleanRules.add(rule.getName());
-            } else if (rule instanceof IntegerGameRule) {
-                integerRules.add(rule.getName());
-            }
+    private static <T extends Comparable<T>> int queryRule(CommandContext<CommandSourceStack> context, GameRule<T> gameRule) {
+        CommandSender sender = sender(context);
+        LevelGameRules rules = playerRules(sender);
+        if (rules == null || !rules.contains(gameRule)) {
+            return success();
         }
+        T value = rules.get(gameRule);
+        sender.sendMessage(Component.text(gameRule.getName() + " = " + gameRule.serialize(value)));
+        return success();
+    }
 
-        if (!booleanRules.isEmpty()) {
-            parameters.add(new CommandParameter[]{
-                    new CommandParameter("rule", false, "BoolGameRule", booleanRules.toArray(new String[0]), CommandParamOption.HAS_SEMANTIC_CONSTRAINT),
-                    new CommandParameter("value", true, "Boolean", new String[]{"true", "false"})
-            });
+    private static <T extends Comparable<T>> int setRule(CommandContext<CommandSourceStack> context, GameRule<T> gameRule) {
+        CommandSender sender = sender(context);
+        LevelGameRules rules = playerRules(sender);
+        if (rules == null || !rules.contains(gameRule)) {
+            return success();
         }
+        T value = context.getArgument("value", gameRule.getValueClass());
+        rules.set(gameRule, value);
+        sender.sendMessage(Component.translatable("commands.gamerule.success",
+                Component.text(gameRule.getName()), Component.text(gameRule.serialize(value))));
+        return success();
+    }
 
-        if (!integerRules.isEmpty()) {
-            parameters.add(new CommandParameter[]{
-                    new CommandParameter("rule", false, "IntGameRule", integerRules.toArray(new String[0]), CommandParamOption.HAS_SEMANTIC_CONSTRAINT),
-                    new CommandParameter("value", CommandParamType.INT, true)
-            });
+    private static LevelGameRules playerRules(CommandSender sender) {
+        if (sender instanceof CloudPlayer player) {
+            return player.getLevel().getGameRules();
         }
-
-        return parameters;
+        sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+        return null;
     }
 }

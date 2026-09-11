@@ -12,7 +12,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.passive.EntitySnowGolem;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 public final class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
 
@@ -45,7 +45,7 @@ public final class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
         level.setBlockState(middle, BlockStates.AIR, true, true);
         level.setBlockState(bottom, BlockStates.AIR, true, true);
 
-        EntitySnowGolem golem = (EntitySnowGolem) EntityRegistry.get()
+        EntitySnowGolem golem = (EntitySnowGolem) CloudEntityRegistry.get()
                 .newEntity(EntityTypes.SNOW_GOLEM, event.getLocation());
         golem.spawnToAll();
         return true;

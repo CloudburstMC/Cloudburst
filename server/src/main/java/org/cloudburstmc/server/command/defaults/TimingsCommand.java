@@ -2,51 +2,50 @@ package org.cloudburstmc.server.command.defaults;
 
 import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsExport;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 
-public class TimingsCommand extends Command {
+import java.util.Locale;
+
+public class TimingsCommand extends AdvertisedCommand {
 
     public TimingsCommand() {
-        super("timings", CommandData.builder("timings")
-                .setDescription("cloudburst.command.timings.description")
-                .setUsageMessage("/timings <on|off|paste>")
-                .setPermissions("cloudburst.command.timings")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("on|off|paste")
-                })
-                .build());
+        super("timings", "cloudburst.command.timings.description", "cloudburst.command.timings");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("action", CommandArgumentTypes.fixedEnumNamed("action", "TimingsAction",
+                        "on", "off", "reset", "report", "paste", "verbon", "verboff"))
+                .executes(this::executeCommand));
+    }
 
-        if (args.length != 1) {
-            return false;
-        }
-
-        String mode = args[0].toLowerCase();
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        String mode = argumentValue(context, "action").toLowerCase(Locale.ROOT);
 
         if (mode.equals("on")) {
             Timings.setTimingsEnabled(true);
             Timings.reset();
             sender.sendMessage(Component.translatable("cloudburst.command.timings.enable"));
-            return true;
+            return success();
         } else if (mode.equals("off")) {
             Timings.setTimingsEnabled(false);
             sender.sendMessage(Component.translatable("cloudburst.command.timings.disable"));
-            return true;
+            return success();
         }
 
         if (!Timings.isTimingsEnabled()) {
             sender.sendMessage(Component.translatable("cloudburst.command.timings.timingsDisabled"));
-            return true;
+            return success();
         }
 
         switch (mode) {
@@ -56,7 +55,7 @@ public class TimingsCommand extends Command {
                 break;
             case "verboff":
                 sender.sendMessage(Component.translatable("cloudburst.command.timings.verboseDisable"));
-                Timings.setVerboseEnabled(true);
+                Timings.setVerboseEnabled(false);
                 break;
             case "reset":
                 Timings.reset();
@@ -67,6 +66,7 @@ public class TimingsCommand extends Command {
                 TimingsExport.reportTimings(sender);
                 break;
         }
-        return true;
+
+        return success();
     }
 }

@@ -1,33 +1,40 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.plugin.PluginDescription;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.network.ProtocolInfo;
 
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.Locale;
 
-public class VersionCommand extends Command {
+public class VersionCommand extends AdvertisedCommand {
 
     public VersionCommand() {
-        super("version", CommandData.builder("version")
-                .setDescription("%cloudburst.command.version.description")
-                .setAliases("ver", "about")
-                .setPermissions("cloudburst.command.version")
-                .build());
+        super("version", "cloudburst.command.version.description", List.of("ver", "about"),
+                "cloudburst.command.version");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-        if (args.length == 0) {
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.executes(this::executeCommand);
+        builder.then(Commands.argument("plugin", CommandArgumentTypes.text())
+                .executes(this::executeCommand));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        if (!hasArgument(context, "plugin")) {
             sender.sendMessage(Component.translatable("cloudburst.server.info.extended",
                     Component.text(sender.getServer().getName()),
                     Component.text(sender.getServer().getImplementationVersion()),
@@ -35,13 +42,11 @@ public class VersionCommand extends Command {
                     Component.text(sender.getServer().getVersion()),
                     Component.text(ProtocolInfo.getDefaultProtocolVersion())));
         } else {
-            StringJoiner pluginName = new StringJoiner(" ");
-            for (String arg : args) pluginName.add(arg);
-
-            var exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName.toString()).orElseGet(() -> {
-                final String finalPluginName = pluginName.toString().toLowerCase();
+            String pluginName = argumentValue(context, "plugin");
+            PluginContainer exactPlugin = sender.getServer().getPluginManager().getPlugin(pluginName).orElseGet(() -> {
+                final String finalPluginName = pluginName.toLowerCase(Locale.ROOT);
                 for (PluginContainer container : sender.getServer().getPluginManager().getAllPlugins()) {
-                    if (container.getDescription().getName().toLowerCase().contains(finalPluginName)) {
+                    if (container.getDescription().getName().toLowerCase(Locale.ROOT).contains(finalPluginName)) {
                         return container;
                     }
                 }
@@ -66,6 +71,7 @@ public class VersionCommand extends Command {
                 sender.sendMessage(Component.translatable("cloudburst.command.version.noSuchPlugin"));
             }
         }
-        return true;
+
+        return success();
     }
 }

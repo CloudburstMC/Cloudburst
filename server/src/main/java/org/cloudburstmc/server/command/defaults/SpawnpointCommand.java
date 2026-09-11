@@ -1,89 +1,77 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.resolver.PositionResolver;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.GenericMath;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class SpawnpointCommand extends Command {
+import java.util.List;
+
+public class SpawnpointCommand extends AdvertisedCommand {
     public SpawnpointCommand() {
-        super("spawnpoint", CommandData.builder("spawnpoint")
-                .setDescription("commands.spawnpoint.description")
-                .setUsageMessage("/spawnpoint [player] <position>")
-                .setPermissions("cloudburst.command.spawnpoint")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("blockPos", CommandParamType.POSITION, true),
-                }, new CommandParameter[]{
-                        new CommandParameter("target", CommandParamType.TARGET, false),
-                        new CommandParameter("pos", CommandParamType.POSITION, true)
-                })
-                .build());
+        super("spawnpoint", "commands.spawnpoint.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.spawnpoint");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-        CloudPlayer target;
-        if (args.length == 0) {
-            if (sender instanceof CloudPlayer) {
-                target = (CloudPlayer) sender;
-            } else {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-                return true;
-            }
-        } else {
-            target = (CloudPlayer) sender.getServer().getPlayer(args[0]);
-            if (target == null) {
-                sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
-                return true;
-            }
-        }
-        CloudLevel level = target.getLevel();
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.executes(this::executeCommand);
+        builder.then(Commands.argument("player", arguments.players())
+                .executes(this::executeCommand)
+                .then(Commands.argument("spawnPos", CommandArgumentTypes.position())
+                        .executes(this::executeCommand)));
+    }
 
-        if (args.length == 4) {
-            if (level != null) {
-                int x;
-                int y;
-                int z;
-                try {
-                    x = Integer.parseInt(args[1]);
-                    y = Integer.parseInt(args[2]);
-                    z = Integer.parseInt(args[3]);
-                } catch (NumberFormatException e1) {
-                    return false;
-                }
-                if (y < 0) y = 0;
-                if (y > 256) y = 256;
-                target.setSpawn(Location.from(x, y, z, level));
-                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.spawnpoint.success.single",
-                        Component.text(target.getName()), Component.text(x), Component.text(y), Component.text(z)));
-                return true;
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        List<CloudPlayer> targets;
+        if (hasArgument(context, "player")) {
+            targets = cloudPlayersArgument(context, "player");
+            if (targets.isEmpty()) {
+                return success();
             }
-        } else if (args.length <= 1) {
-            if (sender instanceof CloudPlayer) {
-                Location pos = ((CloudPlayer) sender).getLocation();
-                target.setSpawn(pos);
-                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.spawnpoint.success.single",
-                        Component.text(target.getName()),
-                        Component.text(GenericMath.round(pos.getX(), 2)),
-                        Component.text(GenericMath.round(pos.getY(), 2)),
-                        Component.text(GenericMath.round(pos.getZ(), 2))));
-                return true;
-            } else {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-                return true;
-            }
+        } else if (sender instanceof CloudPlayer player) {
+            targets = List.of(player);
+        } else {
+            sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+            return success();
         }
-        return false;
+
+        Location spawn;
+        if (hasArgument(context, "spawnPos")) {
+            Vector3f position = argumentValue(context, "spawnPos", PositionResolver.class)
+                    .resolve(context.getSource());
+
+            int y = Math.clamp(position.getFloorY(), context.getSource().level().getMinHeight(),
+                    context.getSource().level().getMaxHeight() - 1);
+            spawn = Location.from(position.getFloorX(), y, position.getFloorZ(),
+                    context.getSource().level());
+        } else {
+            spawn = context.getSource().location();
+        }
+
+        for (CloudPlayer target : targets) {
+            target.setSpawn(spawn);
+            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.spawnpoint.success.single",
+                    Component.text(target.getName()),
+                    Component.text(GenericMath.round(spawn.getX(), 2)),
+                    Component.text(GenericMath.round(spawn.getY(), 2)),
+                    Component.text(GenericMath.round(spawn.getZ(), 2))));
+        }
+        return success();
     }
 }

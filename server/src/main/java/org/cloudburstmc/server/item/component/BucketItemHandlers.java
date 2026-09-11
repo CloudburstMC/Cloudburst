@@ -21,7 +21,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.Objects;
 
@@ -191,7 +191,7 @@ public final class BucketItemHandlers {
     }
 
     private static <T extends Entity> void spawnBucketEntity(CloudLevel level, Vector3i position, EntityType<T> type, ItemStack bucket) {
-        T spawned = EntityRegistry.get().newEntity(type, Location.from(position.toFloat().add(0.5f, 0.5f, 0.5f), level));
+        T spawned = CloudEntityRegistry.get().newEntity(type, Location.from(position.toFloat().add(0.5f, 0.5f, 0.5f), level));
         if (spawned instanceof Bucketable bucketable) {
             bucketable.setFromBucket(true);
         }

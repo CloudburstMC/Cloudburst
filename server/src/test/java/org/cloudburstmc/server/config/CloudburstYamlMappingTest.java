@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,13 +137,6 @@ public class CloudburstYamlMappingTest {
                         .maxChainedNeighborUpdates(34567)
                         .build(),
                 yml.getLevel()
-        );
-
-        HashMap<String, List<String>> aliases = new HashMap<>();
-        aliases.put("savestop", Stream.of("save-all", "stop").collect(Collectors.toList()));
-        assertEquals(
-                aliases,
-                yml.getAliases()
         );
 
         HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();

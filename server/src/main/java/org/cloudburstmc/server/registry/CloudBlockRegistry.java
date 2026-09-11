@@ -34,8 +34,7 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Singleton {@link BlockRegistry} that loads the block state palette from the embedded JSON resource,
- * maintains a bidirectional {@link org.cloudburstmc.api.block.BlockState} ↔ network runtime-ID mapping,
+ * Singleton {@link BlockRegistry} that loads the block state palette from the embedded JSON resource
  * and registers all block behaviors.
  */
 public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implements BlockRegistry {
@@ -95,12 +94,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         return collection;
     }
 
-    @Override
     public boolean isBlock(Identifier id) {
         return VANILLA_LEGACY_IDS.containsKey(id);
     }
 
-    @Override
     public int getRuntimeId(BlockState state) {
         return getDefinition(state).getRuntimeId();
     }
@@ -138,7 +135,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         return this.palette.getDefinition(blockState);
     }
 
-    @Override
     public int getRuntimeId(Identifier id, int meta) {
         return getDefinition(id, meta).getRuntimeId();
     }
@@ -171,12 +167,10 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         return palette.getState(identifier);
     }
 
-    // TODO: Blocks are flattened
     public BlockState getBlock(Identifier identifier, int meta) {
         return getDefinition(identifier, meta).getCloudState();
     }
 
-    // TODO: Blocks are flattened
     public BlockState getBlock(int id, int meta) {
         return getDefinition(id, meta).getCloudState();
     }

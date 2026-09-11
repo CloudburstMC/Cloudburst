@@ -180,19 +180,6 @@ public class ItemPalette {
         return result;
     }
 
-    public Identifier getIdByRuntime(int runtimeId) {
-        return getIdByRuntime(runtimeId, 0);
-    }
-
-    public Identifier getIdByRuntime(int runtimeId, int meta) {
-        ItemDefinition definition = runtimeIdMap.get(runtimeId);
-        Identifier id = Identifier.parse(definition.getIdentifier());
-        if (metaMap.containsKey(id)) {
-            id = metaMap.get(id).get(meta);
-        }
-        return id;
-    }
-
     public CreativeContentPacket getCreativeContentPacket() {
         if (creativeContentPacket == null) {
             this.creativeContentPacket = new CreativeContentPacket();
@@ -357,5 +344,4 @@ public class ItemPalette {
         return ImmutableList.copyOf(creativeItems);
     }
 }
-
 

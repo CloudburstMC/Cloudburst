@@ -107,7 +107,7 @@ public class DummyBossBar {
 
     private void createBossEntity() {
         AddEntityPacket pkAdd = new AddEntityPacket();
-        pkAdd.setIdentifier(EntityTypes.CREEPER.getIdentifier().toString());
+        pkAdd.setIdentifier(EntityTypes.CREEPER.getId().toString());
         pkAdd.setUniqueEntityId(bossBarId);
         pkAdd.setRuntimeEntityId(bossBarId);
         pkAdd.setPosition(Vector3f.from(player.getX(), -10, player.getZ()));

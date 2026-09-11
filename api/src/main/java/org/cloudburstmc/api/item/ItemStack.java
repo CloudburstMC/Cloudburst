@@ -19,113 +19,219 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An immutable value representing an item type, stack count, and optional metadata.
  * Use {@link #builder()} or one of the {@code from} factory methods to create instances.
  *
- * <p>{@link #EMPTY} is the canonical sentinel for "no item / empty slot".
- * Always test with {@link #isEmpty()} rather than {@code == EMPTY} or {@code getType() == null}.</p>
+ * <p>{@link #EMPTY} is the canonical sentinel for "no item / empty slot". It has the
+ * {@link ItemTypes#AIR} type and a count of zero.
+ * Always test with {@link #isEmpty()} rather than comparing the type or instance directly.</p>
+ * Item types identified as {@code minecraft:air} are canonicalized to {@link #EMPTY} when built.
  *
- * <p>Contract: for any non-empty {@code ItemStack}, {@link #getType()} is guaranteed non-null.
- * {@link #getType()} returns {@code null} only on {@link #EMPTY}.</p>
+ * <p>{@link #getType()} always returns a non-null item type.</p>
  */
 public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     /**
-     * Sentinel for "no item". {@link #isEmpty()} returns {@code true}.
-     * {@link #getType()} returns {@code null} on this instance only.
+     * Sentinel for "no item". Its type is {@link ItemTypes#AIR} and its count is zero.
      */
-    public static final ItemStack EMPTY = new ItemStack(null, 0, Collections.emptyMap());
+    public static final ItemStack EMPTY = new ItemStack(ItemTypes.AIR, 0, Collections.emptyMap());
 
-    @Nullable
     private final ItemType type;
     private final int count;
     private final ImmutableMap<DataKey<?, ?>, ?> metadata;
 
-    ItemStack(@Nullable ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
+    private ItemStack(ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
         this.type = type;
         this.count = count;
         this.metadata = ImmutableMap.copyOf(metadata);
     }
 
+    static ItemStack create(ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
+        checkNotNull(type, "type");
+        checkArgument(count > 0, "count must be positive");
+        checkNotNull(metadata, "metadata");
+
+        if (type.isAir()) {
+            return EMPTY;
+        }
+        return new ItemStack(type, count, metadata);
+    }
+
+    /**
+     * Creates an item stack builder without an item type.
+     *
+     * @return a new builder
+     */
     public static ItemStackBuilder builder() {
         return new ItemStackBuilder(null, 1, Collections.emptyMap());
     }
 
-    public static ItemStackBuilder builder(BlockState state) {
+    /**
+     * Creates an item stack builder for an item type.
+     *
+     * @param type the item type
+     * @return a new builder
+     */
+    public static ItemStackBuilder builder(@NonNull ItemType type) {
+        return new ItemStackBuilder(checkNotNull(type, "type"), 1, Collections.emptyMap());
+    }
+
+    /**
+     * Creates an item stack builder for a block state.
+     *
+     * @param state the block state represented by the item
+     * @return a new builder
+     * @throws IllegalArgumentException if the block has no item form
+     */
+    public static ItemStackBuilder builder(@NonNull BlockState state) {
+        checkNotNull(state, "state");
         return new ItemStackBuilder(state.getType().asItem().orElseThrow(
                 () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form")),
                 1, Collections.emptyMap())
                 .data(ItemKeys.BLOCK_STATE, state);
     }
 
-    public static ItemStackBuilder builder(ItemType type) {
-        return new ItemStackBuilder(type, 1, Collections.emptyMap());
-    }
-
-    public static ItemStack from(BlockState state) {
-        return from(state, 1);
-    }
-
-    public static ItemStack from(BlockState state, int amount) {
-        checkNotNull(state, "state");
-        checkArgument(amount > 0, "amount must be positive");
-        ItemType itemType = state.getType().asItem().orElseThrow(
-                () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form"));
-        return new ItemStack(itemType, amount, Map.of(ItemKeys.BLOCK_STATE, state));
-    }
-
-    public static ItemStack from(ItemType type) {
+    /**
+     * Creates one item of the given type.
+     *
+     * @param type the item type
+     * @return the item stack, or {@link #EMPTY} when the type is air
+     */
+    public static ItemStack from(@NonNull ItemType type) {
         return from(type, 1);
     }
 
-    public static ItemStack from(ItemType type, int amount) {
-        checkNotNull(type, "type");
-        checkArgument(amount > 0, "amount must be positive");
-        return new ItemStack(type, amount, Collections.emptyMap());
+    /**
+     * Creates an item stack of the given type.
+     *
+     * @param type the item type
+     * @param amount the positive stack count
+     * @return the item stack, or {@link #EMPTY} when the type is air
+     * @throws IllegalArgumentException if the amount is not positive
+     */
+    public static ItemStack from(@NonNull ItemType type, int amount) {
+        return create(type, amount, Collections.emptyMap());
+    }
+
+    /**
+     * Creates one item representing a block state.
+     *
+     * @param state the block state represented by the item
+     * @return the item stack
+     * @throws IllegalArgumentException if the block has no item form
+     */
+    public static ItemStack from(@NonNull BlockState state) {
+        return from(state, 1);
+    }
+
+    /**
+     * Creates an item stack representing a block state.
+     *
+     * @param state the block state represented by the item
+     * @param amount the positive stack count
+     * @return the item stack
+     * @throws IllegalArgumentException if the amount is not positive or the block has no item form
+     */
+    public static ItemStack from(@NonNull BlockState state, int amount) {
+        checkNotNull(state, "state");
+        ItemType itemType = state.getType().asItem().orElseThrow(
+                () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form"));
+        return create(itemType, amount, Map.of(ItemKeys.BLOCK_STATE, state));
     }
 
     /**
      * Returns {@code true} if this is the {@link #EMPTY} sentinel (no item).
-     * Prefer this over {@code this == ItemStack.EMPTY} or {@code getType() == null}.
+     * Prefer this over comparing the stack instance or item type directly.
      */
     public boolean isEmpty() {
         return this == EMPTY;
     }
 
     /**
-     * Returns the item type, or {@code null} if and only if {@link #isEmpty()} is {@code true}.
-     * For non-empty stacks this is always non-null.
+     * Returns the item type. Empty stacks have the {@link ItemTypes#AIR} type.
+     *
+     * @return the item type
      */
-    @Nullable
-    public ItemType getType() {
+    public @NonNull ItemType getType() {
         return type;
     }
 
+    /**
+     * Returns the number of items in this stack.
+     *
+     * @return the stack count, or zero for {@link #EMPTY}
+     */
     public int getCount() {
         return count;
     }
 
+    /**
+     * Creates a builder initialized from this stack.
+     *
+     * @return a new builder
+     */
     public ItemStackBuilder toBuilder() {
+        if (isEmpty()) {
+            return builder(ItemTypes.AIR);
+        }
         return new ItemStackBuilder(this.type, this.count, this.metadata);
     }
 
+    /**
+     * Returns a stack with its count reduced by one.
+     *
+     * @return the updated stack, or {@link #EMPTY} when no items remain
+     */
     public ItemStack decreaseCount() {
         return withCount(count - 1);
     }
 
+    /**
+     * Returns a stack with its count reduced by the given amount.
+     *
+     * @param amount the amount to subtract
+     * @return the updated stack, or {@link #EMPTY} when no items remain
+     * @throws IllegalArgumentException if the amount is negative
+     */
     public ItemStack decreaseCount(int amount) {
+        checkArgument(amount >= 0, "amount cannot be negative");
         return withCount(count - amount);
     }
 
+    /**
+     * Returns a stack with its count increased by one.
+     *
+     * @return the updated stack
+     */
     public ItemStack increaseCount() {
         return addCount(1);
     }
 
+    /**
+     * Returns a stack with its count increased by the given amount.
+     *
+     * @param amount the amount to add
+     * @return the updated stack
+     * @throws IllegalArgumentException if the amount is negative
+     */
     public ItemStack increaseCount(int amount) {
+        checkArgument(amount >= 0, "amount cannot be negative");
         return addCount(amount);
     }
 
+    /**
+     * Returns a stack whose count is adjusted by the given delta.
+     *
+     * @param delta the signed count change
+     * @return the updated stack, or {@link #EMPTY} when the resulting count is not positive
+     */
     public ItemStack addCount(int delta) {
         return withCount(count + delta);
     }
 
+    /**
+     * Returns a stack with the given count.
+     *
+     * @param amount the new count
+     * @return the updated stack, or {@link #EMPTY} when the count is not positive
+     */
     public ItemStack withCount(int amount) {
         if (this.count == amount) {
             return this;
@@ -304,12 +410,14 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return Optional.ofNullable(this.isBlock() ? this.get(ItemKeys.BLOCK_STATE) : null);
     }
 
-    @Nullable
-    public BlockState getEnsuringBlockState() {
-        if (!this.isBlock()) {
-            throw new NullPointerException("Current Item isn't a block so it can't have a BlockState.");
-        }
-        return this.get(ItemKeys.BLOCK_STATE);
+    /**
+     * Returns the block state represented by this item.
+     *
+     * @return the represented block state
+     * @throws IllegalStateException if this is not a block item
+     */
+    public @NonNull BlockState requireBlockState() {
+        return getBlockState().orElseThrow(() -> new IllegalStateException("Item stack is not a block item"));
     }
 
     /**
@@ -335,10 +443,6 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return toBuilder().data(ItemKeys.BLOCK_STATE, defaultState).build();
     }
 
-    private ItemType requireType() {
-        return checkNotNull(this.type, "type");
-    }
-
     @Override
     public int compareTo(@NonNull ItemStack other) {
         checkNotNull(other, "other");
@@ -346,8 +450,8 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         if (this.isEmpty()) return -1;
         if (other.isEmpty()) return 1;
 
-        ItemType type = requireType();
-        ItemType otherType = other.requireType();
+        ItemType type = this.type;
+        ItemType otherType = other.type;
         if (type.equals(otherType)) {
             return Integer.compare(this.count, other.count);
         }
@@ -363,7 +467,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         checkNotNull(other, "other");
         if (this == other) return true;
         if (this.isEmpty() || other.isEmpty()) return this.isEmpty() == other.isEmpty();
-        return requireType().equals(other.requireType());
+        return type.equals(other.type);
     }
 
     /**
@@ -435,11 +539,11 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         }
 
         if (leftState == null) {
-            return isDefaultBlockStateForItem(rightState, left.requireType());
+            return isDefaultBlockStateForItem(rightState, left.type);
         }
 
         if (rightState == null) {
-            return isDefaultBlockStateForItem(leftState, right.requireType());
+            return isDefaultBlockStateForItem(leftState, right.type);
         }
 
         return false;
@@ -468,6 +572,6 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     @Override
     public String toString() {
         if (isEmpty()) return "ItemStack{EMPTY}";
-        return "ItemStack{type=" + requireType().getId() + ", count=" + count + ", metadata=" + metadata + "}";
+        return "ItemStack{type=" + type.getId() + ", count=" + count + ", metadata=" + metadata + "}";
     }
 }

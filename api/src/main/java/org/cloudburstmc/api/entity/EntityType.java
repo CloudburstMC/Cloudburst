@@ -29,7 +29,7 @@ public final class EntityType<T extends Entity> {
         return entityClass;
     }
 
-    public Identifier getIdentifier() {
+    public Identifier getId() {
         return identifier;
     }
 

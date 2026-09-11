@@ -1,49 +1,44 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-public class DeopCommand extends Command {
+public class DeopCommand extends AdvertisedCommand {
     public DeopCommand() {
-        super("deop", CommandData.builder("deop")
-                .setDescription("commands.deop.description")
-                .setUsageMessage("/deop <player>")
-                .setPermissions("cloudburst.command.op.take")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("player", CommandParamType.TARGET, false)
-                })
-                .build());
+        super("deop", "commands.deop.description", CommandNetworkData.ADMIN_NOT_CHEAT,
+                "cloudburst.command.op.take");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("player", CommandArgumentTypes.string())
+                .executes(this::executeCommand));
+    }
 
-        if (args.length == 0) {
-            return false;
-        }
-
-        String playerName = args[0];
-        Player player = sender.getServer().getPlayer(playerName);
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        String playerName = argumentValue(context, "player");
+        OfflinePlayer player = sender.getServer().getOfflinePlayer(playerName);
         player.setOp(false);
 
-        if (player instanceof CloudPlayer) {
-            ((CloudPlayer) player).sendMessage(Component.translatable("commands.deop.message").color(NamedTextColor.GRAY));
-        }
+        player.getPlayer().ifPresent(onlinePlayer -> onlinePlayer.sendMessage(
+                Component.translatable("commands.deop.message").color(NamedTextColor.GRAY)));
 
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.deop.success", Component.text(player.getName())));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.deop.success",
+                Component.text(CommandUtils.displayName(player, playerName))));
 
-        return true;
+        return success();
     }
 }

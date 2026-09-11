@@ -1,132 +1,88 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.StringJoiner;
+import java.util.List;
 
-public class KillCommand extends Command {
+public class KillCommand extends AdvertisedCommand {
 
     public KillCommand() {
-        super("kill", CommandData.builder("kill")
-                .setDescription("commands.kill.description")
-                .setUsageMessage("/kill [player]")
-                .setAliases("suicide")
-                .setPermissions("cloudburst.command.kill.self", "cloudburst.command.kill.other")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("player", CommandParamType.TARGET, true)
-                })
-                .build());
+        super("kill", "commands.kill.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.kill.self", "cloudburst.command.kill.other");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-        if (args.length >= 2) {
-            return false;
-        }
-        if (args.length == 1) {
-            if (!sender.hasPermission("cloudburst.command.kill.other")) {
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.executes(this::executeCommand);
+        builder.then(Commands.argument("targets", arguments.entities("target"))
+                .executes(this::executeCommand));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        if (hasArgument(context, "targets")) {
+            List<Entity> targets = CommandArgumentTypes.entities(context, "targets");
+            if (targets.isEmpty()) {
+                sender.sendMessage(Component.translatable("commands.generic.entity.notFound").color(NamedTextColor.RED));
+                return success();
+            }
+
+            if (!hasKillPermission(sender, targets)) {
                 sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                return true;
+                return success();
             }
-            CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(args[0]);
-            if (player != null) {
-                EntityDamageEvent ev = new EntityDamageEvent(player, DamageTypes.SUICIDE, 1000);
-                sender.getServer().getEventManager().fire(ev);
-                if (ev.isCancelled()) {
-                    return true;
-                }
 
-                player.setLastDamageCause(ev);
-                player.setHealth(0);
-                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful",
-                        Component.text(player.getName())));
-            } else if (args[0].equals("@e")) {
-                StringJoiner joiner = new StringJoiner(", ");
-                for (CloudLevel level : CloudServer.getInstance().getLevels()) {
-                    for (Entity entity : level.getEntities()) {
-                        if (!(entity instanceof CloudPlayer)) {
-                            joiner.add(entity.getName());
-                            entity.close();
-                        }
-                    }
-                }
-                String entities = joiner.toString();
-                sender.sendMessage(Component.translatable("commands.kill.successful",
-                        Component.text(entities.isEmpty() ? "0" : entities)));
-            } else if (args[0].equals("@s")) {
-                if (!sender.hasPermission("cloudburst.command.kill.self")) {
-                    sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                    return true;
-                }
-                if (!(sender instanceof CloudPlayer)) {
-                    sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-                    return true;
-                }
-
-                EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, DamageTypes.SUICIDE, 1000);
-                sender.getServer().getEventManager().fire(ev);
-                if (ev.isCancelled()) {
-                    return true;
-                }
-
-                ((CloudPlayer) sender).setLastDamageCause(ev);
-                ((CloudPlayer) sender).setHealth(0);
-                sender.sendMessage(Component.translatable("commands.kill.successful",
-                        Component.text(sender.getName())));
-            } else if (args[0].equals("@a")) {
-                if (!sender.hasPermission("cloudburst.command.kill.other")) {
-                    sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                    return true;
-                }
-                for (CloudLevel level : CloudServer.getInstance().getLevels()) {
-                    for (Entity entity : level.getEntities()) {
-                        if (entity instanceof CloudPlayer) {
-                            entity.setHealth(0);
-                            sender.sendMessage(Component.translatable("commands.kill.successful",
-                                    Component.text(entity.getName())).color(NamedTextColor.GOLD));
-                        }
-                    }
-                }
-            } else {
-                sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
+            for (Entity target : targets) {
+                kill(sender, target);
             }
-            return true;
+
+            return success();
         }
+
         if (sender instanceof CloudPlayer) {
             if (!sender.hasPermission("cloudburst.command.kill.self")) {
                 sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                return true;
+                return success();
             }
 
-            EntityDamageEvent ev = new EntityDamageEvent((CloudPlayer) sender, DamageTypes.SUICIDE, 1000);
-            sender.getServer().getEventManager().fire(ev);
-            if (ev.isCancelled()) {
-                return true;
-            }
-
-            ((CloudPlayer) sender).setLastDamageCause(ev);
-            ((CloudPlayer) sender).setHealth(0);
-            sender.sendMessage(Component.translatable("commands.kill.successful",
-                    Component.text(sender.getName())));
+            kill(sender, (Entity) sender);
         } else {
-            return false;
+            return usage();
         }
-        return true;
+
+        return success();
+    }
+
+    private static boolean hasKillPermission(CommandSender sender, List<Entity> targets) {
+        if (targets.size() == 1 && targets.getFirst() == sender) {
+            return sender.hasPermission("cloudburst.command.kill.self");
+        }
+        return sender.hasPermission("cloudburst.command.kill.other");
+    }
+
+    private static void kill(CommandSender sender, Entity entity) {
+        EntityDamageEvent event = new EntityDamageEvent(entity, DamageTypes.SUICIDE, 1000);
+        if (!entity.attack(event)) {
+            return;
+        }
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful",
+                Component.text(entity.getName())));
     }
 }

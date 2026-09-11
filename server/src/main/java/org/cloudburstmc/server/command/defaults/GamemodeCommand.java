@@ -1,94 +1,100 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.event.player.PlayerGameModeChangeEvent;
 import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class GamemodeCommand extends Command {
+import java.util.List;
+import java.util.Locale;
+
+public class GamemodeCommand extends AdvertisedCommand {
 
     public GamemodeCommand() {
-        super("gamemode", CommandData.builder("gamemode")
-                .setDescription("commands.gamemode.description")
-                .setUsageMessage("/gamemode <mode> [player]")
-                .setAliases("gm")
-                .addPermission("cloudburst.command.gamemode.survival")
-                .addPermission("cloudburst.command.gamemode.creative")
-                .addPermission("cloudburst.command.gamemode.adventure")
-                .addPermission("cloudburst.command.gamemode.spectator")
-                .addPermission("cloudburst.command.gamemode.other")
-                .setParameters(
-                        new CommandParameter[]{
-                                new CommandParameter("mode", CommandParamType.INT, false),
-                                new CommandParameter("player", CommandParamType.TARGET, true)
-                        }, new CommandParameter[]{
-                                new CommandParameter("mode", new String[]{"survival", "s", "creative", "c",
-                                        "adventure", "a", "spectator", "spc", "view", "v"}),
-                                new CommandParameter("player", CommandParamType.TARGET, true)
-                        })
-                .build());
+        super("gamemode", "commands.gamemode.description", CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.gamemode");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        var namedMode = Commands.argument("gameMode", CommandArgumentTypes.fixedEnumNamed("gameMode", "GameMode",
+                "default", "creative", "spectator", "survival", "adventure", "d", "c", "s", "a"))
+                .executes(this::executeCommand);
+        namedMode.then(Commands.argument("player", arguments.players())
+                .requires(Commands.requiresPermission("cloudburst.command.gamemode.other"))
+                .executes(this::executeCommand));
+        builder.then(namedMode);
 
-        if (args.length == 0) {
-            return false;
-        }
+        var numericMode = Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode", 0, 3))
+                .executes(this::executeCommand);
+        numericMode.then(Commands.argument("player", arguments.players())
+                .requires(Commands.requiresPermission("cloudburst.command.gamemode.other"))
+                .executes(this::executeCommand));
+        builder.then(numericMode);
+    }
 
-        GameMode gameMode = GameMode.from(args[0].toLowerCase());
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        String gameModeValue = hasArgument(context, "gameMode")
+                ? argumentValue(context, "gameMode")
+                : String.valueOf(argumentValue(context, "gameModeValue", Integer.class));
+        GameMode gameMode = parseGameMode(gameModeValue);
         if (gameMode == null) {
-            sender.sendMessage(Component.text("Unknown game mode")); //TODO: translate?
-            return true;
+            return failure(context, Component.text("Unknown game mode"));
         }
 
-        CommandSender target = sender;
-        if (args.length > 1) {
-            if (sender.hasPermission("cloudburst.command.gamemode.other")) {
-                target = (CommandSender) sender.getServer().getPlayer(args[1]);
-                if (target == null) {
-                    sender.sendMessage(Component.translatable("commands.generic.player.notFound").color(NamedTextColor.RED));
-                    return true;
-                }
-            } else {
-                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                return true;
+        List<CloudPlayer> targets;
+        if (hasArgument(context, "player")) {
+            targets = cloudPlayersArgument(context, "player");
+            if (targets.isEmpty()) {
+                return success();
             }
-        } else if (!(sender instanceof Player)) {
-            return false;
-        }
-
-        if (!sender.hasPermission("cloudburst.command.gamemode." + gameMode.getName())) {
-            sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-            return true;
-        }
-
-        Player targetPlayer = (Player) target;
-        if (targetPlayer.getGameMode() == gameMode) {
-            sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
         } else {
-            boolean changed = ((CloudPlayer) targetPlayer).setGamemode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
+            if (!(sender instanceof CloudPlayer player)) {
+                return usage();
+            }
+            targets = List.of(player);
+        }
+
+        for (CloudPlayer target : targets) {
+            if (target.getGameMode() == gameMode) {
+                sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
+                continue;
+            }
+
+            boolean changed = target.setGamemode(gameMode, PlayerGameModeChangeEvent.Cause.COMMAND);
             if (!changed) {
                 sender.sendMessage(Component.text("Game mode update for " + target.getName() + " failed"));
             } else if (target.equals(sender)) {
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.self", Component.translatable(gameMode)));
             } else {
                 target.sendMessage(Component.translatable("gameMode.changed"));
-                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.other", Component.text(target.getName()), Component.translatable(gameMode)));
+                CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.gamemode.success.other",
+                        Component.text(target.getName()), Component.translatable(gameMode)));
             }
         }
 
-        return true;
+        return success();
+    }
+
+    private static GameMode parseGameMode(String input) {
+        String value = input.toLowerCase(Locale.ROOT);
+        if ("default".equals(value) || "d".equals(value)) {
+            return CloudServer.getInstance().getGameMode();
+        }
+        return GameMode.from(value);
     }
 }

@@ -1,31 +1,25 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.server.command.Command;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-/**
- * Created on 2015/11/13 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class SaveOffCommand extends Command {
+public class SaveOffCommand extends AdvertisedCommand {
 
     public SaveOffCommand() {
-        super("save-off", CommandData.builder("save-off")
-                .setDescription("commands.save.description")
-                .setPermissions("cloudburst.command.save.disable")
-                .build());
+        super("save-off", "commands.save.description", CommandNetworkData.OWNER, "cloudburst.command.save.disable");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         sender.getServer().setAutoSave(false);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.disabled"));
-        return true;
+
+        return success();
     }
 }

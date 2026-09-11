@@ -6,6 +6,10 @@ import org.cloudburstmc.api.entity.misc.*;
 import org.cloudburstmc.api.entity.passive.*;
 import org.cloudburstmc.api.entity.projectile.*;
 import org.cloudburstmc.api.entity.vehicle.*;
+import org.cloudburstmc.api.util.Identifier;
+
+import java.lang.reflect.Field;
+import java.util.*;
 
 @UtilityClass
 public class EntityTypes {
@@ -145,4 +149,44 @@ public class EntityTypes {
     public static final EntityType<ZombieNautilus> ZOMBIE_NAUTILUS = EntityType.from("zombie_nautilus", ZombieNautilus.class);
     public static final EntityType<ZombiePigman> ZOMBIE_PIGMAN = EntityType.from("zombie_pigman", ZombiePigman.class);
     public static final EntityType<ZombieVillager> ZOMBIE_VILLAGER = EntityType.from("zombie_villager_v2", ZombieVillager.class);
+
+    /**
+     * Finds an entity type by identifier.
+     *
+     * @param id the entity type identifier
+     * @return the matching entity type, if known
+     */
+    public static Optional<EntityType<?>> get(Identifier id) {
+        Objects.requireNonNull(id, "id");
+        return Optional.ofNullable(Lookup.VALUES.get(id));
+    }
+
+    /**
+     * Returns all known entity types.
+     *
+     * @return known entity types
+     */
+    public static Collection<EntityType<?>> values() {
+        return Lookup.VALUES.values();
+    }
+
+    private static final class Lookup {
+        private static final Map<Identifier, EntityType<?>> VALUES = create();
+
+        private static Map<Identifier, EntityType<?>> create() {
+            Map<Identifier, EntityType<?>> values = new LinkedHashMap<>();
+            for (Field field : EntityTypes.class.getFields()) {
+                if (!EntityType.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                try {
+                    EntityType<?> type = (EntityType<?>) field.get(null);
+                    values.put(type.getId(), type);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException("Unable to read entity type field " + field.getName(), e);
+                }
+            }
+            return Collections.unmodifiableMap(values);
+        }
+    }
 }

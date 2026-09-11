@@ -1,6 +1,8 @@
 package org.cloudburstmc.api.level.gamerule;
 
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class GameRules {
     public static final BooleanGameRule COMMAND_BLOCK_OUTPUT = BooleanGameRule.of("commandblockoutput", true);
     public static final BooleanGameRule COMMAND_BLOCKS_ENABLED = BooleanGameRule.of("commandblocksenabled", true);
@@ -20,7 +22,7 @@ public class GameRules {
     public static final BooleanGameRule FREEZE_DAMAGE = BooleanGameRule.of("freezedamage", true);
     public static final BooleanGameRule KEEP_INVENTORY = BooleanGameRule.of("keepinventory", false);
     public static final BooleanGameRule MOB_GRIEFING = BooleanGameRule.of("mobgriefing", true);
-    public static final BooleanGameRule NATURAL_REGENERATION = BooleanGameRule.of("maturalregeneration", true);
+    public static final BooleanGameRule NATURAL_REGENERATION = BooleanGameRule.of("naturalregeneration", true);
     public static final EnumGameRule<PlayerWaypointVisibility> PLAYER_WAYPOINTS = EnumGameRule.of("playerwaypoints", PlayerWaypointVisibility.class, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.EVERYONE, PlayerWaypointVisibility.OFF);
     public static final BooleanGameRule PROJECTILES_CAN_BREAK_BLOCKS = BooleanGameRule.of("projectilescanbreakblocks", true);
     public static final BooleanGameRule PVP = BooleanGameRule.of("pvp", true);
@@ -39,8 +41,4 @@ public class GameRules {
     public static final IntegerGameRule PLAYERS_SLEEPING_PERCENTAGE = IntegerGameRule.of("playerssleepingpercentage", 100);
     public static final IntegerGameRule RANDOM_TICK_SPEED = IntegerGameRule.of("randomtickspeed", 1);
     public static final IntegerGameRule SPAWN_RADIUS = IntegerGameRule.of("spawnradius", 10);
-
-    private GameRules() {
-        throw new AssertionError("This class cannot be instantiated");
-    }
 }

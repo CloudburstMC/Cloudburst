@@ -1,69 +1,58 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.ConsoleCommandSender;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.registry.CommandRegistry;
+import org.cloudburstmc.server.command.CloudCommandSourceStack;
+import org.cloudburstmc.server.command.CloudConsoleCommandSender;
+import org.cloudburstmc.server.command.ServerCommand;
+import org.cloudburstmc.server.registry.CloudCommandRegistry;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class HelpCommand extends Command {
+public class HelpCommand extends ServerCommand {
 
     public HelpCommand() {
-        super("help", CommandData.builder("help")
-                .setDescription("commands.help.description")
-                .setUsageMessage("/help [command|page]")
-                .addAlias("?")
-                .setPermissions("cloudburst.command.help")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("page", CommandParamType.INT, true)
-                }, new CommandParameter[]{
-                        new CommandParameter("command", CommandParamType.COMMAND, true)
-                })
-                .build());
+        super("help", "commands.help.description", List.of(), List.of("cloudburst.command.help"));
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.executes(this::executeCommand);
+        builder.then(Commands.argument("page", CommandArgumentTypes.integer(1))
+                .executes(this::executeCommand));
+        builder.then(Commands.argument("command", CommandArgumentTypes.string())
+                .executes(this::executeCommand));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         int pageNumber = 1;
         int pageHeight = 5;
         String command = "";
-        if (args.length != 0) {
-            try {
-                pageNumber = Integer.parseInt(args[0]);
-                if (pageNumber <= 0) {
-                    pageNumber = 1;
-                }
-            } catch (NumberFormatException e) {
-                command = args[0];
-            }
+        if (hasArgument(context, "page")) {
+            pageNumber = argumentValue(context, "page", Integer.class);
+        } else if (hasArgument(context, "command")) {
+            command = argumentValue(context, "command");
         }
 
-        if (sender instanceof ConsoleCommandSender) {
+        if (sender instanceof CloudConsoleCommandSender) {
             pageHeight = Integer.MAX_VALUE;
         }
 
-        if (command.length() == 0) {
-            Map<String, Command> commands = new TreeMap<>();
-            for (Command cmd : CommandRegistry.get().getRegisteredCommands().values()) {
-                if (cmd.testPermissionSilent(sender)) {
-                    commands.put(cmd.getName(), cmd);
-                }
-            }
+        if (command.isEmpty()) {
+            Map<String, String> commands = new TreeMap<>(((CloudServer) sender.getServer()).getCommandRegistry().visibleCommands(sender));
             int totalPage = commands.size() % pageHeight == 0 ? commands.size() / pageHeight : commands.size() / pageHeight + 1;
             pageNumber = Math.min(pageNumber, totalPage);
             if (pageNumber < 1) {
@@ -73,29 +62,41 @@ public class HelpCommand extends Command {
             sender.sendMessage(Component.translatable("commands.help.header",
                     Component.text(pageNumber), Component.text(totalPage)));
             int i = 1;
-            for (Command command1 : commands.values()) {
+            for (Map.Entry<String, String> entry : commands.entrySet()) {
                 if (i >= (pageNumber - 1) * pageHeight + 1 && i <= Math.min(commands.size(), pageNumber * pageHeight)) {
-                    String desc = ((CloudServer) sender.getServer()).getLanguage().translate(command1.getDescription());
-                    sender.sendMessage(Component.text("/" + command1.getName() + ": ").color(NamedTextColor.DARK_GREEN)
+                    String desc = ((CloudServer) sender.getServer()).getLanguage().translate(entry.getValue());
+                    sender.sendMessage(Component.text("/" + entry.getKey() + ": ").color(NamedTextColor.DARK_GREEN)
                             .append(Component.text(desc).color(NamedTextColor.WHITE)));
                 }
                 i++;
             }
         } else {
-            Command cmd = CommandRegistry.get().getCommand(command.toLowerCase());
-            if (cmd != null) {
-                if (cmd.testPermissionSilent(sender)) {
-                    String desc = ((CloudServer) sender.getServer()).getLanguage().translate(cmd.getDescription());
-                    sender.sendMessage(Component.text(" Help: /" + cmd.getName() + " ").color(NamedTextColor.WHITE)
-                            .append(Component.text("\nDescription: ").color(NamedTextColor.GOLD))
-                            .append(Component.text(desc).color(NamedTextColor.WHITE))
-                            .append(Component.text("\nUsage: ").color(NamedTextColor.GOLD))
-                            .append(Component.text(cmd.getUsage()).color(NamedTextColor.WHITE)));
-                    return true;
-                }
+            CloudCommandRegistry registry = ((CloudServer) sender.getServer()).getCommandRegistry();
+            String label = command.toLowerCase(Locale.ROOT);
+            CloudCommandSourceStack source = CloudCommandSourceStack.from(sender);
+            if (registry.canUse(label, source)) {
+                sendHelp(sender, label, registry.commandDescription(label), registry.usages(label, source));
+            } else {
+                sender.sendMessage(Component.text("No help for " + command).color(NamedTextColor.RED));
             }
-            sender.sendMessage(Component.text("No help for " + command).color(NamedTextColor.RED));
         }
-        return true;
+
+        return success();
+    }
+
+    private static void sendHelp(
+            CommandSender sender,
+            String command,
+            String descriptionKey,
+            Iterable<String> usages
+    ) {
+        String desc = ((CloudServer) sender.getServer()).getLanguage().translate(descriptionKey);
+        sender.sendMessage(Component.text(" Help: /" + command + " ").color(NamedTextColor.WHITE)
+                .append(Component.text("\nDescription: ").color(NamedTextColor.GOLD))
+                .append(Component.text(desc).color(NamedTextColor.WHITE)));
+        for (String usage : usages) {
+            sender.sendMessage(Component.text("Usage: ").color(NamedTextColor.GOLD)
+                    .append(Component.text(usage).color(NamedTextColor.WHITE)));
+        }
     }
 }

@@ -1,33 +1,28 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class StatusCommand extends Command {
+public class StatusCommand extends AdvertisedCommand {
 
     public StatusCommand() {
-        super("status", CommandData.builder("status")
-                .setDescription("cloudburst.command.status.description")
-                .setPermissions("cloudburst.command.status")
-                .build());
+        super("status", "cloudburst.command.status.description", "cloudburst.command.status");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         CloudServer server = (CloudServer) sender.getServer();
         sender.sendMessage(Component.text("---- ").color(NamedTextColor.GREEN)
                 .append(Component.text("Server status").color(NamedTextColor.WHITE))
@@ -96,7 +91,7 @@ public class StatusCommand extends Command {
             sender.sendMessage(Component.text("Level \"" + level.getId() + "\"" + nameInfo + ": ").color(NamedTextColor.YELLOW)
                     .append(Component.text(level.getChunks().size()).color(NamedTextColor.RED))
                     .append(Component.text(" chunks, ").color(NamedTextColor.GREEN))
-                    .append(Component.text(level.getEntities().length).color(NamedTextColor.RED))
+                    .append(Component.text(level.getEntities().size()).color(NamedTextColor.RED))
                     .append(Component.text(" entities, ").color(NamedTextColor.GREEN))
                     .append(Component.text(level.getBlockEntities().size()).color(NamedTextColor.RED))
                     .append(Component.text(" block entities, ").color(NamedTextColor.GREEN))
@@ -106,7 +101,7 @@ public class StatusCommand extends Command {
                             .color(slowTick ? NamedTextColor.RED : NamedTextColor.YELLOW)));
         }
 
-        return true;
+        return success();
     }
 
     private static Component formatUptime(long uptime) {

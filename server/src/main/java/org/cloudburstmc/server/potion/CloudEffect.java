@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -99,11 +98,9 @@ public class CloudEffect extends Effect {
                         && this.getDuration() < oldEffect.getDuration())) {
             return;
         }
-        if (entity instanceof CloudPlayer) {
-            CloudPlayer player = (CloudPlayer) entity;
-
+        if (entity instanceof CloudPlayer player) {
             MobEffectPacket packet = new MobEffectPacket();
-            packet.setRuntimeEntityId(entity.getRuntimeId());
+            packet.setRuntimeEntityId(player.getRuntimeId());
             packet.setEffectId(this.getNetworkId());
             packet.setAmplifier(this.getAmplifier());
             packet.setParticles(this.isVisible());
@@ -143,19 +140,19 @@ public class CloudEffect extends Effect {
     }
 
     public void remove(Entity entity) {
-        if (entity instanceof Player) {
+        if (entity instanceof CloudPlayer player) {
             MobEffectPacket packet = new MobEffectPacket();
-            packet.setRuntimeEntityId(entity.getRuntimeId());
+            packet.setRuntimeEntityId(player.getRuntimeId());
             packet.setEffectId(this.getNetworkId());
             packet.setEvent(MobEffectPacket.Event.REMOVE);
 
-            ((CloudPlayer) entity).sendPacket(packet);
+            player.sendPacket(packet);
 
             if (this.getType() == EffectTypes.SPEED) {
-                ((Player) entity).setMovementSpeed(((Player) entity).getMovementSpeed() / (1 + 0.2f * (this.getAmplifier() + 1)));
+                player.setMovementSpeed(player.getMovementSpeed() / (1 + 0.2f * (this.getAmplifier() + 1)));
             }
             if (this.getType() == EffectTypes.SLOWNESS) {
-                ((Player) entity).setMovementSpeed(((Player) entity).getMovementSpeed() / (1 - 0.15f * (this.getAmplifier() + 1)));
+                player.setMovementSpeed(player.getMovementSpeed() / (1 - 0.15f * (this.getAmplifier() + 1)));
             }
         }
 

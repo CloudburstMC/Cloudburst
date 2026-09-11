@@ -6,7 +6,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.registry.EnchantmentRegistry;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,8 +23,7 @@ public abstract class ItemDataProvider {
     }
 
     public String getCustomName() {
-        var display = tag.getCompound("display");
-
+        NbtMap display = tag.getCompound("display");
         if (display != null) {
             return tag.getString("Name");
         }
@@ -33,8 +32,7 @@ public abstract class ItemDataProvider {
     }
 
     public List<String> getLore() {
-        var display = tag.getCompound("display");
-
+        NbtMap display = tag.getCompound("display");
         if (display != null) {
             return tag.getList("Lore", NbtType.STRING);
         }
@@ -44,7 +42,7 @@ public abstract class ItemDataProvider {
 
     public Set<Enchantment> getEnchantments() {
         Set<Enchantment> enchantments = new HashSet<>();
-        var registry = EnchantmentRegistry.get();
+        CloudEnchantmentRegistry registry = CloudEnchantmentRegistry.get();
 
         tag.listenForList("ench", NbtType.COMPOUND, tags -> {
             for (NbtMap entry : tags) {

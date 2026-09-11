@@ -140,7 +140,7 @@ public final class CloudPlayerAbilities implements PlayerAbilities {
         layer.getAbilitiesSet().addAll(ALL_LAYER_ABILITIES);
 
         for (Ability ability : Ability.values()) {
-            if (Boolean.TRUE.equals(values.get(ability))) {
+            if (this.get(ability)) {
                 org.cloudburstmc.protocol.bedrock.data.Ability protocolAbility = toProtocol(ability);
                 if (protocolAbility != null) {
                     layer.getAbilityValues().add(protocolAbility);

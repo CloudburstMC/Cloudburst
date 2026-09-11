@@ -2,6 +2,7 @@ package org.cloudburstmc.api.command;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.permission.Permissible;
 
@@ -19,7 +20,7 @@ public interface CommandSender extends Audience, Permissible {
      * @param message the message to send
      */
     @Override
-    void sendMessage(Component message);
+    void sendMessage(@NonNull Component message);
 
     /**
      * Returns the server instance associated with this command sender.
@@ -41,11 +42,4 @@ public interface CommandSender extends Audience, Permissible {
      * @return the display name component
      */
     Component name();
-
-    /**
-     * Returns whether this command sender represents an online player.
-     *
-     * @return true if this sender is a player
-     */
-    boolean isPlayer();
 }

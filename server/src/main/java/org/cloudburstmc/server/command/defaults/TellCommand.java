@@ -1,65 +1,59 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.List;
 
-public class TellCommand extends Command {
+public class TellCommand extends AdvertisedCommand {
 
     public TellCommand() {
-        super("tell", CommandData.builder("tell")
-                .setDescription("commands.tell.description")
-                .setUsageMessage("/tell <player> <message>")
-                .setAliases("w", "msg")
-                .setPermissions("cloudburst.command.tell")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("player", CommandParamType.TARGET, false),
-                        new CommandParameter("message")
-                })
-                .build());
+        super("tell", "commands.tell.description", List.of("w", "msg"),
+                CommandNetworkData.ANY_MESSAGE_NOT_CHEAT,
+                "cloudburst.command.tell");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("player", arguments.players())
+                .then(Commands.argument("message", CommandArgumentTypes.message())
+                        .executes(this::executeCommand)));
+    }
 
-        if (args.length < 2) {
-            return false;
-        }
-
-        String name = args[0].toLowerCase();
-
-        CloudPlayer player = (CloudPlayer) sender.getServer().getPlayer(name);
-        if (player == null) {
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        List<CloudPlayer> players = cloudPlayersArgument(context, "player");
+        if (players.isEmpty()) {
             sender.sendMessage(Component.translatable("commands.generic.player.notFound"));
-            return true;
+            return success();
         }
 
-        if (Objects.equals(player, sender)) {
-            sender.sendMessage(Component.translatable("commands.message.sameTarget").color(NamedTextColor.RED));
-            return true;
-        }
-
-        StringJoiner msg = new StringJoiner(" ");
-        for (int i = 1; i < args.length; i++) {
-            msg.add(args[i]);
-        }
-
+        String msg = argumentValue(context, "message");
         Component senderDisplayName = (sender instanceof CloudPlayer) ? ((CloudPlayer) sender).displayName() : sender.name();
+        for (CloudPlayer player : players) {
+            if (player.equals(sender)) {
+                sender.sendMessage(Component.translatable("commands.message.sameTarget").color(NamedTextColor.RED));
+                continue;
+            }
 
-        sender.sendMessage(Component.translatable("commands.message.display.outgoing", player.displayName(), Component.text(msg.toString())));
-        player.sendMessage(Component.translatable("commands.message.display.incoming", senderDisplayName, Component.text(msg.toString())));
+            sender.sendMessage(Component.translatable("commands.message.display.outgoing",
+                    player.displayName(), Component.text(msg)));
+            player.sendMessage(Component.translatable("commands.message.display.incoming",
+                    senderDisplayName, Component.text(msg)));
+        }
 
-        return true;
+        return success();
     }
 }

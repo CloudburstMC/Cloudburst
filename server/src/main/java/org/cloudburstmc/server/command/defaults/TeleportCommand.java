@@ -1,116 +1,157 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.resolver.PositionResolver;
+import org.cloudburstmc.api.command.argument.resolver.RotationResolver;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandParamType;
-import org.cloudburstmc.server.command.Command;
 import org.cloudburstmc.server.command.CommandUtils;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
-import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.List;
 
-public class TeleportCommand extends Command {
+public class TeleportCommand extends AdvertisedCommand {
     public TeleportCommand() {
-        super("tp", CommandData.builder("tp")
-                .setDescription("commands.tp.description")
-                .setUsageMessage("/tp [player] <position|target>")
-                .setPermissions("cloudburst.command.teleport")
-                .addParameters(new CommandParameter[]{new CommandParameter("player", CommandParamType.TARGET, false)})
-                .addParameters(new CommandParameter[]{
-                        new CommandParameter("player", CommandParamType.TARGET, false),
-                        new CommandParameter("target", CommandParamType.TARGET, false),
-                }).addParameters(new CommandParameter[]{
-                        new CommandParameter("player", CommandParamType.TARGET, false),
-                        new CommandParameter("position", CommandParamType.POSITION, false),
-                }).addParameters(new CommandParameter[]{
-                        new CommandParameter("position", CommandParamType.POSITION, false),
-                }).build());
+        super("teleport", "commands.tp.description", List.of("tp"), CommandNetworkData.GAME_DIRECTORS,
+                "cloudburst.command.teleport");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-        if (args.length < 1 || args.length > 6) {
-            return false;
-        }
-        CommandSender target;
-        CommandSender origin = sender;
-        if (args.length == 1 || args.length == 3) {
-            if (sender instanceof CloudPlayer) {
-                target = sender;
-            } else {
-                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
-                return true;
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("player", arguments.entities())
+                .executes(this::executeCommand)
+                .then(Commands.argument("target", arguments.entity())
+                        .executes(this::executeCommand))
+                .then(Commands.argument("playerPosition", CommandArgumentTypes.position("position"))
+                        .executes(this::executeCommand)
+                        .then(Commands.argument("playerYaw", CommandArgumentTypes.rotation("yaw"))
+                                .then(Commands.argument("playerPitch", CommandArgumentTypes.rotation("pitch"))
+                                        .executes(this::executeCommand)))));
+        builder.then(Commands.argument("position", CommandArgumentTypes.position())
+                .executes(this::executeCommand)
+                .then(Commands.argument("yaw", CommandArgumentTypes.rotation())
+                        .then(Commands.argument("pitch", CommandArgumentTypes.rotation())
+                                .executes(this::executeCommand))));
+    }
+
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSender sender = sender(context);
+        if (hasArgument(context, "target")) {
+            List<Entity> origins = CommandArgumentTypes.entities(context, "player");
+            Entity target = CommandArgumentTypes.entity(context, "target");
+            if (origins.isEmpty()) {
+                return success();
             }
-            if (args.length == 1) {
-                target = (CommandSender) sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
-                if (target == null) {
-                    sender.sendMessage(Component.text("Can't find player " + args[0]).color(NamedTextColor.RED));
-                    return true;
-                }
+
+            for (Entity origin : origins) {
+                teleportToEntity(sender, origin, target);
             }
-        } else {
-            target = (CommandSender) sender.getServer().getPlayer(args[0].replace("@s", sender.getName()));
+            return success();
+        }
+
+        if (hasArgument(context, "playerPosition")) {
+            List<Entity> targets = CommandArgumentTypes.entities(context, "player");
+            if (targets.isEmpty()) {
+                return success();
+            }
+
+            for (Entity target : targets) {
+                teleportToPosition(context.getSource(), sender, target,
+                        argumentValue(context, "playerPosition", PositionResolver.class),
+                        rotation(context, "playerYaw", context.getSource().location().getYaw()),
+                        rotation(context, "playerPitch", context.getSource().location().getPitch()));
+            }
+            return success();
+        }
+
+        if (hasArgument(context, "position")) {
+            Entity target = context.getSource().executor();
             if (target == null) {
-                sender.sendMessage(Component.text("Can't find player " + args[0]).color(NamedTextColor.RED));
-                return true;
+                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+                return success();
             }
-            if (args.length == 2) {
-                origin = target;
-                target = (CommandSender) sender.getServer().getPlayer(args[1].replace("@s", sender.getName()));
-                if (target == null) {
-                    sender.sendMessage(Component.text("Can't find player " + args[1]).color(NamedTextColor.RED));
-                    return true;
-                }
-            }
+
+            return teleportToPosition(context.getSource(), sender, target,
+                    argumentValue(context, "position", PositionResolver.class),
+                    rotation(context, "yaw", context.getSource().location().getYaw()),
+                    rotation(context, "pitch", context.getSource().location().getPitch()));
         }
-        if (args.length < 3) {
-            ((CloudPlayer) origin).teleport(((CloudPlayer) target).getLocation(), PlayerTeleportEvent.TeleportCause.COMMAND);
-            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success", Component.text(origin.getName()), Component.text(target.getName())));
-            if (origin != sender) {
-                origin.sendMessage(Component.translatable("commands.tp.successVictim", Component.text(target.getName())));
+
+        if (hasArgument(context, "player")) {
+            Entity origin = context.getSource().executor();
+            if (origin == null) {
+                sender.sendMessage(Component.translatable("commands.locate.fail.noplayer"));
+                return success();
             }
-            return true;
-        } else if (((CloudPlayer) target).getLevel() != null) {
-            int pos;
-            if (args.length == 4 || args.length == 6) {
-                pos = 1;
-            } else {
-                pos = 0;
-            }
-            Optional<Vector3f> optional = CommandUtils.parseVector3f(Arrays.copyOfRange(args, pos, pos += 3), ((CloudPlayer) target).getPosition());
-            if (optional.isEmpty()) {
-                return false;
-            }
-            Vector3f position = optional.get();
-            float yaw = ((CloudPlayer) target).getYaw();
-            float pitch = ((CloudPlayer) target).getPitch();
-            if (position.getY() < 0) position = Vector3f.from(position.getX(), 0, position.getZ());
-            if (args.length == 6 || (args.length == 5 && pos == 3)) {
-                yaw = Float.parseFloat(args[pos++]);
-                pitch = Float.parseFloat(args[pos++]);
-            }
-            ((CloudPlayer) target).teleport(Location.from(position, yaw, pitch, ((CloudPlayer) target).getLevel()), PlayerTeleportEvent.TeleportCause.COMMAND);
-            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success.coordinates",
-                    Component.text(target.getName()),
-                    Component.text(String.valueOf(GenericMath.round(position.getX(), 2))),
-                    Component.text(String.valueOf(GenericMath.round(position.getY(), 2))),
-                    Component.text(String.valueOf(GenericMath.round(position.getZ(), 2)))));
-            if (target != sender) {
-                target.sendMessage(Component.translatable("commands.tp.successVictim", Component.text(position.toString())));
-            }
-            return true;
+
+            Entity target = CommandArgumentTypes.entity(context, "player");
+            teleportToEntity(sender, origin, target);
+            return success();
         }
-        return false;
+
+        return usage();
+    }
+
+    private static void teleportToEntity(CommandSender sender, Entity origin, Entity target) {
+        origin.teleport(target.getLocation(), PlayerTeleportEvent.TeleportCause.COMMAND);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success",
+                Component.text(origin.getName()), Component.text(target.getName())));
+        if (origin instanceof Player player && origin != sender) {
+            player.sendMessage(Component.translatable("commands.tp.successVictim",
+                    Component.text(target.getName())));
+        }
+    }
+
+    private static int teleportToPosition(CommandSourceStack source, CommandSender sender, Entity target,
+                                          PositionResolver positionResolver, Float yawInput, Float pitchInput)
+            throws CommandSyntaxException {
+        Vector3f position = positionResolver.resolve(source);
+
+        float yaw = target.getYaw();
+        float pitch = target.getPitch();
+
+        if (yawInput != null) {
+            yaw = yawInput;
+        }
+
+        if (pitchInput != null) {
+            pitch = pitchInput;
+        }
+
+        target.teleport(Location.from(position, yaw, pitch, source.level()), PlayerTeleportEvent.TeleportCause.COMMAND);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success.coordinates",
+                Component.text(target.getName()),
+                Component.text(String.valueOf(GenericMath.round(position.getX(), 2))),
+                Component.text(String.valueOf(GenericMath.round(position.getY(), 2))),
+                Component.text(String.valueOf(GenericMath.round(position.getZ(), 2)))));
+
+        if (target instanceof Player player && target != sender) {
+            player.sendMessage(Component.translatable("commands.tp.successVictim",
+                    Component.text(position.toString())));
+        }
+
+        return success();
+    }
+
+    private static Float rotation(CommandContext<CommandSourceStack> context, String name, float origin) {
+        if (!hasArgument(context, name)) {
+            return null;
+        }
+
+        return argumentValue(context, name, RotationResolver.class).resolve(origin);
     }
 }

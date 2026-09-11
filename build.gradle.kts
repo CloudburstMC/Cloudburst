@@ -1,12 +1,7 @@
-plugins {
-    alias(libs.plugins.checkerframework) apply false
-}
-
 subprojects {
     apply(plugin = "java-library")
     if (name != "codegen") {
         apply(plugin = "maven-publish")
-        apply(plugin = rootProject.libs.plugins.checkerframework.get().pluginId)
 
         configure<PublishingExtension> {
             repositories {
@@ -33,6 +28,7 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven("https://libraries.minecraft.net")
         maven("https://repo.opencollab.dev/maven-releases")
         maven("https://repo.opencollab.dev/maven-snapshots")
     }

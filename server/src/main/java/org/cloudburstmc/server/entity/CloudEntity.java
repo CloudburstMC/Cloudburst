@@ -53,7 +53,7 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.CloudEffect;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,12 +72,13 @@ public abstract class CloudEntity implements Entity {
     protected static final int PORTAL_TRANSFER_TICKS = 80;
     protected static final int PORTAL_COOLDOWN_TICKS = 300;
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
+    private static final int MAX_SCOREBOARD_TAGS = 1024;
 
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, Effect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
-    private final long runtimeId = EntityRegistry.get().newEntityId();
+    private final long runtimeId = CloudEntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
     private final EntityType<?> type;
     public CloudChunk chunk;
@@ -127,6 +128,7 @@ public abstract class CloudEntity implements Entity {
     public boolean closed = false;
     protected Entity vehicle;
     protected EntityDamageEvent lastDamageCause = null;
+    private final Set<String> tags = new LinkedHashSet<>();
     protected int age = 0;
     protected float health = 20;
     protected float absorption = 0;
@@ -319,6 +321,14 @@ public abstract class CloudEntity implements Entity {
         tag.listenForString("CustomName", this::setNameTag);
         tag.listenForBoolean("CustomNameVisible", this::setNameTagVisible);
         tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
+        this.tags.clear();
+        if (tag.containsKey("Tags")) {
+            for (String entityTag : tag.getList("Tags", NbtType.STRING)) {
+                if (!entityTag.isBlank() && this.tags.size() < MAX_SCOREBOARD_TAGS) {
+                    this.tags.add(entityTag);
+                }
+            }
+        }
     }
 
     // @Override
@@ -333,8 +343,10 @@ public abstract class CloudEntity implements Entity {
             tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
         }
 
+        tag.putList("Tags", NbtType.STRING, List.copyOf(this.tags));
+
         if (!(this instanceof CloudPlayer)) {
-            tag.putString("identifier", this.type.getIdentifier().toString());
+            tag.putString("identifier", this.type.getId().toString());
         }
 
         tag.putList("Pos", NbtType.FLOAT, Arrays.asList(
@@ -395,6 +407,30 @@ public abstract class CloudEntity implements Entity {
 
     public void setNameTag(String name) {
         this.data.set(NAME, name);
+    }
+
+    @Override
+    public Set<String> getScoreboardTags() {
+        return Set.copyOf(this.tags);
+    }
+
+    @Override
+    public boolean hasScoreboardTag(String tag) {
+        return this.tags.contains(tag);
+    }
+
+    @Override
+    public boolean addScoreboardTag(String tag) {
+        String value = Objects.requireNonNull(tag, "tag");
+        if (value.isBlank()) {
+            throw new IllegalArgumentException("tag cannot be blank");
+        }
+        return this.tags.size() < MAX_SCOREBOARD_TAGS && this.tags.add(value);
+    }
+
+    @Override
+    public boolean removeScoreboardTag(String tag) {
+        return this.tags.remove(Objects.requireNonNull(tag, "tag"));
     }
 
     public boolean isNameTagVisible() {
@@ -689,7 +725,7 @@ public abstract class CloudEntity implements Entity {
             return this.getNameTag();
         } else {
             // FIXME: 04/01/2020 Use language files
-            return EntityRegistry.get().getLegacyName(this.type.getIdentifier());
+            return CloudEntityRegistry.get().getLegacyName(this.type.getId());
         }
     }
 
@@ -771,7 +807,7 @@ public abstract class CloudEntity implements Entity {
     protected BedrockPacket createAddEntityPacket() {
         Vector3f pos = this.getPosition();
         AddEntityPacket addEntity = new AddEntityPacket();
-        addEntity.setIdentifier(this.getType().getIdentifier().toString());
+        addEntity.setIdentifier(this.getType().getId().toString());
         addEntity.setUniqueEntityId(this.getUniqueId());
         addEntity.setRuntimeEntityId(this.getRuntimeId());
         addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
@@ -1272,7 +1308,7 @@ public abstract class CloudEntity implements Entity {
         this.lastUpdate = currentTick;
 
         boolean hasUpdate = this.entityBaseTick(tickDiff);
-        hasUpdate |= EntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
+        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
                 .execute(this, currentTick);
 
         this.updateMovement();
@@ -1603,7 +1639,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
-        if (EntityRegistry.get().requireComponent(this.type, EntityComponents.ON_INTERACT)
+        if (CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_INTERACT)
                 .execute(this, player, item, clickedPos)) {
             return true;
         }
@@ -2023,7 +2059,7 @@ public abstract class CloudEntity implements Entity {
     @Override
     public Entity getOwner() {
         if (this.data.contains(OWNER_EID)) {
-            return this.level.getEntity(this.data.get(OWNER_EID));
+            return this.level.getEntityByRuntimeId(this.data.get(OWNER_EID));
         }
         return null;
     }
@@ -2040,6 +2076,6 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public String toString() {
-        return "Entity(type=" + type.getIdentifier() + ", id=" + getUniqueId() + ")";
+        return "Entity(type=" + type.getId() + ", id=" + getUniqueId() + ")";
     }
 }

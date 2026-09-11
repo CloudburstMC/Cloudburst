@@ -1,38 +1,31 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
 
-/**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class PluginsCommand extends Command {
+import java.util.Collection;
+import java.util.List;
+
+public class PluginsCommand extends AdvertisedCommand {
 
     public PluginsCommand() {
-        super("plugins", CommandData.builder("plugins")
-                .setDescription("%cloudburst.command.plugins.description")
-                .setUsageMessage("%cloudburst.command.plugins.usage")
-                .setAliases("pl")
-                .setPermissions("cloudburst.command.plugins")
-                .build());
+        super("plugins", "cloudburst.command.plugins.description", List.of("pl"),
+                "cloudburst.command.plugins");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
-
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         this.sendPluginList(sender);
-        return true;
+        return success();
     }
 
     private void sendPluginList(CommandSender sender) {
-        var plugins = sender.getServer().getPluginManager().getAllPlugins();
+        Collection<PluginContainer> plugins = sender.getServer().getPluginManager().getAllPlugins();
 
         Component list = Component.empty();
         boolean first = true;

@@ -11,7 +11,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Immutable definition for an enchantment type.
  *
- * @param id                  the numeric runtime ID used by the network protocol
  * @param identifier          the namespaced enchantment identifier
  * @param maxLevel            the highest supported enchantment level
  * @param rarity              the enchantment rarity used for weighted selection
@@ -25,7 +24,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @param anvilCost           the cost multiplier used when applying this enchantment in an anvil
  */
 public record EnchantmentType(
-        short id,
         Identifier identifier,
         int maxLevel,
         EnchantmentRarity rarity,
@@ -49,17 +47,17 @@ public record EnchantmentType(
         checkNotNull(maxCost, "maxCost");
     }
 
-    public EnchantmentType(short id, Identifier identifier, int maxLevel, EnchantmentRarity rarity,
+    public EnchantmentType(Identifier identifier, int maxLevel, EnchantmentRarity rarity,
                            boolean treasure, boolean cursed, EnchantmentTarget target,
                            EnchantmentCost minCost, EnchantmentCost maxCost, int anvilCost) {
-        this(id, identifier, maxLevel, rarity, treasure, cursed, target, null, minCost, maxCost, anvilCost);
+        this(identifier, maxLevel, rarity, treasure, cursed, target, null, minCost, maxCost, anvilCost);
     }
 
-    public EnchantmentType(short id, Identifier identifier, int maxLevel, EnchantmentRarity rarity,
+    public EnchantmentType(Identifier identifier, int maxLevel, EnchantmentRarity rarity,
                            boolean treasure, boolean cursed, EnchantmentTarget target,
                            @Nullable EnchantmentExclusiveGroup exclusiveGroup, EnchantmentCost minCost,
                            EnchantmentCost maxCost, int anvilCost) {
-        this(id, identifier, maxLevel, rarity, treasure, cursed, target, exclusiveGroup,
+        this(identifier, maxLevel, rarity, treasure, cursed, target, exclusiveGroup,
                 exclusiveGroup == null ? Set.of() : Set.of(exclusiveGroup), minCost, maxCost, anvilCost);
     }
 

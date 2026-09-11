@@ -11,13 +11,14 @@ import org.cloudburstmc.api.util.Identifier;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Registry for all crafting, cooking, brewing, smithing, and stonecutting recipes.
  * Supports registering custom recipes, querying existing ones, and removing recipes by identifier.
  */
-public interface RecipeRegistry extends Registry<RecipeType> {
+public interface RecipeRegistry extends KeyedRegistry<Recipe> {
 
     /**
      * Registers a recipe. Throws {@link RegistryException} if a recipe with the same identifier
@@ -35,6 +36,16 @@ public interface RecipeRegistry extends Registry<RecipeType> {
      * Returns the recipe with the given identifier, or {@code null} if none is registered.
      */
     Recipe getRecipe(Identifier identifier);
+
+    @Override
+    default Optional<Recipe> get(Identifier id) {
+        return Optional.ofNullable(this.getRecipe(id));
+    }
+
+    @Override
+    default Identifier getId(Recipe value) {
+        return value.getId();
+    }
 
     /**
      * Returns the recipe with the given UUID, or {@code null} if none is registered.
@@ -58,6 +69,11 @@ public interface RecipeRegistry extends Registry<RecipeType> {
      * Returns all registered recipes.
      */
     Collection<Recipe> getRecipes();
+
+    @Override
+    default Collection<Recipe> values() {
+        return this.getRecipes();
+    }
 
     /**
      * Returns all registered recipes of the given type.

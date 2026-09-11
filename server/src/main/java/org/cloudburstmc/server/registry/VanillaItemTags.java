@@ -149,8 +149,9 @@ public class VanillaItemTags {
         public Set<ItemType> getValues() {
             Set<ItemType> values = Collections.newSetFromMap(new IdentityHashMap<>());
             for (Identifier id : this.ids) {
-                ItemType type = CloudItemRegistry.get().getType(id);
-                values.add(type != null ? type : ItemTypes.get(id).orElseGet(() -> ItemType.of(id)));
+                ItemType type = CloudItemRegistry.get().get(id)
+                        .orElseGet(() -> ItemTypes.get(id).orElseGet(() -> ItemType.of(id)));
+                values.add(type);
             }
             return Set.copyOf(values);
         }

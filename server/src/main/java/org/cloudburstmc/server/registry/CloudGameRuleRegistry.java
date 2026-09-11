@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.gamerule.*;
 import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,11 +48,10 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
     }
 
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public GameRuleMap getDefaultRules() {
-        GameRuleMap gameRules = new GameRuleMap();
-        for (GameRule gameRule : this.registered.values()) {
-            gameRules.put(gameRule, gameRule.getDefaultValue());
+    public CloudGameRules getDefaultRules() {
+        CloudGameRules gameRules = new CloudGameRules();
+        for (GameRule<?> gameRule : this.registered.values()) {
+            loadDefault(gameRules, gameRule);
         }
         return gameRules;
     }
@@ -111,5 +111,9 @@ public class CloudGameRuleRegistry implements GameRuleRegistry {
         this.register(GameRules.SPAWN_RADIUS);
         this.register(GameRules.TNT_EXPLODES);
         this.register(GameRules.TNT_EXPLOSION_DROP_DECAY);
+    }
+
+    private static <T extends Comparable<T>> void loadDefault(CloudGameRules gameRules, GameRule<T> gameRule) {
+        gameRules.load(gameRule, gameRule.getDefaultValue());
     }
 }

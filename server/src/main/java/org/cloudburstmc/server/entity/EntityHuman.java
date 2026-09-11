@@ -33,7 +33,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayerAbilities;
-import org.cloudburstmc.server.registry.EnchantmentRegistry;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -394,7 +394,7 @@ public class EntityHuman extends EntityCreature implements Human {
                 ItemStack armor = this.getArmor().getItem(slot);
                 if (damager != null) {
                     for (Enchantment enchantment : armor.get(ItemKeys.ENCHANTMENTS).values()) {
-                        EnchantmentRegistry.get().doPostAttack(enchantment, damager, this);
+                        CloudEnchantmentRegistry.get().doPostAttack(enchantment, damager, this);
                     }
                 }
 
@@ -418,7 +418,7 @@ public class EntityHuman extends EntityCreature implements Human {
     protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
         double epf = 0;
         for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
-            epf += EnchantmentRegistry.get().getProtectionFactor(enchantment, source);
+            epf += CloudEnchantmentRegistry.get().getProtectionFactor(enchantment, source);
         }
 
         return epf;

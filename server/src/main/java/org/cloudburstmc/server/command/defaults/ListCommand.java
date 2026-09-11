@@ -1,33 +1,26 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.data.CommandData;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.StringJoiner;
 
-/**
- * Created on 2015/11/11 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
- */
-public class ListCommand extends Command {
+public class ListCommand extends AdvertisedCommand {
 
     public ListCommand() {
-        super("list", CommandData.builder("list")
-                .setDescription("commands.list.description")
-                .setUsageMessage("/list")
-                .setPermissions("cloudburst.command.list")
-                .build());
+        super("list", "commands.list.description", CommandNetworkData.ANY_NOT_CHEAT,
+                "cloudburst.command.list");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         StringJoiner online = new StringJoiner(", ");
         int onlineCount = 0;
         for (CloudPlayer player : ((CloudServer) sender.getServer()).getOnlinePlayers().values()) {
@@ -41,6 +34,7 @@ public class ListCommand extends Command {
                 Component.text(onlineCount),
                 Component.text(sender.getServer().getMaxPlayers())));
         sender.sendMessage(Component.text(online.toString()));
-        return true;
+
+        return success();
     }
 }

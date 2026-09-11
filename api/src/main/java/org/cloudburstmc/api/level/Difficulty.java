@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.level;
 
 import net.kyori.adventure.translation.Translatable;
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -32,7 +32,7 @@ public enum Difficulty implements Translatable {
     }
 
     @Override
-    public @NotNull String translationKey() {
+    public @NonNull String translationKey() {
         return "options.difficulty." + this.name().toLowerCase(java.util.Locale.ENGLISH);
     }
 }

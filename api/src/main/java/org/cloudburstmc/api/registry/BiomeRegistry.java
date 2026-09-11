@@ -1,20 +1,42 @@
 package org.cloudburstmc.api.registry;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.biome.Biome;
 import org.cloudburstmc.api.util.Identifier;
 
-public interface BiomeRegistry<T extends Biome> extends Registry<T> {
+import java.util.Optional;
 
+/**
+ * Registry for biome definitions.
+ *
+ * @param <T> biome implementation type
+ */
+public interface BiomeRegistry<T extends Biome> extends KeyedRegistry<T> {
+
+    /**
+     * Registers a biome definition.
+     *
+     * @param biome biome to register
+     * @throws RegistryException if registration fails
+     */
     void register(T biome) throws RegistryException;
 
-    int getRuntimeId(T biome);
-
-    int getRuntimeId(Identifier id);
-
+    /**
+     * Returns a biome by identifier.
+     *
+     * @param id biome identifier
+     * @return matching biome, or {@code null} if none is registered
+     */
+    @Nullable
     T getBiome(Identifier id);
 
-    T getBiome(int runtimeId);
+    @Override
+    default Optional<T> get(Identifier id) {
+        return Optional.ofNullable(this.getBiome(id));
+    }
 
-    Identifier getId(int runtimeId);
-
+    @Override
+    default Identifier getId(T value) {
+        return value.getId();
+    }
 }

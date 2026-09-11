@@ -3,8 +3,8 @@ package org.cloudburstmc.api.player;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import net.kyori.adventure.translation.Translatable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.*;
 
@@ -93,7 +93,7 @@ public class GameMode implements Translatable {
      * The set of {@link Ability abilities} granted to a player when they enter
      * this game mode. This is the baseline; the server may additionally grant
      * operator-only abilities such as {@link Ability#OPERATOR_COMMANDS} and
-     * {@link Ability#TELEPORT} depending on the player's permissions.
+     * {@link Ability#TELEPORT} according to the player's operator status.
      */
     private final Set<Ability> defaultAbilities;
 
@@ -122,7 +122,7 @@ public class GameMode implements Translatable {
      * @param id the numeric game type value
      * @return the corresponding {@link GameMode}
      */
-    @NotNull
+    @NonNull
     public static GameMode from(int id) {
         return switch (id) {
             case 0 -> SURVIVAL;
@@ -141,7 +141,7 @@ public class GameMode implements Translatable {
      * @param aliases additional lookup strings (the numeric ID is always added automatically)
      * @return a new {@link Builder}
      */
-    @NotNull
+    @NonNull
     public static Builder builder(int id, String name, String... aliases) {
         return new Builder(id, name, aliases);
     }
@@ -150,7 +150,7 @@ public class GameMode implements Translatable {
      * Returns the translation key for this game mode, e.g. {@code "gameMode.survival"}.
      */
     @Override
-    public @NotNull String translationKey() {
+    public @NonNull String translationKey() {
         return "gameMode." + this.name;
     }
 

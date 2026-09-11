@@ -248,10 +248,25 @@ public class PackManager implements Closeable, ResourcePackRegistry {
     }
 
     @Override
+    public Optional<ResourcePack> get(UUID id) {
+        Objects.requireNonNull(id, "id");
+
+        Pack pack = this.packsById.get(id);
+        return pack instanceof ResourcePack resourcePack ? Optional.of(resourcePack) : Optional.empty();
+    }
+
+    @Override
+    public Collection<ResourcePack> values() {
+        return this.packsById.values().stream()
+                .filter(ResourcePack.class::isInstance)
+                .map(ResourcePack.class::cast)
+                .toList();
+    }
+
+    @Override
     public void close() throws RegistryException {
         try {
             for (Pack pack : this.packs.values()) {
-
                 pack.close();
             }
         } catch (IOException e) {

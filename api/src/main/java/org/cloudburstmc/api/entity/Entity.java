@@ -40,8 +40,6 @@ public interface Entity {
 
     long getUniqueId();
 
-    long getRuntimeId();
-
     float getHeight();
 
     float getEyeHeight();
@@ -88,6 +86,39 @@ public interface Entity {
     String getNameTag();
 
     void setNameTag(String name);
+
+    /**
+     * Returns the entity's scoreboard tags.
+     *
+     * @return immutable scoreboard tags
+     */
+    Set<String> getScoreboardTags();
+
+    /**
+     * Returns whether the entity has a scoreboard tag.
+     *
+     * @param tag tag to test
+     * @return {@code true} when the tag is present
+     */
+    boolean hasScoreboardTag(String tag);
+
+    /**
+     * Adds a scoreboard tag to the entity.
+     *
+     * <p>An entity can have at most 1024 scoreboard tags.</p>
+     *
+     * @param tag tag to add
+     * @return {@code true} when the tag was added
+     */
+    boolean addScoreboardTag(String tag);
+
+    /**
+     * Removes a scoreboard tag from the entity.
+     *
+     * @param tag tag to remove
+     * @return {@code true} when the tag was removed
+     */
+    boolean removeScoreboardTag(String tag);
 
     boolean isNameTagVisible();
 

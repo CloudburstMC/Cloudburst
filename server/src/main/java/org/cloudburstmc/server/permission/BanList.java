@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.permission;
 
-import tools.jackson.core.type.TypeReference;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.utils.Utils;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,16 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 @Log4j2
 public class BanList {
 
-    private static final TypeReference<LinkedList<TreeMap<String, String>>> BANLIST_TYPE_REFERENCE =
-            new TypeReference<LinkedList<TreeMap<String, String>>>() {
-            };
+    private static final TypeReference<LinkedList<TreeMap<String, String>>> BANLIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     private LinkedHashMap<String, BanEntry> list = new LinkedHashMap<>();
 
@@ -51,7 +45,7 @@ public class BanList {
         } else {
             this.removeExpired();
 
-            return this.list.containsKey(name.toLowerCase());
+            return this.list.containsKey(name.toLowerCase(Locale.ROOT));
         }
     }
 
@@ -84,7 +78,7 @@ public class BanList {
     }
 
     public void remove(String name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
         if (this.list.containsKey(name)) {
             this.list.remove(name);
             this.save();

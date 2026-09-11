@@ -31,7 +31,7 @@ import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.EntityRegistry;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -313,7 +313,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             return false;
         }
 
-        if (!EntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
+        if (!CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
             return false;
         }
 
@@ -347,7 +347,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
         int previousTicksLived = Math.max(0, this.ticksLived - tickDiff);
         int damagePulses = this.ticksLived / 40 - previousTicksLived / 40;
         for (int pulse = 0; pulse < damagePulses; pulse++) {
-            float multiplier = EntityRegistry.get()
+            float multiplier = CloudEntityRegistry.get()
                     .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
                     .execute(this);
             if (this.attack(new EntityDamageEvent(this, DamageTypes.FREEZING, multiplier)) && this instanceof CloudPlayer) {

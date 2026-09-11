@@ -1,6 +1,8 @@
 package org.cloudburstmc.api.level.gamerule;
 
 import lombok.Getter;
+import org.cloudburstmc.api.command.argument.CommandArgumentType;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 
 import java.util.*;
 
@@ -53,9 +55,10 @@ public final class EnumGameRule<E extends Enum<E>> implements GameRule<Integer> 
         return this.values.keySet();
     }
 
-    public String getSerializedValue(int value) {
+    @Override
+    public String serialize(Integer value) {
         for (Map.Entry<String, Integer> entry : this.values.entrySet()) {
-            if (entry.getValue() == value) {
+            if (entry.getValue().equals(value)) {
                 return entry.getKey();
             }
         }
@@ -72,12 +75,31 @@ public final class EnumGameRule<E extends Enum<E>> implements GameRule<Integer> 
     }
 
     @Override
+    public CommandArgumentType<Integer> argumentType() {
+        return CommandArgumentTypes.fixedEnumMapped("GameRule" + this.name + "Value", this::parse,
+                this.values.keySet().toArray(String[]::new));
+    }
+
+    @Override
     public int hashCode() {
-        return name.hashCode();
+        return Objects.hash(EnumGameRule.class, this.name.toLowerCase(Locale.ROOT));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof EnumGameRule<?> that)) {
+            return false;
+        }
+
+        return this.name.equalsIgnoreCase(that.name);
     }
 
     @Override
     public String toString() {
-        return "EnumGameRule(name=" + name + ")";
+        return "EnumGameRule(name=" + this.name + ")";
     }
 }

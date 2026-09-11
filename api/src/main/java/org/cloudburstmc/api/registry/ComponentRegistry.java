@@ -9,7 +9,7 @@ import org.cloudburstmc.api.util.component.ComponentMap;
  *
  * @param <T> registered type
  */
-public interface ComponentRegistry<T> extends Registry<T> {
+public interface ComponentRegistry<T> extends Registry {
 
     /**
      * Registers an optional component slot.

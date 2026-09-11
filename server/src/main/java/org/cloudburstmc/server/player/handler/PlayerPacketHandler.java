@@ -42,6 +42,8 @@ import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOriginData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOriginType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -57,6 +59,7 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
@@ -1040,7 +1043,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         // player.getCraftingInventory().resetCraftingGrid();
 
-        Entity targetEntity = player.getLevel().getEntity(packet.getRuntimeEntityId());
+        Entity targetEntity = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
 
         if (targetEntity == null || !player.isAlive() || !targetEntity.isAlive()) {
             return PacketSignal.HANDLED;
@@ -1066,7 +1069,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.dismount(player.getVehicle());
                 break;
             case OPEN_INVENTORY:
-                if (targetEntity.getRuntimeId() != player.getRuntimeId()) break;
+                if (((CloudEntity) targetEntity).getRuntimeId() != player.getRuntimeId()) break;
                 if (player.canOpenInventory()) {
                     player.getInventoryManager().openScreen(new CloudPlayerInventoryScreen(player));
 
@@ -1238,15 +1241,27 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.spawned || !player.isAlive()) {
             return PacketSignal.HANDLED;
         }
-        PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(player, packet.getCommand());
+
+        CommandOriginData origin = packet.getCommandOriginData();
+        if (origin == null || origin.getOrigin() != CommandOriginType.PLAYER) {
+            return PacketSignal.HANDLED;
+        }
+
+        String command = packet.getCommand();
+        if (command == null || command.isBlank()) {
+            return PacketSignal.HANDLED;
+        }
+
+        PlayerCommandPreprocessEvent playerCommandPreprocessEvent = new PlayerCommandPreprocessEvent(player, command);
         player.getServer().getEventManager().fire(playerCommandPreprocessEvent);
         if (playerCommandPreprocessEvent.isCancelled()) {
             return PacketSignal.HANDLED;
         }
 
         try (Timing ignored2 = Timings.playerCommandTimer.startTiming()) {
-            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage().substring(1));
+            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage());
         }
+
         return PacketSignal.HANDLED;
     }
 
@@ -1469,7 +1484,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getItemStackNetManager().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
                 return PacketSignal.HANDLED;
             case ITEM_USE_ON_ENTITY: {
-                Entity target = player.getLevel().getEntity(packet.getRuntimeEntityId());
+                Entity target = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
                 if (target == null || !target.isAlive()) {
                     break;
                 }
@@ -1603,7 +1618,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (player.isInitialized()) {
             return PacketSignal.HANDLED;
         }
-        player.setInitialized(true);
+
         PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(player,
                 Component.translatable("multiplayer.player.joined", player.displayName()).color(NamedTextColor.YELLOW)
         );
@@ -1613,6 +1628,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (playerJoinEvent.getJoinMessage() != null) {
             player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());
         }
+
+        player.completeClientInitialization();
         return PacketSignal.HANDLED;
     }
 

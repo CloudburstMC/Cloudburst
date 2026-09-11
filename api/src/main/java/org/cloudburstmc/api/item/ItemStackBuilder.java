@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.item;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.data.DataKey;
 
 import java.util.IdentityHashMap;
@@ -22,12 +23,18 @@ public final class ItemStackBuilder {
     private ItemType itemType;
     private int amount;
 
-    ItemStackBuilder(ItemType itemType, int amount, Map<DataKey<?, ?>, ?> metadata) {
+    ItemStackBuilder(@Nullable ItemType itemType, int amount, Map<DataKey<?, ?>, ?> metadata) {
         this.itemType = itemType;
         this.amount = amount;
         this.metadata = new IdentityHashMap<>(checkNotNull(metadata, "metadata"));
     }
 
+    /**
+     * Sets the item type.
+     *
+     * @param itemType the item type
+     * @return this builder
+     */
     public ItemStackBuilder itemType(@NonNull ItemType itemType) {
         checkNotNull(itemType, "itemType is null");
         this.itemType = itemType;
@@ -49,7 +56,7 @@ public final class ItemStackBuilder {
     /**
      * Stores an explicit metadata value.
      *
-     * @param key the metadata key
+     * @param key   the metadata key
      * @param value the metadata value
      * @return this builder
      */
@@ -87,11 +94,11 @@ public final class ItemStackBuilder {
     /**
      * Builds an immutable item stack.
      *
-     * @return the built stack
+     * @return the built stack, or {@link ItemStack#EMPTY} when the item type is air
+     * @throws NullPointerException     if no item type has been set
+     * @throws IllegalArgumentException if the amount is not positive
      */
     public ItemStack build() {
-        checkNotNull(this.itemType, "itemType is null");
-        checkArgument(this.amount > 0, "amount must be positive");
-        return new ItemStack(itemType, amount, metadata);
+        return ItemStack.create(itemType, amount, metadata);
     }
 }

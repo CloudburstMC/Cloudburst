@@ -2,6 +2,7 @@ package org.cloudburstmc.api;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
@@ -10,14 +11,13 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.plugin.PluginManager;
-import org.cloudburstmc.api.registry.BlockEntityRegistry;
-import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.api.registry.GameRuleRegistry;
+import org.cloudburstmc.api.registry.*;
 import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public interface Server {
@@ -42,7 +42,23 @@ public interface Server {
 
     BlockRegistry getBlockRegistry();
 
+    BiomeRegistry<?> getBiomeRegistry();
+
+    EffectRegistry getEffectRegistry();
+
+    EnchantmentRegistry getEnchantmentRegistry();
+
+    EntityRegistry getEntityRegistry();
+
     GameRuleRegistry getGameRuleRegistry();
+
+    ItemRegistry getItemRegistry();
+
+    ParticleRegistry getParticleRegistry();
+
+    RecipeRegistry getRecipeRegistry();
+
+    ResourcePackRegistry getResourcePackRegistry();
 
     int getTick();
 
@@ -50,7 +66,19 @@ public interface Server {
 
     boolean getAllowFlight();
 
+    /**
+     * Returns the registry of permission definitions.
+     *
+     * @return the permission manager
+     */
     PermissionManager getPermissionManager();
+
+    /**
+     * Returns the command registrar and dispatcher.
+     *
+     * @return the command service
+     */
+    Commands commands();
 
     /**
      * Returns the server's MOTD (message of the day) as shown in the server list.
@@ -85,6 +113,13 @@ public interface Server {
     GameMode getGameMode();
 
     Level getDefaultLevel();
+
+    /**
+     * Returns the currently loaded levels.
+     *
+     * @return loaded levels
+     */
+    Set<? extends Level> getLevels();
 
     int getMaxPlayers();
 

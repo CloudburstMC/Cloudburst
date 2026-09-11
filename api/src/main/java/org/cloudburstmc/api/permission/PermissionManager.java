@@ -1,140 +1,64 @@
 package org.cloudburstmc.api.permission;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Stream;
 
 /**
- * Manages permission registration, default resolution, and subscription tracking.
- *
- * <p>The subscription model allows {@link Permissible}s to be notified when permissions
- * they hold are changed so their effective permission cache is kept current.</p>
+ * Owns the permission definitions used by the server.
  */
 public interface PermissionManager {
 
     /**
-     * Returns the registered permission with the given name, or an empty optional.
+     * Finds a registered permission.
+     *
+     * @param name permission node name
+     * @return the definition, if registered
      */
     Optional<Permission> getPermission(String name);
 
     /**
-     * Returns {@code true} if a permission with the given name is registered.
+     * Registers a permission definition.
+     *
+     * @param permission definition to register
+     * @throws IllegalArgumentException if its name is already registered
      */
-    default boolean containsPermission(String name) {
-        return getPermission(name).isPresent();
+    default void register(Permission permission) {
+        registerAll(List.of(permission));
     }
 
     /**
-     * Registers a permission.
+     * Registers permission definitions as one validated operation.
      *
-     * @throws IllegalArgumentException if a permission with the same name is already registered
+     * @param permissions definitions to register
+     * @throws IllegalArgumentException if a name is duplicated or the resulting graph contains
+     *                                  a missing child or inheritance cycle
      */
-    void addPermission(Permission permission);
+    void registerAll(Collection<Permission> permissions);
 
     /**
-     * Registers a permission if no permission with the same name is already registered.
+     * Replaces an existing permission definition atomically.
      *
-     * <p>Note: this default implementation is not atomic (check-then-act). Custom implementations
-     * that allow concurrent access must override this method to provide an atomic check-and-insert.</p>
+     * @param permission replacement definition
+     * @throws IllegalArgumentException if its name is not registered or the resulting graph contains
+     *                                  a missing child or inheritance cycle
+     */
+    void replace(Permission permission);
+
+    /**
+     * Removes a permission definition.
      *
-     * @return {@code true} if the permission was registered; {@code false} if it was already present
-     */
-    default boolean addPermissionIfAbsent(Permission permission) {
-        if (containsPermission(permission.getName())) {
-            return false;
-        }
-        addPermission(permission);
-        return true;
-    }
-
-    /**
-     * Unregisters the permission with the given name.
+     * <p>References to the removed node are also removed from registered parent definitions.</p>
      *
-     * <p>This method also removes the permission from all default sets and triggers
-     * {@link Permissible#recalculatePermissions()} on all subscribed permissibles so their
-     * effective permission caches are immediately consistent after removal.</p>
+     * @param name permission node name
+     * @return the removed definition, if registered
      */
-    void removePermission(String name);
+    Optional<Permission> unregister(String name);
 
     /**
-     * Unregisters the given permission.
+     * Returns an immutable snapshot of registered permission definitions in registration order.
      *
-     * <p>This method also removes the permission from all default sets and triggers
-     * {@link Permissible#recalculatePermissions()} on all subscribed permissibles so their
-     * effective permission caches are immediately consistent after removal.</p>
+     * @return registered definitions
      */
-    void removePermission(Permission permission);
-
-    /**
-     * Returns a snapshot copy of permissions that are granted by default for the given
-     * operator status.
-     *
-     * @param op {@code true} to query the operator defaults, {@code false} for non-operator defaults
-     */
-    Map<String, Permission> getDefaultPermissions(boolean op);
-
-    /**
-     * Recalculates which default sets this permission belongs to and notifies subscribers.
-     *
-     * <p>Called automatically when a permission's default value changes.</p>
-     */
-    void recalculatePermissionDefaults(Permission permission);
-
-    /**
-     * Subscribes a {@link Permissible} to receive notifications when the named permission changes.
-     */
-    void subscribeToPermission(String permission, Permissible permissible);
-
-    /**
-     * Subscribes a {@link Permissible} to receive notifications when the given permission changes.
-     */
-    default void subscribeToPermission(Permission permission, Permissible permissible) {
-        subscribeToPermission(permission.getName(), permissible);
-    }
-
-    /**
-     * Unsubscribes a {@link Permissible} from the named permission.
-     */
-    void unsubscribeFromPermission(String permission, Permissible permissible);
-
-    /**
-     * Unsubscribes a {@link Permissible} from the given permission.
-     * Symmetric counterpart to {@link #subscribeToPermission(Permission, Permissible)}.
-     */
-    default void unsubscribeFromPermission(Permission permission, Permissible permissible) {
-        unsubscribeFromPermission(permission.getName(), permissible);
-    }
-
-    /**
-     * Returns all {@link Permissible}s currently subscribed to the named permission.
-     */
-    Set<Permissible> getPermissionSubscriptions(String permission);
-
-    /**
-     * Subscribes a {@link Permissible} to the default permission set for the given operator status.
-     */
-    void subscribeToDefaultPerms(boolean op, Permissible permissible);
-
-    /**
-     * Unsubscribes a {@link Permissible} from the default permission set for the given operator status.
-     */
-    void unsubscribeFromDefaultPerms(boolean op, Permissible permissible);
-
-    /**
-     * Returns all {@link Permissible}s subscribed to the default set for the given operator status.
-     */
-    Set<Permissible> getDefaultPermSubscriptions(boolean op);
-
-    /**
-     * Returns a snapshot copy of all registered permissions.
-     */
-    Map<String, Permission> getPermissions();
-
-    /**
-     * Returns a sequential stream over all registered permissions.
-     */
-    default Stream<Permission> permissionStream() {
-        return getPermissions().values().stream();
-    }
+    Collection<Permission> permissions();
 }

@@ -18,19 +18,16 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.ServerException;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.api.permission.Permissible;
+import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.registry.BiomeRegistry;
-import org.cloudburstmc.api.registry.BlockEntityRegistry;
-import org.cloudburstmc.api.registry.ItemRegistry;
-import org.cloudburstmc.api.registry.RecipeRegistry;
-import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.registry.*;
 import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.util.Identifier;
@@ -41,7 +38,7 @@ import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.cloudburstmc.server.command.ConsoleCommandSender;
+import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
@@ -62,7 +59,6 @@ import org.cloudburstmc.server.network.query.QueryHandler;
 import org.cloudburstmc.server.pack.PackManager;
 import org.cloudburstmc.server.permission.BanEntry;
 import org.cloudburstmc.server.permission.BanList;
-import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.permission.DefaultPermissions;
 import org.cloudburstmc.server.player.CloudOfflinePlayer;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -91,7 +87,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -124,11 +119,11 @@ public class CloudServer implements Server {
 
     private final CloudConsole console;
     private final ConsoleThread consoleThread;
-    private final ConsoleCommandSender consoleSender;
+    private final CloudConsoleCommandSender consoleSender;
 
     private final CloudPluginManager pluginManager;
     private final CloudEventManager eventManager;
-    private final CloudPermissionManager permissionManager;
+    private final PermissionManager permissionManager;
 
 //    private final EntityMetadataStore entityMetadata;
 //    private final PlayerMetadataStore playerMetadata;
@@ -215,11 +210,13 @@ public class CloudServer implements Server {
     private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
     private final CloudBlockEntityRegistry blockEntityRegistry = CloudBlockEntityRegistry.get();
 
-    private final EnchantmentRegistry enchantmentRegistry = EnchantmentRegistry.get();
+    private final CloudEffectRegistry effectRegistry = CloudEffectRegistry.get();
+    private final CloudEnchantmentRegistry enchantmentRegistry = CloudEnchantmentRegistry.get();
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
-    private final EntityRegistry entityRegistry = EntityRegistry.get();
-    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
-    private final CommandRegistry commandRegistry = CommandRegistry.get();
+    private final CloudEntityRegistry entityRegistry = CloudEntityRegistry.get();
+    private final CloudParticleRegistry particleRegistry = CloudParticleRegistry.get();
+    private final BiomeRegistry<?> biomeRegistry = CloudBiomeRegistry.get();
+    private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
@@ -235,7 +232,7 @@ public class CloudServer implements Server {
 
         this.pluginManager = injector.getInstance(CloudPluginManager.class);
         this.eventManager = injector.getInstance(CloudEventManager.class);
-        this.permissionManager = injector.getInstance(CloudPermissionManager.class);
+        this.permissionManager = injector.getInstance(PermissionManager.class);
         this.levelManager = injector.getInstance(LevelManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(PackManager.class);
@@ -246,7 +243,7 @@ public class CloudServer implements Server {
         this.levelMetadata = injector.getInstance(LevelMetadataStore.class);
         this.entityMetadata = injector.getInstance(EntityMetadataStore.class);*/
 
-        this.consoleSender = injector.getInstance(ConsoleCommandSender.class);
+        this.consoleSender = injector.getInstance(CloudConsoleCommandSender.class);
 
         this.console = new CloudConsole(this);
         this.consoleThread = new ConsoleThread();
@@ -288,14 +285,15 @@ public class CloudServer implements Server {
         return recipients.size();
     }
 
-    public int broadcast(Component message, String permissions) {
+    public int broadcast(Component message, String permission) {
         Set<CommandSender> recipients = new HashSet<>();
+        if (this.consoleSender.hasPermission(permission)) {
+            recipients.add(this.consoleSender);
+        }
 
-        for (String permission : permissions.split(";")) {
-            for (Permissible permissible : this.permissionManager.getPermissionSubscriptions(permission)) {
-                if (permissible instanceof CommandSender && permissible.hasPermission(permission)) {
-                    recipients.add((CommandSender) permissible);
-                }
+        for (CloudPlayer player : this.players.values()) {
+            if (player.hasPermission(permission)) {
+                recipients.add(player);
             }
         }
 
@@ -446,14 +444,11 @@ public class CloudServer implements Server {
         // Initialize metrics
         new CloudMetrics(this);
 
-        this.commandRegistry.registerVanilla();
+        DefaultPermissions.registerCorePermissions(this.permissionManager);
+
+        this.commandRegistry.registerBuiltIns();
 
         this.playerDataStore.convertLegacyData();
-
-        DefaultPermissions.registerCorePermissions();
-        this.consoleSender.recalculatePermissions();
-
-        this.permissionManager.subscribeToPermission(CloudServer.BROADCAST_CHANNEL_ADMINISTRATIVE, this.consoleSender);
 
         this.pluginManager.registerLoader(JavaPluginLoader.class, JavaPluginLoader.builder().build());
 
@@ -462,6 +457,7 @@ public class CloudServer implements Server {
         this.loadPlugins();
 
         this.eventManager.fire(ServerInitializationEvent.INSTANCE);
+        this.eventManager.fire(new CommandRegistrationEvent(this.commandRegistry));
 
         // load packs before registry closes to register new blocks and after plugins to register block factories.
         this.loadPacks();
@@ -470,10 +466,12 @@ public class CloudServer implements Server {
         try {
             this.blockEntityRegistry.close();
             this.blockRegistry.close();
+            this.effectRegistry.close();
             this.enchantmentRegistry.close();
             this.itemRegistry.close();
             this.recipeRegistry.close();
             this.entityRegistry.close();
+            this.particleRegistry.close();
             this.biomeRegistry.close();
             this.gameRuleRegistry.close();
             this.generatorRegistry.close();
@@ -600,7 +598,7 @@ public class CloudServer implements Server {
     }
 
     //todo: use ticker to check console
-    public ConsoleCommandSender getConsoleSender() {
+    public CloudConsoleCommandSender getConsoleSender() {
         return consoleSender;
     }
 
@@ -1159,7 +1157,7 @@ public class CloudServer implements Server {
         return this.pluginManager;
     }
 
-    public CloudPermissionManager getPermissionManager() {
+    public PermissionManager getPermissionManager() {
         return permissionManager;
     }
 
@@ -1211,7 +1209,12 @@ public class CloudServer implements Server {
         return ((float) Math.round(sum / count * 100)) / 100;
     }
 
-    public CommandRegistry getCommandRegistry() {
+    @Override
+    public Commands commands() {
+        return this.commandRegistry;
+    }
+
+    public CloudCommandRegistry getCommandRegistry() {
         return this.commandRegistry;
     }
 
@@ -1229,7 +1232,7 @@ public class CloudServer implements Server {
     }
 
     public Optional<UUID> lookupName(String name) {
-        byte[] nameBytes = name.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        byte[] nameBytes = name.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
         byte[] uuidBytes = nameLookup.get(nameBytes);
         if (uuidBytes == null) {
             return Optional.empty();
@@ -1246,7 +1249,7 @@ public class CloudServer implements Server {
     }
 
     public void updateName(UUID uuid, String name) {
-        byte[] nameBytes = name.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        byte[] nameBytes = name.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.UTF_8);
 
         ByteBuffer buffer = ByteBuffer.allocate(16);
         buffer.putLong(uuid.getMostSignificantBits());
@@ -1264,6 +1267,11 @@ public class CloudServer implements Server {
     @Override
     public OfflinePlayer getOfflinePlayer(String name) {
         Preconditions.checkNotNull(name, "name");
+        CloudPlayer player = this.getPlayerExact(name);
+        if (player != null) {
+            return new CloudOfflinePlayer(this, player.getServerId(), player.getName());
+        }
+
         return this.lookupName(name)
                 .<OfflinePlayer>map(uuid -> new CloudOfflinePlayer(this, uuid, name))
                 .orElseGet(() -> new CloudOfflinePlayer(this, name));
@@ -1309,10 +1317,10 @@ public class CloudServer implements Server {
 
     public Player getPlayer(String name) {
         Player found = null;
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
         int delta = Integer.MAX_VALUE;
         for (Player player : this.getOnlinePlayers().values()) {
-            if (player.getName().toLowerCase().startsWith(name)) {
+            if (player.getName().toLowerCase(Locale.ROOT).startsWith(name)) {
                 int curDelta = player.getName().length() - name.length();
                 if (curDelta < delta) {
                     found = player;
@@ -1328,9 +1336,9 @@ public class CloudServer implements Server {
     }
 
     public CloudPlayer getPlayerExact(String name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.ROOT);
         for (Player player : this.getOnlinePlayers().values()) {
-            if (player.getName().toLowerCase().equals(name)) {
+            if (player.getName().toLowerCase(Locale.ROOT).equals(name)) {
                 return (CloudPlayer) player;
             }
         }
@@ -1339,12 +1347,12 @@ public class CloudServer implements Server {
     }
 
     public Player[] matchPlayer(String partialName) {
-        partialName = partialName.toLowerCase();
+        partialName = partialName.toLowerCase(Locale.ROOT);
         List<Player> matchedPlayer = new ArrayList<>();
         for (Player player : this.getOnlinePlayers().values()) {
-            if (player.getName().toLowerCase().equals(partialName)) {
+            if (player.getName().toLowerCase(Locale.ROOT).equals(partialName)) {
                 return new Player[]{player};
-            } else if (player.getName().toLowerCase().contains(partialName)) {
+            } else if (player.getName().toLowerCase(Locale.ROOT).contains(partialName)) {
                 matchedPlayer.add(player);
             }
         }
@@ -1367,6 +1375,7 @@ public class CloudServer implements Server {
         }
     }
 
+    @Override
     public Set<CloudLevel> getLevels() {
         return this.levelManager.getLevels();
     }
@@ -1434,12 +1443,12 @@ public class CloudServer implements Server {
 
     @Override
     public boolean isBanned(Player player) {
-        return this.banByName.isBanned(player.getName().toLowerCase());
+        return this.banByName.isBanned(player.getName().toLowerCase(Locale.ROOT));
     }
 
     @Override
     public boolean isIPBanned(Player player) {
-        return this.banByIP.isBanned(player.getName().toLowerCase());
+        return this.banByIP.isBanned(player.getName().toLowerCase(Locale.ROOT));
     }
 
     @Override
@@ -1448,7 +1457,7 @@ public class CloudServer implements Server {
             if (byIP)
                 this.banByIP.addBan(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
             else
-                this.banByName.addBan(who.getName().toLowerCase());
+                this.banByName.addBan(who.getName().toLowerCase(Locale.ROOT));
         } else {
             this.banByName.remove(who.getName());
             this.banByIP.remove(((InetSocketAddress) ((CloudPlayer) who).getSocketAddress()).getAddress().getHostAddress());
@@ -1461,10 +1470,10 @@ public class CloudServer implements Server {
     }
 
     public void addOp(String name) {
-        this.operators.set(name.toLowerCase(), true);
+        this.operators.set(name.toLowerCase(Locale.ROOT), true);
         CloudPlayer player = this.getPlayerExact(name);
         if (player != null) {
-            player.recalculatePermissions();
+            player.refreshOperatorStatus();
         }
         this.operators.save(true);
     }
@@ -1475,10 +1484,10 @@ public class CloudServer implements Server {
     }
 
     public void removeOp(String name) {
-        this.operators.remove(name.toLowerCase());
+        this.operators.remove(name.toLowerCase(Locale.ROOT));
         CloudPlayer player = this.getPlayerExact(name);
         if (player != null) {
-            player.recalculatePermissions();
+            player.refreshOperatorStatus();
         }
         this.operators.save();
     }
@@ -1489,7 +1498,7 @@ public class CloudServer implements Server {
     }
 
     public void addWhitelist(String name) {
-        this.whitelist.set(name.toLowerCase(), true);
+        this.whitelist.set(name.toLowerCase(Locale.ROOT), true);
         this.whitelist.save(true);
     }
 
@@ -1499,7 +1508,7 @@ public class CloudServer implements Server {
     }
 
     public void removeWhitelist(String name) {
-        this.whitelist.remove(name.toLowerCase());
+        this.whitelist.remove(name.toLowerCase(Locale.ROOT));
         this.whitelist.save(true);
     }
 
@@ -1531,10 +1540,6 @@ public class CloudServer implements Server {
 
     public void reloadWhitelist() {
         this.whitelist.reload();
-    }
-
-    public Map<String, List<String>> getCommandAliases() {
-        return getConfig().getCommandAliases();
     }
 
     public boolean shouldSavePlayerData() {
@@ -1598,7 +1603,7 @@ public class CloudServer implements Server {
 
     private void registerVanillaComponents() {
         Attribute.init();
-        this.defaultLevelData.getGameRules().putAll(this.gameRuleRegistry.getDefaultRules());
+        this.defaultLevelData.getGameRules().loadFrom(this.gameRuleRegistry.getDefaultRules());
     }
 
     private void loadLevels() throws IOException {
@@ -1695,26 +1700,59 @@ public class CloudServer implements Server {
         return storageRegistry;
     }
 
-    public CloudGameRuleRegistry getGameRuleRegistry() {
+    @Override
+    public GameRuleRegistry getGameRuleRegistry() {
         return gameRuleRegistry;
     }
 
     @Override
     public BlockEntityRegistry getBlockEntityRegistry() {
-        return CloudBlockEntityRegistry.get();
+        return blockEntityRegistry;
     }
 
     @Override
-    public CloudBlockRegistry getBlockRegistry() {
+    public BlockRegistry getBlockRegistry() {
         return blockRegistry;
     }
 
+    @Override
+    public BiomeRegistry<?> getBiomeRegistry() {
+        return biomeRegistry;
+    }
+
+    @Override
+    public EffectRegistry getEffectRegistry() {
+        return effectRegistry;
+    }
+
+    @Override
+    public EnchantmentRegistry getEnchantmentRegistry() {
+        return enchantmentRegistry;
+    }
+
+    @Override
+    public EntityRegistry getEntityRegistry() {
+        return entityRegistry;
+    }
+
+    @Override
     public ItemRegistry getItemRegistry() {
         return itemRegistry;
     }
 
+    @Override
+    public ParticleRegistry getParticleRegistry() {
+        return particleRegistry;
+    }
+
+    @Override
     public RecipeRegistry getRecipeRegistry() {
         return recipeRegistry;
+    }
+
+    @Override
+    public ResourcePackRegistry getResourcePackRegistry() {
+        return packManager;
     }
 
     public GeneratorRegistry getGeneratorRegistry() {

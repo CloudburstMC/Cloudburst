@@ -1,52 +1,50 @@
 package org.cloudburstmc.server.command.defaults;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
+import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.command.Command;
-import org.cloudburstmc.server.command.ConsoleCommandSender;
-import org.cloudburstmc.server.command.data.CommandData;
-import org.cloudburstmc.server.command.data.CommandParameter;
+import org.cloudburstmc.server.command.CloudConsoleCommandSender;
+import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class SayCommand extends Command {
+public class SayCommand extends AdvertisedCommand {
 
     public SayCommand() {
-        super("say", CommandData.builder("say")
-                .setDescription("commands.say.description")
-                .setUsageMessage("/say <usage>")
-                .setPermissions("cloudburst.command.say")
-                .setParameters(new CommandParameter[]{
-                        new CommandParameter("message")
-                })
-                .build());
+        super("say", "commands.say.description", CommandNetworkData.GAME_DIRECTORS_MESSAGE_NOT_CHEAT,
+                "cloudburst.command.say");
     }
 
     @Override
-    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (!this.testPermission(sender)) {
-            return true;
-        }
+    public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
+        builder.then(Commands.argument("message", CommandArgumentTypes.message())
+                .executes(this::executeCommand));
+    }
 
-        if (args.length == 0) {
-            return false;
-        }
-
+    @Override
+    protected int execute(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
         Component senderName;
         if (sender instanceof CloudPlayer) {
             senderName = ((CloudPlayer) sender).displayName();
-        } else if (sender instanceof ConsoleCommandSender) {
+        } else if (sender instanceof CloudConsoleCommandSender) {
             senderName = Component.text("Server");
         } else {
             senderName = sender.name();
         }
 
-        String msg = String.join(" ", args);
+        String msg = argumentValue(context, "message");
 
         ((CloudServer) sender.getServer()).broadcastMessage(
                 Component.translatable("chat.type.announcement", senderName, Component.text(msg))
                         .color(NamedTextColor.LIGHT_PURPLE));
-        return true;
+        return success();
     }
 }
