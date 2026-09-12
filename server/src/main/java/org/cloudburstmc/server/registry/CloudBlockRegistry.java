@@ -17,7 +17,6 @@ import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.component.*;
-import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.serializer.DefaultBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
@@ -62,19 +61,14 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.itemRegistry = itemRegistry;
         BlockTraitSerializers.init();
         this.registerVanillaBehaviors();
-        BlockTypeDefaultInitializer.init(this);
-        BlockTypeInitializer.init(this);
+        BlockTypes.values().forEach(this::registerVanilla);
+        VanillaBlockBehaviors.configure(this);
         VanillaBlockTags.freeze();
         REGISTRY = this; // TODO: Remove at some point
     }
 
-    CloudComponentMap registerVanilla(BlockType type) throws RegistryException {
-        return this.registerVanilla(type, DefaultBlockSerializer.INSTANCE);
-    }
-
-    synchronized CloudComponentMap registerVanilla(BlockType type, BlockSerializer serializer) throws RegistryException {
+    private synchronized CloudComponentMap registerVanilla(BlockType type) throws RegistryException {
         checkNotNull(type, "type");
-        checkNotNull(serializer, "serializer");
         checkClosed();
 
         if (getComponentMap(type) != null) {
@@ -89,7 +83,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
 
         putComponents(type, collection);
 
-        this.palette.addBlock(type, serializer);
+        this.palette.addBlock(type, DefaultBlockSerializer.INSTANCE);
 
         return collection;
     }
