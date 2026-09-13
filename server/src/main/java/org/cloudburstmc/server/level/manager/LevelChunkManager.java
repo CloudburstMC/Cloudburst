@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.manager;
 import co.aikar.timings.Timing;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -12,6 +13,7 @@ import org.cloudburstmc.api.event.level.ChunkUnloadEvent;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.EndDimension;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
@@ -39,6 +41,7 @@ public final class LevelChunkManager {
 
     private final CloudLevel level;
     private final LevelProvider provider;
+    @Getter
     private final ChunkTaskScheduler scheduler;
 
     /**
@@ -183,9 +186,7 @@ public final class LevelChunkManager {
     public CompletableFuture<CloudChunk> getChunkFuture(int chunkX, int chunkZ, ChunkStage stage) {
         final long chunkKey = CloudChunk.key(chunkX, chunkZ);
         ChunkHolder chunk = this.getOrCreateChunk(chunkKey);
-        synchronized (chunk) {
-            return chunk.getFuture(stage);
-        }
+        return chunk.getFuture(stage);
     }
 
     private ChunkHolder getOrCreateChunk(long chunkKey) {
@@ -321,8 +322,10 @@ public final class LevelChunkManager {
                 try {
                     if (throwable != null) {
                         log.warn("Unable to save chunk", throwable);
+                        request.future().completeExceptionally(throwable);
+                    } else {
+                        request.future().complete(null);
                     }
-                    request.future().complete(null);
                 } finally {
                     LevelChunkManager.this.activeSaves.decrementAndGet();
                     LevelChunkManager.this.drainSaveQueue();
@@ -345,6 +348,9 @@ public final class LevelChunkManager {
             }
             this.level.registerTickContainers(key);
             loadingChunk.promote();
+            if (loadingChunk.isNewChunk()) {
+                EndDimension.onChunkGenerated(this.level, chunk);
+            }
             this.level.getServer().getEventManager().fire(new ChunkLoadEvent(chunk, loadingChunk.isNewChunk()));
             chunk.replayDeferredUpdates();
         }
@@ -424,10 +430,6 @@ public final class LevelChunkManager {
                 }
             }
         }
-    }
-
-    public ChunkTaskScheduler getScheduler() {
-        return this.scheduler;
     }
 
     public CloudChunk readChunk(ChunkHolder holder) {

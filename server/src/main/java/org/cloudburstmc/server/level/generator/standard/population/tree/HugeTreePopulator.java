@@ -3,18 +3,18 @@ package org.cloudburstmc.server.level.generator.standard.population.tree;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -26,8 +26,6 @@ import static net.daporkchop.lib.common.math.PMath.mix64;
 
 /**
  * A populator that places simple trees, with a similar shape to vanilla oak/birch trees.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class HugeTreePopulator extends AbstractTreePopulator {
@@ -50,7 +48,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         if (this.grid) {
             if ((mix32(mix64(this.seed() + (blockX >> 2)) + (blockZ >> 2)) & 0xF) != (((blockX & 3) << 2) | (blockZ & 3))) {
                 //bitwise magic!
@@ -81,7 +79,7 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
                 BlockState test = level.getBlockState(x + dx, y, z + dz, 0);

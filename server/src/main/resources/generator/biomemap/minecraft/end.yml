@@ -1,2 +1,6 @@
-id: "cloudburst:constant"
-biome: "minecraft:the_end"
+id: "cloudburst:end"
+end: "minecraft:the_end"
+highlands: "minecraft:end_highlands"
+midlands: "minecraft:end_midlands"
+smallIslands: "minecraft:small_end_islands"
+barrens: "minecraft:end_barrens"

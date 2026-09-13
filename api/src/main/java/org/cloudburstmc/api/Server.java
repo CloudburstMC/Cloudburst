@@ -2,10 +2,14 @@ package org.cloudburstmc.api;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.boss.BossBar;
+import org.cloudburstmc.api.boss.BossBarColor;
+import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.level.LevelBuilder;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
@@ -59,6 +63,16 @@ public interface Server {
     RecipeRegistry getRecipeRegistry();
 
     ResourcePackRegistry getResourcePackRegistry();
+
+    /**
+     * Creates a boss bar with full progress.
+     *
+     * @param title the bar title
+     * @param color the bar color
+     * @param style the bar style
+     * @return the new boss bar
+     */
+    BossBar createBossBar(Component title, BossBarColor color, BossBarStyle style);
 
     int getTick();
 
@@ -121,6 +135,22 @@ public interface Server {
      */
     Set<? extends Level> getLevels();
 
+    /**
+     * Creates a builder for loading or creating a level.
+     *
+     * @param id level ID and directory name
+     * @return new level builder
+     */
+    LevelBuilder levelBuilder(String id);
+
+    /**
+     * Unloads a non-default level unless a plugin cancels the unload event.
+     *
+     * @param level level to unload
+     * @return {@code true} when the level was unloaded
+     */
+    boolean unloadLevel(Level level);
+
     int getMaxPlayers();
 
     boolean hasWhitelist();
@@ -164,6 +194,16 @@ public interface Server {
     String getIp();
 
     Difficulty getDifficulty();
+
+    /**
+     * @return whether Nether levels are enabled
+     */
+    boolean isNetherAllowed();
+
+    /**
+     * @return whether End levels are enabled
+     */
+    boolean isEndAllowed();
 
     void addOnlinePlayer(Player who);
 

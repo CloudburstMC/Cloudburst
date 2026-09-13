@@ -3,16 +3,15 @@ package org.cloudburstmc.server.level.generator.standard.population.tree;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.feature.WorldFeature;
 import org.cloudburstmc.server.level.feature.tree.GenerationTreeSpecies;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -20,8 +19,6 @@ import java.util.random.RandomGenerator;
 
 /**
  * A populator that places simple trees, with a similar shape to vanilla oak/birch trees.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class TreePopulator extends AbstractTreePopulator {
@@ -37,7 +34,7 @@ public class TreePopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         this.types[random.nextInt(this.types.length)].place(level, random, x, y + 1, z);
     }
 

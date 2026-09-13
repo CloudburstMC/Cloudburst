@@ -41,7 +41,7 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
         this.state = 2;
         this.liveTime = ThreadLocalRandom.current().nextInt(3) + 1;
 
-        if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().ordinal() >= 2)) {
+        if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().getId() >= 2)) {
             Block block = this.getLevel().getBlock(this.getPosition().toInt());
             var state = block.getState();
 

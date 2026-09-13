@@ -2,17 +2,22 @@ package org.cloudburstmc.server.level.provider.anvil;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.server.level.LevelConverter;
+import org.cloudburstmc.server.inject.LevelModule;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.CloudLevelConverter;
+import org.cloudburstmc.server.level.CloudLevelData;
+import org.cloudburstmc.server.level.provider.CloudLevelProviderContext;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBProviderFactory;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -21,55 +26,58 @@ public class AnvilProviderFactory implements LevelProviderFactory {
     public static final AnvilProviderFactory INSTANCE = new AnvilProviderFactory();
 
     @Override
-    public LevelProvider create(String levelId, Path levelsPath, Executor executor) throws IOException {
-        try (LevelProvider oldProvider = new AnvilProvider(levelId, levelsPath, executor);
-             LevelProvider newProvider = LevelDBProviderFactory.INSTANCE.create(levelId, levelsPath, executor)) {
+    public LevelProvider create(CloudLevelProviderContext context) throws IOException {
+        String levelId = context.request().id();
+        Path levelsPath = context.levelsPath();
+        try {
+            try (AnvilLevelImportSource source = new AnvilLevelImportSource(levelId, levelsPath, context.executor());
+                 LevelProvider target = LevelDBProviderFactory.INSTANCE.create(context)) {
+                CloudLevelData data = source.loadLevelData(context.initialData()).join().orElse(context.initialData());
+                data.setDimension(context.request().dimension());
+                CloudLevel conversionLevel = context.server().getInjector()
+                        .createChildInjector(new LevelModule(levelId, target, data))
+                        .getInstance(CloudLevel.class);
 
-            LevelConverter converter = new LevelConverter(oldProvider, newProvider);
-            converter.perform().join();
-        }
-
-        try (Stream<Path> walk = Files.walk(levelsPath.resolve(levelId).resolve("region"))) {
-            for (Path path : walk.sorted(Comparator.reverseOrder()).collect(Collectors.toList())) {
-                Files.deleteIfExists(path);
+                new CloudLevelConverter(source, target, conversionLevel).convert().join();
+                target.saveLevelData(data).join();
             }
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not delete region/ directory");
+        } catch (CompletionException exception) {
+            throw new IOException("Could not import level '" + levelId + "'", exception.getCause());
         }
 
-        return LevelDBProviderFactory.INSTANCE.create(levelId, levelsPath, executor);
+        deleteRegionDirectory(levelsPath.resolve(levelId).resolve("region"));
+
+        return LevelDBProviderFactory.INSTANCE.create(context);
     }
 
     @Override
     public boolean isCompatible(String levelId, Path levelsPath) {
-        Path levelPath = levelsPath.resolve(levelId);
-        if (Files.isDirectory(levelPath)) {
-            Path regionPath = levelPath.resolve("region");
-            if (Files.isDirectory(regionPath)) {
-                Visitor visitor = new Visitor();
-                try {
-                    Files.walkFileTree(regionPath, visitor);
-                    return visitor.found;
-                } catch (IOException e) {
-                    // ignore
+        Path regionPath = levelsPath.resolve(levelId).resolve("region");
+        if (!Files.isDirectory(regionPath)) {
+            return false;
+        }
+
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(regionPath, "*.mca")) {
+            for (Path file : files) {
+                if (Files.isRegularFile(file)) {
+                    return true;
                 }
             }
+        } catch (IOException exception) {
+            return false;
         }
+
         return false;
     }
 
-    private static class Visitor extends SimpleFileVisitor<Path> {
-        private static final PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.mca");
+    private static void deleteRegionDirectory(Path regionPath) throws IOException {
+        List<Path> paths;
+        try (Stream<Path> walk = Files.walk(regionPath)) {
+            paths = walk.sorted(Comparator.reverseOrder()).toList();
+        }
 
-        private boolean found;
-
-        @Override
-        public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-            if (matcher.matches(path)) {
-                found = true;
-                return FileVisitResult.TERMINATE;
-            }
-            return FileVisitResult.CONTINUE;
+        for (Path path : paths) {
+            Files.deleteIfExists(path);
         }
     }
 }

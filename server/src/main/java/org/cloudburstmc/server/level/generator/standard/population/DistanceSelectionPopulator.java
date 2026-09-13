@@ -2,21 +2,18 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
-/**
- * @author DaPorkchop_
- */
 @JsonDeserialize
 public class DistanceSelectionPopulator extends AbstractGenerationPass implements Populator {
     public static final Identifier ID = Identifier.parse("cloudburst:distance");
@@ -60,7 +57,7 @@ public class DistanceSelectionPopulator extends AbstractGenerationPass implement
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         double distanceSq = blockX * blockX + blockZ * blockZ;
         for (Populator populator : distanceSq < this.minSq ? this.below : distanceSq > this.maxSq ? this.above : this.in) {
             populator.populate(random, level, blockX, blockZ);

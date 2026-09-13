@@ -89,7 +89,18 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, CHEST, ContainerBlockHandlers.CHEST);
         configureAnvil(registry, CHIPPED_ANVIL);
         registry.configure(CHORUS_FLOWER)
-                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.CHORUS_FLOWER_BLOCK_SUPPORT_SHAPE);
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.CAN_SURVIVE, ChorusBlockHandlers.FLOWER_CAN_SURVIVE)
+                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.CHORUS_FLOWER_BLOCK_SUPPORT_SHAPE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ChorusBlockHandlers.FLOWER_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_PROJECTILE_HIT, ChorusBlockHandlers.FLOWER_PROJECTILE_HIT)
+                .set(BlockComponents.ON_RANDOM_TICK, ChorusBlockHandlers.FLOWER_RANDOM_TICK)
+                .set(BlockComponents.ON_TICK, ChorusBlockHandlers.ON_TICK);
+        registry.configure(CHORUS_PLANT)
+                .set(BlockComponents.CAN_SURVIVE, ChorusBlockHandlers.PLANT_CAN_SURVIVE)
+                .set(BlockComponents.GET_LOOT, ChorusBlockHandlers.PLANT_LOOT)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ChorusBlockHandlers.PLANT_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, ChorusBlockHandlers.ON_TICK);
         configureSlab(registry, CINNABAR_BRICK_SLAB, CINNABAR_BRICK_DOUBLE_SLAB);
         configureStairs(registry, CINNABAR_BRICK_STAIRS);
         configureSlab(registry, CINNABAR_SLAB, CINNABAR_DOUBLE_SLAB);
@@ -152,11 +163,24 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, DIORITE_SLAB, DIORITE_DOUBLE_SLAB);
         configureStairs(registry, DIORITE_STAIRS);
         configureUsable(registry, DISPENSER, ContainerBlockHandlers.DISPENSER);
-        configureFalling(registry, DRAGON_EGG, Sound.LAND_STONE, Sound.DIG_STONE);
+        configureFalling(registry, DRAGON_EGG, Sound.LAND_STONE, Sound.DIG_STONE)
+                .set(BlockComponents.ATTACK, DragonEggBlockHandlers.ATTACK)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, DragonEggBlockHandlers.USE);
         configureUsable(registry, DROPPER, ContainerBlockHandlers.DROPPER);
         configureOre(registry, EMERALD_ORE, OreLoot.emerald(EMERALD_ORE.getDefaultState()));
         configureUsable(registry, ENCHANTING_TABLE, ContainerBlockHandlers.ENCHANTING_TABLE);
         configureStairs(registry, END_BRICK_STAIRS);
+        registry.configure(END_GATEWAY)
+                .set(BlockComponents.GET_COLLISION_SHAPE, EndGatewayBlockHandlers.COLLISION_SHAPE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, EndGatewayBlockHandlers.ENTITY_INSIDE_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, EndGatewayBlockHandlers.ON_ENTITY_INSIDE);
+        registry.configure(END_PORTAL)
+                .set(BlockComponents.GET_COLLISION_SHAPE, EndPortalBlockHandlers.COLLISION_SHAPE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, EndPortalBlockHandlers.ENTITY_INSIDE_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, EndPortalBlockHandlers.ON_ENTITY_INSIDE);
+        registry.configure(END_PORTAL_FRAME)
+                .set(BlockComponents.ON_DESTROY, EndPortalBlockHandlers.DESTROY_FRAME);
         configureSlab(registry, END_STONE_BRICK_SLAB, END_STONE_BRICK_DOUBLE_SLAB);
         configureUsable(registry, ENDER_CHEST, ContainerBlockHandlers.ENDER_CHEST);
         configureDoor(registry, EXPOSED_COPPER_DOOR);

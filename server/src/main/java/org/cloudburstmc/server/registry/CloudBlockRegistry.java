@@ -273,6 +273,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     private void registerVanillaBehaviors() {
+        this.registerComponent(BlockComponents.ATTACK, DefaultBlockHandlers.ATTACK);
         this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
         this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
         this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);

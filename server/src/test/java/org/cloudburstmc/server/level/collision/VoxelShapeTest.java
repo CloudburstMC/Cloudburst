@@ -40,6 +40,18 @@ class VoxelShapeTest {
     }
 
     @Test
+    void shapeDifferenceKeepsOnlyNewCollision() {
+        VoxelShape base = CloudVoxelShapes.box(0, 0, 0, 1, 0.5f, 1);
+        VoxelShape raised = CloudVoxelShapes.box(0, 0, 0, 1, 0.75f, 1);
+
+        VoxelShape difference = CloudVoxelShapes.onlySecond(base, raised);
+
+        assertEquals(0.5f, difference.bounds().getMinY());
+        assertEquals(0.75f, difference.bounds().getMaxY());
+        assertFalse(difference.overlaps(base.bounds()));
+    }
+
+    @Test
     void rejectsPathologicalBoxCounts() {
         float[] boxes = new float[(CloudVoxelShape.MAX_BOXES + 1) * 6];
         for (int i = 0; i < boxes.length; i += 6) {

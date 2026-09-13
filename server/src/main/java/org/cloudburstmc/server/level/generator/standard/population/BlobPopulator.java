@@ -1,23 +1,20 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
  * Places large spikes in the world.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class BlobPopulator extends ChancePopulator.Column {
@@ -46,7 +43,7 @@ public class BlobPopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         if (y < 0 || !this.on.test(level.getBlockState(blockX, y, blockZ, 0))) {
             return;

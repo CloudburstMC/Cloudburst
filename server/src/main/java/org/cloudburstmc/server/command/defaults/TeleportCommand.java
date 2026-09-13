@@ -12,7 +12,7 @@ import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.resolver.PositionResolver;
 import org.cloudburstmc.api.command.argument.resolver.RotationResolver;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.GenericMath;
@@ -107,7 +107,7 @@ public class TeleportCommand extends AdvertisedCommand {
     }
 
     private static void teleportToEntity(CommandSender sender, Entity origin, Entity target) {
-        origin.teleport(target.getLocation(), PlayerTeleportEvent.TeleportCause.COMMAND);
+        origin.teleport(target.getLocation(), PlayerTeleportCause.COMMAND);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success",
                 Component.text(origin.getName()), Component.text(target.getName())));
         if (origin instanceof Player player && origin != sender) {
@@ -132,7 +132,7 @@ public class TeleportCommand extends AdvertisedCommand {
             pitch = pitchInput;
         }
 
-        target.teleport(Location.from(position, yaw, pitch, source.level()), PlayerTeleportEvent.TeleportCause.COMMAND);
+        target.teleport(Location.from(position, yaw, pitch, source.level()), PlayerTeleportCause.COMMAND);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.tp.success.coordinates",
                 Component.text(target.getName()),
                 Component.text(String.valueOf(GenericMath.round(position.getX(), 2))),

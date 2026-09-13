@@ -1,10 +1,9 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.server.level.feature.ReplacingWorldFeature;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -13,8 +12,6 @@ import java.util.random.RandomGenerator;
 
 /**
  * Common code for all tree types.
- *
- * @author DaPorkchop_
  */
 public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
     protected final IntRange height;
@@ -36,7 +33,7 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
     }
 
     @Override
-    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 255) {
             return false;
         }
@@ -57,23 +54,23 @@ public abstract class FeatureAbstractTree extends ReplacingWorldFeature {
         return true;
     }
 
-    protected int chooseHeight(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    protected int chooseHeight(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         return this.height.rand(random);
     }
 
-    protected abstract boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height);
+    protected abstract boolean canPlace(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height);
 
-    protected BlockState selectLog(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
+    protected BlockState selectLog(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         return this.log.selectWeighted(random);
     }
 
-    protected BlockState selectLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
+    protected BlockState selectLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         return this.leaves.selectWeighted(random);
     }
 
-    protected abstract void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void placeTrunk(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 
-    protected abstract void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
+    protected abstract void finish(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves);
 }

@@ -18,21 +18,27 @@ public enum EnumLevel {
 
     public static void initLevels() {
         OVERWORLD.level = CloudServer.getInstance().getDefaultLevel();
+        NETHER.level = null;
+        THE_END.level = null;
 
         CloudLevel netherLevel = CloudServer.getInstance().getLevelByName("nether");
         if (netherLevel != null && CloudServer.getInstance().isNetherAllowed()) {
             NETHER.level = netherLevel;
-            NETHER.level.setDimension(CloudLevel.DIMENSION_NETHER);
+            if (NETHER.level.getDimension() != CloudLevel.DIMENSION_NETHER) {
+                throw new IllegalStateException("Level 'nether' is not configured as the Nether dimension");
+            }
         } else {
-            log.warn("No level called \"nether\" found or nether is disabled in server properties! Nether functionality will be disabled.");
+            log.info("Nether functionality is disabled because the Nether is disabled or no level named 'nether' is loaded");
         }
 
         CloudLevel endLevel = CloudServer.getInstance().getLevelByName("the_end");
         if (endLevel != null && CloudServer.getInstance().isEndAllowed()) {
             THE_END.level = endLevel;
-            THE_END.level.setDimension(CloudLevel.DIMENSION_THE_END);
+            if (THE_END.level.getDimension() != CloudLevel.DIMENSION_THE_END) {
+                throw new IllegalStateException("Level 'the_end' is not configured as the End dimension");
+            }
         } else {
-            log.warn("No level called \"the_end\" found or The End is disabled in server properties! The End functionality will be disabled.");
+            log.info("End functionality is disabled because the End is disabled or no level named 'the_end' is loaded");
         }
     }
 

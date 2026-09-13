@@ -68,8 +68,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
 
-        this.chunk.addBlockEntity(this);
-        this.level.addBlockEntity(this);
+        this.chunk.registerBlockEntity(this);
+        this.level.registerBlockEntity(this);
 
         this.init();
 
@@ -331,10 +331,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
         if (!this.closed) {
             this.closed = true;
             if (this.chunk != null) {
-                this.chunk.removeBlockEntity(this);
+                this.chunk.unregisterBlockEntity(this);
             }
             if (this.level != null) {
-                this.level.removeBlockEntity(this);
+                this.level.unregisterBlockEntity(this);
             }
         }
     }

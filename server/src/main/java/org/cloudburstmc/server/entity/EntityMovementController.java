@@ -14,10 +14,11 @@ import java.util.Optional;
 
 @UtilityClass
 public class EntityMovementController {
+    private static final float GROUND_PROBE_DISTANCE = 1.0E-4f;
 
-    public static boolean move(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
+    public static void move(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
         if (dx == 0 && dz == 0 && dy == 0) {
-            return true;
+            return;
         }
 
         Vector3f movement = applyStuckSpeed(entity, type, Vector3f.from(dx, dy, dz));
@@ -27,11 +28,10 @@ public class EntityMovementController {
 
         if (entity.noPhysics) {
             moveWithoutPhysics(entity, dx, dy, dz);
-            return true;
+            return;
         }
 
         try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
-            entity.ySize *= 0.4;
             BoundingBox previousBox = entity.boundingBox;
             Vector3f requestedMovement = Vector3f.from(dx, dy, dz);
             Vector3f resolvedMovement = collide(entity, type, requestedMovement);
@@ -41,7 +41,7 @@ public class EntityMovementController {
                 entity.boundingBox = entity.boundingBox.move(resolvedMovement);
             }
 
-            syncPositionFromBox(entity, true);
+            syncPositionFromBox(entity);
             entity.checkChunks();
             entity.recordMovement(previousBox, entity.boundingBox);
             applyCollisionState(entity, movementResult);
@@ -49,8 +49,12 @@ public class EntityMovementController {
             stopBlockedMotion(entity, movementResult);
             synchronizeForcedMovement(entity, type, previousBox);
         }
+    }
 
-        return true;
+    public static void setOnGroundWithMovement(CloudEntity entity, boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {
+        entity.onGround = onGround;
+        entity.isCollidedHorizontally = horizontalCollision;
+        checkSupportingBlock(entity, onGround, movement);
     }
 
     private static void synchronizeForcedMovement(CloudEntity entity, MovementType type, BoundingBox previousBox) {
@@ -59,12 +63,6 @@ public class EntityMovementController {
                 && !previousBox.equals(entity.boundingBox)) {
             entity.sendAuthoritativeDisplacement();
         }
-    }
-
-    public static void setOnGroundWithMovement(CloudEntity entity, boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {
-        entity.onGround = onGround;
-        entity.isCollidedHorizontally = horizontalCollision;
-        checkSupportingBlock(entity, onGround, movement);
     }
 
     private static Vector3f applyStuckSpeed(CloudEntity entity, MovementType type, Vector3f movement) {
@@ -89,7 +87,7 @@ public class EntityMovementController {
     private static void moveWithoutPhysics(CloudEntity entity, float dx, float dy, float dz) {
         BoundingBox previousBox = entity.boundingBox;
         entity.boundingBox = entity.boundingBox.move(dx, dy, dz);
-        syncPositionFromBox(entity, false);
+        syncPositionFromBox(entity);
         entity.checkChunks();
 
         entity.isCollidedHorizontally = false;
@@ -101,47 +99,45 @@ public class EntityMovementController {
     }
 
     private static Vector3f collide(CloudEntity entity, MovementType type, Vector3f movement) {
+        boolean includeEntityCollisions = entity.hasMovementEntityCollisions();
         if (type == MovementType.PISTON) {
-            return entity.level.collideBoundingBox(entity, movement, entity.boundingBox);
+            return entity.level.collideBoundingBox(entity, movement, entity.boundingBox, includeEntityCollisions);
         }
 
         BoundingBox originalBox = entity.boundingBox;
-        Vector3f clipped = entity.level.collideBoundingBox(entity, movement, originalBox);
+        Vector3f clipped = entity.level.collideBoundingBox(entity, movement, originalBox, includeEntityCollisions);
         boolean xCollision = movement.getX() != clipped.getX();
         boolean yCollision = movement.getY() != clipped.getY();
         boolean zCollision = movement.getZ() != clipped.getZ();
         boolean onGroundAfterCollision = yCollision && movement.getY() < 0;
+        boolean supported = entity.onGround || hasGroundSupport(entity, originalBox, includeEntityCollisions);
 
         if (entity.getStepHeight() <= 0
-                || entity.ySize >= 0.05
-                || (!entity.onGround && !onGroundAfterCollision)
+                || (!supported && !onGroundAfterCollision)
                 || (!xCollision && !zCollision)) {
             return clipped;
         }
 
-        BoundingBox groundedBox = onGroundAfterCollision
-                ? originalBox.move(0, clipped.getY(), 0)
-                : originalBox;
-        Vector3f stepAttempt = Vector3f.from(movement.getX(), entity.getStepHeight(), movement.getZ());
-        Vector3f stepUp = entity.level.collideBoundingBox(entity, stepAttempt, groundedBox);
-        BoundingBox stepBox = groundedBox.move(stepUp);
-        Vector3f stepDown = entity.level.collideBoundingBox(entity, Vector3f.from(0, clipped.getY() - stepUp.getY(), 0), stepBox);
-        Vector3f stepped = stepUp.add(0, stepDown.getY(), 0);
-
-        if (stepped.getX() * stepped.getX() + stepped.getZ() * stepped.getZ() <= clipped.getX() * clipped.getX() + clipped.getZ() * clipped.getZ()) {
+        Vector3f stepped = entity.level.collideWithStep(entity, movement, clipped, originalBox, entity.getStepHeight(), includeEntityCollisions);
+        if (stepped.equals(clipped)) {
             return clipped;
         }
 
-        entity.ySize += 0.5;
         return stepped;
     }
 
+    private static boolean hasGroundSupport(CloudEntity entity, BoundingBox box, boolean includeEntityCollisions) {
+        Vector3f resolved = entity.level.collideBoundingBox(entity, Vector3f.from(0, -GROUND_PROBE_DISTANCE, 0), box, includeEntityCollisions);
+        return resolved.getY() > -GROUND_PROBE_DISTANCE;
+    }
+
     private static void applyCollisionState(CloudEntity entity, EntityMovementResult movementResult) {
+        boolean supported = movementResult.requestedMovement().getY() <= 0 && hasGroundSupport(entity, entity.boundingBox, entity.hasMovementEntityCollisions());
         entity.isCollidedVertically = movementResult.collidedVertically();
         entity.isCollidedHorizontally = movementResult.collidedHorizontally();
         entity.isCollided = entity.isCollidedHorizontally || entity.isCollidedVertically;
         entity.verticalCollisionBelow = movementResult.collidedBelow();
-        setOnGroundWithMovement(entity, entity.verticalCollisionBelow, entity.isCollidedHorizontally, movementResult.resolvedMovement());
+        setOnGroundWithMovement(entity, entity.verticalCollisionBelow || supported, entity.isCollidedHorizontally, movementResult.resolvedMovement());
     }
 
     private static void stopBlockedMotion(CloudEntity entity, EntityMovementResult movementResult) {
@@ -182,10 +178,10 @@ public class EntityMovementController {
         entity.onGroundNoBlocks = supportingBlock.isEmpty();
     }
 
-    private static void syncPositionFromBox(CloudEntity entity, boolean subtractYSize) {
+    private static void syncPositionFromBox(CloudEntity entity) {
         entity.position = Vector3f.from(
                 (entity.boundingBox.getMinX() + entity.boundingBox.getMaxX()) / 2,
-                entity.boundingBox.getMinY() - (subtractYSize ? entity.ySize : 0),
+                entity.boundingBox.getMinY(),
                 (entity.boundingBox.getMinZ() + entity.boundingBox.getMaxZ()) / 2
         );
     }

@@ -1,14 +1,13 @@
 package org.cloudburstmc.server.level.generator.standard.population.tree;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
@@ -17,8 +16,6 @@ import static java.lang.Math.abs;
 
 /**
  * Places very short "trees", consisting of only a single log with a pile of leaves around it.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class BushPopulator extends AbstractTreePopulator {
@@ -43,7 +40,7 @@ public class BushPopulator extends AbstractTreePopulator {
     }
 
     @Override
-    protected void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z) {
+    protected void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         level.setBlockState(x, ++y, z, 0, this.log.selectWeighted(random));
 
         final BlockState leaves = this.leaves.selectWeighted(random);

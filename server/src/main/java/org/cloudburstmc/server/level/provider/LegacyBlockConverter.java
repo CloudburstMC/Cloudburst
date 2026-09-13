@@ -10,7 +10,7 @@ public class LegacyBlockConverter {
         return INSTANCE;
     }
 
-    public void convertBlockState(final int[] blockState) {
+    public void convertBlockState(int[] blockState) {
 //        TODO Convert old block types
 //        if (blockState[0] == 17) { // minecraft:log
 //            BlockBehaviorLog.upgradeLegacyBlock(blockState);

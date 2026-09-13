@@ -1,19 +1,16 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.random.RandomGenerator;
 
 /**
  * A populator that has a certain probability of running every time it finds a viable location.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public abstract class ChancePopulator extends AbstractGenerationPass implements Populator {
@@ -28,12 +25,12 @@ public abstract class ChancePopulator extends AbstractGenerationPass implements 
 
     public abstract static class Column extends ChancePopulator {
         @Override
-        public final void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+        public final void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
             if (random.nextDouble() < this.chance) {
                 this.populate0(random, level, blockX, blockZ);
             }
         }
 
-        protected abstract void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ);
+        protected abstract void populate0(RandomGenerator random, GenerationRegion level, int blockX, int blockZ);
     }
 }

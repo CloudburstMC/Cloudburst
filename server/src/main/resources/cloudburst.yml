@@ -168,13 +168,16 @@ level:
 # %worlds
 worlds:
   world:
+    dimension: overworld
     generator: cloudburst:standard
     options: overworld
     # max-liquid-ticks: 65536
     # water-over-lava-flow-speed: 5
   nether:
+    dimension: nether
     generator: cloudburst:standard
     options: nether
   the_end:
+    dimension: the_end
     generator: cloudburst:standard
     options: the_end

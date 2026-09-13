@@ -120,7 +120,7 @@ public interface ChunkManager {
 
     @Nullable
     default Chunk getLoadedChunk(Vector3i position) {
-        return getLoadedChunk(position.getX(), position.getZ());
+        return getLoadedChunk(position.getX() >> 4, position.getZ() >> 4);
     }
 
     @Nullable

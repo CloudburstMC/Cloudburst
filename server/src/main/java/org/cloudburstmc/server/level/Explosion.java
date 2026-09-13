@@ -41,6 +41,7 @@ public class Explosion {
     private final Object what;
 
     private boolean doesDamage = true;
+    private boolean destroysBlocks = true;
     private List<Block> affectedBlockStates = new ArrayList<>();
 
     public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
@@ -48,6 +49,10 @@ public class Explosion {
         this.source = center;
         this.size = Math.max(size, 0);
         this.what = what;
+    }
+
+    public void setDestroysBlocks(boolean destroysBlocks) {
+        this.destroysBlocks = destroysBlocks;
     }
 
     /**
@@ -65,6 +70,10 @@ public class Explosion {
 
         if (this.size < 0.1) {
             return false;
+        }
+
+        if (!this.destroysBlocks) {
+            return true;
         }
 
         Vector3f vBlock = Vector3f.ZERO;

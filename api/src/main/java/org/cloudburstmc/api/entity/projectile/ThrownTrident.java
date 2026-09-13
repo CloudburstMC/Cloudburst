@@ -1,12 +1,24 @@
 package org.cloudburstmc.api.entity.projectile;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.item.ItemStack;
 
-public interface ThrownTrident extends Projectile {
+/**
+ * A thrown trident projectile.
+ */
+public interface ThrownTrident extends AbstractArrow {
 
+    /**
+     * Returns the trident represented by this projectile.
+     *
+     * @return the trident item
+     */
     ItemStack getTrident();
 
-    void setTrident(@NonNull ItemStack trident);
+    /**
+     * Changes the trident represented by this projectile.
+     *
+     * @param trident the trident item
+     */
+    void setTrident(ItemStack trident);
 }

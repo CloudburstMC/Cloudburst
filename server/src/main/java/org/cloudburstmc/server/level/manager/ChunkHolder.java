@@ -39,12 +39,12 @@ public final class ChunkHolder {
 
     private final CompletableFuture<CloudChunk> loadFuture;
 
-    private CompletableFuture<CloudChunk> generatedFuture;
-    private CompletableFuture<CloudChunk> populatedFuture;
-    private CompletableFuture<CloudChunk> finishedFuture;
-    private CompletableFuture<CloudChunk> generationWorkFuture;
-    private CompletableFuture<CloudChunk> populationWorkFuture;
-    private CompletableFuture<CloudChunk> finishingWorkFuture;
+    private volatile CompletableFuture<CloudChunk> generatedFuture;
+    private volatile CompletableFuture<CloudChunk> populatedFuture;
+    private volatile CompletableFuture<CloudChunk> finishedFuture;
+    private volatile CompletableFuture<CloudChunk> generationWorkFuture;
+    private volatile CompletableFuture<CloudChunk> populationWorkFuture;
+    private volatile CompletableFuture<CloudChunk> finishingWorkFuture;
 
     private volatile CloudChunk chunk;
 
@@ -111,7 +111,7 @@ public final class ChunkHolder {
         return true;
     }
 
-    public synchronized CompletableFuture<CloudChunk> getFuture(ChunkStage stage) {
+    public CompletableFuture<CloudChunk> getFuture(ChunkStage stage) {
         return switch (stage) {
             case LOADED -> this.loadFuture;
             case GENERATED -> this.generate();
@@ -156,28 +156,73 @@ public final class ChunkHolder {
     }
 
     private CompletableFuture<CloudChunk> generate() {
-        if (this.generatedFuture == null) {
-            this.generatedFuture = this.loadFuture.thenCompose(chunk -> {
+        CompletableFuture<CloudChunk> result = this.generatedFuture;
+        if (result != null) {
+            return result;
+        }
+
+        synchronized (this) {
+            if (this.generatedFuture != null) {
+                return this.generatedFuture;
+            }
+
+            result = new CompletableFuture<>();
+            this.generatedFuture = result;
+        }
+
+        result.whenComplete((chunk, throwable) -> {
+            if (throwable == null && chunk != null) {
+                this.chunk = chunk;
+            }
+
+            this.queueUnloadIfUnneeded();
+        });
+
+        CompletableFuture<CloudChunk> pipeline;
+        try {
+            pipeline = this.loadFuture.thenCompose(chunk -> {
                 if (chunk.isGenerated()) {
                     return CompletableFuture.completedFuture(chunk);
                 }
-                this.generationWorkFuture = this.manager.getScheduler()
-                        .scheduleGeneration(this.x, this.z, chunk, ChunkTaskPriority.NORMAL);
+
+                this.generationWorkFuture = this.manager.getScheduler().scheduleGeneration(this.x, this.z, chunk, ChunkTaskPriority.NORMAL);
                 return this.generationWorkFuture;
             });
-            this.generatedFuture.whenComplete((chunk, throwable) -> {
-                if (throwable == null && chunk != null) {
-                    this.chunk = chunk;
-                }
-                this.queueUnloadIfUnneeded();
-            });
+        } catch (RuntimeException exception) {
+            result.completeExceptionally(exception);
+            return result;
         }
-        return this.generatedFuture;
+
+        completeFrom(result, pipeline);
+        return result;
     }
 
     private CompletableFuture<CloudChunk> populate() {
-        if (this.populatedFuture == null) {
-            this.populatedFuture = this.generate().thenCompose(chunk -> {
+        CompletableFuture<CloudChunk> result = this.populatedFuture;
+        if (result != null) {
+            return result;
+        }
+
+        synchronized (this) {
+            if (this.populatedFuture != null) {
+                return this.populatedFuture;
+            }
+
+            result = new CompletableFuture<>();
+            this.populatedFuture = result;
+        }
+
+        result.whenComplete((chunk, throwable) -> {
+            if (throwable == null && chunk != null) {
+                this.chunk = chunk;
+            }
+
+            this.queueUnloadIfUnneeded();
+        });
+
+        CompletableFuture<CloudChunk> pipeline;
+        try {
+            pipeline = this.generate().thenCompose(chunk -> {
                 if (chunk.isPopulated()) {
                     return CompletableFuture.completedFuture(chunk);
                 }
@@ -189,21 +234,43 @@ public final class ChunkHolder {
                                     .schedulePopulation(this.x, this.z, chunk, neighbors, ChunkTaskPriority.NORMAL);
                             return this.populationWorkFuture;
                         })
-                        .whenComplete((result, throwable) -> dependencies.release(this.manager));
+                        .whenComplete((populatedChunk, throwable) -> dependencies.release(this.manager));
             });
-            this.populatedFuture.whenComplete((chunk, throwable) -> {
-                if (throwable == null && chunk != null) {
-                    this.chunk = chunk;
-                }
-                this.queueUnloadIfUnneeded();
-            });
+        } catch (RuntimeException exception) {
+            result.completeExceptionally(exception);
+            return result;
         }
-        return this.populatedFuture;
+
+        completeFrom(result, pipeline);
+        return result;
     }
 
     private CompletableFuture<CloudChunk> finish() {
-        if (this.finishedFuture == null) {
-            this.finishedFuture = this.populate().thenCompose(chunk -> {
+        CompletableFuture<CloudChunk> result = this.finishedFuture;
+        if (result != null) {
+            return result;
+        }
+
+        synchronized (this) {
+            if (this.finishedFuture != null) {
+                return this.finishedFuture;
+            }
+
+            result = new CompletableFuture<>();
+            this.finishedFuture = result;
+        }
+
+        result.whenComplete((chunk, throwable) -> {
+            if (throwable == null && chunk != null) {
+                this.chunk = chunk;
+                this.manager.queuePromotion(this.key);
+            }
+            this.queueUnloadIfUnneeded();
+        });
+
+        CompletableFuture<CloudChunk> pipeline;
+        try {
+            pipeline = this.populate().thenCompose(chunk -> {
                 if (chunk.isFinished()) {
                     return CompletableFuture.completedFuture(chunk);
                 }
@@ -215,17 +282,15 @@ public final class ChunkHolder {
                                     .scheduleFinishing(this.x, this.z, chunk, neighbors, ChunkTaskPriority.HIGH);
                             return this.finishingWorkFuture;
                         })
-                        .whenComplete((result, throwable) -> dependencies.release(this.manager));
+                        .whenComplete((finishedChunk, throwable) -> dependencies.release(this.manager));
             });
-            this.finishedFuture.whenComplete((chunk, throwable) -> {
-                if (throwable == null && chunk != null) {
-                    this.chunk = chunk;
-                    this.manager.queuePromotion(this.key);
-                }
-                this.queueUnloadIfUnneeded();
-            });
+        } catch (RuntimeException exception) {
+            result.completeExceptionally(exception);
+            return result;
         }
-        return this.finishedFuture;
+
+        completeFrom(result, pipeline);
+        return result;
     }
 
     private DependencyBatch createDependencyBatch(ChunkStage stage) {
@@ -280,6 +345,16 @@ public final class ChunkHolder {
 
     private static boolean isDone(@Nullable CompletableFuture<?> future) {
         return future == null || future.isDone();
+    }
+
+    private static <T> void completeFrom(CompletableFuture<T> target, CompletableFuture<T> source) {
+        source.whenComplete((value, throwable) -> {
+            if (throwable == null) {
+                target.complete(value);
+            } else {
+                target.completeExceptionally(throwable);
+            }
+        });
     }
 
     private record ChunkTicket(ChunkTicketType type, Object identifier) {

@@ -9,14 +9,10 @@ import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
-import org.cloudburstmc.server.player.CloudPlayer;
-
-import java.util.Set;
 
 public class DifficultyCommand extends AdvertisedCommand {
 
@@ -47,11 +43,7 @@ public class DifficultyCommand extends AdvertisedCommand {
         }
 
         if (difficulty != null) {
-            ((CloudServer) sender.getServer()).getConfig().setDifficulty(difficulty);
-
-            SetDifficultyPacket packet = new SetDifficultyPacket();
-            packet.setDifficulty(sender.getServer().getDifficulty().ordinal());
-            CloudServer.broadcastPacket((Set<CloudPlayer>) ((CloudServer) sender.getServer()).getOnlinePlayers().values(), packet);
+            ((CloudServer) sender.getServer()).setDifficulty(difficulty);
 
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.difficulty.success", Component.translatable(difficulty)));
         } else {

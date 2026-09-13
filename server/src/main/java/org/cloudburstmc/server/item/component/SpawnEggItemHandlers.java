@@ -1,7 +1,10 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.event.entity.CreatureSpawnEvent;
+import org.cloudburstmc.api.event.entity.CreatureSpawnReason;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.Location;
@@ -20,7 +23,12 @@ public class SpawnEggItemHandlers {
 
             Location location = Location.from(spawnX, spawnY, spawnZ, entity.getLevel());
             CloudEntity spawned = (CloudEntity) CloudEntityRegistry.get().newEntity(entityType, location);
-            spawned.spawnToAll();
+            boolean spawnedSuccessfully = spawned instanceof Creature creature
+                    ? spawned.spawn(new CreatureSpawnEvent(creature, CreatureSpawnReason.SPAWN_EGG))
+                    : spawned.spawn();
+            if (!spawnedSuccessfully) {
+                return item;
+            }
 
             if (((Player) entity).isCreative()) {
                 return item;

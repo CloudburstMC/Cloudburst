@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -13,8 +12,6 @@ import static java.lang.Math.abs;
 
 /**
  * Generates a spruce tree.
- *
- * @author DaPorkchop_
  */
 public class FeatureSpruceTree extends FeatureNormalTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(6, 10);
@@ -28,7 +25,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
     }
 
     @Override
-    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 256) {
             return false;
         }

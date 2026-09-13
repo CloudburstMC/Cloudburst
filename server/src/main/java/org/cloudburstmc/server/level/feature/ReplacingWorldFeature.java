@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.level.feature;
 
 import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
 /**
@@ -28,7 +28,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      * - {@link BlockTypes#MYCELIUM}
      * - {@link BlockTypes#PODZOL}
      */
-    public void replaceGrassWithDirt(ChunkManager level, int x, int y, int z) {
+    public void replaceGrassWithDirt(GenerationRegion level, int x, int y, int z) {
         if (y >= 0 && y < 256) {
             BlockType type = level.getBlockState(x, y, z).getType();
             if (type == BlockTypes.GRASS_BLOCK || type == BlockTypes.MYCELIUM || type == BlockTypes.PODZOL) {
@@ -40,7 +40,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     /**
      * Checks whether all the blocks that horizontally neighbor the given coordinates match the given {@link BlockFilter}.
      */
-    public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter) {
+    public boolean allNeighborsMatch(GenerationRegion level, int x, int y, int z, BlockFilter filter) {
         return filter.test(level.getBlockState(x - 1, y, z, 0))
                 && filter.test(level.getBlockState(x + 1, y, z, 0))
                 && filter.test(level.getBlockState(x, y, z - 1, 0))
@@ -50,7 +50,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
     /**
      * Checks whether all the blocks that horizontally neighbor the given coordinates match the given {@link BlockFilter}.
      */
-    public boolean allNeighborsMatch(ChunkManager level, int x, int y, int z, BlockFilter filter, Direction except) {
+    public boolean allNeighborsMatch(GenerationRegion level, int x, int y, int z, BlockFilter filter, Direction except) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
             if (face != except && !filter.test(level.getBlockState(x + face.getStepX(), y, z + face.getStepZ(), 0))) {
                 return false;

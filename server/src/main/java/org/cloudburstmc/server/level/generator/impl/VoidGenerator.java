@@ -1,17 +1,15 @@
 package org.cloudburstmc.server.level.generator.impl;
 
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.random.RandomGenerator;
 
 /**
  * A basic generator that does nothing at all, resulting in a world of nothing but air.
- *
- * @author DaPorkchop_
  */
 public final class VoidGenerator implements Generator {
     public static final Identifier ID = Identifier.from("minecraft", "void");
@@ -34,12 +32,12 @@ public final class VoidGenerator implements Generator {
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
+    public void populate(RandomGenerator random, GenerationRegion region, int chunkX, int chunkZ) {
         //no-op
     }
 
     @Override
-    public void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
+    public void finish(RandomGenerator random, GenerationRegion region, int chunkX, int chunkZ) {
         //no-op
     }
 }

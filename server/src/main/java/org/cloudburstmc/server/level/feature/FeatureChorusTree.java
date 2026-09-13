@@ -2,23 +2,19 @@ package org.cloudburstmc.server.level.feature;
 
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 
-import java.util.Random;
 import java.util.random.RandomGenerator;
 
 import static java.lang.Math.abs;
 
 /**
  * Generates a fully grown chorus tree.
- *
- * @author DaPorkchop_
  */
 public class FeatureChorusTree extends ReplacingWorldFeature {
     public static final IntRange DEFAULT_BRANCH_HEIGHT = new IntRange(1, 4);
@@ -36,7 +32,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
     }
 
     @Override
-    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         if (this.test(level.getBlockState(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
             level.setBlockState(x, y, z, 0, BlockStates.CHORUS_PLANT);
             return true;
@@ -45,7 +41,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         }
     }
 
-    private boolean place0(ChunkManager level, RandomGenerator random, int x, int y, int z, int depth, int deltaX, int deltaZ) {
+    private boolean place0(GenerationRegion level, RandomGenerator random, int x, int y, int z, int depth, int deltaX, int deltaZ) {
         final int branchHeight = this.branchHeight.rand(random) + (depth == 0 ? 1 : 0);
 
         for (int dy = 1; dy <= branchHeight; dy++) {
@@ -62,7 +58,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         y += branchHeight;
         if (depth < this.maxRecursion) {
             for (int i = random.nextInt(4) - (depth == 0 ? 0 : 1); i >= 0; i--) {
-                final Direction face = Direction.Plane.HORIZONTAL.random((Random) random);
+                final Direction face = Direction.Plane.HORIZONTAL.random(random);
                 final int dx = face.getUnitVector().getX();
                 final int dz = face.getUnitVector().getZ();
 
@@ -78,7 +74,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         }
 
         if (!generatedBranch) {
-            level.setBlockState(x, y, z, 0, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.CHORUS_AGE, 5));
+            level.setBlockState(x, y, z, 0, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5));
         }
 
         return true;

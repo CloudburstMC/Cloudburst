@@ -1,0 +1,12 @@
+realId: "minecraft:the_end"
+
+elevationVanilla:
+  height: 0.1
+  variation: 0.2
+
+populators:
+  - id: "cloudburst:end_island"
+    chance: 0.0003487723214
+    height: "32-56"
+    radius: "4-6"
+    block: "end_stone"

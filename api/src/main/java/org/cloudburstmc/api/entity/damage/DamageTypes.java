@@ -19,6 +19,7 @@ public class DamageTypes {
     public static final DamageType DROWNING = type("drowning", BYPASSES_ARMOR, NO_KNOCKBACK);
     public static final DamageType ENTITY_ATTACK = type("entity_attack", IS_ENTITY_ATTACK);
     public static final DamageType ENTITY_EXPLOSION = type("entity_explosion", IS_EXPLOSION, NO_KNOCKBACK);
+    public static final DamageType ENDER_PEARL = type("ender_pearl", BYPASSES_ARMOR, IS_FALL, NO_KNOCKBACK);
     public static final DamageType FALL = type("fall", BYPASSES_ARMOR, IS_FALL, NO_KNOCKBACK);
     public static final DamageType FALLING_BLOCK = type("falling_block");
     public static final DamageType FIRE = type("fire", IS_FIRE, NO_KNOCKBACK);

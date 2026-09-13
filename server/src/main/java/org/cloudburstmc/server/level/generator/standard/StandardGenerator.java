@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -15,10 +14,10 @@ import net.daporkchop.lib.common.reference.ReferenceStrength;
 import net.daporkchop.lib.common.reference.cache.Cached;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
@@ -33,6 +32,7 @@ import org.cloudburstmc.server.level.generator.standard.misc.GenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 import org.cloudburstmc.server.level.generator.standard.store.StandardGeneratorStores;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,8 +44,6 @@ import static net.daporkchop.lib.common.util.PorkUtil.fallbackIfNull;
 
 /**
  * Main class of the Cloudburst Standard Generator.
- *
- * @author DaPorkchop_
  */
 @NoArgsConstructor
 @Accessors(fluent = true)
@@ -88,6 +86,7 @@ public final class StandardGenerator implements Generator {
     private BiomeMap biomes;
     @JsonProperty
     @JsonDeserialize(using = DensitySourceReferenceDeserializer.class)
+    @Getter
     private DensitySource density;
     @JsonProperty
     private Decorator[] decorators = Decorator.EMPTY_ARRAY;
@@ -244,7 +243,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();
@@ -264,7 +263,7 @@ public final class StandardGenerator implements Generator {
     }
 
     @Override
-    public void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ) {
+    public void finish(RandomGenerator random, GenerationRegion level, int chunkX, int chunkZ) {
         final int baseX = chunkX << 4;
         final int baseZ = chunkZ << 4;
         final ThreadData threadData = THREAD_DATA_CACHE.get();

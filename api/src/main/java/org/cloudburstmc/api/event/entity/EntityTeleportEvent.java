@@ -4,34 +4,53 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.level.Location;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public final class EntityTeleportEvent extends EntityEvent implements Cancellable {
+import java.util.Objects;
 
-    private Location from;
+/**
+ * Fired before an entity is teleported.
+ */
+public class EntityTeleportEvent extends EntityEvent implements Cancellable {
+
+    private final Location from;
     private Location to;
 
+    /**
+     * Creates an entity teleport event.
+     *
+     * @param entity the entity being teleported
+     * @param from   the current location
+     * @param to     the requested destination
+     */
     public EntityTeleportEvent(Entity entity, Location from, Location to) {
-        this.entity = entity;
-        this.from = from;
-        this.to = to;
+        this.entity = Objects.requireNonNull(entity, "entity");
+        this.from = Objects.requireNonNull(from, "from");
+        this.to = Objects.requireNonNull(to, "to");
     }
 
+    /**
+     * Returns the location from which the entity is teleporting.
+     *
+     * @return the current location
+     */
     public Location getFrom() {
-        return from;
+        return this.from;
     }
 
-    public void setFrom(Location from) {
-        this.from = from;
-    }
-
+    /**
+     * Returns the teleport destination.
+     *
+     * @return the destination
+     */
     public Location getTo() {
-        return to;
+        return this.to;
     }
 
+    /**
+     * Changes the teleport destination.
+     *
+     * @param to the new destination
+     */
     public void setTo(Location to) {
-        this.to = to;
+        this.to = Objects.requireNonNull(to, "to");
     }
 }

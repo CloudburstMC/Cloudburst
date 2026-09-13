@@ -37,11 +37,13 @@ public class EntityInsideBlockScanner {
 
         if (portal.isPresent()) {
             entity.portalEntryBlock = portal.get();
-            entity.onInsidePortal();
+            if (entity.enterNetherPortal(portal.get())) {
+                entity.onInsidePortal();
+            }
             return;
         }
 
-        if (entity.portalCooldown <= 0) {
+        if (!entity.isOnPortalCooldown()) {
             entity.inPortalTicks = Math.max(0, entity.inPortalTicks - 4);
             if (entity.inPortalTicks == 0) {
                 entity.portalEntryBlock = null;

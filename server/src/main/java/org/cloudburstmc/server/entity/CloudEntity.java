@@ -17,11 +17,10 @@ import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
-import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
@@ -44,9 +43,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.EnumLevel;
-import org.cloudburstmc.server.level.NetherPortals;
+import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
@@ -108,7 +105,7 @@ public abstract class CloudEntity implements Entity {
     public int maxFireTicks;
     public int fireTicks = 0;
     public int inPortalTicks = 0;
-    public int portalCooldown = 0;
+    private int portalCooldown;
     public boolean pendingPortalTransfer = false;
     public Vector3i portalEntryBlock = null;
     public float scale = 1;
@@ -127,12 +124,12 @@ public abstract class CloudEntity implements Entity {
     protected CloudLevel level;
     public boolean closed = false;
     protected Entity vehicle;
+    private @Nullable Entity owner;
     protected EntityDamageEvent lastDamageCause = null;
     private final Set<String> tags = new LinkedHashSet<>();
     protected int age = 0;
     protected float health = 20;
     protected float absorption = 0;
-    protected float ySize = 0;
     protected boolean isStatic = false;
     protected CloudServer server;
     protected Timing timing;
@@ -182,6 +179,10 @@ public abstract class CloudEntity implements Entity {
         return 0;
     }
 
+    protected boolean hasMovementEntityCollisions() {
+        return true;
+    }
+
     public boolean canCollide() {
         return true;
     }
@@ -206,6 +207,18 @@ public abstract class CloudEntity implements Entity {
         return PORTAL_COOLDOWN_TICKS;
     }
 
+    public final boolean isOnPortalCooldown() {
+        return this.portalCooldown > 0;
+    }
+
+    public final void setPortalCooldown() {
+        this.portalCooldown = this.getPortalCooldownTicks();
+    }
+
+    protected final void clearPortalCooldown() {
+        this.portalCooldown = 0;
+    }
+
     /**
      * Returns the number of ticks the entity must spend inside a portal before
      * being transferred.
@@ -220,12 +233,59 @@ public abstract class CloudEntity implements Entity {
 
     protected void onInsidePortal() {
         if (this.getVehicle() == null) {
-            if (this.portalCooldown > 0) {
-                this.portalCooldown = getPortalCooldownTicks();
+            if (this.isOnPortalCooldown()) {
+                this.setPortalCooldown();
             } else {
                 this.inPortalTicks = PORTAL_TRANSFER_TICKS;
             }
         }
+    }
+
+    public boolean enterNetherPortal(Vector3i position) {
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.NETHER);
+        this.server.getEventManager().fire(event);
+        return !event.isCancelled();
+    }
+
+    public void enterEndPortal(Vector3i position) {
+        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
+            return;
+        }
+
+        if (this instanceof CloudPlayer player && player.isShowingEndCredits()) {
+            return;
+        }
+
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        this.setPortalCooldown();
+        if (!EndPortals.transfer(this)) {
+            this.clearPortalCooldown();
+        }
+    }
+
+    public boolean enterEndGateway(Vector3i position) {
+        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
+            return false;
+        }
+
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END_GATEWAY);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.setPortalCooldown();
+        if (!EndGateways.transfer(this, position)) {
+            this.clearPortalCooldown();
+            return false;
+        }
+
+        return true;
     }
 
     protected void initEntity() {
@@ -237,8 +297,6 @@ public abstract class CloudEntity implements Entity {
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
         this.updateNetworkBounds();
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
-
-        this.scheduleUpdate();
     }
 
     public EntityType<?> getType() {
@@ -731,10 +789,6 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public boolean spawn() {
-        if (this.closed || this.spawned) {
-            return false;
-        }
-
         EntitySpawnEvent event;
         if (this instanceof org.cloudburstmc.api.entity.misc.DroppedItem droppedItem) {
             event = new ItemSpawnEvent(droppedItem);
@@ -742,6 +796,17 @@ public abstract class CloudEntity implements Entity {
             event = new ProjectileLaunchEvent(projectile);
         } else {
             event = new EntitySpawnEvent(this);
+        }
+        return this.spawn(event);
+    }
+
+    public boolean spawn(EntitySpawnEvent event) {
+        if (this.closed || this.spawned) {
+            return false;
+        }
+
+        if (event.getEntity() != this) {
+            throw new IllegalArgumentException("Spawn event does not belong to this entity");
         }
 
         this.server.getEventManager().fire(event);
@@ -760,7 +825,7 @@ public abstract class CloudEntity implements Entity {
         }
 
         this.spawned = true;
-        this.level.addEntity(this);
+        this.level.registerEntity(this);
         this.scheduleUpdate();
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
@@ -769,7 +834,7 @@ public abstract class CloudEntity implements Entity {
             }
 
             this.chunk = chunk;
-            chunk.addEntity(this);
+            chunk.registerEntity(this);
             this.spawnToAll();
         });
     }
@@ -783,7 +848,6 @@ public abstract class CloudEntity implements Entity {
         if (!this.spawned || this.chunk == null || this.closed) {
             return;
         }
-
         boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
         boolean added = sent && this.getViewers().add(player);
         if (!sent || !added) {
@@ -821,7 +885,12 @@ public abstract class CloudEntity implements Entity {
             addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
                     this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false, 0));
         }
+
+        this.addAdditionalSpawnData(addEntity);
         return addEntity;
+    }
+
+    protected void addAdditionalSpawnData(AddEntityPacket packet) {
     }
 
     public Set<CloudPlayer> getViewers() {
@@ -1135,14 +1204,12 @@ public abstract class CloudEntity implements Entity {
             this.checkBlockCollision();
             this.applyLiquidCurrent();
 
-            if (this.position.getY() <= -16 && this.isAlive()) {
-                if (this instanceof CloudPlayer player) {
-                    if (player.getGameMode() != GameMode.CREATIVE)
-                        this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 10));
-                } else {
-                    this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 10));
-                    hasUpdate = true;
+            if (this.position.getY() < this.level.getMinHeight() - 64) {
+                this.onBelowLevel();
+                if (this.closed) {
+                    return false;
                 }
+                hasUpdate = true;
             }
 
             if (this.fireTicks > 0) {
@@ -1172,30 +1239,25 @@ public abstract class CloudEntity implements Entity {
                 }
             }
 
-            if (this.portalCooldown > 0) {
+            if (this.isOnPortalCooldown()) {
                 tickPortalCooldown();
             } else {
                 int portalThreshold = getPortalTransitionTicks();
                 if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
-                    EntityPortalEnterEvent ev = new EntityPortalEnterEvent(this, EntityPortalEnterEvent.PortalType.NETHER);
-                    getServer().getEventManager().fire(ev);
+                    this.setPortalCooldown();
+                    this.inPortalTicks = 0;
 
-                    if (!ev.isCancelled()) {
-                        this.portalCooldown = getPortalCooldownTicks();
-                        this.inPortalTicks = 0;
+                    Location newLoc = EnumLevel.moveToNether(
+                            this.getX(),
+                            this.getY(),
+                            this.getZ(),
+                            this.getYaw(),
+                            this.getPitch(),
+                            this.getLevel()
+                    );
 
-                        Location newLoc = EnumLevel.moveToNether(
-                                this.getX(),
-                                this.getY(),
-                                this.getZ(),
-                                this.getYaw(),
-                                this.getPitch(),
-                                this.getLevel()
-                        );
-
-                        if (newLoc != null) {
-                            NetherPortals.handlePortalTransfer(this, newLoc);
-                        }
+                    if (newLoc != null) {
+                        NetherPortals.handlePortalTransfer(this, newLoc);
                     }
                 }
             }
@@ -1206,6 +1268,10 @@ public abstract class CloudEntity implements Entity {
 
             return hasUpdate;
         }
+    }
+
+    protected void onBelowLevel() {
+        this.close();
     }
 
     public void updateMovement() {
@@ -1670,14 +1736,15 @@ public abstract class CloudEntity implements Entity {
             return false;
         }
 
-        this.level.removeEntity(this);
+        this.level.unregisterEntity(this);
         if (this.chunk != null) {
-            this.chunk.removeEntity(this);
+            this.chunk.unregisterEntity(this);
         }
         this.despawnFromAll();
 
         this.level = targetLevel;
-        this.level.addEntity(this);
+        this.level.registerEntity(this);
+        this.scheduleUpdate();
         this.chunk = null;
 
         return true;
@@ -1731,20 +1798,20 @@ public abstract class CloudEntity implements Entity {
         return this.level.hasLoadedBlockIntersecting(this.getBoundingBox(), block -> block.getState().getType() == FIRE);
     }
 
-    public boolean move(Vector3f d) {
-        return this.move(MovementType.SELF, d);
+    public void move(Vector3f movement) {
+        this.move(MovementType.SELF, movement);
     }
 
-    public boolean move(float dx, float dy, float dz) {
-        return this.move(MovementType.SELF, dx, dy, dz);
+    public void move(float dx, float dy, float dz) {
+        this.move(MovementType.SELF, dx, dy, dz);
     }
 
-    public boolean move(MovementType type, Vector3f movement) {
-        return this.move(type, movement.getX(), movement.getY(), movement.getZ());
+    public void move(MovementType type, Vector3f movement) {
+        this.move(type, movement.getX(), movement.getY(), movement.getZ());
     }
 
-    public boolean move(MovementType type, float dx, float dy, float dz) {
-        return EntityMovementController.move(this, type, dx, dy, dz);
+    public void move(MovementType type, float dx, float dy, float dz) {
+        EntityMovementController.move(this, type, dx, dy, dz);
     }
 
     public void recordMovement(BoundingBox previousBox, BoundingBox currentBox) {
@@ -1857,7 +1924,7 @@ public abstract class CloudEntity implements Entity {
         Vector3f pos = this.getPosition();
         if (this.chunk == null || (this.chunk.getX() != pos.getFloorX() >> 4 || this.chunk.getZ() != pos.getFloorZ() >> 4)) {
             if (this.chunk != null) {
-                this.chunk.removeEntity(this);
+                this.chunk.unregisterEntity(this);
             }
             this.chunk = this.level.getLoadedChunk(pos);
             if (chunk == null) {
@@ -1883,7 +1950,7 @@ public abstract class CloudEntity implements Entity {
                 return;
             }
 
-            this.chunk.addEntity(this);
+            this.chunk.registerEntity(this);
         }
     }
 
@@ -1954,41 +2021,39 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean teleport(Vector3f pos) {
-        return this.teleport(pos, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        return this.teleport(pos, PlayerTeleportCause.PLUGIN);
     }
 
-    public boolean teleport(Vector3f pos, PlayerTeleportEvent.TeleportCause cause) {
+    public boolean teleport(Vector3f pos, PlayerTeleportCause cause) {
         return this.teleport(Location.from(pos, this.yaw, this.pitch, this.level), cause);
     }
 
     public boolean teleport(Location location) {
-        return this.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        return this.teleport(location, PlayerTeleportCause.PLUGIN);
     }
 
-    public boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause) {
-        float yaw = location.getYaw();
-        float pitch = location.getPitch();
-
+    public boolean teleport(Location location, PlayerTeleportCause cause) {
+        Objects.requireNonNull(cause, "cause");
         Location from = this.getLocation();
-        Location to = location;
-        if (cause != null) {
-            EntityTeleportEvent ev = new EntityTeleportEvent(this, from, to);
-            this.server.getEventManager().fire(ev);
-            if (ev.isCancelled()) {
-                return false;
-            }
-            to = ev.getTo();
-        }
-
-        if (from.getLevel() != to.getLevel() && !this.switchLevel((CloudLevel) to.getLevel())) {
+        EntityTeleportEvent event = new EntityTeleportEvent(this, from, location);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
             return false;
         }
 
-        this.ySize = 0;
+        return this.teleportWithoutEvent(event.getTo());
+    }
+
+    public boolean teleportWithoutEvent(Location location) {
+        Objects.requireNonNull(location, "location");
+        Location from = this.getLocation();
+        if (from.getLevel() != location.getLevel() && !this.switchLevel((CloudLevel) location.getLevel())) {
+            return false;
+        }
 
         this.setMotion(Vector3f.ZERO);
 
-        if (this.setPositionAndRotation(to.getPosition(), yaw, pitch)) {
+        if (this.setPositionAndRotation(location.getPosition(), location.getYaw(), location.getPitch())) {
             this.resetFallDistance();
             this.onGround = true;
 
@@ -2019,7 +2084,6 @@ public abstract class CloudEntity implements Entity {
         if (!this.spawned && !this.spawn()) {
             return;
         }
-
         if (this.chunk == null || this.closed) {
             return;
         }
@@ -2046,11 +2110,11 @@ public abstract class CloudEntity implements Entity {
 
             this.despawnFromAll();
             if (this.chunk != null) {
-                this.chunk.removeEntity(this);
+                this.chunk.unregisterEntity(this);
             }
 
             if (this.level != null) {
-                this.level.removeEntity(this);
+                this.level.unregisterEntity(this);
             }
         }
     }
@@ -2058,14 +2122,19 @@ public abstract class CloudEntity implements Entity {
     @Nullable
     @Override
     public Entity getOwner() {
-        if (this.data.contains(OWNER_EID)) {
-            return this.level.getEntityByRuntimeId(this.data.get(OWNER_EID));
+        long ownerId = this.data.contains(OWNER_EID) ? this.data.get(OWNER_EID) : -1;
+        if (ownerId == -1) {
+            this.owner = null;
+        } else if (this.owner == null || this.owner.getUniqueId() != ownerId) {
+            this.owner = this.level.getEntityByRuntimeId(ownerId);
         }
-        return null;
+
+        return this.owner;
     }
 
     @Override
     public void setOwner(@Nullable Entity entity) {
+        this.owner = entity;
         this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
     }
 

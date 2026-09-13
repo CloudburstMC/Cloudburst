@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -13,8 +12,6 @@ import static net.daporkchop.lib.common.math.PMath.floorI;
 
 /**
  * Generates a huge spruce tree.
- *
- * @author DaPorkchop_
  */
 public class FeatureHugeSpruceTree extends FeatureHugeTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(13, 28);
@@ -28,7 +25,7 @@ public class FeatureHugeSpruceTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         int heightOffset = this.leafHeightOffset(random, height);
         int lastRadius = 0;
         for (int dy = height - heightOffset; dy <= height; dy++) {

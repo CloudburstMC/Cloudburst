@@ -4,6 +4,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.event.entity.CreatureSpawnEvent;
+import org.cloudburstmc.api.event.entity.CreatureSpawnReason;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
@@ -14,7 +15,7 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
-public final class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
+public class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
 
     public CarvedPumpkinPlaceHandler(CloudBlockRegistry registry) {
         super(registry);
@@ -34,20 +35,19 @@ public final class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
         }
 
         Location location = Location.from(bottom.toFloat().add(0.5f, 0, 0.5f), level);
-        CreatureSpawnEvent event = new CreatureSpawnEvent(
-                EntityTypes.SNOW_GOLEM, location, CreatureSpawnEvent.SpawnReason.BUILD_SNOWMAN);
-        level.getServer().getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return true;
-        }
+        EntitySnowGolem golem = (EntitySnowGolem) CloudEntityRegistry.get().newEntity(EntityTypes.SNOW_GOLEM, location);
+        CreatureSpawnEvent event = new CreatureSpawnEvent(golem, CreatureSpawnReason.BUILD_SNOWMAN);
 
         level.setBlockState(position, BlockStates.AIR, true, true);
         level.setBlockState(middle, BlockStates.AIR, true, true);
         level.setBlockState(bottom, BlockStates.AIR, true, true);
 
-        EntitySnowGolem golem = (EntitySnowGolem) CloudEntityRegistry.get()
-                .newEntity(EntityTypes.SNOW_GOLEM, event.getLocation());
-        golem.spawnToAll();
+        if (!golem.spawn(event)) {
+            level.setBlockState(position, state, true, true);
+            level.setBlockState(middle, BlockStates.SNOW, true, true);
+            level.setBlockState(bottom, BlockStates.SNOW, true, true);
+        }
+
         return true;
     }
 }

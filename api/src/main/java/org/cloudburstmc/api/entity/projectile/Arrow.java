@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
-public interface Arrow extends Projectile {
+/**
+ * An arrow projectile.
+ */
+public interface Arrow extends AbstractArrow {
 }

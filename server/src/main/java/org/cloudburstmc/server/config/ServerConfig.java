@@ -107,6 +107,10 @@ public class ServerConfig {
         return properties.isAllowNether();
     }
 
+    public boolean isAllowEnd() {
+        return properties.isAllowEnd();
+    }
+
     public boolean isEnableQuery() {
         return properties.isEnableQuery();
     }
@@ -132,7 +136,7 @@ public class ServerConfig {
     }
 
     public Difficulty getDifficulty() {
-        return Difficulty.values()[properties.getDifficulty()];
+        return Difficulty.fromId(properties.getDifficulty());
     }
 
     public void setDifficulty(Difficulty difficulty) {
@@ -521,6 +525,8 @@ public class ServerConfig {
     @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class World {
 
+        private WorldDimension dimension;
+
         @Builder.Default
         private Object seed = null;
 
@@ -536,6 +542,12 @@ public class ServerConfig {
         @Builder.Default
         private Integer waterOverLavaFlowSpeed = null;
 
+    }
+
+    public enum WorldDimension {
+        OVERWORLD,
+        NETHER,
+        THE_END
     }
 
     @Data

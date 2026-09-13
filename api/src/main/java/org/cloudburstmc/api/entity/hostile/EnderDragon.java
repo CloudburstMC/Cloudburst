@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.hostile;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Boss;
 
-public interface EnderDragon extends Entity {
+/**
+ * An Ender Dragon.
+ */
+public interface EnderDragon extends Boss {
 }

@@ -2,60 +2,75 @@ package org.cloudburstmc.server.level.manager;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkLoader;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
-import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
- * Implementation of {@link ChunkManager} used during chunk population.
- *
- * @author DaPorkchop_
+ * Locked generation region centered on the chunk being populated.
  */
-public final class PopulationChunkManager implements ChunkManager {
+public final class PopulationChunkManager implements GenerationRegion {
+    private static final int DIAMETER_IN_CHUNKS = 3;
+    private static final int BUFFER_IN_BLOCKS = 16;
+
     @Getter
     private final long seed;
+    private final LockableChunk[] chunks = new LockableChunk[DIAMETER_IN_CHUNKS * DIAMETER_IN_CHUNKS];
+    private final int centerChunkX;
+    private final int centerChunkZ;
+    private final int cornerChunkX;
+    private final int cornerChunkZ;
 
-    private final LockableChunk[] chunks = new LockableChunk[3 * 3];
+    public PopulationChunkManager(Chunk center, LockableChunk[] chunks, long seed) {
+        Objects.requireNonNull(center, "center");
+        Objects.requireNonNull(chunks, "chunks");
+        Preconditions.checkArgument(chunks.length == this.chunks.length,
+                "Generation region requires %s chunks, received %s", this.chunks.length, chunks.length);
 
-    private final int cornerX;
-    private final int cornerZ;
-
-    public PopulationChunkManager(@NonNull Chunk chunk, @NonNull LockableChunk[] allChunks, long seed) {
         this.seed = seed;
-        this.cornerX = chunk.getX() - 1;
-        this.cornerZ = chunk.getZ() - 1;
+        this.centerChunkX = center.getX();
+        this.centerChunkZ = center.getZ();
+        this.cornerChunkX = this.centerChunkX - 1;
+        this.cornerChunkZ = this.centerChunkZ - 1;
 
-        for (LockableChunk lockableChunk : allChunks) {
-            this.chunks[this.chunkIndex(lockableChunk.getX(), lockableChunk.getZ())] = lockableChunk;
+        for (LockableChunk chunk : chunks) {
+            Objects.requireNonNull(chunk, "chunks contains null");
+            this.chunks[this.chunkIndex(chunk.getX(), chunk.getZ())] = chunk;
         }
+
+        Preconditions.checkArgument(Arrays.stream(this.chunks).allMatch(Objects::nonNull),
+                "Generation region does not contain every chunk surrounding (%s,%s)",
+                this.centerChunkX, this.centerChunkZ);
     }
 
-    private int chunkIndex(int chunkX, int chunkZ) {
-        int relativeX = chunkX - this.cornerX;
-        int relativeZ = chunkZ - this.cornerZ;
-        Preconditions.checkArgument(relativeX >= 0 && relativeX < 3 && relativeZ >= 0 && relativeZ < 3, "Chunk position (%s,%s) out of population bounds", chunkX, chunkZ);
-        return relativeX * 3 + relativeZ;
+    @Override
+    public int getCenterChunkX() {
+        return this.centerChunkX;
     }
 
-    private LockableChunk chunkFromBlock(int blockX, int blockZ) {
-        int relativeX = (blockX >> 4) - this.cornerX;
-        int relativeZ = (blockZ >> 4) - this.cornerZ;
-        Preconditions.checkArgument(relativeX >= 0 && relativeX < 3 && relativeZ >= 0 && relativeZ < 3, "Block position (%s,%s) out of population bounds", blockX, blockZ);
-        return this.chunks[relativeX * 3 + relativeZ];
+    @Override
+    public int getCenterChunkZ() {
+        return this.centerChunkZ;
+    }
+
+    @Override
+    public int getBuffer() {
+        return BUFFER_IN_BLOCKS;
+    }
+
+    @Override
+    public boolean containsBlock(int x, int z) {
+        return this.containsChunk(x >> 4, z >> 4);
     }
 
     @Override
     public BlockState getBlockState(int x, int y, int z) {
-        return this.chunkFromBlock(x, z).getBlockState(x & 0xF, y, z & 0xF, 0);
+        return this.getBlockState(x, y, z, 0);
     }
 
     @Override
@@ -63,21 +78,14 @@ public final class PopulationChunkManager implements ChunkManager {
         return this.chunkFromBlock(x, z).getBlockState(x & 0xF, y, z & 0xF, layer);
     }
 
-    // TODO
     @Override
-    public Block getBlock(int x, int y, int z) {
-        return null;
-    }
-
-    @Override
-    public Block getLoadedBlock(int x, int y, int z) {
-        return null;
+    public BlockState getBlockState(Vector3i position) {
+        return this.getBlockState(position.getX(), position.getY(), position.getZ());
     }
 
     @Override
     public boolean setBlockState(int x, int y, int z, BlockState state) {
-        this.chunkFromBlock(x, z).setBlockState(x & 0xF, y, z & 0xF, 0, state);
-        return true;
+        return this.setBlockState(x, y, z, 0, state);
     }
 
     @Override
@@ -87,8 +95,8 @@ public final class PopulationChunkManager implements ChunkManager {
     }
 
     @Override
-    public boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update) {
-        return false;
+    public boolean setBlockState(Vector3i position, BlockState state) {
+        return this.setBlockState(position.getX(), position.getY(), position.getZ(), state);
     }
 
     @Override
@@ -96,37 +104,24 @@ public final class PopulationChunkManager implements ChunkManager {
         return this.chunks[this.chunkIndex(chunkX, chunkZ)];
     }
 
-    @NonNull
-    @Override
-    public Chunk getChunk(long key) {
-        throw new UnsupportedOperationException();
+    private LockableChunk chunkFromBlock(int blockX, int blockZ) {
+        Preconditions.checkArgument(this.containsBlock(blockX, blockZ), "Block position (%s,%s) is outside the generation region", blockX, blockZ);
+        return this.chunks[this.chunkIndex(blockX >> 4, blockZ >> 4)];
     }
 
-    @Nullable
-    @Override
-    public Chunk getLoadedChunk(long key) {
-        throw new UnsupportedOperationException();
+    private int chunkIndex(int chunkX, int chunkZ) {
+        int relativeX = chunkX - this.cornerChunkX;
+        int relativeZ = chunkZ - this.cornerChunkZ;
+        Preconditions.checkArgument(
+                relativeX >= 0 && relativeX < DIAMETER_IN_CHUNKS
+                        && relativeZ >= 0 && relativeZ < DIAMETER_IN_CHUNKS,
+                "Chunk position (%s,%s) is outside the generation region", chunkX, chunkZ);
+        return relativeX * DIAMETER_IN_CHUNKS + relativeZ;
     }
 
-    @NonNull
-    @Override
-    public CompletableFuture<? extends Chunk> getChunkFuture(int chunkX, int chunkZ) {
-        throw new UnsupportedOperationException();
-    }
-
-    @NonNull
-    @Override
-    public Set<? extends Chunk> getChunks() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<? extends Player> getChunkPlayers(int chunkX, int chunkZ) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<? extends ChunkLoader> getChunkLoaders(int chunkX, int chunkZ) {
-        throw new UnsupportedOperationException();
+    private boolean containsChunk(int chunkX, int chunkZ) {
+        int relativeX = chunkX - this.cornerChunkX;
+        int relativeZ = chunkZ - this.cornerChunkZ;
+        return relativeX >= 0 && relativeX < DIAMETER_IN_CHUNKS && relativeZ >= 0 && relativeZ < DIAMETER_IN_CHUNKS;
     }
 }

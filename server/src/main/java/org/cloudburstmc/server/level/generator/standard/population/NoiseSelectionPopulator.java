@@ -2,25 +2,22 @@ package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.noise.NoiseSource;
-import net.daporkchop.lib.random.PRandom;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.SurfaceDecorator;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
  * Similar to {@link SurfaceDecorator}, but switches between two different populators based on the output of a noise function.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class NoiseSelectionPopulator extends AbstractGenerationPass implements Populator {
@@ -70,7 +67,7 @@ public class NoiseSelectionPopulator extends AbstractGenerationPass implements P
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         double noise = this.selector.get(blockX, blockZ) + random.nextDouble() * this.randomFactor;
         for (Populator populator : noise < this.min ? this.below : noise > this.max ? this.above : this.in) {
             populator.populate(random, level, blockX, blockZ);

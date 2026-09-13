@@ -1,15 +1,14 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
@@ -19,8 +18,6 @@ import static net.daporkchop.lib.common.math.PMath.ceilI;
 
 /**
  * Places large spikes in the world.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class SpikesPopulator extends ChancePopulator.Column {
@@ -56,7 +53,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int x, int z) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int x, int z) {
         int y = level.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
         if (y < 0 || !this.on.test(level.getBlockState(x, y, z, 0))) {
             return;

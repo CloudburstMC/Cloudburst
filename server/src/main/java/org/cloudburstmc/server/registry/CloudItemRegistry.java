@@ -517,7 +517,10 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.CHICKEN);
         registerVanilla(ItemTypes.CHICKEN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.CHICKEN));
-        registerVanilla(ItemTypes.CHORUS_FRUIT);
+        registerVanilla(ItemTypes.CHORUS_FRUIT)
+                .set(ItemComponents.FINISH_USE, ChorusFruitItemHandlers.FINISH_USE)
+                .set(ItemComponents.USE, ChorusFruitItemHandlers.USE)
+                .set(ItemComponents.USE_DURATION_TICKS, 32);
         registerVanilla(ItemTypes.CLAY_BALL);
         registerVanilla(ItemTypes.CLOCK);
         registerVanilla(ItemTypes.COAL);
@@ -610,11 +613,14 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.ENCHANTED_BOOK)
                 .set(ItemComponents.CAN_ENCHANT_WITH, (item, enchantment) -> true);
         registerVanilla(ItemTypes.ENCHANTED_GOLDEN_APPLE);
-        registerVanilla(ItemTypes.END_CRYSTAL);
+        registerVanilla(ItemTypes.END_CRYSTAL)
+                .set(ItemComponents.USE_ON, EndCrystalItemHandlers.USE_ON);
         registerVanilla(ItemTypes.ENDER_DRAGON_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ENDER_DRAGON));
-        registerVanilla(ItemTypes.ENDER_EYE);
-        registerVanilla(ItemTypes.ENDER_PEARL);
+        registerVanilla(ItemTypes.ENDER_EYE)
+                .set(ItemComponents.USE_ON, EnderEyeItemHandlers.USE_ON);
+        registerVanilla(ItemTypes.ENDER_PEARL)
+                .set(ItemComponents.USE, EnderPearlItemHandlers.USE);
         registerVanilla(ItemTypes.ENDERMAN_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.ENDERMAN));
         registerVanilla(ItemTypes.ENDERMITE_SPAWN_EGG)
@@ -1178,6 +1184,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemComponents.CAN_REPAIR_WITH, (item, material) -> false);
         this.registerComponent(ItemComponents.CAN_STORE_ENCHANTMENTS, () -> true);
         this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
+        this.registerComponent(ItemComponents.FINISH_USE);
         this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);
         this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE_BONUS, (item) -> 0f);
         this.registerComponent(ItemComponents.GET_BLOCK, (item) -> Optional.empty());
@@ -1189,6 +1196,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemComponents.MINE_BLOCK, (item, block, owner) -> item);
         this.registerComponent(ItemComponents.ON_DAMAGE, (item, damage, owner) -> item);
         this.registerComponent(ItemComponents.USE);
+        this.registerComponent(ItemComponents.USE_DURATION_TICKS);
         this.registerComponent(ItemComponents.USE_ON);
     }
 

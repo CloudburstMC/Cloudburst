@@ -1,4 +1,7 @@
 package org.cloudburstmc.api.entity;
 
-public interface Creature extends Entity {
+/**
+ * A living entity controlled by creature behavior.
+ */
+public interface Creature extends Living {
 }

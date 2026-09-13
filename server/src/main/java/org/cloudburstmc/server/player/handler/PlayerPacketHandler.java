@@ -14,6 +14,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.component.AttackBlockHandler;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
@@ -320,6 +321,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getServer().getEventManager().fire(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
             player.getInventoryManager().sendAllInventories();
+            return;
+        }
+
+        AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
+        if (attackHandler != null && attackHandler.execute(target, player, face)) {
+            player.breakingBlock = null;
             return;
         }
 
@@ -916,7 +923,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         packet.setRuntimeEntityId(player.getRuntimeId());
 
-        switch (packet.getAction()) {
+        PlayerActionType action = packet.getAction();
+        if (!player.isAlive() && action == PlayerActionType.DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK) {
+            action = PlayerActionType.RESPAWN;
+        }
+
+        switch (action) {
             case START_ITEM_USE_ON:
                 this.usingItemOnBlock = true;
                 break;
@@ -946,15 +958,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 boolean isBedSpawn = false;
                 boolean isAnchorSpawn = false;
 
-                Set<PlayerRespawnEvent.RespawnFlag> respawnFlags = EnumSet.noneOf(PlayerRespawnEvent.RespawnFlag.class);
+                Set<PlayerRespawnFlag> respawnFlags = EnumSet.noneOf(PlayerRespawnFlag.class);
                 if (respawnLoc != null) {
                     RespawnConfig cfg = player.getRespawnConfig();
                     if (cfg != null) {
                         if (cfg.spawnType() == RespawnConfig.SpawnType.BED) {
-                            respawnFlags.add(PlayerRespawnEvent.RespawnFlag.BED_SPAWN);
+                            respawnFlags.add(PlayerRespawnFlag.BED_SPAWN);
                             isBedSpawn = true;
                         } else {
-                            respawnFlags.add(PlayerRespawnEvent.RespawnFlag.ANCHOR_SPAWN);
+                            respawnFlags.add(PlayerRespawnFlag.ANCHOR_SPAWN);
                             isAnchorSpawn = true;
                         }
                     }
@@ -962,11 +974,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     respawnLoc = player.getServer().getDefaultLevel().getSafeSpawn();
                 }
 
-                PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, respawnLoc, respawnFlags);
+                PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, respawnLoc, PlayerRespawnReason.DEATH, respawnFlags);
                 player.getServer().getEventManager().fire(playerRespawnEvent);
                 respawnLoc = playerRespawnEvent.getRespawnLocation();
 
-                player.teleport(respawnLoc, null);
+                if (!player.teleportForRespawn(respawnLoc)) {
+                    break;
+                }
 
                 player.setSprinting(false);
                 player.setSneaking(false);
@@ -1470,8 +1484,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     case 2: // break-block no-op
                         break;
                     case 3:
-                        if (player.getInventory().getSelectedItem().getType() == ItemTypes.TRIDENT) {
+                        if (player.isUsingItem()) {
                             player.setUsingItem(false);
+                        }
+
+                        if (player.getInventory().getSelectedItem().getType() == ItemTypes.TRIDENT) {
                             AnimatePacket animPkt = new AnimatePacket();
                             animPkt.setAction(AnimatePacket.Action.SWING_ARM);
                             animPkt.setRuntimeEntityId(player.getRuntimeId());
@@ -1517,8 +1534,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
 
                         float damage = 0f;
-                        FloatItemHandler attackBonus = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE_BONUS);
-                        if (attackBonus != null) {
+                        if (!heldItem.isEmpty()) {
+                            FloatItemHandler attackBonus = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE_BONUS);
                             damage = attackBonus.execute(heldItem);
                         }
 
@@ -1588,6 +1605,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             respawn1.setPosition(respawnPos.getPosition());
             respawn1.setState(RespawnPacket.State.SERVER_READY);
             player.sendPacket(respawn1);
+        }
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(ShowCreditsPacket packet) {
+        if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
+            player.finishEndCredits();
         }
         return PacketSignal.HANDLED;
     }
@@ -1790,6 +1815,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(ServerboundLoadingScreenPacket packet) {
         if (packet.getType() == ServerboundLoadingScreenPacketType.END_LOADING_SCREEN) {
             player.setChangingDimension(false);
+            player.refreshBossBars();
         }
         return PacketSignal.HANDLED;
     }

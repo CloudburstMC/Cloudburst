@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 
@@ -13,8 +12,6 @@ import static java.lang.Math.abs;
 
 /**
  * Generates a dark oak tree.
- *
- * @author DaPorkchop_
  */
 public class FeatureDarkOakTree extends FeatureHugeTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(6, 9);
@@ -28,7 +25,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
+    protected boolean canPlace(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height + 1; dy++) {
             if (y + dy < 0 || y + dy >= 256) {
                 return false;
@@ -46,7 +43,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         x += random.nextInt(3) - 1;
         z += random.nextInt(3) - 1;
 
@@ -108,7 +105,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void placeTrunk(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeTrunk(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.placeTrunk(level, random, x, y, z, height, log, leaves);
 
         //branches
@@ -140,7 +137,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
     }
 
     @Override
-    protected void finish(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void finish(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         super.finish(level, random, x, y, z, height, log, leaves);
     }
 }

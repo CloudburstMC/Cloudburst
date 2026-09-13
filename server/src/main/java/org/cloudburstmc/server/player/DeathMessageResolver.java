@@ -56,7 +56,7 @@ class DeathMessageResolver {
             return thorns(victim, attacker);
         }
 
-        if (type == DamageTypes.FALL) {
+        if (type.is(DamageTypeTags.IS_FALL)) {
             return message(victim, event.getDamage() > 2
                     ? "death.fell.accident.generic" : "death.attack.fall", null);
         }

@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
@@ -15,8 +14,6 @@ import static java.lang.Math.abs;
 
 /**
  * Generates an acacia (savanna) tree.
- *
- * @author DaPorkchop_
  */
 public class FeatureSavannaTree extends FeatureNormalTree {
     public static final IntRange DEFAULT_HEIGHT = new IntRange(5, 9);
@@ -30,7 +27,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         if (y < 0 || y >= 256) {
             return false;
         }
@@ -92,7 +89,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    protected boolean canPlace(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
+    protected boolean canPlace(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height + 1; dy++) {
             if (y + dy < 0 || y + dy >= 256) {
                 return false;
@@ -112,7 +109,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
                 if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {

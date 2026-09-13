@@ -2,82 +2,62 @@ package org.cloudburstmc.server.level.provider;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.level.LevelData;
+import org.cloudburstmc.server.level.CloudLevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.utils.LoadState;
 
 import java.io.Closeable;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 
 /**
- * Interface that allows the level to load and save chunks from any storage implementation.
+ * Provides persistent storage for one open level.
+ *
+ * <p>The provider owns its storage resources until {@link #close()} is called.
  */
 public interface LevelProvider extends PlayerDataProvider, Closeable {
 
     /**
-     * Level ID
+     * Loads a chunk using the supplied builder as its construction context.
      *
-     * @return id
-     */
-    String getLevelId();
-
-    /**
-     * Reads chunk from provider.
-     *
-     * @param chunkBuilder builder
-     * @return chunk or null if the chunk does not exist
+     * @param chunkBuilder identifies the chunk and receives its persisted state
+     * @return the loaded chunk, or {@code null} when no chunk is stored at those coordinates
      */
     @Nullable
     CloudChunk readChunk(ChunkBuilder chunkBuilder);
 
     /**
-     * Saves chunk to provider asynchronously
+     * Persists the complete state of a chunk asynchronously.
      *
-     * @param chunk chunk
-     * @return void future when chunk is saved.
+     * @param chunk chunk to persist
+     * @return future completed after the chunk is persisted
      */
     CompletableFuture<Void> saveChunk(Chunk chunk);
 
     /**
-     * Writes only the pending-tick record for {@code chunk} without touching
-     * block data, entities, or the chunk dirty flag.
+     * Persists a chunk's pending ticks without performing a complete chunk save.
+     * Providers that cannot store pending ticks independently may retain the no-op implementation.
      *
-     * <p>This is called periodically for live chunks that have accumulated
-     * pending ticks since the last full save, ensuring that a crash does not
-     * silently discard scheduled ticks for long-lived loaded chunks.
-     *
-     * <p>The default implementation is a no-op; providers that do not use a
-     * dedicated pending-tick record may ignore this call.
-     *
-     * @param chunk the chunk whose pending ticks should be persisted
-     * @return a future that completes when the write has been attempted
+     * @param chunk chunk whose pending ticks should be persisted
+     * @return future completed after the pending ticks are persisted
      */
     default CompletableFuture<Void> savePendingTicks(CloudChunk chunk) {
         return CompletableFuture.completedFuture(null);
     }
 
     /**
-     * Iterate over all chunks that the provider has.
+     * Loads the level's persisted state asynchronously.
      *
-     * @param consumer
-     * @throws UnsupportedOperationException if the provider does not support chunk iteration.
+     * @param initialData complete baseline for fields absent from storage
+     * @return future containing the loaded state, or an empty value when no state is stored
      */
-    CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer);
+    CompletableFuture<Optional<CloudLevelData>> loadLevelData(CloudLevelData initialData);
 
     /**
-     * Load level data into given {@link LevelData} object
+     * Persists the level's current state asynchronously.
      *
-     * @param levelData levelData to load
-     * @return future of loaded level data
+     * @param levelData level state to persist
+     * @return future completed after the level state is persisted
      */
-    CompletableFuture<LoadState> loadLevelData(LevelData levelData);
-
-    /**
-     * Save level data from given {@link LevelData} object
-     *
-     * @param levelData levelData to save
-     */
-    CompletableFuture<Void> saveLevelData(LevelData levelData);
+    CompletableFuture<Void> saveLevelData(CloudLevelData levelData);
 }

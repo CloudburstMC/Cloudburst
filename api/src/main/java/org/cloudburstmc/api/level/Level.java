@@ -4,6 +4,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
+import org.cloudburstmc.api.boss.DragonBattle;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.item.ItemStack;
@@ -36,21 +37,33 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     int TIME_SUNRISE = 23000;
     int TIME_FULL = 24000;
 
-    void init();
-
     Server getServer();
 
     String getId();
 
-    void close();
-
-    default boolean unload() {
-        return unload(false);
-    }
-
-    boolean unload(boolean force);
-
     LevelGameRules getGameRules();
+
+    /**
+     * Returns this level's difficulty.
+     *
+     * @return the level difficulty
+     */
+    Difficulty getDifficulty();
+
+    /**
+     * Changes this level's difficulty.
+     *
+     * @param difficulty the new difficulty
+     */
+    void setDifficulty(Difficulty difficulty);
+
+    /**
+     * Returns the dragon battle associated with this level.
+     *
+     * @return the dragon battle, or {@code null} when this is not an End level
+     */
+    @Nullable
+    DragonBattle getDragonBattle();
 
     void doTick(int currentTick);
 
@@ -226,10 +239,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
 
     void sendWeather(Player... players);
 
-    void addEntity(Entity entity);
-
-    void addEntityMovement(Entity entity, double x, double y, double z, double yaw, double pitch, double headYaw);
-
     /**
      * Spawns a particle at a position for players tracking the surrounding chunk.
      *
@@ -246,10 +255,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @param players  the players to receive the particle
      */
     void spawnParticle(ParticleType particle, Vector3f position, Player... players);
-
-    void scheduleEntityUpdate(Entity entity);
-
-    void removeEntity(Entity entity);
 
     /**
      * Tests whether a bounding box collides with blocks or entities in this level.

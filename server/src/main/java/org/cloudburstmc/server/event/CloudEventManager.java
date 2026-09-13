@@ -17,6 +17,7 @@ import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -24,9 +25,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Singleton
 public class CloudEventManager implements EventManager {
 
+    private static final EventFireHandler EMPTY_EVENT_HANDLER = new ReflectionEventFireHandler(List.of());
+
     private final Map<PluginContainer, Set<Object>> listenersByPlugin = new IdentityHashMap<>();
     private final Object registerLock = new Object();
     private volatile Map<Class<? extends Event>, EventFireHandler> eventHandlers = Collections.emptyMap();
+    private final Map<Class<? extends Event>, EventFireHandler> resolvedHandlers = new ConcurrentHashMap<>();
 
     private final PluginManager pluginManager;
 
@@ -78,10 +82,9 @@ public class CloudEventManager implements EventManager {
     @Override
     public void fire(Event event) {
         checkNotNull(event, "event");
-        EventFireHandler handler = eventHandlers.get(event.getClass());
-        if (handler != null) {
-            handler.fire(event);
-        }
+        Class<? extends Event> eventClass = event.getClass();
+        EventFireHandler handler = resolveHandler(eventClass);
+        handler.fire(event);
     }
 
     @Override
@@ -111,7 +114,7 @@ public class CloudEventManager implements EventManager {
     public void deregisterListeners(Collection<Object> listeners) {
         checkNotNull(listeners, "listeners");
         synchronized (registerLock) {
-            if (listeners.size() > 0) {
+            if (!listeners.isEmpty()) {
                 for (Set<Object> pluginListeners : this.listenersByPlugin.values()) {
                     pluginListeners.removeAll(listeners);
                 }
@@ -129,7 +132,27 @@ public class CloudEventManager implements EventManager {
 
     public List<EventFireHandler.ListenerMethod> getEventListenerMethods(Class<? extends Event> eventClass) {
         checkNotNull(eventClass, "eventClass");
-        return eventHandlers.get(eventClass).getMethods();
+        return resolveHandler(eventClass).getMethods();
+    }
+
+    private EventFireHandler resolveHandler(Class<? extends Event> eventClass) {
+        return this.resolvedHandlers.computeIfAbsent(eventClass, this::createHandler);
+    }
+
+    private EventFireHandler createHandler(Class<? extends Event> eventClass) {
+        List<EventFireHandler.ListenerMethod> methods = new ArrayList<>();
+        this.eventHandlers.forEach((registeredClass, handler) -> {
+            if (registeredClass.isAssignableFrom(eventClass)) {
+                methods.addAll(handler.getMethods());
+            }
+        });
+
+        if (methods.isEmpty()) {
+            return EMPTY_EVENT_HANDLER;
+        }
+
+        Collections.sort(methods);
+        return new ReflectionEventFireHandler(methods);
     }
 
     @SuppressWarnings("unchecked")
@@ -159,5 +182,6 @@ public class CloudEventManager implements EventManager {
             handlerMap.put(entry.getKey(), new ReflectionEventFireHandler(entry.getValue()));
         }
         this.eventHandlers = Collections.unmodifiableMap(handlerMap);
+        this.resolvedHandlers.clear();
     }
 }

@@ -1,0 +1,15 @@
+realId: "minecraft:the_end"
+
+elevationVanilla:
+  height: 0.1
+  variation: 0.2
+
+populators:
+  - id: "cloudburst:tree"
+    chance: 0.0078125
+    on: "end_stone"
+    type: "chorus"
+
+  - id: "cloudburst:end_gateway"
+    rarity: 700
+    offset: "3-9"

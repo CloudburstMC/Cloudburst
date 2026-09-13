@@ -8,13 +8,11 @@ import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.LevelData;
+import org.cloudburstmc.server.level.CloudLevelData;
 import org.cloudburstmc.server.level.chunk.ChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
-import org.cloudburstmc.server.utils.LoadState;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 
@@ -22,13 +20,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
 
 @Log4j2
 @ParametersAreNonnullByDefault
-class LevelDBProvider implements LevelProvider {
+public class LevelDBProvider implements LevelProvider {
 
     private static final int CURRENT_CHUNK_VERSION = 42;
     private static final long CACHE_SIZE = 32L * 1024L * 1024L;
@@ -39,14 +38,12 @@ class LevelDBProvider implements LevelProvider {
      */
     private static final int SAVE_MAX_ATTEMPTS = 5;
 
-    private final String levelId;
     private final Path path;
     private final Executor executor;
     private final DirectDB db;
     private volatile boolean closed;
 
-    LevelDBProvider(String levelId, Path worldPath, Executor executor) throws IOException {
-        this.levelId = levelId;
+    public LevelDBProvider(String levelId, Path worldPath, Executor executor) throws IOException {
         this.path = worldPath.resolve(levelId);
         this.executor = executor;
         Path dbPath = this.path.resolve("db");
@@ -63,16 +60,11 @@ class LevelDBProvider implements LevelProvider {
     }
 
     @Override
-    public String getLevelId() {
-        return levelId;
-    }
-
-    @Override
     @Nullable
     public CloudChunk readChunk(ChunkBuilder chunkBuilder) {
         checkForClosed();
-        final int x = chunkBuilder.getX();
-        final int z = chunkBuilder.getZ();
+        int x = chunkBuilder.getX();
+        int z = chunkBuilder.getZ();
 
         byte[] versionValue = this.db.get(LevelDBKey.VERSION.getKey(x, z));
         if (versionValue == null || versionValue.length != 1) {
@@ -95,7 +87,6 @@ class LevelDBProvider implements LevelProvider {
         }
 
         byte chunkVersion = versionValue[0];
-
         if (chunkVersion < 7) {
             chunkBuilder.dirty();
         }
@@ -113,194 +104,92 @@ class LevelDBProvider implements LevelProvider {
 
     @Override
     public CompletableFuture<Void> saveChunk(Chunk chunk) {
-        final int x = chunk.getX();
-        final int z = chunk.getZ();
+        checkForClosed();
+        int x = chunk.getX();
+        int z = chunk.getZ();
 
-        return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.runAsync(() -> {
             if (!chunk.isGenerated()) {
-                return null;
+                return;
             }
 
-            CloudLevel level = (CloudLevel) chunk.getLevel();
-            long chunkKey = CloudChunk.key(x, z);
-
-            boolean blocksDirty = chunk.isDirty();
-            boolean ticksDirty = level.areTicksDirty(chunkKey);
-
-            if (!blocksDirty && !ticksDirty) {
-                return null;
-            }
-
-            // Serialize once while holding the chunk read lock.
-            // Re-serializing on retry is unnecessary because the batch is immutable
-            // once the lock is released.
-            Runnable onSuccess;
-            DirectWriteBatch batch = this.db.createWriteBatch();
-            try {
+            try (DirectWriteBatch batch = this.db.createWriteBatch()) {
+                Runnable onSuccess;
                 LockableChunk lockableChunk = chunk.readLockable();
                 lockableChunk.lock();
                 try {
-                    if (blocksDirty) {
-                        ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
+                    ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
 
-                        batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
+                    batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
 
-                        int stateValue = lockableChunk.getState() - 1;
-                        batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), new byte[]{
-                                (byte) stateValue,
-                                (byte) (stateValue >>> 8),
-                                (byte) (stateValue >>> 16),
-                                (byte) (stateValue >>> 24)
-                        });
+                    int stateValue = lockableChunk.getState() - 1;
+                    batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), new byte[]{
+                            (byte) stateValue,
+                            (byte) (stateValue >>> 8),
+                            (byte) (stateValue >>> 16),
+                            (byte) (stateValue >>> 24)
+                    });
 
-                        BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
-                        EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
-                    }
+                    BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
+                    EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
                     onSuccess = PendingTickSerializer.savePendingTicks(batch, (CloudChunk) chunk);
                 } finally {
                     lockableChunk.unlock();
                 }
-            } catch (Exception e) {
-                try {
-                    batch.close();
-                } catch (IOException ignored) {
-                }
-                log.error("Failed to serialize chunk ({}, {}): {}", x, z, e.getMessage(), e);
-                return null;
-            }
 
-            // Attempt the write with retries. The dirty flag and the scheduler
-            // save-timestamp are only updated after a confirmed successful write.
-            Exception lastFailure = null;
-            for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
-                try {
-                    this.db.write(batch);
-                    if (blocksDirty) {
-                        chunk.clearDirty();
-                    }
+                writeBatch(batch, "chunk (" + x + ", " + z + ')', () -> {
+                    chunk.clearDirty();
                     if (onSuccess != null) {
                         onSuccess.run();
                     }
-                    try {
-                        batch.close();
-                    } catch (IOException ignored) {
-                    }
-                    return null;
-                } catch (Exception e) {
-                    lastFailure = e;
-                    log.warn("Chunk ({}, {}) write attempt {}/{} failed: {}", x, z, attempt, SAVE_MAX_ATTEMPTS, e.getMessage());
-                    if (attempt < SAVE_MAX_ATTEMPTS) {
-                        try {
-                            Thread.sleep(50L * attempt);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                }
+                });
+            } catch (Exception exception) {
+                throw asCompletionException("Could not save chunk (" + x + ", " + z + ')', exception);
             }
-
-            try {
-                batch.close();
-            } catch (IOException ignored) {
-            }
-            log.error("Failed to save chunk ({}, {}) after {} attempts", x, z, SAVE_MAX_ATTEMPTS, lastFailure);
-            return null;
         }, this.executor);
     }
 
     @Override
     public CompletableFuture<Void> savePendingTicks(CloudChunk chunk) {
-        final int x = chunk.getX();
-        final int z = chunk.getZ();
+        checkForClosed();
+        int x = chunk.getX();
+        int z = chunk.getZ();
 
-        return CompletableFuture.supplyAsync(() -> {
-            Runnable onSuccess;
-            DirectWriteBatch batch = this.db.createWriteBatch();
-            try {
-                onSuccess = PendingTickSerializer.savePendingTicks(batch, chunk);
-            } catch (Exception e) {
-                try {
-                    batch.close();
-                } catch (IOException ignored) {
+        return CompletableFuture.runAsync(() -> {
+            try (DirectWriteBatch batch = this.db.createWriteBatch()) {
+                Runnable onSuccess = PendingTickSerializer.savePendingTicks(batch, chunk);
+                if (onSuccess != null) {
+                    writeBatch(batch, "pending ticks for chunk (" + x + ", " + z + ')', onSuccess);
                 }
-                log.error("Failed to serialize pending ticks for chunk ({}, {}): {}", x, z, e.getMessage(), e);
-                return null;
+            } catch (Exception exception) {
+                throw asCompletionException("Could not save pending ticks for chunk (" + x + ", " + z + ')', exception);
             }
-
-            if (onSuccess == null) {
-                try {
-                    batch.close();
-                } catch (IOException ignored) {
-                }
-                return null;
-            }
-
-            Exception lastFailure = null;
-            for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
-                try {
-                    this.db.write(batch);
-                    onSuccess.run();
-                    try {
-                        batch.close();
-                    } catch (IOException ignored) {
-                    }
-                    return null;
-                } catch (Exception e) {
-                    lastFailure = e;
-                    log.warn("Pending-tick write for chunk ({}, {}) attempt {}/{} failed: {}", x, z, attempt, SAVE_MAX_ATTEMPTS, e.getMessage());
-                    if (attempt < SAVE_MAX_ATTEMPTS) {
-                        try {
-                            Thread.sleep(50L * attempt);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                }
-            }
-
-            try {
-                batch.close();
-            } catch (IOException ignored) {
-            }
-            log.error("Failed to save pending ticks for chunk ({}, {}) after {} attempts", x, z, SAVE_MAX_ATTEMPTS, lastFailure);
-            return null;
         }, this.executor);
     }
 
     @Override
-    public CompletableFuture<Void> forEachChunk(ChunkBuilder.Factory factory, BiConsumer<CloudChunk, Throwable> consumer) {
-        // TODO: implement chunk iteration
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public CompletableFuture<LoadState> loadLevelData(LevelData levelData) {
+    public CompletableFuture<Optional<CloudLevelData>> loadLevelData(CloudLevelData initialData) {
         checkForClosed();
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return LevelDBDataSerializer.INSTANCE.load(levelData, path, levelId);
+                return LevelDBDataSerializer.INSTANCE.load(initialData, this.path);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new CompletionException(e);
             }
         }, this.executor);
     }
 
     @Override
-    public CompletableFuture<Void> saveLevelData(LevelData levelData) {
+    public CompletableFuture<Void> saveLevelData(CloudLevelData levelData) {
         checkForClosed();
         return CompletableFuture.runAsync(() -> {
             try {
-                LevelDBDataSerializer.INSTANCE.save(levelData, path, levelId);
+                LevelDBDataSerializer.INSTANCE.save(levelData, path);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new CompletionException(e);
             }
-        }, this.executor).exceptionally((e) -> {
-            log.catching(e);
-            return null;
-        });
+        }, this.executor);
     }
 
     @Override
@@ -311,5 +200,40 @@ class LevelDBProvider implements LevelProvider {
 
     private void checkForClosed() {
         Preconditions.checkState(!closed, "LevelProvider closed");
+    }
+
+    private void writeBatch(DirectWriteBatch batch, String operation, Runnable onSuccess) {
+        Exception lastFailure = null;
+        for (int attempt = 1; attempt <= SAVE_MAX_ATTEMPTS; attempt++) {
+            try {
+                this.db.write(batch);
+            } catch (Exception exception) {
+                lastFailure = exception;
+                log.warn("Write attempt {}/{} failed for {}: {}", attempt, SAVE_MAX_ATTEMPTS, operation,
+                        exception.getMessage());
+                if (attempt < SAVE_MAX_ATTEMPTS) {
+                    try {
+                        Thread.sleep(50L * attempt);
+                    } catch (InterruptedException interruptedException) {
+                        Thread.currentThread().interrupt();
+                        throw new CompletionException("Interrupted while saving " + operation, interruptedException);
+                    }
+                }
+                continue;
+            }
+
+            onSuccess.run();
+            return;
+        }
+
+        throw new CompletionException("Failed to save " + operation + " after " + SAVE_MAX_ATTEMPTS + " attempts", lastFailure);
+    }
+
+    private static CompletionException asCompletionException(String message, Exception exception) {
+        if (exception instanceof CompletionException completionException) {
+            return completionException;
+        }
+
+        return new CompletionException(message, exception);
     }
 }

@@ -213,6 +213,16 @@ public class BlockTags {
     public static final BlockTagKey STEM = tag("stem");
 
     /**
+     * Blocks on which chorus flowers may survive.
+     */
+    public static final BlockTagKey SUPPORTS_CHORUS_FLOWER = tag("supports_chorus_flower");
+
+    /**
+     * Blocks to which chorus plants may connect.
+     */
+    public static final BlockTagKey SUPPORTS_CHORUS_PLANT = tag("supports_chorus_plant");
+
+    /**
      * Blocks treated as transparent for vanilla visibility or rendering checks.
      */
     public static final BlockTagKey TRANSPARENT = tag("transparent");

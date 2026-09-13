@@ -1,11 +1,10 @@
 package org.cloudburstmc.server.level.generator.standard.generation.decorator;
 
-import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,21 +16,19 @@ import java.util.random.RandomGenerator;
  * Allows individual modification of blocks in a chunk after surfaces have been built.
  * <p>
  * Similar to a populator, but only operates on an individual block column in a single chunk.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize(using = DecoratorDeserializer.class)
 public interface Decorator extends Populator {
     Decorator[] EMPTY_ARRAY = new Decorator[0];
 
     @Override
-    default void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
-        this.decorate(random, level.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
+    default void finish(RandomGenerator random, GenerationRegion region, int blockX, int blockZ) {
+        this.decorate(random, region.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
     }
 
     @Override
-    default void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
-        this.decorate(random, level.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
+    default void populate(RandomGenerator random, GenerationRegion region, int blockX, int blockZ) {
+        this.decorate(random, region.getChunk(blockX >> 4, blockZ >> 4), blockX & 0xF, blockZ & 0xF);
     }
 
     /**

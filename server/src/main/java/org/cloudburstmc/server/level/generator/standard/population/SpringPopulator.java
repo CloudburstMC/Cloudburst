@@ -1,24 +1,20 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.level.generator.standard.population.cluster.AbstractReplacingPopulator;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
-/**
- * @author DaPorkchop_
- */
 @JsonDeserialize
 public class SpringPopulator extends AbstractReplacingPopulator {
     public static final Identifier ID = Identifier.parse("cloudburst:spring");
@@ -50,7 +46,7 @@ public class SpringPopulator extends AbstractReplacingPopulator {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         int blockY = this.height.rand(random);
 
         if (blockY <= 0 || !this.replace.test(level.getBlockState(blockX, blockY, blockZ, 0))) {

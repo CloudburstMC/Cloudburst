@@ -1,9 +1,6 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -16,10 +13,9 @@ import org.cloudburstmc.server.level.storage.StorageIds;
 import java.nio.file.Path;
 import java.util.*;
 
-@Log4j2
 public class StorageRegistry implements Registry {
     private static final StorageRegistry INSTANCE = new StorageRegistry();
-    private final Map<Identifier, LevelProviderFactory> providers = new IdentityHashMap<>();
+    private final Map<Identifier, LevelProviderFactory> providers = new HashMap<>();
     private final List<WeightedProvider> detectProviders = new ArrayList<>();
     private volatile boolean closed;
 
@@ -31,20 +27,20 @@ public class StorageRegistry implements Registry {
         return INSTANCE;
     }
 
-    public synchronized void register(Identifier identifier, LevelProviderFactory levelProviderFactory, int weight)
-            throws RegistryException {
-        Objects.requireNonNull(identifier, "type");
+    public synchronized void register(Identifier identifier, LevelProviderFactory levelProviderFactory, int weight) throws RegistryException {
+        Objects.requireNonNull(identifier, "identifier");
         Objects.requireNonNull(levelProviderFactory, "levelProviderFactory");
 
+        Preconditions.checkState(!this.closed, "Registry is closed");
         Preconditions.checkArgument(!this.providers.containsKey(identifier));
+
         this.providers.put(identifier, levelProviderFactory);
         this.detectProviders.add(new WeightedProvider(identifier, levelProviderFactory, weight));
         this.detectProviders.sort(Comparator.naturalOrder());
     }
 
-    public LevelProviderFactory getLevelProviderFactory(Identifier identifier) {
+    public @Nullable LevelProviderFactory getLevelProviderFactory(Identifier identifier) {
         Objects.requireNonNull(identifier, "identifier");
-
         return this.providers.get(identifier);
     }
 
@@ -55,10 +51,11 @@ public class StorageRegistry implements Registry {
     @Nullable
     public Identifier detectStorage(String levelId, Path levelsPath) {
         for (WeightedProvider weightedProvider : detectProviders) {
-            if (weightedProvider.factory.isCompatible(levelId, levelsPath)) {
-                return weightedProvider.identifier;
+            if (weightedProvider.factory().isCompatible(levelId, levelsPath)) {
+                return weightedProvider.identifier();
             }
         }
+
         return null;
     }
 
@@ -73,16 +70,15 @@ public class StorageRegistry implements Registry {
         this.register(StorageIds.LEVELDB, LevelDBProviderFactory.INSTANCE, 100);
     }
 
-    @ToString
-    @RequiredArgsConstructor
-    private static class WeightedProvider implements Comparable<WeightedProvider> {
-        private final Identifier identifier;
-        private final LevelProviderFactory factory;
-        private final int weight;
+    private record WeightedProvider(
+            Identifier identifier,
+            LevelProviderFactory factory,
+            int weight
+    ) implements Comparable<WeightedProvider> {
 
         @Override
-        public int compareTo(WeightedProvider o) {
-            return Integer.compare(this.weight, o.weight);
+        public int compareTo(WeightedProvider other) {
+            return Integer.compare(this.weight, other.weight);
         }
     }
 }

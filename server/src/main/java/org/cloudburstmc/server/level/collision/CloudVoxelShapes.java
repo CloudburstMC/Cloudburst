@@ -139,6 +139,51 @@ public final class CloudVoxelShapes {
     }
 
     /**
+     * Returns the parts of {@code second} that are not occupied by {@code first}.
+     *
+     * @param first the shape to subtract
+     * @param second the shape from which to subtract
+     * @return the volume exclusive to {@code second}
+     */
+    public static VoxelShape onlySecond(VoxelShape first, VoxelShape second) {
+        Objects.requireNonNull(first, "first");
+        Objects.requireNonNull(second, "second");
+        if (second.isEmpty() || first == second) {
+            return empty();
+        }
+
+        if (first.isEmpty()) {
+            return second;
+        }
+
+        List<BoundingBox> remaining = new ArrayList<>(second.getBoundingBoxes());
+        for (BoundingBox cutter : first.getBoundingBoxes()) {
+            List<BoundingBox> next = new ArrayList<>();
+            for (BoundingBox box : remaining) {
+                subtract(box, cutter, next);
+            }
+
+            remaining = next;
+            if (remaining.isEmpty()) {
+                return empty();
+            }
+        }
+
+        float[] boxes = new float[remaining.size() * 6];
+        int index = 0;
+        for (BoundingBox box : remaining) {
+            boxes[index++] = box.getMinX();
+            boxes[index++] = box.getMinY();
+            boxes[index++] = box.getMinZ();
+            boxes[index++] = box.getMaxX();
+            boxes[index++] = box.getMaxY();
+            boxes[index++] = box.getMaxZ();
+        }
+
+        return fromBoxes(boxes);
+    }
+
+    /**
      * Tests whether the union of {@code covering} fully contains the union of {@code required}.
      * Box boundaries from both shapes partition the tested volume into cells whose membership is constant.
      *
@@ -271,8 +316,33 @@ public final class CloudVoxelShapes {
         return FULL_BLOCK_CACHE.computeIfAbsent(shape, candidate -> candidate.covers(BLOCK));
     }
 
-    private static void addShapeBoundaries(VoxelShape shape, BoundingBox bounds,
-                                           List<Float> xBoundaries, List<Float> yBoundaries, List<Float> zBoundaries) {
+    private static void subtract(BoundingBox box, BoundingBox cutter, List<BoundingBox> result) {
+        float minX = Math.max(box.getMinX(), cutter.getMinX());
+        float minY = Math.max(box.getMinY(), cutter.getMinY());
+        float minZ = Math.max(box.getMinZ(), cutter.getMinZ());
+        float maxX = Math.min(box.getMaxX(), cutter.getMaxX());
+        float maxY = Math.min(box.getMaxY(), cutter.getMaxY());
+        float maxZ = Math.min(box.getMaxZ(), cutter.getMaxZ());
+        if (minX >= maxX || minY >= maxY || minZ >= maxZ) {
+            result.add(box);
+            return;
+        }
+
+        addBox(result, box.getMinX(), box.getMinY(), box.getMinZ(), minX, box.getMaxY(), box.getMaxZ());
+        addBox(result, maxX, box.getMinY(), box.getMinZ(), box.getMaxX(), box.getMaxY(), box.getMaxZ());
+        addBox(result, minX, box.getMinY(), box.getMinZ(), maxX, minY, box.getMaxZ());
+        addBox(result, minX, maxY, box.getMinZ(), maxX, box.getMaxY(), box.getMaxZ());
+        addBox(result, minX, minY, box.getMinZ(), maxX, maxY, minZ);
+        addBox(result, minX, minY, maxZ, maxX, maxY, box.getMaxZ());
+    }
+
+    private static void addBox(List<BoundingBox> boxes, float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        if (minX < maxX && minY < maxY && minZ < maxZ) {
+            boxes.add(new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ));
+        }
+    }
+
+    private static void addShapeBoundaries(VoxelShape shape, BoundingBox bounds, List<Float> xBoundaries, List<Float> yBoundaries, List<Float> zBoundaries) {
         addBoundary(xBoundaries, bounds.getMinX());
         addBoundary(xBoundaries, bounds.getMaxX());
         addBoundary(yBoundaries, bounds.getMinY());

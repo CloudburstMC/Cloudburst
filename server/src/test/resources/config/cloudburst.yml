@@ -119,11 +119,13 @@ level:
 # These settings will override the generator set in server.properties and allows loading multiple levels
 worlds:
   world:
+    dimension: overworld
     seed: test
     generator: cloudburst:standard
     options: overworld
     max-liquid-ticks: 45678
     water-over-lava-flow-speed: 9
   nether:
+    dimension: nether
     generator: cloudburst:standard
     options: nether

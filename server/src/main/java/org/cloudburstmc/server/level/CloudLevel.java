@@ -39,6 +39,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.ChunkLoader;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.LevelException;
 import org.cloudburstmc.api.level.Location;
@@ -57,6 +58,7 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.math.vector.Vector4i;
+import org.cloudburstmc.protocol.bedrock.data.BlockSyncType;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -76,6 +78,7 @@ import org.cloudburstmc.server.level.chunk.SectionTickList;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
+import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
@@ -107,7 +110,7 @@ import java.util.random.RandomGenerator;
 import static com.google.common.base.Preconditions.*;
 
 @Log4j2
-public class CloudLevel implements Level {
+public class CloudLevel implements Level, BlockStateRegion {
 
     public static final int DIMENSION_OVERWORLD = 0;
     public static final int DIMENSION_NETHER = 1;
@@ -137,9 +140,11 @@ public class CloudLevel implements Level {
     private final Int2ObjectOpenHashMap<ChunkLoader> loaders = new Int2ObjectOpenHashMap<>();
 
     private final Int2IntMap loaderCounter = new Int2IntOpenHashMap();
-    private final Set<Entity> updateEntities = ConcurrentHashMap.newKeySet();
+    private final EntityTickList updateEntities = new EntityTickList();
 
     private final Long2ObjectOpenHashMap<Deque<BedrockPacket>> chunkPackets = new Long2ObjectOpenHashMap<>();
+    private final Set<Vector3i> batchedNeighbourUpdates = new LinkedHashSet<>();
+    private int blockUpdateBatchDepth;
 
     public float skyLightSubtracted;
     // Avoid OOM, gc'd references result in whole chunk being sent (possibly higher cpu)
@@ -190,8 +195,9 @@ public class CloudLevel implements Level {
             .removalListener(cacheRemover)
             .build();
     private final LevelChunkManager chunkManager;
-    private final LevelData levelData;
+    private final CloudLevelData levelData;
     private final CollisionEngine collisionEngine;
+    private final EndFightManager endFight;
 
     private Generator generator;
 
@@ -208,7 +214,7 @@ public class CloudLevel implements Level {
     GeneratorRegistry generatorRegistry;
 
     @Inject
-    CloudLevel(CloudServer server, String id, LevelProvider levelProvider, LevelData levelData, GeneratorRegistry generatorRegistry) {
+    CloudLevel(CloudServer server, String id, LevelProvider levelProvider, CloudLevelData levelData, GeneratorRegistry generatorRegistry) {
         this.id = id;
         //this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
@@ -272,6 +278,9 @@ public class CloudLevel implements Level {
         this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
         this.chunkManager = new LevelChunkManager(this);
         this.collisionEngine = new CollisionEngine(this);
+        this.endFight = this.getDimension() == DIMENSION_THE_END
+                ? new EndFightManager(this, this.levelData.getEndFightData())
+                : null;
 
         LongPredicate loadedChunk = chunkKey -> this.chunkManager.isChunkLoaded(chunkKey);
         this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getCurrentTick(), loadedChunk, this::tickBlock);
@@ -294,6 +303,15 @@ public class CloudLevel implements Level {
 
     public void setLastTickDuration(double lastTickDuration) {
         this.lastTickDuration = lastTickDuration;
+    }
+
+    public EndFightManager getEndFight() {
+        return Objects.requireNonNull(this.endFight, "End fight is only available in the End dimension");
+    }
+
+    @Override
+    public @Nullable EndFightManager getDragonBattle() {
+        return this.endFight;
     }
 
     /*public BlockMetadataStore getBlockMetadata() {
@@ -348,7 +366,7 @@ public class CloudLevel implements Level {
     }
 
     public void addSound(Vector3f pos, Sound sound, float volume, float pitch, Player... players) {
-        Preconditions.checkArgument(volume >= 0 && volume <= 1, "Sound volume must be between 0 and 1");
+        Preconditions.checkArgument(volume >= 0, "Sound volume cannot be negative");
         Preconditions.checkArgument(pitch >= 0, "Sound pitch must be higher than 0");
 
         PlaySoundPacket packet = new PlaySoundPacket();
@@ -357,11 +375,14 @@ public class CloudLevel implements Level {
         packet.setPitch(pitch);
         packet.setPosition(pos);
 
-        if (players == null || players.length == 0) {
-            addChunkPacket(pos, packet);
-        } else {
-            CloudServer.broadcastPacket(players, packet);
+        if (players == null) {
+            float audibleDistance = 16 * Math.max(1, volume);
+            float audibleDistanceSquared = audibleDistance * audibleDistance;
+            players = this.getPlayers().values().stream()
+                    .filter(player -> player.getPosition().distanceSquared(pos) <= audibleDistanceSquared)
+                    .toArray(Player[]::new);
         }
+        CloudServer.broadcastPacket(players, packet);
     }
 
     public void addLevelSoundEvent(Vector3f pos, SoundEvent event, int data, EntityType<?> type) {
@@ -477,43 +498,6 @@ public class CloudLevel implements Level {
         this.autoSave = autoSave;
     }
 
-    public boolean unload() {
-        return this.unload(false);
-    }
-
-    public boolean unload(boolean force) {
-        LevelUnloadEvent ev = new LevelUnloadEvent(this);
-
-        if (this == this.server.getDefaultLevel() && !force) {
-            ev.setCancelled();
-        }
-
-        this.server.getEventManager().fire(ev);
-
-        if (!force && ev.isCancelled()) {
-            return false;
-        }
-
-        log.info(this.server.getLanguage().translate("cloudburst.level.unloading", "§a" + this.getName() + "§r"));
-        CloudLevel defaultLevel = this.server.getDefaultLevel();
-
-        for (Player player : new ArrayList<>(this.getPlayers().values())) {
-            if (this == defaultLevel || defaultLevel == null) {
-                ((CloudPlayer) player).close(((CloudPlayer) player).leaveMessage(), "Forced default level unload");
-            } else {
-                player.teleport(this.server.getDefaultLevel().getSafeSpawn());
-            }
-        }
-
-        if (this == defaultLevel) {
-            this.server.setDefaultLevel(null);
-        }
-
-        this.close();
-
-        return true;
-    }
-
     @Override
     public Set<CloudPlayer> getChunkPlayers(int chunkX, int chunkZ) {
         ImmutableSet.Builder<CloudPlayer> players = ImmutableSet.builder();
@@ -544,7 +528,7 @@ public class CloudLevel implements Level {
     }
 
     public void checkTime() {
-        this.levelData.checkTime();
+        this.levelData.tickTime();
     }
 
     private boolean doDaylightCycle() {
@@ -639,6 +623,9 @@ public class CloudLevel implements Level {
             this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
 
             this.levelData.tick();
+            if (this.endFight != null) {
+                this.endFight.tick();
+            }
 
             int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
             int maxLiquidTicks = this.maxLiquidTicks;
@@ -655,7 +642,11 @@ public class CloudLevel implements Level {
 
             try (Timing ignored2 = this.timings.entityTick.startTiming()) {
                 if (!this.updateEntities.isEmpty()) {
-                    this.updateEntities.removeIf(entity -> entity.isClosed() || !entity.onUpdate(currentTick));
+                    this.updateEntities.forEach(entity -> {
+                        if (entity.isClosed() || !entity.onUpdate(currentTick)) {
+                            this.updateEntities.remove(entity);
+                        }
+                    });
                 }
             }
 
@@ -1252,6 +1243,17 @@ public class CloudLevel implements Level {
         return this.collisionEngine.collideBoundingBox(entity, movement, boundingBox);
     }
 
+    public Vector3f collideBoundingBox(@Nullable Entity entity, Vector3f movement, BoundingBox boundingBox,
+                                       boolean includeEntities) {
+        return this.collisionEngine.collideBoundingBox(entity, movement, boundingBox, includeEntities);
+    }
+
+    public Vector3f collideWithStep(@Nullable Entity entity, Vector3f movement, Vector3f clippedMovement,
+                                    BoundingBox boundingBox, float maxStepHeight, boolean includeEntities) {
+        return this.collisionEngine.collideWithStep(
+                entity, movement, clippedMovement, boundingBox, maxStepHeight, includeEntities);
+    }
+
     public void forEachLoadedBlockIntersecting(BoundingBox boundingBox, Consumer<Block> consumer) {
         int minX = GenericMath.floor(boundingBox.getMinX());
         int minY = GenericMath.floor(boundingBox.getMinY());
@@ -1553,7 +1555,41 @@ public class CloudLevel implements Level {
                 .add(CloudChunk.blockKeyWithLayer(x, y, z, 0, this.getMinHeight()));
     }
 
+    @Override
+    public boolean setBlockState(Vector3i position, BlockState state) {
+        return this.setBlockState(position.getX(), position.getY(), position.getZ(), 0, state, false, true);
+    }
+
+    @Override
+    public boolean setBlockState(int x, int y, int z, BlockState state) {
+        return this.setBlockState(x, y, z, 0, state, false, true);
+    }
+
+    @Override
+    public boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
+        return this.setBlockState(x, y, z, layer, state, false, true);
+    }
+
     public boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update) {
+        return this.setBlockState(x, y, z, layer, state, direct, update, null, null);
+    }
+
+    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, CloudEntity entity) {
+        return this.setBlockStateSynced(position, replacement, entity, BlockSyncType.CREATE);
+    }
+
+    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, CloudEntity entity) {
+        return this.setBlockStateSynced(position, state, entity, BlockSyncType.DESTROY);
+    }
+
+    private boolean setBlockStateSynced(Vector3i position, BlockState state, CloudEntity entity,
+                                        BlockSyncType syncType) {
+        return this.setBlockState(position.getX(), position.getY(), position.getZ(), 0, state,
+                false, true, Objects.requireNonNull(entity, "entity"), Objects.requireNonNull(syncType, "syncType"));
+    }
+
+    private boolean setBlockState(int x, int y, int z, int layer, BlockState state, boolean direct, boolean update,
+                                  @Nullable CloudEntity syncedEntity, @Nullable BlockSyncType syncType) {
         if (this.isOutsideBuildHeight(y)) {
             return false;
         }
@@ -1576,7 +1612,9 @@ public class CloudLevel implements Level {
             if (extra == BlockStates.AIR && oldState.getType().isLiquid() && LiquidState.of(oldState).isSource()
                     && canContainLiquid(state, oldState)) {
                 chunk.setBlockState(x & 0xf, y, z & 0xf, 1, oldState);
-                addBlockChange(x, y, z);
+                if (syncedEntity == null) {
+                    addBlockChange(x, y, z);
+                }
             } else if (extra.getType().isLiquid() && state == BlockStates.AIR) {
                 if (LiquidState.of(extra).isSource()) {
                     chunk.setBlockState(x & 0xf, y, z & 0xf, 0, extra);
@@ -1584,10 +1622,14 @@ public class CloudLevel implements Level {
                 }
 
                 chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
-                addBlockChange(x, y, z);
+                if (syncedEntity == null) {
+                    addBlockChange(x, y, z);
+                }
             } else if (extra.getType().isLiquid() && !canContainLiquid(state, extra)) {
                 chunk.setBlockState(x & 0xf, y, z & 0xf, 1, BlockStates.AIR);
-                addBlockChange(x, y, z);
+                if (syncedEntity == null) {
+                    addBlockChange(x, y, z);
+                }
             }
         }
 
@@ -1601,7 +1643,9 @@ public class CloudLevel implements Level {
                 layer == 1 ? state : chunk.getBlockState(x & 0xf, y, z & 0xf, 1)
         });
 
-        if (direct) {
+        if (syncedEntity != null) {
+            this.sendSyncedBlockUpdate(newBlock, syncedEntity, Objects.requireNonNull(syncType, "syncType"));
+        } else if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
             addBlockChange(index, x, y, z);
@@ -1619,7 +1663,11 @@ public class CloudLevel implements Level {
                     this.scheduleEntityUpdate(entity);
                 }
 
-                this.updateAround(x, y, z);
+                if (this.blockUpdateBatchDepth > 0) {
+                    this.batchedNeighbourUpdates.add(position);
+                } else {
+                    this.updateAround(position);
+                }
                 this.scheduleLiquidUpdate(position);
 
                 for (Direction direction : Direction.values()) {
@@ -1629,6 +1677,38 @@ public class CloudLevel implements Level {
         }
 
         return true;
+    }
+
+    public void batchBlockUpdates(Runnable action) {
+        Objects.requireNonNull(action, "action");
+        this.blockUpdateBatchDepth++;
+        try {
+            action.run();
+        } finally {
+            if (--this.blockUpdateBatchDepth == 0) {
+                List<Vector3i> changedPositions = List.copyOf(this.batchedNeighbourUpdates);
+                this.batchedNeighbourUpdates.clear();
+                changedPositions.forEach(this::updateAround);
+            }
+        }
+    }
+
+    private void sendSyncedBlockUpdate(Block block, CloudEntity entity, BlockSyncType syncType) {
+        UpdateBlockSyncedPacket packet = new UpdateBlockSyncedPacket();
+        packet.setBlockPosition(block.getPosition());
+        packet.setDataLayer(0);
+        packet.getFlags().addAll(UpdateBlockPacket.FLAG_ALL);
+        packet.setRuntimeEntityId(entity.getUniqueId());
+        packet.setEntityBlockSyncType(syncType);
+
+        try {
+            packet.setDefinition(BlockPalette.INSTANCE.getDefinition(block.getState()));
+        } catch (RegistryException e) {
+            throw new IllegalStateException("Unable to create synchronized block update at "
+                    + block.getPosition() + " in " + this.getName(), e);
+        }
+
+        CloudServer.broadcastPacket(this.getChunkPlayers(block.getChunk().getX(), block.getChunk().getZ()), packet);
     }
 
     @Override
@@ -2034,7 +2114,7 @@ public class CloudLevel implements Level {
     }
 
     public void dropExpOrb(Vector3f source, int exp, @Nullable Vector3f motion) {
-        dropExpOrb(source, exp, motion, 10);
+        dropExpOrb(source, exp, motion, 0);
     }
 
     public void dropExpOrb(Vector3f source, int exp, @Nullable Vector3f motion, int delay) {
@@ -2471,6 +2551,16 @@ public class CloudLevel implements Level {
         return chunk.getBlockState(x & 0x0f, y, z & 0x0f, layer);
     }
 
+    @Override
+    public BlockState getBlockState(int x, int y, int z) {
+        return this.getBlockState(x, y, z, 0);
+    }
+
+    @Override
+    public BlockState getBlockState(Vector3i position) {
+        return this.getBlockState(position.getX(), position.getY(), position.getZ(), 0);
+    }
+
     public int getBiomeId(int x, int y, int z) {
         return this.getChunk(x >> 4, z >> 4).getBiome(x & 0xF, y, z & 0xF);
     }
@@ -2511,7 +2601,7 @@ public class CloudLevel implements Level {
 
     @Override
     public CloudChunk getLoadedChunk(Vector3i pos) {
-        return this.getLoadedChunk(pos.getX(), pos.getZ());
+        return this.getLoadedChunk(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     @Override
@@ -2620,7 +2710,7 @@ public class CloudLevel implements Level {
         this.updateEntities.add(entity);
     }
 
-    public void removeEntity(Entity entity) {
+    public void unregisterEntity(Entity entity) {
         if (entity.getLevel() != this) {
             throw new LevelException("Invalid Entity level");
         }
@@ -2628,15 +2718,13 @@ public class CloudLevel implements Level {
         if (entity instanceof CloudPlayer) {
             this.players.remove(entity.getUniqueId());
             this.checkSleep();
-        } else {
-            entity.close();
         }
 
         this.entities.remove(entity.getUniqueId());
         this.updateEntities.remove(entity);
     }
 
-    public void addEntity(Entity entity) {
+    public void registerEntity(Entity entity) {
         if (entity.getLevel() != this) {
             throw new LevelException("Invalid Entity level");
         }
@@ -2647,7 +2735,7 @@ public class CloudLevel implements Level {
         this.entities.put(entity.getUniqueId(), entity);
     }
 
-    public void addBlockEntity(BlockEntity blockEntity) {
+    public void registerBlockEntity(BlockEntity blockEntity) {
         if (blockEntity.getLevel() != this) {
             throw new LevelException("Invalid Block Entity level");
         }
@@ -2662,7 +2750,7 @@ public class CloudLevel implements Level {
         }
     }
 
-    public void removeBlockEntity(BlockEntity entity) {
+    public void unregisterBlockEntity(BlockEntity entity) {
         checkNotNull(entity, "entity");
         Preconditions.checkArgument(entity.getLevel() == this, "BlockEntity is not in this level");
         blockEntities.remove(entity);
@@ -2842,11 +2930,11 @@ public class CloudLevel implements Level {
     }
 
     public long getSeed() {
-        return this.levelData.getRandomSeed();
+        return this.levelData.getSeed();
     }
 
     public void setSeed(long seed) {
-        this.levelData.setRandomSeed(seed);
+        this.levelData.setSeed(seed);
     }
 
     public void doChunkGarbageCollection() {
@@ -3012,12 +3100,20 @@ public class CloudLevel implements Level {
         return this.levelData.getDimension();
     }
 
-    public void setDimension(int dimension) {
-        this.levelData.setDimension(dimension);
+    @Override
+    public Difficulty getDifficulty() {
+        return this.levelData.getDifficulty();
     }
 
-    public int getDifficulty() {
-        return this.levelData.getDifficulty();
+    @Override
+    public void setDifficulty(Difficulty difficulty) {
+        this.levelData.setDifficulty(difficulty);
+
+        SetDifficultyPacket packet = new SetDifficultyPacket();
+        packet.setDifficulty(difficulty.getId());
+        for (CloudPlayer player : this.players.values()) {
+            player.sendPacket(packet);
+        }
     }
 
     public boolean canBlockSeeSky(Vector3f pos) {

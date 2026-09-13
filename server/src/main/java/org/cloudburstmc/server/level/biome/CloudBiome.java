@@ -1,26 +1,23 @@
 package org.cloudburstmc.server.level.biome;
 
-import tools.jackson.core.type.TypeReference;
 import lombok.NonNull;
 import net.daporkchop.lib.noise.NoiseSource;
 import net.daporkchop.lib.noise.engine.PerlinNoiseEngine;
 import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.biome.Biome;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.level.generator.BlockStateRegion;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author DaPorkchop_
- */
 public class CloudBiome implements Biome {
     public static final BiomeDefinitions BIOME_DEFINITIONS;
     public static final NoiseSource TEMPERATURE_NOISE = new PerlinNoiseEngine(new FastPRandom(123456789L));
@@ -76,7 +73,7 @@ public class CloudBiome implements Biome {
         return temperature;
     }
 
-    public boolean canSnowAt(ChunkManager level, int x, int y, int z) {
+    public boolean canSnowAt(BlockStateRegion level, int x, int y, int z) {
         //TODO: light level must be less than 10
         return y >= 0 && this.getTemperature(x, y, z) < 0.15d && (y >= 256 || level.getBlockState(x, y, z) == BlockStates.AIR);
     }

@@ -17,12 +17,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.ServerException;
+import org.cloudburstmc.api.boss.BossBar;
+import org.cloudburstmc.api.boss.BossBarColor;
+import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.crafting.Recipe;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.event.server.*;
 import org.cloudburstmc.api.level.Difficulty;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
@@ -38,6 +42,7 @@ import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.config.CloudburstYaml;
 import org.cloudburstmc.server.config.ServerConfig;
@@ -148,10 +153,7 @@ public class CloudServer implements Server {
     private DB nameLookup;
 
     private final LevelManager levelManager;
-    private final LevelData defaultLevelData = new LevelData();
-
-    private boolean allowNether;
-    private boolean allowEnd;
+    private final CloudLevelDefaults levelDefaults = new CloudLevelDefaults();
 
     private volatile Identifier defaultStorageId;
 
@@ -223,7 +225,7 @@ public class CloudServer implements Server {
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
 
-        this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, dataPath, pluginPath, levelPath));
+        this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, levelPath));
 
         this.filePath = Bootstrap.PATH;
         this.dataPath = dataPath;
@@ -384,9 +386,6 @@ public class CloudServer implements Server {
         } else {
             serverProperties = ServerProperties.fromFile(serverPropPath);
         }
-
-        this.allowNether = this.serverProperties.isAllowNether();
-        this.allowEnd = this.serverProperties.isAllowEnd();
 
         this.forceLanguage = getConfig().getSettings().isForceLanguage();
         this.localeManager.setLocaleOrFallback(getConfig().getSettings().getLanguage());
@@ -1082,9 +1081,18 @@ public class CloudServer implements Server {
 
     public Difficulty getDifficulty() {
         if (this.difficulty == null) {
-            this.difficulty = Difficulty.values()[this.serverProperties.getDifficulty()];
+            this.difficulty = Difficulty.fromId(this.serverProperties.getDifficulty());
         }
         return this.difficulty;
+    }
+
+    public void setDifficulty(Difficulty difficulty) {
+        this.getConfig().setDifficulty(difficulty);
+        this.difficulty = difficulty;
+        this.levelDefaults.setDifficulty(difficulty);
+        for (CloudLevel level : this.levelManager.getLevels()) {
+            level.setDifficulty(difficulty);
+        }
     }
 
     public boolean hasWhitelist() {
@@ -1400,21 +1408,18 @@ public class CloudServer implements Server {
         return this.levelManager.getLevelByName(name);
     }
 
-    public boolean unloadLevel(CloudLevel level) {
-        return this.unloadLevel(level, false);
-    }
-
-    public boolean unloadLevel(CloudLevel level, boolean forceUnload) {
-        if (level == this.getDefaultLevel() && !forceUnload) {
-            throw new IllegalStateException("The default level cannot be unloaded while running, please switch levels.");
+    @Override
+    public boolean unloadLevel(Level level) {
+        if (!(level instanceof CloudLevel cloudLevel) || cloudLevel.getServer() != this) {
+            throw new IllegalArgumentException("Level is not owned by this server");
         }
 
-        return level.unload(forceUnload);
-
+        return this.levelManager.unload(cloudLevel);
     }
 
-    public LevelBuilder loadLevel() {
-        return new LevelBuilder(this);
+    @Override
+    public CloudLevelBuilder levelBuilder(String id) {
+        return new CloudLevelBuilder(this, id);
     }
 
     public LocaleManager getLanguage() {
@@ -1603,7 +1608,8 @@ public class CloudServer implements Server {
 
     private void registerVanillaComponents() {
         Attribute.init();
-        this.defaultLevelData.getGameRules().loadFrom(this.gameRuleRegistry.getDefaultRules());
+        this.levelDefaults.setDifficulty(this.getDifficulty());
+        this.levelDefaults.getGameRules().loadFrom(this.gameRuleRegistry.getDefaultRules());
     }
 
     private void loadLevels() throws IOException {
@@ -1618,10 +1624,43 @@ public class CloudServer implements Server {
         if (worldConfigs.isEmpty()) {
             throw new IllegalStateException("No worlds configured! Add a world to cloudburst.yml and try again!");
         }
-        List<CompletableFuture<CloudLevel>> levelFutures = new ArrayList<>(worldConfigs.size());
 
+        String defaultName = this.serverProperties.getDefaultLevel();
+        if (defaultName == null || defaultName.isBlank()) {
+            defaultName = worldConfigs.entrySet().stream()
+                    .filter(entry -> entry.getValue().getDimension() == ServerConfig.WorldDimension.OVERWORLD)
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("No Overworld level is configured"));
+            this.serverProperties.modifyDefaultLevel(defaultName);
+            log.warn("default-level is unset or empty, using '{}'", defaultName);
+        }
+
+        ServerConfig.World defaultConfig = worldConfigs.get(defaultName);
+        if (defaultConfig == null) {
+            throw new IllegalStateException("default-level refers to unknown level: '" + defaultName + "'");
+        }
+
+        if (defaultConfig.getDimension() == null) {
+            throw new IllegalStateException("World '" + defaultName + "' does not declare a dimension in cloudburst.yml");
+        }
+
+        if (this.isDimensionDisabled(defaultConfig.getDimension())) {
+            throw new IllegalStateException("Default level '" + defaultName + "' uses a disabled dimension");
+        }
+
+        List<CompletableFuture<CloudLevel>> levelFutures = new ArrayList<>(worldConfigs.size());
         for (String name : worldConfigs.keySet()) {
             final ServerConfig.World config = worldConfigs.get(name);
+            if (config.getDimension() == null) {
+                throw new IllegalStateException("World '" + name + "' does not declare a dimension in cloudburst.yml");
+            }
+
+            if (this.isDimensionDisabled(config.getDimension())) {
+                log.info("Skipping disabled {} level '{}'", config.getDimension(), name);
+                continue;
+            }
+
             //fallback to level name if no seed is set
             Object seedObj = config.getSeed();
             long seed;
@@ -1642,8 +1681,13 @@ public class CloudServer implements Server {
             Identifier generator = Identifier.parse(config.getGenerator());
             String options = config.getOptions();
 
-            levelFutures.add(this.loadLevel().id(name)
+            levelFutures.add(this.levelBuilder(name)
                     .seed(seed)
+                    .dimension(switch (config.getDimension()) {
+                        case OVERWORLD -> CloudLevel.DIMENSION_OVERWORLD;
+                        case NETHER -> CloudLevel.DIMENSION_NETHER;
+                        case THE_END -> CloudLevel.DIMENSION_THE_END;
+                    })
                     .generator(generator == null ? this.generatorRegistry.getFallback() : generator)
                     .generatorOptions(options)
                     .load());
@@ -1654,12 +1698,6 @@ public class CloudServer implements Server {
 
         //set default level
         if (this.getDefaultLevel() == null) {
-            String defaultName = this.serverProperties.getDefaultLevel();
-            if (defaultName == null || defaultName.trim().isEmpty()) {
-                this.serverProperties.modifyDefaultLevel(worldConfigs.keySet().iterator().next());
-                log.warn("default-level is unset or empty, falling back to \"" + defaultName + '"');
-            }
-
             CloudLevel defaultLevel = this.levelManager.getLevel(defaultName);
             if (defaultLevel == null) {
                 throw new IllegalArgumentException("default-level refers to unknown level: \"" + defaultName + '"');
@@ -1668,12 +1706,22 @@ public class CloudServer implements Server {
         }
     }
 
-    public boolean isNetherAllowed() {
-        return this.allowNether;
+    private boolean isDimensionDisabled(ServerConfig.WorldDimension dimension) {
+        return switch (dimension) {
+            case OVERWORLD -> false;
+            case NETHER -> !this.serverProperties.isAllowNether();
+            case THE_END -> !this.serverProperties.isAllowEnd();
+        };
     }
 
+    @Override
+    public boolean isNetherAllowed() {
+        return this.serverProperties.isAllowNether();
+    }
+
+    @Override
     public boolean isEndAllowed() {
-        return this.allowEnd;
+        return this.serverProperties.isAllowEnd();
     }
 
     public PlayerDataSerializer getPlayerDataSerializer() {
@@ -1688,8 +1736,8 @@ public class CloudServer implements Server {
         return levelManager;
     }
 
-    public LevelData getDefaultLevelData() {
-        return defaultLevelData;
+    public CloudLevelDefaults getLevelDefaults() {
+        return this.levelDefaults;
     }
 
     public Identifier getDefaultStorageId() {
@@ -1703,6 +1751,11 @@ public class CloudServer implements Server {
     @Override
     public GameRuleRegistry getGameRuleRegistry() {
         return gameRuleRegistry;
+    }
+
+    @Override
+    public BossBar createBossBar(Component title, BossBarColor color, BossBarStyle style) {
+        return new CloudStandaloneBossBar(title, color, style);
     }
 
     @Override

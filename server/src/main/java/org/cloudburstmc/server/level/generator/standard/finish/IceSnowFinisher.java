@@ -1,15 +1,15 @@
 package org.cloudburstmc.server.level.generator.standard.finish;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.SupportType;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.biome.CloudBiome;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
@@ -32,7 +32,7 @@ public class IceSnowFinisher implements Finisher {
     }
 
     @Override
-    public void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void finish(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, y, blockZ & 0xF));
         if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {

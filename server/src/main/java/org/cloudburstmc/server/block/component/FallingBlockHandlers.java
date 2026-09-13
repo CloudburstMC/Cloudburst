@@ -77,12 +77,9 @@ public final class FallingBlockHandlers {
                 return;
             }
 
-            if (!block.getLevel().setBlockState(block.getPosition(), event.getTo(), true, true)) {
+            if (!fallingBlock.startFalling(block.getPosition(), event.getTo())) {
                 fallingBlock.close();
-                return;
             }
-
-            fallingBlock.spawnToAll();
         };
     }
 

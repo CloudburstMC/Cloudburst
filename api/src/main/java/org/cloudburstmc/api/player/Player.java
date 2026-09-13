@@ -11,6 +11,7 @@ import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.skin.Skin;
@@ -140,6 +141,32 @@ public interface Player extends Creature, CommandSender {
      * @return the player's 36-slot main inventory
      */
     PlayerInventoryView getInventory();
+
+    /**
+     * Returns the remaining cooldown for an item type.
+     *
+     * @param itemType the item type
+     * @return remaining cooldown in ticks, or zero when the item is ready
+     */
+    int getItemCooldown(ItemType itemType);
+
+    /**
+     * Returns whether an item type is currently on cooldown.
+     *
+     * @param itemType the item type
+     * @return whether the item is on cooldown
+     */
+    default boolean hasItemCooldown(ItemType itemType) {
+        return this.getItemCooldown(itemType) > 0;
+    }
+
+    /**
+     * Sets the cooldown shared by stacks of an item type.
+     *
+     * @param itemType the item type
+     * @param ticks    the non-negative cooldown in ticks
+     */
+    void setItemCooldown(ItemType itemType, int ticks);
 
     /**
      * Returns this player's active fishing hook.

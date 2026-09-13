@@ -202,6 +202,7 @@ public class DefaultBlockHandlers {
                 .orElse(ItemStack.EMPTY);
     };
 
+    public static final AttackBlockHandler ATTACK = (block, player, direction) -> false;
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;

@@ -15,6 +15,7 @@ import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -27,11 +28,13 @@ import java.util.Objects;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOCK;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.MOVING;
 
 public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     private static final int OUTSIDE_LEVEL_TIMEOUT = 100;
     private static final int MAX_LIFETIME = 600;
+    private static final int SETTLED_REMOVAL_DELAY = 3;
 
     private BlockState blockState = BlockStates.SAND;
     private Sound landingSound;
@@ -43,6 +46,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private float damagePerBlock;
     private int maximumDamage = 40;
     private boolean autoExpire = true;
+    private boolean landingPending;
+    private int settledRemovalDelay;
 
     public EntityFallingBlock(EntityType<FallingBlock> type, Location location) {
         super(type, location);
@@ -261,21 +266,50 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.breakSound = breakSound;
     }
 
+    public boolean startFalling(Vector3i position, BlockState replacement) {
+        if (!this.level.removeBlockForFallingEntity(position, replacement, this)) {
+            return false;
+        }
+
+        this.time++;
+        this.applyGravityAndMove();
+        if (!this.spawn()) {
+            this.level.setBlockState(position, this.blockState);
+            return false;
+        }
+
+        this.spawnToAll();
+        this.data.setFlag(MOVING, true);
+        return true;
+    }
+
     private boolean tickFallingBlock(int tickDiff) {
+        if (this.settledRemovalDelay > 0) {
+            this.settledRemovalDelay -= tickDiff;
+            if (this.settledRemovalDelay <= 0) {
+                this.close();
+            }
+            return true;
+        }
+
+        if (this.landingPending) {
+            this.land(this.getPosition().toInt());
+            return true;
+        }
+
         boolean updated = this.entityBaseTick(tickDiff);
         if (!this.isAlive()) {
             return updated;
         }
 
         this.time += tickDiff;
-        this.motion = this.motion.sub(0, this.getGravity(), 0);
-        this.move(this.motion);
-        float drag = 1 - this.getDrag();
-        this.motion = this.motion.mul(drag, drag, drag);
+        this.applyGravityAndMove();
 
         Vector3i position = this.getPosition().toInt();
         if (this.onGround) {
-            this.land(position);
+            this.motion = Vector3f.ZERO;
+            this.updateMovement();
+            this.landingPending = true;
             return true;
         }
 
@@ -313,14 +347,22 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        if (!this.level.setBlockState(position, event.getTo(), true, true)) {
+        if (!this.level.placeBlockFromFallingEntity(position, event.getTo(), this)) {
             this.close();
             this.breakBlock();
             return;
         }
 
-        this.close();
+        this.data.setFlag(MOVING, false);
+        this.settledRemovalDelay = SETTLED_REMOVAL_DELAY;
         this.playLandingSound(position);
+    }
+
+    private void applyGravityAndMove() {
+        this.motion = this.motion.sub(0, this.getGravity(), 0);
+        this.move(this.motion);
+        float drag = 1 - this.getDrag();
+        this.motion = this.motion.mul(drag, drag, drag);
     }
 
     private void damageEntities() {

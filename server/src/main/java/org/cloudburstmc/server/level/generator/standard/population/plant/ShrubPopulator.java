@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.level.generator.standard.population.plant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
@@ -17,10 +17,6 @@ import static java.lang.Math.min;
 
 /**
  * Places patches of 1-block-tall plants in the world.
- * <p>
- * https://i.imgur.com/BUocESm.gif
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class ShrubPopulator extends AbstractPlantPopulator {
@@ -40,7 +36,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         if (this.roundDown) {
             int height = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
             this.placeCluster(random, level, blockX, min(height, random.nextInt(height << 1)), blockZ);
@@ -50,7 +46,7 @@ public class ShrubPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z) {
+    protected void placeCluster(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter replace = this.replace;
         final BlockState block = this.block.selectWeighted(random);

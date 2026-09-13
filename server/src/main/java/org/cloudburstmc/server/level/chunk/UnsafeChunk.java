@@ -251,8 +251,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return -1;
     }
 
-    @Override
-    public void addEntity(@NonNull Entity entity) {
+    public void registerEntity(@NonNull Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof CloudPlayer) {
             this.players.add((CloudPlayer) entity);
@@ -261,8 +260,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         }
     }
 
-    @Override
-    public void removeEntity(Entity entity) {
+    public void unregisterEntity(Entity entity) {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof CloudPlayer) {
             this.players.remove(entity);
@@ -271,8 +269,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         }
     }
 
-    @Override
-    public void addBlockEntity(BlockEntity blockEntity) {
+    public void registerBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
         int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.put(hash, (BaseBlockEntity) blockEntity) != blockEntity && this.initialized == 1) {
@@ -280,8 +277,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         }
     }
 
-    @Override
-    public void removeBlockEntity(BlockEntity blockEntity) {
+    public void unregisterBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
         int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
         if (this.tiles.remove(hash) == blockEntity && this.initialized == 1) {

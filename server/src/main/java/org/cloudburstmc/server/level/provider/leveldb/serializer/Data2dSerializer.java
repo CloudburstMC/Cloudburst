@@ -28,7 +28,7 @@ public class Data2dSerializer {
                 // Expand into per-section 3D biome storage via a deferred loader; return true
                 // to mark the chunk dirty so the upgraded format is written on next save.
                 if (data2d.length >= LEGACY_DATA2D_SIZE) {
-                    final byte[] biomesRaw = new byte[256];
+                    byte[] biomesRaw = new byte[256];
                     buffer.readerIndex(512);
                     int biomeCount = Math.min(256, buffer.readableBytes());
                     buffer.readBytes(biomesRaw, 0, biomeCount);

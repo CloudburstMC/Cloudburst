@@ -2,27 +2,24 @@ package org.cloudburstmc.server.level.provider;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.Executor;
 
 public interface LevelProviderFactory {
 
     /**
-     * Creates new provider
+     * Opens the provider for a level, importing another compatible format when required.
      *
-     * @param levelId    level ID
-     * @param levelsPath path of the levels directory (NOT THE LEVEL DIRECTORY ITSELF)
-     * @param executor   executor to run tasks async
-     * @return chunk provider
-     * @throws IOException error created provider
+     * @param context provider creation context
+     * @return opened provider
+     * @throws IOException if the provider cannot be opened or imported
      */
-    LevelProvider create(String levelId, Path levelsPath, Executor executor) throws IOException;
+    LevelProvider create(CloudLevelProviderContext context) throws IOException;
 
     /**
-     * Checks if level provider is compatible with directory given
+     * Checks whether this factory can open or import the stored level.
      *
-     * @param levelsPath path of the levels directory (NOT THE LEVEL DIRECTORY ITSELF)
+     * @param levelsPath root levels directory
      * @param levelId    level ID
-     * @return true if level is compatible.
+     * @return {@code true} when the stored level is compatible
      */
     boolean isCompatible(String levelId, Path levelsPath);
 }

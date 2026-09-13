@@ -1,7 +1,6 @@
 package org.cloudburstmc.api.level.chunk;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -109,14 +108,6 @@ public interface Chunk extends Comparable<Chunk> {
     void setBlockLight(int x, int y, int z, @NonNegative int level);
 
     int getHighestBlock(int x, int z);
-
-    void addEntity(@NonNull Entity entity);
-
-    void removeEntity(Entity entity);
-
-    void addBlockEntity(BlockEntity blockEntity);
-
-    void removeBlockEntity(BlockEntity blockEntity);
 
     BlockEntity getBlockEntity(int x, int y, int z);
 

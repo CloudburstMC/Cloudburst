@@ -2,15 +2,13 @@ package org.cloudburstmc.server.level.feature;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
-import java.util.Random;
 import java.util.random.RandomGenerator;
 
 /**
@@ -25,13 +23,13 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
     protected final double vineChance;
 
     @Override
-    public boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z) {
+    public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
         if (y <= 0 || y >= 255) {
             return false;
         }
 
         final int size = this.size.rand(random);
-        final Direction direction = Direction.Plane.HORIZONTAL.random((Random) random);
+        final Direction direction = Direction.Plane.HORIZONTAL.random(random);
         for (int i = 0; i < size; i++) {
             if (!this.test(level.getBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, 0))
                     || this.testOrLiquid(level.getBlockState(x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i, 0))) {

@@ -61,7 +61,6 @@ public class BlockTraits {
     public static final IntegerBlockTrait BRUSHED_PROGRESS = IntegerBlockTrait.from("brushed_progress", 4);
     public static final IntegerBlockTrait CANDLES = IntegerBlockTrait.from("candles", 0, 3);
     public static final IntegerBlockTrait CAVE_VINE_AGE = IntegerBlockTrait.from("growing_plant_age", 26);
-    public static final IntegerBlockTrait CHORUS_AGE = IntegerBlockTrait.from("chorus_age", "age", 0, 5, 0);
     public static final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
     public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
     public static final IntegerBlockTrait CORAL_DIRECTION = IntegerBlockTrait.from("coral_direction", 4);

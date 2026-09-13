@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
+import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -36,6 +37,8 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
@@ -57,6 +60,28 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
     @Override
     public float getDrag() {
         return 0.02f;
+    }
+
+    @Override
+    protected float getStepHeight() {
+        return 0.6f;
+    }
+
+    @Override
+    public <T extends Projectile> T launchProjectile(EntityType<T> type, Vector3f velocity, Consumer<? super T> configurator) {
+        Objects.requireNonNull(type, "type");
+        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight() - 0.1f, 0),
+                this.getYaw(), this.getPitch(), this.level);
+        T projectile = CloudEntityRegistry.get().newEntity(type, location);
+        projectile.setShooter(this);
+        projectile.setMotion(velocity == null ? this.getDirectionVector() : velocity);
+        if (configurator != null) {
+            configurator.accept(projectile);
+        }
+
+        ProjectileLaunchEvent event = new ProjectileLaunchEvent(projectile);
+        ((CloudEntity) projectile).spawn(event);
+        return projectile;
     }
 
     protected int attackTime = 0;
@@ -144,16 +169,11 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             Entity impactEntity = directEntity != null ? directEntity : causingEntity;
             if (impactEntity != null && !source.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {
                 if (criticalHit) {
-                    AnimatePacket animate = new AnimatePacket();
-                    animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
-                    animate.setRuntimeEntityId(this.getRuntimeId());
-
-                    this.getLevel().addChunkPacket(impactEntity.getPosition(), animate);
-                    this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
+                    showCriticalHit(impactEntity);
                 }
 
                 if (impactEntity.isOnFire() && !(impactEntity instanceof CloudPlayer)) {
-                    this.setOnFire(2 * this.server.getDifficulty().ordinal());
+                    this.setOnFire(2 * this.server.getDifficulty().getId());
                 }
 
                 Vector2f diff = this.getPosition().sub(impactEntity.getPosition()).toVector2(true);
@@ -161,17 +181,39 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
                 this.knockBack(impactEntity, source.getKnockback(), diff.getX(), diff.getY());
             }
 
-            EntityEventPacket pk = new EntityEventPacket();
-            pk.setRuntimeEntityId(this.getRuntimeId());
-            pk.setType(this.getHealth() <= 0 ? EntityEventType.DEATH : EntityEventType.HURT);
-            CloudServer.broadcastPacket(this.hasSpawned, pk);
+            if (!this.isInDeathSequence()) {
+                EntityEventPacket pk = new EntityEventPacket();
+                pk.setRuntimeEntityId(this.getRuntimeId());
+                pk.setType(EntityEventType.HURT);
+                CloudServer.broadcastPacket(this.hasSpawned, pk);
+            }
 
             this.attackTime = source.getAttackCooldown();
 
             return true;
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    protected void showCriticalHit(Entity impactEntity) {
+        AnimatePacket animate = new AnimatePacket();
+        animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
+        animate.setRuntimeEntityId(this.getRuntimeId());
+        this.getLevel().addChunkPacket(impactEntity.getPosition(), animate);
+        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
+    }
+
+    protected EntityEventType getDeathEventType() {
+        return EntityEventType.DEATH;
+    }
+
+    protected boolean isInDeathSequence() {
+        return this.getHealth() <= 0;
+    }
+
+    @Override
+    protected void onBelowLevel() {
+        this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 4));
     }
 
     public void knockBack(Entity attacker, float strength, float diffX, float diffZ) {
@@ -196,6 +238,15 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             return;
         }
         super.kill();
+        this.processDeath();
+    }
+
+    protected void processDeath() {
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setType(this.getDeathEventType());
+        CloudServer.broadcastPacket(this.hasSpawned, packet);
+
         EntityDeathEvent ev = new EntityDeathEvent(this, this.getDrops());
         this.server.getEventManager().fire(ev);
 

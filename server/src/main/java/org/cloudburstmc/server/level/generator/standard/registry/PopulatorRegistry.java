@@ -19,7 +19,6 @@ import org.cloudburstmc.server.level.generator.standard.population.tree.TreePopu
 /**
  * Registry for {@link Populator}.
  *
- * @author DaPorkchop_
  * @see StandardGeneratorRegistries#populator()
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -38,7 +37,10 @@ public final class PopulatorRegistry extends AbstractGeneratorRegistry<Populator
         this.register(CocoaPopulator.ID, CocoaPopulator.class);
         this.register(DistanceSelectionPopulator.ID, DistanceSelectionPopulator.class);
         this.register(DoublePlantPopulator.ID, DoublePlantPopulator.class);
+        this.register(EndGatewayPopulator.ID, EndGatewayPopulator.class);
         this.register(EndIslandPopulator.ID, EndIslandPopulator.class);
+        this.register(EndPlatformPopulator.ID, EndPlatformPopulator.class);
+        this.register(EndSpikePopulator.ID, EndSpikePopulator.class);
         this.register(GlowstonePopulator.ID, GlowstonePopulator.class);
         this.register(HugeTreePopulator.ID, HugeTreePopulator.class);
         this.register(LakePopulator.ID, LakePopulator.class);

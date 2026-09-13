@@ -32,7 +32,9 @@ public class MinecartItemHandlers {
 
             Location location = Location.from(spawnX, spawnY, spawnZ, level);
             CloudEntity spawned = (CloudEntity) CloudEntityRegistry.get().newEntity(entityType, location);
-            spawned.spawnToAll();
+            if (!spawned.spawn()) {
+                return item;
+            }
 
             if (((Player) entity).isCreative()) {
                 return item;

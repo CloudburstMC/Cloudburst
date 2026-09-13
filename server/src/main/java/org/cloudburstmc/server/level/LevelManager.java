@@ -9,14 +9,20 @@ import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.inject.LevelModule;
+import org.cloudburstmc.server.inject.qualifier.LevelDirectory;
+import org.cloudburstmc.server.level.provider.CloudLevelProviderContext;
+import org.cloudburstmc.server.level.provider.LevelProvider;
+import org.cloudburstmc.server.level.provider.LevelProviderFactory;
+import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.StorageRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.Closeable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +39,7 @@ public class LevelManager implements Closeable {
     /**
      * Bounded pool for CPU-bound chunk generation, population, and finishing.
      */
+    @Getter
     private final ForkJoinPool generationExecutor = new ForkJoinPool(
             Runtime.getRuntime().availableProcessors(),
             new GenerationThreadFactory(),
@@ -41,20 +48,121 @@ public class LevelManager implements Closeable {
     );
 
     private final CloudServer server;
+    private final Path levelsPath;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
+    private final Map<String, CompletableFuture<CloudLevel>> loadingLevels = new HashMap<>();
+    private boolean closed;
     @Getter
     private volatile CloudLevel defaultLevel;
 
     @Inject
-    public LevelManager(CloudServer server) {
+    public LevelManager(CloudServer server, @LevelDirectory Path levelsPath) {
         this.server = server;
+        this.levelsPath = levelsPath;
+    }
+
+    /**
+     * Loads or creates a level. Concurrent requests for the same level share one operation.
+     *
+     * @param request immutable load configuration
+     * @return future completed with the initialized and registered level
+     */
+    public synchronized CompletableFuture<CloudLevel> load(CloudLevelLoadRequest request) {
+        Objects.requireNonNull(request, "request");
+        Preconditions.checkState(!this.closed, "Level manager is closed");
+
+        CloudLevel loadedLevel = this.levelIds.get(request.id());
+        if (loadedLevel != null) {
+            return CompletableFuture.completedFuture(loadedLevel);
+        }
+
+        CompletableFuture<CloudLevel> currentLoad = this.loadingLevels.get(request.id());
+        if (currentLoad != null) {
+            return currentLoad;
+        }
+
+        CompletableFuture<CloudLevel> load = CompletableFuture.supplyAsync(() -> this.loadNewLevel(request), this.ioExecutor);
+        this.loadingLevels.put(request.id(), load);
+        load.whenComplete((level, throwable) -> {
+            synchronized (this) {
+                this.loadingLevels.remove(request.id(), load);
+            }
+        });
+        return load;
+    }
+
+    private CloudLevel loadNewLevel(CloudLevelLoadRequest request) {
+        long startTime = System.nanoTime();
+        CloudLevelData initialData = request.createInitialData(this.server.getLevelDefaults());
+        StorageRegistry storageRegistry = this.server.getStorageRegistry();
+        Identifier storage = request.storage();
+        if (storage == null) {
+            storage = storageRegistry.detectStorage(request.id(), this.levelsPath);
+        }
+        if (storage == null) {
+            storage = this.server.getDefaultStorageId();
+        }
+
+        Identifier selectedStorage = storage;
+        LevelProviderFactory factory = Objects.requireNonNull(
+                storageRegistry.getLevelProviderFactory(selectedStorage),
+                () -> "Unknown storage provider: " + selectedStorage
+        );
+        CloudLevelProviderContext context = new CloudLevelProviderContext(
+                this.server,
+                request,
+                initialData,
+                this.levelsPath,
+                this.ioExecutor
+        );
+
+        LevelProvider provider = null;
+        CloudLevel level;
+        try {
+            provider = factory.create(context);
+            CloudLevelData data = provider.loadLevelData(initialData).join().orElse(initialData);
+            data.setDimension(request.dimension());
+
+            level = this.server.getInjector()
+                    .createChildInjector(new LevelModule(request.id(), provider, data))
+                    .getInstance(CloudLevel.class);
+            level.init();
+            this.register(level);
+        } catch (Throwable throwable) {
+            closeAfterFailedLoad(provider, throwable);
+            throw asCompletionException(throwable);
+        }
+
+        log.info("Loaded level '{}' in {} ms", request.id(), (System.nanoTime() - startTime) / 1_000_000L);
+        return level;
+    }
+
+    private static void closeAfterFailedLoad(@Nullable LevelProvider provider, Throwable failure) {
+        if (provider == null) {
+            return;
+        }
+
+        try {
+            provider.close();
+        } catch (Exception closeFailure) {
+            failure.addSuppressed(closeFailure);
+        }
+    }
+
+    private static CompletionException asCompletionException(Throwable throwable) {
+        if (throwable instanceof CompletionException completionException) {
+            return completionException;
+        }
+        return new CompletionException(throwable);
     }
 
     public synchronized void register(CloudLevel level) {
         Preconditions.checkNotNull(level, "level");
+        Preconditions.checkState(!this.closed, "Level manager is closed");
         Preconditions.checkArgument(level.getServer() == this.server, "Level did not come from this server");
         Preconditions.checkArgument(!levels.contains(level), "level already registered");
+        Preconditions.checkArgument(!levelIds.containsKey(level.getId()), "level ID already registered: %s", level.getId());
 
         LevelLoadEvent event = new LevelLoadEvent(level);
         this.server.getEventManager().fire(event);
@@ -63,22 +171,48 @@ public class LevelManager implements Closeable {
         this.levelIds.put(level.getId(), level);
     }
 
-    public boolean deregister(CloudLevel level) {
-        return deregister(level, false);
-    }
-
-    public synchronized boolean deregister(CloudLevel level, boolean force) {
+    /**
+     * Unloads and deregisters a non-default level.
+     *
+     * @param level level owned by this manager
+     * @return {@code true} when the level was unloaded
+     */
+    public boolean unload(CloudLevel level) {
         Preconditions.checkNotNull(level, "level");
-        Preconditions.checkArgument(levels.contains(level), "level not registered");
+        synchronized (this) {
+            Preconditions.checkArgument(this.levels.contains(level), "level not registered");
+            if (level == this.defaultLevel) {
+                return false;
+            }
+        }
 
         LevelUnloadEvent event = new LevelUnloadEvent(level);
         this.server.getEventManager().fire(event);
-        if (event.isCancelled() && !force) {
+        if (event.isCancelled()) {
             return false;
-        } else {
-            this.levelIds.remove(level.getId());
-            return levels.remove(level);
         }
+
+        CloudLevel fallback;
+        synchronized (this) {
+            if (level == this.defaultLevel) {
+                return false;
+            }
+            Preconditions.checkState(this.levels.remove(level), "level was unloaded concurrently");
+            this.levelIds.remove(level.getId());
+            fallback = this.defaultLevel;
+        }
+
+        log.info(this.server.getLanguage().translate("cloudburst.level.unloading", "§a" + level.getName() + "§r"));
+        for (CloudPlayer player : List.copyOf(level.getPlayers().values())) {
+            if (fallback == null) {
+                player.close(player.leaveMessage(), "Forced default level unload");
+            } else {
+                player.teleport(fallback.getSafeSpawn());
+            }
+        }
+
+        level.close();
+        return true;
     }
 
     @Nullable
@@ -113,12 +247,25 @@ public class LevelManager implements Closeable {
 
     @Override
     public void close() {
+        List<CompletableFuture<CloudLevel>> pendingLoads;
+        synchronized (this) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+            pendingLoads = List.copyOf(this.loadingLevels.values());
+        }
+
+        CompletableFuture.allOf(pendingLoads.toArray(CompletableFuture<?>[]::new))
+                .exceptionally(throwable -> null)
+                .join();
+
         synchronized (this) {
             for (CloudLevel level : this.levels) {
                 try {
                     level.close();
                 } catch (Exception e) {
-                    log.error("Error closing level " + level.getId(), e);
+                    log.error("Error closing level {}", level.getId(), e);
                 }
             }
         }
@@ -160,15 +307,6 @@ public class LevelManager implements Closeable {
                 log.error(server.getLanguage().translate("cloudburst.level.tickError", level.getId(), Utils.getExceptionMessage(e)));
             }
         }
-    }
-
-    /**
-     * Returns the bounded pool used for CPU-bound chunk generation work.
-     * Callers should submit generation, population, and finishing tasks here
-     * rather than to a virtual-thread pool.
-     */
-    public ForkJoinPool getGenerationExecutor() {
-        return generationExecutor;
     }
 
     /**

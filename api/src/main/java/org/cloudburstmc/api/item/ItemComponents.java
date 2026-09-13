@@ -23,6 +23,7 @@ public class ItemComponents {
     public static final ComponentType<CanRepairWithHandler> CAN_REPAIR_WITH = ComponentType.of("can_repair_with", CanRepairWithHandler.class);
     public static final ComponentType<BooleanTypeHandler> CAN_STORE_ENCHANTMENTS = ComponentType.of("can_store_enchantments", BooleanTypeHandler.class);
     public static final ComponentType<BooleanTypeHandler> DAMAGEABLE = ComponentType.of("damageable", BooleanTypeHandler.class);
+    public static final ComponentType<FinishUseHandler> FINISH_USE = ComponentType.of("finish_use", FinishUseHandler.class);
     public static final ComponentType<FloatTypeHandler> FUEL_DURATION = ComponentType.of("fuel_duration", FloatTypeHandler.class);
     public static final ComponentType<FloatItemHandler> GET_ATTACK_DAMAGE_BONUS = ComponentType.of("get_attack_damage_bonus", FloatItemHandler.class);
     public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
@@ -34,5 +35,6 @@ public class ItemComponents {
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
     public static final ComponentType<DamageItemHandler> ON_DAMAGE = ComponentType.of("on_damage", DamageItemHandler.class);
     public static final ComponentType<UseHandler> USE = ComponentType.of("use", UseHandler.class);
+    public static final ComponentType<Integer> USE_DURATION_TICKS = ComponentType.of("use_duration_ticks", Integer.class);
     public static final ComponentType<UseOnHandler> USE_ON = ComponentType.of("use_on", UseOnHandler.class);
 }

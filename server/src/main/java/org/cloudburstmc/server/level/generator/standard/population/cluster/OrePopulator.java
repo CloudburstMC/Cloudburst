@@ -2,15 +2,14 @@ package org.cloudburstmc.server.level.generator.standard.population.cluster;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
@@ -22,8 +21,6 @@ import static net.daporkchop.lib.common.math.PMath.lerp;
 
 /**
  * Generates ore veins.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class OrePopulator extends AbstractReplacingPopulator {
@@ -50,7 +47,7 @@ public class OrePopulator extends AbstractReplacingPopulator {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int x, int z) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int x, int z) {
         final int y = this.height.rand(random);
 
         final BlockState block = this.block.selectWeighted(random);

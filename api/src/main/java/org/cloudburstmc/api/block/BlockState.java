@@ -12,8 +12,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
 /**
  * A block type paired with immutable trait values and physical properties.
@@ -53,17 +52,17 @@ public final class BlockState {
 
     public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
         checkNotNull(trait, "trait");
-        return this.blockStates.get(trait)[trait.getIndex(value)];
+        return stateForTrait(trait, trait.getIndex(value), value);
     }
 
     public BlockState withTrait(IntegerBlockTrait trait, int value) {
         checkNotNull(trait, "trait");
-        return this.blockStates.get(trait)[trait.getIndex(value)];
+        return stateForTrait(trait, trait.getIndex(value), value);
     }
 
     public BlockState withTrait(BooleanBlockTrait trait, boolean value) {
         checkNotNull(trait, "trait");
-        return this.blockStates.get(trait)[trait.getIndex(value)];
+        return stateForTrait(trait, trait.getIndex(value), value);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -86,7 +85,9 @@ public final class BlockState {
     }
 
     public BlockState toggleTrait(BooleanBlockTrait trait) {
-        return this.blockStates.get(trait)[trait.getIndex(!((Boolean) this.traits.get(trait)))];
+        checkNotNull(trait, "trait");
+        boolean value = !ensureTrait(trait);
+        return stateForTrait(trait, trait.getIndex(value), value);
     }
 
     /**
@@ -258,6 +259,19 @@ public final class BlockState {
         ImmutableMap.Builder<BlockTrait<?>, Comparable<?>> builder = ImmutableMap.builder();
         this.traits.forEach((k, v) -> builder.put(k, k == trait ? comparable : v));
         return builder.build();
+    }
+
+    private BlockState stateForTrait(BlockTrait<?> trait, int index, Object value) {
+        checkState(this.blockStates != null, "Block states have not been bound for type '%s'", this.type);
+
+        BlockState[] states = this.blockStates.get(trait);
+        checkArgument(states != null, "Trait '%s' does not exist for type '%s'", trait, this.type);
+        checkArgument(index >= 0 && index < states.length, "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
+
+        BlockState state = states[index];
+        checkArgument(state != null, "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
+
+        return state;
     }
 
     private Data data() {

@@ -1,23 +1,20 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
-/**
- * @author DaPorkchop_
- */
 @JsonDeserialize
 public class CocoaPopulator extends ChancePopulator {
     public static final Identifier ID = Identifier.parse("cloudburst:cocoa");
@@ -43,7 +40,7 @@ public class CocoaPopulator extends ChancePopulator {
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         final double chance = this.chance;
         final BlockFilter replace = this.replace;
         final BlockFilter on = this.on;

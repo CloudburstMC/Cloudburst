@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.generator.standard.generation.density;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.NonNull;
 import net.daporkchop.lib.common.util.PValidation;
 import net.daporkchop.lib.noise.NoiseSource;
@@ -14,6 +13,7 @@ import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.generation.noise.NoiseGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.AbstractGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.misc.TerrainDoubleCache;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import static java.lang.Math.sqrt;
 import static java.util.Objects.requireNonNull;
@@ -22,8 +22,6 @@ import static net.daporkchop.lib.common.math.PMath.lerp;
 
 /**
  * A {@link NoiseSource} that provides noise similar to that of vanilla's end terrain.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class EndDensitySource extends AbstractGenerationPass implements DensitySource {
@@ -74,7 +72,7 @@ public class EndDensitySource extends AbstractGenerationPass implements DensityS
 
     @Override
     public double[] get(double[] arr, int startIndex, @NonNull BiomeMap biomes, int x, int y, int z, int sizeX, int sizeY, int sizeZ, int stepX, int stepY, int stepZ) {
-        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeY) * PValidation.positive(sizeZ) + (int) PValidation.notNegative(startIndex);
+        int totalSize = PValidation.positive(sizeX) * PValidation.positive(sizeY) * PValidation.positive(sizeZ) + PValidation.notNegative(startIndex);
         if (arr == null || arr.length < totalSize) {
             double[] newArr = new double[totalSize];
             if (arr != null && startIndex != 0) {
@@ -113,6 +111,10 @@ public class EndDensitySource extends AbstractGenerationPass implements DensityS
         } else {
             return noise;
         }
+    }
+
+    public double getIslandErosion(int x, int z) {
+        return (this.islands.get(x, z) - 8.0d) / 128.0d;
     }
 
     @Override

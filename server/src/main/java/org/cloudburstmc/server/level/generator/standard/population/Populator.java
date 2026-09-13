@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
-import tools.jackson.databind.annotation.JsonDeserialize;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,27 +13,25 @@ import java.util.random.RandomGenerator;
 
 /**
  * Sets individual blocks of a chunk and its neighbors, allowing to generate larger structures and features.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize(using = PopulatorDeserializer.class)
 public interface Populator extends Finisher {
     Populator[] EMPTY_ARRAY = new Populator[0];
 
     @Override
-    default void finish(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
-        this.populate(random, level, blockX, blockZ);
+    default void finish(RandomGenerator random, GenerationRegion region, int blockX, int blockZ) {
+        this.populate(random, region, blockX, blockZ);
     }
 
     /**
      * Populates a given chunk.
      *
      * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position
-     * @param level  a {@link ChunkManager} containing only a 3x3 square of generated chunks, centered around the chunk being populated
+     * @param region the bounded generation region
      * @param blockX the X coordinate of the block column to populate
      * @param blockZ the Z coordinate of the block column to populate
      */
-    void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ);
+    void populate(RandomGenerator random, GenerationRegion region, int blockX, int blockZ);
 
     @Override
     Identifier getId();

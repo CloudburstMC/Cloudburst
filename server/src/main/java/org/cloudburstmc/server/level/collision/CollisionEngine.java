@@ -25,8 +25,7 @@ public final class CollisionEngine {
     private final CloudLevel level;
 
     public boolean hasCollision(@Nullable Entity entity, BoundingBox boundingBox, boolean includeEntities) {
-        return this.hasBlockCollision(entity, boundingBox)
-                || includeEntities && this.hasEntityCollision(entity, boundingBox);
+        return this.hasBlockCollision(entity, boundingBox) || includeEntities && this.hasEntityCollision(entity, boundingBox);
     }
 
     public boolean hasBlockCollision(@Nullable Entity entity, BoundingBox boundingBox) {
@@ -116,24 +115,60 @@ public final class CollisionEngine {
     }
 
     public Vector3f collideBoundingBox(@Nullable Entity entity, Vector3f movement, BoundingBox boundingBox) {
+        return this.collideBoundingBox(entity, movement, boundingBox, true);
+    }
+
+    public Vector3f collideBoundingBox(@Nullable Entity entity, Vector3f movement, BoundingBox boundingBox, boolean includeEntities) {
         BoundingBox searchBox = boundingBox.expandTowards(movement);
         CollisionContext context = CollisionContext.of(entity, movement.getY() < 0);
-        List<VoxelShape> collisions = this.collectCollisions(entity, searchBox, context);
+        List<VoxelShape> collisions = this.collectCollisions(entity, searchBox, context, includeEntities);
         return CloudVoxelShapes.collide(boundingBox, collisions, movement);
+    }
+
+    public Vector3f collideWithStep(@Nullable Entity entity, Vector3f movement, Vector3f clippedMovement, BoundingBox boundingBox, float maxStepHeight, boolean includeEntities) {
+        boolean collidedDown = movement.getY() < 0 && movement.getY() != clippedMovement.getY();
+        BoundingBox groundedBox = collidedDown ? boundingBox.move(0, clippedMovement.getY(), 0) : boundingBox;
+        BoundingBox searchBox = groundedBox.expandTowards(movement.getX(), maxStepHeight, movement.getZ());
+        if (!collidedDown) {
+            searchBox = searchBox.expandTowards(0, -1.0E-5f, 0);
+        }
+
+        List<VoxelShape> collisions = this.collectCollisions(entity, searchBox, CollisionContext.of(entity), includeEntities);
+        SortedSet<Float> candidateHeights = new TreeSet<>();
+        for (VoxelShape collision : collisions) {
+            for (BoundingBox box : collision.getBoundingBoxes()) {
+                addStepCandidate(candidateHeights, box.getMinY() - groundedBox.getMinY(), maxStepHeight, clippedMovement.getY());
+                addStepCandidate(candidateHeights, box.getMaxY() - groundedBox.getMinY(), maxStepHeight, clippedMovement.getY());
+            }
+        }
+
+        float clippedHorizontalDistance = horizontalDistanceSquared(clippedMovement);
+        for (float candidateHeight : candidateHeights) {
+            Vector3f stepped = CloudVoxelShapes.collide(groundedBox, collisions, Vector3f.from(movement.getX(), candidateHeight, movement.getZ()));
+            if (horizontalDistanceSquared(stepped) > clippedHorizontalDistance) {
+                return stepped.sub(0, boundingBox.getMinY() - groundedBox.getMinY(), 0);
+            }
+        }
+
+        return clippedMovement;
     }
 
     public List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox) {
         return this.collectCollisions(entity, boundingBox, CollisionContext.of(entity));
     }
 
-    private List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox,
-                                               CollisionContext context) {
-        List<VoxelShape> entityCollisions = this.getEntityCollisions(entity, boundingBox);
+    private List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox, CollisionContext context) {
+        return this.collectCollisions(entity, boundingBox, context, true);
+    }
+
+    private List<VoxelShape> collectCollisions(@Nullable Entity entity, BoundingBox boundingBox, CollisionContext context, boolean includeEntities) {
+        List<VoxelShape> entityCollisions = includeEntities ? this.getEntityCollisions(entity, boundingBox) : List.of();
         List<VoxelShape> collisions = new ArrayList<>(entityCollisions.size() + 1);
         collisions.addAll(entityCollisions);
         for (VoxelShape blockCollision : this.getBlockCollisions(context, boundingBox)) {
             collisions.add(blockCollision);
         }
+
         return List.copyOf(collisions);
     }
 
@@ -147,6 +182,7 @@ public final class CollisionEngine {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -164,13 +200,26 @@ public final class CollisionEngine {
         if (other == null) {
             return 1;
         }
+
         if (position.y() != other.getY()) {
             return Integer.compare(position.y(), other.getY());
         }
+
         if (position.z() != other.getZ()) {
             return Integer.compare(position.z(), other.getZ());
         }
+
         return Integer.compare(position.x(), other.getX());
+    }
+
+    private static void addStepCandidate(Set<Float> candidates, float height, float maxStepHeight, float skippedHeight) {
+        if (height >= 0 && height <= maxStepHeight && height != skippedHeight) {
+            candidates.add(height);
+        }
+    }
+
+    private static float horizontalDistanceSquared(Vector3f movement) {
+        return movement.getX() * movement.getX() + movement.getZ() * movement.getZ();
     }
 
     private static boolean intersectsUnitBlock(BoundingBox boundingBox, int x, int y, int z) {

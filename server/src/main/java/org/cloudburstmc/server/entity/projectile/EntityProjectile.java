@@ -3,10 +3,12 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
-import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.*;
+import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
+import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.MovingObjectPosition;
@@ -16,6 +18,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.Set;
 
@@ -26,6 +29,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     public boolean hadCollision = false;
     public boolean closeOnCollide = true;
     protected float damage;
+    private boolean leftShooter;
 
     public EntityProjectile(EntityType<?> type, Location location) {
         super(type, location);
@@ -59,6 +63,13 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     protected float getBaseDamage() {
         return 0;
+    }
+
+    protected boolean canHitEntity(Entity entity) {
+        return entity != null && entity.isAlive()
+                && (!(entity instanceof CloudPlayer player) || !player.isSpectator())
+                && (entity != this.getOwner() || this.leftShooter)
+                && this.canCollideWith(entity);
     }
 
     public boolean attack(EntityDamageEvent source) {
@@ -107,6 +118,11 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
+    protected boolean hasMovementEntityCollisions() {
+        return false;
+    }
+
+    @Override
     public boolean onUpdate(int currentTick) {
         if (this.closed) {
             return false;
@@ -121,6 +137,8 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
         if (this.isAlive()) {
+
+            this.updateLeftShooter();
 
             MovingObjectPosition movingObjectPosition = null;
 
@@ -138,9 +156,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
             Entity nearEntity = null;
 
             for (Entity entity : collidingEntities) {
-                if (/*!entity.canCollideWith(this) or */
-                        (entity == this.getOwner() && this.ticksLived < 5)
-                ) {
+                if (!this.canHitEntity(entity)) {
                     continue;
                 }
 
@@ -208,5 +224,40 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     public void setCritical(boolean value) {
         this.data.setFlag(CRITICAL, value);
+    }
+
+    private void updateLeftShooter() {
+        if (this.leftShooter) {
+            return;
+        }
+
+        Entity shooter = this.getOwner();
+        BoundingBox clearanceBox = this.getBoundingBox().expandTowards(this.motion).inflate(1, 1, 1);
+        if (shooter == null || !intersectsVehicle(shooter, clearanceBox)) {
+            this.leftShooter = true;
+        }
+    }
+
+    private static boolean intersectsVehicle(Entity entity, BoundingBox box) {
+        Entity root = entity;
+        while (root.getVehicle() != null) {
+            root = root.getVehicle();
+        }
+
+        return intersectsEntityTree(root, box);
+    }
+
+    private static boolean intersectsEntityTree(Entity entity, BoundingBox box) {
+        if (box.intersects(entity.getBoundingBox())) {
+            return true;
+        }
+
+        for (Entity passenger : entity.getPassengers()) {
+            if (intersectsEntityTree(passenger, box)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

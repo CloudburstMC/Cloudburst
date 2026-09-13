@@ -99,24 +99,20 @@ public final class CloudLockableChunk extends LockableChunk {
         return this.unsafe.getHighestBlock(x, z);
     }
 
-    @Override
-    public void addEntity(@NonNull Entity entity) {
-        this.unsafe.addEntity(entity);
+    public void registerEntity(@NonNull Entity entity) {
+        this.unsafe.registerEntity(entity);
     }
 
-    @Override
-    public void removeEntity(Entity entity) {
-        this.unsafe.removeEntity(entity);
+    public void unregisterEntity(Entity entity) {
+        this.unsafe.unregisterEntity(entity);
     }
 
-    @Override
-    public void addBlockEntity(BlockEntity blockEntity) {
-        this.unsafe.addBlockEntity(blockEntity);
+    public void registerBlockEntity(BlockEntity blockEntity) {
+        this.unsafe.registerBlockEntity(blockEntity);
     }
 
-    @Override
-    public void removeBlockEntity(BlockEntity blockEntity) {
-        this.unsafe.removeBlockEntity(blockEntity);
+    public void unregisterBlockEntity(BlockEntity blockEntity) {
+        this.unsafe.unregisterBlockEntity(blockEntity);
     }
 
     @Override

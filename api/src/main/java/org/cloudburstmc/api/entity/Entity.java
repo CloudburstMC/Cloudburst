@@ -8,7 +8,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.api.event.player.PlayerTeleportEvent;
+import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -412,17 +412,43 @@ public interface Entity {
 
     void kill();
 
+    /**
+     * Teleports this entity to a position in its current level.
+     *
+     * @param position the destination
+     * @return whether the teleport succeeded
+     */
     default boolean teleport(Vector3f position) {
-        return this.teleport(position, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        return this.teleport(position, PlayerTeleportCause.PLUGIN);
     }
 
-    boolean teleport(Vector3f position, PlayerTeleportEvent.TeleportCause cause);
+    /**
+     * Teleports this entity to a position in its current level.
+     *
+     * @param position the destination
+     * @param cause    the cause of the teleport
+     * @return whether the teleport succeeded
+     */
+    boolean teleport(Vector3f position, PlayerTeleportCause cause);
 
+    /**
+     * Teleports this entity to a location.
+     *
+     * @param location the destination
+     * @return whether the teleport succeeded
+     */
     default boolean teleport(Location location) {
-        return this.teleport(location, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        return this.teleport(location, PlayerTeleportCause.PLUGIN);
     }
 
-    boolean teleport(Location location, PlayerTeleportEvent.TeleportCause cause);
+    /**
+     * Teleports this entity to a location.
+     *
+     * @param location the destination
+     * @param cause    the cause of the teleport
+     * @return whether the teleport succeeded
+     */
+    boolean teleport(Location location, PlayerTeleportCause cause);
 
     @Nullable
     Entity getOwner();

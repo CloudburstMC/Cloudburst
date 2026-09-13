@@ -8,6 +8,7 @@ import org.cloudburstmc.api.data.ComponentType;
 @SuppressWarnings("rawtypes")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BlockComponents {
+    public static final ComponentType<AttackBlockHandler> ATTACK = ComponentType.of("attack", AttackBlockHandler.class);
     public static final ComponentType<BucketPickupHandler> BUCKET_PICKUP = ComponentType.of("bucket_pickup", BucketPickupHandler.class);
     public static final ComponentType<Integer> BUTTON_PRESS_DURATION_TICKS = ComponentType.of("button_press_duration_ticks", Integer.class);
     public static final ComponentType<ReplaceBlockHandler> CAN_BE_REPLACED = ComponentType.of("can_be_replaced", ReplaceBlockHandler.class);

@@ -1,23 +1,21 @@
 package org.cloudburstmc.server.level.generator.standard.population.plant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
  * Places patches of plants of varying heights in the world.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize
 public class PlantPopulator extends AbstractPlantPopulator {
@@ -41,7 +39,7 @@ public class PlantPopulator extends AbstractPlantPopulator {
     }
 
     @Override
-    protected void placeCluster(RandomGenerator random, ChunkManager level, int x, int y, int z) {
+    protected void placeCluster(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         final BlockFilter on = this.on;
         final BlockFilter water = this.water;
         final BlockFilter replace = this.replace;

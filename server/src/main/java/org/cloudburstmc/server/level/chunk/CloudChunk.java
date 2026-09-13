@@ -268,21 +268,19 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Override
-    public void addEntity(@NonNull Entity entity) {
+    public void registerEntity(@NonNull Entity entity) {
         this.writeLock.lock();
         try {
-            unsafe.addEntity(entity);
+            unsafe.registerEntity(entity);
         } finally {
             this.writeLock.unlock();
         }
     }
 
-    @Override
-    public void removeEntity(Entity entity) {
+    public void unregisterEntity(Entity entity) {
         this.writeLock.lock();
         try {
-            unsafe.removeEntity(entity);
+            unsafe.unregisterEntity(entity);
         } finally {
             this.writeLock.unlock();
         }
@@ -434,21 +432,19 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
-    @Override
-    public void addBlockEntity(BlockEntity blockEntity) {
+    public void registerBlockEntity(BlockEntity blockEntity) {
         this.writeLock.lock();
         try {
-            unsafe.addBlockEntity(blockEntity);
+            unsafe.registerBlockEntity(blockEntity);
         } finally {
             this.writeLock.unlock();
         }
     }
 
-    @Override
-    public void removeBlockEntity(BlockEntity blockEntity) {
+    public void unregisterBlockEntity(BlockEntity blockEntity) {
         this.writeLock.lock();
         try {
-            unsafe.removeBlockEntity(blockEntity);
+            unsafe.unregisterBlockEntity(blockEntity);
         } finally {
             this.writeLock.unlock();
         }

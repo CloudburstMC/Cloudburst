@@ -141,6 +141,7 @@ public class CloudburstYamlMappingTest {
 
         HashMap<String, ServerConfig.World> worldConfig = new HashMap<>();
         worldConfig.put("world", new ServerConfig.World(
+                ServerConfig.WorldDimension.OVERWORLD,
                 "test",
                 "cloudburst:standard",
                 "overworld",
@@ -148,6 +149,7 @@ public class CloudburstYamlMappingTest {
                 9
         ));
         worldConfig.put("nether", new ServerConfig.World(
+                ServerConfig.WorldDimension.NETHER,
                 "nether",
                 "cloudburst:standard",
                 "nether",

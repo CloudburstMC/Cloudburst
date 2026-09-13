@@ -3,17 +3,15 @@ package org.cloudburstmc.server.level.generator.standard.population;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.daporkchop.lib.common.pool.handle.Handle;
 import net.daporkchop.lib.common.pool.handle.HandledPool;
-import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockSupport;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.BitSet;
@@ -57,7 +55,7 @@ public class LakePopulator extends ChancePopulator.Column {
     }
 
     @Override
-    protected void populate0(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    protected void populate0(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         blockX -= 8;
         blockZ -= 8;
         final int blockY = min(level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF), this.height.rand(random));

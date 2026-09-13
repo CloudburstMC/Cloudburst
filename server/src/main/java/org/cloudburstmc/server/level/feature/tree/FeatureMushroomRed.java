@@ -1,19 +1,16 @@
 package org.cloudburstmc.server.level.feature.tree;
 
 import lombok.NonNull;
-import net.daporkchop.lib.random.PRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 
 import java.util.random.RandomGenerator;
 
 /**
  * Generates a huge red mushroom.
- *
- * @author DaPorkchop_
  */
 public class FeatureMushroomRed extends FeatureMushroomBrown {
     public FeatureMushroomRed(@NonNull IntRange height) {
@@ -21,12 +18,12 @@ public class FeatureMushroomRed extends FeatureMushroomBrown {
     }
 
     @Override
-    protected BlockState selectLog(ChunkManager level, RandomGenerator random, int x, int y, int z, int height) {
+    protected BlockState selectLog(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         return BlockStates.RED_MUSHROOM_BLOCK;//.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, BlockBehaviorHugeMushroomRed.STEM);
     }
 
     @Override
-    protected void placeLeaves(ChunkManager level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
+    protected void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         //as ugly as it is, this makes more sense to hardcode than trying to be smart about it
         int yy = y + height - 3;
         this.placeSideColumn(level, x + 2, yy, z, 0);//BlockBehaviorHugeMushroomRed.TOP_E);
@@ -54,7 +51,7 @@ public class FeatureMushroomRed extends FeatureMushroomBrown {
         level.setBlockState(x + 1, yy, z - 1, BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, 0));//BlockBehaviorHugeMushroomRed.TOP_NE));
     }
 
-    protected void placeSideColumn(ChunkManager level, int x, int y, int z, int damage) {
+    protected void placeSideColumn(GenerationRegion level, int x, int y, int z, int damage) {
         for (int dy = 0; dy < 3; dy++) {
             level.setBlockState(x, y + dy, z, BlockStates.RED_MUSHROOM_BLOCK.withTrait(BlockTraits.HUGE_MUSHROOM_BITS, damage));
         }

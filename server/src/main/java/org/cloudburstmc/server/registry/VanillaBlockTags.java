@@ -53,6 +53,9 @@ class VanillaBlockTags {
         initSwordMining();
         initToolTierRequirements();
 
+        tag(SUPPORTS_CHORUS_FLOWER, END_STONE);
+        tag(SUPPORTS_CHORUS_PLANT, END_STONE);
+
         inherit(UNSTABLE_BOTTOM_CENTER, FENCE_GATE);
         inherit(TRANSPARENT, BEDS, BUTTON, CROPS, DOOR, FENCE, FENCE_GATE, LIQUID, PRESSURE_PLATE, BlockTags.RAIL, SIGN, SLAB, STAIRS, STEM, TRAPDOOR, WALLS);
     }

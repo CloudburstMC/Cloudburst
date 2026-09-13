@@ -2,8 +2,8 @@ package org.cloudburstmc.server.level.generator.standard.population.tree;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.level.generator.standard.misc.filter.BlockFilter;
@@ -16,8 +16,6 @@ import static java.lang.Math.min;
 
 /**
  * Base class for all tree populators.
- *
- * @author DaPorkchop_
  */
 public abstract class AbstractTreePopulator extends ChancePopulator {
     @JsonProperty
@@ -39,7 +37,7 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
     }
 
     @Override
-    public void populate(RandomGenerator random, ChunkManager level, int blockX, int blockZ) {
+    public void populate(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
         final BlockFilter replace = this.replace;
         final BlockFilter on = this.on;
 
@@ -59,5 +57,5 @@ public abstract class AbstractTreePopulator extends ChancePopulator {
         }
     }
 
-    protected abstract void placeTree(RandomGenerator random, ChunkManager level, int x, int y, int z);
+    protected abstract void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z);
 }

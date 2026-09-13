@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 
 public enum Direction {
     DOWN(1, -1, "down", AxisDirection.NEGATIVE, Vector3i.from(0, -1, 0)),
@@ -473,12 +474,23 @@ public enum Direction {
             this.faces = faces;
         }
 
+        /**
+         * Returns a random direction in this plane.
+         *
+         * @return a direction in this plane
+         */
         public Direction random() {
             return this.faces[ThreadLocalRandom.current().nextInt(this.faces.length)];
         }
 
-        public Direction random(Random rand) {
-            return this.faces[rand.nextInt(this.faces.length)];
+        /**
+         * Returns a random direction in this plane using the supplied random source.
+         *
+         * @param random the random source
+         * @return a direction in this plane
+         */
+        public Direction random(RandomGenerator random) {
+            return this.faces[random.nextInt(this.faces.length)];
         }
 
         @Override

@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.generator;
 
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.api.level.ChunkManager;
 import org.cloudburstmc.api.level.chunk.Chunk;
 
 import java.util.random.RandomGenerator;
@@ -10,8 +9,6 @@ import java.util.random.RandomGenerator;
  * Generates terrain in a level.
  * <p>
  * An implementation of {@link Generator} is expected to be able to generate and populate chunks on multiple threads concurrently.
- *
- * @author DaPorkchop_
  */
 public interface Generator {
     /**
@@ -28,11 +25,11 @@ public interface Generator {
      * Populates a given chunk.
      *
      * @param random an instance of {@link PRandom} for generating random numbers, initialized with a seed based on chunk's position
-     * @param level  a {@link ChunkManager} containing only a 3x3 square of generated chunks, centered around the chunk being populated
+     * @param region the bounded generation region
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void populate(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ);
+    void populate(RandomGenerator random, GenerationRegion region, int chunkX, int chunkZ);
 
     /**
      * Finishes a given chunk.
@@ -42,9 +39,9 @@ public interface Generator {
      * can cause inconsistent/unexpected results.
      *
      * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position
-     * @param level  a {@link ChunkManager} containing only a 3x3 square of generated chunks, centered around the chunk being populated
+     * @param region the bounded generation region
      * @param chunkX the chunk's X coordinate
      * @param chunkZ the chunk's Z coordinate
      */
-    void finish(RandomGenerator random, ChunkManager level, int chunkX, int chunkZ);
+    void finish(RandomGenerator random, GenerationRegion region, int chunkX, int chunkZ);
 }

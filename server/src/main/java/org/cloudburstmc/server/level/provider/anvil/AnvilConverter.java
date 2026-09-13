@@ -47,7 +47,7 @@ public class AnvilConverter {
         CloudChunkSection[] sections = new CloudChunkSection[chunkBuilder.getLevel().getSectionsCount()];
 
         // Reusable array for performance
-        final int[] blockState = new int[2];
+        int[] blockState = new int[2];
         CloudBlockRegistry blockRegistry = CloudBlockRegistry.REGISTRY;
         LegacyBlockConverter legacyBlockConverter = LegacyBlockConverter.get();
 

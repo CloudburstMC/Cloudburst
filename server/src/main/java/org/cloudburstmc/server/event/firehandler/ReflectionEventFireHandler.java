@@ -21,16 +21,16 @@ import java.util.concurrent.TimeUnit;
 @Log4j2
 public class ReflectionEventFireHandler implements EventFireHandler {
     private static final long LONG_RUNNING_EVENT_TIME = TimeUnit.MILLISECONDS.toNanos(5);
-    private final List<ListenerMethod> methods = new ArrayList<>();
+    private final List<EventFireHandler.ListenerMethod> methods = new ArrayList<>();
 
-    public ReflectionEventFireHandler(Collection<ListenerMethod> methods) {
+    public ReflectionEventFireHandler(Collection<? extends EventFireHandler.ListenerMethod> methods) {
         this.methods.addAll(methods);
     }
 
     @Override
     public void fire(Event event) {
         long start = System.nanoTime();
-        for (ListenerMethod method : methods) {
+        for (EventFireHandler.ListenerMethod method : methods) {
             try {
                 method.run(event);
             } catch (Throwable e) {

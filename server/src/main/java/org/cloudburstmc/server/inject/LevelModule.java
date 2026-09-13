@@ -3,7 +3,7 @@ package org.cloudburstmc.server.inject;
 import com.google.inject.AbstractModule;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.cloudburstmc.server.level.LevelData;
+import org.cloudburstmc.server.level.CloudLevelData;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 
 @Value
@@ -11,12 +11,12 @@ import org.cloudburstmc.server.level.provider.LevelProvider;
 public class LevelModule extends AbstractModule {
     String id;
     LevelProvider provider;
-    LevelData data;
+    CloudLevelData data;
 
     @Override
     protected void configure() {
         this.bind(String.class).toInstance(this.id);
         this.bind(LevelProvider.class).toInstance(this.provider);
-        this.bind(LevelData.class).toInstance(this.data);
+        this.bind(CloudLevelData.class).toInstance(this.data);
     }
 }

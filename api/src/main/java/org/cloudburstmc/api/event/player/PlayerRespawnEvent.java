@@ -5,62 +5,78 @@ import org.cloudburstmc.api.player.Player;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
- * Fired just before a player is teleported to their respawn position, on both initial
- * join-spawn and death respawn.
+ * Fired just before a player is moved to a respawn position after joining, dying, or
+ * returning through an End portal.
  */
-public final class PlayerRespawnEvent extends PlayerEvent {
+public class PlayerRespawnEvent extends PlayerEvent {
 
-    private final Set<RespawnFlag> flags;
+    private final PlayerRespawnReason reason;
+    private final Set<PlayerRespawnFlag> flags;
     private Location location;
 
-    public PlayerRespawnEvent(Player player, Location location, Set<RespawnFlag> flags) {
+    /**
+     * Creates a player respawn event.
+     *
+     * @param player   the player being respawned
+     * @param location the destination of the respawn
+     * @param reason   the reason for the respawn
+     * @param flags    additional circumstances of the respawn
+     */
+    public PlayerRespawnEvent(Player player, Location location, PlayerRespawnReason reason, Set<PlayerRespawnFlag> flags) {
         super(player);
-        this.location = location;
-        this.flags = Collections.unmodifiableSet(flags.isEmpty() ? EnumSet.noneOf(RespawnFlag.class) : EnumSet.copyOf(flags));
+        this.location = Objects.requireNonNull(location, "location");
+        this.reason = Objects.requireNonNull(reason, "reason");
+        Objects.requireNonNull(flags, "flags");
+        this.flags = Collections.unmodifiableSet(flags.isEmpty() ? EnumSet.noneOf(PlayerRespawnFlag.class) : EnumSet.copyOf(flags));
     }
 
     /**
      * Returns the location the player will be teleported to on respawn.
-     * Override this via {@link #setRespawnLocation(Location)} to redirect the player.
+     *
+     * @return the respawn location
      */
     public Location getRespawnLocation() {
         return location;
     }
 
+    /**
+     * Changes the location the player will be teleported to on respawn.
+     *
+     * @param location the respawn location
+     */
     public void setRespawnLocation(Location location) {
-        this.location = location;
+        this.location = Objects.requireNonNull(location, "location");
     }
 
     /**
-     * Immutable set of flags describing why this respawn is happening.
+     * Returns why the player is being respawned.
+     *
+     * @return the respawn reason
      */
-    public Set<RespawnFlag> getRespawnFlags() {
+    public PlayerRespawnReason getReason() {
+        return this.reason;
+    }
+
+    /**
+     * Returns the circumstances of this respawn.
+     *
+     * @return an immutable set of respawn flags
+     */
+    public Set<PlayerRespawnFlag> getRespawnFlags() {
         return flags;
     }
 
-    public boolean hasFlag(RespawnFlag flag) {
+    /**
+     * Returns whether this respawn has the given flag.
+     *
+     * @param flag the flag to test
+     * @return whether the flag is present
+     */
+    public boolean hasFlag(PlayerRespawnFlag flag) {
         return flags.contains(flag);
-    }
-
-    public enum RespawnFlag {
-        /**
-         * The player's respawn point is a valid, charged respawn anchor.
-         */
-        ANCHOR_SPAWN,
-        /**
-         * The player's respawn point is a valid, unobstructed bed.
-         */
-        BED_SPAWN,
-        /**
-         * The respawn was triggered by the player stepping through the end portal to return home.
-         */
-        END_PORTAL,
-        /**
-         * This is the player's very first spawn on login, not a post-death respawn.
-         */
-        FIRST_SPAWN
     }
 }

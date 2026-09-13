@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.server.level.generator.standard.biome.map.BiomeMap;
 import org.cloudburstmc.server.level.generator.standard.biome.map.ConstantBiomeMap;
+import org.cloudburstmc.server.level.generator.standard.biome.map.EndBiomeMap;
 import org.cloudburstmc.server.level.generator.standard.biome.map.complex.ComplexBiomeMap;
 
 /**
  * Registry for {@link BiomeMap}.
  *
- * @author DaPorkchop_
  * @see StandardGeneratorRegistries#biomeMap()
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -21,6 +21,7 @@ public final class BiomeMapRegistry extends AbstractGeneratorRegistry<BiomeMap> 
     protected void registerDefault() {
         this.register(ComplexBiomeMap.ID, ComplexBiomeMap.class);
         this.register(ConstantBiomeMap.ID, ConstantBiomeMap.class);
+        this.register(EndBiomeMap.ID, EndBiomeMap.class);
     }
 
     @Override

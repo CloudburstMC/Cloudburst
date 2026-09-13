@@ -1,13 +1,10 @@
 package org.cloudburstmc.server.level.feature;
 
 import net.daporkchop.lib.random.PRandom;
-import org.cloudburstmc.api.level.ChunkManager;
+import org.cloudburstmc.server.level.generator.GenerationRegion;
 
 import java.util.random.RandomGenerator;
 
-/**
- * @author DaPorkchop_
- */
 @FunctionalInterface
 public interface WorldFeature {
     /**
@@ -18,7 +15,7 @@ public interface WorldFeature {
      * @param x      the X coordinate to generate the feature at
      * @param y      the Y coordinate to generate the feature at
      * @param z      the Z coordinate to generate the feature at
-     * @return whether or not the feature could be placed
+     * @return whether the feature could be placed
      */
-    boolean place(ChunkManager level, RandomGenerator random, int x, int y, int z);
+    boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z);
 }

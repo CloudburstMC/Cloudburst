@@ -24,6 +24,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.block.material;
     exports org.cloudburstmc.api.block.trait;
     exports org.cloudburstmc.api.blockentity;
+    exports org.cloudburstmc.api.boss;
     exports org.cloudburstmc.api.command;
     exports org.cloudburstmc.api.command.argument;
     exports org.cloudburstmc.api.command.argument.resolver;

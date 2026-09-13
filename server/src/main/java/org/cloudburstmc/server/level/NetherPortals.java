@@ -1,11 +1,13 @@
 package org.cloudburstmc.server.level;
 
 import com.spotify.futures.CompletableFutures;
+import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.ZombiePigman;
+import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -32,7 +34,8 @@ import java.util.random.RandomGenerator;
  * This class handles operations that require scanning or modifying the world
  * beyond a single frame's boundary.
  */
-public final class NetherPortals {
+@UtilityClass
+public class NetherPortals {
 
     private static final Logger log = LogManager.getLogger(NetherPortals.class);
 
@@ -50,9 +53,6 @@ public final class NetherPortals {
     private static final int NEW_PORTAL_HEIGHT = 3;
 
     private static final int PORTAL_SPAWN_DIFFICULTY_THRESHOLD = 2000;
-
-    private NetherPortals() {
-    }
 
     /**
      * Attempt to detect a valid nether portal frame containing {@code pos}.
@@ -489,12 +489,9 @@ public final class NetherPortals {
                 spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
                 targetLevel.addSound(spawnPos, Sound.PORTAL_TRAVEL);
                 entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
-                if (entity instanceof CloudPlayer player) {
-                    player.setChangingDimension(true);
-                }
 
                 entity.setMotion(Vector3f.ZERO);
-                entity.portalCooldown = entity.getPortalCooldownTicks();
+                entity.setPortalCooldown();
                 entity.inPortalTicks = 0;
                 entity.pendingPortalTransfer = false;
             });
@@ -586,8 +583,8 @@ public final class NetherPortals {
      * @param random the random source for this tick
      */
     public static void onPortalRandomTick(CloudLevel level, Vector3i pos, RandomGenerator random) {
-        int difficulty = level.getDifficulty();
-        if (difficulty <= 0) {
+        Difficulty difficulty = level.getDifficulty();
+        if (difficulty == Difficulty.PEACEFUL) {
             return;
         }
 
@@ -595,7 +592,7 @@ public final class NetherPortals {
             return;
         }
 
-        if (random.nextInt(PORTAL_SPAWN_DIFFICULTY_THRESHOLD) >= difficulty) {
+        if (random.nextInt(PORTAL_SPAWN_DIFFICULTY_THRESHOLD) >= difficulty.getId()) {
             return;
         }
 
@@ -645,7 +642,7 @@ public final class NetherPortals {
         Location loc = Location.from(spawnPos, level);
         ZombiePigman piglin = level.entityRegistry.newEntity(EntityTypes.ZOMBIE_PIGMAN, loc);
         if (piglin instanceof CloudEntity cloudEntity) {
-            cloudEntity.portalCooldown = cloudEntity.getPortalCooldownTicks();
+            cloudEntity.setPortalCooldown();
         }
         piglin.spawnToAll();
     }
