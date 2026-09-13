@@ -104,6 +104,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     @Inject
     GlobalRegistry globalRegistry;
     private Vector3i lastBreakPosition = Vector3i.ZERO;
+    private @Nullable Vector3i completedInstantBreakPosition;
     private @Nullable BlockBreakSession blockBreakSession;
 
     public PlayerPacketHandler(CloudPlayer player) {
@@ -298,10 +299,14 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 case CONTINUE_BREAK:
                 case BLOCK_CONTINUE_DESTROY:
-                    handleContinueBreak(blockPos, Direction.fromIndex(actionData.getFace()));
+                    if (!blockPos.equals(this.completedInstantBreakPosition)) {
+                        handleContinueBreak(blockPos, Direction.fromIndex(actionData.getFace()));
+                    }
                     break;
                 case BLOCK_PREDICT_DESTROY:
-                    handleBlockPredictDestroy(blockPos, Direction.fromIndex(actionData.getFace()));
+                    if (!acknowledgeInstantBreak(blockPos)) {
+                        handleBlockPredictDestroy(blockPos, Direction.fromIndex(actionData.getFace()));
+                    }
                     break;
                 default:
                     break;
@@ -314,19 +319,29 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if ((lastBreakPosition.equals(blockPos) && (currentBreak - player.lastBreak) < 10) || player.getPosition().distanceSquared(blockPos.toFloat()) > 100) {
             return;
         }
+
+        this.completedInstantBreakPosition = null;
+
         Block target = player.getLevel().getBlock(blockPos);
         BlockState targetState = target.getState();
 
         PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(player, player.getInventory().getSelectedItem(), target, face, targetState == BlockStates.AIR ? PlayerInteractEvent.Action.LEFT_CLICK_AIR : PlayerInteractEvent.Action.LEFT_CLICK_BLOCK);
         player.getServer().getEventManager().fire(playerInteractEvent);
         if (playerInteractEvent.isCancelled()) {
-            player.getInventoryManager().sendAllInventories();
+            if (player.isCreative()) {
+                restorePredictedBlock(blockPos);
+            } else {
+                player.getInventoryManager().sendAllInventories();
+            }
             return;
         }
 
         AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
         if (attackHandler != null && attackHandler.execute(target, player, face)) {
             player.breakingBlock = null;
+            if (player.isCreative()) {
+                restorePredictedBlock(blockPos);
+            }
             return;
         }
 
@@ -337,7 +352,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        if (!player.isCreative()) {
+        player.lastBreak = currentBreak;
+        lastBreakPosition = blockPos;
+
+        if (player.isCreative()) {
+            completeInstantBreak(blockPos);
+        } else {
             int breakTicks = ToolUtils.getBreakTicks(player, player.getInventory().getSelectedItem(), targetState);
             if (breakTicks > 0) {
                 sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(targetState));
@@ -346,13 +366,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             } else {
                 this.blockBreakSession = null;
             }
-        } else {
-            this.blockBreakSession = null;
+            player.breakingBlock = target;
         }
-
-        player.breakingBlock = target;
-        player.lastBreak = currentBreak;
-        lastBreakPosition = blockPos;
     }
 
     private void handleStopBreak(Vector3i blockPos) {
@@ -437,16 +452,20 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         boolean hasMatchingSession = this.blockBreakSession != null
                 && this.blockBreakSession.matches(blockPos)
                 && this.blockBreakSession.state().equals(predictedState);
+
         if (!hasMatchingSession) {
             startBreakFromContinue(blockPos, face);
+            if (acknowledgeInstantBreak(blockPos)) {
+                return;
+            }
         }
+
         Boolean fastBreak = hasMatchingSession ? getPredictedFastBreak(blockPos, predictedState) : null;
 
         player.breakingBlock = null;
         this.blockBreakSession = null;
 
         sendBlockBreakEvent(LevelEvent.BLOCK_STOP_BREAK, blockPos, 0);
-        sendBlockBreakEvent(LevelEvent.BLOCK_START_BREAK, blockPos, encodeBreakEventData(predictedState));
 
         ItemStack selectedItem = player.getInventory().getSelectedItem();
         ItemStack oldItem = selectedItem;
@@ -464,10 +483,37 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
+        restorePredictedBlock(blockPos);
+    }
+
+    private void completeInstantBreak(Vector3i blockPos) {
+        this.blockBreakSession = null;
+        player.breakingBlock = null;
+
+        ItemStack selectedItem = player.getInventory().getSelectedItem();
+        ItemStack result = player.getLevel().breakBlock(blockPos, selectedItem, player, true);
+        if (result == null) {
+            restorePredictedBlock(blockPos);
+            return;
+        }
+
+        this.completedInstantBreakPosition = blockPos;
+    }
+
+    private boolean acknowledgeInstantBreak(Vector3i blockPos) {
+        if (blockPos.equals(this.completedInstantBreakPosition)) {
+            this.completedInstantBreakPosition = null;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void restorePredictedBlock(Vector3i blockPos) {
         player.sendInventoryContents();
+
         Block target = player.getLevel().getBlock(blockPos);
         BlockEntity blockEntity = player.getLevel().getLoadedBlockEntity(blockPos);
-
         player.getLevel().sendBlocks(new CloudPlayer[]{player}, new Block[]{target}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
 
         if (blockEntity != null && blockEntity.isSpawnable()) {
