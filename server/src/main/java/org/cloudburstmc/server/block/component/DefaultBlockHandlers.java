@@ -17,7 +17,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 
 import java.util.List;
@@ -128,11 +127,11 @@ public class DefaultBlockHandlers {
     };
 
     public static final EntityInsideBlockHandler CACTUS_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.CONTACT, block), 1));
+            entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.CACTUS, block), 1));
 
     public static final EntityInsideBlockHandler FIRE_ENTITY_INSIDE = (block, entity, precise) -> {
         entity.setOnFire(8);
-        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.FIRE, block), 1));
+        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.IN_FIRE, block), 1));
     };
 
     public static final EntityInsideBlockHandler LAVA_ENTITY_INSIDE = (block, entity, precise) -> {
@@ -142,9 +141,6 @@ public class DefaultBlockHandlers {
 
     public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) ->
             entity.makeStuckInBlock(block.getState(), Vector3f.from(0.25f, 0.05f, 0.25f));
-
-    public static final EntityInsideBlockHandler SWEET_BERRY_BUSH_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.makeStuckInBlock(block.getState(), Vector3f.from(0.8f, 0.75f, 0.8f));
 
     public static final VoxelShapeBlockHandler FULL_ENTITY_INSIDE_COLLISION_SHAPE = (state, context) -> CloudVoxelShapes.block();
 
@@ -173,8 +169,7 @@ public class DefaultBlockHandlers {
         block.set(BlockStates.AIR);
     };
 
-    // ON_REMOVE fires before a block is removed (e.g. by pistons or neighbour updates),
-    // NOT as the cause of removal. Default is a no-op; ON_DESTROY handles the actual removal.
+    // ON_REMOVE runs after a block type is replaced. ON_DESTROY owns explicit destruction.
     public static final ComplexBlockHandler ON_REMOVE = (block) -> {
     };
 
@@ -206,16 +201,6 @@ public class DefaultBlockHandlers {
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> true;
     public static final BooleanBlockHandler CAN_BE_USED_IN_COMMANDS = (block) -> true;
     public static final BooleanBlockHandler CAN_SPAWN_ON = (block) -> true;
-
-    public static void dropLoot(Block block) {
-        CloudLevel level = (CloudLevel) block.getLevel();
-        BlockLootContext context = BlockLootContext.empty(level.getRandom());
-        for (ItemStack drop : block.requireComponent(BlockComponents.GET_LOOT).execute(block, context)) {
-            if (drop != null && !drop.isEmpty()) {
-                level.dropBlockItem(block.getPosition(), drop);
-            }
-        }
-    }
 
     private static DamageSource blockDamageSource(DamageType damageType, Block block) {
         return DamageSource.builder(damageType).block(block).build();

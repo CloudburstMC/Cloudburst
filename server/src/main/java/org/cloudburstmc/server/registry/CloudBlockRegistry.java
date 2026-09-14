@@ -277,6 +277,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
         this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
         this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);
+        this.registerComponent(BlockComponents.FERTILIZE, (block, player, random) -> FertilizationResult.none());
         this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
         this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
         this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());

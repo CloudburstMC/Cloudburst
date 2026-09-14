@@ -2,14 +2,12 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 
 @UtilityClass
 public class TorchBlockHandlers {
@@ -31,9 +29,6 @@ public class TorchBlockHandlers {
             return;
         }
 
-        DefaultBlockHandlers.dropLoot(block);
-
-        level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));
-        block.set(BlockStates.AIR, false, true);
+        level.breakBlock(pos, null, null, true);
     };
 }

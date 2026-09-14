@@ -2988,7 +2988,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return false;
         }
 
-        if (this.isSpectator() || (this.isCreative() && source.getDamageType() != DamageTypes.SUICIDE)) {
+        if (this.isSpectator() || (this.isCreative() && source.getDamageType() != DamageTypes.GENERIC_KILL)) {
             //source.setCancelled();
             return false;
         } else if (this.abilities.get(Ability.MAY_FLY) && source.getDamageType() == DamageTypes.FALL) {

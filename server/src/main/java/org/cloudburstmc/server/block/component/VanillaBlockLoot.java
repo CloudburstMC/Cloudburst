@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.component;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.BlockLootContext;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.BlockLootHandler;
@@ -16,7 +17,7 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class VanillaBlockLoot {
+public class VanillaBlockLoot {
 
     private static final float[] NORMAL_SAPLING_CHANCES = {0.05f, 0.0625f, 0.083333336f, 0.1f};
     private static final float[] JUNGLE_SAPLING_CHANCES = {0.025f, 0.027777778f, 0.03125f, 0.041666668f, 0.1f};
@@ -69,6 +70,28 @@ public final class VanillaBlockLoot {
 
             return context.random().nextFloat() < 0.125f ? List.of(ItemStack.from(ItemTypes.WHEAT_SEEDS)) : List.of();
         };
+    }
+
+    public static BlockLootHandler largeFern() {
+        return (block, context) -> hasShears(context) ? List.of(blockItem(BlockTypes.FERN, 2)) : List.of();
+    }
+
+    public static BlockLootHandler sweetBerryBush() {
+        return (block, context) -> {
+            int age = block.getState().ensureTrait(BlockTraits.GROWTH);
+            if (age < 2) {
+                return List.of();
+            }
+
+            int count = context.random().nextInt(age == 2 ? 1 : 2, age == 2 ? 3 : 4);
+            count += context.random().nextInt(fortuneLevel(context) + 1);
+            return List.of(ItemStack.from(ItemTypes.SWEET_BERRIES, count));
+        };
+    }
+
+    public static BlockLootHandler flowerBed(BlockType type) {
+        requireNonNull(type, "type");
+        return (block, context) -> List.of(ItemStack.from(type.getDefaultState(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1));
     }
 
     public static BlockLootHandler glowstone(BlockType drop) {

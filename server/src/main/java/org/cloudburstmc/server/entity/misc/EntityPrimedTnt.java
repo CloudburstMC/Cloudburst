@@ -63,7 +63,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.VOID && super.attack(source);
+        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.attack(source);
     }
 
     protected void initEntity() {

@@ -7,6 +7,7 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
+import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionType;
@@ -14,6 +15,7 @@ import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.server.registry.CloudParticleRegistry;
 
 import java.net.InetSocketAddress;
@@ -147,6 +149,20 @@ public class NetworkUtils {
 
     public static EffectType effectFromLegacy(byte effectId) {
         return effectTypeMap.inverse().get(effectId);
+    }
+
+    public static MobEffectPacket effectToNetwork(Effect effect, long runtimeEntityId,
+                                                  MobEffectPacket.Event event, long tick) {
+        MobEffectPacket packet = new MobEffectPacket();
+        packet.setRuntimeEntityId(runtimeEntityId);
+        packet.setEvent(event);
+        packet.setEffectId(effectToNetwork(effect.getType()));
+        packet.setAmplifier(effect.getAmplifier());
+        packet.setParticles(effect.isVisible());
+        packet.setDuration(effect.getDuration());
+        packet.setTick(tick);
+        packet.setAmbient(effect.isAmbient());
+        return packet;
     }
 
     public static org.cloudburstmc.protocol.bedrock.data.ParticleType particleToNetwork(ParticleType type) {

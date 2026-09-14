@@ -22,14 +22,16 @@ class DeathMessageResolver {
 
     private static final String GENERIC = "death.attack.generic";
     private static final Map<DamageType, String> SIMPLE_MESSAGES = Map.ofEntries(
-            Map.entry(DamageTypes.VOID, "death.attack.outOfWorld"),
-            Map.entry(DamageTypes.SUFFOCATION, "death.attack.inWall"),
-            Map.entry(DamageTypes.FIRE, "death.attack.onFire"),
-            Map.entry(DamageTypes.FIRE_TICK, "death.attack.inFire"),
-            Map.entry(DamageTypes.DROWNING, "death.attack.drown"),
-            Map.entry(DamageTypes.FREEZING, "death.attack.freeze"),
+            Map.entry(DamageTypes.OUT_OF_WORLD, "death.attack.outOfWorld"),
+            Map.entry(DamageTypes.IN_WALL, "death.attack.inWall"),
+            Map.entry(DamageTypes.IN_FIRE, "death.attack.inFire"),
+            Map.entry(DamageTypes.ON_FIRE, "death.attack.onFire"),
+            Map.entry(DamageTypes.DROWN, "death.attack.drown"),
+            Map.entry(DamageTypes.FREEZE, "death.attack.freeze"),
             Map.entry(DamageTypes.MAGIC, "death.attack.magic"),
-            Map.entry(DamageTypes.HUNGER, "death.attack.starve")
+            Map.entry(DamageTypes.STARVE, "death.attack.starve"),
+            Map.entry(DamageTypes.SWEET_BERRY_BUSH, "death.attack.sweetBerryBush"),
+            Map.entry(DamageTypes.WITHER, "death.attack.wither")
     );
 
     static Resolution resolve(CloudPlayer victim, @Nullable EntityDamageEvent event) {
@@ -40,11 +42,11 @@ class DeathMessageResolver {
         DamageSource source = event.getDamageSource();
         DamageType type = source.getDamageType();
         Entity attacker = source.getCausingEntity();
-        if (type == DamageTypes.ENTITY_ATTACK) {
+        if (type == DamageTypes.PLAYER_ATTACK || type == DamageTypes.MOB_ATTACK || type == DamageTypes.MOB_ATTACK_NO_AGGRO) {
             return entityAttack(victim, attacker);
         }
 
-        if (type == DamageTypes.PROJECTILE) {
+        if (type.is(DamageTypeTags.IS_PROJECTILE)) {
             return projectile(victim, attacker);
         }
 
@@ -65,7 +67,7 @@ class DeathMessageResolver {
             return lava(victim);
         }
 
-        if (type == DamageTypes.CONTACT) {
+        if (type == DamageTypes.CACTUS) {
             return contact(victim, source.getBlock());
         }
 

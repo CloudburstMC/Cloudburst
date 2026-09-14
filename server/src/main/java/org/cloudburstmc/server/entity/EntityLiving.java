@@ -213,7 +213,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
     @Override
     protected void onBelowLevel() {
-        this.attack(new EntityDamageEvent(this, DamageTypes.VOID, 4));
+        this.attack(new EntityDamageEvent(this, DamageTypes.OUT_OF_WORLD, 4));
     }
 
     public void knockBack(Entity attacker, float strength, float diffX, float diffZ) {
@@ -290,7 +290,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                 if (this.isInsideOfSolid()) {
                     hasUpdate = true;
-                    this.attack(new EntityDamageEvent(this, DamageTypes.SUFFOCATION, 1));
+                    this.attack(new EntityDamageEvent(this, DamageTypes.IN_WALL, 1));
                 }
 
                 var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
@@ -309,7 +309,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                             if (airTicks <= -20) {
                                 airTicks = 0;
-                                this.attack(new EntityDamageEvent(this, DamageTypes.DROWNING, 2));
+                                this.attack(new EntityDamageEvent(this, DamageTypes.DROWN, 2));
                             }
 
                             setAirTicks(airTicks);
@@ -322,7 +322,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                         if (airTicks <= -20) {
                             airTicks = 0;
-                            this.attack(new EntityDamageEvent(this, DamageTypes.SUFFOCATION, 2));
+                            this.attack(new EntityDamageEvent(this, DamageTypes.IN_WALL, 2));
                         }
 
                         setAirTicks(airTicks);
@@ -401,7 +401,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             float multiplier = CloudEntityRegistry.get()
                     .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
                     .execute(this);
-            if (this.attack(new EntityDamageEvent(this, DamageTypes.FREEZING, multiplier)) && this instanceof CloudPlayer) {
+            if (this.attack(new EntityDamageEvent(this, DamageTypes.FREEZE, multiplier)) && this instanceof CloudPlayer) {
                 this.getLevel().addSound(this.getPosition(), Sound.MOB_PLAYER_HURT_FREEZE);
             }
         }

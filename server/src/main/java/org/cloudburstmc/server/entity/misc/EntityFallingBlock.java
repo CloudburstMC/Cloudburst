@@ -107,7 +107,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.VOID && super.attack(source);
+        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.attack(source);
     }
 
     @Override

@@ -19,6 +19,7 @@ public final class BlockComponents {
     public static final ComponentType<BooleanBlockHandler> CAN_SPAWN_ON = ComponentType.of("can_spawn_on", BooleanBlockHandler.class);
     public static final ComponentType<SurviveBlockHandler> CAN_SURVIVE = ComponentType.of("can_survive", SurviveBlockHandler.class);
     public static final ComponentType<ComplexBlockHandler> CHECK_ALIVE = ComponentType.of("check_alive", ComplexBlockHandler.class);
+    public static final ComponentType<FertilizeBlockHandler> FERTILIZE = ComponentType.of("fertilize", FertilizeBlockHandler.class);
     public static final ComponentType<GenericBlockHandler> GET_BLOCK_ENTITY = ComponentType.of("get_block_entity", GenericBlockHandler.class);
     public static final ComponentType<BlockSupportShapeHandler> GET_BLOCK_SUPPORT_SHAPE = ComponentType.of("get_block_support_shape", BlockSupportShapeHandler.class);
     public static final ComponentType<CollisionShapeHandler> GET_COLLISION_SHAPE = ComponentType.of("get_collision_shape", CollisionShapeHandler.class);

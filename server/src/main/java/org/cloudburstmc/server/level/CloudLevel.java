@@ -29,8 +29,8 @@ import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.block.BlockBreakEvent;
 import org.cloudburstmc.api.event.block.BlockDropItemEvent;
+import org.cloudburstmc.api.event.block.BlockPhysicsEvent;
 import org.cloudburstmc.api.event.block.BlockPlaceEvent;
-import org.cloudburstmc.api.event.block.BlockUpdateEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.EquipmentSlot;
@@ -1095,7 +1095,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        BlockUpdateEvent event = new BlockUpdateEvent(block);
+        BlockPhysicsEvent event = new BlockPhysicsEvent(block, block.getState(), changed);
         this.getServer().getEventManager().fire(event);
         if (!event.isCancelled()) {
             block.requireComponent(BlockComponents.ON_NEIGHBOUR_CHANGED).execute(block, changed);
@@ -1602,6 +1602,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             }
         }
 
+        BlockState oldExtra = layer == 0 ? chunk.getBlockState(x & 0xf, y, z & 0xf, 1) : BlockStates.AIR;
         BlockState oldState = chunk.setBlockState(x & 0xF, y, z & 0xF, layer, state);
         if (oldState == state) {
             return false;
@@ -1643,6 +1644,17 @@ public class CloudLevel implements Level, BlockStateRegion {
                 layer == 1 ? state : chunk.getBlockState(x & 0xf, y, z & 0xf, 1)
         });
 
+        if (layer == 0 && oldState.getType() != state.getType()) {
+            Block oldBlock = new CloudBlock(this, position, new BlockState[]{oldState, oldExtra});
+            this.blockRegistry.requireComponent(oldState.getType(), BlockComponents.ON_REMOVE).execute(oldBlock);
+
+            BlockEntity blockEntity = this.getLoadedBlockEntity(position);
+            if (blockEntity != null) {
+                blockEntity.close();
+                this.updateComparatorOutputLevel(position);
+            }
+        }
+
         if (syncedEntity != null) {
             this.sendSyncedBlockUpdate(newBlock, syncedEntity, Objects.requireNonNull(syncType, "syncType"));
         } else if (direct) {
@@ -1656,23 +1668,19 @@ public class CloudLevel implements Level, BlockStateRegion {
                 addLightUpdate(x, y, z);
             }
 
-            BlockUpdateEvent ev = new BlockUpdateEvent(newBlock);
-            this.server.getEventManager().fire(ev);
-            if (!ev.isCancelled()) {
-                for (Entity entity : this.getNearbyEntities(new BoundingBox(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
-                    this.scheduleEntityUpdate(entity);
-                }
+            for (Entity entity : this.getNearbyEntities(new BoundingBox(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
+                this.scheduleEntityUpdate(entity);
+            }
 
-                if (this.blockUpdateBatchDepth > 0) {
-                    this.batchedNeighbourUpdates.add(position);
-                } else {
-                    this.updateAround(position);
-                }
-                this.scheduleLiquidUpdate(position);
+            if (this.blockUpdateBatchDepth > 0) {
+                this.batchedNeighbourUpdates.add(position);
+            } else {
+                this.updateAround(position);
+            }
+            this.scheduleLiquidUpdate(position);
 
-                for (Direction direction : Direction.values()) {
-                    this.scheduleLiquidUpdate(direction.relative(position));
-                }
+            for (Direction direction : Direction.values()) {
+                this.scheduleLiquidUpdate(direction.relative(position));
             }
         }
 
@@ -1739,8 +1747,9 @@ public class CloudLevel implements Level, BlockStateRegion {
             return true;
         }
 
-        return LiquidBlockHandlers.canOccupySecondaryLayer(liquid)
-                && (liquid.isSource() ? primary.canContainLiquidSource() : primary.canContainFlowingLiquid());
+        return primary.getLiquidReaction().removesBlock()
+                || (LiquidBlockHandlers.canOccupySecondaryLayer(liquid)
+                && (liquid.isSource() ? primary.canContainLiquidSource() : primary.canContainFlowingLiquid()));
     }
 
     @Override
@@ -1750,6 +1759,20 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         BlockState primary = this.getBlockState(position);
+        LiquidReaction reaction = primary.getLiquidReaction();
+        if (reaction.removesBlock()) {
+            if (reaction == LiquidReaction.POPPED) {
+                this.breakBlock(position, ItemStack.EMPTY, null, true);
+            } else {
+                this.setBlockState(position, BlockStates.AIR);
+            }
+
+            primary = this.getBlockState(position);
+            if (primary != BlockStates.AIR && !primary.getType().isLiquid()) {
+                return false;
+            }
+        }
+
         boolean changed;
         if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
             boolean primaryChanged = this.setBlockState(position, LiquidStateAccess.blockState(liquid));
@@ -1996,11 +2019,9 @@ public class CloudLevel implements Level, BlockStateRegion {
                     : new ItemStack[0];
         } else if (!targetBehaviors.require(BlockComponents.IS_BREAKABLE).execute(target, item)) {
             return null;
-        } else if (correctForDrops) {
+        } else {
             drops = targetBehaviors.require(BlockComponents.GET_LOOT)
                     .execute(target, lootContext).toArray(ItemStack[]::new);
-        } else {
-            drops = new ItemStack[0];
         }
 
         boolean doBlockDrops = this.getGameRules().get(GameRules.DO_TILE_DROPS);
@@ -2237,9 +2258,10 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
+        Direction placementFace = block == target && targetReplaceable ? Direction.UP : face;
         ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE)
-                .execute(hand, block, player, face, clickPos);
+                .execute(hand, block, player, placementFace, clickPos);
         Vector3i blockPos = block.getPosition();
         Block prospectiveBlock = new CloudBlock(this, blockPos, new BlockState[]{hand, block.getExtra()});
         if (!handBehaviors.require(BlockComponents.CAN_SURVIVE).execute(prospectiveBlock)) {
@@ -2296,9 +2318,12 @@ public class CloudLevel implements Level, BlockStateRegion {
             }
         }
 
-        if (!handBehaviors.require(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), face, clickPos)) {
+        BlockState replacedState = block.getState();
+        if (!handBehaviors.require(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), placementFace, clickPos)) {
             return null;
         }
+
+        this.addPlacementReplacementEffect(block, replacedState, hand, player);
 
         if (player != null && !player.isCreative()) {
             item = item.decreaseCount();
@@ -2321,6 +2346,19 @@ public class CloudLevel implements Level, BlockStateRegion {
                 && (state.isSource() ? container.canContainLiquidSource() : container.canContainFlowingLiquid());
     }
 
+    private void addPlacementReplacementEffect(Block replacedBlock, BlockState replacedState, BlockState placedState, @Nullable Player player) {
+        BlockType replacedType = replacedState.getType();
+        if (replacedType == placedState.getType()
+                || replacedType == BlockTypes.AIR
+                || replacedType == BlockTypes.FIRE
+                || replacedType == BlockTypes.SOUL_FIRE
+                || replacedType.isLiquid()) {
+            return;
+        }
+
+        this.addBlockDestroyParticle(replacedBlock, player);
+    }
+
     private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
                                               Vector3f clickPos, boolean targetReplaceable, boolean sideReplaceable) {
         BlockState targetState = target.getState();
@@ -2333,6 +2371,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             if (canMerge) {
                 return target;
             }
+
             return sideReplaceable ? side : null;
         }
 

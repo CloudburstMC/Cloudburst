@@ -58,18 +58,18 @@ public class CloudEffect extends Effect {
 
     public boolean canTick() {
         int interval;
-        if (EffectTypes.POISON.equals(this.getType().getId())) {
+        if (this.getType() == EffectTypes.POISON) {
             if ((interval = (25 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
             return true;
-        } else if (EffectTypes.WITHER.equals(this.getType().getId())) {
-            if ((interval = (50 >> this.getAmplifier())) > 0) {
+        } else if (this.getType() == EffectTypes.WITHER) {
+            if ((interval = (40 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
             return true;
-        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) {
-            if ((interval = (40 >> this.getAmplifier())) > 0) {
+        } else if (this.getType() == EffectTypes.REGENERATION) {
+            if ((interval = (50 >> this.getAmplifier())) > 0) {
                 return (this.getDuration() % interval) == 0;
             }
             return true;
@@ -78,13 +78,13 @@ public class CloudEffect extends Effect {
     }
 
     public void applyEffect(Entity entity) {
-        if (EffectTypes.POISON.equals(this.getType().getId())) {
+        if (this.getType() == EffectTypes.POISON) {
             if (entity.getHealth() > 1) {
                 entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, 1));
             }
-        } else if (EffectTypes.WITHER.equals(this.getType().getId())) {
-            entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, 1));
-        } else if (EffectTypes.REGENERATION.equals(this.getType().getId())) {
+        } else if (this.getType() == EffectTypes.WITHER) {
+            entity.attack(new EntityDamageEvent(entity, DamageTypes.WITHER, 1));
+        } else if (this.getType() == EffectTypes.REGENERATION) {
             if (entity.getHealth() < entity.getMaxHealth()) {
                 entity.heal(new EntityRegainHealthEvent(entity, 1, EntityRegainHealthEvent.CAUSE_MAGIC));
             }
@@ -99,18 +99,9 @@ public class CloudEffect extends Effect {
             return;
         }
         if (entity instanceof CloudPlayer player) {
-            MobEffectPacket packet = new MobEffectPacket();
-            packet.setRuntimeEntityId(player.getRuntimeId());
-            packet.setEffectId(this.getNetworkId());
-            packet.setAmplifier(this.getAmplifier());
-            packet.setParticles(this.isVisible());
-            packet.setDuration(this.getDuration());
-            if (oldEffect != null) {
-                packet.setEvent(MobEffectPacket.Event.MODIFY);
-            } else {
-                packet.setEvent(MobEffectPacket.Event.ADD);
-            }
-
+            MobEffectPacket.Event event = oldEffect == null ? MobEffectPacket.Event.ADD : MobEffectPacket.Event.MODIFY;
+            MobEffectPacket packet = NetworkUtils.effectToNetwork(this, player.getRuntimeId(), event,
+                    player.getServer().getTick());
             player.sendPacket(packet);
 
             if (this.getType() == EffectTypes.SPEED) {
@@ -141,11 +132,8 @@ public class CloudEffect extends Effect {
 
     public void remove(Entity entity) {
         if (entity instanceof CloudPlayer player) {
-            MobEffectPacket packet = new MobEffectPacket();
-            packet.setRuntimeEntityId(player.getRuntimeId());
-            packet.setEffectId(this.getNetworkId());
-            packet.setEvent(MobEffectPacket.Event.REMOVE);
-
+            MobEffectPacket packet = NetworkUtils.effectToNetwork(this, player.getRuntimeId(), MobEffectPacket.Event.REMOVE,
+                    player.getServer().getTick());
             player.sendPacket(packet);
 
             if (this.getType() == EffectTypes.SPEED) {

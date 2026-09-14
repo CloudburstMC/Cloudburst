@@ -466,7 +466,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.BOGGED));
         registerVanilla(ItemTypes.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE);
         registerVanilla(ItemTypes.BONE);
-        registerVanilla(ItemTypes.BONE_MEAL);
+        registerVanilla(ItemTypes.BONE_MEAL)
+                .set(ItemComponents.USE_ON, BoneMealItemHandlers.USE_ON);
         registerVanilla(ItemTypes.BOOK);
         registerVanilla(ItemTypes.BORDURE_INDENTED_BANNER_PATTERN);
         registerDamageableEnchantable(ItemTypes.BOW, 384, repairWith(),
@@ -1003,7 +1004,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         registerVanilla(ItemTypes.SULFUR_CUBE_SPAWN_EGG)
                 .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(EntityTypes.SULFUR_CUBE));
         registerVanilla(ItemTypes.SUSPICIOUS_STEW);
-        registerVanilla(ItemTypes.SWEET_BERRIES);
+        registerVanilla(ItemTypes.SWEET_BERRIES)
+                .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.SWEET_BERRY_BUSH.getDefaultState().withTrait(BlockTraits.GROWTH, 0)));
         registerVanilla(ItemTypes.TADPOLE_BUCKET)
                 .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TADPOLE));
         registerVanilla(ItemTypes.TADPOLE_SPAWN_EGG)

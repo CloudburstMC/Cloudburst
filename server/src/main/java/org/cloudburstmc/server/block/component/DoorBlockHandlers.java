@@ -71,12 +71,7 @@ public class DoorBlockHandlers {
             return;
         }
 
-        if (!isUpperBlock) {
-            DefaultBlockHandlers.dropLoot(block);
-        }
-
-        level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));
-        block.set(BlockStates.AIR, false, true);
+        level.breakBlock(pos, null, null, true);
     };
 
     public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {

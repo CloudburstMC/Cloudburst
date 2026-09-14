@@ -15,26 +15,25 @@ public abstract class PlayerBucketEvent extends PlayerEvent implements Cancellab
     private final Block blockClicked;
     private final Direction blockFace;
     private final ItemStack bucket;
-    private ItemStack item;
+    private ItemStack itemStack;
 
     /**
      * Creates a bucket event.
      *
-     * @param player the player using the bucket
-     * @param block the block changed by the operation
+     * @param player       the player using the bucket
+     * @param block        the block changed by the operation
      * @param blockClicked the block the player clicked
-     * @param blockFace the face of the clicked block
-     * @param bucket the bucket used in the operation
-     * @param item the item that will remain in the player's hand
+     * @param blockFace    the face of the clicked block
+     * @param bucket       the bucket used in the operation
+     * @param itemStack    the item that will remain in the player's hand
      */
-    protected PlayerBucketEvent(Player player, Block block, Block blockClicked, Direction blockFace,
-                                ItemStack bucket, ItemStack item) {
+    protected PlayerBucketEvent(Player player, Block block, Block blockClicked, Direction blockFace, ItemStack bucket, ItemStack itemStack) {
         super(player);
         this.block = block;
         this.blockClicked = blockClicked;
         this.blockFace = blockFace;
         this.bucket = bucket;
-        this.item = item;
+        this.itemStack = itemStack;
     }
 
     /**
@@ -78,16 +77,16 @@ public abstract class PlayerBucketEvent extends PlayerEvent implements Cancellab
      *
      * @return the resulting item
      */
-    public ItemStack getItem() {
-        return this.item;
+    public ItemStack getItemStack() {
+        return this.itemStack;
     }
 
     /**
      * Sets the item that will remain in the player's hand.
      *
-     * @param item the resulting item
+     * @param itemStack the resulting item
      */
-    public void setItem(ItemStack item) {
-        this.item = item;
+    public void setItemStack(ItemStack itemStack) {
+        this.itemStack = itemStack;
     }
 }

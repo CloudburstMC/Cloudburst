@@ -573,7 +573,7 @@ public final class LiquidBlockHandlers {
             level.addSound(targetPos, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
         }
 
-        if (reaction.removesBlock() && !destroyTarget(source, target, liquid, reaction)) {
+        if (reaction.removesBlock() && !allowBlockReplacement(source, target, liquid)) {
             return;
         }
 
@@ -582,20 +582,10 @@ public final class LiquidBlockHandlers {
         }
     }
 
-    private static boolean destroyTarget(Block source, Block target, LiquidState liquid, LiquidReaction reaction) {
+    private static boolean allowBlockReplacement(Block source, Block target, LiquidState liquid) {
         CloudLevel level = (CloudLevel) source.getLevel();
         LiquidDestroyBlockEvent event = new LiquidDestroyBlockEvent(source, target, liquid);
         level.getServer().getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        if (reaction == LiquidReaction.POPPED) {
-            level.breakBlock(target.getPosition());
-        } else {
-            target.set(BlockStates.AIR);
-        }
-
-        return true;
+        return !event.isCancelled();
     }
 }

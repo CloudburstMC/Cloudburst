@@ -3,6 +3,7 @@ package org.cloudburstmc.server.registry;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockLootHandler;
+import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
@@ -23,6 +24,7 @@ public class VanillaBlockBehaviors {
     private static final int MAXIMUM_FALL_DAMAGE = 40;
 
     public static void configure(CloudBlockRegistry registry) {
+        configureVegetation(registry);
         configureWoodenButton(registry, ACACIA_BUTTON);
         configureDoor(registry, ACACIA_DOOR);
         configureFenceGate(registry, ACACIA_FENCE_GATE);
@@ -378,8 +380,6 @@ public class VanillaBlockBehaviors {
         configureFalling(registry, SAND, Sound.LAND_SAND, Sound.DIG_SAND);
         configureSlab(registry, SANDSTONE_SLAB, SANDSTONE_DOUBLE_SLAB);
         configureStairs(registry, SANDSTONE_STAIRS);
-        registry.configure(SHORT_GRASS)
-                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(SHORT_GRASS));
         configureUsable(registry, SMITHING_TABLE, ContainerBlockHandlers.SMITHING_TABLE);
         configureUsable(registry, SMOKER, ContainerBlockHandlers.SMOKER);
         configureSlab(registry, SMOOTH_QUARTZ_SLAB, SMOOTH_QUARTZ_DOUBLE_SLAB);
@@ -437,9 +437,11 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, SULFUR_SLAB, SULFUR_DOUBLE_SLAB);
         configureStairs(registry, SULFUR_STAIRS);
         registry.configure(SWEET_BERRY_BUSH)
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
-        registry.configure(TALL_GRASS).set(BlockComponents.GET_LOOT, VanillaBlockLoot.tallGrass());
+                .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.sweetBerryBush())
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, VegetationBlockHandlers.SWEET_BERRY_BUSH_USE);
         configureTorch(registry, TORCH);
         configureUsable(registry, TRAPPED_CHEST, ContainerBlockHandlers.TRAPPED_CHEST);
         registry.configure(TRIP_WIRE)
@@ -635,6 +637,103 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_PLACE, new TrapdoorPlaceHandler(registry))
                 .set(BlockComponents.CAN_BE_USED, TrapdoorBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, TrapdoorBlockHandlers.USE);
+    }
+
+    private void configureVegetation(CloudBlockRegistry registry) {
+        configureSinglePlants(registry,
+                ALLIUM, AZURE_BLUET, BLUE_ORCHID, CLOSED_EYEBLOSSOM, CORNFLOWER, DANDELION,
+                FERN, GOLDEN_DANDELION, LILY_OF_THE_VALLEY, OPEN_EYEBLOSSOM, ORANGE_TULIP,
+                OXEYE_DAISY, PINK_TULIP, POPPY, RED_TULIP, SHORT_DRY_GRASS, SHORT_GRASS,
+                SWEET_BERRY_BUSH, TORCHFLOWER, WHITE_TULIP);
+        registry.configure(CACTUS_FLOWER)
+                .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CACTUS_FLOWER_CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(VegetationBlockHandlers.CACTUS_FLOWER_CAN_SURVIVE));
+
+        registry.configure(SHORT_GRASS)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growInto(TALL_GRASS))
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(SHORT_GRASS));
+        registry.configure(FERN)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growInto(LARGE_FERN))
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(FERN));
+        registry.configure(SHORT_DRY_GRASS)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.replaceWith(TALL_DRY_GRASS));
+        registry.configure(SWEET_BERRY_BUSH)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growToAge(3));
+
+        SurviveBlockHandler dryVegetationSurvival = VegetationBlockHandlers.supportedBy(BlockTags.SUPPORTS_DRY_VEGETATION);
+        registry.configure(SHORT_DRY_GRASS)
+                .set(BlockComponents.CAN_SURVIVE, dryVegetationSurvival)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(dryVegetationSurvival));
+        registry.configure(TALL_DRY_GRASS)
+                .set(BlockComponents.CAN_SURVIVE, dryVegetationSurvival)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(dryVegetationSurvival));
+        registry.configure(TALL_DRY_GRASS)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.spread(SHORT_DRY_GRASS, BlockTags.SUPPORTS_DRY_VEGETATION));
+
+        SurviveBlockHandler witherRoseSurvival = VegetationBlockHandlers.supportedBy(BlockTags.SUPPORTS_WITHER_ROSE);
+        registry.configure(WITHER_ROSE)
+                .set(BlockComponents.CAN_SURVIVE, witherRoseSurvival)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(witherRoseSurvival))
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.WITHER_ROSE_ENTITY_INSIDE);
+        registry.configure(OPEN_EYEBLOSSOM)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.EYEBLOSSOM_ENTITY_INSIDE);
+        registry.configure(CLOSED_EYEBLOSSOM)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
+                .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.EYEBLOSSOM_ENTITY_INSIDE);
+        configureFlowerBed(registry, PINK_PETALS);
+        configureFlowerBed(registry, WILDFLOWERS);
+        registry.configure(GRASS_BLOCK)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.spreadGroundCover());
+
+        configureDoublePlants(registry, LARGE_FERN, LILAC, PEONY, PITCHER_PLANT, ROSE_BUSH, SUNFLOWER, TALL_GRASS);
+
+        registry.configure(TALL_GRASS).set(BlockComponents.GET_LOOT, VanillaBlockLoot.tallGrass());
+        registry.configure(LARGE_FERN).set(BlockComponents.GET_LOOT, VanillaBlockLoot.largeFern());
+
+        configureRenewableTallFlowers(registry, LILAC, PEONY, ROSE_BUSH, SUNFLOWER);
+    }
+
+    private void configureDoublePlant(CloudBlockRegistry registry, BlockType type) {
+        registry.configure(type)
+                .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_DESTROY, VegetationBlockHandlers.DOUBLE_PLANT_DESTROY)
+                .set(BlockComponents.ON_PLACE, new DoublePlantPlaceHandler())
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.DOUBLE_PLANT_NEIGHBOUR_CHANGED);
+    }
+
+    private void configureDoublePlants(CloudBlockRegistry registry, BlockType... types) {
+        for (BlockType type : types) {
+            configureDoublePlant(registry, type);
+        }
+    }
+
+    private void configureFlowerBed(CloudBlockRegistry registry, BlockType type) {
+        configureSinglePlant(registry, type);
+        registry.configure(type)
+                .set(BlockComponents.CAN_BE_REPLACED, VegetationBlockHandlers.FLOWER_BED_REPLACEABLE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, VegetationBlockHandlers.FLOWER_BED_PLACEMENT)
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growFlowerBed(type))
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.flowerBed(type));
+    }
+
+    private void configureRenewableTallFlowers(CloudBlockRegistry registry, BlockType... types) {
+        for (BlockType type : types) {
+            registry.configure(type).set(BlockComponents.FERTILIZE, VegetationBlockHandlers.duplicate(type));
+        }
+    }
+
+    private void configureSinglePlant(CloudBlockRegistry registry, BlockType type) {
+        registry.configure(type)
+                .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.NEIGHBOUR_CHANGED);
+    }
+
+    private void configureSinglePlants(CloudBlockRegistry registry, BlockType... types) {
+        for (BlockType type : types) {
+            configureSinglePlant(registry, type);
+        }
     }
 
     private void configureUsable(CloudBlockRegistry registry, BlockType type, UseBlockHandler handler) {

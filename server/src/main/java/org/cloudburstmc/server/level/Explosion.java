@@ -14,8 +14,8 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -167,16 +167,16 @@ public class Explosion {
                 int damage = this.doesDamage ? (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1) : 0;
 
                 if (this.what instanceof Entity sourceEntity) {
-                    DamageSource source = DamageSource.builder(DamageTypes.ENTITY_EXPLOSION)
+                    DamageSource source = DamageSource.builder(sourceEntity instanceof Player ? DamageTypes.PLAYER_EXPLOSION : DamageTypes.EXPLOSION)
                             .directEntity(sourceEntity).causingEntity(sourceEntity)
                             .location(Location.from(this.source, this.level)).build();
                     entity.attack(new EntityDamageEvent(entity, source, damage));
                 } else if (this.what instanceof Block sourceBlock) {
-                    DamageSource source = DamageSource.builder(DamageTypes.BLOCK_EXPLOSION)
+                    DamageSource source = DamageSource.builder(DamageTypes.EXPLOSION)
                             .block(sourceBlock).location(Location.from(sourceBlock.getPosition(), this.level)).build();
                     entity.attack(new EntityDamageEvent(entity, source, damage));
                 } else {
-                    entity.attack(new EntityDamageEvent(entity, DamageTypes.BLOCK_EXPLOSION, damage));
+                    entity.attack(new EntityDamageEvent(entity, DamageTypes.EXPLOSION, damage));
                 }
 
                 if (!(entity instanceof DroppedItem || entity instanceof ExperienceOrb)) {
@@ -184,41 +184,6 @@ public class Explosion {
                 }
             }
         }
-
-        ItemStack air = ItemStack.EMPTY;
-
-//        TODO For now no explosions
-//        //Iterator iter = this.affectedBlocks.entrySet().iterator();
-//        for (Block block : this.affectedBlockStates) {
-//            var state = block.getState();
-//            var behavior = state.getBehavior();
-//            //Block block = (Block) ((HashMap.Entry) iter.next()).getValue();
-//            if (state.getType() == BlockTypes.TNT) {
-//                ((BlockBehaviorTNT) behavior).prime(block, ThreadLocalRandom.current().nextInt(10, 31), this.what instanceof Entity ? (Entity) this.what : null);
-//            } else if (Math.random() * 100 < yield) {
-//                for (ItemStack drop : behavior.getDrops(block, air)) {
-//                    this.level.dropItem(block.getPosition(), drop);
-//                }
-//            }
-//
-//            behavior.onBreak(block, air);
-//
-//            for (Direction side : Direction.values()) {
-//                Block sideBlock = block.getSide(side);
-//                Vector3i sidePos = sideBlock.getPosition();
-//                long index = Hash.hashBlock(sidePos.getX(), sidePos.getY(), sidePos.getZ());
-//                if (!this.affectedBlockStates.contains(sideBlock) && !updateBlocks.contains(index)) {
-//                    BlockUpdateEvent ev = new BlockUpdateEvent(sideBlock);
-//                    this.level.getServer().getEventManager().fire(ev);
-//                    if (!ev.isCancelled()) {
-//                        var b = ev.getBlock();
-//                        b.getState().getBehavior().onUpdate(b, CloudLevel.BLOCK_UPDATE_NORMAL);
-//                    }
-//
-//                    updateBlocks.add(index);
-//                }
-//            }
-//        }
 
         this.level.addParticle(new HugeExplodeSeedParticle(this.source));
         this.level.addLevelSoundEvent(explosionPosition, SoundEvent.EXPLODE);

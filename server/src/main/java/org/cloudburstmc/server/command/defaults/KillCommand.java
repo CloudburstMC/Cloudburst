@@ -78,7 +78,7 @@ public class KillCommand extends AdvertisedCommand {
     }
 
     private static void kill(CommandSender sender, Entity entity) {
-        EntityDamageEvent event = new EntityDamageEvent(entity, DamageTypes.SUICIDE, 1000);
+        EntityDamageEvent event = new EntityDamageEvent(entity, DamageTypes.GENERIC_KILL, 1000);
         if (!entity.attack(event)) {
             return;
         }

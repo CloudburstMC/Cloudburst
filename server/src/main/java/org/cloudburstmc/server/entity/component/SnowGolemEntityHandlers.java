@@ -40,11 +40,11 @@ public final class SnowGolemEntityHandlers {
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(
                 snowGolem.getLevel().getBiomeId(position.getX(), position.getY(), position.getZ()));
         if (biome != null && biome.getTemperature(position.getX(), position.getY(), position.getZ()) > 1) {
-            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.FIRE, 1));
+            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.ON_FIRE, 1));
         }
 
         if (snowGolem.getLevel().getBlock(position).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
-            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.DROWNING, 1));
+            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.DROWN, 1));
         }
     }
 

@@ -146,7 +146,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
 
-        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.PROJECTILE)
+        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.TRIDENT)
                 .directEntity(this).location(this.getLocation());
         Entity owner = this.getOwner();
         if (owner != null) {

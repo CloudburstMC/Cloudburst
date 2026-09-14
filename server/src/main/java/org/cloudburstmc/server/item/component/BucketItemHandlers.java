@@ -47,7 +47,7 @@ public final class BucketItemHandlers {
             clicked.set(BlockStates.AIR);
             addCreativeFilledBucket(player, blockBucket);
             level.addSound(position, Sound.BUCKET_FILL_POWDER_SNOW);
-            return event.getItem();
+            return event.getItemStack();
         }
 
         LiquidState liquid = clicked.getLiquid();
@@ -70,7 +70,7 @@ public final class BucketItemHandlers {
 
         addCreativeFilledBucket(player, filledBucket);
         level.addSound(position, isWater(liquid) ? Sound.BUCKET_FILL_WATER : Sound.BUCKET_FILL_LAVA);
-        return event.getItem();
+        return event.getItemStack();
     };
 
     public static UseOnHandler place(BlockState state) {
@@ -106,7 +106,7 @@ public final class BucketItemHandlers {
 
             spawnBucketEntity(level, target, entityType, item);
             level.addSound(target, Sound.BUCKET_EMPTY_FISH);
-            return event.getItem();
+            return event.getItemStack();
         };
     }
 
@@ -135,7 +135,7 @@ public final class BucketItemHandlers {
             }
 
             level.addSound(target.getPosition(), Sound.BUCKET_EMPTY_POWDER_SNOW);
-            return event.getItem();
+            return event.getItemStack();
         };
     }
 
@@ -173,7 +173,7 @@ public final class BucketItemHandlers {
                 }
 
                 level.addSound(target, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
-                return event.getItem();
+                return event.getItemStack();
             }
 
             if (!level.setLiquidState(target, liquid)) {
@@ -186,7 +186,7 @@ public final class BucketItemHandlers {
 
             level.addSound(target, entityType != null ? Sound.BUCKET_EMPTY_FISH
                     : isWater(liquid) ? Sound.BUCKET_EMPTY_WATER : Sound.BUCKET_EMPTY_LAVA);
-            return event.getItem();
+            return event.getItemStack();
         };
     }
 

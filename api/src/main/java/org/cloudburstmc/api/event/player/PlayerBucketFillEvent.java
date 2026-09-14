@@ -8,19 +8,19 @@ import org.cloudburstmc.api.util.Direction;
 /**
  * Called when a player fills a bucket from a block.
  */
-public final class PlayerBucketFillEvent extends PlayerBucketEvent {
+public class PlayerBucketFillEvent extends PlayerBucketEvent {
 
     /**
      * Creates a bucket-fill event.
      *
-     * @param player the player filling the bucket
-     * @param block the block supplying the bucket contents
+     * @param player       the player filling the bucket
+     * @param block        the block supplying the bucket contents
      * @param blockClicked the block the player clicked
-     * @param blockFace the face of the clicked block
-     * @param bucket the bucket used in the operation
-     * @param item the item that will remain in the player's hand
+     * @param blockFace    the face of the clicked block
+     * @param bucket       the bucket used in the operation
+     * @param itemStack    the item that will remain in the player's hand
      */
-    public PlayerBucketFillEvent(Player player, Block block, Block blockClicked, Direction blockFace, ItemStack bucket, ItemStack item) {
-        super(player, block, blockClicked, blockFace, bucket, item);
+    public PlayerBucketFillEvent(Player player, Block block, Block blockClicked, Direction blockFace, ItemStack bucket, ItemStack itemStack) {
+        super(player, block, blockClicked, blockFace, bucket, itemStack);
     }
 }

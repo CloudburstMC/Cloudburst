@@ -109,9 +109,9 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        return (source.getDamageType() == DamageTypes.VOID ||
-                source.getDamageType() == DamageTypes.CONTACT ||
-                source.getDamageType() == DamageTypes.FIRE_TICK ||
+        return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
+                source.getDamageType() == DamageTypes.CACTUS ||
+                source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
                         !this.isInsideOfWater() && (this.item == null ||
                         this.item.getType() != ItemTypes.NETHER_STAR)) && super.attack(source);

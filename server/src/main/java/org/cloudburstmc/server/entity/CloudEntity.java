@@ -899,15 +899,8 @@ public abstract class CloudEntity implements Entity {
 
     public void sendPotionEffects(CloudPlayer player) {
         for (Effect effect : this.effects.values()) {
-            MobEffectPacket pk = new MobEffectPacket();
-            pk.setRuntimeEntityId(this.getRuntimeId());
-            pk.setEffectId(NetworkUtils.effectToNetwork(effect.getType()));
-            pk.setAmplifier(effect.getAmplifier());
-            pk.setParticles(effect.isVisible());
-            pk.setDuration(effect.getDuration());
-            pk.setEvent(MobEffectPacket.Event.ADD);
-
-            player.sendPacket(pk);
+            player.sendPacket(NetworkUtils.effectToNetwork(effect, this.getRuntimeId(), MobEffectPacket.Event.ADD,
+                    this.server.getTick()));
         }
     }
 
@@ -1004,7 +997,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, DamageTypes.CUSTOM, damage));
+        return this.attack(new EntityDamageEvent(this, DamageTypes.GENERIC, damage));
     }
 
     public void heal(EntityRegainHealthEvent source) {
@@ -1220,7 +1213,7 @@ public abstract class CloudEntity implements Entity {
                     }
                 } else {
                     if (!this.hasEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                        this.attack(new EntityDamageEvent(this, DamageTypes.FIRE_TICK, 1));
+                        this.attack(new EntityDamageEvent(this, DamageTypes.ON_FIRE, 1));
                     }
                     this.fireTicks -= tickDiff;
                 }
@@ -1695,7 +1688,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void onStruckByLightning(LightningBolt lightningBolt) {
-        DamageSource source = DamageSource.builder(DamageTypes.LIGHTNING)
+        DamageSource source = DamageSource.builder(DamageTypes.LIGHTNING_BOLT)
                 .directEntity(lightningBolt).causingEntity(lightningBolt).location(lightningBolt.getLocation()).build();
         if (this.attack(new EntityDamageEvent(this, source, 5))) {
             if (this.fireTicks < 8 * 20) {

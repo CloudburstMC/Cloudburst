@@ -2,9 +2,11 @@ package org.cloudburstmc.server.command;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
@@ -63,9 +65,13 @@ public abstract class ServerCommand {
     }
 
     protected final int executeCommand(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        return this.executeCommand(context, this::execute);
+    }
+
+    protected final int executeCommand(CommandContext<CommandSourceStack> context, Command<CommandSourceStack> command) throws CommandSyntaxException {
         this.timing.startTiming();
         try {
-            return this.execute(context);
+            return command.run(context);
         } catch (CommandUsageException e) {
             String label = context.getNodes().getFirst().getNode().getName();
             CloudCommandRegistry registry = CloudServer.getInstance().getCommandRegistry();
@@ -104,7 +110,8 @@ public abstract class ServerCommand {
     }
 
     protected static boolean hasArgument(CommandContext<CommandSourceStack> context, String name) {
-        return context.getNodes().stream().anyMatch(parsedNode -> parsedNode.getNode().getName().equals(name));
+        return context.getNodes().stream().anyMatch(parsedNode ->
+                parsedNode.getNode() instanceof ArgumentCommandNode<?, ?> && parsedNode.getNode().getName().equals(name));
     }
 
     protected static String argumentValue(CommandContext<CommandSourceStack> context, String name) {

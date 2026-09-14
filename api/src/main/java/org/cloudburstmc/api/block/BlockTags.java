@@ -223,6 +223,21 @@ public class BlockTags {
     public static final BlockTagKey SUPPORTS_CHORUS_PLANT = tag("supports_chorus_plant");
 
     /**
+     * Blocks on which dry vegetation may survive.
+     */
+    public static final BlockTagKey SUPPORTS_DRY_VEGETATION = tag("supports_dry_vegetation");
+
+    /**
+     * Blocks on which ordinary vegetation may survive.
+     */
+    public static final BlockTagKey SUPPORTS_VEGETATION = tag("supports_vegetation");
+
+    /**
+     * Blocks on which wither roses may survive.
+     */
+    public static final BlockTagKey SUPPORTS_WITHER_ROSE = tag("supports_wither_rose");
+
+    /**
      * Blocks treated as transparent for vanilla visibility or rendering checks.
      */
     public static final BlockTagKey TRANSPARENT = tag("transparent");

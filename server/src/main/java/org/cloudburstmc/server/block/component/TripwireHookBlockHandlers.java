@@ -10,7 +10,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.block.util.TripwireCalculator;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 
 @UtilityClass
 public class TripwireHookBlockHandlers {
@@ -31,7 +30,7 @@ public class TripwireHookBlockHandlers {
         if (neighbor.getPosition().equals(wallPos)) {
             CloudLevel level = (CloudLevel) block.getLevel();
             if (!PlacementSupport.hasFullFaceSupport(level, pos, facing)) {
-                breakHook(block, state, level, pos);
+                level.breakBlock(pos, null, null, true);
             }
         }
     };
@@ -54,21 +53,4 @@ public class TripwireHookBlockHandlers {
         level.updateAround(pos);
     };
 
-    private void breakHook(Block block, BlockState state, CloudLevel level, Vector3i pos) {
-        level.addParticle(new DestroyBlockParticle(pos.toFloat().add(0.5f, 0.5f, 0.5f), state));
-
-        DefaultBlockHandlers.dropLoot(block);
-
-        block.set(BlockStates.AIR, true, false);
-
-        if (state.ensureTrait(BlockTraits.IS_ATTACHED) || state.ensureTrait(BlockTraits.IS_POWERED)) {
-            TripwireCalculator.calculateState(level, pos, state, true, false);
-        }
-
-        if (state.ensureTrait(BlockTraits.IS_POWERED)) {
-            TripwireCalculator.notifyRedstoneNeighbours(level, pos, state.ensureTrait(BlockTraits.DIRECTION));
-        }
-
-        level.updateAround(pos);
-    }
 }

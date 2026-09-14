@@ -73,14 +73,14 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     public boolean attack(EntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.VOID && super.attack(source);
+        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.attack(source);
     }
 
     public void onCollideWithEntity(Entity entity) {
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
 
-        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.PROJECTILE)
+        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.MOB_PROJECTILE)
                 .directEntity(this).location(this.getLocation());
         Entity owner = this.getOwner();
         if (owner != null) {

@@ -1589,7 +1589,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             damage = 1f;
                         }
 
-                        DamageSource source = DamageSource.builder(DamageTypes.ENTITY_ATTACK)
+                        DamageSource source = DamageSource.builder(DamageTypes.PLAYER_ATTACK)
                                 .directEntity(player).causingEntity(player).location(player.getLocation()).build();
                         EntityDamageEvent damageEvent = new EntityDamageEvent(target, source, damage);
                         target.attack(damageEvent);

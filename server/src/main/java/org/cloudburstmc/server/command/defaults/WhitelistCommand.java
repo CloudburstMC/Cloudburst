@@ -6,8 +6,8 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
-import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -30,81 +30,82 @@ public class WhitelistCommand extends AdvertisedCommand {
     public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
         builder.then(Commands.literal("on")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.enable"))
-                .executes(this::executeCommand));
+                .executes(context -> this.executeCommand(context, this::enable)));
         builder.then(Commands.literal("off")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.disable"))
-                .executes(this::executeCommand));
+                .executes(context -> this.executeCommand(context, this::disable)));
         builder.then(Commands.literal("list")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.list"))
-                .executes(this::executeCommand));
+                .executes(context -> this.executeCommand(context, this::list)));
         builder.then(Commands.literal("reload")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.reload"))
-                .executes(this::executeCommand));
+                .executes(context -> this.executeCommand(context, this::reload)));
         builder.then(Commands.literal("add")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.add"))
                 .then(Commands.argument("player", CommandArgumentTypes.string())
-                        .executes(this::executeCommand)));
+                        .executes(context -> this.executeCommand(context, this::add))));
         builder.then(Commands.literal("remove")
                 .requires(Commands.requiresPermission("cloudburst.command.whitelist.remove"))
                 .then(Commands.argument("player", CommandArgumentTypes.string())
-                        .executes(this::executeCommand)));
+                        .executes(context -> this.executeCommand(context, this::remove))));
     }
 
     @Override
     protected int execute(CommandContext<CommandSourceStack> context) {
+        return usage();
+    }
+
+    private int enable(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
-        CloudServer server = (CloudServer) sender.getServer();
-        String action = action(context);
-
-        if (!hasArgument(context, "player")) {
-            switch (action) {
-                case "reload":
-                    server.reloadWhitelist();
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.reloaded"));
-                    return success();
-                case "on":
-                    server.getConfig().setWhitelist(true);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
-                    return success();
-                case "off":
-                    server.getConfig().setWhitelist(false);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
-                    return success();
-                case "list":
-                    StringJoiner result = new StringJoiner(", ");
-                    int count = 0;
-                    for (String player : server.getWhitelist().getAll().keySet()) {
-                        result.add(player);
-                        ++count;
-                    }
-                    sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
-                    sender.sendMessage(Component.text(result.toString()));
-                    return success();
-            }
-        } else {
-            String player = argumentValue(context, "player");
-            switch (action) {
-                case "add":
-                    server.getOfflinePlayer(player).setWhitelisted(true);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(player)));
-                    return success();
-                case "remove":
-                    server.getOfflinePlayer(player).setWhitelisted(false);
-                    CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(player)));
-                    return success();
-            }
-        }
-
+        server(context).getConfig().setWhitelist(true);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
         return success();
     }
 
-    private static String action(CommandContext<CommandSourceStack> context) {
-        for (String action : new String[]{"on", "off", "list", "reload", "add", "remove"}) {
-            if (hasArgument(context, action)) {
-                return action;
-            }
-        }
+    private int disable(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        server(context).getConfig().setWhitelist(false);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
+        return success();
+    }
 
-        throw new IllegalStateException("Whitelist command has no action");
+    private int list(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        StringJoiner result = new StringJoiner(", ");
+        int count = 0;
+        for (String player : server(context).getWhitelist().getAll().keySet()) {
+            result.add(player);
+            count++;
+        }
+        sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
+        sender.sendMessage(Component.text(result.toString()));
+        return success();
+    }
+
+    private int reload(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        server(context).reloadWhitelist();
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.reloaded"));
+        return success();
+    }
+
+    private int add(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        String player = argumentValue(context, "player");
+        server(context).getOfflinePlayer(player).setWhitelisted(true);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(player)));
+        return success();
+    }
+
+    private int remove(CommandContext<CommandSourceStack> context) {
+        CommandSender sender = sender(context);
+        String player = argumentValue(context, "player");
+        server(context).getOfflinePlayer(player).setWhitelisted(false);
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(player)));
+        return success();
+    }
+
+    private CloudServer server(CommandContext<CommandSourceStack> context) {
+        return (CloudServer) sender(context).getServer();
     }
 }

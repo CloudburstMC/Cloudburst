@@ -222,7 +222,7 @@ public interface Entity {
     Set<? extends Player> getViewers();
 
     default boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, DamageTypes.CUSTOM, damage));
+        return this.attack(new EntityDamageEvent(this, DamageTypes.GENERIC, damage));
     }
 
     boolean attack(EntityDamageEvent source);
