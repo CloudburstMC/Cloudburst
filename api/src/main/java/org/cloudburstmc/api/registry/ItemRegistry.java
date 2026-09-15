@@ -53,9 +53,9 @@ public interface ItemRegistry extends ComponentRegistry<ItemType>, KeyedRegistry
     Collection<ItemTag> getTags();
 
     /**
-     * Returns a builder for configuring a registered block type during initialization.
+     * Returns a builder for configuring a registered item type during initialization.
      *
-     * @param type registered block type
+     * @param type registered item type
      * @return component builder for the type
      * @throws RegistryException if the type is unknown or registration has closed
      */
