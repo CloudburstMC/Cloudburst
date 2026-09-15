@@ -5,6 +5,7 @@ import org.cloudburstmc.api.item.ItemTag;
 import org.cloudburstmc.api.item.ItemTagKey;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.api.util.component.ComponentMap;
 
 import java.util.Collection;
@@ -50,4 +51,13 @@ public interface ItemRegistry extends ComponentRegistry<ItemType>, KeyedRegistry
      * @return immutable collection of item tags
      */
     Collection<ItemTag> getTags();
+
+    /**
+     * Returns a builder for configuring a registered block type during initialization.
+     *
+     * @param type registered block type
+     * @return component builder for the type
+     * @throws RegistryException if the type is unknown or registration has closed
+     */
+    ComponentBuilder configure(ItemType type) throws RegistryException;
 }
