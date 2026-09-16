@@ -67,6 +67,7 @@ fastutil-short-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = 
 fastutil-short-sets = { group = "org.cloudburstmc.fastutil.sets", name = "short-sets", version.ref = "fastutil" }
 
 bedrock-adventure = { group = "org.cloudburstmc.protocol", name = "adventure", version.ref = "protocol" }
+bedrock-codec = { group = "org.cloudburstmc.protocol", name = "bedrock-codec", version.ref = "protocol" }
 bedrock-connection = { group = "org.cloudburstmc.protocol", name = "bedrock-connection", version.ref = "protocol" }
 block-state-updater = { group = "org.cloudburstmc", name = "block-state-updater", version = "1.21.110-SNAPSHOT" }
 brigadier = { group = "com.mojang", name = "brigadier", version.ref = "brigadier" }

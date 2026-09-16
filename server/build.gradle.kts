@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":api"))
+    implementation(libs.bedrock.codec)
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
     }
