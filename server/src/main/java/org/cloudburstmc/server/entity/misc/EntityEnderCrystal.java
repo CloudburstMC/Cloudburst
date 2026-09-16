@@ -48,12 +48,12 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         if (this.isInvulnerable() || source.getDamageType().is(DamageTypeTags.IS_FIRE)) {
             return false;
         }
 
-        if (!super.attack(source)) {
+        if (!super.applyDamage(source)) {
             return false;
         }
 

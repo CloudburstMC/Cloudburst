@@ -7,7 +7,6 @@ import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.CollisionContext;
@@ -127,16 +126,16 @@ public class DefaultBlockHandlers {
     };
 
     public static final EntityInsideBlockHandler CACTUS_ENTITY_INSIDE = (block, entity, precise) ->
-            entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.CACTUS, block), 1));
+            entity.damage(1, blockDamageSource(DamageTypes.CACTUS, block));
 
     public static final EntityInsideBlockHandler FIRE_ENTITY_INSIDE = (block, entity, precise) -> {
         entity.setOnFire(8);
-        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.IN_FIRE, block), 1));
+        entity.damage(1, blockDamageSource(DamageTypes.IN_FIRE, block));
     };
 
     public static final EntityInsideBlockHandler LAVA_ENTITY_INSIDE = (block, entity, precise) -> {
         entity.setOnFire(15);
-        entity.attack(new EntityDamageEvent(entity, blockDamageSource(DamageTypes.LAVA, block), 4));
+        entity.damage(4, blockDamageSource(DamageTypes.LAVA, block));
     };
 
     public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) ->

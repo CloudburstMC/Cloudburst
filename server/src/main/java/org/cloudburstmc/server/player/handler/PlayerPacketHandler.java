@@ -19,21 +19,19 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.component.FloatItemHandler;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
@@ -106,6 +104,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     private Vector3i lastBreakPosition = Vector3i.ZERO;
     private @Nullable Vector3i completedInstantBreakPosition;
     private @Nullable BlockBreakSession blockBreakSession;
+    private boolean awaitingRespawnCompletion;
 
     public PlayerPacketHandler(CloudPlayer player) {
         this.player = player;
@@ -959,22 +958,116 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.acknowledgeHotbarSlot(slot);
     }
 
+    private @Nullable Location performRespawn() {
+        if (!player.spawned || player.isAlive() || !player.isOnline()) {
+            return null;
+        }
+
+        if (player.getServer().isHardcore()) {
+            player.setBanned(true);
+            return null;
+        }
+
+        player.closeInventory(InventoryCloseEvent.Reason.DEATH);
+        resetInteractionState();
+        player.stopSleep();
+
+        Location respawnLocation = player.findRespawnPosition();
+        boolean bedSpawn = false;
+        boolean anchorSpawn = false;
+
+        Set<PlayerRespawnFlag> respawnFlags = EnumSet.noneOf(PlayerRespawnFlag.class);
+        if (respawnLocation != null) {
+            RespawnConfig config = player.getRespawnConfig();
+            if (config != null) {
+                if (config.spawnType() == RespawnConfig.SpawnType.BED) {
+                    respawnFlags.add(PlayerRespawnFlag.BED_SPAWN);
+                    bedSpawn = true;
+                } else {
+                    respawnFlags.add(PlayerRespawnFlag.ANCHOR_SPAWN);
+                    anchorSpawn = true;
+                }
+            }
+        } else {
+            respawnLocation = player.getServer().getDefaultLevel().getSafeSpawn();
+        }
+
+        PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(player, respawnLocation, PlayerRespawnReason.DEATH, respawnFlags);
+        player.getServer().getEventManager().fire(respawnEvent);
+        respawnLocation = respawnEvent.getRespawnLocation();
+
+        if (!player.teleportForRespawn(respawnLocation)) {
+            return null;
+        }
+
+        player.setSprinting(false);
+        player.setSneaking(false);
+        player.setSwimming(false);
+        player.setGliding(false);
+        player.setCrawling(false);
+        player.getAbilities().set(Ability.FLYING, false);
+        player.getData().set(EntityDataTypes.AIR_SUPPLY, (short) 400);
+        player.deadTicks = 0;
+        player.noDamageTicks = 60;
+        player.removeAllEffects();
+        player.setHealth(player.getMaxHealth());
+        player.getFoodData().setLevel(20, 20);
+        player.setMovementSpeed(DEFAULT_SPEED);
+
+        player.recalculateBoundingBox();
+        player.sendAttributes();
+        player.sendData(player);
+        player.getAbilities().update();
+        player.getInventoryManager().sendAllInventories();
+        player.spawnToAll();
+        player.scheduleUpdate();
+
+        PlayerPostRespawnEvent postRespawnEvent = new PlayerPostRespawnEvent(player, respawnLocation, bedSpawn, anchorSpawn);
+        player.getServer().getEventManager().fire(postRespawnEvent);
+        return respawnLocation;
+    }
+
+    private void completeRespawnHandshake() {
+        if (!this.awaitingRespawnCompletion || !player.isAlive()) {
+            return;
+        }
+
+        this.awaitingRespawnCompletion = false;
+
+        EntityEventPacket respawnPacket = new EntityEventPacket();
+        respawnPacket.setRuntimeEntityId(player.getRuntimeId());
+        respawnPacket.setType(EntityEventType.RESPAWN);
+        respawnPacket.setData(0);
+        player.sendPacket(respawnPacket);
+
+        player.sendAttributes();
+        player.recalculateBoundingBox();
+        player.sendData(player);
+        player.refreshBossBars();
+    }
+
+    private void resetInteractionState() {
+        this.lastRightClickPos = Vector3i.ZERO;
+        this.lastRightClickTime = 0;
+        this.lastRightClickFace = null;
+        this.usingItemOnBlock = false;
+        this.blockItemActivationTick = Integer.MIN_VALUE;
+        this.lastBreakPosition = Vector3i.ZERO;
+        this.completedInstantBreakPosition = null;
+        this.blockBreakSession = null;
+        player.breakingBlock = null;
+        player.setUsingItem(false);
+    }
+
     @Override
     public PacketSignal handle(PlayerActionPacket packet) {
-        if (!player.spawned || (!player.isAlive() &&
-                packet.getAction() != PlayerActionType.RESPAWN &&
-                packet.getAction() != PlayerActionType.DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK)) {
+        if (!player.spawned || (!player.isAlive() && packet.getAction() != PlayerActionType.RESPAWN)) {
             return PacketSignal.HANDLED;
         }
 
         packet.setRuntimeEntityId(player.getRuntimeId());
 
-        PlayerActionType action = packet.getAction();
-        if (!player.isAlive() && action == PlayerActionType.DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK) {
-            action = PlayerActionType.RESPAWN;
-        }
-
-        switch (action) {
+        switch (packet.getAction()) {
             case START_ITEM_USE_ON:
                 this.usingItemOnBlock = true;
                 break;
@@ -989,68 +1082,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.stopSleep();
                 break;
             case RESPAWN:
-                if (!player.spawned || player.isAlive() || !player.isOnline()) {
-                    break;
-                }
-
-                if (player.getServer().isHardcore()) {
-                    player.setBanned(true);
-                    break;
-                }
-
-                player.closeInventory();
-
-                Location respawnLoc = player.findRespawnPosition();
-                boolean isBedSpawn = false;
-                boolean isAnchorSpawn = false;
-
-                Set<PlayerRespawnFlag> respawnFlags = EnumSet.noneOf(PlayerRespawnFlag.class);
-                if (respawnLoc != null) {
-                    RespawnConfig cfg = player.getRespawnConfig();
-                    if (cfg != null) {
-                        if (cfg.spawnType() == RespawnConfig.SpawnType.BED) {
-                            respawnFlags.add(PlayerRespawnFlag.BED_SPAWN);
-                            isBedSpawn = true;
-                        } else {
-                            respawnFlags.add(PlayerRespawnFlag.ANCHOR_SPAWN);
-                            isAnchorSpawn = true;
-                        }
-                    }
-                } else {
-                    respawnLoc = player.getServer().getDefaultLevel().getSafeSpawn();
-                }
-
-                PlayerRespawnEvent playerRespawnEvent = new PlayerRespawnEvent(player, respawnLoc, PlayerRespawnReason.DEATH, respawnFlags);
-                player.getServer().getEventManager().fire(playerRespawnEvent);
-                respawnLoc = playerRespawnEvent.getRespawnLocation();
-
-                if (!player.teleportForRespawn(respawnLoc)) {
-                    break;
-                }
-
-                player.setSprinting(false);
-                player.setSneaking(false);
-
-                player.getData().set(EntityDataTypes.AIR_SUPPLY, (short) 400);
-                player.deadTicks = 0;
-                player.noDamageTicks = 60;
-
-                player.removeAllEffects();
-                player.setHealth(player.getMaxHealth());
-                player.getFoodData().setLevel(20, 20);
-
-                player.sendData(player);
-
-                player.setMovementSpeed(DEFAULT_SPEED);
-
-                player.getAbilities().update();
-                player.getInventoryManager().sendAllInventories();
-
-                player.spawnToAll();
-                player.scheduleUpdate();
-
-                PlayerPostRespawnEvent postRespawnEvent = new PlayerPostRespawnEvent(player, respawnLoc, isBedSpawn, isAnchorSpawn);
-                player.getServer().getEventManager().fire(postRespawnEvent);
+                completeRespawnHandshake();
                 break;
             case DIMENSION_CHANGE_REQUEST_OR_CREATIVE_DESTROY_BLOCK:
             default:
@@ -1579,25 +1611,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             break;
                         }
 
-                        float damage = 0f;
-                        if (!heldItem.isEmpty()) {
-                            FloatItemHandler attackBonus = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE_BONUS);
-                            damage = attackBonus.execute(heldItem);
-                        }
-
-                        if (damage <= 0f) {
-                            damage = 1f;
-                        }
-
-                        DamageSource source = DamageSource.builder(DamageTypes.PLAYER_ATTACK)
-                                .directEntity(player).causingEntity(player).location(player.getLocation()).build();
-                        EntityDamageEvent damageEvent = new EntityDamageEvent(target, source, damage);
-                        target.attack(damageEvent);
-
-                        AnimatePacket swingPkt = new AnimatePacket();
-                        swingPkt.setAction(AnimatePacket.Action.SWING_ARM);
-                        swingPkt.setRuntimeEntityId(player.getRuntimeId());
-                        CloudServer.broadcastPacket(player.getViewers(), swingPkt);
+                        player.attack(target);
                         break;
                     }
                     default:
@@ -1639,19 +1653,23 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(RespawnPacket packet) {
-        if (player.isAlive()) {
+        if (player.isAlive() || packet.getState() != RespawnPacket.State.CLIENT_READY) {
             return PacketSignal.HANDLED;
         }
-        if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            Location respawnPos = player.findRespawnPosition();
-            if (respawnPos == null) {
-                respawnPos = player.getServer().getDefaultLevel().getSafeSpawn();
-            }
-            RespawnPacket respawn1 = new RespawnPacket();
-            respawn1.setPosition(respawnPos.getPosition());
-            respawn1.setState(RespawnPacket.State.SERVER_READY);
-            player.sendPacket(respawn1);
+
+        this.awaitingRespawnCompletion = false;
+        Location respawnLocation = performRespawn();
+        if (respawnLocation == null) {
+            return PacketSignal.HANDLED;
         }
+
+        this.awaitingRespawnCompletion = true;
+        RespawnPacket response = new RespawnPacket();
+        response.setRuntimeEntityId(0);
+        response.setPosition(respawnLocation.getPosition());
+        response.setState(RespawnPacket.State.SERVER_READY);
+        player.sendPacket(response);
+        player.sendPosition(player.getPosition(), player.getYaw(), player.getPitch(), MovePlayerPacket.Mode.RESPAWN);
         return PacketSignal.HANDLED;
     }
 

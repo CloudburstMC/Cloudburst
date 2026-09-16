@@ -2,8 +2,8 @@ package org.cloudburstmc.server.potion;
 
 import lombok.NonNull;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
@@ -80,10 +80,10 @@ public class CloudEffect extends Effect {
     public void applyEffect(Entity entity) {
         if (this.getType() == EffectTypes.POISON) {
             if (entity.getHealth() > 1) {
-                entity.attack(new EntityDamageEvent(entity, DamageTypes.MAGIC, 1));
+                entity.damage(1, DamageSource.of(DamageTypes.MAGIC));
             }
         } else if (this.getType() == EffectTypes.WITHER) {
-            entity.attack(new EntityDamageEvent(entity, DamageTypes.WITHER, 1));
+            entity.damage(1, DamageSource.of(DamageTypes.WITHER));
         } else if (this.getType() == EffectTypes.REGENERATION) {
             if (entity.getHealth() < entity.getMaxHealth()) {
                 entity.heal(new EntityRegainHealthEvent(entity, 1, EntityRegainHealthEvent.CAUSE_MAGIC));

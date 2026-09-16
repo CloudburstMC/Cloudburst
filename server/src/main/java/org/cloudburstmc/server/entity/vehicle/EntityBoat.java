@@ -101,13 +101,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         if (invulnerable) {
             return false;
         } else {
             source.setDamage(source.getDamage() * 2);
 
-            boolean attack = super.attack(source);
+            boolean attack = super.applyDamage(source);
 
             if (isAlive()) {
                 performHurtAnimation();

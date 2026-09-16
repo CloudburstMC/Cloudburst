@@ -83,8 +83,8 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
-        if (!super.attack(source)) {
+    protected boolean applyDamage(EntityDamageEvent source) {
+        if (!super.applyDamage(source)) {
             return false;
         }
 

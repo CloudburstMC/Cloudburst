@@ -267,7 +267,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         return false;
     }
 
@@ -317,16 +317,15 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 }
 
                                 if (damage) {
-                                    DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.MAGIC)
-                                            .directEntity(this).location(this.getLocation());
+                                    DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.INDIRECT_MAGIC)
+                                            .directEntity(this);
                                     Entity owner = this.getOwner();
                                     if (owner != null) {
                                         sourceBuilder.causingEntity(owner);
                                     }
 
                                     DamageSource source = sourceBuilder.build();
-                                    collidingEntity.attack(new EntityDamageEvent(collidingEntity, source,
-                                            (float) (0.5 * (double) (6 << (effect.getAmplifier() + 1)))));
+                                    collidingEntity.damage((float) (0.5 * (double) (6 << (effect.getAmplifier() + 1))), source);
                                 } else {
                                     collidingEntity.heal(new EntityRegainHealthEvent(collidingEntity, (float) (0.5 * (double) (4 << (effect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
                                 }

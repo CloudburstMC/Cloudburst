@@ -11,10 +11,10 @@ import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemComponents;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -40,7 +40,6 @@ import org.cloudburstmc.server.utils.Utils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
@@ -362,66 +361,90 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
-        if (this.isClosed() || !this.isAlive()) {
-            return false;
-        }
-
+    protected void applyDamageReductions(EntityDamageEvent source) {
         if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)) {
-            int armorPoints = 0;
-            int epf = 0;
-            int toughness = 0;
-
-            ArmorView armorView = getArmor();
-            for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-                ItemStack armor = armorView.getItem(armorSlot);
-//                TODO: Needs implementation
-//                armorPoints += armor.getBlockState().getBehavior().getArmorPoints(armor);
-                epf += calculateEnchantmentProtectionFactor(armor, source);
-                //toughness += armor.getToughness();
-            }
-
-            float damage = source.getDamage() * (1 - armorPoints * 0.04f);
-            float enchantmentReduction = Math.min(GenericMath.ceil(Math.min(epf, 25)
-                    * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f;
-            source.setDamage(Math.max(0, damage * (1 - enchantmentReduction)));
+            source.setDamage(this.calculateDamageAfterArmor(source.getDamage()));
         }
 
-        if (super.attack(source)) {
-            Entity damager = source.getDamageSource().getCausingEntity();
+        super.applyDamageReductions(source);
 
-            for (int slot = 0; slot < 4; slot++) {
-                ItemStack armor = this.getArmor().getItem(slot);
-                if (damager != null) {
-                    for (Enchantment enchantment : armor.get(ItemKeys.ENCHANTMENTS).values()) {
-                        CloudEnchantmentRegistry.get().doPostAttack(enchantment, damager, this);
-                    }
-                }
-
-                if (!armor.isEmpty()) {
-                    int durabilityDamage = Math.max((int) (source.getDamage() / 4), 1);
-                    ItemStack damagedArmor = this.server.getItemRegistry()
-                            .requireComponent(armor.getType(), ItemComponents.ON_DAMAGE)
-                            .execute(armor, durabilityDamage, this);
-                    if (!damagedArmor.equals(armor)) {
-                        getArmor().setItem(slot, damagedArmor);
-                    }
-                }
-            }
-
-            return true;
-        } else {
-            return false;
+        if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ENCHANTMENTS)) {
+            source.setDamage(this.calculateDamageAfterEnchantments(source));
         }
     }
 
-    protected double calculateEnchantmentProtectionFactor(ItemStack item, EntityDamageEvent source) {
-        double epf = 0;
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
-            epf += CloudEnchantmentRegistry.get().getProtectionFactor(enchantment, source);
+    @Override
+    protected void afterDamageApplied(EntityDamageEvent source, float damageBeforeReductions) {
+        super.afterDamageApplied(source, damageBeforeReductions);
+
+        Entity damager = source.getDamageSource().getCausingEntity();
+        for (int slot = 0; slot < 4; slot++) {
+            ItemStack armor = this.getArmor().getItem(slot);
+            ItemStack damagedArmor = armor;
+            if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)
+                    && !damagedArmor.isEmpty()
+                    && this.server.getItemRegistry().getComponent(damagedArmor.getType(), ItemComponents.ARMOR) != null
+                    && damageBeforeReductions > 0) {
+                int durabilityDamage = Math.max((int) (damageBeforeReductions / 4), 1);
+                damagedArmor = this.server.getItemRegistry()
+                        .requireComponent(damagedArmor.getType(), ItemComponents.ON_DAMAGE)
+                        .execute(damagedArmor, durabilityDamage, this);
+            }
+
+            if (damager != null && !damagedArmor.isEmpty()) {
+                damagedArmor = CloudEnchantmentRegistry.get().applyPostHurtEffects(damagedArmor, this, damager);
+            }
+
+            if (!damagedArmor.equals(armor)) {
+                this.getArmor().setItem(slot, damagedArmor);
+            }
+        }
+    }
+
+    private float calculateDamageAfterArmor(float damage) {
+        float armorPoints = 0;
+        float toughness = 0;
+
+        ArmorView armorView = this.getArmor();
+        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+            ItemStack armor = armorView.getItem(armorSlot);
+            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.ARMOR);
+            if (armorComponent != null) {
+                armorPoints += armorComponent.defense();
+                toughness += armorComponent.toughness();
+            }
         }
 
-        return epf;
+        float toughnessFactor = 2 + toughness / 4;
+        float effectiveArmor = Math.clamp(armorPoints - damage / toughnessFactor, armorPoints * 0.2f, 20);
+        return damage * (1 - effectiveArmor / 25);
+    }
+
+    private float calculateDamageAfterEnchantments(EntityDamageEvent source) {
+        float enchantmentProtection = 0;
+        ArmorView armorView = this.getArmor();
+        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+            enchantmentProtection += CloudEnchantmentRegistry.get().getDamageProtection(armorView.getItem(armorSlot), source);
+        }
+
+        float enchantmentReduction = Math.min(enchantmentProtection, 20) * 0.04f;
+        return Math.max(0, source.getDamage() * (1 - enchantmentReduction));
+    }
+
+    @Override
+    protected float getKnockbackResistance() {
+        float resistance = 0;
+        ArmorView armorView = this.getArmor();
+
+        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
+            ItemStack armor = armorView.getItem(armorSlot);
+            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.ARMOR);
+            if (armorComponent != null) {
+                resistance += armorComponent.knockbackResistance();
+            }
+        }
+
+        return Math.clamp(resistance, 0, 1);
     }
 
     @Override
@@ -444,10 +467,19 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     public ItemStack[] getDrops() {
-//        if (this.getContainer() != null) {
-//            return this.getContainer().getContents();
-//        }
-        return new ItemStack[0];
+        List<ItemStack> drops = new ArrayList<>(this.container.size() + this.armor.size() + this.offhand.size());
+        addDrops(drops, this.container.getContents());
+        addDrops(drops, this.armor.getContents());
+        addDrops(drops, this.offhand.getContents());
+        return drops.toArray(ItemStack[]::new);
+    }
+
+    private static void addDrops(List<ItemStack> drops, ItemStack[] contents) {
+        for (ItemStack item : contents) {
+            if (!item.isEmpty() && !item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.VANISHING)) {
+                drops.add(item);
+            }
+        }
     }
 
     public boolean isSneaking() {

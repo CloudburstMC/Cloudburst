@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.potion.PotionCollideEvent;
 import org.cloudburstmc.api.level.Location;
@@ -80,6 +81,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             return;
         }
 
+        DamageSource damageSource = this.createProjectileDamageSource();
         this.close();
 
         potion = (CloudPotion) event.getPotion();
@@ -117,7 +119,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             double distance = anEntity.getPosition().distanceSquared(this.getPosition());
             if (distance < 16) {
                 double d = anEntity.equals(collidedWith) ? 1 : 1 - Math.sqrt(distance) / 4;
-                potion.applyPotion(anEntity, d);
+                potion.applyPotion(anEntity, d, damageSource);
             }
         }
     }

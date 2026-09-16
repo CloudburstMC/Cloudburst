@@ -284,13 +284,13 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         if (invulnerable) {
             return false;
         } else {
             source.setDamage(source.getDamage() * 15);
 
-            boolean attack = super.attack(source);
+            boolean attack = super.applyDamage(source);
 
             if (isAlive()) {
                 performHurtAnimation();

@@ -5,7 +5,9 @@ import co.aikar.timings.Timings;
 import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.*;
@@ -122,6 +124,7 @@ public abstract class CloudEntity implements Entity {
     public boolean invulnerable;
     protected boolean noPhysics;
     protected CloudLevel level;
+    @Getter
     public boolean closed = false;
     protected Entity vehicle;
     private @Nullable Entity owner;
@@ -781,10 +784,23 @@ public abstract class CloudEntity implements Entity {
     public String getName() {
         if (this.hasNameTag()) {
             return this.getNameTag();
-        } else {
-            // FIXME: 04/01/2020 Use language files
-            return CloudEntityRegistry.get().getLegacyName(this.type.getId());
         }
+
+        String name = CloudEntityRegistry.get().getLegacyName(this.type.getId());
+        return name != null ? name : this.type.getId().toString();
+    }
+
+    @Override
+    public Component displayName() {
+        if (this.hasNameTag()) {
+            return Component.text(this.getNameTag());
+        }
+
+        if ("minecraft".equals(this.type.getId().getNamespace())) {
+            return Component.translatable("entity." + this.type.getId().getName() + ".name");
+        }
+
+        return Component.text(this.type.getId().toString());
     }
 
     @Override
@@ -980,15 +996,29 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public boolean attack(EntityDamageEvent source) {
-        if (hasEffect(EffectTypes.FIRE_RESISTANCE) && source.getDamageType().is(DamageTypeTags.IS_FIRE)) {
+    @Override
+    public boolean damage(float amount, DamageSource source) {
+        return this.applyDamage(new EntityDamageEvent(this, source, amount));
+    }
+
+    /**
+     * Applies a damage event after entity-specific preprocessing.
+     *
+     * @param source the damage event
+     * @return whether damage was applied
+     */
+    protected boolean applyDamage(EntityDamageEvent source) {
+        if (hasEffect(EffectTypes.FIRE_RESISTANCE)
+                && source.getDamageType().is(DamageTypeTags.IS_FIRE)
+                && !source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
             return false;
         }
 
         getServer().getEventManager().fire(source);
-        if (source.isCancelled()) {
+        if (source.isCancelled() || source.getDamage() <= 0) {
             return false;
         }
+
         setLastDamageCause(source);
         float absorbed = Math.min(this.getAbsorption(), source.getDamage());
         this.setAbsorption(this.getAbsorption() - absorbed);
@@ -996,26 +1026,25 @@ public abstract class CloudEntity implements Entity {
         return true;
     }
 
-    public boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, DamageTypes.GENERIC, damage));
-    }
-
-    public void heal(EntityRegainHealthEvent source) {
-        this.server.getEventManager().fire(source);
-        if (source.isCancelled()) {
-            return;
-        }
-        this.setHealth(this.getHealth() + source.getAmount());
-    }
-
+    @Override
     public void heal(float amount) {
         this.heal(new EntityRegainHealthEvent(this, amount, EntityRegainHealthEvent.CAUSE_REGEN));
     }
 
+    @Override
+    public void heal(EntityRegainHealthEvent source) {
+        this.server.getEventManager().fire(source);
+        if (!source.isCancelled()) {
+            this.setHealth(this.getHealth() + source.getAmount());
+        }
+    }
+
+    @Override
     public float getHealth() {
         return health;
     }
 
+    @Override
     public void setHealth(float health) {
         if (this.health == health) {
             return;
@@ -1034,14 +1063,22 @@ public abstract class CloudEntity implements Entity {
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.health);
     }
 
+    @Override
+    public int getMaxHealth() {
+        return maxHealth + (this.hasEffect(EffectTypes.HEALTH_BOOST) ? 4 * (this.getEffect(EffectTypes.HEALTH_BOOST).getAmplifier() + 1) : 0);
+    }
+
+    @Override
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    @Override
     public boolean isAlive() {
         return this.health > 0;
     }
 
-    public boolean isClosed() {
-        return closed;
-    }
-
+    @Override
     public EntityDamageEvent getLastDamageCause() {
         return lastDamageCause;
     }
@@ -1050,12 +1087,21 @@ public abstract class CloudEntity implements Entity {
         this.lastDamageCause = type;
     }
 
-    public int getMaxHealth() {
-        return maxHealth + (this.hasEffect(EffectTypes.HEALTH_BOOST) ? 4 * (this.getEffect(EffectTypes.HEALTH_BOOST).getAmplifier() + 1) : 0);
+    @Override
+    public float getAbsorption() {
+        return absorption;
     }
 
-    public void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth;
+    @Override
+    public void setAbsorption(float absorption) {
+        if (absorption == this.absorption) {
+            return;
+        }
+
+        this.absorption = absorption;
+        if (this instanceof CloudPlayer player) {
+            player.setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
+        }
     }
 
     @Override
@@ -1213,7 +1259,7 @@ public abstract class CloudEntity implements Entity {
                     }
                 } else {
                     if (!this.hasEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                        this.attack(new EntityDamageEvent(this, DamageTypes.ON_FIRE, 1));
+                        this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
                     }
                     this.fireTicks -= tickDiff;
                 }
@@ -1532,18 +1578,6 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public float getAbsorption() {
-        return absorption;
-    }
-
-    public void setAbsorption(float absorption) {
-        if (absorption != this.absorption) {
-            this.absorption = absorption;
-            if (this instanceof CloudPlayer)
-                ((CloudPlayer) this).setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
-        }
-    }
-
     public Direction getDirection() {
         double rotation = this.yaw % 360;
         if (rotation < 0) {
@@ -1645,7 +1679,7 @@ public abstract class CloudEntity implements Entity {
         float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(EffectTypes.JUMP_BOOST) ? this.getEffect(EffectTypes.JUMP_BOOST).getAmplifier() + 1 : 0));
 
         if (damage > 0) {
-            this.attack(new EntityDamageEvent(this, DamageTypes.FALL, damage));
+            this.damage(damage, DamageSource.of(DamageTypes.FALL));
         }
     }
 
@@ -1688,9 +1722,8 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void onStruckByLightning(LightningBolt lightningBolt) {
-        DamageSource source = DamageSource.builder(DamageTypes.LIGHTNING_BOLT)
-                .directEntity(lightningBolt).causingEntity(lightningBolt).location(lightningBolt.getLocation()).build();
-        if (this.attack(new EntityDamageEvent(this, source, 5))) {
+        DamageSource source = DamageSource.of(DamageTypes.LIGHTNING_BOLT);
+        if (this.damage(5, source)) {
             if (this.fireTicks < 8 * 20) {
                 this.setOnFire(8);
             }
@@ -2005,7 +2038,12 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void kill() {
+        this.enterDeathState();
+    }
+
+    protected final void enterDeathState() {
         this.health = 0;
+        this.data.set(STRUCTURAL_INTEGRITY, 0);
         this.scheduleUpdate();
 
         for (Entity passenger : new ArrayList<>(this.passengers)) {

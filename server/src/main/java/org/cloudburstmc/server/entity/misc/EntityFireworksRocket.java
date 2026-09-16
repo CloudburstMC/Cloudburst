@@ -175,11 +175,11 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION))
-                && super.attack(source);
+                && super.applyDamage(source);
     }
 
     @Override

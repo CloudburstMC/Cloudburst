@@ -63,8 +63,8 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
-        if (super.attack(source)) {
+    protected boolean applyDamage(EntityDamageEvent source) {
+        if (super.applyDamage(source)) {
             Entity damager = source.getDamageSource().getCausingEntity();
             if (damager instanceof CloudPlayer player) {
                 if (player.isSurvival() && this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {

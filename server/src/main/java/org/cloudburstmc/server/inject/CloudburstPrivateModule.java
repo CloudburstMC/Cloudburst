@@ -34,6 +34,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
         this.bindAndExpose(CloudCommandRegistry.class).toInstance(this.server.getCommandRegistry());
         this.bindAndExpose(CloudConsoleCommandSender.class);
+        this.bindAndExpose(CloudDamageTypeRegistry.class).toInstance(CloudDamageTypeRegistry.get());
         this.bindAndExpose(CloudEffectRegistry.class).toInstance(CloudEffectRegistry.get());
         this.bindAndExpose(CloudEnchantmentRegistry.class).toInstance(CloudEnchantmentRegistry.get());
         this.bindAndExpose(CloudEntityRegistry.class).toInstance(CloudEntityRegistry.get());
@@ -42,6 +43,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(CloudParticleRegistry.class).toInstance(CloudParticleRegistry.get());
         this.bindAndExpose(CloudRecipeRegistry.class).toInstance(CloudRecipeRegistry.get());
         this.bindAndExpose(CloudServer.class).toInstance(this.server);
+        this.bindAndExpose(DamageTypeRegistry.class).toInstance(CloudDamageTypeRegistry.get());
         this.bindAndExpose(EffectRegistry.class).toInstance(CloudEffectRegistry.get());
         this.bindAndExpose(EnchantmentRegistry.class).toInstance(CloudEnchantmentRegistry.get());
         this.bindAndExpose(EntityRegistry.class).toInstance(CloudEntityRegistry.get());

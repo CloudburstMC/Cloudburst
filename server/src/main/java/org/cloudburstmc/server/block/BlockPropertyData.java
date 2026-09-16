@@ -54,22 +54,23 @@ class BlockPropertyData {
 
     private static StateData readStateData(Map<String, Object> entry, String name) {
         return new StateData(
-                readCollisionBoxes(entry.get("collisionShape"), name),
-                readOutlineBox(entry.get("outlineShape"), name),
+                requiredString(entry, "translationKey", name),
+                requiredBoolean(entry, "isSolid", name),
                 requiredNumber(entry, "hardness", name).floatValue(),
                 requiredNumber(entry, "explosionResistance", name).floatValue(),
                 requiredNumber(entry, "friction", name).floatValue(),
-                requiredNumber(entry, "translucency", name).floatValue(),
                 requiredNumber(entry, "thickness", name).floatValue(),
+                requiredBoolean(entry, "requiresCorrectToolForDrops", name),
+                requiredNumber(entry, "translucency", name).floatValue(),
+                requiredString(entry, "mapColor", name),
+                requiredNumber(entry, "lightEmission", name).intValue(),
+                requiredNumber(entry, "lightDampening", name).intValue(),
                 requiredNumber(entry, "burnOdds", name).intValue(),
                 requiredNumber(entry, "flameOdds", name).intValue(),
-                requiredNumber(entry, "lightDampening", name).intValue(),
-                requiredNumber(entry, "lightEmission", name).intValue(),
-                requiredBoolean(entry, "isSolid", name),
-                requiredBoolean(entry, "requiresCorrectToolForDrops", name),
-                requiredString(entry, "mapColor", name),
                 requiredBoolean(entry, "canContainLiquidSource", name),
-                readLiquidReaction(requiredString(entry, "liquidReactionOnTouch", name), name)
+                readLiquidReaction(requiredString(entry, "liquidReactionOnTouch", name), name),
+                readCollisionBoxes(entry.get("collisionShape"), name),
+                readOutlineBox(entry.get("outlineShape"), name)
         );
     }
 
@@ -167,22 +168,23 @@ class BlockPropertyData {
     }
 
     record StateData(
-            float[] collisionBoxes,
-            float[] outlineShape,
+            String translationKey,
+            boolean solid,
             float hardness,
             float explosionResistance,
             float friction,
-            float translucency,
             float thickness,
+            boolean requiresCorrectToolForDrops,
+            float translucency,
+            String mapColor,
+            int lightEmission,
+            int lightDampening,
             int burnOdds,
             int flameOdds,
-            int lightDampening,
-            int lightEmission,
-            boolean solid,
-            boolean requiresCorrectToolForDrops,
-            String mapColor,
             boolean canContainLiquidSource,
-            LiquidReaction liquidReactionOnTouch
+            LiquidReaction liquidReactionOnTouch,
+            float[] collisionBoxes,
+            float[] outlineShape
     ) {
     }
 }

@@ -8,14 +8,14 @@ import org.cloudburstmc.server.CloudServer;
 public final class EnchantmentFireAspect extends EnchantmentBehavior {
 
     @Override
-    public void doPostAttack(Enchantment enchantment, Entity entity, Entity attacker) {
-        int duration = Math.max(entity.getFireTicks() / 20, enchantment.level() * 4);
+    public void onPostAttack(Enchantment enchantment, Entity attacker, Entity target) {
+        int duration = Math.max(target.getFireTicks() / 20, enchantment.level() * 4);
 
-        EntityCombustByEntityEvent ev = new EntityCombustByEntityEvent(attacker, entity, duration);
-        CloudServer.getInstance().getEventManager().fire(ev);
+        EntityCombustByEntityEvent event = new EntityCombustByEntityEvent(attacker, target, duration);
+        CloudServer.getInstance().getEventManager().fire(event);
 
-        if (!ev.isCancelled()) {
-            entity.setOnFire(ev.getDuration());
+        if (!event.isCancelled()) {
+            target.setOnFire(event.getDuration());
         }
     }
 }

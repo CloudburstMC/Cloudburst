@@ -13,8 +13,18 @@ public final class DamageTypeTag {
 
     private final Identifier id;
 
-    DamageTypeTag(Identifier id) {
+    private DamageTypeTag(Identifier id) {
         this.id = requireNonNull(id, "id");
+    }
+
+    /**
+     * Creates a damage type tag key.
+     *
+     * @param id the tag identifier
+     * @return the tag key
+     */
+    public static DamageTypeTag of(Identifier id) {
+        return new DamageTypeTag(id);
     }
 
     /**

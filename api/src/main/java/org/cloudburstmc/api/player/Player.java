@@ -287,6 +287,7 @@ public interface Player extends Creature, CommandSender {
      *
      * @return the display name component
      */
+    @Override
     Component displayName();
 
     /**

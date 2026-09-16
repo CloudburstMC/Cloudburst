@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.enchantment.EnchantmentTarget;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.CanEnchantWithHandler;
 import org.cloudburstmc.api.item.component.CanRepairWithHandler;
@@ -383,6 +384,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
 
     private void registerVanillaBehaviors() {
         this.registerComponent(ItemComponents.ALLOW_OFFHAND, () -> false);
+        this.registerComponent(ItemComponents.ARMOR);
+        this.registerComponent(ItemComponents.ATTACK_DAMAGE_TYPE, DamageTypes.PLAYER_ATTACK);
         this.registerComponent(ItemComponents.CAN_BE_CHARGED, () -> false);
         this.registerComponent(ItemComponents.CAN_BE_DEPLETED, () -> false);
         this.registerComponent(ItemComponents.CAN_BE_PLACED, (item) -> false);
@@ -395,7 +398,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
         this.registerComponent(ItemComponents.FINISH_USE);
         this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);
-        this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE_BONUS, (item) -> 0f);
+        this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE, (item) -> 1f);
+        this.registerComponent(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);
         this.registerComponent(ItemComponents.GET_BLOCK, (item) -> Optional.empty());
         this.registerComponent(ItemComponents.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
         this.registerComponent(ItemComponents.GET_EQUIPMENT_SLOT, item -> null);
@@ -404,6 +408,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         this.registerComponent(ItemComponents.GET_TOOL, item -> null);
         this.registerComponent(ItemComponents.MINE_BLOCK, (item, block, owner) -> item);
         this.registerComponent(ItemComponents.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemComponents.SPAWN_EGG);
         this.registerComponent(ItemComponents.USE);
         this.registerComponent(ItemComponents.USE_DURATION_TICKS);
         this.registerComponent(ItemComponents.USE_ON);

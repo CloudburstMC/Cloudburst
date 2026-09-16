@@ -2,10 +2,7 @@ package org.cloudburstmc.api.entity;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.data.ComponentType;
-import org.cloudburstmc.api.entity.component.BooleanEntityHandler;
-import org.cloudburstmc.api.entity.component.FloatEntityHandler;
-import org.cloudburstmc.api.entity.component.InteractEntityHandler;
-import org.cloudburstmc.api.entity.component.TickEntityHandler;
+import org.cloudburstmc.api.entity.component.*;
 
 /**
  * Standard {@link ComponentType} constants for entity behavioral components.
@@ -21,6 +18,11 @@ public class EntityComponents {
      * Returns the base melee attack damage this entity deals.
      */
     public static final ComponentType<FloatEntityHandler> GET_ATTACK_DAMAGE = ComponentType.of("entity_get_attack_damage", FloatEntityHandler.class);
+
+    /**
+     * Resolves the damage type used by this projectile type.
+     */
+    public static final ComponentType<DamageTypeEntityHandler> GET_PROJECTILE_DAMAGE_TYPE = ComponentType.of("entity_get_projectile_damage_type", DamageTypeEntityHandler.class);
 
     /**
      * Called when a player interacts with this entity.

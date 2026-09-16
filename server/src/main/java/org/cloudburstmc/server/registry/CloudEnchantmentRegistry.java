@@ -5,11 +5,13 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.EnchantmentRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -30,11 +32,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 public class CloudEnchantmentRegistry implements EnchantmentRegistry {
 
-    private static final CloudEnchantmentRegistry INSTANCE;
-
-    static {
-        INSTANCE = new CloudEnchantmentRegistry();
-    }
+    private static final CloudEnchantmentRegistry INSTANCE = new CloudEnchantmentRegistry();
 
     private final Map<EnchantmentType, EnchantmentBehavior> behaviorMap = new Reference2ObjectOpenHashMap<>();
     private final BiMap<EnchantmentType, Short> idMap = HashBiMap.create();
@@ -47,22 +45,6 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
 
     public static CloudEnchantmentRegistry get() {
         return INSTANCE;
-    }
-
-    private synchronized void registerVanilla(short id, @NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
-        this.checkClosed();
-        Preconditions.checkNotNull(type, "type");
-        Preconditions.checkNotNull(behavior, "behavior");
-        Preconditions.checkState(!behaviorMap.containsKey(type), "Enchantment %s already registered", type);
-        Preconditions.checkState(!idMap.inverse().containsKey(id), "Enchantment ID %s already registered", id);
-
-        behaviorMap.put(type, behavior);
-        idMap.put(type, id);
-        identifierMap.put(type, type.identifier());
-    }
-
-    public Enchantment getEnchantment(@NonNull EnchantmentType type) {
-        return getEnchantment(type, 1);
     }
 
     public Enchantment getEnchantment(@NonNull EnchantmentType type, int level) {
@@ -85,27 +67,66 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         return !first.type().conflictsWith(second.type());
     }
 
-    public float getProtectionFactor(@NonNull Enchantment enchantment, @NonNull EntityDamageEvent event) {
-        Preconditions.checkNotNull(enchantment, "enchantment");
+    public float getDamageProtection(@NonNull ItemStack item, @NonNull EntityDamageEvent event) {
+        Preconditions.checkNotNull(item, "item");
         Preconditions.checkNotNull(event, "event");
-        return getBehavior(enchantment.type()).getProtectionFactor(enchantment, event);
+
+        float protection = 0;
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            protection += getBehavior(enchantment.type()).getDamageProtection(enchantment, event);
+        }
+
+        return protection;
     }
 
-    public void doPostAttack(@NonNull Enchantment enchantment, @NonNull Entity entity, @NonNull Entity attacker) {
-        Preconditions.checkNotNull(enchantment, "enchantment");
-        Preconditions.checkNotNull(entity, "entity");
+    public float modifyDamage(@NonNull ItemStack item, @NonNull Entity target, float damage) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(target, "target");
+
+        float modifiedDamage = damage;
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            modifiedDamage = getBehavior(enchantment.type()).modifyDamage(enchantment, target, modifiedDamage);
+        }
+
+        return modifiedDamage;
+    }
+
+    public float modifyKnockback(@NonNull ItemStack item, @NonNull Entity target, float knockback) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(target, "target");
+
+        float modifiedKnockback = knockback;
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            modifiedKnockback = getBehavior(enchantment.type()).modifyKnockback(enchantment, target, modifiedKnockback);
+        }
+
+        return modifiedKnockback;
+    }
+
+    public void applyPostAttackEffects(@NonNull ItemStack item, @NonNull Entity attacker, @NonNull Entity target) {
+        Preconditions.checkNotNull(item, "item");
         Preconditions.checkNotNull(attacker, "attacker");
-        getBehavior(enchantment.type()).doPostAttack(enchantment, entity, attacker);
+        Preconditions.checkNotNull(target, "target");
+
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            getBehavior(enchantment.type()).onPostAttack(enchantment, attacker, target);
+        }
     }
 
-    private EnchantmentBehavior getBehavior(@NonNull EnchantmentType type) {
-        Preconditions.checkNotNull(type, "type");
-        EnchantmentBehavior behavior = behaviorMap.get(type);
-        Preconditions.checkArgument(behavior != null, "Unregistered enchantment type: %s", type);
-        return behavior;
+    public ItemStack applyPostHurtEffects(@NonNull ItemStack item, @NonNull Entity wearer, @NonNull Entity attacker) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(wearer, "wearer");
+        Preconditions.checkNotNull(attacker, "attacker");
+
+        ItemStack result = item;
+        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+            result = getBehavior(enchantment.type()).onPostHurt(enchantment, result, wearer, attacker);
+        }
+
+        return result;
     }
 
-    public EnchantmentType getType(short id) {
+    public @Nullable EnchantmentType getType(short id) {
         return idMap.inverse().get(id);
     }
 
@@ -124,11 +145,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
 
     @Override
     public Optional<EnchantmentType> get(Identifier id) {
-        return Optional.ofNullable(this.getType(id));
-    }
-
-    public EnchantmentType getType(Identifier id) {
-        return identifierMap.inverse().get(id);
+        return Optional.ofNullable(this.identifierMap.inverse().get(id));
     }
 
     @Override
@@ -146,6 +163,25 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         checkState(!this.closed, "Registration is already closed");
     }
 
+    private EnchantmentBehavior getBehavior(@NonNull EnchantmentType type) {
+        Preconditions.checkNotNull(type, "type");
+        EnchantmentBehavior behavior = behaviorMap.get(type);
+        Preconditions.checkArgument(behavior != null, "Unregistered enchantment type: %s", type);
+        return behavior;
+    }
+
+    private synchronized void registerVanilla(short id, @NonNull EnchantmentType type, @NonNull EnchantmentBehavior behavior) {
+        this.checkClosed();
+        Preconditions.checkNotNull(type, "type");
+        Preconditions.checkNotNull(behavior, "behavior");
+        Preconditions.checkState(!behaviorMap.containsKey(type), "Enchantment %s already registered", type);
+        Preconditions.checkState(!idMap.inverse().containsKey(id), "Enchantment ID %s already registered", id);
+
+        behaviorMap.put(type, behavior);
+        idMap.put(type, id);
+        identifierMap.put(type, type.identifier());
+    }
+
     private void registerVanillaEnchantments() {
         this.registerVanilla((short) 0, EnchantmentTypes.PROTECTION, new EnchantmentProtectionAll());
         this.registerVanilla((short) 1, EnchantmentTypes.FIRE_PROTECTION, new EnchantmentProtectionFire());
@@ -159,7 +195,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         this.registerVanilla((short) 9, EnchantmentTypes.SHARPNESS, new EnchantmentDamageAll());
         this.registerVanilla((short) 10, EnchantmentTypes.SMITE, new EnchantmentDamageSmite());
         this.registerVanilla((short) 11, EnchantmentTypes.BANE_OF_ARTHROPODS, new EnchantmentDamageArthropods());
-        this.registerVanilla((short) 12, EnchantmentTypes.KNOCKBACK, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla((short) 12, EnchantmentTypes.KNOCKBACK, new EnchantmentKnockback());
         this.registerVanilla((short) 13, EnchantmentTypes.FIRE_ASPECT, new EnchantmentFireAspect());
         this.registerVanilla((short) 14, EnchantmentTypes.LOOTING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 15, EnchantmentTypes.EFFICIENCY, NoopEnchantmentBehavior.INSTANCE);
@@ -191,4 +227,3 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         this.registerVanilla((short) 41, EnchantmentTypes.LUNGE, NoopEnchantmentBehavior.INSTANCE);
     }
 }
-

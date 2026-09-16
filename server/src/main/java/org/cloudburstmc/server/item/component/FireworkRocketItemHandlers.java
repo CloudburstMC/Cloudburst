@@ -88,6 +88,7 @@ public class FireworkRocketItemHandlers {
         }
 
         rocket.setFireworkData(item.get(ItemKeys.FIREWORK_DATA));
+        rocket.setOwner(player);
         if (boostPlayer) {
             rocket.setBoostedPlayer(player);
         }

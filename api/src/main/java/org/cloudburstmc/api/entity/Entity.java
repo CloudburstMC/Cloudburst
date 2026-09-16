@@ -1,13 +1,11 @@
 package org.cloudburstmc.api.entity;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Level;
@@ -28,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public interface Entity {
+public interface Entity extends Damageable {
 
     EntityType<?> getType();
 
@@ -202,7 +200,19 @@ public interface Entity {
 
     boolean hasEffect(EffectType type);
 
+    /**
+     * Returns the plain name used to identify this entity.
+     *
+     * @return the entity name
+     */
     String getName();
+
+    /**
+     * Returns the name used when presenting this entity to an audience.
+     *
+     * @return the entity display name
+     */
+    Component displayName();
 
     /**
      * Adds this configured entity to its level.
@@ -220,26 +230,6 @@ public interface Entity {
     void despawnFromAll();
 
     Set<? extends Player> getViewers();
-
-    default boolean attack(float damage) {
-        return this.attack(new EntityDamageEvent(this, DamageTypes.GENERIC, damage));
-    }
-
-    boolean attack(EntityDamageEvent source);
-
-    default void heal(float amount) {
-        this.heal(new EntityRegainHealthEvent(this, amount, EntityRegainHealthEvent.CAUSE_REGEN));
-    }
-
-    void heal(EntityRegainHealthEvent source);
-
-    float getHealth();
-
-    void setHealth(float health);
-
-    int getMaxHealth();
-
-    void setMaxHealth(int maxHealth);
 
     /**
      * Returns the number of ticks this entity has been freezing.
@@ -285,12 +275,6 @@ public interface Entity {
      */
     void lockFreezeTicks(boolean locked);
 
-    default boolean isAlive() {
-        return getHealth() > 0;
-    }
-
-    EntityDamageEvent getLastDamageCause();
-
     boolean canCollideWith(Entity entity);
 
     boolean canBeCollidedWith(@Nullable Entity entity);
@@ -304,10 +288,6 @@ public interface Entity {
     Direction getHorizontalDirection();
 
     boolean onUpdate(int currentTick);
-
-    float getAbsorption();
-
-    void setAbsorption(float absorption);
 
     default boolean isOnFire() {
         return getFireTicks() > 0;

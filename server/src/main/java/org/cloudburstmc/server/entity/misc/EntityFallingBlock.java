@@ -106,8 +106,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.attack(source);
+    protected boolean applyDamage(EntityDamageEvent source) {
+        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
     @Override
@@ -379,11 +379,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
         for (Entity entity : this.level.getCollidingEntities(this.getBoundingBox())) {
             if (entity != this) {
-                DamageSource source = DamageSource.builder(DamageTypes.FALLING_BLOCK)
-                        .directEntity(this).causingEntity(this).location(this.getLocation()).build();
-                EntityDamageEvent event = new EntityDamageEvent(entity, source, damage);
-                event.setKnockback(0);
-                entity.attack(event);
+                DamageSource source = DamageSource.of(DamageTypes.FALLING_BLOCK, this);
+                entity.damage(damage, source);
             }
         }
     }

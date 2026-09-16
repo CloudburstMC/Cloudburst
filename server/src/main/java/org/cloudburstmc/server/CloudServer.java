@@ -212,6 +212,7 @@ public class CloudServer implements Server {
     private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
     private final CloudBlockEntityRegistry blockEntityRegistry = CloudBlockEntityRegistry.get();
 
+    private final CloudDamageTypeRegistry damageTypeRegistry = CloudDamageTypeRegistry.get();
     private final CloudEffectRegistry effectRegistry = CloudEffectRegistry.get();
     private final CloudEnchantmentRegistry enchantmentRegistry = CloudEnchantmentRegistry.get();
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
@@ -465,6 +466,7 @@ public class CloudServer implements Server {
         try {
             this.blockEntityRegistry.close();
             this.blockRegistry.close();
+            this.damageTypeRegistry.close();
             this.effectRegistry.close();
             this.enchantmentRegistry.close();
             this.itemRegistry.close();
@@ -1771,6 +1773,11 @@ public class CloudServer implements Server {
     @Override
     public BiomeRegistry<?> getBiomeRegistry() {
         return biomeRegistry;
+    }
+
+    @Override
+    public DamageTypeRegistry getDamageTypeRegistry() {
+        return damageTypeRegistry;
     }
 
     @Override

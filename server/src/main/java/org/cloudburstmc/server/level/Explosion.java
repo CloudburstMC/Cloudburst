@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level;
 
 import it.unimi.dsi.fastutil.longs.LongArraySet;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -9,10 +10,10 @@ import org.cloudburstmc.api.block.LiquidType;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
@@ -38,17 +39,17 @@ public class Explosion {
     private final Vector3f source;
     private final double size;
     private final double stepLen = 0.3d;
-    private final Object what;
+    private final @Nullable Entity sourceEntity;
 
     private boolean doesDamage = true;
     private boolean destroysBlocks = true;
     private List<Block> affectedBlockStates = new ArrayList<>();
 
-    public Explosion(CloudLevel level, Vector3f center, double size, Entity what) {
+    public Explosion(CloudLevel level, Vector3f center, double size, @Nullable Entity sourceEntity) {
         this.level = level;
         this.source = center;
         this.size = Math.max(size, 0);
-        this.what = what;
+        this.sourceEntity = sourceEntity;
     }
 
     public void setDestroysBlocks(boolean destroysBlocks) {
@@ -59,8 +60,8 @@ public class Explosion {
      * @return bool
      */
     public boolean explodeA() {
-        if (what instanceof Explosive) {
-            Vector3f pos = ((Entity) what).getPosition();
+        if (this.sourceEntity instanceof Explosive) {
+            Vector3f pos = this.sourceEntity.getPosition();
             LiquidType liquid = this.level.getBlock(pos).getLiquid().getType();
             if (liquid.isSameFamily(WATER)) {
                 this.doesDamage = false;
@@ -135,8 +136,8 @@ public class Explosion {
         Vector3f explosionPosition = this.source.floor();
         double yield = (1d / this.size) * 100d;
 
-        if (this.what instanceof Entity) {
-            EntityExplodeEvent ev = new EntityExplodeEvent((Entity) this.what, this.source, this.affectedBlockStates, yield);
+        if (this.sourceEntity != null) {
+            EntityExplodeEvent ev = new EntityExplodeEvent(this.sourceEntity, this.source, this.affectedBlockStates, yield);
             this.level.getServer().getEventManager().fire(ev);
             if (ev.isCancelled()) {
                 return false;
@@ -156,7 +157,8 @@ public class Explosion {
 
         BoundingBox explosionBB = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
 
-        Set<Entity> entities = this.level.getNearbyEntities(this.what instanceof Entity ? (Entity) this.what : null, explosionBB);
+        DamageSource damageSource = this.createDamageSource();
+        Set<Entity> entities = this.level.getNearbyEntities(this.sourceEntity, explosionBB);
         for (Entity entity : entities) {
             double distance = entity.getPosition().distance(this.source) / explosionSize;
 
@@ -166,18 +168,7 @@ public class Explosion {
                 double impact = (1 - distance) * exposure;
                 int damage = this.doesDamage ? (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1) : 0;
 
-                if (this.what instanceof Entity sourceEntity) {
-                    DamageSource source = DamageSource.builder(sourceEntity instanceof Player ? DamageTypes.PLAYER_EXPLOSION : DamageTypes.EXPLOSION)
-                            .directEntity(sourceEntity).causingEntity(sourceEntity)
-                            .location(Location.from(this.source, this.level)).build();
-                    entity.attack(new EntityDamageEvent(entity, source, damage));
-                } else if (this.what instanceof Block sourceBlock) {
-                    DamageSource source = DamageSource.builder(DamageTypes.EXPLOSION)
-                            .block(sourceBlock).location(Location.from(sourceBlock.getPosition(), this.level)).build();
-                    entity.attack(new EntityDamageEvent(entity, source, damage));
-                } else {
-                    entity.attack(new EntityDamageEvent(entity, DamageTypes.EXPLOSION, damage));
-                }
+                entity.damage(damage, damageSource);
 
                 if (!(entity instanceof DroppedItem || entity instanceof ExperienceOrb)) {
                     entity.setMotion(motion.mul(impact));
@@ -191,4 +182,16 @@ public class Explosion {
         return true;
     }
 
+    private DamageSource createDamageSource() {
+        DamageType damageType = this.sourceEntity instanceof Player
+                ? DamageTypes.PLAYER_EXPLOSION
+                : DamageTypes.EXPLOSION;
+        DamageSource.Builder source = DamageSource.builder(damageType)
+                .damageLocation(Location.from(this.source, this.level));
+        if (this.sourceEntity != null) {
+            source.directEntity(this.sourceEntity).causingEntity(this.sourceEntity);
+        }
+
+        return source.build();
+    }
 }

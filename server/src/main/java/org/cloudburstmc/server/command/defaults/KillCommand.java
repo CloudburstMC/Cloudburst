@@ -4,20 +4,22 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
-import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
-import org.cloudburstmc.server.player.CloudPlayer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class KillCommand extends AdvertisedCommand {
@@ -40,49 +42,60 @@ public class KillCommand extends AdvertisedCommand {
         if (hasArgument(context, "targets")) {
             List<Entity> targets = CommandArgumentTypes.entities(context, "targets");
             if (targets.isEmpty()) {
-                sender.sendMessage(Component.translatable("commands.generic.entity.notFound").color(NamedTextColor.RED));
-                return success();
+                return failure(context, Component.translatable("commands.generic.entity.notFound").color(NamedTextColor.RED));
             }
 
             if (!hasKillPermission(sender, targets)) {
-                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                return success();
+                return failure(context, Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
             }
 
-            for (Entity target : targets) {
-                kill(sender, target);
-            }
-
-            return success();
+            return kill(sender, targets);
         }
 
-        if (sender instanceof CloudPlayer) {
+        if (sender instanceof Entity entity) {
             if (!sender.hasPermission("cloudburst.command.kill.self")) {
-                sender.sendMessage(Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
-                return success();
+                return failure(context, Component.translatable("commands.generic.permission").color(NamedTextColor.RED));
             }
 
-            kill(sender, (Entity) sender);
+            return kill(sender, List.of(entity));
         } else {
             return usage();
         }
-
-        return success();
     }
 
     private static boolean hasKillPermission(CommandSender sender, List<Entity> targets) {
         if (targets.size() == 1 && targets.getFirst() == sender) {
             return sender.hasPermission("cloudburst.command.kill.self");
         }
+
         return sender.hasPermission("cloudburst.command.kill.other");
     }
 
-    private static void kill(CommandSender sender, Entity entity) {
-        EntityDamageEvent event = new EntityDamageEvent(entity, DamageTypes.GENERIC_KILL, 1000);
-        if (!entity.attack(event)) {
-            return;
+    private static int kill(CommandSender sender, List<Entity> targets) {
+        List<Component> killed = new ArrayList<>(targets.size());
+        for (Entity target : targets) {
+            if (!kill(target)) {
+                continue;
+            }
+
+            killed.add(target.displayName());
         }
-        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful",
-                Component.text(entity.getName())));
+
+        if (!killed.isEmpty()) {
+            Component names = Component.join(JoinConfiguration.separator(Component.text(", ")), killed);
+            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kill.successful", names));
+        }
+
+        return killed.size();
+    }
+
+    private static boolean kill(Entity target) {
+        if (target instanceof Living) {
+            target.damage(Float.MAX_VALUE, DamageSource.of(DamageTypes.GENERIC_KILL));
+        } else {
+            target.kill();
+        }
+
+        return !target.isAlive();
     }
 }

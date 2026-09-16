@@ -75,10 +75,10 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         //false?
         source.setDamage(0);
-        return super.attack(source);
+        return super.applyDamage(source);
     }
 
     @Override

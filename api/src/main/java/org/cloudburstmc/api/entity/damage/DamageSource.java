@@ -1,30 +1,33 @@
 package org.cloudburstmc.api.entity.damage;
 
+import lombok.EqualsAndHashCode;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Player;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Identifies the type and origin of damage.
  */
+@EqualsAndHashCode
 public final class DamageSource {
 
     private final DamageType damageType;
     private final @Nullable Entity directEntity;
     private final @Nullable Entity causingEntity;
     private final @Nullable Block block;
-    private final @Nullable Location location;
+    private final @Nullable Location damageLocation;
 
-    private DamageSource(DamageType damageType, @Nullable Entity directEntity, @Nullable Entity causingEntity,
-                         @Nullable Block block, @Nullable Location location) {
+    private DamageSource(DamageType damageType, @Nullable Entity directEntity, @Nullable Entity causingEntity, @Nullable Block block, @Nullable Location damageLocation) {
         this.damageType = requireNonNull(damageType, "damageType");
         this.directEntity = directEntity;
         this.causingEntity = causingEntity;
         this.block = block;
-        this.location = location;
+        this.damageLocation = damageLocation;
     }
 
     /**
@@ -35,6 +38,21 @@ public final class DamageSource {
      */
     public static DamageSource of(DamageType damageType) {
         return builder(damageType).build();
+    }
+
+    /**
+     * Creates a source delivered by and attributed to the same entity.
+     *
+     * @param damageType the damage type
+     * @param entity     the entity responsible for the damage
+     * @return the damage source
+     */
+    public static DamageSource of(DamageType damageType, Entity entity) {
+        Entity source = requireNonNull(entity, "entity");
+        return builder(damageType)
+                .directEntity(source)
+                .causingEntity(source)
+                .build();
     }
 
     /**
@@ -88,12 +106,33 @@ public final class DamageSource {
     }
 
     /**
-     * Returns the explicit location from which the damage originated.
+     * Returns the explicitly supplied location from which the damage originated.
      *
      * @return the damage location, or {@code null} when none was supplied
      */
-    public @Nullable Location getLocation() {
-        return this.location;
+    public @Nullable Location getDamageLocation() {
+        return this.damageLocation;
+    }
+
+    /**
+     * Returns the explicit damage location, falling back to the direct entity or block.
+     *
+     * @return the source location, or {@code null} when it is unknown
+     */
+    public @Nullable Location getSourceLocation() {
+        if (this.damageLocation != null) {
+            return this.damageLocation;
+        }
+
+        if (this.directEntity != null) {
+            return this.directEntity.getLocation();
+        }
+
+        if (this.block != null) {
+            return Location.from(this.block.getPosition(), this.block.getLevel());
+        }
+
+        return null;
     }
 
     /**
@@ -106,24 +145,25 @@ public final class DamageSource {
     }
 
     /**
-     * Returns the explicit damage location, falling back to the causing entity or block.
+     * Returns the hunger exhaustion caused by this source.
      *
-     * @return the source location, or {@code null} when it is unknown
+     * @return the exhaustion amount
      */
-    public @Nullable Location getSourceLocation() {
-        if (this.location != null) {
-            return this.location;
-        }
+    public float getFoodExhaustion() {
+        return this.damageType.getExhaustion();
+    }
 
-        if (this.causingEntity != null) {
-            return this.causingEntity.getLocation();
-        }
-
-        if (this.block != null) {
-            return Location.from(this.block.getPosition(), this.block.getLevel());
-        }
-
-        return null;
+    /**
+     * Returns whether this source scales with level difficulty.
+     *
+     * @return whether difficulty scaling applies
+     */
+    public boolean scalesWithDifficulty() {
+        return switch (this.damageType.getDamageScaling()) {
+            case NEVER -> false;
+            case ALWAYS -> true;
+            case WHEN_CAUSED_BY_LIVING_NON_PLAYER -> this.causingEntity instanceof Living && !(this.causingEntity instanceof Player);
+        };
     }
 
     /**
@@ -135,7 +175,7 @@ public final class DamageSource {
         private @Nullable Entity directEntity;
         private @Nullable Entity causingEntity;
         private @Nullable Block block;
-        private @Nullable Location location;
+        private @Nullable Location damageLocation;
 
         private Builder(DamageType damageType) {
             this.damageType = requireNonNull(damageType, "damageType");
@@ -177,11 +217,11 @@ public final class DamageSource {
         /**
          * Sets the location from which the damage originated.
          *
-         * @param location the damage location
+         * @param damageLocation the damage location
          * @return this builder
          */
-        public Builder location(Location location) {
-            this.location = requireNonNull(location, "location");
+        public Builder damageLocation(Location damageLocation) {
+            this.damageLocation = requireNonNull(damageLocation, "damageLocation");
             return this;
         }
 
@@ -191,7 +231,7 @@ public final class DamageSource {
          * @return the damage source
          */
         public DamageSource build() {
-            return new DamageSource(this.damageType, this.directEntity, this.causingEntity, this.block, this.location);
+            return new DamageSource(this.damageType, this.directEntity, this.causingEntity, this.block, this.damageLocation);
         }
     }
 }

@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
@@ -19,6 +21,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.Set;
 
@@ -72,23 +75,14 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                 && this.canCollideWith(entity);
     }
 
-    public boolean attack(EntityDamageEvent source) {
-        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.attack(source);
+    protected boolean applyDamage(EntityDamageEvent source) {
+        return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
     public void onCollideWithEntity(Entity entity) {
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
-
-        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.MOB_PROJECTILE)
-                .directEntity(this).location(this.getLocation());
-        Entity owner = this.getOwner();
-        if (owner != null) {
-            sourceBuilder.causingEntity(owner);
-        }
-        DamageSource source = sourceBuilder.build();
-        EntityDamageEvent ev = new EntityDamageEvent(entity, source, damage);
-        if (entity.attack(ev)) {
+        if (entity.damage(damage, this.createProjectileDamageSource())) {
             this.hadCollision = true;
 
             if (this.fireTicks > 0) {
@@ -102,6 +96,23 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         if (closeOnCollide) {
             this.close();
         }
+    }
+
+    protected final DamageSource createProjectileDamageSource() {
+        DamageType damageType = CloudEntityRegistry.get()
+                .requireComponent(this.getType(), EntityComponents.GET_PROJECTILE_DAMAGE_TYPE)
+                .execute(this);
+        DamageSource.Builder source = DamageSource.builder(damageType)
+                .directEntity(this);
+
+        Entity owner = this.getOwner();
+        if (owner != null) {
+            source.causingEntity(owner);
+        } else if (damageType == DamageTypes.UNATTRIBUTED_FIREBALL) {
+            source.causingEntity(this);
+        }
+
+        return source.build();
     }
 
     @Override

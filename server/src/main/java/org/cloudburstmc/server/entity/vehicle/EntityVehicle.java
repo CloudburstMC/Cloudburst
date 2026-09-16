@@ -83,7 +83,7 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         Entity attacker = source.getDamageSource().getCausingEntity();
         VehicleDamageEvent event = new VehicleDamageEvent(this, attacker, source.getDamage());
         getServer().getEventManager().fire(event);
@@ -108,6 +108,6 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
             source.setDamage(1000);
         }
 
-        return super.attack(source);
+        return super.applyDamage(source);
     }
 }

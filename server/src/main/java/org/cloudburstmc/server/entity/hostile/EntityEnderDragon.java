@@ -157,8 +157,8 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    protected void showCriticalHit(Entity impactEntity) {
-        super.showCriticalHit(impactEntity);
+    public void broadcastCriticalHit() {
+        super.broadcastCriticalHit();
         this.getLevel().addParticleEffect(
                 this.getPosition().add(0, this.getHeight() * 0.5f, 0),
                 ParticleEffectIds.CRITICAL_HIT_EMITTER,

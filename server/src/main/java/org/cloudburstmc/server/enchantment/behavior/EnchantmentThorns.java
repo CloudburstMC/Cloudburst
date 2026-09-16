@@ -4,28 +4,24 @@ import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.server.entity.EntityHuman;
+import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public final class EnchantmentThorns extends EnchantmentBehavior {
 
     @Override
-    public void doPostAttack(Enchantment enchantment, Entity entity, Entity attacker) {
-        if (!(entity instanceof EntityHuman)) {
-            return;
+    public ItemStack onPostHurt(Enchantment enchantment, ItemStack item, Entity wearer, Entity attacker) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (!shouldHit(random, enchantment.level())) {
+            return item;
         }
 
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (shouldHit(random, enchantment.level())) {
-            DamageSource source = DamageSource.builder(DamageTypes.THORNS)
-                    .directEntity(entity).causingEntity(entity).location(entity.getLocation()).build();
-            EntityDamageEvent event = new EntityDamageEvent(attacker, source,
-                    getDamage(random, enchantment.level()));
-            event.setKnockback(0);
-            attacker.attack(event);
-        }
+        DamageSource source = DamageSource.of(DamageTypes.THORNS, wearer);
+        attacker.damage(getDamage(random, enchantment.level()), source);
+        return CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.ON_DAMAGE).execute(item, 2, wearer);
     }
 
     private static boolean shouldHit(ThreadLocalRandom random, int level) {

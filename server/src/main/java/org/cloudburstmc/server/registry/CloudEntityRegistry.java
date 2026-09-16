@@ -8,15 +8,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.component.BooleanEntityHandler;
-import org.cloudburstmc.api.entity.component.FloatEntityHandler;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
-import org.cloudburstmc.api.entity.component.TickEntityHandler;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -90,63 +89,26 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private final int customEntityStart;
     private int runtimeTypeAllocator;
     private volatile boolean closed;
+    @Getter
     private NbtMap entityIdentifiersPalette;
 
     private CloudEntityRegistry() {
         this.registerVanillaEntityComponents();
         this.registerVanillaEntities();
+        this.registerProjectileDamageComponents();
         this.registerBucketableEntities();
         this.registerPowderSnowProperties();
         this.registerSnowGolemComponents();
         customEntityStart = runtimeTypeAllocator;
     }
 
+    public static CloudEntityRegistry get() {
+        return INSTANCE;
+    }
+
     @Override
     public ComponentMap getComponents(EntityType<?> type) {
         return super.getComponents(type);
-    }
-
-    private void registerVanillaEntityComponents() {
-        this.registerComponent(EntityComponents.GET_ATTACK_DAMAGE, (FloatEntityHandler) entity -> 2f);
-        this.registerComponent(EntityComponents.ON_INTERACT, (InteractEntityHandler) (entity, player, item, clickedPos) -> false);
-        this.registerComponent(EntityComponents.ON_TICK, (TickEntityHandler) (entity, currentTick) -> true);
-        this.registerComponent(EntityComponents.CAN_BE_NAMED, (BooleanEntityHandler) entity -> true);
-        this.registerComponent(EntityComponents.CAN_FREEZE, (BooleanEntityHandler) entity -> true);
-        this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, (BooleanEntityHandler) entity -> false);
-        this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
-    }
-
-    private void registerPowderSnowProperties() {
-        for (EntityType<?> type : List.of(RABBIT, ENDERMITE, SILVERFISH, FOX)) {
-            getComponentMap(type).set(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> true);
-        }
-
-        for (EntityType<?> type : List.of(STRAY, POLAR_BEAR, SNOW_GOLEM, WITHER)) {
-            getComponentMap(type).set(EntityComponents.CAN_FREEZE, entity -> false);
-        }
-
-        for (EntityType<?> type : List.of(STRIDER, BLAZE, MAGMA_CUBE)) {
-            getComponentMap(type).set(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 5f);
-        }
-    }
-
-    private void registerSnowGolemComponents() {
-        getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
-    }
-
-    private void registerBucketableEntities() {
-        InteractEntityHandler waterBucket = BucketableEntityHandlers.capture(ItemTypes.WATER_BUCKET);
-        getComponentMap(AXOLOTL).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(COD).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(PUFFERFISH).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(SALMON).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(TADPOLE).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(TROPICAL_FISH).set(EntityComponents.ON_INTERACT, waterBucket);
-        getComponentMap(SULFUR_CUBE).set(EntityComponents.ON_INTERACT, BucketableEntityHandlers.capture(ItemTypes.BUCKET));
-    }
-
-    public static CloudEntityRegistry get() {
-        return INSTANCE;
     }
 
     @Override
@@ -274,10 +236,6 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         return LEGACY_NAMES.inverse().get(identifier);
     }
 
-    public NbtMap getEntityIdentifiersPalette() {
-        return entityIdentifiersPalette;
-    }
-
     @Override
     public ImmutableSet<EntityType<?>> values() {
         return ImmutableSet.copyOf(this.identifierTypeMap.values());
@@ -340,6 +298,17 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     private void checkClosed() {
         checkState(!closed, "Registration is already closed");
+    }
+
+    private void registerVanillaEntityComponents() {
+        this.registerComponent(EntityComponents.GET_ATTACK_DAMAGE, entity -> 2f);
+        this.registerComponent(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.MOB_PROJECTILE);
+        this.registerComponent(EntityComponents.ON_INTERACT, (entity, player, item, clickedPos) -> false);
+        this.registerComponent(EntityComponents.ON_TICK, (entity, currentTick) -> true);
+        this.registerComponent(EntityComponents.CAN_BE_NAMED, entity -> true);
+        this.registerComponent(EntityComponents.CAN_FREEZE, entity -> true);
+        this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> false);
+        this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
     }
 
     private void registerVanillaEntities() {
@@ -479,6 +448,53 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157);
         registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218);
         registerVanilla(PLAYER, EntityHuman::new, 257);
+    }
+
+    private void registerProjectileDamageComponents() {
+        getComponentMap(ARROW).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.ARROW);
+        getComponentMap(BREEZE_WIND_CHARGE_PROJECTILE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
+        getComponentMap(DRAGON_FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.DRAGON_BREATH);
+        getComponentMap(EGG).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.THROWN);
+        getComponentMap(FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> entity.getOwner() == null ? DamageTypes.UNATTRIBUTED_FIREBALL : DamageTypes.FIREBALL);
+        getComponentMap(LINGERING_POTION).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.INDIRECT_MAGIC);
+        getComponentMap(LLAMA_SPIT).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.SPIT);
+        getComponentMap(SMALL_FIREBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> entity.getOwner() == null ? DamageTypes.UNATTRIBUTED_FIREBALL : DamageTypes.FIREBALL);
+        getComponentMap(SNOWBALL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.THROWN);
+        getComponentMap(SPLASH_POTION).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.INDIRECT_MAGIC);
+        getComponentMap(THROWN_TRIDENT).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.TRIDENT);
+        getComponentMap(WIND_CHARGE_PROJECTILE).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WIND_CHARGE);
+        getComponentMap(WITHER_SKULL).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WITHER_SKULL);
+        getComponentMap(WITHER_SKULL_DANGEROUS).set(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.WITHER_SKULL);
+    }
+
+    private void registerBucketableEntities() {
+        InteractEntityHandler waterBucket = BucketableEntityHandlers.capture(ItemTypes.WATER_BUCKET);
+        getComponentMap(AXOLOTL).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(COD).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(PUFFERFISH).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(SALMON).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(TADPOLE).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(TROPICAL_FISH).set(EntityComponents.ON_INTERACT, waterBucket);
+        getComponentMap(SULFUR_CUBE).set(EntityComponents.ON_INTERACT,
+                BucketableEntityHandlers.capture(ItemTypes.BUCKET));
+    }
+
+    private void registerPowderSnowProperties() {
+        for (EntityType<?> type : List.of(RABBIT, ENDERMITE, SILVERFISH, FOX)) {
+            getComponentMap(type).set(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> true);
+        }
+
+        for (EntityType<?> type : List.of(STRAY, POLAR_BEAR, SNOW_GOLEM, WITHER)) {
+            getComponentMap(type).set(EntityComponents.CAN_FREEZE, entity -> false);
+        }
+
+        for (EntityType<?> type : List.of(STRIDER, BLAZE, MAGMA_CUBE)) {
+            getComponentMap(type).set(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 5f);
+        }
+    }
+
+    private void registerSnowGolemComponents() {
+        getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
     }
 
     private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {

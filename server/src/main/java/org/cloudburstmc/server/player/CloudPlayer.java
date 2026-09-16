@@ -23,11 +23,8 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.Interactable;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
@@ -40,7 +37,9 @@ import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.item.component.DamageItemHandler;
 import org.cloudburstmc.api.item.component.FinishUseHandler;
+import org.cloudburstmc.api.item.component.FloatItemHandler;
 import org.cloudburstmc.api.item.component.IntItemHandler;
 import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
@@ -54,6 +53,7 @@ import org.cloudburstmc.api.player.*;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
+import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
@@ -98,6 +98,7 @@ import org.cloudburstmc.server.container.view.CloudPlayerInventory;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
@@ -118,6 +119,7 @@ import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
 import org.cloudburstmc.server.player.manager.PlayerInventoryManager;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
@@ -1024,6 +1026,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (this.getHealth() <= 0) {
             RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(0);
             respawnPacket.setPosition(loc.getPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_SEARCHING);
             this.sendPacket(respawnPacket);
@@ -1379,15 +1382,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
     }
 
-    @Override
-    public ItemStack[] getDrops() {
-        if (!this.isCreative()) {
-            return super.getDrops();
-        }
-
-        return new ItemStack[0];
-    }
-
     /**
      * 0 is true
      * -1 is false
@@ -1549,6 +1543,14 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.invManager.sendAllInventories();
         this.sendPacket(CloudItemRegistry.get().getCreativeContent());
         return true;
+    }
+
+    private CloudPlayerAbilities buildAbilitiesForGameMode(GameMode mode) {
+        CloudPlayerAbilities abilities = new CloudPlayerAbilities(this);
+        abilities.setAll(mode.getDefaultAbilities());
+        abilities.set(Ability.OPERATOR_COMMANDS, this.isOp());
+        abilities.set(Ability.TELEPORT, this.isOp());
+        return abilities;
     }
 
     public boolean canOpenInventory() {
@@ -2866,21 +2868,21 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         super.setHealth(health);
-        //TODO: Remove it in future! This a hack to solve the client-side absorption bug! WFT Mojang (Half a yellow heart cannot be shown, we can test it in local gaming)
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
-        if (this.spawned) {
-            UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
-            packet.setRuntimeEntityId(this.getRuntimeId());
-            this.sendPacket(packet);
-        }
+        this.sendHealthAttribute();
     }
 
     @Override
     public void setMaxHealth(int maxHealth) {
         super.setMaxHealth(maxHealth);
+        this.sendHealthAttribute();
+    }
 
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0);
+    private void sendHealthAttribute() {
+        float health = this.getHealth();
+        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH)
+                .setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth())
+                .setValue(Math.clamp(health, 0, this.getMaxHealth()));
+
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
             packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
@@ -2974,50 +2976,182 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return killer;
     }
 
-    private CloudPlayerAbilities buildAbilitiesForGameMode(GameMode mode) {
-        CloudPlayerAbilities abilities = new CloudPlayerAbilities(this);
-        abilities.setAll(mode.getDefaultAbilities());
-        abilities.set(Ability.OPERATOR_COMMANDS, this.isOp());
-        abilities.set(Ability.TELEPORT, this.isOp());
-        return abilities;
+    @Override
+    public boolean attack(Entity target) {
+        checkNotNull(target, "target");
+
+        ItemStack heldItem = this.getInventory().getSelectedItem();
+        float baseDamage = 1;
+        if (!heldItem.isEmpty()) {
+            FloatItemHandler attackDamage = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE);
+            baseDamage = attackDamage.execute(heldItem);
+        }
+
+        baseDamage = Math.max(0, baseDamage * this.getAttackDamageMultiplier());
+        float damage = CloudEnchantmentRegistry.get().modifyDamage(heldItem, target, baseDamage);
+        boolean criticalHit = this.isCriticalAttack(target);
+        if (criticalHit) {
+            damage += baseDamage * 0.5f;
+        }
+
+        DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.ATTACK_DAMAGE_TYPE);
+        DamageSource source = DamageSource.of(damageType, this);
+
+        boolean damaged = target.damage(damage, source);
+        if (damaged) {
+            CloudEnchantmentRegistry.get().applyPostAttackEffects(heldItem, this, target);
+            this.applyAttackKnockback(target, heldItem, damageType);
+
+            if (criticalHit) {
+                this.broadcastCriticalHit(target);
+            } else {
+                this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_STRONG, -1, EntityTypes.PLAYER, false, false);
+            }
+
+            this.getFoodData().updateFoodExpLevel(0.1);
+            this.damageHeldItemAfterAttack(heldItem);
+        } else {
+            this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
+        }
+
+        AnimatePacket swingPacket = new AnimatePacket();
+        swingPacket.setAction(AnimatePacket.Action.SWING_ARM);
+        swingPacket.setRuntimeEntityId(this.getRuntimeId());
+        CloudServer.broadcastPacket(this.getViewers(), swingPacket);
+        return damaged;
+    }
+
+    private float getAttackDamageMultiplier() {
+        float multiplier = 1;
+        Effect strength = this.getEffect(EffectTypes.STRENGTH);
+        if (strength != null) {
+            multiplier += 0.3f * (strength.getAmplifier() + 1);
+        }
+
+        Effect weakness = this.getEffect(EffectTypes.WEAKNESS);
+        if (weakness != null) {
+            multiplier -= 0.2f * (weakness.getAmplifier() + 1);
+        }
+
+        return multiplier;
+    }
+
+    private boolean isCriticalAttack(Entity target) {
+        return target instanceof Living
+                && this.fallDistance > 0
+                && !this.isOnGround()
+                && !this.isInsideOfWater()
+                && !this.isImmobile()
+                && this.getVehicle() == null
+                && !this.isSprinting();
+    }
+
+    private void applyAttackKnockback(Entity target, ItemStack heldItem, DamageType damageType) {
+        if (damageType.is(DamageTypeTags.NO_KNOCKBACK) || !(target instanceof EntityLiving livingTarget)) {
+            return;
+        }
+
+        boolean sprintingAttack = this.isSprinting();
+        float extraKnockback = CloudEnchantmentRegistry.get().modifyKnockback(heldItem, target, sprintingAttack ? 0.5f : 0);
+        if (extraKnockback <= 0) {
+            return;
+        }
+
+        Vector2f direction = target.getPosition().sub(this.getPosition()).toVector2(true);
+        livingTarget.knockBack(this, extraKnockback, direction.getX(), direction.getY());
+        Vector3f motion = this.getMotion();
+        this.setMotion(Vector3f.from(motion.getX() * 0.6f, motion.getY(), motion.getZ() * 0.6f));
+        this.setSprinting(false);
+    }
+
+    private void broadcastCriticalHit(Entity target) {
+        if (target instanceof EntityLiving livingTarget) {
+            livingTarget.broadcastCriticalHit();
+            return;
+        }
+
+        if (target instanceof CloudEntity cloudTarget) {
+            AnimatePacket animate = new AnimatePacket();
+            animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            animate.setRuntimeEntityId(cloudTarget.getRuntimeId());
+            this.getLevel().addChunkPacket(target.getPosition(), animate);
+        }
+
+        this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_CRITICAL);
+    }
+
+    private void damageHeldItemAfterAttack(ItemStack heldItem) {
+        if (heldItem.isEmpty() || !this.getInventory().getSelectedItem().equals(heldItem)) {
+            return;
+        }
+
+        int durabilityDamage = CloudItemRegistry.get()
+                .requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DURABILITY_DAMAGE)
+                .execute(heldItem);
+        if (durabilityDamage <= 0) {
+            return;
+        }
+
+        DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.ON_DAMAGE);
+        ItemStack damagedItem = damageItem.execute(heldItem, durabilityDamage, this);
+        if (!damagedItem.equals(heldItem)) {
+            this.getInventory().setSelectedItem(damagedItem);
+        }
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         if (!this.isAlive()) {
             return false;
         }
 
-        if (this.isSpectator() || (this.isCreative() && source.getDamageType() != DamageTypes.GENERIC_KILL)) {
-            //source.setCancelled();
+        if ((this.isCreative() || this.isSpectator()) && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else if (this.abilities.get(Ability.MAY_FLY) && source.getDamageType() == DamageTypes.FALL) {
-            //source.setCancelled();
             return false;
         }
+
         if (this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
-                //source.setCancelled();
                 this.resetFallDistance();
                 return false;
             }
         }
 
-        if (super.attack(source)) { //!source.isCancelled()
-            if (this.getLastDamageCause() == source && this.spawned) {
-                Entity damager = source.getDamageSource().getCausingEntity();
-                if (damager instanceof CloudPlayer player) {
-                    player.getFoodData().updateFoodExpLevel(0.3);
-                }
-                EntityEventPacket packet = new EntityEventPacket();
-                packet.setRuntimeEntityId(this.getRuntimeId());
-                packet.setType(EntityEventType.HURT);
-                this.sendPacket(packet);
+        if (source.getDamageSource().scalesWithDifficulty()) {
+            source.setDamage(this.scaleDamageForDifficulty(source.getDamage()));
+            if (source.getDamage() == 0) {
+                return false;
             }
-            return true;
-        } else {
+        }
+
+        float healthBeforeDamage = this.getHealth();
+        if (!super.applyDamage(source)) {
             return false;
         }
+
+        if (this.getHealth() < healthBeforeDamage) {
+            this.getFoodData().updateFoodExpLevel(source.getDamageSource().getFoodExhaustion());
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void broadcastHurtEvent(DamageEffect effect) {
+        super.broadcastHurtEvent(effect);
+        if (this.spawned) {
+            this.sendPacket(this.createHurtEventPacket(effect));
+        }
+    }
+
+    private float scaleDamageForDifficulty(float damage) {
+        return switch (this.getLevel().getDifficulty()) {
+            case PEACEFUL -> 0;
+            case EASY -> Math.min(damage / 2 + 1, damage);
+            case NORMAL -> damage;
+            case HARD -> damage * 1.5f;
+        };
     }
 
     /**
@@ -3166,46 +3300,55 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     @Override
     public void kill() {
-        if (!this.spawned) {
+        if (!this.spawned || !this.isAlive()) {
             return;
         }
 
         boolean showMessages = this.getLevel().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
         DeathMessageResolver.Resolution death = DeathMessageResolver.resolve(this, this.getLastDamageCause());
-        this.killer = death.killer();
+        PlayerDeathEvent event = new PlayerDeathEvent(this, this.getDrops(), showMessages ? death.message() : null, this.getExperienceLevel());
+        event.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY) || this.isSpectator());
+        event.setKeepInventory(event.getKeepExperience());
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
 
+        this.killer = death.killer();
         if (this.fishingHook != null) {
             this.stopFishing();
         }
 
-        this.health = 0;
-        this.scheduleUpdate();
+        EntityEventPacket deathPacket = new EntityEventPacket();
+        deathPacket.setRuntimeEntityId(this.getRuntimeId());
+        deathPacket.setType(EntityEventType.DEATH);
+        this.sendPacket(deathPacket);
+        CloudServer.broadcastPacket(this.hasSpawned, deathPacket);
 
-        PlayerDeathEvent ev = new PlayerDeathEvent(this, this.getDrops(), showMessages ? death.message() : null,
-                this.getExperienceLevel());
-        ev.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY));
-        ev.setKeepInventory(ev.getKeepExperience());
-        this.server.getEventManager().fire(ev);
+        this.enterDeathState();
+        this.sendHealthAttribute();
 
-        if (!ev.getKeepInventory() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            for (ItemStack item : ev.getDrops()) {
+        if (!event.getKeepInventory()) {
+            for (ItemStack item : event.getDrops()) {
                 this.getLevel().dropItem(this.getPosition(), item, null, true, 40);
             }
 
-            this.getContainer().clear();
+            this.getInventory().clear();
+            this.getArmor().clear();
+            this.getOffhand().clear();
         }
 
-        if (!ev.getKeepExperience() && this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
-            if (this.isSurvival() || this.isAdventure()) {
-                int exp = ev.getExperience() * 7;
-                if (exp > 100) exp = 100;
+        if (!event.getKeepExperience()) {
+            int exp = Math.min(event.getExperience() * 7, 100);
+            if (exp > 0) {
                 this.getLevel().dropExpOrb(this.getPosition(), exp);
             }
+
             this.setExperience(0, 0);
         }
 
-        if (showMessages && ev.getDeathMessage() != null) {
-            this.server.broadcast(ev.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
+        if (showMessages && event.getDeathMessage() != null) {
+            this.server.broadcast(event.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
         }
 
         boolean hadPersonalSpawn = this.respawnConfig != null;
@@ -3218,6 +3361,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         RespawnPacket packet = new RespawnPacket();
+        packet.setRuntimeEntityId(0);
         packet.setPosition(respawnLocation.getPosition());
         packet.setState(RespawnPacket.State.SERVER_SEARCHING);
 
@@ -3272,39 +3416,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
             this.chunk.registerEntity(this);
             this.getChunkManager().spawnReadyEntitiesIn(this.chunk);
-        }
-    }
-
-    public void teleportImmediate(Location location) {
-        this.teleportImmediate(location, PlayerTeleportCause.PLUGIN);
-    }
-
-    public void teleportImmediate(Location location, PlayerTeleportCause cause) {
-        Location from = this.getLocation();
-        if (super.teleport(location, cause)) {
-
-            this.closeInventory(InventoryCloseEvent.Reason.TELEPORT);
-
-            if (from.getLevel() != location.getLevel()) { //Different level, update compass position
-                SetSpawnPositionPacket packet = new SetSpawnPositionPacket();
-                packet.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-                Vector3f spawn = location.getLevel().getSpawnLocation();
-                packet.setBlockPosition(spawn.toInt());
-                sendPacket(packet);
-            }
-
-            this.forceMovement = this.getPosition();
-            this.sendPosition(this.getPosition(), this.getY(), this.getPitch(), MovePlayerPacket.Mode.RESPAWN);
-
-            this.resetFallDistance();
-            this.newPosition = null;
-
-            this.refreshBossBars();
-
-            //Weather
-            this.getLevel().sendWeather(this);
-            //Update time
-            this.getLevel().sendTime(this);
         }
     }
 
@@ -3490,12 +3601,38 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public boolean teleportForRespawn(Location location) {
+        Objects.requireNonNull(location, "location");
+        if (!this.isOnline()) {
+            return false;
+        }
+
+        this.getChunkManager().despawnVisibleEntities();
         this.respawnTarget = location;
+        boolean teleported;
         try {
-            return this.teleportWithoutEvent(location);
+            teleported = super.teleportWithoutEvent(location);
         } finally {
             this.respawnTarget = null;
         }
+
+        if (!teleported) {
+            this.getChunkManager().spawnReadyEntities();
+            return false;
+        }
+
+        this.teleportPosition = null;
+        this.teleportAcknowledged = false;
+        this.pendingTeleportEntityViewRefresh = false;
+        this.forceMovement = null;
+        this.newPosition = null;
+
+        this.getChunkManager().queueNewChunks(this.getPosition());
+        this.getChunkManager().refreshReadyEntities();
+        this.resetFallDistance();
+        this.getLevel().sendWeather(this);
+        this.getLevel().sendTime(this);
+
+        return true;
     }
 
     public boolean acknowledgeTeleport(Vector3f clientPosition) {

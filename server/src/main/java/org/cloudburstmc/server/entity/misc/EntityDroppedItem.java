@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.misc;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.LiquidState;
@@ -24,6 +25,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.item.ItemDisplayNameResolver;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -108,13 +110,13 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    protected boolean applyDamage(EntityDamageEvent source) {
         return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
                         !this.isInsideOfWater() && (this.item == null ||
-                        this.item.getType() != ItemTypes.NETHER_STAR)) && super.attack(source);
+                        this.item.getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
     }
 
     @Override
@@ -245,7 +247,21 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     public String getName() {
-        return this.hasNameTag() ? this.getNameTag() : this.item.get(ItemKeys.CUSTOM_NAME);
+        if (this.hasNameTag()) {
+            return this.getNameTag();
+        }
+
+        String customName = this.item.get(ItemKeys.CUSTOM_NAME);
+        return customName != null ? customName : super.getName();
+    }
+
+    @Override
+    public Component displayName() {
+        if (this.hasNameTag()) {
+            return Component.text(this.getNameTag());
+        }
+
+        return ItemDisplayNameResolver.resolve(this.item);
     }
 
     public ItemStack getItem() {

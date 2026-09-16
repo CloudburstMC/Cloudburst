@@ -6,7 +6,6 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.projectile.EnderPearl;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
@@ -113,8 +112,8 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
             if (owner instanceof CloudPlayer) {
                 spawnEndermite(ownerPosition);
                 DamageSource source = DamageSource.builder(DamageTypes.ENDER_PEARL)
-                        .directEntity(this).causingEntity(owner).location(this.getLocation()).build();
-                owner.attack(new EntityDamageEvent(owner, source, 5f));
+                        .directEntity(this).causingEntity(owner).build();
+                owner.damage(5f, source);
             }
         }
 

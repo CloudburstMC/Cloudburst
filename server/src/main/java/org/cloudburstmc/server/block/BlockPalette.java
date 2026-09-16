@@ -284,10 +284,9 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
         int fnvHash = BlockStateHash.compute(vanillaEntry.getString("name"), vanillaEntry.getCompound("states", NbtMap.EMPTY));
         long blockStateHash = Integer.toUnsignedLong(fnvHash);
 
-        CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash);
         BlockPropertyData.StateData stateData = BlockPropertyData.get(blockStateHash);
-        Preconditions.checkState(stateData != null, "Missing block property data for %s (state hash %s)",
-                state, Long.toUnsignedString(blockStateHash));
+        Preconditions.checkState(stateData != null, "Missing block property data for %s (state hash %s)", state, Long.toUnsignedString(blockStateHash));
+        CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash, stateData.translationKey());
 
         VoxelShape collision = CloudVoxelShapes.fromBoxes(stateData.collisionBoxes());
         VoxelShape outline = stateData.outlineShape() == null ? collision : CloudVoxelShapes.fromBoxes(stateData.outlineShape());

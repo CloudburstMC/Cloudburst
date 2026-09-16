@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.player;
 
 import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.api.level.Difficulty;
@@ -150,14 +150,13 @@ public class PlayerFood {
             } else if (this.getLevel() == 0) {
                 this.foodTickTimer += tickDiff;
                 if (this.foodTickTimer >= 80) {
-                    EntityDamageEvent ev = new EntityDamageEvent(this.getPlayer(), DamageTypes.STARVE, 1);
                     float now = this.getPlayer().getHealth();
                     if (diff == Difficulty.EASY) {
-                        if (now > 10) this.getPlayer().attack(ev);
+                        if (now > 10) this.getPlayer().damage(1, DamageSource.of(DamageTypes.STARVE));
                     } else if (diff == Difficulty.NORMAL) {
-                        if (now > 1) this.getPlayer().attack(ev);
+                        if (now > 1) this.getPlayer().damage(1, DamageSource.of(DamageTypes.STARVE));
                     } else {
-                        this.getPlayer().attack(ev);
+                        this.getPlayer().damage(1, DamageSource.of(DamageTypes.STARVE));
                     }
 
                     this.foodTickTimer = 0;

@@ -48,6 +48,13 @@ public interface Server {
 
     BiomeRegistry<?> getBiomeRegistry();
 
+    /**
+     * Returns the registry of damage types.
+     *
+     * @return the damage type registry
+     */
+    DamageTypeRegistry getDamageTypeRegistry();
+
     EffectRegistry getEffectRegistry();
 
     EnchantmentRegistry getEnchantmentRegistry();

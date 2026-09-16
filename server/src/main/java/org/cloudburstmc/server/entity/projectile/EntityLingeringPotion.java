@@ -28,6 +28,7 @@ public class EntityLingeringPotion extends EntitySplashPotion implements Lingeri
         super.splash(collidedWith);
 
         EntityAreaEffectCloud entity = (EntityAreaEffectCloud) CloudEntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, this.getLocation());
+        entity.setOwner(this.getOwner());
         entity.setPosition(this.getLocation().getPosition());
         entity.setPotionType(this.getPotionType());
         if (this.getPotionType().getType() != null) {

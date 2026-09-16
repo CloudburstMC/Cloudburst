@@ -4,25 +4,17 @@ import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.server.enchantment.behavior.EnchantmentBehavior;
 
-public final class EnchantmentProtectionAll extends EnchantmentProtection {
-
-    public EnchantmentProtectionAll() {
-        super(EnchantmentProtectionType.ALL);
-    }
+public final class EnchantmentProtectionAll extends EnchantmentBehavior {
 
     @Override
-    protected double getTypeModifier() {
-        return 1;
-    }
-
-    @Override
-    public float getProtectionFactor(Enchantment enchantment, EntityDamageEvent e) {
-        DamageType damageType = e.getDamageType();
-        if (enchantment.level() <= 0 || damageType.is(DamageTypeTags.BYPASSES_ARMOR)) {
+    public float getDamageProtection(Enchantment enchantment, EntityDamageEvent event) {
+        DamageType damageType = event.getDamageType();
+        if (damageType.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return 0;
         }
 
-        return (float) (enchantment.level() * getTypeModifier());
+        return enchantment.level();
     }
 }

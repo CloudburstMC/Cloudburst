@@ -6,9 +6,9 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.component.TickEntityHandler;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.block.EntityBlockFormEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.GenericMath;
@@ -40,11 +40,11 @@ public final class SnowGolemEntityHandlers {
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(
                 snowGolem.getLevel().getBiomeId(position.getX(), position.getY(), position.getZ()));
         if (biome != null && biome.getTemperature(position.getX(), position.getY(), position.getZ()) > 1) {
-            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.ON_FIRE, 1));
+            snowGolem.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
         }
 
         if (snowGolem.getLevel().getBlock(position).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
-            snowGolem.attack(new EntityDamageEvent(snowGolem, DamageTypes.DROWN, 1));
+            snowGolem.damage(1, DamageSource.of(DamageTypes.DROWN));
         }
     }
 

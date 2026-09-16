@@ -1,11 +1,8 @@
 package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -146,15 +143,7 @@ public class EntityThrownTrident extends EntityProjectile implements ThrownTride
         this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
 
-        DamageSource.Builder sourceBuilder = DamageSource.builder(DamageTypes.TRIDENT)
-                .directEntity(this).location(this.getLocation());
-        Entity owner = this.getOwner();
-        if (owner != null) {
-            sourceBuilder.causingEntity(owner);
-        }
-        DamageSource source = sourceBuilder.build();
-        EntityDamageEvent ev = new EntityDamageEvent(entity, source, damage);
-        entity.attack(ev);
+        entity.damage(damage, this.createProjectileDamageSource());
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT);
         this.hadCollision = true;
 //        this.close();

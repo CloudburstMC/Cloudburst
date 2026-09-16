@@ -7,6 +7,8 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.damage.DamageEffect;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
@@ -16,6 +18,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -23,6 +26,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
@@ -44,9 +48,18 @@ import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
-public abstract class EntityLiving extends CloudEntity implements Damageable, Living {
+public abstract class EntityLiving extends CloudEntity implements Living {
+
+    private static final int HURT_COOLDOWN_TICKS = 10;
+    private static final float DEFAULT_KNOCKBACK_STRENGTH = 1f;
 
     private boolean inPowderSnow;
+    private int hurtCooldownTicks;
+    private float lastDamageAmount;
+
+    protected boolean invisible;
+    protected float movementSpeed = 0.1f;
+    protected int turtleTicks = 200;
 
     public EntityLiving(EntityType<?> type, Location location) {
         super(type, location);
@@ -83,14 +96,6 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
         ((CloudEntity) projectile).spawn(event);
         return projectile;
     }
-
-    protected int attackTime = 0;
-
-    protected boolean invisible = false;
-
-    protected float movementSpeed = 0.1f;
-
-    protected int turtleTicks = 200;
 
     @Override
     public void loadAdditionalData(NbtMap tag) {
@@ -133,74 +138,126 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
     }
 
     @Override
-    public boolean attack(EntityDamageEvent source) {
+    public boolean attack(Entity target) {
+        Objects.requireNonNull(target, "target");
+        float damage = CloudEntityRegistry.get()
+                .requireComponent(this.getType(), EntityComponents.GET_ATTACK_DAMAGE)
+                .execute(this);
+        DamageSource source = DamageSource.of(DamageTypes.MOB_ATTACK, this);
+        return target.damage(damage, source);
+    }
+
+    @Override
+    protected boolean applyDamage(EntityDamageEvent source) {
+        if (this.isClosed() || !this.isAlive()) {
+            return false;
+        }
+
         Entity directEntity = source.getDamageSource().getDirectEntity();
         Entity causingEntity = source.getDamageSource().getCausingEntity();
 
-        boolean entityAttack = source.getDamageType().is(DamageTypeTags.IS_ENTITY_ATTACK);
-        boolean criticalHit = entityAttack && directEntity == causingEntity
-                && causingEntity instanceof CloudPlayer
-                && !causingEntity.isOnGround();
+        float incomingDamage = source.getDamage();
+        boolean fullDamage = source.getDamageType().is(DamageTypeTags.BYPASSES_COOLDOWN) || (this.hurtCooldownTicks <= 0 && this.noDamageTicks <= 0);
+        float cooldownAdjustedDamage = fullDamage ? incomingDamage : Math.max(incomingDamage - this.lastDamageAmount, 0);
 
-        if (entityAttack && directEntity != null && directEntity == causingEntity) {
-            float attackMultiplier = 1f;
-            if (causingEntity.hasEffect(EffectTypes.STRENGTH)) {
-                attackMultiplier += 0.3f * (causingEntity.getEffect(EffectTypes.STRENGTH).getAmplifier() + 1);
-            }
-
-            if (causingEntity.hasEffect(EffectTypes.WEAKNESS)) {
-                attackMultiplier -= 0.2f * (causingEntity.getEffect(EffectTypes.WEAKNESS).getAmplifier() + 1);
-            }
-
-            source.setDamage(Math.max(0, source.getDamage() * attackMultiplier));
-            if (criticalHit) {
-                source.setDamage(source.getDamage() * 1.5f);
-            }
+        if (cooldownAdjustedDamage <= 0) {
+            return false;
         }
 
-        if (this.attackTime > 0 || this.noDamageTicks > 0) {
-            EntityDamageEvent lastCause = this.getLastDamageCause();
-            if (lastCause != null && lastCause.getDamage() >= source.getDamage()) {
-                return false;
-            }
+        source.setDamage(cooldownAdjustedDamage);
+        this.applyDamageReductions(source);
+
+        if (!super.applyDamage(source)) {
+            return false;
         }
 
-        if (super.attack(source)) {
+        this.afterDamageApplied(source, cooldownAdjustedDamage);
+
+        if (fullDamage) {
             Entity impactEntity = directEntity != null ? directEntity : causingEntity;
             if (impactEntity != null && !source.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {
-                if (criticalHit) {
-                    showCriticalHit(impactEntity);
-                }
-
                 if (impactEntity.isOnFire() && !(impactEntity instanceof CloudPlayer)) {
                     this.setOnFire(2 * this.server.getDifficulty().getId());
                 }
 
                 Vector2f diff = this.getPosition().sub(impactEntity.getPosition()).toVector2(true);
-
-                this.knockBack(impactEntity, source.getKnockback(), diff.getX(), diff.getY());
+                this.knockBack(impactEntity, DEFAULT_KNOCKBACK_STRENGTH, diff.getX(), diff.getY());
             }
 
             if (!this.isInDeathSequence()) {
-                EntityEventPacket pk = new EntityEventPacket();
-                pk.setRuntimeEntityId(this.getRuntimeId());
-                pk.setType(EntityEventType.HURT);
-                CloudServer.broadcastPacket(this.hasSpawned, pk);
+                this.broadcastHurtEvent(source.getDamageType().getDamageEffect());
             }
 
-            this.attackTime = source.getAttackCooldown();
-
-            return true;
+            this.hurtCooldownTicks = HURT_COOLDOWN_TICKS;
         }
-        return false;
+
+        this.lastDamageAmount = incomingDamage;
+        return true;
     }
 
-    protected void showCriticalHit(Entity impactEntity) {
+    /**
+     * Applies living-entity damage reductions in gameplay order.
+     *
+     * @param source the mutable damage event
+     */
+    protected void applyDamageReductions(EntityDamageEvent source) {
+        if (source.getDamageType().is(DamageTypeTags.BYPASSES_EFFECTS) || source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
+            return;
+        }
+
+        Effect resistanceEffect = this.getEffect(EffectTypes.RESISTANCE);
+        if (resistanceEffect == null) {
+            return;
+        }
+
+        int resistance = (resistanceEffect.getAmplifier() + 1) * 5;
+        source.setDamage(source.getDamage() * Math.max(25 - resistance, 0) / 25f);
+    }
+
+    /**
+     * Runs entity-specific effects after damage has been accepted.
+     *
+     * @param source                 the applied damage event
+     * @param damageBeforeReductions damage after the hurt cooldown and before reductions
+     */
+    protected void afterDamageApplied(EntityDamageEvent source, float damageBeforeReductions) {
+    }
+
+    protected void broadcastHurtEvent(DamageEffect effect) {
+        CloudServer.broadcastPacket(this.hasSpawned, this.createHurtEventPacket(effect));
+    }
+
+    protected final EntityEventPacket createHurtEventPacket(DamageEffect effect) {
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setType(EntityEventType.HURT);
+        packet.setData(getHurtEventData(effect));
+        return packet;
+    }
+
+    protected static int getHurtEventData(DamageEffect effect) {
+        EntityDamageCause cause = switch (effect) {
+            case HURT -> EntityDamageCause.OVERRIDE;
+            case THORNS -> EntityDamageCause.THORNS;
+            case DROWNING -> EntityDamageCause.DROWNING;
+            case BURNING -> EntityDamageCause.FIRE_TICK;
+            case POKING -> EntityDamageCause.CONTACT;
+            case FREEZING -> EntityDamageCause.FREEZING;
+        };
+
+        return cause.ordinal() - 1;
+    }
+
+    protected float getKnockbackResistance() {
+        return 0;
+    }
+
+    public void broadcastCriticalHit() {
         AnimatePacket animate = new AnimatePacket();
         animate.setAction(AnimatePacket.Action.CRITICAL_HIT);
         animate.setRuntimeEntityId(this.getRuntimeId());
-        this.getLevel().addChunkPacket(impactEntity.getPosition(), animate);
-        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_STRONG);
+        this.getLevel().addChunkPacket(this.getPosition(), animate);
+        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ATTACK_CRITICAL);
     }
 
     protected EntityEventType getDeathEventType() {
@@ -213,23 +270,32 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
     @Override
     protected void onBelowLevel() {
-        this.attack(new EntityDamageEvent(this, DamageTypes.OUT_OF_WORLD, 4));
+        this.damage(4, DamageSource.of(DamageTypes.OUT_OF_WORLD));
     }
 
     public void knockBack(Entity attacker, float strength, float diffX, float diffZ) {
-        //TODO: knockback resistance
-        float f = 1f / (float) Math.sqrt(diffX * diffX + diffZ * diffZ);
-
-        diffX = (diffX * f) * (0.4f * strength);
-        diffZ = (diffZ * f) * (0.4f * strength);
-
-        Vector3f motion = Vector3f.from(diffX, 0.4f, diffZ);
-
-        if (motion.getY() > 0.4f) {
-            motion = Vector3f.from(motion.getX(), 0.4f, motion.getZ());
+        float effectiveStrength = 0.4f * strength * (1 - this.getKnockbackResistance());
+        if (effectiveStrength <= 0) {
+            return;
         }
 
-        this.setMotion(motion);
+        float distanceSquared = diffX * diffX + diffZ * diffZ;
+        if (distanceSquared < 1.0e-5f) {
+            Vector2f direction = attacker.getDirectionPlane();
+            diffX = direction.getX();
+            diffZ = direction.getY();
+            distanceSquared = diffX * diffX + diffZ * diffZ;
+            if (distanceSquared < 1.0e-5f) {
+                return;
+            }
+        }
+
+        float inverseDistance = 1 / (float) Math.sqrt(distanceSquared);
+        float pushX = diffX * inverseDistance * effectiveStrength;
+        float pushZ = diffZ * inverseDistance * effectiveStrength;
+        Vector3f currentMotion = this.getMotion();
+        float verticalMotion = this.isOnGround() ? Math.min(0.4f, currentMotion.getY() / 2 + effectiveStrength) : currentMotion.getY();
+        this.setMotion(Vector3f.from(currentMotion.getX() / 2 + pushX, verticalMotion, currentMotion.getZ() / 2 + pushZ));
     }
 
     @Override
@@ -290,7 +356,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                 if (this.isInsideOfSolid()) {
                     hasUpdate = true;
-                    this.attack(new EntityDamageEvent(this, DamageTypes.IN_WALL, 1));
+                    this.damage(1, DamageSource.of(DamageTypes.IN_WALL));
                 }
 
                 var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
@@ -309,7 +375,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                             if (airTicks <= -20) {
                                 airTicks = 0;
-                                this.attack(new EntityDamageEvent(this, DamageTypes.DROWN, 2));
+                                this.damage(2, DamageSource.of(DamageTypes.DROWN));
                             }
 
                             setAirTicks(airTicks);
@@ -322,7 +388,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
 
                         if (airTicks <= -20) {
                             airTicks = 0;
-                            this.attack(new EntityDamageEvent(this, DamageTypes.IN_WALL, 2));
+                            this.damage(2, DamageSource.of(DamageTypes.DRY_OUT));
                         }
 
                         setAirTicks(airTicks);
@@ -336,8 +402,8 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
                 }
             }
 
-            if (this.attackTime > 0) {
-                this.attackTime -= tickDiff;
+            if (this.hurtCooldownTicks > 0) {
+                this.hurtCooldownTicks = Math.max(this.hurtCooldownTicks - tickDiff, 0);
             }
 
             if (this.vehicle == null && this.isPushable()) {
@@ -401,7 +467,7 @@ public abstract class EntityLiving extends CloudEntity implements Damageable, Li
             float multiplier = CloudEntityRegistry.get()
                     .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
                     .execute(this);
-            if (this.attack(new EntityDamageEvent(this, DamageTypes.FREEZE, multiplier)) && this instanceof CloudPlayer) {
+            if (this.damage(multiplier, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
                 this.getLevel().addSound(this.getPosition(), Sound.MOB_PLAYER_HURT_FREEZE);
             }
         }

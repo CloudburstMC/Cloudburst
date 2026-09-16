@@ -10,7 +10,6 @@ import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.passive.Bee;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.player.PlayerHarvestBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -120,7 +119,7 @@ public class VegetationBlockHandlers {
         if (block.getState().ensureTrait(BlockTraits.GROWTH) != 0
                 && (Math.abs(movement.getX()) >= 0.003f || Math.abs(movement.getZ()) >= 0.003f)) {
             DamageSource source = DamageSource.builder(DamageTypes.SWEET_BERRY_BUSH).block(block).build();
-            entity.attack(new EntityDamageEvent(entity, source, 1));
+            entity.damage(1, source);
         }
     };
 

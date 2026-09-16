@@ -6,35 +6,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageType;
-import org.cloudburstmc.api.entity.damage.DamageTypeTags;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.server.entity.EntityLiving;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @UtilityClass
-class DeathMessageResolver {
+public class DeathMessageResolver {
 
     private static final String GENERIC = "death.attack.generic";
-    private static final Map<DamageType, String> SIMPLE_MESSAGES = Map.ofEntries(
-            Map.entry(DamageTypes.OUT_OF_WORLD, "death.attack.outOfWorld"),
-            Map.entry(DamageTypes.IN_WALL, "death.attack.inWall"),
-            Map.entry(DamageTypes.IN_FIRE, "death.attack.inFire"),
-            Map.entry(DamageTypes.ON_FIRE, "death.attack.onFire"),
-            Map.entry(DamageTypes.DROWN, "death.attack.drown"),
-            Map.entry(DamageTypes.FREEZE, "death.attack.freeze"),
-            Map.entry(DamageTypes.MAGIC, "death.attack.magic"),
-            Map.entry(DamageTypes.STARVE, "death.attack.starve"),
-            Map.entry(DamageTypes.SWEET_BERRY_BUSH, "death.attack.sweetBerryBush"),
-            Map.entry(DamageTypes.WITHER, "death.attack.wither")
-    );
 
-    static Resolution resolve(CloudPlayer victim, @Nullable EntityDamageEvent event) {
+    public static Resolution resolve(CloudPlayer victim, @Nullable EntityDamageEvent event) {
         if (event == null) {
             return message(victim, GENERIC, null);
         }
@@ -58,9 +42,8 @@ class DeathMessageResolver {
             return thorns(victim, attacker);
         }
 
-        if (type.is(DamageTypeTags.IS_FALL)) {
-            return message(victim, event.getDamage() > 2
-                    ? "death.fell.accident.generic" : "death.attack.fall", null);
+        if (type.getDeathMessageType() == DeathMessageType.FALL_VARIANTS) {
+            return message(victim, event.getDamage() > 2 ? "death.fell.accident.generic" : "death.attack.fall", null);
         }
 
         if (type == DamageTypes.LAVA) {
@@ -71,7 +54,7 @@ class DeathMessageResolver {
             return contact(victim, source.getBlock());
         }
 
-        return message(victim, SIMPLE_MESSAGES.getOrDefault(type, GENERIC), null);
+        return message(victim, type.getTranslationKey(), null);
     }
 
     private static Resolution entityAttack(CloudPlayer victim, @Nullable Entity attacker) {
