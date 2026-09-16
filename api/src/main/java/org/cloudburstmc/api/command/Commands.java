@@ -57,7 +57,7 @@ public interface Commands {
      * Creates an argument command node builder.
      *
      * @param name the argument name
-     * @param type the parser and client presentation for the argument
+     * @param type the parser and advertised syntax for the argument
      * @param <T>  the parsed argument value type
      * @return a new builder
      */

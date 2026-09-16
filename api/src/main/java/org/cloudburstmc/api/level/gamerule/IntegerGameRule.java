@@ -6,22 +6,52 @@ import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * An immutable integer-valued game-rule definition.
+ */
 public final class IntegerGameRule implements GameRule<Integer> {
     private static final Class<Integer> CLASS = Integer.class;
     private final String name;
     private final Integer defaultValue;
+    private final boolean requiresCheats;
 
-    private IntegerGameRule(String name, int defaultValue) {
+    private IntegerGameRule(String name, int defaultValue, boolean requiresCheats) {
         this.name = name;
         this.defaultValue = defaultValue;
+        this.requiresCheats = requiresCheats;
     }
 
+    /**
+     * Creates a rule with a default value of {@code 0}.
+     *
+     * @param name the command and storage name
+     * @return the game-rule definition
+     */
     public static IntegerGameRule of(String name) {
         return of(name, 0);
     }
 
+    /**
+     * Creates a rule that is available without cheats.
+     *
+     * @param name         the command and storage name
+     * @param defaultValue the initial value
+     * @return the game-rule definition
+     */
     public static IntegerGameRule of(String name, int defaultValue) {
-        return new IntegerGameRule(name, defaultValue);
+        return of(name, defaultValue, false);
+    }
+
+    /**
+     * Creates a rule.
+     *
+     * @param name           the command and storage name
+     * @param defaultValue   the initial value
+     * @param requiresCheats whether changing the rule requires cheats
+     * @return the game-rule definition
+     */
+    public static IntegerGameRule of(String name, int defaultValue, boolean requiresCheats) {
+        return new IntegerGameRule(name, defaultValue, requiresCheats);
     }
 
     @Override
@@ -37,6 +67,11 @@ public final class IntegerGameRule implements GameRule<Integer> {
     @Override
     public Integer getDefaultValue() {
         return defaultValue;
+    }
+
+    @Override
+    public boolean requiresCheats() {
+        return this.requiresCheats;
     }
 
     @Override

@@ -2,6 +2,14 @@ package org.cloudburstmc.api.level.gamerule;
 
 import org.cloudburstmc.api.command.argument.CommandArgumentType;
 
+/**
+ * Defines a typed game rule shared by level storage and command handling.
+ *
+ * <p>Game-rule names are case-insensitive identifiers. Implementations must be immutable so a rule can be
+ * used safely as a key.</p>
+ *
+ * @param <T> the rule value type
+ */
 public interface GameRule<T extends Comparable<T>> {
 
     /**
@@ -24,6 +32,13 @@ public interface GameRule<T extends Comparable<T>> {
      * @return the default value
      */
     T getDefaultValue();
+
+    /**
+     * Returns whether changing this rule requires cheats to be enabled.
+     *
+     * @return {@code true} when the rule is cheat-gated
+     */
+    boolean requiresCheats();
 
     /**
      * Parses a value from persisted text.

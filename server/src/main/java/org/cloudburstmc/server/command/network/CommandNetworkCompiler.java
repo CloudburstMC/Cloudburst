@@ -5,6 +5,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.argument.CommandArgumentConstraint;
 import org.cloudburstmc.api.command.argument.CommandArgumentType;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
@@ -153,7 +154,7 @@ public class CommandNetworkCompiler {
         while (!remaining.isEmpty()) {
             ExecutablePath path = longestPath(remaining);
             int optionalStart = path.nodes().size();
-            while (optionalStart > 0 && containsPrefix(paths, path, optionalStart - 1)) {
+            while (optionalStart > 0 && !isRequired(path.nodes().get(optionalStart - 1)) && containsPrefix(paths, path, optionalStart - 1)) {
                 optionalStart--;
             }
 
@@ -200,6 +201,12 @@ public class CommandNetworkCompiler {
             }
         }
         return true;
+    }
+
+    private static boolean isRequired(CommandNode<CommandSourceStack> node) {
+        return node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
+                && argument.getType() instanceof CommandArgumentType<?> commandArgument
+                && commandArgument.isRequiredInSyntax();
     }
 
     private static CommandParamData copyParameter(CommandParamData source, boolean optional) {
@@ -255,8 +262,12 @@ public class CommandNetworkCompiler {
                     data.getOptions().add(CommandParamOption.HAS_SEMANTIC_CONSTRAINT);
                 }
             }
-            case FIXED_ENUM -> data.setEnumData(new CommandEnumData(enumName(node, argument),
-                    enumValues(argument.getValues()), false));
+            case FIXED_ENUM -> {
+                data.setEnumData(new CommandEnumData(enumName(node, argument), enumValues(argument), false));
+                if (!argument.getValueConstraints().isEmpty()) {
+                    data.getOptions().add(CommandParamOption.HAS_SEMANTIC_CONSTRAINT);
+                }
+            }
         }
 
         return data;
@@ -272,12 +283,30 @@ public class CommandNetworkCompiler {
         for (String value : values) {
             enumValues.put(value, Collections.emptySet());
         }
+
         return enumValues;
     }
 
-    private record ExecutablePath(
-            List<CommandNode<CommandSourceStack>> nodes,
-            List<CommandParamData> parameters
-    ) {
+    private static Map<String, Set<CommandEnumConstraint>> enumValues(CommandArgumentType<?> argument) {
+        LinkedHashMap<String, Set<CommandEnumConstraint>> enumValues = new LinkedHashMap<>();
+        for (String value : argument.getValues()) {
+            Set<CommandArgumentConstraint> constraints = argument.getValueConstraints().getOrDefault(value, Set.of());
+            EnumSet<CommandEnumConstraint> networkConstraints = EnumSet.noneOf(CommandEnumConstraint.class);
+
+            for (CommandArgumentConstraint constraint : constraints) {
+                networkConstraints.add(switch (constraint) {
+                    case CHEATS_ENABLED -> CommandEnumConstraint.CHEATS_ENABLED;
+                    case OPERATOR_PERMISSIONS -> CommandEnumConstraint.OPERATOR_PERMISSIONS;
+                    case HOST_PERMISSIONS -> CommandEnumConstraint.HOST_PERMISSIONS;
+                });
+            }
+
+            enumValues.put(value, Collections.unmodifiableSet(networkConstraints));
+        }
+
+        return enumValues;
+    }
+
+    private record ExecutablePath(List<CommandNode<CommandSourceStack>> nodes, List<CommandParamData> parameters) {
     }
 }

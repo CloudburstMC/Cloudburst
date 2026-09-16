@@ -128,7 +128,7 @@ public class CommandArgumentTypes {
      * @return a boolean argument
      */
     public static CommandArgumentType<Boolean> bool(@Nullable String displayName) {
-        return fixedEnumMapped(displayName, "Boolean", Boolean::valueOf, "false", "true");
+        return fixedEnumMapped(displayName, "Boolean", Boolean::valueOf, "true", "false");
     }
 
     /**
@@ -191,8 +191,7 @@ public class CommandArgumentTypes {
      * @return a bounded integer argument
      */
     public static CommandArgumentType<Integer> integer(@Nullable String displayName, int minimum, int maximum) {
-        return new NumericCommandArgumentType<>(CommandArgumentKind.INTEGER, displayName,
-                IntegerArgumentType.integer(minimum, maximum));
+        return new NumericCommandArgumentType<>(CommandArgumentKind.INTEGER, displayName, IntegerArgumentType.integer(minimum, maximum));
     }
 
     /**
@@ -255,8 +254,7 @@ public class CommandArgumentTypes {
      * @return a bounded floating-point argument
      */
     public static CommandArgumentType<Float> floatingPoint(@Nullable String displayName, float minimum, float maximum) {
-        return new NumericCommandArgumentType<>(CommandArgumentKind.FLOAT, displayName,
-                FloatArgumentType.floatArg(minimum, maximum));
+        return new NumericCommandArgumentType<>(CommandArgumentKind.FLOAT, displayName, FloatArgumentType.floatArg(minimum, maximum));
     }
 
     /**
@@ -275,8 +273,7 @@ public class CommandArgumentTypes {
      * @return a rotation argument
      */
     public static CommandArgumentType<RotationResolver> rotation(@Nullable String displayName) {
-        return new SimpleCommandArgumentType<>(CommandArgumentKind.ROTATION, displayName, null, List.of(), null,
-                CommandArgumentTypes::parseRotation);
+        return new SimpleCommandArgumentType<>(CommandArgumentKind.ROTATION, displayName, null, List.of(), null, CommandArgumentTypes::parseRotation);
     }
 
     /**
@@ -292,6 +289,7 @@ public class CommandArgumentTypes {
         if (players.size() != 1) {
             throw ERROR_NOT_SINGLE_PLAYER.create();
         }
+
         return players.getFirst();
     }
 
@@ -320,6 +318,7 @@ public class CommandArgumentTypes {
         if (entities.size() != 1) {
             throw ERROR_NOT_SINGLE_ENTITY.create();
         }
+
         return entities.getFirst();
     }
 
@@ -701,8 +700,7 @@ public class CommandArgumentTypes {
      * @return an entity type argument
      */
     public static CommandArgumentType<EntityType<?>> entityType(@Nullable String displayName) {
-        return registryArgument(CommandArgumentKind.ENTITY_TYPE, displayName, EntityTypes::get,
-                identifiers(EntityTypes.values(), EntityType::getId), "entity");
+        return registryArgument(CommandArgumentKind.ENTITY_TYPE, displayName, EntityTypes::get, identifiers(EntityTypes.values(), EntityType::getId), "entity");
     }
 
     /**
@@ -879,7 +877,42 @@ public class CommandArgumentTypes {
      * @return a fixed enum argument
      */
     public static <T> CommandArgumentType<T> fixedEnumMapped(@Nullable String displayName, String enumName, Function<String, T> parser, String... values) {
-        return new SimpleCommandArgumentType<>(CommandArgumentKind.FIXED_ENUM, displayName, enumName, List.of(values), null, parser::apply);
+        return fixedEnumMapped(displayName, enumName, false, parser, values);
+    }
+
+    /**
+     * Creates an argument backed by a fixed set of literal values and maps the parsed value.
+     *
+     * @param displayName      the command UI argument name, or {@code null} to use the node name
+     * @param enumName         command UI enum name
+     * @param requiredInSyntax whether the argument must remain required when its parent can execute
+     * @param parser           maps the parsed value
+     * @param values           accepted values
+     * @param <T>              parsed result type
+     * @return a fixed enum argument
+     */
+    public static <T> CommandArgumentType<T> fixedEnumMapped(@Nullable String displayName, String enumName, boolean requiredInSyntax, Function<String, T> parser, String... values) {
+        return fixedEnumMapped(displayName, enumName, requiredInSyntax, Map.of(), parser, values);
+    }
+
+    /**
+     * Creates a constrained argument backed by a fixed set of literal values and maps the parsed value.
+     *
+     * @param displayName      the command UI argument name, or {@code null} to use the node name
+     * @param enumName         command UI enum name
+     * @param requiredInSyntax whether the argument must remain required when its parent can execute
+     * @param valueConstraints availability constraints keyed by accepted value
+     * @param parser           maps the parsed value
+     * @param values           accepted values
+     * @param <T>              parsed result type
+     * @return a fixed enum argument
+     */
+    public static <T> CommandArgumentType<T> fixedEnumMapped(@Nullable String displayName, String enumName,
+                                                             boolean requiredInSyntax,
+                                                             Map<String, Set<CommandArgumentConstraint>> valueConstraints,
+                                                              Function<String, T> parser, String... values) {
+        return new SimpleCommandArgumentType<>(CommandArgumentKind.FIXED_ENUM, displayName, enumName,
+                List.of(values), null, requiredInSyntax, valueConstraints, parser::apply);
     }
 
     /**
@@ -939,29 +972,56 @@ public class CommandArgumentTypes {
                 .toList();
     }
 
+    private static Map<String, Set<CommandArgumentConstraint>> immutableConstraints(Map<String, Set<CommandArgumentConstraint>> constraints) {
+        LinkedHashMap<String, Set<CommandArgumentConstraint>> copy = new LinkedHashMap<>();
+        Objects.requireNonNull(constraints, "constraints").forEach((value, valueConstraints) ->
+                copy.put(Objects.requireNonNull(value, "constraint value"),
+                        Set.copyOf(Objects.requireNonNull(valueConstraints, "value constraints"))));
+        return Collections.unmodifiableMap(copy);
+    }
+
     private static final class SimpleCommandArgumentType<T> implements CommandArgumentType<T> {
         private final CommandArgumentKind kind;
         private final @Nullable String displayName;
         private final @Nullable String enumName;
         private final List<String> values;
+        private final Set<String> acceptedValues;
         private final @Nullable String postfix;
+        private final boolean requiredInSyntax;
+        private final Map<String, Set<CommandArgumentConstraint>> valueConstraints;
         private final CommandValueParser<T> valueParser;
         private final @Nullable SuggestionProvider<CommandSourceStack> suggestions;
 
         private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName, @Nullable String enumName, Collection<String> values, @Nullable String postfix) {
-            this(kind, displayName, enumName, values, postfix, CommandArgumentTypes::cast, null);
+            this(kind, displayName, enumName, values, postfix, false, Map.of(), CommandArgumentTypes::cast, null);
         }
 
         private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName, @Nullable String enumName, Collection<String> values, @Nullable String postfix, CommandValueParser<T> valueParser) {
-            this(kind, displayName, enumName, values, postfix, valueParser, null);
+            this(kind, displayName, enumName, values, postfix, false, Map.of(), valueParser, null);
         }
 
-        private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName, @Nullable String enumName, Collection<String> values, @Nullable String postfix, CommandValueParser<T> valueParser, @Nullable SuggestionProvider<CommandSourceStack> suggestions) {
+        private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName,
+                                          @Nullable String enumName, Collection<String> values,
+                                          @Nullable String postfix, boolean requiredInSyntax,
+                                          Map<String, Set<CommandArgumentConstraint>> valueConstraints,
+                                          CommandValueParser<T> valueParser) {
+            this(kind, displayName, enumName, values, postfix, requiredInSyntax, valueConstraints, valueParser, null);
+        }
+
+        private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName,
+                                          @Nullable String enumName, Collection<String> values,
+                                          @Nullable String postfix, boolean requiredInSyntax,
+                                          Map<String, Set<CommandArgumentConstraint>> valueConstraints,
+                                          CommandValueParser<T> valueParser,
+                                          @Nullable SuggestionProvider<CommandSourceStack> suggestions) {
             this.kind = Objects.requireNonNull(kind, "kind");
             this.displayName = displayName;
             this.enumName = enumName;
             this.values = List.copyOf(Objects.requireNonNull(values, "values"));
+            this.acceptedValues = Set.copyOf(this.values);
             this.postfix = postfix;
+            this.requiredInSyntax = requiredInSyntax;
+            this.valueConstraints = immutableConstraints(valueConstraints);
             this.valueParser = Objects.requireNonNull(valueParser, "valueParser");
             this.suggestions = suggestions;
             validate();
@@ -985,6 +1045,16 @@ public class CommandArgumentTypes {
         @Override
         public List<String> getValues() {
             return this.values;
+        }
+
+        @Override
+        public boolean isRequiredInSyntax() {
+            return this.requiredInSyntax;
+        }
+
+        @Override
+        public Map<String, Set<CommandArgumentConstraint>> getValueConstraints() {
+            return this.valueConstraints;
         }
 
         @Override
@@ -1019,7 +1089,7 @@ public class CommandArgumentTypes {
                 throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedSymbol().createWithContext(reader, "argument");
             }
 
-            if (this.kind == CommandArgumentKind.FIXED_ENUM && !this.values.contains(value)) {
+            if (this.kind == CommandArgumentKind.FIXED_ENUM && !this.acceptedValues.contains(value)) {
                 reader.setCursor(start);
                 throw INVALID_ENUM_VALUE.createWithContext(reader, value);
             }
@@ -1082,8 +1152,17 @@ public class CommandArgumentTypes {
                     if (this.enumName == null || this.enumName.isBlank()) {
                         throw new IllegalArgumentException("Fixed command enums require an enum name");
                     }
+
                     if (this.values.isEmpty()) {
                         throw new IllegalArgumentException("Fixed command enums require at least one value");
+                    }
+
+                    if (this.acceptedValues.size() != this.values.size()) {
+                        throw new IllegalArgumentException("Fixed command enums require unique values");
+                    }
+
+                    if (!this.acceptedValues.containsAll(this.valueConstraints.keySet())) {
+                        throw new IllegalArgumentException("Command enum constraints must reference accepted values");
                     }
                 }
                 case POSTFIX -> {
@@ -1136,6 +1215,16 @@ public class CommandArgumentTypes {
         }
 
         @Override
+        public boolean isRequiredInSyntax() {
+            return false;
+        }
+
+        @Override
+        public Map<String, Set<CommandArgumentConstraint>> getValueConstraints() {
+            return Map.of();
+        }
+
+        @Override
         public @Nullable String getPostfix() {
             return null;
         }
@@ -1184,6 +1273,7 @@ public class CommandArgumentTypes {
         } catch (IllegalArgumentException e) {
             throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().create(value);
         }
+
         return coordinate::resolve;
     }
 
@@ -1197,6 +1287,7 @@ public class CommandArgumentTypes {
         if (!Float.isFinite(angle)) {
             throw new IllegalArgumentException("Coordinate must be finite");
         }
+
         return new Coordinate(matcher.group(1) != null, angle);
     }
 

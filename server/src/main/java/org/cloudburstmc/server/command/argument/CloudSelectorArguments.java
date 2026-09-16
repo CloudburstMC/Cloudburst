@@ -12,6 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.command.CommandPermissions;
 import org.cloudburstmc.api.command.CommandSourceStack;
+import org.cloudburstmc.api.command.argument.CommandArgumentConstraint;
 import org.cloudburstmc.api.command.argument.CommandArgumentKind;
 import org.cloudburstmc.api.command.argument.CommandArgumentType;
 import org.cloudburstmc.api.command.argument.resolver.EntitySelectorResolver;
@@ -265,6 +266,16 @@ public class CloudSelectorArguments {
         @Override
         public List<String> getValues() {
             return List.of();
+        }
+
+        @Override
+        public boolean isRequiredInSyntax() {
+            return false;
+        }
+
+        @Override
+        public Map<String, Set<CommandArgumentConstraint>> getValueConstraints() {
+            return Map.of();
         }
 
         @Override

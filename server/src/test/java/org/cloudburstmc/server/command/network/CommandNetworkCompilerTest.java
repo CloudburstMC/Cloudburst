@@ -1,10 +1,12 @@
 package org.cloudburstmc.server.command.network;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
+import org.cloudburstmc.api.command.argument.CommandArgumentConstraint;
 import org.cloudburstmc.api.command.argument.CommandArgumentType;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -12,7 +14,9 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.server.command.defaults.GameruleCommand;
 import org.cloudburstmc.server.registry.CloudCommandRegistry;
+import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +57,64 @@ class CommandNetworkCompilerTest {
         assertEquals(1, overloads.size());
         assertEquals(1, overloads.getFirst().getOverloads().length);
         assertTrue(overloads.getFirst().getOverloads()[0].isOptional());
+    }
+
+    @Test
+    void preservesRequiredArgumentsAfterExecutableParents() {
+        CommandArgumentType<String> rule = CommandArgumentTypes.fixedEnumMapped(
+                "rule", "Rule", true,
+                Map.of("first", Set.of(CommandArgumentConstraint.CHEATS_ENABLED)),
+                value -> value, "first", "second");
+        LiteralCommandNode<CommandSourceStack> root = Commands.literal("test")
+                .executes(context -> 1)
+                .then(Commands.argument("rule", rule)
+                        .executes(context -> 1)
+                        .then(Commands.argument("value", CommandArgumentTypes.bool())
+                                .executes(context -> 1)))
+                .build();
+
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+
+        assertEquals(2, overloads.size());
+        assertEquals(0, overloads.get(1).getOverloads().length);
+        CommandParamData[] parameters = overloads.getFirst().getOverloads();
+        assertEquals(2, parameters.length);
+        assertFalse(parameters[0].isOptional());
+        assertTrue(parameters[0].getOptions().contains(CommandParamOption.HAS_SEMANTIC_CONSTRAINT));
+        assertTrue(parameters[1].isOptional());
+    }
+
+    @Test
+    void groupsGameRulesByValueType() {
+        CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
+        GameruleCommand command = new GameruleCommand(CloudGameRuleRegistry.get());
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("gamerule");
+        command.configure(builder, "gamerule", commandRegistry.arguments());
+
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source());
+
+        assertEquals(4, overloads.size());
+        assertEquals(1, overloads.stream().filter(overload -> overload.getOverloads().length == 0).count());
+
+        CommandParamData[] booleanOverload = overload(overloads, "BoolGameRule");
+        assertFalse(booleanOverload[0].isOptional());
+        assertTrue(booleanOverload[0].getOptions().contains(CommandParamOption.HAS_SEMANTIC_CONSTRAINT));
+        assertEquals(Set.of(CommandEnumConstraint.CHEATS_ENABLED), booleanOverload[0].getEnumData().getValues().get("commandblockoutput"));
+        assertEquals(Set.of(), booleanOverload[0].getEnumData().getValues().get("dofiretick"));
+        assertEquals(List.of("true", "false"), List.copyOf(booleanOverload[1].getEnumData().getValues().keySet()));
+        assertTrue(booleanOverload[1].isOptional());
+
+        CommandParamData[] integerOverload = overload(overloads, "IntGameRule");
+        assertFalse(integerOverload[0].isOptional());
+        assertEquals(Set.of(CommandEnumConstraint.CHEATS_ENABLED), integerOverload[0].getEnumData().getValues().get("functioncommandlimit"));
+        assertEquals(Set.of(), integerOverload[0].getEnumData().getValues().get("spawnradius"));
+        assertEquals(CommandParam.INT, integerOverload[1].getType());
+        assertTrue(integerOverload[1].isOptional());
+
+        CommandParamData[] waypointOverload = overload(overloads, "playerwaypointsRule");
+        assertFalse(waypointOverload[0].isOptional());
+        assertFalse(waypointOverload[1].isOptional());
+        assertEquals("playerwaypointsValues", waypointOverload[1].getEnumData().getName());
     }
 
     @Test
@@ -148,8 +210,7 @@ class CommandNetworkCompilerTest {
         CommandEnumData first = new CommandEnumData("Mode", Map.of("first", Set.of()), false);
         CommandEnumData second = new CommandEnumData("Mode", Map.of("second", Set.of()), false);
 
-        assertThrows(IllegalStateException.class, () -> CommandNetworkCompiler.validateEnumDefinitions(List.of(
-                command("first", first), command("second", second))));
+        assertThrows(IllegalStateException.class, () -> CommandNetworkCompiler.validateEnumDefinitions(List.of(command("first", first), command("second", second))));
     }
 
     @Test
@@ -164,6 +225,16 @@ class CommandNetworkCompilerTest {
         parameter.setEnumData(definition);
         return new CommandData(name, "", Set.of(), CommandPermission.ANY, null, Collections.emptyList(),
                 new CommandOverloadData[]{new CommandOverloadData(false, new CommandParamData[]{parameter})});
+    }
+
+    private static CommandParamData[] overload(List<CommandOverloadData> overloads, String enumName) {
+        return overloads.stream()
+                .map(CommandOverloadData::getOverloads)
+                .filter(parameters -> parameters.length > 0)
+                .filter(parameters -> parameters[0].getEnumData() != null)
+                .filter(parameters -> enumName.equals(parameters[0].getEnumData().getName()))
+                .findFirst()
+                .orElseThrow();
     }
 
     private static CommandSourceStack source() {
