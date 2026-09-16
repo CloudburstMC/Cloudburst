@@ -9,7 +9,7 @@ import net.kyori.adventure.text.format.TextColor;
  * <p>Each constant carries both an RGB value (via {@link TextColor}) and a
  * legacy section-code string (e.g. {@code §i}).</p>
  */
-public final class MinecraftTextColor implements TextColor {
+public class MinecraftTextColor implements TextColor {
 
     public static final MinecraftTextColor BLACK = new MinecraftTextColor("black", '0', 0x000000);
     public static final MinecraftTextColor DARK_BLUE = new MinecraftTextColor("dark_blue", '1', 0x0000AA);
@@ -39,6 +39,7 @@ public final class MinecraftTextColor implements TextColor {
     public static final MinecraftTextColor MATERIAL_LAPIS = new MinecraftTextColor("material_lapis", 't', 0x21497B);
     public static final MinecraftTextColor MATERIAL_AMETHYST = new MinecraftTextColor("material_amethyst", 'u', 0x9A5CC6);
     public static final MinecraftTextColor MATERIAL_RESIN = new MinecraftTextColor("material_resin", 'v', 0xEB7114);
+    public static final MinecraftTextColor PARTY_BLUE = new MinecraftTextColor("party_blue", 'w', 0x8CB3FF);
 
     private final String name;
     private final String legacyCode;

@@ -253,9 +253,19 @@ public class BlockTags {
     public static final BlockTagKey UNSTABLE_BOTTOM_CENTER = tag("unstable_bottom_center");
 
     /**
+     * Blocks that force a wall below them to keep its center post.
+     */
+    public static final BlockTagKey WALL_POST_OVERRIDE = tag("wall_post_override");
+
+    /**
      * Blocks that are walls.
      */
     public static final BlockTagKey WALLS = tag("walls");
+
+    /**
+     * Fences that connect to other wooden fences.
+     */
+    public static final BlockTagKey WOODEN_FENCE = tag("wooden_fence");
 
     /**
      * Blocks that are wool.

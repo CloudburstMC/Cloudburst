@@ -5,13 +5,13 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Log4j2
 @UtilityClass
 public class VanillaRegistryDiagnostics {
     private final List<String> WARNINGS = new ArrayList<>();
+    private final Map<String, MissingBlockStates> MISSING_BLOCK_STATES = new LinkedHashMap<>();
 
     public synchronized void duplicateBlock(Identifier id) {
         WARNINGS.add("Duplicate block registration: " + id);
@@ -30,7 +30,7 @@ public class VanillaRegistryDiagnostics {
     }
 
     public synchronized void missingVanillaBlockState(String id, NbtMap states) {
-        WARNINGS.add("Unimplemented vanilla block state: " + id + " " + states);
+        MISSING_BLOCK_STATES.computeIfAbsent(id, ignored -> new MissingBlockStates()).add(states);
     }
 
     public synchronized void missingVanillaItemDefinition(Identifier id) {
@@ -41,6 +41,27 @@ public class VanillaRegistryDiagnostics {
         for (String warning : WARNINGS) {
             log.warn(warning);
         }
+
+        MISSING_BLOCK_STATES.forEach((id, states) -> log.warn(
+                "Unimplemented vanilla block states for {}: {} state(s), traits={}",
+                id,
+                states.count,
+                states.traitValues
+        ));
+
         WARNINGS.clear();
+        MISSING_BLOCK_STATES.clear();
+    }
+
+    private static class MissingBlockStates {
+        private final Map<String, Set<Object>> traitValues = new LinkedHashMap<>();
+        private int count;
+
+        private void add(NbtMap states) {
+            this.count++;
+            states.forEach((trait, value) -> this.traitValues
+                    .computeIfAbsent(trait, ignored -> new LinkedHashSet<>())
+                    .add(value));
+        }
     }
 }

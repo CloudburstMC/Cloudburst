@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.component;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.player.Player;
@@ -9,13 +10,9 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.blockentity.ShulkerBoxBlockEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-public final class ShulkerBoxPlaceHandler extends DefaultBlockPlaceHandler {
-
-    public ShulkerBoxPlaceHandler(CloudBlockRegistry registry) {
-        super(registry);
-    }
+@NoArgsConstructor
+public class ShulkerBoxPlaceHandler extends DefaultBlockPlaceHandler {
 
     @Override
     public boolean execute(BlockState blockState, Player player, Vector3i blockPosition, Direction face, Vector3f clickPosition) {

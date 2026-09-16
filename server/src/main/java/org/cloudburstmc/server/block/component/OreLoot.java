@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Defines the server-side loot policy shared by equivalent ore block states.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OreLoot {
+public class OreLoot {
     private final ItemStack resource;
     private final ItemStack silkTouchResource;
     private final int minimumCount;

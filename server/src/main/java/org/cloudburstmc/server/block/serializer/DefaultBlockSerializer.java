@@ -18,10 +18,7 @@ public final class DefaultBlockSerializer implements BlockSerializer {
     @Override
     public void serialize(NbtMapBuilder builder, BlockType blockType, Map<BlockTrait<?>, Comparable<?>> traits) {
         NbtMapBuilder statesBuilder = NbtMap.builder();
-        traits.forEach((trait, value) ->
-                BlockTraitSerializers.serialize(statesBuilder, blockType, traits, trait, value)
-        );
-
+        traits.keySet().forEach(trait -> BlockTraitSerializers.serialize(statesBuilder, blockType, traits, trait));
         builder.putCompound(TAG_STATES, statesBuilder.build());
     }
 }

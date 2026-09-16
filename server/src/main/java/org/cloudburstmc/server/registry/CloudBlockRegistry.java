@@ -299,8 +299,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.ON_FALL_ON, DefaultBlockHandlers.ON_FALL_ON);
         this.registerComponent(BlockComponents.ON_FALLING_LAND, (entity, target, fallDistance) -> {});
         this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, DefaultBlockHandlers.ON_LIGHTNING_HIT);
-        this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler(this));
-        this.registerComponent(BlockComponents.RESOLVE_PLACEMENT_STATE, (state, block, player, face, clickPosition) -> state);
+        this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler());
+        this.registerComponent(BlockComponents.RESOLVE_PLACEMENT_STATE, DefaultPlacementStateHandler.INSTANCE);
         this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, DefaultBlockHandlers.ON_PROJECTILE_HIT);
         this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, DefaultBlockHandlers.ON_REDSTONE_UPDATE);
         this.registerComponent(BlockComponents.ON_REMOVE, DefaultBlockHandlers.ON_REMOVE);

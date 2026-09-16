@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.trait.serializer;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.CardinalDirection;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
@@ -14,12 +13,12 @@ import java.util.Map;
 public class CardinalDirectionSerializer implements TraitSerializer<CardinalDirection> {
 
     @Override
-    public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, CardinalDirection direction) {
+    public Comparable<?> serialize(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<CardinalDirection> trait, CardinalDirection direction) {
         return direction.toDirection().name().toLowerCase();
     }
 
     @Override
-    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<CardinalDirection> blockTrait) {
         return BedrockStateTags.TAG_MINECRAFT_CARDINAL_DIRECTION;
     }
 }

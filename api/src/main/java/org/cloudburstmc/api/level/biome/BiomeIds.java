@@ -20,6 +20,7 @@ public class BiomeIds {
     public static final Identifier COLD_TAIGA_HILLS = Identifier.parse("cold_taiga_hills");
     public static final Identifier COLD_TAIGA_MUTATED = Identifier.parse("cold_taiga_mutated");
     public static final Identifier CRIMSON_FOREST = Identifier.parse("crimson_forest");
+    public static final Identifier DAPPLED_FOREST = Identifier.parse("dappled_forest");
     public static final Identifier DEEP_COLD_OCEAN = Identifier.parse("deep_cold_ocean");
     public static final Identifier DEEP_DARK = Identifier.parse("deep_dark");
     public static final Identifier DEEP_FROZEN_OCEAN = Identifier.parse("deep_frozen_ocean");
@@ -83,6 +84,7 @@ public class BiomeIds {
     public static final Identifier SOUL_SAND_VALLEY = Identifier.parse("soulsand_valley");
     public static final Identifier STONE_BEACH = Identifier.parse("stone_beach");
     public static final Identifier STONY_PEAKS = Identifier.parse("stony_peaks");
+    public static final Identifier SULFUR_CAVES = Identifier.parse("sulfur_caves");
     public static final Identifier SUNFLOWER_PLAINS = Identifier.parse("sunflower_plains");
     public static final Identifier SWAMPLAND = Identifier.parse("swampland");
     public static final Identifier SWAMPLAND_MUTATED = Identifier.parse("swampland_mutated");

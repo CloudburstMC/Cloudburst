@@ -16,7 +16,7 @@ import java.util.Map;
 @UtilityClass
 class BlockPropertyData {
 
-    private static final TypeReference<List<Map<String, Object>>> BLOCK_PROPERTIES = new TypeReference<>() {};
+    private static final TypeReference<List<Map<String, Object>>> BLOCKS = new TypeReference<>() {};
     private static final Long2ObjectOpenHashMap<StateData> BY_STATE_HASH = load();
 
     static StateData get(long stateHash) {
@@ -25,8 +25,8 @@ class BlockPropertyData {
 
     private static Long2ObjectOpenHashMap<StateData> load() {
         List<Map<String, Object>> entries;
-        try (InputStream stream = RegistryUtils.getOrAssertResource("data/block_properties.json")) {
-            entries = new ObjectMapper().readValue(stream, BLOCK_PROPERTIES);
+        try (InputStream stream = RegistryUtils.getOrAssertResource("data/blocks.json")) {
+            entries = new ObjectMapper().readValue(stream, BLOCKS);
         } catch (IOException e) {
             throw new ExceptionInInitializerError(e);
         }

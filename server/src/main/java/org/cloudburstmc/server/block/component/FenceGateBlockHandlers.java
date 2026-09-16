@@ -5,7 +5,9 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.PlacementStateHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -15,6 +17,17 @@ import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class FenceGateBlockHandlers {
+
+    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, clickPosition) -> {
+        if (player == null) {
+            return state;
+        }
+
+        Direction facing = player.getHorizontalDirection();
+        return state
+                .withTrait(BlockTraits.CARDINAL_DIRECTION, facing.getCardinalDirection())
+                .withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered(block.getLevel(), block.getPosition(), facing));
+    };
 
     public static final UseBlockHandler USE = (block, player, direction, item) -> {
         BlockState state = block.getState();
@@ -54,12 +67,14 @@ public class FenceGateBlockHandlers {
             return;
         }
 
-        CloudLevel level = (CloudLevel) block.getLevel();
-        boolean shouldBeLowered = level.getBlockState(leftPos.getX(), leftPos.getY(), leftPos.getZ()).is(BlockTags.WALLS)
-                || level.getBlockState(rightPos.getX(), rightPos.getY(), rightPos.getZ()).is(BlockTags.WALLS);
-
+        boolean shouldBeLowered = shouldBeLowered(block.getLevel(), pos, facing);
         if (shouldBeLowered != state.ensureTrait(BlockTraits.IS_IN_WALL)) {
-            level.setBlockState(pos, state.withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered), false, true);
+            block.set(state.withTrait(BlockTraits.IS_IN_WALL, shouldBeLowered), false, true);
         }
     };
+
+    private static boolean shouldBeLowered(Level level, Vector3i position, Direction facing) {
+        Direction left = facing.rotateCounterClockwise();
+        return level.getBlockState(left.relative(position)).is(BlockTags.WALLS) || level.getBlockState(left.getOpposite().relative(position)).is(BlockTags.WALLS);
+    }
 }

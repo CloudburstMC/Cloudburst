@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.random.RandomGenerator;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class LiquidBlockHandlers {
+public class LiquidBlockHandlers {
     private static final int OCCLUSION_CACHE_SIZE = 2048;
     private static final Direction[] DIRECTIONS = Direction.values();
     private static final ThreadLocal<OcclusionResult[]> OCCLUSION_CACHE =
@@ -501,7 +501,7 @@ public final class LiquidBlockHandlers {
     private record SpreadTarget(Block block, LiquidState liquid) {
     }
 
-    private static final class SpreadContext {
+    private static class SpreadContext {
         private final CloudLevel level;
         private final LiquidFamily family;
         private final Long2ObjectOpenHashMap<Block> blocks = new Long2ObjectOpenHashMap<>();

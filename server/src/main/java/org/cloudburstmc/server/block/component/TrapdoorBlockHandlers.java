@@ -4,14 +4,22 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.component.PlacementStateHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.block.component.UseCheckHandler;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class TrapdoorBlockHandlers {
+
+    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, clickPosition) -> {
+        BlockState placementState = DefaultPlacementStateHandler.INSTANCE.execute(state, block, player, face, clickPosition);
+        boolean upsideDown = face == Direction.DOWN || face != Direction.UP && clickPosition.getY() > 0.5f;
+        return placementState.withTrait(BlockTraits.IS_UPSIDE_DOWN, upsideDown);
+    };
 
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> block.getState().getType() != BlockTypes.IRON_TRAPDOOR;
 

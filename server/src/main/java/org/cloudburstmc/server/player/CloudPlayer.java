@@ -114,6 +114,8 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.VanillaBlockNetworkData;
+import org.cloudburstmc.server.network.VanillaJigsawStructureNetworkData;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
@@ -2289,10 +2291,9 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         startGamePacket.setOwnerId("");
         session.getPeer().getCodecHelper().setItemDefinitions(CloudItemRegistry.get());
         session.getPeer().getCodecHelper().setBlockDefinitions(BlockPalette.INSTANCE);
-        VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
-        voxelShapesPacket.setShapes(List.of());
-        voxelShapesPacket.setNameMap(Map.of());
-        this.sendPacket(voxelShapesPacket);
+        VanillaBlockNetworkData.addBlockProperties(startGamePacket);
+        this.sendPacket(VanillaJigsawStructureNetworkData.createPacket());
+        this.sendPacket(VanillaBlockNetworkData.createVoxelShapesPacket());
         this.sendPacket(startGamePacket);
 
         ItemComponentPacket componentPacket = new ItemComponentPacket();

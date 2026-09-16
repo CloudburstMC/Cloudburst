@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.random.RandomGenerator;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class BiomeBoneMealVegetation {
+public class BiomeBoneMealVegetation {
 
     private static final List<BlockType> DEFAULT = List.of(
             BlockTypes.POPPY, BlockTypes.POPPY, BlockTypes.DANDELION);

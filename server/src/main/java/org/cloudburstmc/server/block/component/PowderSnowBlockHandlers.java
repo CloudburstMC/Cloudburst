@@ -28,7 +28,7 @@ import org.cloudburstmc.server.level.particle.FizzEffectParticle;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PowderSnowBlockHandlers {
+public class PowderSnowBlockHandlers {
 
     public static final BucketPickupHandler BUCKET_PICKUP = (block, player) ->
             ItemStack.from(ItemTypes.POWDER_SNOW_BUCKET);

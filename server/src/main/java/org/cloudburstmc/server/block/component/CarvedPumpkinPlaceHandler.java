@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.block.component;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -12,14 +13,10 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.passive.EntitySnowGolem;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
+@NoArgsConstructor
 public class CarvedPumpkinPlaceHandler extends DefaultBlockPlaceHandler {
-
-    public CarvedPumpkinPlaceHandler(CloudBlockRegistry registry) {
-        super(registry);
-    }
 
     @Override
     public boolean execute(BlockState state, Player player, Vector3i position, Direction face, Vector3f clickPosition) {

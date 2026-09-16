@@ -19,7 +19,7 @@ import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SnowLayerBlockHandlers {
+public class SnowLayerBlockHandlers {
 
     private static final int MAX_HEIGHT = 7;
 

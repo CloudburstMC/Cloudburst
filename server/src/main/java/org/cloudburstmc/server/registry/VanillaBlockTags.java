@@ -31,6 +31,7 @@ class VanillaBlockTags {
         initLiquid();
         initCrops();
         initWalls();
+        initWallPostOverride();
         initSign();
         initStem();
         initButton();
@@ -52,6 +53,7 @@ class VanillaBlockTags {
         initMineableWithHoe();
         initSwordMining();
         initToolTierRequirements();
+        initBlockFamilies();
 
         tag(SUPPORTS_CHORUS_FLOWER, END_STONE);
         tag(SUPPORTS_CHORUS_PLANT, END_STONE);
@@ -932,73 +934,25 @@ class VanillaBlockTags {
     }
 
     private static void initStairs() {
-        tag(STAIRS,
-                ACACIA_STAIRS,
-                ANDESITE_STAIRS,
-                BAMBOO_MOSAIC_STAIRS,
-                BAMBOO_STAIRS,
-                BIRCH_STAIRS,
-                BLACKSTONE_STAIRS,
-                BRICK_STAIRS,
-                CHERRY_STAIRS,
-                CINNABAR_BRICK_STAIRS,
-                CINNABAR_STAIRS,
-                COBBLED_DEEPSLATE_STAIRS,
-                COBBLESTONE_STAIRS,
-                CRIMSON_STAIRS,
-                CUT_COPPER_STAIRS,
-                DARK_OAK_STAIRS,
-                DARK_PRISMARINE_STAIRS,
-                DEEPSLATE_BRICK_STAIRS,
-                DEEPSLATE_TILE_STAIRS,
-                DIORITE_STAIRS,
-                END_BRICK_STAIRS,
-                EXPOSED_CUT_COPPER_STAIRS,
-                GRANITE_STAIRS,
-                JUNGLE_STAIRS,
-                MANGROVE_STAIRS,
-                MOSSY_COBBLESTONE_STAIRS,
-                MOSSY_STONE_BRICK_STAIRS,
-                MUD_BRICK_STAIRS,
-                NETHER_BRICK_STAIRS,
-                OAK_STAIRS,
-                OXIDIZED_CUT_COPPER_STAIRS,
-                PALE_OAK_STAIRS,
-                POPLAR_STAIRS,
-                POLISHED_ANDESITE_STAIRS,
-                POLISHED_BLACKSTONE_BRICK_STAIRS,
-                POLISHED_BLACKSTONE_STAIRS,
-                POLISHED_CINNABAR_STAIRS,
-                POLISHED_DEEPSLATE_STAIRS,
-                POLISHED_DIORITE_STAIRS,
-                POLISHED_GRANITE_STAIRS,
-                POLISHED_SULFUR_STAIRS,
-                POLISHED_TUFF_STAIRS,
-                PRISMARINE_BRICKS_STAIRS,
-                PRISMARINE_STAIRS,
-                PURPUR_STAIRS,
-                QUARTZ_STAIRS,
-                RED_NETHER_BRICK_STAIRS,
-                RED_SANDSTONE_STAIRS,
-                RESIN_BRICK_STAIRS,
-                SANDSTONE_STAIRS,
-                SMOOTH_QUARTZ_STAIRS,
-                SMOOTH_RED_SANDSTONE_STAIRS,
-                SMOOTH_SANDSTONE_STAIRS,
-                SPRUCE_STAIRS,
-                STONE_BRICK_STAIRS,
-                STONE_STAIRS,
-                SULFUR_BRICK_STAIRS,
-                SULFUR_STAIRS,
-                TUFF_BRICK_STAIRS,
-                TUFF_STAIRS,
-                WARPED_STAIRS,
-                WAXED_CUT_COPPER_STAIRS,
-                WAXED_EXPOSED_CUT_COPPER_STAIRS,
-                WAXED_OXIDIZED_CUT_COPPER_STAIRS,
-                WAXED_WEATHERED_CUT_COPPER_STAIRS,
-                WEATHERED_CUT_COPPER_STAIRS
-        );
+        tag(STAIRS, BlockTypes.values().stream()
+                .filter(type -> type.getTraits().contains(BlockTraits.STAIR_SHAPE))
+                .toArray(BlockType[]::new));
+    }
+
+    private static void initBlockFamilies() {
+        for (VanillaSlabAndStairFamily family : VanillaBlockFamilies.COLORED_BUILDING_BLOCKS) {
+            tag(SLAB, family.slab());
+            tag(DOUBLE_SLAB, family.doubleSlab());
+            tag(SOLID, family.slab(), family.doubleSlab(), family.stairs());
+
+            if (values(MINEABLE_WITH_PICKAXE).contains(family.base())) {
+                tag(MINEABLE_WITH_PICKAXE, family.slab(), family.doubleSlab(), family.stairs());
+            }
+
+            if (values(WOOL).contains(family.base())) {
+                tag(WOOL, family.slab(), family.doubleSlab(), family.stairs());
+            }
+        }
     }
 
     private static void initSlab() {
@@ -1216,6 +1170,7 @@ class VanillaBlockTags {
 
     private static void initWalls() {
         tag(WALLS,
+                ANDESITE_WALL,
                 BLACKSTONE_WALL,
                 BRICK_WALL,
                 CINNABAR_BRICK_WALL,
@@ -1224,23 +1179,76 @@ class VanillaBlockTags {
                 COBBLESTONE_WALL,
                 DEEPSLATE_BRICK_WALL,
                 DEEPSLATE_TILE_WALL,
+                DIORITE_WALL,
                 END_STONE_BRICK_WALL,
+                GRANITE_WALL,
                 MOSSY_COBBLESTONE_WALL,
                 MOSSY_STONE_BRICK_WALL,
+                MUD_BRICK_WALL,
                 NETHER_BRICK_WALL,
                 POLISHED_BLACKSTONE_BRICK_WALL,
                 POLISHED_BLACKSTONE_WALL,
                 POLISHED_CINNABAR_WALL,
                 POLISHED_DEEPSLATE_WALL,
                 POLISHED_SULFUR_WALL,
+                POLISHED_TUFF_WALL,
                 PRISMARINE_WALL,
                 RED_NETHER_BRICK_WALL,
                 RED_SANDSTONE_WALL,
+                RESIN_BRICK_WALL,
                 SANDSTONE_WALL,
                 STONE_BRICK_WALL,
                 SULFUR_BRICK_WALL,
-                SULFUR_WALL
+                SULFUR_WALL,
+                TUFF_BRICK_WALL,
+                TUFF_WALL
         );
+    }
+
+    private static void initWallPostOverride() {
+        tag(WALL_POST_OVERRIDE,
+                ACACIA_STANDING_SIGN,
+                ACACIA_WALL_SIGN,
+                BAMBOO_STANDING_SIGN,
+                BAMBOO_WALL_SIGN,
+                BIRCH_STANDING_SIGN,
+                BIRCH_WALL_SIGN,
+                CACTUS_FLOWER,
+                CHERRY_STANDING_SIGN,
+                CHERRY_WALL_SIGN,
+                COLORED_TORCH_BLUE,
+                COLORED_TORCH_GREEN,
+                COLORED_TORCH_PURPLE,
+                COLORED_TORCH_RED,
+                COPPER_TORCH,
+                CRIMSON_STANDING_SIGN,
+                CRIMSON_WALL_SIGN,
+                DARKOAK_STANDING_SIGN,
+                DARKOAK_WALL_SIGN,
+                JUNGLE_STANDING_SIGN,
+                JUNGLE_WALL_SIGN,
+                MANGROVE_STANDING_SIGN,
+                MANGROVE_WALL_SIGN,
+                OAK_STANDING_SIGN,
+                OAK_WALL_SIGN,
+                PALE_OAK_STANDING_SIGN,
+                PALE_OAK_WALL_SIGN,
+                POPLAR_STANDING_SIGN,
+                POPLAR_WALL_SIGN,
+                REDSTONE_TORCH,
+                SOUL_TORCH,
+                SPRUCE_STANDING_SIGN,
+                SPRUCE_WALL_SIGN,
+                STANDING_BANNER,
+                TORCH,
+                TRIP_WIRE,
+                UNDERWATER_TORCH,
+                UNLIT_REDSTONE_TORCH,
+                WALL_BANNER,
+                WARPED_STANDING_SIGN,
+                WARPED_WALL_SIGN
+        );
+        inherit(WALL_POST_OVERRIDE, PRESSURE_PLATE);
     }
 
     private static void initSign() {
@@ -1369,6 +1377,21 @@ class VanillaBlockTags {
                 JUNGLE_FENCE,
                 MANGROVE_FENCE,
                 NETHER_BRICK_FENCE,
+                OAK_FENCE,
+                PALE_OAK_FENCE,
+                POPLAR_FENCE,
+                SPRUCE_FENCE,
+                WARPED_FENCE
+        );
+        tag(WOODEN_FENCE,
+                ACACIA_FENCE,
+                BAMBOO_FENCE,
+                BIRCH_FENCE,
+                CHERRY_FENCE,
+                CRIMSON_FENCE,
+                DARK_OAK_FENCE,
+                JUNGLE_FENCE,
+                MANGROVE_FENCE,
                 OAK_FENCE,
                 PALE_OAK_FENCE,
                 POPLAR_FENCE,

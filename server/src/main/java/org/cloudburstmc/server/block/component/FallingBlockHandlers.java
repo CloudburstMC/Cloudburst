@@ -15,7 +15,7 @@ import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class FallingBlockHandlers {
+public class FallingBlockHandlers {
 
     private static final int FALL_DELAY = 1;
 

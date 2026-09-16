@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockRegistrationAccess;
@@ -25,6 +26,7 @@ import org.cloudburstmc.server.block.serializer.BlockSerializer;
 import org.cloudburstmc.server.block.util.BlockStateHash;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
+import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
 import java.io.IOException;
@@ -67,6 +69,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
     private final Reference2ReferenceMap<BlockState, Identifier> state2identifierMap = new Reference2ReferenceOpenHashMap<>();
 
     private final Reference2ObjectMap<BlockType, Set<Identifier>> type2identifierMap = new Reference2ObjectOpenHashMap<>();
+    @Getter
     private final Map<String, Set<Object>> vanillaTraitMap = new HashMap<>();
     private final SortedMap<String, Set<NbtMap>> sortedPalette = new Object2ReferenceRBTreeMap<>();
 
@@ -131,6 +134,9 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
         }
 
         List<NbtMap> vanillaPalette = loadVanillaPalette();
+        List<RuntimeRegistration> registrations = new ArrayList<>(vanillaPalette.size());
+        List<MissingBlockProperty> missingProperties = new ArrayList<>();
+
         for (int runtimeId = 0; runtimeId < vanillaPalette.size(); runtimeId++) {
             NbtMap entry = vanillaPalette.get(runtimeId);
             NbtMap serializedState = stripRuntimeOnlyTags(entry);
@@ -141,12 +147,24 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                 continue;
             }
 
-            registerRuntimeDefinition(runtimeId, entry, serializedState, state);
-        }
-    }
+            int fnvHash = BlockStateHash.compute(entry.getString("name"), entry.getCompound("states", NbtMap.EMPTY));
+            long blockStateHash = Integer.toUnsignedLong(fnvHash);
+            BlockPropertyData.StateData stateData = BlockPropertyData.get(blockStateHash);
+            if (stateData == null) {
+                missingProperties.add(new MissingBlockProperty(state, blockStateHash));
+                continue;
+            }
 
-    public Map<String, Set<Object>> getVanillaTraitMap() {
-        return vanillaTraitMap;
+            registrations.add(new RuntimeRegistration(runtimeId, entry, serializedState, state, blockStateHash, stateData));
+        }
+
+        if (!missingProperties.isEmpty()) {
+            throw missingBlockProperties(missingProperties);
+        }
+
+        for (RuntimeRegistration registration : registrations) {
+            registerRuntimeDefinition(registration);
+        }
     }
 
     public BlockType getType(Identifier id) {
@@ -280,13 +298,16 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
         return vanillaPalette;
     }
 
-    private void registerRuntimeDefinition(int runtimeId, NbtMap vanillaEntry, NbtMap serializedState, BlockState state) {
-        int fnvHash = BlockStateHash.compute(vanillaEntry.getString("name"), vanillaEntry.getCompound("states", NbtMap.EMPTY));
-        long blockStateHash = Integer.toUnsignedLong(fnvHash);
-
-        BlockPropertyData.StateData stateData = BlockPropertyData.get(blockStateHash);
-        Preconditions.checkState(stateData != null, "Missing block property data for %s (state hash %s)", state, Long.toUnsignedString(blockStateHash));
-        CloudBlockDefinition definition = new CloudBlockDefinition(state, serializedState, runtimeId, blockStateHash, stateData.translationKey());
+    private void registerRuntimeDefinition(RuntimeRegistration registration) {
+        BlockState state = registration.state();
+        BlockPropertyData.StateData stateData = registration.stateData();
+        CloudBlockDefinition definition = new CloudBlockDefinition(
+                state,
+                registration.serializedState(),
+                registration.runtimeId(),
+                registration.blockStateHash(),
+                stateData.translationKey()
+        );
 
         VoxelShape collision = CloudVoxelShapes.fromBoxes(stateData.collisionBoxes());
         VoxelShape outline = stateData.outlineShape() == null ? collision : CloudVoxelShapes.fromBoxes(stateData.outlineShape());
@@ -298,9 +319,24 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                 stateData.requiresCorrectToolForDrops(), parseMapColor(stateData.mapColor()),
                 stateData.canContainLiquidSource(), stateData.liquidReactionOnTouch()));
 
-        this.runtimeDefinitionMap.put(runtimeId, definition);
+        this.runtimeDefinitionMap.put(registration.runtimeId(), definition);
         this.stateDefinitionMap.putIfAbsent(state, definition);
-        this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(vanillaEntry.getString("name")), definition);
+        this.identifierFirstDefinitionMap.putIfAbsent(Identifier.parse(registration.vanillaEntry().getString("name")), definition);
+    }
+
+    private static IllegalStateException missingBlockProperties(List<MissingBlockProperty> missingProperties) {
+        long typeCount = missingProperties.stream()
+                .map(missing -> missing.state().getType())
+                .distinct()
+                .count();
+        String examples = missingProperties.stream()
+                .limit(10)
+                .map(MissingBlockProperty::toString)
+                .collect(Collectors.joining(", "));
+        return new IllegalStateException(
+                "Block property data is incompatible with the vanilla palette: "
+                        + missingProperties.size() + " state(s) across " + typeCount
+                        + " block type(s) are missing. Update the data export. Examples: " + examples);
     }
 
     private static Color parseMapColor(String value) {
@@ -310,6 +346,24 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                 Integer.parseInt(value.substring(3, 5), 16),
                 Integer.parseInt(value.substring(5, 7), 16),
                 Integer.parseInt(value.substring(7, 9), 16));
+    }
+
+    private record MissingBlockProperty(BlockState state, long blockStateHash) {
+
+        @Override
+        public @NonNull String toString() {
+            return this.state + " (state hash " + Long.toUnsignedString(this.blockStateHash) + ')';
+        }
+    }
+
+    private record RuntimeRegistration(
+            int runtimeId,
+            NbtMap vanillaEntry,
+            NbtMap serializedState,
+            BlockState state,
+            long blockStateHash,
+            BlockPropertyData.StateData stateData
+    ) {
     }
 
     private Collection<NbtMap> serialize(BlockType type, BlockSerializer serializer, Map<BlockTrait<?>, Comparable<?>> traits) {

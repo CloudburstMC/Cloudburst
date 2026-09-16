@@ -1,16 +1,12 @@
 package org.cloudburstmc.server.registry;
 
-import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.ComponentType;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.component.AnvilPlaceHandler;
-import org.cloudburstmc.server.block.component.ContainerBlockHandlers;
-import org.cloudburstmc.server.block.component.DefaultBlockHandlers;
-import org.cloudburstmc.server.block.component.SlabPlaceHandler;
+import org.cloudburstmc.server.block.component.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -46,38 +42,149 @@ class BlockRegistryTest {
                 .toList();
 
         assertAll(
-                () -> assertEquals(vanillaPalette.size(), BlockPalette.INSTANCE.getRuntimeMap().size(),
-                        "Every vanilla state must have one runtime definition"),
-                () -> assertTrue(missingStates.isEmpty(),
-                        () -> missingStates.size() + " vanilla states are absent from the serialized palette: "
-                                + missingStates.stream().limit(5).toList())
+                () -> assertEquals(vanillaPalette.size(), BlockPalette.INSTANCE.getRuntimeMap().size(), "Every vanilla state must have one runtime definition"),
+                () -> assertTrue(missingStates.isEmpty(), () -> missingStates.size() + " vanilla states are absent from the serialized palette: " + missingStates.stream().limit(5).toList())
         );
     }
 
     @Test
     void configuresSpecializedVanillaBlockBehaviors() {
         assertAll(
-                () -> assertPlaceHandler(BlockTypes.ANVIL, AnvilPlaceHandler.class),
-                () -> assertPlaceHandler(BlockTypes.BAMBOO_MOSAIC_SLAB, SlabPlaceHandler.class),
-                () -> assertSame(
-                        DefaultBlockHandlers.CAN_BE_USED,
-                        component(BlockTypes.ENCHANTING_TABLE, BlockComponents.CAN_BE_USED)),
-                () -> assertSame(
-                        ContainerBlockHandlers.ENCHANTING_TABLE,
-                        component(BlockTypes.ENCHANTING_TABLE, BlockComponents.USE)),
-                () -> assertSame(
-                        DefaultBlockHandlers.CAN_BE_USED,
-                        component(BlockTypes.ENDER_CHEST, BlockComponents.CAN_BE_USED)),
-                () -> assertSame(
-                        ContainerBlockHandlers.ENDER_CHEST,
-                        component(BlockTypes.ENDER_CHEST, BlockComponents.USE)),
-                () -> assertPlaceHandler(BlockTypes.GRANITE_SLAB, SlabPlaceHandler.class),
-                () -> assertPlaceHandler(BlockTypes.MOSSY_STONE_BRICK_SLAB, SlabPlaceHandler.class)
+                () -> assertSame(AnvilBlockHandlers.RESOLVE_PLACEMENT_STATE, component(BlockTypes.ANVIL, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                () -> assertSlabPlaceHandler(BlockTypes.BAMBOO_MOSAIC_SLAB),
+                () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(BlockTypes.ENCHANTING_TABLE, BlockComponents.CAN_BE_USED)),
+                () -> assertSame(ContainerBlockHandlers.ENCHANTING_TABLE, component(BlockTypes.ENCHANTING_TABLE, BlockComponents.USE)),
+                () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(BlockTypes.ENDER_CHEST, BlockComponents.CAN_BE_USED)),
+                () -> assertSame(ContainerBlockHandlers.ENDER_CHEST, component(BlockTypes.ENDER_CHEST, BlockComponents.USE)),
+                () -> assertSlabPlaceHandler(BlockTypes.GRANITE_SLAB),
+                () -> assertSlabPlaceHandler(BlockTypes.MOSSY_STONE_BRICK_SLAB)
         );
     }
 
-    private static void assertPlaceHandler(BlockType blockType, Class<?> expectedType) {
-        assertInstanceOf(expectedType, component(blockType, BlockComponents.ON_PLACE));
+    @Test
+    void stairTagMatchesTheStairShapeTrait() {
+        Set<BlockType> taggedStairs = REGISTRY.getTag(BlockTags.STAIRS).getValues();
+        Set<BlockType> stairTypes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type.getTraits().contains(BlockTraits.STAIR_SHAPE))
+                .toList());
+
+        assertEquals(stairTypes, taggedStairs);
+    }
+
+    @Test
+    void fenceAndWallTagsDriveTheirBehaviors() {
+        Set<BlockType> fenceTypes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type.getId().getName().endsWith("_fence"))
+                .toList());
+        Set<BlockType> fenceGateTypes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type.getTraits().contains(BlockTraits.IS_IN_WALL))
+                .toList());
+        Set<BlockType> wallTypes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type != BlockTypes.BORDER_BLOCK)
+                .filter(type -> type.getTraits().contains(BlockTraits.HAS_POST))
+                .toList());
+        Set<BlockType> woodenFenceTypes = Set.copyOf(fenceTypes.stream()
+                .filter(type -> type != BlockTypes.NETHER_BRICK_FENCE)
+                .toList());
+
+        assertAll(
+                () -> assertEquals(fenceTypes, REGISTRY.getTag(BlockTags.FENCE).getValues()),
+                () -> assertEquals(fenceGateTypes, REGISTRY.getTag(BlockTags.FENCE_GATE).getValues()),
+                () -> assertEquals(wallTypes, REGISTRY.getTag(BlockTags.WALLS).getValues()),
+                () -> assertEquals(woodenFenceTypes, REGISTRY.getTag(BlockTags.WOODEN_FENCE).getValues()),
+                () -> assertTrue(REGISTRY.getTag(BlockTags.WALL_POST_OVERRIDE).isTagged(BlockTypes.OAK_STANDING_SIGN)),
+                () -> assertTrue(REGISTRY.getTag(BlockTags.WALL_POST_OVERRIDE).isTagged(BlockTypes.OAK_WALL_SIGN)),
+                () -> assertFalse(REGISTRY.getTag(BlockTags.WALL_POST_OVERRIDE).isTagged(BlockTypes.OAK_HANGING_SIGN))
+        );
+
+        for (BlockType type : REGISTRY.getTag(BlockTags.FENCE).getValues()) {
+            assertAll(type.toString(),
+                    () -> assertSame(FenceBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                    () -> assertSame(FenceBlockHandlers.ON_NEIGHBOUR_CHANGED, component(type, BlockComponents.ON_NEIGHBOUR_CHANGED))
+            );
+        }
+
+        for (BlockType type : REGISTRY.getTag(BlockTags.FENCE_GATE).getValues()) {
+            assertSame(FenceGateBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE), type.toString());
+        }
+
+        for (BlockType type : REGISTRY.getTag(BlockTags.STAIRS).getValues()) {
+            assertAll(type.toString(),
+                    () -> assertSame(StairBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                    () -> assertSame(StairBlockHandlers.ON_NEIGHBOUR_CHANGED, component(type, BlockComponents.ON_NEIGHBOUR_CHANGED))
+            );
+        }
+
+        for (BlockType type : REGISTRY.getTag(BlockTags.WALLS).getValues()) {
+            assertAll(type.toString(),
+                    () -> assertSame(WallBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                    () -> assertSame(WallBlockHandlers.ON_NEIGHBOUR_CHANGED, component(type, BlockComponents.ON_NEIGHBOUR_CHANGED))
+            );
+        }
+    }
+
+    @Test
+    void fencesOnlyConnectWithinTheirMaterialFamily() {
+        BlockState oak = BlockTypes.OAK_FENCE.getDefaultState();
+        BlockState spruce = BlockTypes.SPRUCE_FENCE.getDefaultState();
+        BlockState netherBrick = BlockTypes.NETHER_BRICK_FENCE.getDefaultState();
+
+        assertAll(
+                () -> assertTrue(FenceBlockHandlers.connectsTo(oak, spruce, false, Direction.NORTH)),
+                () -> assertFalse(FenceBlockHandlers.connectsTo(oak, netherBrick, false, Direction.NORTH)),
+                () -> assertFalse(FenceBlockHandlers.connectsTo(netherBrick, oak, false, Direction.NORTH)),
+                () -> assertTrue(FenceBlockHandlers.connectsTo(netherBrick, netherBrick, false, Direction.NORTH))
+        );
+    }
+
+    @Test
+    void fencesAndWallsRespectGateAlignment() {
+        BlockState alignedGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.EAST.getCardinalDirection());
+        BlockState crossingGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.NORTH.getCardinalDirection());
+        BlockState fence = BlockTypes.OAK_FENCE.getDefaultState();
+
+        assertAll(
+                () -> assertTrue(FenceBlockHandlers.connectsTo(fence, alignedGate, false, Direction.NORTH)),
+                () -> assertFalse(FenceBlockHandlers.connectsTo(fence, crossingGate, false, Direction.NORTH)),
+                () -> assertTrue(WallBlockHandlers.connectsTo(alignedGate, false, Direction.NORTH)),
+                () -> assertFalse(WallBlockHandlers.connectsTo(crossingGate, false, Direction.NORTH))
+        );
+    }
+
+    @Test
+    void sturdyConnectionExceptionsRemainDisconnected() {
+        BlockState fence = BlockTypes.OAK_FENCE.getDefaultState();
+        BlockState leaves = BlockTypes.OAK_LEAVES.getDefaultState();
+
+        assertAll(
+                () -> assertFalse(FenceBlockHandlers.connectsTo(fence, leaves, true, Direction.NORTH)),
+                () -> assertFalse(WallBlockHandlers.connectsTo(leaves, true, Direction.NORTH)),
+                () -> assertTrue(WallBlockHandlers.connectsTo(BlockTypes.IRON_BARS.getDefaultState(), false, Direction.NORTH)),
+                () -> assertTrue(WallBlockHandlers.connectsTo(BlockTypes.COPPER_BARS.getDefaultState(), false, Direction.NORTH)),
+                () -> assertTrue(WallBlockHandlers.connectsTo(BlockTypes.GLASS_PANE.getDefaultState(), false, Direction.NORTH)),
+                () -> assertFalse(WallBlockHandlers.connectsTo(BlockTypes.TRIP_WIRE.getDefaultState(), false, Direction.NORTH))
+        );
+    }
+
+    @Test
+    void coloredBuildingBlockFamiliesInheritStructuralAndMiningTags() {
+        for (VanillaSlabAndStairFamily family : VanillaBlockFamilies.COLORED_BUILDING_BLOCKS) {
+            assertAll(family.base().toString(),
+                    () -> assertTrue(family.slab().is(BlockTags.SLAB)),
+                    () -> assertTrue(family.doubleSlab().is(BlockTags.DOUBLE_SLAB)),
+                    () -> assertTrue(family.stairs().is(BlockTags.STAIRS)),
+                    () -> assertEquals(family.base().is(BlockTags.MINEABLE_WITH_PICKAXE), family.slab().is(BlockTags.MINEABLE_WITH_PICKAXE)),
+                    () -> assertEquals(family.base().is(BlockTags.MINEABLE_WITH_PICKAXE), family.doubleSlab().is(BlockTags.MINEABLE_WITH_PICKAXE)),
+                    () -> assertEquals(family.base().is(BlockTags.MINEABLE_WITH_PICKAXE), family.stairs().is(BlockTags.MINEABLE_WITH_PICKAXE)),
+                    () -> assertEquals(family.base().is(BlockTags.WOOL), family.slab().is(BlockTags.WOOL)),
+                    () -> assertEquals(family.base().is(BlockTags.WOOL), family.doubleSlab().is(BlockTags.WOOL)),
+                    () -> assertEquals(family.base().is(BlockTags.WOOL), family.stairs().is(BlockTags.WOOL))
+            );
+        }
+    }
+
+    private static void assertSlabPlaceHandler(BlockType blockType) {
+        assertInstanceOf(SlabPlaceHandler.class, component(blockType, BlockComponents.ON_PLACE));
     }
 
     private static Object component(BlockType blockType, ComponentType<?> componentType) {

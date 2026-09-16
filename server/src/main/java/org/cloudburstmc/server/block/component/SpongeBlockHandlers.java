@@ -13,18 +13,17 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.particle.DestroyBlockNoSoundParticle;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SpongeBlockHandlers {
+public class SpongeBlockHandlers {
 
     private static final int MAX_DEPTH = 6;
     private static final int MAX_REMOVED = 64;
 
-    public static DefaultBlockPlaceHandler place(CloudBlockRegistry registry) {
-        return new SpongePlaceHandler(registry);
+    public static DefaultBlockPlaceHandler place() {
+        return new SpongePlaceHandler();
     }
 
     public static void absorb(Block sponge) {
@@ -113,11 +112,8 @@ public final class SpongeBlockHandlers {
     private record Node(Vector3i position, int depth) {
     }
 
-    private static final class SpongePlaceHandler extends DefaultBlockPlaceHandler {
-
-        private SpongePlaceHandler(CloudBlockRegistry registry) {
-            super(registry);
-        }
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    private static class SpongePlaceHandler extends DefaultBlockPlaceHandler {
 
         @Override
         public boolean execute(BlockState state, Player player, Vector3i position, Direction face, Vector3f clickPosition) {

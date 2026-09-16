@@ -3,7 +3,6 @@ package org.cloudburstmc.server.block.trait.serializer;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.data.SlabSlot;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
@@ -14,7 +13,7 @@ import java.util.Map;
 public class SlabSlotSerializer implements TraitSerializer<SlabSlot> {
 
     @Override
-    public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, SlabSlot slot) {
+    public Comparable<?> serialize(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<SlabSlot> trait, SlabSlot slot) {
         return switch (slot) {
             case BOTTOM -> "bottom";
             case TOP -> "top";
@@ -22,7 +21,7 @@ public class SlabSlotSerializer implements TraitSerializer<SlabSlot> {
     }
 
     @Override
-    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<SlabSlot> blockTrait) {
         return BedrockStateTags.TAG_MINECRAFT_VERTICAL_HALF;
     }
 }

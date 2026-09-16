@@ -2,22 +2,15 @@ package org.cloudburstmc.server.block.trait.serializer;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Map;
-
-@SuppressWarnings("ALL")
-@ParametersAreNonnullByDefault
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class NoopTraitSerializer implements TraitSerializer {
+public final class NoopTraitSerializer<T extends Comparable<T>> implements TraitSerializer<T> {
 
-    public static final NoopTraitSerializer INSTANCE = new NoopTraitSerializer();
+    private static final NoopTraitSerializer<?> INSTANCE = new NoopTraitSerializer<>();
 
-    @Override
-    public Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map traits, Comparable comparable) {
-        return null;
+    @SuppressWarnings("unchecked")
+    public static <T extends Comparable<T>> NoopTraitSerializer<T> instance() {
+        return (NoopTraitSerializer<T>) INSTANCE;
     }
 }

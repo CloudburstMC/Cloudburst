@@ -9,10 +9,9 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class BubbleColumnBlockHandlers {
+public class BubbleColumnBlockHandlers {
 
     public static final EntityInsideBlockHandler ON_ENTITY_INSIDE = (block, entity, precise) -> {
         if (!precise) {
@@ -37,8 +36,8 @@ public final class BubbleColumnBlockHandlers {
         update((CloudLevel) block.getLevel(), Direction.UP.relative(block.getPosition()));
     }
 
-    public static DefaultBlockPlaceHandler supportPlacement(CloudBlockRegistry registry) {
-        return new SupportPlaceHandler(registry);
+    public static DefaultBlockPlaceHandler supportPlacement() {
+        return new SupportPlaceHandler();
     }
 
     public static void update(Block block) {
@@ -109,11 +108,8 @@ public final class BubbleColumnBlockHandlers {
         return !level.setBlockState(position, state);
     }
 
-    private static final class SupportPlaceHandler extends DefaultBlockPlaceHandler {
-
-        private SupportPlaceHandler(CloudBlockRegistry registry) {
-            super(registry);
-        }
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    private static class SupportPlaceHandler extends DefaultBlockPlaceHandler {
 
         @Override
         public boolean execute(BlockState state, Player player, Vector3i position, Direction face, Vector3f clickPosition) {

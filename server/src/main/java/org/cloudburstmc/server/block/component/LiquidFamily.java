@@ -9,7 +9,7 @@ import org.cloudburstmc.server.level.Sound;
 /**
  * Simulation rules shared by the source and flowing block types of a liquid.
  */
-enum LiquidFamily {
+public enum LiquidFamily {
     WATER(BlockTypes.WATER, BlockTypes.FLOWING_WATER, 1, 4, 5, true, true),
     LAVA(BlockTypes.LAVA, BlockTypes.FLOWING_LAVA, 2, 2, 30, false, false);
 

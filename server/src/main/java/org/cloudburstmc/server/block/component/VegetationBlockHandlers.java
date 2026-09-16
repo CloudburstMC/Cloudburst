@@ -83,7 +83,7 @@ public class VegetationBlockHandlers {
             return current.withTrait(BlockTraits.GROWTH, current.ensureTrait(BlockTraits.GROWTH) + 1);
         }
 
-        return state;
+        return DefaultPlacementStateHandler.INSTANCE.execute(state, block, player, face, click);
     };
 
     public static final ReplaceBlockHandler FLOWER_BED_REPLACEABLE = (block, replacement, player, face, click) ->

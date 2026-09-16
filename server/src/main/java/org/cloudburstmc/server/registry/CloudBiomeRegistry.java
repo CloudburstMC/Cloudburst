@@ -211,5 +211,7 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
         this.registerVanilla(MANGROVE_SWAMP, 191);
         this.registerVanilla(CHERRY_GROVE, 192);
         this.registerVanilla(PALE_GARDEN, 193);
+        this.registerVanilla(SULFUR_CAVES, 194);
+        this.registerVanilla(DAPPLED_FOREST, 195);
     }
 }

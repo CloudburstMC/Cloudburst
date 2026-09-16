@@ -1,7 +1,6 @@
 package org.cloudburstmc.api.block;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
@@ -9,45 +8,38 @@ import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.*;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-
 @UtilityClass
 public class BlockTraits {
 
-    public static final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Direction.Axis.class, ImmutableSet.copyOf(Direction.Axis.values()), Direction.Axis.Y);
-    public static final EnumBlockTrait<Direction> BLOCK_FACE = EnumBlockTrait.of("block_face", "minecraft:block_face", Direction.class);
-    public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "minecraft:cardinal_direction", CardinalDirection.class, ImmutableSet.of(CardinalDirection.SOUTH, CardinalDirection.WEST, CardinalDirection.NORTH, CardinalDirection.EAST), CardinalDirection.SOUTH);
-    public static final EnumBlockTrait<CardinalDirection> SIGN_DIRECTION = EnumBlockTrait.of("sign_direction", "ground_sign_direction", CardinalDirection.class);
-    public static final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
-    public static final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
-    public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
-    public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class,
-            Direction.Axis.Y, // Palette value "unknown"
-            Direction.Axis.X, Direction.Axis.Z);
-    public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
-    public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", "rail_direction", RailDirection.class, ImmutableSet.copyOf(RailDirection.simpleValues()), RailDirection.NORTH_SOUTH);
-    public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", "torch_facing_direction", Direction.class,
-            Direction.DOWN, // Palette value "unknown"
-            Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
-
     public static final EnumBlockTrait<AttachmentType> ATTACHMENT = EnumBlockTrait.of("attachment", AttachmentType.class);
+    public static final EnumBlockTrait<Direction.Axis> AXIS = EnumBlockTrait.of("axis", "pillar_axis", Direction.Axis.class, ImmutableSet.copyOf(Direction.Axis.values()), Direction.Axis.Y);
     public static final EnumBlockTrait<BambooLeafSize> BAMBOO_LEAF_SIZE = EnumBlockTrait.of("bamboo_leaf_size", BambooLeafSize.class);
     public static final EnumBlockTrait<BambooStalkThickness> BAMBOO_STALK_THICKNESS = EnumBlockTrait.of("bamboo_stalk_thickness", BambooStalkThickness.class);
+    public static final EnumBlockTrait<Direction> BLOCK_FACE = EnumBlockTrait.of("block_face", "minecraft:block_face", Direction.class);
+    public static final EnumBlockTrait<CardinalDirection> CARDINAL_DIRECTION = EnumBlockTrait.of("cardinal_direction", "minecraft:cardinal_direction", CardinalDirection.class, ImmutableSet.of(CardinalDirection.SOUTH, CardinalDirection.WEST, CardinalDirection.NORTH, CardinalDirection.EAST), CardinalDirection.SOUTH);
     public static final EnumBlockTrait<Bucket> CAULDRON_TYPE = EnumBlockTrait.of("cauldron_type", "cauldron_liquid", Bucket.class, Bucket.WATER, Bucket.LAVA, Bucket.POWDER_SNOW);
     public static final EnumBlockTrait<CrackedState> CRACKED_STATE = EnumBlockTrait.of("cracked_state", CrackedState.class);
     public static final EnumBlockTrait<CrafterOrientation> CRAFTER_ORIENTATION = EnumBlockTrait.of("orientation", CrafterOrientation.class);
     public static final EnumBlockTrait<CreakingHeartState> CREAKING_HEART_STATE = EnumBlockTrait.of("creaking_heart_state", CreakingHeartState.class);
+    public static final EnumBlockTrait<Direction> DIRECTION = EnumBlockTrait.of("direction", Direction.class, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.NORTH);
     public static final EnumBlockTrait<DripleafTilt> DRIPLEAF_TILT = EnumBlockTrait.of("dripleaf_tilt", "big_dripleaf_tilt", DripleafTilt.class);
     public static final EnumBlockTrait<DripstoneThickness> DRIPSTONE_THICKNESS = EnumBlockTrait.of("dripstone_thickness", DripstoneThickness.class);
-    public static final EnumBlockTrait<PotentSulfurState> POTENT_SULFUR_STATE = EnumBlockTrait.of("potent_sulfur_state", PotentSulfurState.class);
+    public static final EnumBlockTrait<Direction> FACING_DIRECTION = EnumBlockTrait.of("facing_direction", Direction.class, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH, Direction.UP);
+    public static final EnumBlockTrait<LeverDirection> LEVER_DIRECTION = EnumBlockTrait.of("lever_direction", LeverDirection.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_EAST = EnumBlockTrait.of("pale_moss_carpet_side_east", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_NORTH = EnumBlockTrait.of("pale_moss_carpet_side_north", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_SOUTH = EnumBlockTrait.of("pale_moss_carpet_side_south", WallConnectionType.class);
     public static final EnumBlockTrait<WallConnectionType> PALE_MOSS_CARPET_SIDE_WEST = EnumBlockTrait.of("pale_moss_carpet_side_west", WallConnectionType.class);
+    public static final EnumBlockTrait<Direction.Axis> PORTAL_AXIS = EnumBlockTrait.of("portal_axis", Direction.Axis.class, Direction.Axis.Y, Direction.Axis.X, Direction.Axis.Z);
+    public static final EnumBlockTrait<PotentSulfurState> POTENT_SULFUR_STATE = EnumBlockTrait.of("potent_sulfur_state", PotentSulfurState.class);
+    public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
     public static final EnumBlockTrait<SeaGrassType> SEA_GRASS_TYPE = EnumBlockTrait.of("sea_grass_type", SeaGrassType.class);
+    public static final EnumBlockTrait<CardinalDirection> SIGN_DIRECTION = EnumBlockTrait.of("sign_direction", "ground_sign_direction", CardinalDirection.class);
+    public static final EnumBlockTrait<RailDirection> SIMPLE_RAIL_DIRECTION = EnumBlockTrait.of("simple_rail_direction", "rail_direction", RailDirection.class, ImmutableSet.copyOf(RailDirection.simpleValues()), RailDirection.NORTH_SOUTH);
     public static final EnumBlockTrait<SlabSlot> SLAB_SLOT = EnumBlockTrait.of("slab_slot", SlabSlot.class);
+    public static final EnumBlockTrait<StairShape> STAIR_SHAPE = EnumBlockTrait.of("stair_shape", "minecraft:corner", StairShape.class);
     public static final EnumBlockTrait<StructureBlockType> STRUCTURE_BLOCK_TYPE = EnumBlockTrait.of("structure_block_type", StructureBlockType.class);
+    public static final EnumBlockTrait<Direction> TORCH_DIRECTION = EnumBlockTrait.of("torch_direction", "torch_facing_direction", Direction.class, Direction.DOWN, Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.UP);
     public static final EnumBlockTrait<TurtleEggCount> TURTLE_EGG_COUNT = EnumBlockTrait.of("turtle_egg_count", TurtleEggCount.class);
     public static final EnumBlockTrait<VaultState> VAULT_STATE = EnumBlockTrait.of("vault_state", VaultState.class);
     public static final EnumBlockTrait<WallConnectionType> WALL_CONNECTION_EAST = EnumBlockTrait.of("wall_connection_east", "wall_connection_type_east", WallConnectionType.class);
@@ -61,12 +53,14 @@ public class BlockTraits {
     public static final IntegerBlockTrait BRUSHED_PROGRESS = IntegerBlockTrait.from("brushed_progress", 4);
     public static final IntegerBlockTrait CANDLES = IntegerBlockTrait.from("candles", 0, 3);
     public static final IntegerBlockTrait CAVE_VINE_AGE = IntegerBlockTrait.from("growing_plant_age", 26);
+    public static final IntegerBlockTrait CHALKBOARD_DIRECTION = IntegerBlockTrait.from("chalkboard_direction", "direction", 0, 15, 0);
+    public static final IntegerBlockTrait CHEMISTRY_TABLE_DIRECTION = IntegerBlockTrait.from("chemistry_table_direction", "direction", 0, 3, 0);
     public static final IntegerBlockTrait CLUSTER_COUNT = IntegerBlockTrait.from("cluster_count", 4);
     public static final IntegerBlockTrait COMPOSTER_FILL_LEVEL = IntegerBlockTrait.from("composter_fill_level", 9);
     public static final IntegerBlockTrait CORAL_DIRECTION = IntegerBlockTrait.from("coral_direction", 4);
     public static final IntegerBlockTrait CORAL_FAN_DIRECTION = IntegerBlockTrait.from("coral_fan_direction", 2);
+    public static final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);
     public static final IntegerBlockTrait FILL_LEVEL = IntegerBlockTrait.from("fill_level", 7);
-    public static final IntegerBlockTrait FLUID_LEVEL = IntegerBlockTrait.from("fluid_level", 8);
     public static final IntegerBlockTrait GROWTH = IntegerBlockTrait.from("growth", 8);
     public static final IntegerBlockTrait HEIGHT = IntegerBlockTrait.from("height", 8);
     public static final IntegerBlockTrait HONEY_LEVEL = IntegerBlockTrait.from("honey_level", 6);
@@ -83,6 +77,7 @@ public class BlockTraits {
     public static final IntegerBlockTrait REPEATER_DELAY = IntegerBlockTrait.from("repeater_delay", 4);
     public static final IntegerBlockTrait RESPAWN_ANCHOR_CHARGE = IntegerBlockTrait.from("respawn_anchor_charge", 5);
     public static final IntegerBlockTrait SCULK_SENSOR_PHASE = IntegerBlockTrait.from("sculk_sensor_phase", 3);
+    public static final IntegerBlockTrait SHELF_MUSHROOM_GROWTH = IntegerBlockTrait.from("shelf_mushroom_growth", "growth", 0, 1, 0);
     public static final IntegerBlockTrait STABILITY = IntegerBlockTrait.from("stability", 8);
     public static final IntegerBlockTrait TRIAL_SPAWNER_STATE = IntegerBlockTrait.from("trial_spawner_state", 6);
     public static final IntegerBlockTrait TWISTING_VINES_AGE = IntegerBlockTrait.from("twisting_vines_age", 26);
@@ -90,6 +85,10 @@ public class BlockTraits {
     public static final IntegerBlockTrait WEEPING_VINES_AGE = IntegerBlockTrait.from("weeping_vines_age", 26);
 
     public static final BooleanBlockTrait CAN_SUMMON = BooleanBlockTrait.of("can_summon");
+    public static final BooleanBlockTrait CONNECTION_EAST = BooleanBlockTrait.of("connection_east", "minecraft:connection_east");
+    public static final BooleanBlockTrait CONNECTION_NORTH = BooleanBlockTrait.of("connection_north", "minecraft:connection_north");
+    public static final BooleanBlockTrait CONNECTION_SOUTH = BooleanBlockTrait.of("connection_south", "minecraft:connection_south");
+    public static final BooleanBlockTrait CONNECTION_WEST = BooleanBlockTrait.of("connection_west", "minecraft:connection_west");
     public static final BooleanBlockTrait CRAFTER_CRAFTING = BooleanBlockTrait.of("crafter_crafting", "crafting");
     public static final BooleanBlockTrait CRAFTER_TRIGGERED = BooleanBlockTrait.of("crafter_triggered", "triggered_bit");
     public static final BooleanBlockTrait DRIPLEAF_HEAD = BooleanBlockTrait.of("dripleaf_head", "big_dripleaf_head");
@@ -134,18 +133,4 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_UPSIDE_DOWN = BooleanBlockTrait.of("is_upside_down", "upside_down_bit");
     public static final BooleanBlockTrait NATURAL = BooleanBlockTrait.of("natural");
     public static final BooleanBlockTrait TIP = BooleanBlockTrait.of("tip");
-
-    public static final IntegerBlockTrait CHALKBOARD_DIRECTION = IntegerBlockTrait.from("chalkboard_direction", "direction", 0, 15, 0);
-    public static final IntegerBlockTrait CHEMISTRY_TABLE_DIRECTION = IntegerBlockTrait.from("chemistry_table_direction", "direction", 0, 3, 0);
-
-    public static final IntegerBlockTrait DEPRECATED = IntegerBlockTrait.from("deprecated", 4);
-
-    @SuppressWarnings({"unchecked", "ConstantConditions"})
-    private static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
-        var set = Sets.newHashSet(except);
-        var values = value.getEnumConstants();
-        var stream = Arrays.stream(values).filter(v -> !set.contains(v));
-
-        return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
-    }
 }

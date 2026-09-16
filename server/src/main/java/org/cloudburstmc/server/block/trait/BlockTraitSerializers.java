@@ -8,7 +8,9 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Direction.Axis;
-import org.cloudburstmc.api.util.data.*;
+import org.cloudburstmc.api.util.data.RailDirection;
+import org.cloudburstmc.api.util.data.SeaGrassType;
+import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.trait.serializer.*;
 
@@ -23,59 +25,6 @@ public class BlockTraitSerializers {
     private final Reference2ObjectMap<Class<? extends Comparable<?>>, TraitSerializer<?>> serializers = new Reference2ObjectOpenHashMap<>();
     private final Reference2ObjectMap<BlockTrait<?>, TraitSerializer<?>> traitSerializers = new Reference2ObjectOpenHashMap<>();
 
-    public void register(Class<? extends Comparable<?>> clazz, TraitSerializer<?> serializer) {
-        Objects.requireNonNull(clazz);
-        Objects.requireNonNull(serializer);
-        serializers.put(clazz, serializer);
-    }
-
-    public void register(BlockTrait<?> trait, TraitSerializer<?> serializer) {
-        Objects.requireNonNull(trait);
-        Objects.requireNonNull(serializer);
-        traitSerializers.put(trait, serializer);
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    public void serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> trait) {
-        serialize(builder, type, traits, trait, traits.get(trait));
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> trait, Comparable<?> value) {
-        TraitSerializer serializer = getSerializerFor(trait);
-
-        String traitName = null;
-        if (serializer != null) {
-            var v = serializer.serialize(builder, type, traits, value);
-            if (v != null) {
-                value = v;
-            }
-
-            traitName = serializer.getName(type, traits, trait);
-        }
-
-        if (value instanceof Enum<?>) {
-            value = ((Enum<?>) value).name().toLowerCase();
-        }
-
-        if (traitName == null) {
-            traitName = trait.getVanillaName();
-        }
-
-        builder.put(traitName, value);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public TraitSerializer getSerializerFor(BlockTrait<?> trait) {
-        TraitSerializer serializer = traitSerializers.get(trait);
-
-        if (serializer == null) {
-            serializer = serializers.get(trait.getValueClass());
-        }
-
-        return serializer;
-    }
-
     public void init() {
         register(Direction.class, new DirectionSerializer());
         register(SeaGrassType.class, new SeagrassSerializer());
@@ -87,17 +36,53 @@ public class BlockTraitSerializers {
         register(BlockTraits.SIGN_DIRECTION, new SignDirectionSerializer());
         register(BlockTraits.TORCH_DIRECTION, new TorchDirectionSerializer());
         register(BlockTraits.IS_POWERED, new PoweredSerializer());
-        register(BlockTraits.BLOCK_FACE, NoopTraitSerializer.INSTANCE);
+        register(BlockTraits.BLOCK_FACE, NoopTraitSerializer.instance());
+    }
+
+    public <T extends Comparable<T>> void serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<T> trait) {
+        T value = trait.getValueClass().cast(traits.get(trait));
+        TraitSerializer<T> serializer = getSerializerFor(trait);
+        String traitName = serializer == null ? trait.getVanillaName() : serializer.getName(type, traits, trait);
+        Comparable<?> serializedValue = serializer == null ? value : serializer.serialize(type, traits, trait, value);
+
+        if (serializedValue instanceof Enum<?> enumValue) {
+            serializedValue = enumValue.name().toLowerCase();
+        }
+
+        builder.put(traitName, serializedValue);
+    }
+
+    private <T extends Comparable<T>> void register(Class<T> clazz, TraitSerializer<T> serializer) {
+        Objects.requireNonNull(clazz);
+        Objects.requireNonNull(serializer);
+        serializers.put(clazz, serializer);
+    }
+
+    private <T extends Comparable<T>> void register(BlockTrait<T> trait, TraitSerializer<T> serializer) {
+        Objects.requireNonNull(trait);
+        Objects.requireNonNull(serializer);
+        traitSerializers.put(trait, serializer);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Comparable<T>> TraitSerializer<T> getSerializerFor(BlockTrait<T> trait) {
+        TraitSerializer<?> serializer = traitSerializers.get(trait);
+
+        if (serializer == null) {
+            serializer = serializers.get(trait.getValueClass());
+        }
+
+        return (TraitSerializer<T>) serializer;
     }
 
     public interface TraitSerializer<T extends Comparable<T>> {
 
-        default String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+        default String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<T> blockTrait) {
             return blockTrait.getVanillaName();
         }
 
-        default Comparable<?> serialize(NbtMapBuilder builder, BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, T t) {
-            return null;
+        default Comparable<?> serialize(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<T> trait, T value) {
+            return value;
         }
     }
 }

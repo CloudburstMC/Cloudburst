@@ -6,7 +6,7 @@ import org.cloudburstmc.api.block.component.CollisionShapeHandler;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.VoxelShape;
 
-public final class GetCollisionShapeHandler implements CollisionShapeHandler {
+public class GetCollisionShapeHandler implements CollisionShapeHandler {
 
     @Override
     public VoxelShape execute(BlockState state, BlockShapeContext blockContext, CollisionContext collisionContext) {

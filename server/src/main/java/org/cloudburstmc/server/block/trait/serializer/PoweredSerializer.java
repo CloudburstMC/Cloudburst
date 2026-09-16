@@ -13,11 +13,11 @@ import java.util.Map;
 public class PoweredSerializer implements TraitSerializer<Boolean> {
 
     @Override
-    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<?> blockTrait) {
+    public String getName(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<Boolean> blockTrait) {
         if (type == BlockTypes.ACTIVATOR_RAIL || type == BlockTypes.GOLDEN_RAIL || type == BlockTypes.DETECTOR_RAIL) {
             return BedrockStateTags.TAG_RAIL_DATA_BIT;
         }
 
-        return null;
+        return blockTrait.getVanillaName();
     }
 }
