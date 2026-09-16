@@ -17,9 +17,9 @@ import org.cloudburstmc.api.command.argument.CommandArgumentType;
 import org.cloudburstmc.api.command.argument.resolver.EntitySelectorResolver;
 import org.cloudburstmc.api.command.argument.resolver.PlayerSelectorResolver;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,25 +41,25 @@ public class CloudSelectorArguments {
 
     public CommandArgumentType<PlayerSelectorResolver> player(@Nullable String displayName) {
         return new CloudSelectorArgumentType<>(displayName,
-                value -> new CloudPlayerSelectorResolver(CloudTargetSelectorParser.parse(value, true), true),
+                value -> new CloudPlayerSelectorResolver(parseSelector(value, true), true),
                 CloudSelectorArguments::suggestSinglePlayer);
     }
 
     public CommandArgumentType<PlayerSelectorResolver> players(@Nullable String displayName) {
         return new CloudSelectorArgumentType<>(displayName,
-                value -> new CloudPlayerSelectorResolver(CloudTargetSelectorParser.parse(value, true), false),
+                value -> new CloudPlayerSelectorResolver(parseSelector(value, true), false),
                 CloudSelectorArguments::suggestPlayers);
     }
 
     public CommandArgumentType<EntitySelectorResolver> entity(@Nullable String displayName) {
         return new CloudSelectorArgumentType<>(displayName,
-                value -> new CloudEntitySelectorResolver(CloudTargetSelectorParser.parse(value, false), true),
+                value -> new CloudEntitySelectorResolver(parseSelector(value, false), true),
                 CloudSelectorArguments::suggestSingleEntity);
     }
 
     public CommandArgumentType<EntitySelectorResolver> entities(@Nullable String displayName) {
         return new CloudSelectorArgumentType<>(displayName,
-                value -> new CloudEntitySelectorResolver(CloudTargetSelectorParser.parse(value, false), false),
+                value -> new CloudEntitySelectorResolver(parseSelector(value, false), false),
                 CloudSelectorArguments::suggestEntities);
     }
 
@@ -181,10 +181,14 @@ public class CloudSelectorArguments {
     }
 
     private static Stream<String> selectorEntityTypeSuggestions() {
-        return EntityTypes.values().stream()
-                .flatMap(type -> identifierSuggestions(type.getId()))
+        return CloudEntityRegistry.get().keyStream()
+                .flatMap(CloudSelectorArguments::identifierSuggestions)
                 .flatMap(value -> Stream.of(value, "!" + value))
                 .sorted();
+    }
+
+    private static CloudTargetSelector parseSelector(String input, boolean playersOnly) throws CommandSyntaxException {
+        return CloudTargetSelectorParser.parse(input, playersOnly, CloudEntityRegistry.get()::contains);
     }
 
     private static Stream<String> identifierSuggestions(Identifier identifier) {

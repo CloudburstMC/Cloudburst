@@ -1,16 +1,16 @@
 package org.cloudburstmc.api.level.particle;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.internal.BuiltInTypeCatalog;
 import org.cloudburstmc.api.util.Identifier;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * Particle types understood by the vanilla client.
- */
 @UtilityClass
 public class ParticleTypes {
+    private static final BuiltInTypeCatalog<ParticleType> TYPES = BuiltInTypeCatalog.create(ParticleType::id);
+
     public static final ParticleType BALLOON_GAS = type("balloon_gas");
     public static final ParticleType BLEACH = type("bleach");
     public static final ParticleType BLOCK_FORCE_FIELD = type("block_force_field");
@@ -118,46 +118,25 @@ public class ParticleTypes {
     public static final ParticleType YELLOW_POPLAR_LEAVES = type("yellow_poplar_leaves");
 
     /**
-     * Finds a particle type by identifier.
+     * Finds a built-in particle type by identifier.
      *
      * @param id the particle identifier
-     * @return the matching particle type, if registered
+     * @return matching built-in particle type, if present
      */
     public static Optional<ParticleType> get(Identifier id) {
-        Objects.requireNonNull(id, "id");
-        return Optional.ofNullable(Lookup.VALUES.get(id));
+        return TYPES.get(id);
     }
 
     /**
-     * Returns all known particle types.
+     * Returns all built-in particle types in declaration order.
      *
-     * @return known particle types
+     * @return built-in particle types
      */
-    public static Collection<ParticleType> values() {
-        return Lookup.VALUES.values();
+    public static List<ParticleType> values() {
+        return TYPES.values();
     }
 
     private static ParticleType type(String id) {
-        return ParticleType.of(Identifier.parse(id));
-    }
-
-    private static final class Lookup {
-        private static final Map<Identifier, ParticleType> VALUES = create();
-
-        private static Map<Identifier, ParticleType> create() {
-            Map<Identifier, ParticleType> values = new LinkedHashMap<>();
-            for (Field field : ParticleTypes.class.getFields()) {
-                if (field.getType() != ParticleType.class) {
-                    continue;
-                }
-                try {
-                    ParticleType type = (ParticleType) field.get(null);
-                    values.put(type.id(), type);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalStateException("Unable to read particle type field " + field.getName(), e);
-                }
-            }
-            return Collections.unmodifiableMap(values);
-        }
+        return TYPES.register(ParticleType.of(Identifier.parse(id)));
     }
 }

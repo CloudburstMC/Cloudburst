@@ -11,6 +11,7 @@ import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.util.Identifier;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Parser for command target selector input.
@@ -44,6 +45,7 @@ public class CloudTargetSelectorParser {
     private final String input;
     private final StringReader reader;
     private final boolean playersOnlyArgument;
+    private final Predicate<Identifier> entityTypeExists;
     private CloudSelectorKind kind = CloudSelectorKind.NAME;
     private boolean playersOnly = true;
     private int maxResults = 1;
@@ -70,10 +72,11 @@ public class CloudTargetSelectorParser {
     private final List<CloudSelectorTag> tags = new ArrayList<>();
     private CloudSelectorSort sort = CloudSelectorSort.ARBITRARY;
 
-    private CloudTargetSelectorParser(String input, boolean playersOnlyArgument) {
+    private CloudTargetSelectorParser(String input, boolean playersOnlyArgument, Predicate<Identifier> entityTypeExists) {
         this.input = Objects.requireNonNull(input, "input");
         this.reader = new StringReader(input);
         this.playersOnlyArgument = playersOnlyArgument;
+        this.entityTypeExists = Objects.requireNonNull(entityTypeExists, "entityTypeExists");
     }
 
     /**
@@ -81,11 +84,12 @@ public class CloudTargetSelectorParser {
      *
      * @param input               literal target name or selector expression
      * @param playersOnlyArgument whether entity-only selectors should be rejected
+     * @param entityTypeExists    tests whether an entity type is registered
      * @return parsed selector
      * @throws CommandSyntaxException if the input is not a valid selector
      */
-    public static CloudTargetSelector parse(String input, boolean playersOnlyArgument) throws CommandSyntaxException {
-        return new CloudTargetSelectorParser(input, playersOnlyArgument).parse();
+    public static CloudTargetSelector parse(String input, boolean playersOnlyArgument, Predicate<Identifier> entityTypeExists) throws CommandSyntaxException {
+        return new CloudTargetSelectorParser(input, playersOnlyArgument, entityTypeExists).parse();
     }
 
     private CloudTargetSelector parse() throws CommandSyntaxException {
@@ -397,9 +401,10 @@ public class CloudTargetSelectorParser {
             throw ERROR_INVALID_SELECTOR_OPTION.createWithContext(this.reader, "type");
         }
 
-        if (EntityTypes.values().stream().noneMatch(type -> type.getId().equals(identifier))) {
+        if (!this.entityTypeExists.test(identifier)) {
             throw ERROR_INVALID_SELECTOR_OPTION.createWithContext(this.reader, "type");
         }
+
         this.type = identifier;
     }
 

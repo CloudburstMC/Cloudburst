@@ -1,9 +1,9 @@
 package org.cloudburstmc.api.entity.damage;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.internal.BuiltInTypeCatalog;
 import org.cloudburstmc.api.util.Identifier;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.cloudburstmc.api.entity.damage.DamageEffect.*;
@@ -11,11 +11,9 @@ import static org.cloudburstmc.api.entity.damage.DamageScaling.*;
 import static org.cloudburstmc.api.entity.damage.DamageTypeTags.*;
 import static org.cloudburstmc.api.entity.damage.DeathMessageType.*;
 
-/**
- * Built-in damage types.
- */
 @UtilityClass
 public class DamageTypes {
+    private static final BuiltInTypeCatalog<DamageType> TYPES = BuiltInTypeCatalog.create(DamageType::getId);
 
     public static final DamageType ARROW = type("arrow", "arrow", NEVER, 0.1f, HURT, DEFAULT, IS_PROJECTILE, SULFUR_CUBE_WITH_BLOCK_IMMUNE_TO, ALWAYS_KILLS_ARMOR_STANDS, PANIC_CAUSES);
     public static final DamageType BAD_RESPAWN_POINT = type("bad_respawn_point", "badRespawnPoint", ALWAYS, 0.1f, HURT, INTENTIONAL_GAME_DESIGN, IS_EXPLOSION, NO_KNOCKBACK);
@@ -74,8 +72,7 @@ public class DamageTypes {
      * @return the matching damage type, if known
      */
     public static Optional<DamageType> get(Identifier id) {
-        Objects.requireNonNull(id, "id");
-        return Optional.ofNullable(Lookup.VALUES.get(id));
+        return TYPES.get(id);
     }
 
     /**
@@ -83,12 +80,12 @@ public class DamageTypes {
      *
      * @return built-in damage types
      */
-    public static Collection<DamageType> values() {
-        return Lookup.VALUES.values();
+    public static List<DamageType> values() {
+        return TYPES.values();
     }
 
     private static DamageType type(String id, String messageId, DamageScaling scaling, float exhaustion, DamageEffect effect, DeathMessageType deathMessageType, DamageTypeTag... tags) {
-        return new DamageType(Identifier.parse(id), messageId, scaling, exhaustion, effect, deathMessageType, expandTags(tags));
+        return TYPES.register(new DamageType(Identifier.parse(id), messageId, scaling, exhaustion, effect, deathMessageType, expandTags(tags)));
     }
 
     private static Set<DamageTypeTag> expandTags(DamageTypeTag... directTags) {
@@ -117,30 +114,5 @@ public class DamageTypes {
         }
 
         return Set.copyOf(tags);
-    }
-
-    private static final class Lookup {
-
-        private static final Map<Identifier, DamageType> VALUES = create();
-
-        private static Map<Identifier, DamageType> create() {
-            Map<Identifier, DamageType> values = new LinkedHashMap<>();
-            for (Field field : DamageTypes.class.getFields()) {
-                if (field.getType() != DamageType.class) {
-                    continue;
-                }
-
-                try {
-                    DamageType type = (DamageType) field.get(null);
-                    DamageType previous = values.put(type.getId(), type);
-                    if (previous != null) {
-                        throw new IllegalStateException("Duplicate damage type identifier " + type.getId());
-                    }
-                } catch (IllegalAccessException exception) {
-                    throw new IllegalStateException("Unable to read damage type field " + field.getName(), exception);
-                }
-            }
-            return Collections.unmodifiableMap(values);
-        }
     }
 }
