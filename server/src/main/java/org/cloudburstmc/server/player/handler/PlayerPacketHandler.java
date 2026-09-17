@@ -1532,6 +1532,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return PacketSignal.HANDLED;
                         }
 
+                        if (currentItem.get(ItemKeys.ITEM_LOCK) != null) {
+                            player.getInventoryManager().sendAllInventories();
+                            return PacketSignal.HANDLED;
+                        }
+
                         boolean dropAll = worldAction.getToItem().getCount() > 1;
                         ItemStack dropItem = dropAll ? currentItem : currentItem.withCount(1);
                         ItemStack newItem = dropAll ? ItemStack.EMPTY : currentItem.withCount(currentItem.getCount() - 1);

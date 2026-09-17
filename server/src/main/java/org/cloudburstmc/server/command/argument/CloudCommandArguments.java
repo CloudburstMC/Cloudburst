@@ -16,12 +16,13 @@ import org.cloudburstmc.server.registry.*;
 /**
  * Creates command arguments backed by server-owned registries and selector parsing.
  */
-public final class CloudCommandArguments implements CommandArguments {
+public class CloudCommandArguments implements CommandArguments {
     private final CloudSelectorArguments selectors = new CloudSelectorArguments();
 
     @Override
     public CommandArgumentType<ItemType> item(@Nullable String displayName) {
-        return CommandArgumentTypes.item(displayName, CloudItemRegistry.get());
+        CloudItemRegistry registry = CloudItemRegistry.get();
+        return CommandArgumentTypes.item(displayName, registry, item -> item.isAir() || !registry.isVanillaDefinition(item.getId()) || registry.isCreativeItem(item));
     }
 
     @Override

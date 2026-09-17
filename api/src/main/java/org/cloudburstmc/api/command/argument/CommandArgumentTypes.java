@@ -38,6 +38,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -430,6 +432,27 @@ public class CommandArgumentTypes {
      */
     public static CommandArgumentType<ItemType> item(@Nullable String displayName, KeyedRegistry<ItemType> registry) {
         return registryArgument(CommandArgumentKind.ITEM, displayName, registry, "item");
+    }
+
+    /**
+     * Creates an item registry argument with filtered command suggestions.
+     *
+     * <p>The filter only controls suggestions. Parsing accepts every item in the registry.</p>
+     *
+     * @param displayName      the command UI argument name, or {@code null} to use the node name
+     * @param registry         the registry backing this argument
+     * @param suggestionFilter selects registry entries included in suggestions
+     * @return an item argument
+     */
+    public static CommandArgumentType<ItemType> item(@Nullable String displayName, KeyedRegistry<ItemType> registry, Predicate<ItemType> suggestionFilter) {
+        Objects.requireNonNull(registry, "registry");
+        Objects.requireNonNull(suggestionFilter, "suggestionFilter");
+        return registryArgument(CommandArgumentKind.ITEM, displayName, registry::get, () -> registry.stream()
+                .filter(suggestionFilter)
+                .map(registry::getId)
+                .map(Identifier::toString)
+                .sorted(Comparator.naturalOrder())
+                .toList(), "item");
     }
 
     /**
@@ -947,10 +970,16 @@ public class CommandArgumentTypes {
 
     private static <T> CommandArgumentType<T> registryArgument(CommandArgumentKind kind, @Nullable String displayName, KeyedRegistry<T> registry, String typeName) {
         Objects.requireNonNull(registry, "registry");
-        return registryArgument(kind, displayName, registry::get, registry.keyStream()
+        return registryArgument(kind, displayName, registry::get, () -> registry.keyStream()
                 .map(Identifier::toString)
                 .sorted(Comparator.naturalOrder())
                 .toList(), typeName);
+    }
+
+    private static <T> CommandArgumentType<T> registryArgument(CommandArgumentKind kind, @Nullable String displayName, Function<Identifier, Optional<T>> lookup, Supplier<List<String>> values, String typeName) {
+        Objects.requireNonNull(lookup, "lookup");
+        Objects.requireNonNull(values, "values");
+        return new SimpleCommandArgumentType<>(kind, displayName, null, values, null, value -> parseRegistryValue(value, lookup, typeName));
     }
 
     private static <T> T parseRegistryValue(String value, Function<Identifier, Optional<T>> lookup, String typeName) {
@@ -984,7 +1013,7 @@ public class CommandArgumentTypes {
         private final CommandArgumentKind kind;
         private final @Nullable String displayName;
         private final @Nullable String enumName;
-        private final List<String> values;
+        private final Supplier<List<String>> values;
         private final Set<String> acceptedValues;
         private final @Nullable String postfix;
         private final boolean requiredInSyntax;
@@ -1009,16 +1038,32 @@ public class CommandArgumentTypes {
         }
 
         private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName,
-                                          @Nullable String enumName, Collection<String> values,
-                                          @Nullable String postfix, boolean requiredInSyntax,
-                                          Map<String, Set<CommandArgumentConstraint>> valueConstraints,
-                                          CommandValueParser<T> valueParser,
-                                          @Nullable SuggestionProvider<CommandSourceStack> suggestions) {
+                                           @Nullable String enumName, Collection<String> values,
+                                           @Nullable String postfix, boolean requiredInSyntax,
+                                           Map<String, Set<CommandArgumentConstraint>> valueConstraints,
+                                           CommandValueParser<T> valueParser,
+                                           @Nullable SuggestionProvider<CommandSourceStack> suggestions) {
+            this(kind, displayName, enumName, immutableValues(values), postfix, requiredInSyntax,
+                    valueConstraints, valueParser, suggestions);
+        }
+
+        private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName,
+                                           @Nullable String enumName, Supplier<List<String>> values,
+                                           @Nullable String postfix, CommandValueParser<T> valueParser) {
+            this(kind, displayName, enumName, values, postfix, false, Map.of(), valueParser, null);
+        }
+
+        private SimpleCommandArgumentType(CommandArgumentKind kind, @Nullable String displayName,
+                                           @Nullable String enumName, Supplier<List<String>> values,
+                                           @Nullable String postfix, boolean requiredInSyntax,
+                                           Map<String, Set<CommandArgumentConstraint>> valueConstraints,
+                                           CommandValueParser<T> valueParser,
+                                           @Nullable SuggestionProvider<CommandSourceStack> suggestions) {
             this.kind = Objects.requireNonNull(kind, "kind");
             this.displayName = displayName;
             this.enumName = enumName;
-            this.values = List.copyOf(Objects.requireNonNull(values, "values"));
-            this.acceptedValues = Set.copyOf(this.values);
+            this.values = Objects.requireNonNull(values, "values");
+            this.acceptedValues = Set.copyOf(this.values.get());
             this.postfix = postfix;
             this.requiredInSyntax = requiredInSyntax;
             this.valueConstraints = immutableConstraints(valueConstraints);
@@ -1044,7 +1089,7 @@ public class CommandArgumentTypes {
 
         @Override
         public List<String> getValues() {
-            return this.values;
+            return List.copyOf(Objects.requireNonNull(this.values.get(), "values result"));
         }
 
         @Override
@@ -1112,8 +1157,9 @@ public class CommandArgumentTypes {
 
         @Override
         public Collection<String> getExamples() {
-            if (!this.values.isEmpty()) {
-                return this.values.stream().limit(2).toList();
+            List<String> values = this.getValues();
+            if (!values.isEmpty()) {
+                return values.stream().limit(2).toList();
             }
 
             return List.of("value");
@@ -1132,12 +1178,13 @@ public class CommandArgumentTypes {
                 }
             }
 
-            if (this.values.isEmpty()) {
+            List<String> values = this.getValues();
+            if (values.isEmpty()) {
                 return suggestions.buildFuture();
             }
 
             String remaining = suggestions.getRemainingLowerCase();
-            for (String value : this.values) {
+            for (String value : values) {
                 if (value.toLowerCase(Locale.ROOT).startsWith(remaining)) {
                     suggestions.suggest(value);
                 }
@@ -1147,17 +1194,18 @@ public class CommandArgumentTypes {
         }
 
         private void validate() {
+            List<String> values = this.getValues();
             switch (this.kind) {
                 case FIXED_ENUM -> {
                     if (this.enumName == null || this.enumName.isBlank()) {
                         throw new IllegalArgumentException("Fixed command enums require an enum name");
                     }
 
-                    if (this.values.isEmpty()) {
+                    if (values.isEmpty()) {
                         throw new IllegalArgumentException("Fixed command enums require at least one value");
                     }
 
-                    if (this.acceptedValues.size() != this.values.size()) {
+                    if (this.acceptedValues.size() != values.size()) {
                         throw new IllegalArgumentException("Fixed command enums require unique values");
                     }
 
@@ -1173,6 +1221,11 @@ public class CommandArgumentTypes {
                 default -> {
                 }
             }
+        }
+
+        private static Supplier<List<String>> immutableValues(Collection<String> values) {
+            List<String> copy = List.copyOf(Objects.requireNonNull(values, "values"));
+            return () -> copy;
         }
 
         private boolean matchesPostfix(String value) {

@@ -191,12 +191,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
     protected synchronized void registerBlock(BlockType type) {
         ItemType itemType = this.typeMap.get(type.getId());
         if (itemType == null) {
-            itemType = ItemTypes.get(type.getId())
-                                .orElseGet(() -> ItemType.of(type.getId()));
+            itemType = ItemTypes.get(type.getId()).orElseGet(() -> ItemType.of(type.getId()));
+            this.registerItemType(itemType, type.getId());
         }
 
         BlockRegistrationAccess.linkItem(type, itemType);
-        this.typeMap.put(type.getId(), itemType);
 
         CloudComponentMap components = getComponentMap(itemType);
 
@@ -281,6 +280,14 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
                 .map(itemDefinition -> Identifier.parse(itemDefinition.getIdentifier()))
                 .collect(Collectors.toList()));
+    }
+
+    public boolean isVanillaDefinition(Identifier id) {
+        return this.itemPalette.isVanillaDefinition(id);
+    }
+
+    public boolean isCreativeItem(ItemType type) {
+        return this.itemPalette.isCreativeItem(type.getId());
     }
 
     @Override
@@ -375,6 +382,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
     private void registerVanillaDataSerializers() throws RegistryException {
         this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
         this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
+        this.registerDataSerializer(ItemKeys.ITEM_LOCK, new ItemLockModeSerializer());
+        this.registerDataSerializer(ItemKeys.KEEP_ON_DEATH, new PrimitiveSerializer<>("minecraft:keep_on_death", Boolean.class));
         this.registerDataSerializer(ItemKeys.REPAIR_COST, new PrimitiveSerializer<>("RepairCost", Integer.class));
         this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
         this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());

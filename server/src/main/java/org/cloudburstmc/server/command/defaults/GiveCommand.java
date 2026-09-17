@@ -8,19 +8,18 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
-import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
-import org.cloudburstmc.api.item.ItemKeys;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GiveCommand extends AdvertisedCommand {
     public GiveCommand() {
@@ -35,7 +34,9 @@ public class GiveCommand extends AdvertisedCommand {
                         .then(Commands.argument("amount", CommandArgumentTypes.integer(1, Short.MAX_VALUE))
                                 .executes(this::executeCommand)
                                 .then(Commands.argument("data", CommandArgumentTypes.integer(0, Short.MAX_VALUE))
-                                        .executes(this::executeCommand)))));
+                                        .executes(this::executeCommand)
+                                        .then(Commands.argument("components", CommandArgumentTypes.json())
+                                                .executes(this::executeCommand))))));
     }
 
     @Override
@@ -52,31 +53,60 @@ public class GiveCommand extends AdvertisedCommand {
                 ? argumentValue(context, "data", Integer.class).shortValue()
                 : 0;
         boolean air = type.isAir();
-        ItemStack stack = air
+        ItemStack prototype = air
                 ? ItemStack.EMPTY
-                : ItemUtils.deserializeItem(type.getId(), data, amount, NbtMap.EMPTY);
-        if (stack.isEmpty() && !air) {
-            sender.sendMessage(Component.translatable("commands.give.item.invalid",
-                    Component.text(type.getId().toString())).color(NamedTextColor.RED));
+                : ItemUtils.deserializeItem(type.getId(), data, 1, NbtMap.EMPTY);
+        if (prototype.isEmpty() && !air) {
+            sender.sendMessage(Component.translatable("commands.give.item.invalid", Component.text(type.getId().toString())).color(NamedTextColor.RED));
             return success();
         }
 
-        String customName = stack.get(ItemKeys.CUSTOM_NAME);
-        String itemDisplay = customName == null
-                ? type.getId().toString()
-                : customName + " (" + stack.getType().getId() + ")";
-        for (CloudPlayer player : players) {
-            if (!stack.isEmpty()) {
-                for (ItemStack remaining : player.getContainer().addItem(stack)) {
-                    player.dropItem(remaining);
-                }
+        if (!prototype.isEmpty() && hasArgument(context, "components")) {
+            ItemStackBuilder builder = prototype.toBuilder();
+            try {
+                ItemCommandComponents.parse(
+                                argumentValue(context, "components"),
+                                sender.getServer().getBlockRegistry()::get)
+                        .applyTo(builder);
+            } catch (IllegalArgumentException e) {
+                return failure(context, Component.text(e.getMessage()).color(NamedTextColor.RED));
             }
-            CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.give.success",
-                    Component.text(itemDisplay),
-                    Component.text(amount),
-                    Component.text(player.getName())));
+
+            prototype = builder.build();
         }
 
-        return success();
+        String customName = prototype.get(ItemKeys.CUSTOM_NAME);
+        String itemDisplay = customName == null ? type.getId().toString() : customName + " (" + prototype.getType().getId() + ")";
+        for (CloudPlayer player : players) {
+            if (!prototype.isEmpty()) {
+                give(player, prototype, amount);
+            }
+        }
+
+        String recipients = players.stream()
+                .map(CloudPlayer::getName)
+                .collect(Collectors.joining(", "));
+        CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.give.success",
+                Component.text(itemDisplay),
+                Component.text(amount),
+                Component.text(recipients)));
+        return players.size();
+    }
+
+    private static void give(CloudPlayer player, ItemStack prototype, int amount) {
+        int maxStackSize = player.getServer().getItemRegistry()
+                .requireComponent(prototype.getType(), ItemComponents.GET_MAX_STACK_SIZE)
+                .execute(prototype);
+
+        int remaining = amount;
+        while (remaining > 0) {
+            int count = Math.min(remaining, maxStackSize);
+            ItemStack stack = prototype.withCount(count);
+            for (ItemStack leftover : player.getContainer().addItem(stack)) {
+                player.dropItem(leftover);
+            }
+
+            remaining -= count;
+        }
     }
 }

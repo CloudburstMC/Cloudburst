@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.command.network;
 
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
@@ -12,9 +14,11 @@ import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.registry.KeyedRegistry;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.server.command.defaults.GameruleCommand;
+import org.cloudburstmc.server.command.defaults.GiveCommand;
 import org.cloudburstmc.server.registry.CloudCommandRegistry;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -206,6 +210,41 @@ class CommandNetworkCompilerTest {
     }
 
     @Test
+    void representsGiveAsOneVanillaOverload() {
+        CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
+        GiveCommand command = new GiveCommand();
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("give");
+        command.configure(builder, "give", commandRegistry.arguments());
+
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source());
+
+        assertEquals(1, overloads.size());
+        CommandParamData[] parameters = overloads.getFirst().getOverloads();
+        assertEquals(List.of("player", "itemName", "amount", "data", "components"),
+                Arrays.stream(parameters).map(CommandParamData::getName).toList());
+        assertEquals(CommandParam.JSON, parameters[4].getType());
+        assertFalse(parameters[0].isOptional());
+        assertFalse(parameters[1].isOptional());
+        assertTrue(parameters[2].isOptional());
+        assertTrue(parameters[3].isOptional());
+        assertTrue(parameters[4].isOptional());
+    }
+
+    @Test
+    void resolvesRegistryItemsIndependentlyFromLiveSuggestions() throws CommandSyntaxException {
+        MutableItemRegistry registry = new MutableItemRegistry();
+        ItemType hidden = registry.register("minecraft:hidden");
+        CommandArgumentType<ItemType> item = CommandArgumentTypes.item(null, registry,
+                candidate -> candidate != hidden);
+
+        assertSame(hidden, item.parse(new StringReader("minecraft:hidden")));
+        assertFalse(item.getValues().contains("minecraft:hidden"));
+
+        ItemType custom = registry.register("example:custom_block");
+        assertTrue(item.getValues().contains(custom.getId().toString()));
+    }
+
+    @Test
     void rejectsConflictingGlobalEnumDefinitions() {
         CommandEnumData first = new CommandEnumData("Mode", Map.of("first", Set.of()), false);
         CommandEnumData second = new CommandEnumData("Mode", Map.of("second", Set.of()), false);
@@ -272,5 +311,38 @@ class CommandNetworkCompilerTest {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    private static class MutableItemRegistry implements KeyedRegistry<ItemType> {
+        private final Map<Identifier, ItemType> items = new LinkedHashMap<>();
+
+        public ItemType register(String identifier) {
+            ItemType item = ItemType.of(Identifier.parse(identifier));
+            this.items.put(item.getId(), item);
+            return item;
+        }
+
+        @Override
+        public Optional<ItemType> get(Identifier id) {
+            return Optional.ofNullable(this.items.get(id));
+        }
+
+        @Override
+        public Identifier getId(ItemType value) {
+            if (!this.items.containsValue(value)) {
+                throw new IllegalArgumentException(value.getId() + " is not registered");
+            }
+
+            return value.getId();
+        }
+
+        @Override
+        public Collection<ItemType> values() {
+            return List.copyOf(this.items.values());
+        }
+
+        @Override
+        public void close() {
+        }
     }
 }

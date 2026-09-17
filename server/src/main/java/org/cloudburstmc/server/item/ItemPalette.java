@@ -40,6 +40,7 @@ public class ItemPalette {
     private final static Int2ReferenceMap<CloudItemDefinition> runtimeIdMap = new Int2ReferenceOpenHashMap<>();
     private final static Int2ReferenceMap<Identifier> legacyIdMap = new Int2ReferenceOpenHashMap<>();
     private final static Int2ReferenceMap<Identifier> legacyBlockIdMap = new Int2ReferenceOpenHashMap<>();
+    private final static Set<Identifier> vanillaDefinitions = new HashSet<>();
 
     static {
         try (InputStream in = RegistryUtils.getOrAssertResource("data/legacy_item_ids.json")) {
@@ -114,6 +115,7 @@ public class ItemPalette {
                 CloudItemDefinition definition = new CloudItemDefinition(id, runtime, componentBased, version, components);
                 itemEntries.put(id, definition);
                 runtimeIdMap.put(runtime, definition);
+                vanillaDefinitions.add(id);
 
                 if (!legacyIdMap.containsKey(runtime) && !legacyBlockIdMap.containsKey(runtime)) {
                     legacyIdMap.put(runtime, id);
@@ -128,6 +130,7 @@ public class ItemPalette {
     private final AtomicInteger runtimeIdAllocator = new AtomicInteger(itemEntries.size());
     private final List<CreativeItemData> creativeItems = new ArrayList<>();
     private final List<CreativeItemGroup> creativeGroups = new ArrayList<>();
+    private final Set<Identifier> creativeItemTypes = new HashSet<>();
     private volatile CreativeContentPacket creativeContentPacket;
 
     public ItemPalette(CloudItemRegistry registry) {
@@ -197,6 +200,14 @@ public class ItemPalette {
         return ImmutableList.copyOf(runtimeIdMap.values());
     }
 
+    public boolean isVanillaDefinition(Identifier id) {
+        return vanillaDefinitions.contains(id);
+    }
+
+    public boolean isCreativeItem(Identifier id) {
+        return this.creativeItemTypes.contains(id);
+    }
+
     public void addCreativeItem(ItemStack item) {
         int damage = 0;
         BlockDefinition blockDefinition = null;
@@ -215,6 +226,7 @@ public class ItemPalette {
                 .build();
 
         creativeItems.add(new CreativeItemData(itemData, netId, 0));
+        this.creativeItemTypes.add(item.getType().getId());
         this.creativeContentPacket = null;
     }
 
@@ -281,6 +293,7 @@ public class ItemPalette {
                 int groupId = item.has("groupId") ? item.get("groupId").asInt() : 0;
                 ItemData built = itemData.build();
                 creativeItems.add(new CreativeItemData(built, built.getNetId(), groupId));
+                this.creativeItemTypes.add(Identifier.parse(definition.getIdentifier()));
             }
 
             for (JsonNode groupNode : json.get("groups")) {
@@ -344,4 +357,3 @@ public class ItemPalette {
         return ImmutableList.copyOf(creativeItems);
     }
 }
-

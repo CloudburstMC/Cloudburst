@@ -3331,9 +3331,9 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 this.getLevel().dropItem(this.getPosition(), item, null, true, 40);
             }
 
-            this.getInventory().clear();
-            this.getArmor().clear();
-            this.getOffhand().clear();
+            clearItemsLostOnDeath(this.getInventory());
+            clearItemsLostOnDeath(this.getArmor());
+            clearItemsLostOnDeath(this.getOffhand());
         }
 
         if (!event.getKeepExperience()) {
@@ -3366,6 +3366,14 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.extinguish();
 
         this.sendPacket(packet);
+    }
+
+    private static void clearItemsLostOnDeath(SlotGroup slots) {
+        for (int slot = 0; slot < slots.size(); slot++) {
+            if (slots.getItem(slot).get(ItemKeys.KEEP_ON_DEATH) != Boolean.TRUE) {
+                slots.setItem(slot, ItemStack.EMPTY);
+            }
+        }
     }
 
     protected void sendPlayStatus(PlayStatusPacket.Status status) {

@@ -10,9 +10,9 @@ import java.util.Set;
 /**
  * A command argument that defines authoritative parsing and its advertised command syntax.
  *
- * <p>The presentation must describe the same values accepted by {@link #parse}. Values returned by
- * {@link #getValues()} are included in command data. Runtime Brigadier suggestions do not replace that
- * advertised data.</p>
+ * <p>Values returned by {@link #getValues()} are included in command data. They may be a supported subset
+ * of the values accepted by {@link #parse}, allowing valid internal entries to remain available without
+ * advertising them. Runtime Brigadier suggestions do not replace the advertised data.</p>
  *
  * @param <T> the parsed argument value type
  */
@@ -42,9 +42,11 @@ public interface CommandArgumentType<T> extends ArgumentType<T> {
     String getEnumName();
 
     /**
-     * Returns accepted or suggested string values for this argument.
+     * Returns the current accepted or suggested string values for this argument.
      *
-     * @return immutable values
+     * <p>Registry-backed arguments may return a new immutable snapshot after their registry changes.</p>
+     *
+     * @return immutable value snapshot
      */
     List<String> getValues();
 

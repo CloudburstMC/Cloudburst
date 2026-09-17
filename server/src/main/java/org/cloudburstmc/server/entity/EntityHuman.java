@@ -476,7 +476,9 @@ public class EntityHuman extends EntityCreature implements Human {
 
     private static void addDrops(List<ItemStack> drops, ItemStack[] contents) {
         for (ItemStack item : contents) {
-            if (!item.isEmpty() && !item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.VANISHING)) {
+            if (!item.isEmpty()
+                    && item.get(ItemKeys.KEEP_ON_DEATH) != Boolean.TRUE
+                    && !item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.VANISHING)) {
                 drops.add(item);
             }
         }

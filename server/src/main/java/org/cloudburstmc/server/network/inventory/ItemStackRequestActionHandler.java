@@ -11,6 +11,7 @@ import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.item.ItemKeys;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.data.ItemLockMode;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
@@ -130,6 +131,11 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
         int count = action.getCount();
+
+        if (isMoveBlocked(sourceItem, srcContainer, dstContainer)) {
+            requestFailed = true;
+            return;
+        }
 
         if (sourceItem.isEmpty() || sourceItem.getCount() < count) {
             throw new IllegalArgumentException("Source item is empty or has insufficient count");
@@ -297,6 +303,14 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
 
+        ContainerSlotType srcContainer = container(srcSlot);
+        ContainerSlotType dstContainer = container(dstSlot);
+        if (isMoveBlocked(sourceItem, srcContainer, dstContainer)
+                || isMoveBlocked(destItem, dstContainer, srcContainer)) {
+            requestFailed = true;
+            return;
+        }
+
         ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
         ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
 
@@ -328,6 +342,11 @@ public class ItemStackRequestActionHandler {
         ItemStackRequestSlotData srcSlot = action.getSource();
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
+
+        if (sourceItem.get(ItemKeys.ITEM_LOCK) != null) {
+            requestFailed = true;
+            return;
+        }
 
         if (sourceItem.isEmpty() || sourceItem.getCount() < count) {
             throw new IllegalArgumentException("Source item is empty or has insufficient count");
@@ -367,6 +386,11 @@ public class ItemStackRequestActionHandler {
         ItemStackRequestSlotData srcSlot = action.getSource();
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
+
+        if (sourceItem.get(ItemKeys.ITEM_LOCK) != null) {
+            requestFailed = true;
+            return;
+        }
 
         if (sourceItem.isEmpty()) {
             throw new IllegalArgumentException("Source item is empty");
@@ -482,6 +506,11 @@ public class ItemStackRequestActionHandler {
         ItemStack current = this.screen.getSlot(sourceContainer, sourceSlot);
         if (current.isEmpty()) {
             log.debug("Consume action from {} targeted empty crafting input slot {}", player.getName(), sourceSlot);
+            requestFailed = true;
+            return;
+        }
+
+        if (current.get(ItemKeys.ITEM_LOCK) != null) {
             requestFailed = true;
             return;
         }
@@ -746,6 +775,26 @@ public class ItemStackRequestActionHandler {
         return containerType == ContainerSlotType.HOTBAR
                 || containerType == ContainerSlotType.HOTBAR_AND_INVENTORY
                 || containerType == ContainerSlotType.INVENTORY;
+    }
+
+    private static boolean isMoveBlocked(ItemStack item, ContainerSlotType source, ContainerSlotType destination) {
+        ItemLockMode lockMode = item.get(ItemKeys.ITEM_LOCK);
+        if (lockMode == null) {
+            return false;
+        }
+
+        if (lockMode == ItemLockMode.LOCK_IN_SLOT) {
+            return true;
+        }
+
+        return isOutsidePlayerInventory(source) || isOutsidePlayerInventory(destination);
+    }
+
+    private static boolean isOutsidePlayerInventory(ContainerSlotType containerType) {
+        return switch (containerType) {
+            case ARMOR, CURSOR, HOTBAR, HOTBAR_AND_INVENTORY, INVENTORY, OFFHAND -> false;
+            default -> true;
+        };
     }
 
     private ContainerSlotType responseContainerForInventorySlot(int inventorySlot) {
