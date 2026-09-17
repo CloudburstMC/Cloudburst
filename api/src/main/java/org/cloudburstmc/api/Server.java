@@ -46,7 +46,7 @@ public interface Server {
 
     BlockRegistry getBlockRegistry();
 
-    BiomeRegistry<?> getBiomeRegistry();
+    BiomeRegistry getBiomeRegistry();
 
     /**
      * Returns the registry of damage types.

@@ -218,7 +218,7 @@ public class CloudServer implements Server {
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final CloudEntityRegistry entityRegistry = CloudEntityRegistry.get();
     private final CloudParticleRegistry particleRegistry = CloudParticleRegistry.get();
-    private final BiomeRegistry<?> biomeRegistry = CloudBiomeRegistry.get();
+    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
     private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
@@ -1771,7 +1771,7 @@ public class CloudServer implements Server {
     }
 
     @Override
-    public BiomeRegistry<?> getBiomeRegistry() {
+    public BiomeRegistry getBiomeRegistry() {
         return biomeRegistry;
     }
 

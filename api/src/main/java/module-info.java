@@ -55,6 +55,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.item.component;
     exports org.cloudburstmc.api.item.data;
     exports org.cloudburstmc.api.level;
+    exports org.cloudburstmc.api.level.biome;
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
     exports org.cloudburstmc.api.level.particle;

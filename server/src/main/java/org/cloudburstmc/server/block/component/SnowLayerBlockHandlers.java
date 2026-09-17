@@ -40,7 +40,7 @@ public class SnowLayerBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getBiomeId(block.getX(), block.getY(), block.getZ()));
 
-        int light = biome != null && biome.getTemperature(block.getX(), block.getY(), block.getZ()) <= 0.25
+        int light = biome != null && biome.temperatureAt(block.getX(), block.getY(), block.getZ()) <= 0.25
                 ? level.getBlockLightAt(block.getX(), block.getY(), block.getZ())
                 : level.getFullLight(block.getPosition());
         if (light <= 11) {

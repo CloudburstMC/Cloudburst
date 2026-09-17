@@ -1,0 +1,19 @@
+{
+  "format_version": "1.26.30",
+  "components": [
+    "minecraft:climate",
+    "minecraft:creature_spawn_probability",
+    "minecraft:humidity",
+    "minecraft:map_tints",
+    "minecraft:mountain_parameters",
+    "minecraft:multinoise_generation_rules",
+    "minecraft:overworld_generation_rules",
+    "minecraft:overworld_height",
+    "minecraft:partially_frozen",
+    "minecraft:subsurface_builder",
+    "minecraft:surface_builder",
+    "minecraft:surface_material_adjustments",
+    "minecraft:tags",
+    "minecraft:village_type"
+  ]
+}

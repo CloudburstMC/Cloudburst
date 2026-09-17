@@ -51,7 +51,7 @@ public final class PrecipitationHandler {
     }
 
     private static boolean isColdEnough(CloudBiome biome, int x, int y, int z) {
-        return biome.getTemperature(x, y, z) < FREEZING_TEMPERATURE;
+        return biome.temperatureAt(x, y, z) < FREEZING_TEMPERATURE;
     }
 
     private static void formBlock(CloudLevel level, Block block, BlockState state) {

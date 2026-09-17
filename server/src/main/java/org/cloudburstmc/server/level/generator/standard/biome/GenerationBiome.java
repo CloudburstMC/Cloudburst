@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.level.generator.standard.biome;
 
-import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.daporkchop.lib.common.util.PorkUtil;
+import org.cloudburstmc.api.level.biome.BiomeTypes;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
@@ -12,14 +11,13 @@ import org.cloudburstmc.server.level.generator.standard.misc.NextGenerationPass;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
 import org.cloudburstmc.server.level.generator.standard.store.GenerationBiomeStore;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
  * Representation of a biome used during terrain generation.
- *
- * @author DaPorkchop_
  */
 @JsonDeserialize(using = GenerationBiomeDeserializer.class)
 public final class GenerationBiome {
@@ -36,7 +34,10 @@ public final class GenerationBiome {
     private final int internalId;
 
     public GenerationBiome(@NonNull GenerationBiomeStore.TempBiome temp, @NonNull Identifier id, int internalId) {
-        CloudBiome biome = CloudBiomeRegistry.get().getBiome(PorkUtil.fallbackIfNull(temp.getRealId(), id));
+        Identifier resolvedId = temp.getRealId() == null ? id : temp.getRealId();
+        CloudBiome biome = BiomeTypes.get(resolvedId)
+                .map(CloudBiomeRegistry.get()::getBiome)
+                .orElse(null);
 
         Decorator[] decorators = temp.getDecorators();
         Populator[] populators = temp.getPopulators();
@@ -94,7 +95,11 @@ public final class GenerationBiome {
         }
 
         this.id = id;
-        Preconditions.checkState((this.biome = biome) != null, temp.getRealId() == null ? "Unknown biome %s! Consider adding a 'realId' entry if this is a virtual biome." : "Unknown real biome %s!", PorkUtil.fallbackIfNull(temp.getRealId(), id));
+        Preconditions.checkState((this.biome = biome) != null,
+                temp.getRealId() == null
+                        ? "Unknown biome %s! Consider adding a 'realId' entry if this is a virtual biome."
+                        : "Unknown real biome %s!",
+                resolvedId);
 
         this.decorators = decorators;
         this.populators = populators;

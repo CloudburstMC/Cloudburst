@@ -5,58 +5,18 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
+
+import static org.cloudburstmc.codegen.DataGenSupport.*;
 
 @UtilityClass
 public class ItemDataGen {
 
-    private static final Path ITEM_TYPES_PATH = Path.of(
-            "org", "cloudburstmc", "api", "item", "ItemTypes.java");
+    private static final Path ITEM_TYPES_PATH = Path.of("org", "cloudburstmc", "api", "item", "ItemTypes.java");
+    private static final Path ITEM_DEFINITION_COMPONENTS_PATH = Path.of("org", "cloudburstmc", "api", "item", "ItemDefinitionComponents.java");
 
-    private static final Path ITEM_DEFINITION_COMPONENTS_PATH = Path.of(
-            "org", "cloudburstmc", "api", "item", "ItemDefinitionComponents.java");
-
-    private static final Comparator<String> NATURAL_ORDER = (left, right) -> {
-        int leftIdx = 0;
-        int rightIdx = 0;
-
-        while (leftIdx < left.length() && rightIdx < right.length()) {
-            char leftChar = left.charAt(leftIdx), rightChar = right.charAt(rightIdx);
-            if (Character.isDigit(leftChar) && Character.isDigit(rightChar)) {
-                int leftNumStart = leftIdx, rightNumStart = rightIdx;
-
-                while (leftIdx < left.length() && Character.isDigit(left.charAt(leftIdx))) {
-                    leftIdx++;
-                }
-
-                while (rightIdx < right.length() && Character.isDigit(right.charAt(rightIdx))) {
-                    rightIdx++;
-                }
-
-                long leftNum = Long.parseLong(left.substring(leftNumStart, leftIdx));
-                long rightNum = Long.parseLong(right.substring(rightNumStart, rightIdx));
-
-                if (leftNum != rightNum) {
-                    return Long.compare(leftNum, rightNum);
-                }
-            } else {
-                if (leftChar != rightChar) {
-                    return Character.compare(leftChar, rightChar);
-                }
-
-                leftIdx++;
-                rightIdx++;
-            }
-        }
-
-        return Integer.compare(left.length() - leftIdx, right.length() - rightIdx);
-    };
-
-    static void main() throws IOException {
+    public static void generate() throws IOException {
         Path projectRoot = resolveProjectRoot();
         Path outputRoot = projectRoot.resolve("api/src/main/java");
 
@@ -64,21 +24,20 @@ public class ItemDataGen {
         writeSource(outputRoot.resolve(ITEM_DEFINITION_COMPONENTS_PATH), generateItemDefinitionComponents());
     }
 
-    private static String generateItemTypes(Path projectRoot) throws IOException {
+    private static String generateItemTypes(Path projectRoot) {
         Path dataDir = projectRoot.resolve("server/src/main/resources/data");
         RuntimeItems runtimeItems = loadRuntimeItems(dataDir.resolve("runtime_item_states.json"));
         Set<String> mappedAliasIdentifiers = loadMappedAliasIdentifiers(dataDir.resolve("item_mappings.json"));
 
-        List<ItemConstant> allIdConstants = buildItemConstants(runtimeItems.identifiers());
-        List<ItemConstant> idConstants = new ArrayList<>(allIdConstants.stream()
+        List<DataGenSupport.GeneratedConstant> allIdConstants = constants(runtimeItems.identifiers());
+        List<DataGenSupport.GeneratedConstant> idConstants = new ArrayList<>(allIdConstants.stream()
                 .filter(item -> !mappedAliasIdentifiers.contains(item.identifier()))
                 .toList());
-        idConstants.sort(Comparator.comparing(ItemConstant::constantName, NATURAL_ORDER));
 
         return renderItemTypes(idConstants);
     }
 
-    private static String renderItemTypes(List<ItemConstant> constants) {
+    private static String renderItemTypes(List<DataGenSupport.GeneratedConstant> constants) {
         StringBuilder source = new StringBuilder();
         source.append("""
                 package org.cloudburstmc.api.item;
@@ -98,9 +57,10 @@ public class ItemDataGen {
                     private static final BuiltInTypeCatalog<ItemType> TYPES = BuiltInTypeCatalog.create(ItemType::getId);
                 
                 """);
-        for (ItemConstant constant : constants) {
+
+        for (DataGenSupport.GeneratedConstant constant : constants) {
             source.append("    public static final ItemType ")
-                    .append(constant.constantName())
+                    .append(constant.name())
                     .append(" = type(\"")
                     .append(constant.identifier())
                     .append("\");\n");
@@ -138,20 +98,7 @@ public class ItemDataGen {
     }
 
     private static String generateItemDefinitionComponents() throws IOException {
-        List<String> identifiers;
-        try (InputStream input = ItemDataGen.class.getResourceAsStream("/item_definition_components.json")) {
-            if (input == null) {
-                throw new IOException("Missing item-definition component catalog");
-            }
-
-            Map<String, Object> catalog = new ObjectMapper().readValue(input, new TypeReference<>() {});
-            Object components = catalog.get("components");
-            if (!(components instanceof List<?> values)) {
-                throw new IOException("Item-definition component catalog has no components array");
-            }
-
-            identifiers = values.stream().map(Object::toString).sorted().toList();
-        }
+        List<String> identifiers = loadComponentIdentifiers("item_definition_components.json");
 
         Set<String> seenIdentifiers = new HashSet<>();
         Map<String, String> identifiersByConstant = new HashMap<>();
@@ -160,7 +107,7 @@ public class ItemDataGen {
                 throw new IOException("Duplicate item-definition component '" + identifier + "'");
             }
 
-            String constant = constantName(stripNamespace(identifier));
+            String constant = constantName(stripMinecraftNamespace(identifier));
             String existing = identifiersByConstant.putIfAbsent(constant, identifier);
             if (existing != null) {
                 throw new IOException("'" + identifier + "' and '" + existing + "' both map to ItemDefinitionComponents." + constant);
@@ -189,7 +136,7 @@ public class ItemDataGen {
 
         for (String identifier : identifiers) {
             source.append("    public static final ItemDefinitionComponentType ")
-                    .append(constantName(stripNamespace(identifier)))
+                    .append(constantName(stripMinecraftNamespace(identifier)))
                     .append(" = type(\"")
                     .append(identifier)
                     .append("\");\n");
@@ -224,20 +171,13 @@ public class ItemDataGen {
         return source.toString();
     }
 
-    private static void writeSource(Path output, String source) throws IOException {
-        Files.createDirectories(output.getParent());
-        Files.writeString(output, source.replace("\r\n", "\n"));
-    }
-
-    private static RuntimeItems loadRuntimeItems(Path runtimeItemStates) throws IOException {
-        List<Map<String, Object>> data = new ObjectMapper().readValue(runtimeItemStates.toFile(),
-                new TypeReference<>() {
-                });
+    private static RuntimeItems loadRuntimeItems(Path runtimeItemStates) {
+        List<Map<String, Object>> data = new ObjectMapper().readValue(runtimeItemStates.toFile(), new TypeReference<>() {});
         List<String> identifiers = new ArrayList<>();
         Set<String> seen = new HashSet<>();
 
         for (Map<String, Object> entry : data) {
-            String identifier = stripNamespace(entry.get("name").toString());
+            String identifier = stripMinecraftNamespace(entry.get("name").toString());
             if ("unknown".equals(identifier) || seen.contains(identifier)) {
                 continue;
             }
@@ -253,24 +193,24 @@ public class ItemDataGen {
         return new RuntimeItems(identifiers);
     }
 
-    private static Set<String> loadMappedAliasIdentifiers(Path itemMappings) throws IOException {
+    private static Set<String> loadMappedAliasIdentifiers(Path itemMappings) {
         Map<String, Object> data = new ObjectMapper().readValue(itemMappings.toFile(), new TypeReference<>() {
         });
         Set<String> aliases = new HashSet<>();
         Object simple = data.get("simple");
         if (simple instanceof Map<?, ?> simpleMap) {
             for (Object identifier : simpleMap.keySet()) {
-                aliases.add(stripNamespace(identifier.toString()));
+                aliases.add(stripMinecraftNamespace(identifier.toString()));
             }
         }
 
         Object complex = data.get("complex");
         if (complex instanceof Map<?, ?> complexMap) {
             for (Map.Entry<?, ?> entry : complexMap.entrySet()) {
-                String identifier = stripNamespace(entry.getKey().toString());
+                String identifier = stripMinecraftNamespace(entry.getKey().toString());
                 if (entry.getValue() instanceof Map<?, ?> metaMap) {
                     Object metaZero = metaMap.get("0");
-                    if (metaZero != null && !identifier.equals(stripNamespace(metaZero.toString()))) {
+                    if (metaZero != null && !identifier.equals(stripMinecraftNamespace(metaZero.toString()))) {
                         aliases.add(identifier);
                     }
                 }
@@ -280,68 +220,7 @@ public class ItemDataGen {
         return aliases;
     }
 
-    private static List<ItemConstant> buildItemConstants(List<String> identifiers) {
-        List<ItemConstant> constants = new ArrayList<>();
-        Map<String, String> identifiersByConstant = new HashMap<>();
-
-        for (String identifier : identifiers) {
-            String constant = constantName(identifier);
-            String existing = identifiersByConstant.putIfAbsent(constant, identifier);
-            if (existing != null && !existing.equals(identifier)) {
-                throw new IllegalStateException("'" + identifier + "' and '" + existing + "' both map to ItemTypes." + constant);
-            }
-            constants.add(new ItemConstant(constant, identifier));
-        }
-
-        return constants;
-    }
-
-    private static String stripNamespace(String identifier) {
-        int colon = identifier.indexOf(':');
-        if (colon < 0) {
-            return identifier;
-        }
-
-        String namespace = identifier.substring(0, colon);
-        if (!"minecraft".equals(namespace)) {
-            throw new IllegalArgumentException("Unsupported item namespace '" + namespace + "' in '" + identifier + "'");
-        }
-
-        return identifier.substring(colon + 1);
-    }
-
-    private static String constantName(String identifier) {
-        String name = identifier.replaceAll("[^0-9A-Za-z]+", "_")
-                .replaceAll("^_+", "")
-                .replaceAll("_+$", "")
-                .toUpperCase(Locale.ROOT);
-        if (name.isEmpty()) {
-            throw new IllegalArgumentException("Cannot derive a Java constant from '" + identifier + "'");
-        }
-
-        if (Character.isDigit(name.charAt(0))) {
-            name = "_" + name;
-        }
-
-        return name;
-    }
-
-    private static Path resolveProjectRoot() {
-        Path dir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-        while (dir != null) {
-            if (Files.exists(dir.resolve("settings.gradle.kts"))) {
-                return dir;
-            }
-
-            dir = dir.getParent();
-        }
-        throw new IllegalStateException("Could not locate project root (no settings.gradle.kts found)");
-    }
-
     private record RuntimeItems(List<String> identifiers) {
-    }
-
-    private record ItemConstant(String constantName, String identifier) {
     }
 
 }

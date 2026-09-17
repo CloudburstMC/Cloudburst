@@ -1,0 +1,18 @@
+{
+  "format_version": "1.21.130",
+  "components": [
+    "minecraft:ambient_sounds",
+    "minecraft:atmosphere_identifier",
+    "minecraft:biome_music",
+    "minecraft:color_grading_identifier",
+    "minecraft:dry_foliage_color",
+    "minecraft:fog_appearance",
+    "minecraft:foliage_appearance",
+    "minecraft:grass_appearance",
+    "minecraft:lighting_identifier",
+    "minecraft:precipitation",
+    "minecraft:sky_color",
+    "minecraft:water_appearance",
+    "minecraft:water_identifier"
+  ]
+}

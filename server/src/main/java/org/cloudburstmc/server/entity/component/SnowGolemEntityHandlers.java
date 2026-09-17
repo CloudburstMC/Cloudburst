@@ -39,7 +39,7 @@ public final class SnowGolemEntityHandlers {
         Vector3i position = snowGolem.getPosition().toInt();
         CloudBiome biome = CloudBiomeRegistry.get().getBiome(
                 snowGolem.getLevel().getBiomeId(position.getX(), position.getY(), position.getZ()));
-        if (biome != null && biome.getTemperature(position.getX(), position.getY(), position.getZ()) > 1) {
+        if (biome != null && biome.temperatureAt(position.getX(), position.getY(), position.getZ()) > 1) {
             snowGolem.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
         }
 

@@ -3,13 +3,13 @@ plugins {
 }
 
 application {
-    mainClass.set("org.cloudburstmc.codegen.ItemDataGen")
+    mainClass.set("org.cloudburstmc.codegen.VanillaDataGen")
 }
 
-tasks.register<JavaExec>("generateItemData") {
+tasks.register<JavaExec>("generateVanillaData") {
     group = "codegen"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("org.cloudburstmc.codegen.ItemDataGen")
+    mainClass.set("org.cloudburstmc.codegen.VanillaDataGen")
 }
 
 dependencies {

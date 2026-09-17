@@ -7,49 +7,27 @@ import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.level.biome.Biome;
+import org.cloudburstmc.api.level.biome.BiomeType;
+import org.cloudburstmc.api.level.biome.BiomeTypes;
 import org.cloudburstmc.api.registry.BiomeRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
-import org.cloudburstmc.server.level.biome.BiomeBuilder;
 import org.cloudburstmc.server.level.biome.CloudBiome;
+import org.cloudburstmc.server.network.VanillaBiomeNetworkData;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.cloudburstmc.api.level.biome.BiomeIds.*;
+import static org.cloudburstmc.api.level.biome.BiomeTypes.*;
 
-public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
-    private static final CloudBiomeRegistry INSTANCE;
-
-    private static final Map<Identifier, CloudBiome> VANILLA_BIOMES;
-
-    static {
-        //build initial biome map
-        VANILLA_BIOMES = CloudBiome.BIOME_DEFINITIONS.getDefinitions().entrySet().stream().collect(Collectors.toMap(
-                entry -> Identifier.parse(entry.getKey()),
-                entry -> {
-                    BiomeDefinitionData data = entry.getValue();
-                    BiomeBuilder builder = BiomeBuilder.builder().setId(Identifier.parse(entry.getKey()));
-                    builder.setTemperature(data.getTemperature());
-                    builder.setDownfall(data.getDownfall());
-                    List<String> tags = data.getTags();
-                    if (tags != null) {
-                        builder.setTags(tags.stream().map(Identifier::parse).collect(Collectors.toList()));
-                    }
-                    return builder.build();
-                }));
-
-        INSTANCE = new CloudBiomeRegistry();
-    }
+public class CloudBiomeRegistry implements BiomeRegistry {
+    private static final Map<Identifier, CloudBiome> VANILLA_BIOMES = loadVanillaBiomes();
+    private static final CloudBiomeRegistry INSTANCE = new CloudBiomeRegistry();
 
     private final Int2ObjectMap<CloudBiome> runtimeToBiomeMap = new Int2ObjectOpenHashMap<>();
-    private final Int2ObjectMap<Identifier> runtimeToIdMap = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<BiomeType> runtimeToTypeMap = new Int2ObjectOpenHashMap<>();
     private final Object2IntMap<Identifier> idToRuntimeMap = new Object2IntLinkedOpenHashMap<>();
-    private int runtimeTypeAllocator;
     private volatile boolean closed;
 
     private CloudBiomeRegistry() {
@@ -60,57 +38,47 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
         return INSTANCE;
     }
 
-    public synchronized void register(@NonNull CloudBiome biome) {
-        /*Preconditions.checkState(this.runtimeTypeAllocator < 256, "Cannot register more than 256 biomes!");
-        this.registerInternal(biome, biome.getId(), this.runtimeTypeAllocator++);*/
-        throw new UnsupportedOperationException("Custom biomes are not currently supported!");
-    }
-
-    private void registerVanilla(@NonNull Identifier id, int runtime) {
-        CloudBiome biome = VANILLA_BIOMES.get(id);
-        Preconditions.checkArgument(biome != null, "Unknown vanilla biome ID: %s", id);
+    private void registerVanilla(@NonNull BiomeType type, int runtime) {
+        CloudBiome biome = VANILLA_BIOMES.get(type.getId());
+        Preconditions.checkArgument(biome != null, "Unknown vanilla biome type: %s", type);
         this.registerInternal(biome, runtime);
-
-        if (runtime >= this.runtimeTypeAllocator) {
-            this.runtimeTypeAllocator = runtime + 1;
-        }
     }
 
-    private synchronized void registerInternal(CloudBiome biome, int runtime) throws RegistryException {
+    private synchronized void registerInternal(CloudBiome biome, int runtime) {
         this.checkClosed();
         Preconditions.checkArgument(runtime >= 0, "Runtime ID may not be negative!");
-        Preconditions.checkState(!this.runtimeToIdMap.containsKey(runtime), "Runtime ID already registered: %s", runtime);
-        Preconditions.checkState(!this.idToRuntimeMap.containsKey(biome.getId()), "Biome ID already registered: %s", biome.getId());
+        Preconditions.checkState(!this.runtimeToTypeMap.containsKey(runtime), "Runtime ID already registered: %s", runtime);
+        Preconditions.checkState(!this.idToRuntimeMap.containsKey(biome.getType().getId()), "Biome type already registered: %s", biome.getType());
 
         this.runtimeToBiomeMap.put(runtime, biome);
-        this.runtimeToIdMap.put(runtime, biome.getId());
-        this.idToRuntimeMap.put(biome.getId(), runtime);
+        this.runtimeToTypeMap.put(runtime, biome.getType());
+        this.idToRuntimeMap.put(biome.getType().getId(), runtime);
     }
 
     public int getRuntimeId(CloudBiome biome) {
-        return this.getRuntimeId(biome.getId());
+        return this.getRuntimeId(biome.getType());
     }
 
-    public int getRuntimeId(Identifier id) {
-        return this.idToRuntimeMap.getOrDefault(id, -1);
+    public int getRuntimeId(BiomeType type) {
+        return this.idToRuntimeMap.getOrDefault(type.getId(), -1);
     }
 
     @Override
-    public @Nullable CloudBiome getBiome(Identifier identifier) {
-        return this.getBiome(this.getRuntimeId(identifier));
+    public @Nullable CloudBiome getBiome(BiomeType type) {
+        return this.getBiome(this.getRuntimeId(type));
     }
 
-    public CloudBiome getBiome(int runtimeId) {
+    public @Nullable CloudBiome getBiome(int runtimeId) {
         return this.runtimeToBiomeMap.get(runtimeId);
     }
 
     @Override
-    public Collection<CloudBiome> values() {
+    public Collection<Biome> values() {
         return List.copyOf(this.runtimeToBiomeMap.values());
     }
 
-    public Identifier getId(int runtimeId) {
-        return this.runtimeToIdMap.get(runtimeId);
+    public @Nullable BiomeType getType(int runtimeId) {
+        return this.runtimeToTypeMap.get(runtimeId);
     }
 
     @Override
@@ -121,6 +89,18 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
 
     private void checkClosed() {
         checkState(!this.closed, "Registration is already closed");
+    }
+
+    private static Map<Identifier, CloudBiome> loadVanillaBiomes() {
+        Map<Identifier, CloudBiome> biomes = new LinkedHashMap<>();
+        VanillaBiomeNetworkData.definitions().getDefinitions().forEach((name, data) -> {
+            Identifier id = Identifier.parse(name);
+            BiomeType type = BiomeTypes.get(id).orElseThrow(() -> new RegistryException("Unknown built-in biome type " + id));
+            Set<Identifier> tags = data.getTags() == null ? Set.of() : Set.copyOf(data.getTags().stream().map(Identifier::parse).toList());
+            biomes.put(id, new CloudBiome(type, tags, data.getTemperature(), data.getDownfall()));
+        });
+
+        return Map.copyOf(biomes);
     }
 
     private void registerVanillaBiomes() {
@@ -195,7 +175,7 @@ public class CloudBiomeRegistry implements BiomeRegistry<CloudBiome> {
         this.registerVanilla(MESA_BRYCE, 165);
         this.registerVanilla(MESA_PLATEAU_STONE_MUTATED, 166);
         this.registerVanilla(MESA_PLATEAU_MUTATED, 167);
-        this.registerVanilla(SOUL_SAND_VALLEY, 178);
+        this.registerVanilla(SOULSAND_VALLEY, 178);
         this.registerVanilla(CRIMSON_FOREST, 179);
         this.registerVanilla(WARPED_FOREST, 180);
         this.registerVanilla(BASALT_DELTAS, 181);

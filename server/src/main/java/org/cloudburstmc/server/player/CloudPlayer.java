@@ -109,7 +109,6 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.*;
@@ -2297,9 +2296,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         componentPacket.getItems().addAll(CloudItemRegistry.get().getItemEntries());
         this.sendPacket(componentPacket);
 
-        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setBiomes(CloudBiome.BIOME_DEFINITIONS);
-        this.sendPacket(biomeDefinitionListPacket);
+        this.sendPacket(VanillaBiomeNetworkData.createPacket());
 
         AvailableEntityIdentifiersPacket availableEntityIdentifiersPacket = new AvailableEntityIdentifiersPacket();
         availableEntityIdentifiersPacket.setIdentifiers(CloudEntityRegistry.get().getEntityIdentifiersPalette());
