@@ -2318,12 +2318,9 @@ public class CloudLevel implements Level, BlockStateRegion {
             }
         }
 
-        BlockState replacedState = block.getState();
         if (!handBehaviors.require(BlockComponents.ON_PLACE).execute(hand, player, block.getPosition(), placementFace, clickPos)) {
             return null;
         }
-
-        this.addPlacementReplacementEffect(block, replacedState, hand, player);
 
         if (player != null && !player.isCreative()) {
             item = item.decreaseCount();
@@ -2344,19 +2341,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         LiquidState state = LiquidState.of(liquid);
         return LiquidBlockHandlers.canOccupySecondaryLayer(state)
                 && (state.isSource() ? container.canContainLiquidSource() : container.canContainFlowingLiquid());
-    }
-
-    private void addPlacementReplacementEffect(Block replacedBlock, BlockState replacedState, BlockState placedState, @Nullable Player player) {
-        BlockType replacedType = replacedState.getType();
-        if (replacedType == placedState.getType()
-                || replacedType == BlockTypes.AIR
-                || replacedType == BlockTypes.FIRE
-                || replacedType == BlockTypes.SOUL_FIRE
-                || replacedType.isLiquid()) {
-            return;
-        }
-
-        this.addBlockDestroyParticle(replacedBlock, player);
     }
 
     private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
