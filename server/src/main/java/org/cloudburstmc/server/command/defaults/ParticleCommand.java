@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ParticleCommand extends AdvertisedCommand {
     public ParticleCommand() {
-        super("particle", "commands.particle.description", CommandNetworkData.GAME_DIRECTORS,
+        super("particle", "commands.particle.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.particle");
     }
 

@@ -36,7 +36,7 @@ public class CommandUtils {
                 .append(Component.text("]"));
         Component coloredMessage = adminMessage.color(NamedTextColor.GRAY).decorate(TextDecoration.ITALIC);
 
-        if (sendToSource && !(source instanceof CloudConsoleCommandSender)) {
+        if (sendToSource) {
             source.sendMessage(message);
         }
 

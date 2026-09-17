@@ -25,7 +25,7 @@ import java.util.List;
 public class KillCommand extends AdvertisedCommand {
 
     public KillCommand() {
-        super("kill", "commands.kill.description", CommandNetworkData.GAME_DIRECTORS,
+        super("kill", "commands.kill.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.kill.self", "cloudburst.command.kill.other");
     }
 

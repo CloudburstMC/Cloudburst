@@ -19,7 +19,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 public class SetWorldSpawnCommand extends AdvertisedCommand {
     public SetWorldSpawnCommand() {
-        super("setworldspawn", "commands.setworldspawn.description", CommandNetworkData.GAME_DIRECTORS,
+        super("setworldspawn", "commands.setworldspawn.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.setworldspawn");
     }
 

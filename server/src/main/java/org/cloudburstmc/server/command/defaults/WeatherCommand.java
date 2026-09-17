@@ -17,7 +17,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class WeatherCommand extends AdvertisedCommand {
 
     public WeatherCommand() {
-        super("weather", "commands.weather.description", CommandNetworkData.GAME_DIRECTORS,
+        super("weather", "commands.weather.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.weather");
     }
 

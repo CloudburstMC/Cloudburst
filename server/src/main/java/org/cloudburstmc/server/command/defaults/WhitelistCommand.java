@@ -19,7 +19,7 @@ import java.util.StringJoiner;
 public class WhitelistCommand extends AdvertisedCommand {
 
     public WhitelistCommand() {
-        super("allowlist", "commands.whitelist.description", List.of("whitelist"), CommandNetworkData.OWNER,
+        super("allowlist", "commands.whitelist.description", List.of("whitelist"), CommandNetworkData.DEFAULT,
                 "cloudburst.command.whitelist.reload",
                 "cloudburst.command.whitelist.enable", "cloudburst.command.whitelist.disable",
                 "cloudburst.command.whitelist.list", "cloudburst.command.whitelist.add",

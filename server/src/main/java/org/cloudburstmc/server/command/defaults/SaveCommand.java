@@ -14,7 +14,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class SaveCommand extends AdvertisedCommand {
 
     public SaveCommand() {
-        super("save-all", "commands.save.description", CommandNetworkData.OWNER, "cloudburst.command.save.perform");
+        super("save-all", "commands.save.description", CommandNetworkData.DEFAULT, "cloudburst.command.save.perform");
     }
 
     @Override

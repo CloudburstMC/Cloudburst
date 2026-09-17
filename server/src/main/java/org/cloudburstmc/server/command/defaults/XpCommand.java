@@ -18,7 +18,7 @@ import java.util.OptionalInt;
 
 public class XpCommand extends AdvertisedCommand {
     public XpCommand() {
-        super("xp", "commands.xp.description", CommandNetworkData.GAME_DIRECTORS, "cloudburst.command.xp");
+        super("xp", "commands.xp.description", CommandNetworkData.DEFAULT, "cloudburst.command.xp");
     }
 
     @Override

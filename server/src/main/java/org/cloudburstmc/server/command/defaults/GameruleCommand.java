@@ -30,7 +30,7 @@ public class GameruleCommand extends AdvertisedCommand {
     }
 
     public GameruleCommand(GameRuleRegistry registry) {
-        super("gamerule", "commands.gamerule.description", CommandNetworkData.GAME_DIRECTORS_NOT_CHEAT, "cloudburst.command.gamerule");
+        super("gamerule", "commands.gamerule.description", CommandNetworkData.NOT_CHEAT, "cloudburst.command.gamerule");
         this.registry = Objects.requireNonNull(registry, "registry");
     }
 

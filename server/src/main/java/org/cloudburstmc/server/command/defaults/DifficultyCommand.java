@@ -17,7 +17,7 @@ import org.cloudburstmc.server.command.network.CommandNetworkData;
 public class DifficultyCommand extends AdvertisedCommand {
 
     public DifficultyCommand() {
-        super("difficulty", "commands.difficulty.description", CommandNetworkData.GAME_DIRECTORS,
+        super("difficulty", "commands.difficulty.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.difficulty");
     }
 

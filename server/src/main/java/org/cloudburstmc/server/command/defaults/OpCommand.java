@@ -17,7 +17,7 @@ import org.cloudburstmc.server.command.network.CommandNetworkData;
 public class OpCommand extends AdvertisedCommand {
 
     public OpCommand() {
-        super("op", "commands.op.description", CommandNetworkData.ADMIN_NOT_CHEAT,
+        super("op", "commands.op.description", CommandNetworkData.NOT_CHEAT,
                 "cloudburst.command.op.give");
     }
 

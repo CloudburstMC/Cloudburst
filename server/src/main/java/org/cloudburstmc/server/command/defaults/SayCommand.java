@@ -18,7 +18,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class SayCommand extends AdvertisedCommand {
 
     public SayCommand() {
-        super("say", "commands.say.description", CommandNetworkData.GAME_DIRECTORS_MESSAGE_NOT_CHEAT,
+        super("say", "commands.say.description", CommandNetworkData.MESSAGE_NOT_CHEAT,
                 "cloudburst.command.say");
     }
 

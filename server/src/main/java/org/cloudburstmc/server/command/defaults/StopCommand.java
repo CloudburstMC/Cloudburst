@@ -11,7 +11,7 @@ import org.cloudburstmc.server.command.network.CommandNetworkData;
 public class StopCommand extends AdvertisedCommand {
 
     public StopCommand() {
-        super("stop", "commands.stop.description", CommandNetworkData.OWNER, "cloudburst.command.stop");
+        super("stop", "commands.stop.description", CommandNetworkData.DEFAULT, "cloudburst.command.stop");
     }
 
     @Override

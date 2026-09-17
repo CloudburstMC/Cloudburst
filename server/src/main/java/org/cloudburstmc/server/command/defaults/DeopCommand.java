@@ -16,7 +16,7 @@ import org.cloudburstmc.server.command.network.CommandNetworkData;
 
 public class DeopCommand extends AdvertisedCommand {
     public DeopCommand() {
-        super("deop", "commands.deop.description", CommandNetworkData.ADMIN_NOT_CHEAT,
+        super("deop", "commands.deop.description", CommandNetworkData.NOT_CHEAT,
                 "cloudburst.command.op.take");
     }
 

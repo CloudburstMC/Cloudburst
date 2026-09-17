@@ -11,7 +11,7 @@ import org.cloudburstmc.server.command.network.CommandNetworkData;
 public class SaveOffCommand extends AdvertisedCommand {
 
     public SaveOffCommand() {
-        super("save-off", "commands.save.description", CommandNetworkData.OWNER, "cloudburst.command.save.disable");
+        super("save-off", "commands.save.description", CommandNetworkData.DEFAULT, "cloudburst.command.save.disable");
     }
 
     @Override

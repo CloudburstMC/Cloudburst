@@ -20,7 +20,7 @@ import java.util.List;
 public class KickCommand extends AdvertisedCommand {
 
     public KickCommand() {
-        super("kick", "commands.kick.description", CommandNetworkData.GAME_DIRECTORS_NOT_CHEAT,
+        super("kick", "commands.kick.description", CommandNetworkData.NOT_CHEAT,
                 "cloudburst.command.kick");
     }
 

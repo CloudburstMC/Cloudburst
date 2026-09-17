@@ -21,7 +21,7 @@ import java.util.List;
 
 public class EffectCommand extends AdvertisedCommand {
     public EffectCommand() {
-        super("effect", "commands.effect.description", CommandNetworkData.GAME_DIRECTORS,
+        super("effect", "commands.effect.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.effect");
     }
 

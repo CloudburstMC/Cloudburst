@@ -20,7 +20,7 @@ public class TellCommand extends AdvertisedCommand {
 
     public TellCommand() {
         super("tell", "commands.tell.description", List.of("w", "msg"),
-                CommandNetworkData.ANY_MESSAGE_NOT_CHEAT,
+                CommandNetworkData.MESSAGE_NOT_CHEAT,
                 "cloudburst.command.tell");
     }
 

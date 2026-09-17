@@ -23,7 +23,7 @@ import java.util.Locale;
 public class GamemodeCommand extends AdvertisedCommand {
 
     public GamemodeCommand() {
-        super("gamemode", "commands.gamemode.description", CommandNetworkData.GAME_DIRECTORS,
+        super("gamemode", "commands.gamemode.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.gamemode");
     }
 

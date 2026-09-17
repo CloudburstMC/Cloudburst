@@ -30,7 +30,7 @@ public abstract class AdvertisedCommand extends ServerCommand {
             Collection<String> aliases,
             Collection<String> accessPermissions
     ) {
-        this(name, description, aliases, accessPermissions, CommandNetworkData.ANY_NOT_CHEAT);
+        this(name, description, aliases, accessPermissions, CommandNetworkData.NOT_CHEAT);
     }
 
     protected AdvertisedCommand(String name, String description, Collection<String> aliases, CommandNetworkData networkData, String... permissions) {

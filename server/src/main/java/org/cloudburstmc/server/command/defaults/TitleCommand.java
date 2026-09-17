@@ -17,7 +17,7 @@ import java.util.List;
 
 public class TitleCommand extends AdvertisedCommand {
     public TitleCommand() {
-        super("title", "commands.title.description", CommandNetworkData.GAME_DIRECTORS_MESSAGE,
+        super("title", "commands.title.description", CommandNetworkData.MESSAGE,
                 "cloudburst.command.title");
     }
 

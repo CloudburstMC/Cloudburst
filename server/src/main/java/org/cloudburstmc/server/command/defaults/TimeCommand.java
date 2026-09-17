@@ -17,7 +17,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class TimeCommand extends AdvertisedCommand {
 
     public TimeCommand() {
-        super("time", "commands.time.description", CommandNetworkData.GAME_DIRECTORS,
+        super("time", "commands.time.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.time.add", "cloudburst.command.time.query",
                 "cloudburst.command.time.set", "cloudburst.command.time.start", "cloudburst.command.time.stop");
     }

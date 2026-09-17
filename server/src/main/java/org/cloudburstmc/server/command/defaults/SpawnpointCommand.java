@@ -22,7 +22,7 @@ import java.util.List;
 
 public class SpawnpointCommand extends AdvertisedCommand {
     public SpawnpointCommand() {
-        super("spawnpoint", "commands.spawnpoint.description", CommandNetworkData.GAME_DIRECTORS,
+        super("spawnpoint", "commands.spawnpoint.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.spawnpoint");
     }
 

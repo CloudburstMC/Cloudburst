@@ -26,7 +26,7 @@ import java.util.Map;
 public class EnchantCommand extends AdvertisedCommand {
 
     public EnchantCommand() {
-        super("enchant", "commands.enchant.description", CommandNetworkData.GAME_DIRECTORS,
+        super("enchant", "commands.enchant.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.enchant");
     }
 

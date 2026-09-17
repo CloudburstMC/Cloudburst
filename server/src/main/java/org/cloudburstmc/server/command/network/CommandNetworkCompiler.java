@@ -86,7 +86,7 @@ public class CommandNetworkCompiler {
         }
 
         return new CommandData(root.getLiteral(), commandDescription(registry.commandDescription(root.getLiteral())),
-                networkData.flags(), networkData.permission(),
+                networkData.flags(), CommandPermission.ANY,
                 commandAliases(root.getLiteral(), registry.aliasesFor(root.getLiteral())),
                 Collections.emptyList(), overloads.toArray(CommandOverloadData[]::new));
     }

@@ -14,7 +14,7 @@ import java.util.StringJoiner;
 public class ListCommand extends AdvertisedCommand {
 
     public ListCommand() {
-        super("list", "commands.list.description", CommandNetworkData.ANY_NOT_CHEAT,
+        super("list", "commands.list.description", CommandNetworkData.NOT_CHEAT,
                 "cloudburst.command.list");
     }
 

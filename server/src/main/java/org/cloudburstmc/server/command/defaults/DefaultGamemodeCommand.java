@@ -18,7 +18,7 @@ import java.util.Locale;
 public class DefaultGamemodeCommand extends AdvertisedCommand {
 
     public DefaultGamemodeCommand() {
-        super("defaultgamemode", "commands.defaultgamemode.description", CommandNetworkData.GAME_DIRECTORS,
+        super("defaultgamemode", "commands.defaultgamemode.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.defaultgamemode");
     }
 

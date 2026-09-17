@@ -24,7 +24,7 @@ import java.util.List;
 
 public class GiveCommand extends AdvertisedCommand {
     public GiveCommand() {
-        super("give", "commands.give.description", CommandNetworkData.GAME_DIRECTORS, "cloudburst.command.give");
+        super("give", "commands.give.description", CommandNetworkData.DEFAULT, "cloudburst.command.give");
     }
 
     @Override

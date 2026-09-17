@@ -16,7 +16,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class MeCommand extends AdvertisedCommand {
 
     public MeCommand() {
-        super("me", "commands.me.description", CommandNetworkData.ANY_MESSAGE_NOT_CHEAT,
+        super("me", "commands.me.description", CommandNetworkData.MESSAGE_NOT_CHEAT,
                 "cloudburst.command.me");
     }
 

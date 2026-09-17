@@ -25,7 +25,7 @@ import java.util.Locale;
 public class SetBlockCommand extends AdvertisedCommand {
 
     public SetBlockCommand() {
-        super("setblock", "commands.setblock.description", CommandNetworkData.GAME_DIRECTORS,
+        super("setblock", "commands.setblock.description", CommandNetworkData.DEFAULT,
                 "cloudburst.command.setblock");
     }
 

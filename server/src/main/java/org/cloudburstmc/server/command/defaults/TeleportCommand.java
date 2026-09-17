@@ -25,7 +25,7 @@ import java.util.List;
 
 public class TeleportCommand extends AdvertisedCommand {
     public TeleportCommand() {
-        super("teleport", "commands.tp.description", List.of("tp"), CommandNetworkData.GAME_DIRECTORS,
+        super("teleport", "commands.tp.description", List.of("tp"), CommandNetworkData.DEFAULT,
                 "cloudburst.command.teleport");
     }
 

@@ -136,7 +136,7 @@ public class CloudCommandRegistry implements Commands {
         }
 
         for (Map.Entry<String, LiteralCommandNode<CommandSourceStack>> entry : nodes.entrySet()) {
-            registerNode(entry.getKey(), primaryLabel, entry.getValue(), description, CommandNetworkData.ANY_NOT_CHEAT);
+            registerNode(entry.getKey(), primaryLabel, entry.getValue(), description, CommandNetworkData.NOT_CHEAT);
         }
 
         return Collections.unmodifiableSet(new LinkedHashSet<>(nodes.keySet()));
