@@ -90,10 +90,10 @@ public class ItemPalette {
             throw new RegistryException("Unable to load Legacy Meta Mapping", e);
         }
 
-        NbtMap vanillaComponents;
+        NbtMap vanillaItemData;
         try (InputStream in = RegistryUtils.getOrAssertResource("data/item_components.nbt");
              NBTInputStream nbtStream = NbtUtils.createGZIPReader(in)) {
-            vanillaComponents = (NbtMap) nbtStream.readTag();
+            vanillaItemData = (NbtMap) nbtStream.readTag();
         } catch (IOException e) {
             throw new RegistryException("Unable to load item components", e);
         }
@@ -107,12 +107,12 @@ public class ItemPalette {
                 boolean componentBased = item.has("componentBased") && item.get("componentBased").asBoolean();
                 ItemVersion version = ItemVersion.from(item.has("version") ? item.get("version").intValue() : 0);
 
-                NbtMap components = vanillaComponents.getCompound(name);
-                if (components != null && components.isEmpty()) {
-                    components = null;
+                NbtMap componentData = vanillaItemData.getCompound(name);
+                if (componentData != null) {
+                    VanillaItemDefinitionDataValidator.validate(id, componentData);
                 }
 
-                CloudItemDefinition definition = new CloudItemDefinition(id, runtime, componentBased, version, components);
+                CloudItemDefinition definition = new CloudItemDefinition(id, runtime, componentBased, version, componentData);
                 itemEntries.put(id, definition);
                 runtimeIdMap.put(runtime, definition);
                 vanillaDefinitions.add(id);

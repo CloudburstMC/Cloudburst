@@ -6,7 +6,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -204,7 +204,7 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
     @Override
     public FireworkData getFireworkData() {
-        FireworkData fireworkData = this.firework != null ? this.firework.get(ItemKeys.FIREWORK_DATA) : null;
+        FireworkData fireworkData = this.firework != null ? this.firework.get(ItemDataComponents.FIREWORK_DATA) : null;
         return fireworkData != null ? fireworkData : DEFAULT_FIREWORK_DATA;
     }
 
@@ -212,7 +212,7 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
     public void setFireworkData(@Nullable FireworkData data) {
         ItemStackBuilder builder = ItemStack.builder(ItemTypes.FIREWORK_ROCKET);
         FireworkData fireworkData = data != null ? data : DEFAULT_FIREWORK_DATA;
-        builder.data(ItemKeys.FIREWORK_DATA, fireworkData);
+        builder.setData(ItemDataComponents.FIREWORK_DATA, fireworkData);
 
         this.firework = builder.build();
         this.data.set(EntityDataTypes.DISPLAY_FIREWORK, this.createFireworkDisplayData(fireworkData));

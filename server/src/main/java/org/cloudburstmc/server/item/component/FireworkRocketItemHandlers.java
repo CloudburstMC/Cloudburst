@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.component;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.item.component.UseOnHandler;
@@ -87,7 +87,7 @@ public class FireworkRocketItemHandlers {
             throw new IllegalStateException("Fireworks rocket registry returned " + entity.getClass().getName());
         }
 
-        rocket.setFireworkData(item.get(ItemKeys.FIREWORK_DATA));
+        rocket.setFireworkData(item.get(ItemDataComponents.FIREWORK_DATA));
         rocket.setOwner(player);
         if (boostPlayer) {
             rocket.setBoostedPlayer(player);

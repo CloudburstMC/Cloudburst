@@ -14,9 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Serializes written book metadata, including title, author, generation, resolved state, and pages.
+ * Serializes written book data, including title, author, generation, resolved state, and pages.
  */
-public class WrittenBookSerializer implements ItemDataSerializer<WrittenBook> {
+public class WrittenBookSerializer implements ItemDataComponentSerializer<WrittenBook> {
 
     private static final int MAX_GENERATION = 2;
     private static final int MAX_PAGES = 50;

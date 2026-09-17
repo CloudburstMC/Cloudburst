@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item;
 
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CombatItemComponentsTest {
+class CombatItemBehaviorsTest {
 
     private static final CloudItemRegistry ITEMS = CloudItemRegistry.get();
 
@@ -30,7 +30,7 @@ class CombatItemComponentsTest {
         assertEquals(5, attackDamage(ItemTypes.DIAMOND_PICKAXE));
         assertEquals(10, attackDamage(ItemTypes.NETHERITE_AXE));
         assertEquals(9, attackDamage(ItemTypes.TRIDENT));
-        assertEquals(DamageTypes.SPEAR, ITEMS.requireComponent(ItemTypes.DIAMOND_SPEAR, ItemComponents.ATTACK_DAMAGE_TYPE));
+        assertEquals(DamageTypes.SPEAR, ITEMS.requireComponent(ItemTypes.DIAMOND_SPEAR, ItemBehaviors.ATTACK_DAMAGE_TYPE));
     }
 
     @Test
@@ -42,16 +42,16 @@ class CombatItemComponentsTest {
     }
 
     private static ArmorComponent armor(ItemType type) {
-        return ITEMS.requireComponent(type, ItemComponents.ARMOR);
+        return ITEMS.requireComponent(type, ItemBehaviors.ARMOR);
     }
 
     private static float attackDamage(ItemType type) {
-        FloatItemHandler component = ITEMS.requireComponent(type, ItemComponents.GET_ATTACK_DAMAGE);
+        FloatItemHandler component = ITEMS.requireComponent(type, ItemBehaviors.GET_ATTACK_DAMAGE);
         return component.execute(ItemStack.from(type));
     }
 
     private static int attackDurabilityDamage(ItemType type) {
-        IntItemHandler component = ITEMS.requireComponent(type, ItemComponents.GET_ATTACK_DURABILITY_DAMAGE);
+        IntItemHandler component = ITEMS.requireComponent(type, ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE);
         return component.execute(ItemStack.from(type));
     }
 }

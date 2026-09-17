@@ -15,7 +15,7 @@ import org.cloudburstmc.api.event.entity.FishingHookStateChangeEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.event.player.PlayerFishEvent;
 import org.cloudburstmc.api.event.player.PlayerFishState;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -60,7 +60,7 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     public void configure(ItemStack rod) {
-        Map<EnchantmentType, Enchantment> enchantments = rod.get(ItemKeys.ENCHANTMENTS);
+        Map<EnchantmentType, Enchantment> enchantments = rod.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of());
         Enchantment luckEnchantment = enchantments.get(EnchantmentTypes.LUCK_OF_THE_SEA);
         Enchantment lureEnchantment = enchantments.get(EnchantmentTypes.LURE);
         this.luck = luckEnchantment == null ? 0 : Math.max(0, luckEnchantment.level());

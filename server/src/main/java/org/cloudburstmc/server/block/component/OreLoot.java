@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.block.BlockLootContext;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -115,7 +115,7 @@ public class OreLoot {
                 () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form"));
         return ItemStack.builder()
                 .itemType(itemType)
-                .data(ItemKeys.BLOCK_STATE, state)
+                .setData(ItemDataComponents.BLOCK_STATE, state)
                 .build();
     }
 

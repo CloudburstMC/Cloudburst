@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.data.ItemLockMode;
 import org.cloudburstmc.api.util.Identifier;
@@ -144,19 +144,19 @@ public class ItemCommandComponents {
         Objects.requireNonNull(builder, "builder");
 
         if (this.canDestroy != null) {
-            builder.data(ItemKeys.CAN_DESTROY, this.canDestroy);
+            builder.setData(ItemDataComponents.CAN_DESTROY, this.canDestroy);
         }
 
         if (this.canPlaceOn != null) {
-            builder.data(ItemKeys.CAN_PLACE_ON, this.canPlaceOn);
+            builder.setData(ItemDataComponents.CAN_PLACE_ON, this.canPlaceOn);
         }
 
         if (this.itemLock != null) {
-            builder.data(ItemKeys.ITEM_LOCK, this.itemLock);
+            builder.setData(ItemDataComponents.ITEM_LOCK, this.itemLock);
         }
 
         if (this.keepOnDeath) {
-            builder.data(ItemKeys.KEEP_ON_DEATH, true);
+            builder.setData(ItemDataComponents.KEEP_ON_DEATH, true);
         }
     }
 }

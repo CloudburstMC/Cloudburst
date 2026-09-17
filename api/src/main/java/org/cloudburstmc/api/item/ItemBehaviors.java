@@ -12,7 +12,8 @@ import org.cloudburstmc.api.item.component.*;
  */
 @SuppressWarnings("rawtypes")
 @UtilityClass
-public class ItemComponents {
+public class ItemBehaviors {
+
     /**
      * Determines whether this item type may occupy the off-hand slot.
      */

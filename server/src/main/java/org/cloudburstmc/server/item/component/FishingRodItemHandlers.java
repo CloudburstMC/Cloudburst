@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.component;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.DamageItemHandler;
 import org.cloudburstmc.api.item.component.UseHandler;
@@ -24,7 +24,7 @@ public final class FishingRodItemHandlers {
             return rod;
         }
 
-        DamageItemHandler handler = CloudItemRegistry.get().requireComponent(rod.getType(), ItemComponents.ON_DAMAGE);
+        DamageItemHandler handler = CloudItemRegistry.get().requireComponent(rod.getType(), ItemBehaviors.ON_DAMAGE);
         return handler == null ? rod : handler.execute(rod, damage, player);
     }
 }

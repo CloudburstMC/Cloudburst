@@ -2,8 +2,8 @@ package org.cloudburstmc.server.item;
 
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.util.Identifier;
@@ -27,7 +27,7 @@ public class ItemDisplayNameResolver {
     public static Component resolve(ItemStack item) {
         requireNonNull(item, "item");
 
-        String customName = item.get(ItemKeys.CUSTOM_NAME);
+        String customName = item.get(ItemDataComponents.CUSTOM_NAME);
         if (customName != null) {
             return Component.text(customName);
         }
@@ -39,7 +39,7 @@ public class ItemDisplayNameResolver {
             return Component.translatable(translationKey);
         }
 
-        SpawnEggComponent spawnEgg = CloudItemRegistry.get().getComponent(item.getType(), ItemComponents.SPAWN_EGG);
+        SpawnEggComponent spawnEgg = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.SPAWN_EGG);
         if (spawnEgg != null) {
             return Component.translatable("item.spawn_egg.entity." + spawnEgg.entityType().getId().getName() + ".name");
         }

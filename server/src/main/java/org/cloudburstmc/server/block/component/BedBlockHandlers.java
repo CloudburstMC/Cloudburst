@@ -7,7 +7,7 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Direction;
@@ -167,7 +167,7 @@ public class BedBlockHandlers {
 
         int woolData = color.getWoolData();
         if (woolData != 0) {
-            builder.data(ItemKeys.DAMAGE, woolData);
+            builder.setData(ItemDataComponents.DAMAGE, woolData);
         }
 
         return List.of(builder.build());
@@ -200,7 +200,7 @@ public class BedBlockHandlers {
 
         int woolData = color.getWoolData();
         if (woolData != 0) {
-            builder.data(ItemKeys.DAMAGE, woolData);
+            builder.setData(ItemDataComponents.DAMAGE, woolData);
         }
 
         return builder.build();

@@ -6,7 +6,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemType;
@@ -85,7 +85,7 @@ public class ItemUtils {
 
         if (item.isBlock()) {
             NbtMapBuilder blockTag = NbtMap.builder();
-            BlockState blockState = item.get(ItemKeys.BLOCK_STATE);
+            BlockState blockState = item.get(ItemDataComponents.BLOCK_STATE);
 
 //            log.info(item.getType() + " - " + blockState + " - " + BlockPalette.INSTANCE.getIdentifier(blockState));
             blockTag.putString("Name", BlockPalette.INSTANCE.getIdentifier(blockState).toString());
@@ -94,8 +94,8 @@ public class ItemUtils {
             nbtTag.put("Block", blockTag.build());
         }
 
-        if (item.get(ItemKeys.CAN_DESTROY) != null) {
-            List<String> blocks = item.get(ItemKeys.CAN_DESTROY)
+        if (item.has(ItemDataComponents.CAN_DESTROY)) {
+            List<String> blocks = item.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of())
                     .stream()
                     .map(BlockPalette.INSTANCE::getTypeIdentifiers)
                     .flatMap(Collection::stream)
@@ -105,8 +105,8 @@ public class ItemUtils {
             nbtTag.putList("CanDestroy", NbtType.STRING, blocks);
         }
 
-        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
-            List<String> blocks = item.get(ItemKeys.CAN_PLACE_ON).stream().map(blockType -> blockType.getId().toString()).toList();
+        if (item.has(ItemDataComponents.CAN_PLACE_ON)) {
+            List<String> blocks = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()).stream().map(blockType -> blockType.getId().toString()).toList();
             nbtTag.putList("CanPlaceOn", NbtType.STRING, blocks);
         }
 
@@ -159,12 +159,12 @@ public class ItemUtils {
 
         if (tag.containsKey("CanPlaceOn", NbtType.LIST)) {
             List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
-            builder.data(ItemKeys.CAN_PLACE_ON, list);
+            builder.setData(ItemDataComponents.CAN_PLACE_ON, list);
         }
 
         if (tag.containsKey("CanDestroy", NbtType.LIST)) {
             List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
-            builder.data(ItemKeys.CAN_DESTROY, list);
+            builder.setData(ItemDataComponents.CAN_DESTROY, list);
         }
 
         return builder.build();
@@ -181,11 +181,11 @@ public class ItemUtils {
                 BlockState blockState = BlockStateMetaMappings.getStateFromMeta(id, damage);
 
                 if (blockState != null) {
-                    builder.data(ItemKeys.BLOCK_STATE, blockState);
+                    builder.setData(ItemDataComponents.BLOCK_STATE, blockState);
                 }
 
                 if (damage != 0) {
-                    builder.data(ItemKeys.DAMAGE, (int) damage);
+                    builder.setData(ItemDataComponents.DAMAGE, (int) damage);
                 }
             }
 
@@ -280,15 +280,15 @@ public class ItemUtils {
                 ? new SimpleItemDefinition(rawDefinition.getIdentifier(), rawDefinition.getRuntimeId(), false)
                 : null;
 
-        String[] canPlace = new String[0];
-        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
-            canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
-        }
+        String[] canPlace = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()).stream()
+                .map(BlockType::getId)
+                .map(Identifier::toString)
+                .toArray(String[]::new);
 
-        String[] canBreak = new String[0];
-        if (item.get(ItemKeys.CAN_DESTROY) != null) {
-            canBreak = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
-        }
+        String[] canBreak = item.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()).stream()
+                .map(BlockType::getId)
+                .map(Identifier::toString)
+                .toArray(String[]::new);
 
         CloudBlockDefinition blockDefinition = null;
         if (isRecipeBlockItem(rawDefinition, identifier)) {
@@ -347,14 +347,14 @@ public class ItemUtils {
         int damage = item.getDamage();
         ItemDefinition definition = registry.getDefinition(identifier, damage);
 
-        String[] canPlace = new String[0];
-        if (item.get(ItemKeys.CAN_PLACE_ON) != null) {
-            canPlace = item.get(ItemKeys.CAN_PLACE_ON).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
-        }
-        String[] canBreak = new String[0];
-        if (item.get(ItemKeys.CAN_DESTROY) != null) {
-            canBreak = item.get(ItemKeys.CAN_DESTROY).stream().map(BlockType::getId).map(Identifier::toString).toArray(String[]::new);
-        }
+        String[] canPlace = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()).stream()
+                .map(BlockType::getId)
+                .map(Identifier::toString)
+                .toArray(String[]::new);
+        String[] canBreak = item.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()).stream()
+                .map(BlockType::getId)
+                .map(Identifier::toString)
+                .toArray(String[]::new);
 
         CloudBlockDefinition blockDefinition = null;
         try {

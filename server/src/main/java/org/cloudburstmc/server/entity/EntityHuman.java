@@ -8,8 +8,8 @@ import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.level.Location;
@@ -39,6 +39,7 @@ import org.cloudburstmc.server.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -383,11 +384,11 @@ public class EntityHuman extends EntityCreature implements Human {
             ItemStack damagedArmor = armor;
             if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)
                     && !damagedArmor.isEmpty()
-                    && this.server.getItemRegistry().getComponent(damagedArmor.getType(), ItemComponents.ARMOR) != null
+                    && this.server.getItemRegistry().getComponent(damagedArmor.getType(), ItemBehaviors.ARMOR) != null
                     && damageBeforeReductions > 0) {
                 int durabilityDamage = Math.max((int) (damageBeforeReductions / 4), 1);
                 damagedArmor = this.server.getItemRegistry()
-                        .requireComponent(damagedArmor.getType(), ItemComponents.ON_DAMAGE)
+                        .requireComponent(damagedArmor.getType(), ItemBehaviors.ON_DAMAGE)
                         .execute(damagedArmor, durabilityDamage, this);
             }
 
@@ -408,7 +409,7 @@ public class EntityHuman extends EntityCreature implements Human {
         ArmorView armorView = this.getArmor();
         for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
             ItemStack armor = armorView.getItem(armorSlot);
-            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.ARMOR);
+            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemBehaviors.ARMOR);
             if (armorComponent != null) {
                 armorPoints += armorComponent.defense();
                 toughness += armorComponent.toughness();
@@ -438,7 +439,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
         for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
             ItemStack armor = armorView.getItem(armorSlot);
-            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemComponents.ARMOR);
+            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemBehaviors.ARMOR);
             if (armorComponent != null) {
                 resistance += armorComponent.knockbackResistance();
             }
@@ -453,7 +454,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
         ArmorView armorView = getArmor();
         for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-            Enchantment fireProtection = armorView.getItem(armorSlot).get(ItemKeys.ENCHANTMENTS)
+            Enchantment fireProtection = armorView.getItem(armorSlot).getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of())
                     .get(EnchantmentTypes.FIRE_PROTECTION);
             if (fireProtection != null) {
                 level = Math.max(level, fireProtection.level());
@@ -477,8 +478,8 @@ public class EntityHuman extends EntityCreature implements Human {
     private static void addDrops(List<ItemStack> drops, ItemStack[] contents) {
         for (ItemStack item : contents) {
             if (!item.isEmpty()
-                    && item.get(ItemKeys.KEEP_ON_DEATH) != Boolean.TRUE
-                    && !item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.VANISHING)) {
+                    && item.get(ItemDataComponents.KEEP_ON_DEATH) != Boolean.TRUE
+                    && !item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).containsKey(EnchantmentTypes.VANISHING)) {
                 drops.add(item);
             }
         }

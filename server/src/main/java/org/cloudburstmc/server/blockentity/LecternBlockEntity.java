@@ -5,7 +5,7 @@ import org.cloudburstmc.api.blockentity.Lectern;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -137,7 +137,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.get(ItemKeys.BOOK_DATA).getPages().size();
+            this.totalPages = this.book.get(ItemDataComponents.BOOK_DATA).getPages().size();
         } else {
             this.totalPages = 0;
         }

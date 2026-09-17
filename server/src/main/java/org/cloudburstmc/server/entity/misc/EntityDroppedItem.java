@@ -11,8 +11,8 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -136,7 +136,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         this.timing.startTiming();
 
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
-            if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
+            if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
                         if (!entity.isAlive()) {
@@ -150,7 +150,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
-                        if (newAmount > CloudItemRegistry.get().requireComponent(getItem().getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(getItem())) {
+                        if (newAmount > CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                             continue;
                         }
                         entity.close();
@@ -251,7 +251,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return this.getNameTag();
         }
 
-        String customName = this.item.get(ItemKeys.CUSTOM_NAME);
+        String customName = this.item.get(ItemDataComponents.CUSTOM_NAME);
         return customName != null ? customName : super.getName();
     }
 

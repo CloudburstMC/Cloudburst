@@ -2,7 +2,7 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
@@ -73,7 +73,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     public void play() {
         if (this.recordItem.getType() == ItemTypes.MUSIC_DISC_13) {
 
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemKeys.RECORD_TYPE)));
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemDataComponents.RECORD_TYPE)));
         }
     }
 

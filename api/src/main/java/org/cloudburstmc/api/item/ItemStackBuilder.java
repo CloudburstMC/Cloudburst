@@ -2,9 +2,8 @@ package org.cloudburstmc.api.item;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.data.DataKey;
 
-import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -13,20 +12,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Mutable builder for immutable {@link ItemStack} instances.
  *
- * <p>The builder only stores the item type, amount, and explicit metadata supplied by the caller.
+ * <p>The builder only stores the item type, amount, and explicit data components supplied by the caller.
  * Block item state is not inferred from the item type; use {@link ItemStack#builder(org.cloudburstmc.api.block.BlockState)}
- * or set {@link ItemKeys#BLOCK_STATE} explicitly when creating a block item stack.</p>
+ * or set {@link ItemDataComponents#BLOCK_STATE} explicitly when creating a block item stack.</p>
  */
-public final class ItemStackBuilder {
+public class ItemStackBuilder {
 
-    private final Map<DataKey<?, ?>, Object> metadata;
+    private final Map<ItemDataComponentType<?>, Object> dataComponents;
     private ItemType itemType;
     private int amount;
 
-    ItemStackBuilder(@Nullable ItemType itemType, int amount, Map<DataKey<?, ?>, ?> metadata) {
+    ItemStackBuilder(@Nullable ItemType itemType, int amount, Map<ItemDataComponentType<?>, ?> dataComponents) {
         this.itemType = itemType;
         this.amount = amount;
-        this.metadata = new IdentityHashMap<>(checkNotNull(metadata, "metadata"));
+        this.dataComponents = new LinkedHashMap<>(checkNotNull(dataComponents, "dataComponents"));
     }
 
     /**
@@ -54,40 +53,38 @@ public final class ItemStackBuilder {
     }
 
     /**
-     * Stores an explicit metadata value.
+     * Stores an explicit data component value.
      *
-     * @param key   the metadata key
-     * @param value the metadata value
+     * @param type  the component type
+     * @param value component value
      * @return this builder
      */
-    public <T, M> ItemStackBuilder data(DataKey<T, M> key, M value) {
-        checkNotNull(key, "key");
+    public <T> ItemStackBuilder setData(ItemDataComponentType<T> type, T value) {
+        checkNotNull(type, "type");
         checkNotNull(value, "value");
-        this.metadata.put(key, key.getImmutableFunction().apply(value));
+        this.dataComponents.put(type, type.copyValue(value));
         return this;
     }
 
     /**
-     * Removes an explicitly stored metadata value from the stack being built.
+     * Removes an explicitly stored data component from the stack being built.
      *
-     * <p>After removal, reads for the key use the key's default value.</p>
-     *
-     * @param key the metadata key to remove
+     * @param type component type to remove
      * @return this builder
      */
-    public ItemStackBuilder removeData(@NonNull DataKey<?, ?> key) {
-        checkNotNull(key, "key");
-        this.metadata.remove(key);
+    public ItemStackBuilder removeData(@NonNull ItemDataComponentType<?> type) {
+        checkNotNull(type, "type");
+        this.dataComponents.remove(type);
         return this;
     }
 
     /**
-     * Removes all explicitly stored metadata values from the stack being built.
+     * Removes all explicitly stored data components from the stack being built.
      *
      * @return this builder
      */
     public ItemStackBuilder clearData() {
-        this.metadata.clear();
+        this.dataComponents.clear();
         return this;
     }
 
@@ -99,6 +96,6 @@ public final class ItemStackBuilder {
      * @throws IllegalArgumentException if the amount is not positive
      */
     public ItemStack build() {
-        return ItemStack.create(itemType, amount, metadata);
+        return ItemStack.create(itemType, amount, dataComponents);
     }
 }

@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item.loot;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -41,7 +41,7 @@ public class FishingLoot {
             .add(ItemStack.from(ItemTypes.STRING), 60)
             .add(ItemStack.from(ItemTypes.POTION), 120)
             .add(ItemStack.from(ItemTypes.BONE), 120)
-            .add(ItemStack.builder(ItemTypes.INK_SAC).amount(10).data(ItemKeys.COLOR, DyeColor.BLACK).build(), 12)
+            .add(ItemStack.builder(ItemTypes.INK_SAC).amount(10).setData(ItemDataComponents.COLOR, DyeColor.BLACK).build(), 12)
             .add(ItemStack.from(BlockTypes.TRIPWIRE_HOOK.getDefaultState()), 120)
             .build();
 

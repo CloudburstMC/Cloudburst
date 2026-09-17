@@ -24,8 +24,8 @@ import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.MapItem;
@@ -1435,7 +1435,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 continue;
             }
 
-            MapItem data = item1.get(ItemKeys.MAP_DATA);
+            MapItem data = item1.get(ItemDataComponents.MAP_DATA);
 
             if (data == null) {
                 continue;
@@ -1455,7 +1455,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         continue;
                     }
 
-                    MapItem data = itemFrame1.getItem().get(ItemKeys.MAP_DATA);
+                    MapItem data = itemFrame1.getItem().get(ItemDataComponents.MAP_DATA);
 
                     if (data == null) {
                         continue;
@@ -1532,7 +1532,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                             return PacketSignal.HANDLED;
                         }
 
-                        if (currentItem.get(ItemKeys.ITEM_LOCK) != null) {
+                        if (currentItem.get(ItemDataComponents.ITEM_LOCK) != null) {
                             player.getInventoryManager().sendAllInventories();
                             return PacketSignal.HANDLED;
                         }
@@ -1891,7 +1891,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     /**
      * Returns {@code true} if {@code inventoryItem} has the same type as
-     * {@code pickedItem} and carries the same {@link ItemKeys#DAMAGE} value.
+     * {@code pickedItem} and carries the same {@link ItemDataComponents#DAMAGE} value.
      */
     private static boolean pickBlockMatchesDamage(ItemStack inventoryItem, ItemStack pickedItem) {
         if (!inventoryItem.isSimilar(pickedItem)) {

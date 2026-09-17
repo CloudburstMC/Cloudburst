@@ -5,8 +5,8 @@ import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
@@ -17,6 +17,7 @@ import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 @UtilityClass
@@ -30,7 +31,7 @@ public class DefaultItemHandlers {
             if (tool == null || tool.damagePerBlock() == 0) {
                 return itemStack;
             }
-            return CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.ON_DAMAGE)
+            return CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.ON_DAMAGE)
                     .execute(itemStack, tool.damagePerBlock(), owner);
         }
         return itemStack;
@@ -41,17 +42,17 @@ public class DefaultItemHandlers {
             return itemStack;
         }
 
-        IntItemHandler getMaxDamage = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.GET_MAX_DAMAGE);
+        IntItemHandler getMaxDamage = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.GET_MAX_DAMAGE);
         int maxDamage = getMaxDamage.execute(itemStack);
 
         if (maxDamage <= 0) {
             return itemStack;
         }
 
-        Enchantment enchantment = itemStack.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.UNBREAKING);
+        Enchantment enchantment = itemStack.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).get(EnchantmentTypes.UNBREAKING);
         int enchantmentLevel = enchantment == null ? 0 : enchantment.level();
 
-        DamageChanceHandler getDamageChance = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemComponents.GET_DAMAGE_CHANCE);
+        DamageChanceHandler getDamageChance = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.GET_DAMAGE_CHANCE);
         float damageChance = getDamageChance.execute(enchantmentLevel);
 
         damageChance = Math.clamp(damageChance, 0, 100);
@@ -92,7 +93,7 @@ public class DefaultItemHandlers {
      * Items with an empty or absent list cannot be placed on any block.
      */
     public static final CanBePlacedOnHandler CAN_BE_PLACED_ON = (item, block) -> {
-        List<BlockType> whitelist = item.get(ItemKeys.CAN_PLACE_ON);
+        List<BlockType> whitelist = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of());
         return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
     };
 
@@ -101,7 +102,7 @@ public class DefaultItemHandlers {
      * Items with an empty or absent list cannot break any block.
      */
     public static final CanDestroyHandler CAN_DESTROY = (item, block) -> {
-        List<BlockType> whitelist = item.get(ItemKeys.CAN_DESTROY);
+        List<BlockType> whitelist = item.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of());
         return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
     };
 }

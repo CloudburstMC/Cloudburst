@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -35,8 +35,8 @@ public abstract class EntityHostile extends EntityCreature implements EntityAgea
         }
 
         if (item.getType() == ItemTypes.NAME_TAG) {
-            if (item.get(ItemKeys.CUSTOM_NAME) != null) {
-                this.setNameTag(item.get(ItemKeys.CUSTOM_NAME));
+            if (item.get(ItemDataComponents.CUSTOM_NAME) != null) {
+                this.setNameTag(item.get(ItemDataComponents.CUSTOM_NAME));
                 this.setNameTagVisible(true);
                 ((CloudPlayerInventory) player.getInventory()).getContainer().removeItem(item);
                 return true;

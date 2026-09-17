@@ -13,7 +13,7 @@ import org.cloudburstmc.api.inventory.view.BlockHopperView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -256,7 +256,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
                     continue;
                 }
 
-                int maxStackSize = CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
+                int maxStackSize = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
                 int firstEmpty = -1;
                 int firstPartial = -1;
                 for (int s = 0; s < container.size(); s++) {

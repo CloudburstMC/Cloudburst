@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -14,7 +14,7 @@ public class ConsumableItemHandlers {
             return item;
         }
 
-        int duration = CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.USE_DURATION_TICKS);
+        int duration = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.USE_DURATION_TICKS);
         player.startUsingItem(item, duration);
         return item;
     };

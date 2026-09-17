@@ -9,7 +9,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 /**
  * Serializes the persistent map identity and color payload stored on filled map items.
  */
-public class MapSerializer implements ItemDataSerializer<MapItem> {
+public class MapSerializer implements ItemDataComponentSerializer<MapItem> {
 
     private static final String TAG_ID = "mapId";
     private static final String TAG_PARENT_ID = "parentMapId";

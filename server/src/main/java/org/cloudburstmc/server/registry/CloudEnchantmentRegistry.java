@@ -11,7 +11,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.EnchantmentRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -72,7 +72,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         Preconditions.checkNotNull(event, "event");
 
         float protection = 0;
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
             protection += getBehavior(enchantment.type()).getDamageProtection(enchantment, event);
         }
 
@@ -84,7 +84,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         Preconditions.checkNotNull(target, "target");
 
         float modifiedDamage = damage;
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
             modifiedDamage = getBehavior(enchantment.type()).modifyDamage(enchantment, target, modifiedDamage);
         }
 
@@ -96,7 +96,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         Preconditions.checkNotNull(target, "target");
 
         float modifiedKnockback = knockback;
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
             modifiedKnockback = getBehavior(enchantment.type()).modifyKnockback(enchantment, target, modifiedKnockback);
         }
 
@@ -108,7 +108,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         Preconditions.checkNotNull(attacker, "attacker");
         Preconditions.checkNotNull(target, "target");
 
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
             getBehavior(enchantment.type()).onPostAttack(enchantment, attacker, target);
         }
     }
@@ -119,7 +119,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         Preconditions.checkNotNull(attacker, "attacker");
 
         ItemStack result = item;
-        for (Enchantment enchantment : item.get(ItemKeys.ENCHANTMENTS).values()) {
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
             result = getBehavior(enchantment.type()).onPostHurt(enchantment, result, wearer, attacker);
         }
 

@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.serializer;
 
 import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
@@ -62,7 +62,7 @@ public class FireworkRocketSerializer extends DefaultItemSerializer {
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag) {
         super.serialize(item, tag);
-        tag.putCompound(TAG_FIREWORKS, serializeFireworks(item.get(ItemKeys.FIREWORK_DATA)));
+        tag.putCompound(TAG_FIREWORKS, serializeFireworks(item.get(ItemDataComponents.FIREWORK_DATA)));
     }
 
     @Override
@@ -107,6 +107,6 @@ public class FireworkRocketSerializer extends DefaultItemSerializer {
             ));
         }
 
-        builder.data(ItemKeys.FIREWORK_DATA, FireworkData.of(ImmutableList.copyOf(explosions), flightLevel));
+        builder.setData(ItemDataComponents.FIREWORK_DATA, FireworkData.of(ImmutableList.copyOf(explosions), flightLevel));
     }
 }

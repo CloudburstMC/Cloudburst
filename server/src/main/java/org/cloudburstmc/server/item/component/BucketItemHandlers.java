@@ -8,7 +8,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.event.player.PlayerBucketEmptyEvent;
 import org.cloudburstmc.api.event.player.PlayerBucketFillEvent;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -196,7 +196,7 @@ public final class BucketItemHandlers {
             bucketable.setFromBucket(true);
         }
 
-        BucketEntityData data = bucket.get(ItemKeys.BUCKET_ENTITY_DATA);
+        BucketEntityData data = bucket.get(ItemDataComponents.BUCKET_ENTITY_DATA);
         if (data != null) {
             spawned.setHealth(data.health());
             if (spawned instanceof CloudEntity cloudEntity) {
@@ -205,7 +205,7 @@ public final class BucketItemHandlers {
             }
         }
 
-        String customName = bucket.get(ItemKeys.CUSTOM_NAME);
+        String customName = bucket.get(ItemDataComponents.CUSTOM_NAME);
         if (customName != null) {
             spawned.setNameTag(customName);
         }

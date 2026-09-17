@@ -4,9 +4,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 
+import java.util.Map;
 import java.util.random.RandomGenerator;
 
 import static java.util.Objects.requireNonNull;
@@ -42,7 +43,7 @@ public record BlockLootContext(ItemStack tool, @Nullable Entity entity, RandomGe
      * @return the non-negative enchantment level
      */
     public int enchantmentLevel(EnchantmentType type) {
-        Enchantment enchantment = this.tool.get(ItemKeys.ENCHANTMENTS).get(requireNonNull(type, "type"));
+        Enchantment enchantment = this.tool.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).get(requireNonNull(type, "type"));
         return enchantment == null ? 0 : Math.max(0, enchantment.level());
     }
 }

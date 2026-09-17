@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.ItemLockMode;
@@ -24,8 +24,8 @@ class ItemCommandComponentsTest {
                 }
                 """);
 
-        assertEquals(ItemLockMode.LOCK_IN_INVENTORY, stack.get(ItemKeys.ITEM_LOCK));
-        assertEquals(Boolean.TRUE, stack.get(ItemKeys.KEEP_ON_DEATH));
+        assertEquals(ItemLockMode.LOCK_IN_INVENTORY, stack.get(ItemDataComponents.ITEM_LOCK));
+        assertEquals(Boolean.TRUE, stack.get(ItemDataComponents.KEEP_ON_DEATH));
     }
 
     @Test
@@ -40,7 +40,7 @@ class ItemCommandComponentsTest {
                 {"minecraft:can_destroy": {"blocks": ["minecraft:stone"]}}
                 """, identifier -> Optional.of(BlockTypes.STONE)).applyTo(builder);
 
-        assertEquals(List.of(BlockTypes.STONE), builder.build().get(ItemKeys.CAN_DESTROY));
+        assertEquals(List.of(BlockTypes.STONE), builder.build().getOrDefault(ItemDataComponents.CAN_DESTROY, java.util.List.of()));
     }
 
     @Test

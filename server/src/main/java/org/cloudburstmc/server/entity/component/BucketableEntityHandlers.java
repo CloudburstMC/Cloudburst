@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.entity.Bucketable;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.event.player.PlayerBucketEntityEvent;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.data.BucketEntityData;
@@ -25,12 +25,12 @@ public final class BucketableEntityHandlers {
 
             CloudEntity cloudEntity = (CloudEntity) entity;
             ItemStack entityBucket = bucketable.getBaseBucketItem().toBuilder()
-                    .data(ItemKeys.BUCKET_ENTITY_DATA, new BucketEntityData(
+                    .setData(ItemDataComponents.BUCKET_ENTITY_DATA, new BucketEntityData(
                             entity.getHealth(), cloudEntity.isInvulnerable(), cloudEntity.isImmobile()))
                     .build();
 
             if (entity.hasNameTag()) {
-                entityBucket = entityBucket.toBuilder().data(ItemKeys.CUSTOM_NAME, entity.getNameTag()).build();
+                entityBucket = entityBucket.toBuilder().setData(ItemDataComponents.CUSTOM_NAME, entity.getNameTag()).build();
             }
 
             PlayerBucketEntityEvent event = new PlayerBucketEntityEvent(player, bucketable, item, entityBucket);

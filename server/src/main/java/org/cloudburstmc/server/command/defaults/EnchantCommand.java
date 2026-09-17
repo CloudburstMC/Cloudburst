@@ -11,7 +11,7 @@ import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.AdvertisedCommand;
@@ -75,10 +75,10 @@ public class EnchantCommand extends AdvertisedCommand {
                 continue;
             }
 
-            Map<EnchantmentType, Enchantment> enchantments = new HashMap<>(item.get(ItemKeys.ENCHANTMENTS));
+            Map<EnchantmentType, Enchantment> enchantments = new HashMap<>(item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()));
             enchantments.put(enchantmentType, enchantment);
             player.getInventory().setSelectedItem(item.toBuilder()
-                    .data(ItemKeys.ENCHANTMENTS, enchantments)
+                    .setData(ItemDataComponents.ENCHANTMENTS, enchantments)
                     .build());
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.enchant.success",
                     Component.text(player.getName())));

@@ -4,8 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.data.DataKey;
-import org.cloudburstmc.api.data.DataStore;
 
 import java.util.Collections;
 import java.util.Map;
@@ -16,7 +14,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * An immutable value representing an item type, stack count, and optional metadata.
+ * An immutable value representing an item type, stack count, and data components.
  * Use {@link #builder()} or one of the {@code from} factory methods to create instances.
  *
  * <p>{@link #EMPTY} is the canonical sentinel for "no item / empty slot". It has the
@@ -26,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * <p>{@link #getType()} always returns a non-null item type.</p>
  */
-public final class ItemStack implements DataStore, Comparable<ItemStack> {
+public class ItemStack implements ItemDataComponentView, Comparable<ItemStack> {
 
     /**
      * Sentinel for "no item". Its type is {@link ItemTypes#AIR} and its count is zero.
@@ -35,23 +33,24 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
     private final ItemType type;
     private final int count;
-    private final ImmutableMap<DataKey<?, ?>, ?> metadata;
+    private final ImmutableMap<ItemDataComponentType<?>, ?> dataComponents;
 
-    private ItemStack(ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
+    private ItemStack(ItemType type, int count, Map<ItemDataComponentType<?>, ?> dataComponents) {
         this.type = type;
         this.count = count;
-        this.metadata = ImmutableMap.copyOf(metadata);
+        this.dataComponents = ImmutableMap.copyOf(dataComponents);
     }
 
-    static ItemStack create(ItemType type, int count, Map<DataKey<?, ?>, ?> metadata) {
+    static ItemStack create(ItemType type, int count, Map<ItemDataComponentType<?>, ?> dataComponents) {
         checkNotNull(type, "type");
         checkArgument(count > 0, "count must be positive");
-        checkNotNull(metadata, "metadata");
+        checkNotNull(dataComponents, "dataComponents");
 
         if (type.isAir()) {
             return EMPTY;
         }
-        return new ItemStack(type, count, metadata);
+
+        return new ItemStack(type, count, dataComponents);
     }
 
     /**
@@ -85,7 +84,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         return new ItemStackBuilder(state.getType().asItem().orElseThrow(
                 () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form")),
                 1, Collections.emptyMap())
-                .data(ItemKeys.BLOCK_STATE, state);
+                .setData(ItemDataComponents.BLOCK_STATE, state);
     }
 
     /**
@@ -101,7 +100,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     /**
      * Creates an item stack of the given type.
      *
-     * @param type the item type
+     * @param type   the item type
      * @param amount the positive stack count
      * @return the item stack, or {@link #EMPTY} when the type is air
      * @throws IllegalArgumentException if the amount is not positive
@@ -124,7 +123,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     /**
      * Creates an item stack representing a block state.
      *
-     * @param state the block state represented by the item
+     * @param state  the block state represented by the item
      * @param amount the positive stack count
      * @return the item stack
      * @throws IllegalArgumentException if the amount is not positive or the block has no item form
@@ -133,7 +132,60 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         checkNotNull(state, "state");
         ItemType itemType = state.getType().asItem().orElseThrow(
                 () -> new IllegalArgumentException("Block " + state.getType().getId() + " has no item form"));
-        return create(itemType, amount, Map.of(ItemKeys.BLOCK_STATE, state));
+        return create(itemType, amount, Map.of(ItemDataComponents.BLOCK_STATE, state));
+    }
+
+    private static boolean effectiveDataComponentsEqual(ItemStack left, ItemStack right) {
+        for (ItemDataComponentType<?> type : left.dataComponents.keySet()) {
+            if (effectiveDataComponentValuesDiffer(left, right, type)) {
+                return false;
+            }
+        }
+
+        for (ItemDataComponentType<?> type : right.dataComponents.keySet()) {
+            if (!left.dataComponents.containsKey(type) && effectiveDataComponentValuesDiffer(left, right, type)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean effectiveDataComponentValuesDiffer(ItemStack left, ItemStack right, ItemDataComponentType<?> type) {
+        if (type == ItemDataComponents.BLOCK_STATE) {
+            return !blockStateDataEquals(left, right);
+        }
+
+        return !Objects.equals(effectiveDataComponentValue(left, type), effectiveDataComponentValue(right, type));
+    }
+
+    private static Object effectiveDataComponentValue(ItemStack stack, ItemDataComponentType<?> type) {
+        return stack.dataComponents.containsKey(type) ? stack.dataComponents.get(type) : type.getEmptyValue();
+    }
+
+    private static boolean blockStateDataEquals(ItemStack left, ItemStack right) {
+        BlockState leftState = left.dataComponents.containsKey(ItemDataComponents.BLOCK_STATE) ? left.get(ItemDataComponents.BLOCK_STATE) : null;
+        BlockState rightState = right.dataComponents.containsKey(ItemDataComponents.BLOCK_STATE) ? right.get(ItemDataComponents.BLOCK_STATE) : null;
+
+        if (Objects.equals(leftState, rightState)) {
+            return true;
+        }
+
+        if (leftState == null) {
+            return isDefaultBlockStateForItem(rightState, left.type);
+        }
+
+        if (rightState == null) {
+            return isDefaultBlockStateForItem(leftState, right.type);
+        }
+
+        return false;
+    }
+
+    private static boolean isDefaultBlockStateForItem(@Nullable BlockState state, ItemType itemType) {
+        return state != null
+                && state.equals(state.getType().getDefaultState())
+                && state.getType().asItem().filter(itemType::equals).isPresent();
     }
 
     /**
@@ -171,7 +223,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         if (isEmpty()) {
             return builder(ItemTypes.AIR);
         }
-        return new ItemStackBuilder(this.type, this.count, this.metadata);
+        return new ItemStackBuilder(this.type, this.count, this.dataComponents);
     }
 
     /**
@@ -260,10 +312,10 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
      * <p>An explicit value of {@code 0} still counts as present. Use {@link #resetDamage()} to remove the
      * stored value and fall back to the default undamaged state.</p>
      *
-     * @return {@code true} if damage metadata is present
+     * @return {@code true} if the damage component is present
      */
     public boolean hasDamageValue() {
-        return !isEmpty() && this.metadata.containsKey(ItemKeys.DAMAGE);
+        return !isEmpty() && this.dataComponents.containsKey(ItemDataComponents.DAMAGE);
     }
 
     /**
@@ -275,7 +327,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
      * @return the effective durability damage
      */
     public int getDamage() {
-        Integer damage = this.get(ItemKeys.DAMAGE);
+        Integer damage = this.get(ItemDataComponents.DAMAGE);
         return damage == null ? 0 : Math.max(0, damage);
     }
 
@@ -294,34 +346,34 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
             return this;
         }
 
-        Integer currentDamage = this.get(ItemKeys.DAMAGE);
+        Integer currentDamage = this.get(ItemDataComponents.DAMAGE);
         if (Objects.equals(currentDamage, damage)) {
             return this;
         }
 
-        return toBuilder().data(ItemKeys.DAMAGE, damage).build();
+        return toBuilder().setData(ItemDataComponents.DAMAGE, damage).build();
     }
 
     /**
      * Returns a copy of this stack with the explicit damage value removed.
      *
-     * <p>The effective damage after reset is {@code 0}, but the metadata entry is not retained.</p>
+     * <p>The effective damage after reset is {@code 0}, but the component is not retained.</p>
      *
-     * @return a stack without damage metadata, or this stack if no damage value was present
+     * @return a stack without a damage component, or this stack if no damage value was present
      */
     public ItemStack resetDamage() {
         if (isEmpty() || !hasDamageValue()) {
             return this;
         }
 
-        return toBuilder().removeData(ItemKeys.DAMAGE).build();
+        return toBuilder().removeData(ItemDataComponents.DAMAGE).build();
     }
 
     /**
      * Returns a copy of this stack with durability damage increased by {@code amount}.
      *
      * <p>This method only changes the stored damage value. Item-specific break checks, enchantment handling,
-     * and side effects are handled by item components such as {@link ItemComponents#ON_DAMAGE}.</p>
+     * and side effects are handled by item components such as {@link ItemBehaviors#ON_DAMAGE}.</p>
      *
      * @param amount the amount of damage to add
      * @return a stack with increased damage, or this stack if unchanged
@@ -364,7 +416,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
      * @return {@code true} when durability damage should not be applied
      */
     public boolean isUnbreakable() {
-        return this.get(ItemKeys.UNBREAKABLE) == Boolean.TRUE;
+        return this.get(ItemDataComponents.UNBREAKABLE) == Boolean.TRUE;
     }
 
     /**
@@ -384,30 +436,53 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
         ItemStackBuilder builder = toBuilder();
         if (!unbreakable) {
-            return builder.removeData(ItemKeys.UNBREAKABLE).build();
+            return builder.removeData(ItemDataComponents.UNBREAKABLE).build();
         }
 
-        return builder.data(ItemKeys.UNBREAKABLE, true).build();
+        return builder.setData(ItemDataComponents.UNBREAKABLE, true).build();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T get(DataKey<T, ?> key) {
-        checkNotNull(key, "key");
-        Object data = metadata.get(key);
-        return data == null ? key.getDefaultValue() : (T) data;
+    public <T> @Nullable T get(ItemDataComponentType<T> type) {
+        checkNotNull(type, "type");
+        return (T) dataComponents.get(type);
     }
 
-    public ImmutableMap<DataKey<?, ?>, ?> getAllMetadata() {
-        return metadata;
+    @Override
+    public <T> T getOrDefault(ItemDataComponentType<T> type, T fallback) {
+        checkNotNull(type, "type");
+        checkNotNull(fallback, "fallback");
+        T value = get(type);
+        return value != null ? value : fallback;
     }
 
+    @Override
+    public boolean has(ItemDataComponentType<?> type) {
+        return dataComponents.containsKey(checkNotNull(type, "type"));
+    }
+
+    @Override
+    public ImmutableMap<ItemDataComponentType<?>, ?> getDataComponents() {
+        return dataComponents;
+    }
+
+    /**
+     * Returns whether this stack represents a block state.
+     *
+     * @return {@code true} if a block-state component is present
+     */
     public boolean isBlock() {
-        return metadata.containsKey(ItemKeys.BLOCK_STATE);
+        return dataComponents.containsKey(ItemDataComponents.BLOCK_STATE);
     }
 
+    /**
+     * Returns the block state represented by this stack.
+     *
+     * @return represented block state, if present
+     */
     public Optional<BlockState> getBlockState() {
-        return Optional.ofNullable(this.isBlock() ? this.get(ItemKeys.BLOCK_STATE) : null);
+        return Optional.ofNullable(this.isBlock() ? this.get(ItemDataComponents.BLOCK_STATE) : null);
     }
 
     /**
@@ -430,7 +505,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
             return this;
         }
 
-        BlockState current = this.get(ItemKeys.BLOCK_STATE);
+        BlockState current = this.get(ItemDataComponents.BLOCK_STATE);
         if (current == null) {
             return this;
         }
@@ -440,7 +515,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
             return this;
         }
 
-        return toBuilder().data(ItemKeys.BLOCK_STATE, defaultState).build();
+        return toBuilder().setData(ItemDataComponents.BLOCK_STATE, defaultState).build();
     }
 
     @Override
@@ -460,7 +535,7 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     }
 
     /**
-     * Returns {@code true} if both stacks are the same item type (count and metadata ignored).
+     * Returns {@code true} if both stacks are the same item type (count and data components ignored).
      * Two empty stacks are considered similar.
      */
     public boolean isSimilar(@NonNull ItemStack other) {
@@ -473,8 +548,8 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
     /**
      * Returns {@code true} if both stacks can be merged into one inventory stack.
      *
-     * <p>Stack count is ignored. Metadata is compared by effective value, so missing metadata is equivalent
-     * to that key's default value. Block item states are first normalized to the block type's default state
+     * <p>Stack count is ignored. Components are compared by effective value, so absent collection components are
+     * equivalent to empty values. Block item states are first normalized to the block type's default state
      * so equivalent block items can merge.</p>
      */
     public boolean isStackableWith(@NonNull ItemStack other) {
@@ -485,74 +560,21 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
 
         ItemStack left = normalizeBlockState();
         ItemStack right = other.normalizeBlockState();
-        if (left.metadata.equals(right.metadata)) {
+        if (left.dataComponents.equals(right.dataComponents)) {
             return true;
         }
 
-        return effectiveMetadataEquals(left, right);
+        return effectiveDataComponentsEqual(left, right);
     }
 
     /**
-     * Returns {@code true} if both stacks have the same item type and exactly equal metadata.
+     * Returns {@code true} if both stacks have the same item type and exactly equal data components.
      *
      * <p>Use {@link #isStackableWith(ItemStack)} for inventory merge checks. This method intentionally keeps
-     * implicit and explicit default block-state metadata distinct.</p>
+     * implicit and explicit default block-state components distinct.</p>
      */
-    public boolean isSimilarMetadata(@NonNull ItemStack other) {
-        return isSimilar(other) && getAllMetadata().equals(other.getAllMetadata());
-    }
-
-    private static boolean effectiveMetadataEquals(ItemStack left, ItemStack right) {
-        for (DataKey<?, ?> key : left.metadata.keySet()) {
-            if (!effectiveMetadataValueEquals(left, right, key)) {
-                return false;
-            }
-        }
-
-        for (DataKey<?, ?> key : right.metadata.keySet()) {
-            if (!effectiveMetadataValueEquals(left, right, key)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static boolean effectiveMetadataValueEquals(ItemStack left, ItemStack right, DataKey<?, ?> key) {
-        if (key == ItemKeys.BLOCK_STATE) {
-            return blockStateMetadataEquals(left, right);
-        }
-
-        return Objects.equals(effectiveMetadataValue(left, key), effectiveMetadataValue(right, key));
-    }
-
-    private static Object effectiveMetadataValue(ItemStack stack, DataKey<?, ?> key) {
-        return stack.metadata.containsKey(key) ? stack.metadata.get(key) : key.getDefaultValue();
-    }
-
-    private static boolean blockStateMetadataEquals(ItemStack left, ItemStack right) {
-        BlockState leftState = left.metadata.containsKey(ItemKeys.BLOCK_STATE) ? left.get(ItemKeys.BLOCK_STATE) : null;
-        BlockState rightState = right.metadata.containsKey(ItemKeys.BLOCK_STATE) ? right.get(ItemKeys.BLOCK_STATE) : null;
-
-        if (Objects.equals(leftState, rightState)) {
-            return true;
-        }
-
-        if (leftState == null) {
-            return isDefaultBlockStateForItem(rightState, left.type);
-        }
-
-        if (rightState == null) {
-            return isDefaultBlockStateForItem(leftState, right.type);
-        }
-
-        return false;
-    }
-
-    private static boolean isDefaultBlockStateForItem(@Nullable BlockState state, ItemType itemType) {
-        return state != null
-                && state.equals(state.getType().getDefaultState())
-                && state.getType().asItem().filter(itemType::equals).isPresent();
+    public boolean hasSameDataComponents(@NonNull ItemStack other) {
+        return isSimilar(other) && getDataComponents().equals(other.getDataComponents());
     }
 
     @Override
@@ -561,17 +583,17 @@ public final class ItemStack implements DataStore, Comparable<ItemStack> {
         if (!(o instanceof ItemStack other)) return false;
         return this.count == other.count &&
                 Objects.equals(this.type, other.type) &&
-                Objects.equals(this.metadata, other.metadata);
+                Objects.equals(this.dataComponents, other.dataComponents);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, count, metadata);
+        return Objects.hash(type, count, dataComponents);
     }
 
     @Override
     public String toString() {
         if (isEmpty()) return "ItemStack{EMPTY}";
-        return "ItemStack{type=" + type.getId() + ", count=" + count + ", metadata=" + metadata + "}";
+        return "ItemStack{type=" + type.getId() + ", count=" + count + ", dataComponents=" + dataComponents + "}";
     }
 }

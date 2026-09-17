@@ -30,7 +30,7 @@ public final class AnvilResultCalculator {
 
         ItemStack material = context.material();
         ItemStack result = input;
-        Map<EnchantmentType, Enchantment> enchantments = new HashMap<>(result.get(ItemKeys.ENCHANTMENTS));
+        Map<EnchantmentType, Enchantment> enchantments = new HashMap<>(result.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()));
 
         long repairCostTax = repairCost(input) + repairCost(material);
         int cost = 0;
@@ -144,7 +144,7 @@ public final class AnvilResultCalculator {
                                                       boolean hasInfiniteMaterials,
                                                       boolean bypassLevelRestriction) {
         Map<EnchantmentType, Enchantment> merged = new HashMap<>(currentEnchantments);
-        Map<EnchantmentType, Enchantment> materialEnchantments = material.get(ItemKeys.ENCHANTMENTS);
+        Map<EnchantmentType, Enchantment> materialEnchantments = material.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of());
         boolean usingBook = isEnchantedBook(material);
         boolean compatible = false;
         boolean incompatible = false;
@@ -202,19 +202,19 @@ public final class AnvilResultCalculator {
         }
 
         ItemStackBuilder builder = result.toBuilder();
-        String currentName = input.get(ItemKeys.CUSTOM_NAME);
+        String currentName = input.get(ItemDataComponents.CUSTOM_NAME);
         if (validatedName.isBlank()) {
             if (currentName == null) {
                 return new RenameResult(result, 0);
             }
-            return new RenameResult(builder.removeData(ItemKeys.CUSTOM_NAME).build(), 1);
+            return new RenameResult(builder.removeData(ItemDataComponents.CUSTOM_NAME).build(), 1);
         }
 
         if (Objects.equals(currentName, validatedName)) {
             return new RenameResult(result, 0);
         }
 
-        return new RenameResult(builder.data(ItemKeys.CUSTOM_NAME, validatedName).build(), 1);
+        return new RenameResult(builder.setData(ItemDataComponents.CUSTOM_NAME, validatedName).build(), 1);
     }
 
     private static ItemStack applyResultMetadata(ItemStack result, ItemStack material,
@@ -226,37 +226,37 @@ public final class AnvilResultCalculator {
             baseCost = calculateIncreasedRepairCost(baseCost);
         }
 
-        builder.data(ItemKeys.REPAIR_COST, baseCost);
+        builder.setData(ItemDataComponents.REPAIR_COST, baseCost);
         if (!enchantments.isEmpty()) {
-            builder.data(ItemKeys.ENCHANTMENTS, enchantments);
+            builder.setData(ItemDataComponents.ENCHANTMENTS, enchantments);
         }
 
         return builder.build();
     }
 
     private static int repairCost(ItemStack item) {
-        Integer repairCost = item.get(ItemKeys.REPAIR_COST);
+        Integer repairCost = item.get(ItemDataComponents.REPAIR_COST);
         return repairCost == null ? 0 : Math.max(0, repairCost);
     }
 
     private static boolean isDamageable(ItemStack item) {
         return !item.isEmpty() && CloudItemRegistry.get().requireComponent(item.getType(),
-                ItemComponents.DAMAGEABLE).get();
+                ItemBehaviors.DAMAGEABLE).get();
     }
 
     private static int maxDamage(ItemStack item) {
-        return CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_MAX_DAMAGE).execute(item);
+        return CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.GET_MAX_DAMAGE).execute(item);
     }
 
     private static boolean canRepairWith(ItemStack item, ItemStack material) {
-        return CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.CAN_REPAIR_WITH).execute(item,
+        return CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.CAN_REPAIR_WITH).execute(item,
                 material);
     }
 
     private static boolean canStoreEnchantments(ItemStack item) {
         return !item.isEmpty()
                 && CloudItemRegistry.get().requireComponent(item.getType(),
-                ItemComponents.CAN_STORE_ENCHANTMENTS).get();
+                ItemBehaviors.CAN_STORE_ENCHANTMENTS).get();
     }
 
     private static boolean canEnchant(Enchantment enchantment, ItemStack item) {

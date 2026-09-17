@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Serializes banner base color, type, and pattern layers from the banner item tag.
  */
-public class BannerDataSerializer implements ItemDataSerializer<BannerData> {
+public class BannerDataSerializer implements ItemDataComponentSerializer<BannerData> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, BannerData value) {

@@ -34,7 +34,7 @@ import org.cloudburstmc.api.event.block.BlockPlaceEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.EquipmentSlot;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.item.component.UseOnHandler;
@@ -1976,7 +1976,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (player != null) {
             ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.requireComponents(item.getType());
-            if (player.getGameMode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.require(ItemComponents.CAN_DESTROY).execute(item, target))) {
+            if (player.getGameMode() == GameMode.ADVENTURE && (itemBehaviors == null || !itemBehaviors.require(ItemBehaviors.CAN_DESTROY).execute(item, target))) {
                 return null;
             }
 
@@ -2052,7 +2052,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
             ComponentMap itemBehaviors = item.isEmpty() ? null : this.itemRegistry.requireComponents(item.getType());
             if (itemBehaviors != null && player != null && !player.isCreative()) {
-                item = itemBehaviors.require(ItemComponents.MINE_BLOCK).execute(item, target, player);
+                item = itemBehaviors.require(ItemBehaviors.MINE_BLOCK).execute(item, target, player);
             }
 
             if (doBlockDrops && player != null && !player.isCreative() && dropItems) {
@@ -2205,7 +2205,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     public ItemStack tryUseItem(Block target, Direction face, Vector3f clickPos, ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
-        UseOnHandler useOnHandler = itemBehaviors.get(ItemComponents.USE_ON);
+        UseOnHandler useOnHandler = itemBehaviors.get(ItemBehaviors.USE_ON);
         if (useOnHandler == null) {
             return null;
         }
@@ -2223,7 +2223,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     public ItemStack tryActivateItem(ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
-        UseHandler useHandler = itemBehaviors.get(ItemComponents.USE);
+        UseHandler useHandler = itemBehaviors.get(ItemBehaviors.USE);
         if (useHandler == null) {
             return null;
         }
@@ -2242,7 +2242,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         @SuppressWarnings("unchecked")
-        BlockState hand = ((Optional<BlockState>) itemBehaviors.require(ItemComponents.GET_BLOCK).execute(item)).orElse(null);
+        BlockState hand = ((Optional<BlockState>) itemBehaviors.require(ItemBehaviors.GET_BLOCK).execute(item)).orElse(null);
         if (hand == null) {
             return null;
         }
@@ -2306,7 +2306,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (player != null) {
             boolean canBuild = (player.getGameMode() != GameMode.ADVENTURE
-                    || itemRegistry.requireComponent(item.getType(), ItemComponents.CAN_BE_PLACED_ON)
+                    || itemRegistry.requireComponent(item.getType(), ItemBehaviors.CAN_BE_PLACED_ON)
                     .execute(item, target))
                     && (player.isOp() || !isInSpawnRadius(block.getPosition()));
             BlockPlaceEvent event = new BlockPlaceEvent(prospectiveBlock, block.getState(), target, item, player,

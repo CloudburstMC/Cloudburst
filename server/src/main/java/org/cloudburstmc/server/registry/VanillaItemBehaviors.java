@@ -39,14 +39,14 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);
         configureSpawnEgg(registry, ItemTypes.ARMADILLO_SPAWN_EGG, EntityTypes.ARMADILLO);
         registry.configure(ItemTypes.AXOLOTL_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.AXOLOTL));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.AXOLOTL));
         configureSpawnEgg(registry, ItemTypes.AXOLOTL_SPAWN_EGG, EntityTypes.AXOLOTL);
         registry.configure(ItemTypes.BANNER, new BannerSerializer());
         configureSpawnEgg(registry, ItemTypes.BAT_SPAWN_EGG, EntityTypes.BAT);
         configureSpawnEgg(registry, ItemTypes.BEE_SPAWN_EGG, EntityTypes.BEE);
         configureSpawnEgg(registry, ItemTypes.BLAZE_SPAWN_EGG, EntityTypes.BLAZE);
         configureSpawnEgg(registry, ItemTypes.BOGGED_SPAWN_EGG, EntityTypes.BOGGED);
-        registry.configure(ItemTypes.BONE_MEAL).set(ItemComponents.USE_ON, BoneMealItemHandlers.USE_ON);
+        registry.configure(ItemTypes.BONE_MEAL).set(ItemBehaviors.USE_ON, BoneMealItemHandlers.USE_ON);
         configureDamageableEnchantable(
                 registry,
                 ItemTypes.BOW,
@@ -58,7 +58,7 @@ public final class VanillaItemBehaviors {
         );
         configureSpawnEgg(registry, ItemTypes.BREEZE_SPAWN_EGG, EntityTypes.BREEZE);
         configureDamageableEnchantable(registry, ItemTypes.BRUSH, 64, repairWith(), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
-        registry.configure(ItemTypes.BUCKET).set(ItemComponents.USE_ON, BucketItemHandlers.PICK_UP);
+        registry.configure(ItemTypes.BUCKET).set(ItemBehaviors.USE_ON, BucketItemHandlers.PICK_UP);
         configureSpawnEgg(registry, ItemTypes.CAMEL_HUSK_SPAWN_EGG, EntityTypes.CAMEL_HUSK);
         configureSpawnEgg(registry, ItemTypes.CAMEL_SPAWN_EGG, EntityTypes.CAMEL);
         configureDamageableEnchantable(registry, ItemTypes.CARROT_ON_A_STICK, 25, repairWith(), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
@@ -69,17 +69,17 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.CHAINMAIL_HELMET, VanillaArmorMaterials.CHAINMAIL, EquipmentSlot.HEAD);
         configureArmor(registry, ItemTypes.CHAINMAIL_LEGGINGS, VanillaArmorMaterials.CHAINMAIL, EquipmentSlot.LEGS);
         registry.configure(ItemTypes.CHEST_MINECART)
-                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.CHEST_MINECART));
+                .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.CHEST_MINECART));
         configureSpawnEgg(registry, ItemTypes.CHICKEN_SPAWN_EGG, EntityTypes.CHICKEN);
         registry.configure(ItemTypes.CHORUS_FRUIT)
-                .set(ItemComponents.FINISH_USE, ChorusFruitItemHandlers.FINISH_USE)
-                .set(ItemComponents.USE, ChorusFruitItemHandlers.USE)
-                .set(ItemComponents.USE_DURATION_TICKS, 32);
+                .set(ItemBehaviors.FINISH_USE, ChorusFruitItemHandlers.FINISH_USE)
+                .set(ItemBehaviors.USE, ChorusFruitItemHandlers.USE)
+                .set(ItemBehaviors.USE_DURATION_TICKS, 32);
         registry.configure(ItemTypes.COD_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.COD));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.COD));
         configureSpawnEgg(registry, ItemTypes.COD_SPAWN_EGG, EntityTypes.COD);
         registry.configure(ItemTypes.COMMAND_BLOCK_MINECART)
-                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.COMMAND_BLOCK_MINECART));
+                .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.COMMAND_BLOCK_MINECART));
         configureAxe(registry, ItemTypes.COPPER_AXE, ToolMaterials.COPPER, 7, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
         configureArmor(registry, ItemTypes.COPPER_BOOTS, VanillaArmorMaterials.COPPER, EquipmentSlot.FEET);
         configureArmor(registry, ItemTypes.COPPER_CHESTPLATE, VanillaArmorMaterials.COPPER, EquipmentSlot.CHEST);
@@ -120,18 +120,18 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.DROWNED_SPAWN_EGG, EntityTypes.DROWNED);
         configureSpawnEgg(registry, ItemTypes.ELDER_GUARDIAN_SPAWN_EGG, EntityTypes.ELDER_GUARDIAN);
         configureElytra(registry, repairWith(PHANTOM_MEMBRANE.getId()));
-        registry.configure(ItemTypes.ENCHANTED_BOOK).set(ItemComponents.CAN_ENCHANT_WITH, (item, enchantment) -> true);
-        registry.configure(ItemTypes.END_CRYSTAL).set(ItemComponents.USE_ON, EndCrystalItemHandlers.USE_ON);
+        registry.configure(ItemTypes.ENCHANTED_BOOK).set(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> true);
+        registry.configure(ItemTypes.END_CRYSTAL).set(ItemBehaviors.USE_ON, EndCrystalItemHandlers.USE_ON);
         configureSpawnEgg(registry, ItemTypes.ENDER_DRAGON_SPAWN_EGG, EntityTypes.ENDER_DRAGON);
-        registry.configure(ItemTypes.ENDER_EYE).set(ItemComponents.USE_ON, EnderEyeItemHandlers.USE_ON);
-        registry.configure(ItemTypes.ENDER_PEARL).set(ItemComponents.USE, EnderPearlItemHandlers.USE);
+        registry.configure(ItemTypes.ENDER_EYE).set(ItemBehaviors.USE_ON, EnderEyeItemHandlers.USE_ON);
+        registry.configure(ItemTypes.ENDER_PEARL).set(ItemBehaviors.USE, EnderPearlItemHandlers.USE);
         configureSpawnEgg(registry, ItemTypes.ENDERMAN_SPAWN_EGG, EntityTypes.ENDERMAN);
         configureSpawnEgg(registry, ItemTypes.ENDERMITE_SPAWN_EGG, EntityTypes.ENDERMITE);
         configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOCATION_ILLAGER);
-        registry.configure(ItemTypes.FIRE_CHARGE).set(ItemComponents.USE_ON, FireChargeItemHandlers.USE_ON);
+        registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, FireChargeItemHandlers.USE_ON);
         registry.configure(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
-                .set(ItemComponents.USE, FireworkRocketItemHandlers.USE)
-                .set(ItemComponents.USE_ON, FireworkRocketItemHandlers.USE_ON);
+                .set(ItemBehaviors.USE, FireworkRocketItemHandlers.USE)
+                .set(ItemBehaviors.USE_ON, FireworkRocketItemHandlers.USE_ON);
         registry.configure(ItemTypes.FIREWORK_STAR, new FireworkStarSerializer());
         configureDamageableEnchantable(
                         registry,
@@ -142,8 +142,8 @@ public final class VanillaItemBehaviors {
                         EnchantmentTarget.BREAKABLE,
                         EnchantmentTarget.VANISHABLE
         )
-                .set(ItemComponents.USE, FishingRodItemHandlers.USE);
-        registry.configure(ItemTypes.FLINT_AND_STEEL).set(ItemComponents.USE_ON, FlintAndSteelItemHandlers.USE_ON);
+                .set(ItemBehaviors.USE, FishingRodItemHandlers.USE);
+        registry.configure(ItemTypes.FLINT_AND_STEEL).set(ItemBehaviors.USE_ON, FlintAndSteelItemHandlers.USE_ON);
         configureSpawnEgg(registry, ItemTypes.FOX_SPAWN_EGG, EntityTypes.FOX);
         configureSpawnEgg(registry, ItemTypes.FROG_SPAWN_EGG, EntityTypes.FROG);
         configureSpawnEgg(registry, ItemTypes.GHAST_SPAWN_EGG, EntityTypes.GHAST);
@@ -163,7 +163,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.HAPPY_GHAST_SPAWN_EGG, EntityTypes.HAPPY_GHAST);
         configureSpawnEgg(registry, ItemTypes.HOGLIN_SPAWN_EGG, EntityTypes.HOGLIN);
         registry.configure(ItemTypes.HOPPER_MINECART)
-                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.HOPPER_MINECART));
+                .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.HOPPER_MINECART));
         configureSpawnEgg(registry, ItemTypes.HORSE_SPAWN_EGG, EntityTypes.HORSE);
         configureSpawnEgg(registry, ItemTypes.HUSK_SPAWN_EGG, EntityTypes.HUSK);
         configureAxe(registry, IRON_AXE, ToolMaterials.IRON, 6, repairWith(ItemTags.IRON_TOOL_MATERIALS));
@@ -178,7 +178,7 @@ public final class VanillaItemBehaviors {
         configureSpear(registry, ItemTypes.IRON_SPEAR, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         configureSword(registry, ItemTypes.IRON_SWORD, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         registry.configure(ItemTypes.LAVA_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.LAVA));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.place(BlockStates.LAVA));
         configureArmor(registry, ItemTypes.LEATHER_BOOTS, VanillaArmorMaterials.LEATHER, EquipmentSlot.FEET);
         configureArmor(registry, ItemTypes.LEATHER_CHESTPLATE, VanillaArmorMaterials.LEATHER, EquipmentSlot.CHEST);
         configureArmor(registry, ItemTypes.LEATHER_HELMET, VanillaArmorMaterials.LEATHER, EquipmentSlot.HEAD);
@@ -199,7 +199,7 @@ public final class VanillaItemBehaviors {
         );
         configureSpawnEgg(registry, ItemTypes.MAGMA_CUBE_SPAWN_EGG, EntityTypes.MAGMA_CUBE);
         registry.configure(ItemTypes.MINECART)
-                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.MINECART));
+                .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.MINECART));
         configureSpawnEgg(registry, ItemTypes.MOOSHROOM_SPAWN_EGG, EntityTypes.MOOSHROOM);
         configureSpawnEgg(registry, ItemTypes.MULE_SPAWN_EGG, EntityTypes.MULE);
         configureSpawnEgg(registry, ItemTypes.NAUTILUS_SPAWN_EGG, EntityTypes.NAUTILUS);
@@ -225,15 +225,15 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.PILLAGER_SPAWN_EGG, EntityTypes.PILLAGER);
         configureSpawnEgg(registry, ItemTypes.POLAR_BEAR_SPAWN_EGG, EntityTypes.POLAR_BEAR);
         registry.configure(ItemTypes.POWDER_SNOW_BUCKET)
-                .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.POWDER_SNOW.getDefaultState()))
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placePowderSnow(BlockTypes.POWDER_SNOW.getDefaultState()));
+                .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.POWDER_SNOW.getDefaultState()))
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placePowderSnow(BlockTypes.POWDER_SNOW.getDefaultState()));
         registry.configure(ItemTypes.PUFFERFISH_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.PUFFERFISH));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.PUFFERFISH));
         configureSpawnEgg(registry, ItemTypes.PUFFERFISH_SPAWN_EGG, EntityTypes.PUFFERFISH);
         configureSpawnEgg(registry, ItemTypes.RABBIT_SPAWN_EGG, EntityTypes.RABBIT);
         configureSpawnEgg(registry, ItemTypes.RAVAGER_SPAWN_EGG, EntityTypes.RAVAGER);
         registry.configure(ItemTypes.SALMON_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.SALMON));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.SALMON));
         configureSpawnEgg(registry, ItemTypes.SALMON_SPAWN_EGG, EntityTypes.SALMON);
         configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, repairWith());
         configureSpawnEgg(registry, ItemTypes.SHEEP_SPAWN_EGG, EntityTypes.SHEEP);
@@ -256,17 +256,17 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.STRAY_SPAWN_EGG, EntityTypes.STRAY);
         configureSpawnEgg(registry, ItemTypes.STRIDER_SPAWN_EGG, EntityTypes.STRIDER);
         registry.configure(ItemTypes.STRING)
-                .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.TRIP_WIRE.getDefaultState()));
+                .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.TRIP_WIRE.getDefaultState()));
         registry.configure(ItemTypes.SULFUR_CUBE_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(EntityTypes.SULFUR_CUBE));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(EntityTypes.SULFUR_CUBE));
         configureSpawnEgg(registry, ItemTypes.SULFUR_CUBE_SPAWN_EGG, EntityTypes.SULFUR_CUBE);
         registry.configure(ItemTypes.SWEET_BERRIES)
-                .set(ItemComponents.GET_BLOCK, item -> Optional.of(BlockTypes.SWEET_BERRY_BUSH.getDefaultState().withTrait(BlockTraits.GROWTH, 0)));
+                .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.SWEET_BERRY_BUSH.getDefaultState().withTrait(BlockTraits.GROWTH, 0)));
         registry.configure(ItemTypes.TADPOLE_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TADPOLE));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TADPOLE));
         configureSpawnEgg(registry, ItemTypes.TADPOLE_SPAWN_EGG, EntityTypes.TADPOLE);
         registry.configure(ItemTypes.TNT_MINECART)
-                .set(ItemComponents.USE_ON, MinecartItemHandlers.useOn(EntityTypes.TNT_MINECART));
+                .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.TNT_MINECART));
         configureSpawnEgg(registry, ItemTypes.TRADER_LLAMA_SPAWN_EGG, EntityTypes.TRADER_LLAMA);
         configureDamageableEnchantableTool(
                 registry,
@@ -281,7 +281,7 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.VANISHABLE
         );
         registry.configure(ItemTypes.TROPICAL_FISH_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
         configureSpawnEgg(registry, ItemTypes.TROPICAL_FISH_SPAWN_EGG, EntityTypes.TROPICAL_FISH);
         configureArmor(registry, ItemTypes.TURTLE_HELMET, VanillaArmorMaterials.TURTLE, EquipmentSlot.HEAD);
         configureSpawnEgg(registry, ItemTypes.TURTLE_SPAWN_EGG, EntityTypes.TURTLE);
@@ -299,7 +299,7 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.VANISHABLE
         );
         registry.configure(ItemTypes.WATER_BUCKET)
-                .set(ItemComponents.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
         configureSpawnEgg(registry, ItemTypes.WITCH_SPAWN_EGG, EntityTypes.WITCH);
         configureSpawnEgg(registry, ItemTypes.WITHER_SKELETON_SPAWN_EGG, EntityTypes.WITHER_SKELETON);
         configureSpawnEgg(registry, ItemTypes.WITHER_SPAWN_EGG, EntityTypes.WITHER);
@@ -320,16 +320,16 @@ public final class VanillaItemBehaviors {
 
     private void configureSpawnEgg(CloudItemRegistry registry, ItemType itemType, EntityType<?> entityType) {
         registry.configure(itemType)
-                .set(ItemComponents.SPAWN_EGG, new SpawnEggComponent(entityType))
-                .set(ItemComponents.USE_ON, SpawnEggItemHandlers.useOn(entityType));
+                .set(ItemBehaviors.SPAWN_EGG, new SpawnEggComponent(entityType))
+                .set(ItemBehaviors.USE_ON, SpawnEggItemHandlers.useOn(entityType));
     }
 
     private void configureArmor(CloudItemRegistry registry, ItemType type, ArmorMaterial material, EquipmentSlot slot) {
         configureDamageableVanilla(registry, type, material.durability(slot), repairWith(material.repairTag()))
-                .set(ItemComponents.ARMOR, new ArmorComponent(material.defense(slot), material.toughness(), material.knockbackResistance()))
-                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> slot)
+                .set(ItemBehaviors.ARMOR, new ArmorComponent(material.defense(slot), material.toughness(), material.knockbackResistance()))
+                .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> slot)
                 .set(
-                        ItemComponents.CAN_ENCHANT_WITH,
+                        ItemBehaviors.CAN_ENCHANT_WITH,
                         CloudItemRegistry.enchantableWith(
                                 EnchantmentTarget.ARMOR,
                                 enchantmentTarget(slot),
@@ -338,7 +338,7 @@ public final class VanillaItemBehaviors {
                                 EnchantmentTarget.WEARABLE
                         )
                 )
-                .set(ItemComponents.USE, ArmorItemHandlers.equip(slot, material.equipSound()));
+                .set(ItemBehaviors.USE, ArmorItemHandlers.equip(slot, material.equipSound()));
     }
 
     private EnchantmentTarget enchantmentTarget(EquipmentSlot slot) {
@@ -353,12 +353,12 @@ public final class VanillaItemBehaviors {
 
     private void configureElytra(CloudItemRegistry registry, CanRepairWithHandler repairWith) {
         configureDamageableVanilla(registry, ItemTypes.ELYTRA, 432, repairWith)
-                .set(ItemComponents.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
+                .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
                 .set(
-                        ItemComponents.CAN_ENCHANT_WITH,
+                        ItemBehaviors.CAN_ENCHANT_WITH,
                         CloudItemRegistry.enchantableWith(EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE, EnchantmentTarget.WEARABLE)
                 )
-                .set(ItemComponents.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, Sound.ARMOR_EQUIP_ELYTRA));
+                .set(ItemBehaviors.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, Sound.ARMOR_EQUIP_ELYTRA));
     }
 
     private void configureTool(
@@ -371,11 +371,11 @@ public final class VanillaItemBehaviors {
             EnchantmentTarget... additionalEnchantmentTargets
     ) {
         configureDamageableVanilla(registry, type, maxDamage, repairWith)
-                .set(ItemComponents.CAN_ENCHANT_WITH, CloudItemRegistry.toolEnchantableWith(additionalEnchantmentTargets))
-                .set(ItemComponents.GET_ATTACK_DAMAGE, item -> attackDamage)
-                .set(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
-                .set(ItemComponents.GET_TOOL, item -> tool)
-                .set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+                .set(ItemBehaviors.CAN_ENCHANT_WITH, CloudItemRegistry.toolEnchantableWith(additionalEnchantmentTargets))
+                .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> attackDamage)
+                .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
+                .set(ItemBehaviors.GET_TOOL, item -> tool)
+                .set(ItemBehaviors.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
     }
 
     private void configureAxe(CloudItemRegistry registry, ItemType type, ToolMaterial material, float attackDamageBaseline, CanRepairWithHandler repairWith) {
@@ -413,7 +413,7 @@ public final class VanillaItemBehaviors {
     private void configureSword(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
                 .set(
-                        ItemComponents.CAN_ENCHANT_WITH,
+                        ItemBehaviors.CAN_ENCHANT_WITH,
                         CloudItemRegistry.enchantableWith(
                                 EnchantmentTarget.FIRE_ASPECT,
                                 EnchantmentTarget.MELEE_WEAPON,
@@ -423,16 +423,16 @@ public final class VanillaItemBehaviors {
                                 EnchantmentTarget.VANISHABLE
                         )
                 )
-                .set(ItemComponents.GET_ATTACK_DAMAGE, item -> 4 + material.getAttackDamageBonus())
-                .set(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
-                .set(ItemComponents.GET_TOOL, item -> VanillaTools.sword())
-                .set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+                .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> 4 + material.getAttackDamageBonus())
+                .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
+                .set(ItemBehaviors.GET_TOOL, item -> VanillaTools.sword())
+                .set(ItemBehaviors.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
     }
 
     private void configureSpear(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
                 .set(
-                        ItemComponents.CAN_ENCHANT_WITH,
+                        ItemBehaviors.CAN_ENCHANT_WITH,
                         CloudItemRegistry.enchantableWith(
                                 EnchantmentTarget.FIRE_ASPECT,
                                 EnchantmentTarget.MELEE_WEAPON,
@@ -443,9 +443,9 @@ public final class VanillaItemBehaviors {
                                 EnchantmentTarget.VANISHABLE
                         )
                 )
-                .set(ItemComponents.ATTACK_DAMAGE_TYPE, DamageTypes.SPEAR)
-                .set(ItemComponents.GET_ATTACK_DAMAGE, item -> 1 + material.getAttackDamageBonus())
-                .set(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 1);
+                .set(ItemBehaviors.ATTACK_DAMAGE_TYPE, DamageTypes.SPEAR)
+                .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> 1 + material.getAttackDamageBonus())
+                .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1);
     }
 
     private void configureDamageableEnchantableTool(
@@ -459,10 +459,10 @@ public final class VanillaItemBehaviors {
     ) throws RegistryException {
         CloudComponentMap components =
                 configureDamageableEnchantable(registry, type, maxDamage, repairWith, enchantmentTargets);
-        components.set(ItemComponents.GET_ATTACK_DAMAGE, item -> attackDamage);
-        components.set(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 1);
-        components.set(ItemComponents.GET_TOOL, item -> tool);
-        components.set(ItemComponents.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
+        components.set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> attackDamage);
+        components.set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1);
+        components.set(ItemBehaviors.GET_TOOL, item -> tool);
+        components.set(ItemBehaviors.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
     }
 
     private CloudComponentMap configureDamageableEnchantable(
@@ -473,18 +473,18 @@ public final class VanillaItemBehaviors {
             EnchantmentTarget... enchantmentTargets
     ) {
         CloudComponentMap components = configureDamageableVanilla(registry, type, maxDamage, repairWith);
-        components.set(ItemComponents.CAN_ENCHANT_WITH, CloudItemRegistry.enchantableWith(enchantmentTargets));
+        components.set(ItemBehaviors.CAN_ENCHANT_WITH, CloudItemRegistry.enchantableWith(enchantmentTargets));
         return components;
     }
 
     private CloudComponentMap configureDamageableVanilla(CloudItemRegistry registry, ItemType type, int maxDamage, CanRepairWithHandler repairWith) {
         CloudComponentMap components = (CloudComponentMap) registry.configure(type);
-        components.set(ItemComponents.DAMAGEABLE, () -> true);
-        components.set(ItemComponents.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE);
-        components.set(ItemComponents.GET_MAX_DAMAGE, item -> maxDamage);
-        components.set(ItemComponents.GET_MAX_STACK_SIZE, item -> 1);
-        components.set(ItemComponents.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE);
-        components.set(ItemComponents.CAN_REPAIR_WITH, repairWith);
+        components.set(ItemBehaviors.DAMAGEABLE, () -> true);
+        components.set(ItemBehaviors.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE);
+        components.set(ItemBehaviors.GET_MAX_DAMAGE, item -> maxDamage);
+        components.set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1);
+        components.set(ItemBehaviors.ON_DAMAGE, DefaultItemHandlers.ON_DAMAGE);
+        components.set(ItemBehaviors.CAN_REPAIR_WITH, repairWith);
         return components;
     }
 }

@@ -10,8 +10,8 @@ import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
@@ -120,7 +120,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     protected void checkFuel(ItemStack fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel,
-                (short) CloudItemRegistry.get().requireComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get());
+                (short) CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get());
         this.server.getEventManager().fire(ev);
         if (ev.isCancelled()) {
             return;
@@ -139,8 +139,8 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             }
 
             if (fuel.getCount() <= 1) {
-                if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemKeys.BUCKET_DATA) == Bucket.LAVA) {
-                    fuel = fuel.toBuilder().amount(1).data(ItemKeys.BUCKET_DATA, Bucket.EMPTY).build();
+                if (fuel.getType() == ItemTypes.BUCKET && fuel.get(ItemDataComponents.BUCKET_DATA) == Bucket.LAVA) {
+                    fuel = fuel.toBuilder().amount(1).setData(ItemDataComponents.BUCKET_DATA, Bucket.EMPTY).build();
                 } else {
                     fuel = ItemStack.EMPTY;
                 }
@@ -168,11 +168,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         BlockType blockType = state.getType();
         CloudFurnaceRecipe smelt = CloudRecipeRegistry.get().matchFurnaceRecipe(raw, product, this.getBlockState().getType().getId());
         boolean canSmelt = smelt != null && raw.getCount() > 0 &&
-                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().requireComponent(product.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(product)));
+                (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().requireComponent(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(product)));
 
         if (
                 burnTime <= 0 && canSmelt
-                        && CloudItemRegistry.get().requireComponent(fuel.getType(), ItemComponents.FUEL_DURATION).get() > 0
+                        && CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get() > 0
                         && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }

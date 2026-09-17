@@ -11,7 +11,7 @@ import org.cloudburstmc.api.util.component.ComponentMap;
 import java.util.Collection;
 
 /**
- * Registry for item types, item components, creative inventory entries, and item tags.
+ * Registry for item types, item behaviors, creative inventory entries, and item tags.
  */
 public interface ItemRegistry extends ComponentRegistry<ItemType>, KeyedRegistry<ItemType> {
 

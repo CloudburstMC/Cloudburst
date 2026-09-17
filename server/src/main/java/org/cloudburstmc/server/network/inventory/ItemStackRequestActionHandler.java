@@ -9,7 +9,7 @@ import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.data.ItemLockMode;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
@@ -343,7 +343,7 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
-        if (sourceItem.get(ItemKeys.ITEM_LOCK) != null) {
+        if (sourceItem.get(ItemDataComponents.ITEM_LOCK) != null) {
             requestFailed = true;
             return;
         }
@@ -387,7 +387,7 @@ public class ItemStackRequestActionHandler {
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
-        if (sourceItem.get(ItemKeys.ITEM_LOCK) != null) {
+        if (sourceItem.get(ItemDataComponents.ITEM_LOCK) != null) {
             requestFailed = true;
             return;
         }
@@ -510,7 +510,7 @@ public class ItemStackRequestActionHandler {
             return;
         }
 
-        if (current.get(ItemKeys.ITEM_LOCK) != null) {
+        if (current.get(ItemDataComponents.ITEM_LOCK) != null) {
             requestFailed = true;
             return;
         }
@@ -778,7 +778,7 @@ public class ItemStackRequestActionHandler {
     }
 
     private static boolean isMoveBlocked(ItemStack item, ContainerSlotType source, ContainerSlotType destination) {
-        ItemLockMode lockMode = item.get(ItemKeys.ITEM_LOCK);
+        ItemLockMode lockMode = item.get(ItemDataComponents.ITEM_LOCK);
         if (lockMode == null) {
             return false;
         }
@@ -838,7 +838,7 @@ public class ItemStackRequestActionHandler {
         }
 
         int netId = NetworkItemStack.getNetId(item);
-        String customName = item.get(ItemKeys.CUSTOM_NAME);
+        String customName = item.get(ItemDataComponents.CUSTOM_NAME);
 
         return new ItemStackResponseSlot(
                 slot,

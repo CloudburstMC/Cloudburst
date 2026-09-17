@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.item.serializer;
 
 import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
@@ -29,7 +29,7 @@ public class FireworkStarSerializer extends DefaultItemSerializer {
     public void serialize(ItemStack item, NbtMapBuilder tag) {
         super.serialize(item, tag);
 
-        FireworkData data = item.get(ItemKeys.FIREWORK_DATA);
+        FireworkData data = item.get(ItemDataComponents.FIREWORK_DATA);
         if (data == null || data.getExplosions().isEmpty()) {
             return;
         }
@@ -96,7 +96,7 @@ public class FireworkStarSerializer extends DefaultItemSerializer {
                 customColor
         );
 
-        builder.data(ItemKeys.FIREWORK_DATA,
+        builder.setData(ItemDataComponents.FIREWORK_DATA,
                 FireworkData.of(ImmutableList.of(explosion), (byte) 0));
     }
 }

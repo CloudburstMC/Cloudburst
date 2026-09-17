@@ -6,14 +6,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.item.ItemComponents;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
+
+import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ToolUtils {
@@ -23,7 +25,7 @@ public final class ToolUtils {
             return null;
         }
 
-        return CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_TOOL).execute(item);
+        return CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.GET_TOOL).execute(item);
     }
 
     public static float getMiningSpeed(ItemStack item, BlockState block) {
@@ -56,7 +58,7 @@ public final class ToolUtils {
     public static float getDestroySpeed(Player player, ItemStack item, BlockState block) {
         float speed = getMiningSpeed(item, block);
         if (speed > 1) {
-            Enchantment efficiency = item.get(ItemKeys.ENCHANTMENTS).get(EnchantmentTypes.EFFICIENCY);
+            Enchantment efficiency = item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).get(EnchantmentTypes.EFFICIENCY);
             if (efficiency != null && efficiency.level() > 0) {
                 speed += efficiency.level() * efficiency.level() + 1;
             }

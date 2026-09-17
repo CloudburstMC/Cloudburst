@@ -8,9 +8,9 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 /**
- * Serializes entity type metadata stored by item tags such as spawn eggs.
+ * Serializes the entity type stored by item tags such as spawn eggs.
  */
-public class EntityTypeSerializer implements ItemDataSerializer<EntityType<?>> {
+public class EntityTypeSerializer implements ItemDataComponentSerializer<EntityType<?>> {
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, EntityType<?> value) {

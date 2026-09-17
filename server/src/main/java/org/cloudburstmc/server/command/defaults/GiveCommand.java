@@ -75,7 +75,7 @@ public class GiveCommand extends AdvertisedCommand {
             prototype = builder.build();
         }
 
-        String customName = prototype.get(ItemKeys.CUSTOM_NAME);
+        String customName = prototype.get(ItemDataComponents.CUSTOM_NAME);
         String itemDisplay = customName == null ? type.getId().toString() : customName + " (" + prototype.getType().getId() + ")";
         for (CloudPlayer player : players) {
             if (!prototype.isEmpty()) {
@@ -95,7 +95,7 @@ public class GiveCommand extends AdvertisedCommand {
 
     private static void give(CloudPlayer player, ItemStack prototype, int amount) {
         int maxStackSize = player.getServer().getItemRegistry()
-                .requireComponent(prototype.getType(), ItemComponents.GET_MAX_STACK_SIZE)
+                .requireComponent(prototype.getType(), ItemBehaviors.GET_MAX_STACK_SIZE)
                 .execute(prototype);
 
         int remaining = amount;

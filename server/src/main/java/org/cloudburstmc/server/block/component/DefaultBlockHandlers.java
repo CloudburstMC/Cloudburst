@@ -7,7 +7,7 @@ import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
@@ -177,7 +177,7 @@ public class DefaultBlockHandlers {
         return state.getType().asItem()
                 .<List<ItemStack>>map(itemType -> List.of(ItemStack.builder()
                         .itemType(itemType)
-                        .data(ItemKeys.BLOCK_STATE, state.getType().getDefaultState())
+                        .setData(ItemDataComponents.BLOCK_STATE, state.getType().getDefaultState())
                         .amount(1)
                         .build()))
                 .orElseGet(List::of);
@@ -190,7 +190,7 @@ public class DefaultBlockHandlers {
         return defaultState.getType().asItem()
                 .map(itemType -> ItemStack.builder()
                         .itemType(itemType)
-                        .data(ItemKeys.BLOCK_STATE, defaultState)
+                        .setData(ItemDataComponents.BLOCK_STATE, defaultState)
                         .amount(1)
                         .build())
                 .orElse(ItemStack.EMPTY);

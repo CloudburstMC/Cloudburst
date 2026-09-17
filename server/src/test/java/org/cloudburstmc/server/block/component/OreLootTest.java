@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -89,7 +89,7 @@ class OreLootTest {
         CloudItemRegistry.get();
         return ItemStack.builder()
                 .itemType(ItemTypes.DIAMOND_PICKAXE)
-                .data(ItemKeys.ENCHANTMENTS, Map.of(type, new Enchantment(type, level)))
+                .setData(ItemDataComponents.ENCHANTMENTS, Map.of(type, new Enchantment(type, level)))
                 .build();
     }
 }

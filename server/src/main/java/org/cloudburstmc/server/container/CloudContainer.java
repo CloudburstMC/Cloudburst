@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.nbt.NbtMap;
@@ -226,7 +226,7 @@ public class CloudContainer implements Container {
         int count = single ? 1 : item.getCount();
         int maxStackSize = Math.min(
                 this.maxStackSize,
-                this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)
+                this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)
         );
 
         for (int i = 0; i < this.size(); ++i) {
@@ -274,7 +274,7 @@ public class CloudContainer implements Container {
 
         int maxStackSize = Math.min(
                 this.maxStackSize,
-                this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)
+                this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)
         );
 
         for (int i = 0; i < this.size(); ++i) {
@@ -321,7 +321,7 @@ public class CloudContainer implements Container {
                 continue;
             }
 
-            int maxStack = this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
+            int maxStack = this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
 
             for (int j = 0; j < itemSlots.size(); j++) {
                 ItemStack slot = itemSlots.get(j);
@@ -352,7 +352,7 @@ public class CloudContainer implements Container {
             for (int slotIndex : emptySlots) {
                 if (!itemSlots.isEmpty()) {
                     ItemStack slot = itemSlots.get(0);
-                    int maxStackSize = this.itemRegistry.requireComponent(slot.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(slot);
+                    int maxStackSize = this.itemRegistry.requireComponent(slot.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(slot);
                     int amount = Math.min(maxStackSize, slot.getCount());
                     amount = Math.min(amount, this.getMaxStackSize());
 
@@ -517,7 +517,7 @@ public class CloudContainer implements Container {
         for (int i = 0; i < this.size(); i++) {
             ItemStack item = this.getItem(i);
             if (item.isEmpty() || item.getCount() < this.getMaxStackSize() &&
-                    item.getCount() < this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item)) {
+                    item.getCount() < this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item)) {
                 return false;
             }
         }
@@ -542,7 +542,7 @@ public class CloudContainer implements Container {
     }
 
     public int getFreeSpace(ItemStack item) {
-        int itemMaxStackSize = this.itemRegistry.requireComponent(item.getType(), ItemComponents.GET_MAX_STACK_SIZE).execute(item);
+        int itemMaxStackSize = this.itemRegistry.requireComponent(item.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(item);
         int maxStackSize = Math.min(itemMaxStackSize, this.getMaxStackSize());
         int space = 0;
 

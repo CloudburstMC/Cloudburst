@@ -1,31 +1,22 @@
 package org.cloudburstmc.server.item.serializer;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.*;
 import org.cloudburstmc.api.entity.passive.*;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-import java.util.Map;
-
 public class SpawnEggSerializer extends DefaultItemSerializer {
-
-    private static final Map<Class<?>, Object> DEFAULT_VALUES;
-
-    static {
-        DEFAULT_VALUES = Map.of(EntityType.class, EntityTypes.BAT);
-    }
 
     @Override
     public void serialize(ItemStack item, NbtMapBuilder itemTag) {
         super.serialize(item, itemTag);
-        Class<?> type = item.get(ItemKeys.SPAWN_EGG_TYPE).getEntityClass();
+        Class<?> type = item.get(ItemDataComponents.SPAWN_EGG_TYPE).getEntityClass();
 
         if (Bat.class.isAssignableFrom(type)) {
             itemTag.putString(NAME_TAG, ItemTypes.BAT_SPAWN_EGG.getId().toString());
@@ -164,8 +155,4 @@ public class SpawnEggSerializer extends DefaultItemSerializer {
         super.deserialize(id, meta, builder, tag);
     }
 
-    @Override
-    public Map<Class<?>, Object> getDefaultMetadataValues() {
-        return DEFAULT_VALUES;
-    }
 }

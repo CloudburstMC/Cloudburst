@@ -2,12 +2,14 @@ package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.enchantment.EnchantmentTarget;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
@@ -35,15 +37,13 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
-        implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
+public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
     private static final String ITEM_ALIAS_PREFIX = "item.";
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry();
 
     private final Object2ReferenceMap<Identifier, ItemType> typeMap = new Object2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
-    private final Reference2ObjectMap<DataKey<?, ?>, ItemDataSerializer<?>> dataSerializers =
-            new Reference2ObjectLinkedOpenHashMap<>();
+    private final Map<ItemDataComponentType<?>, ItemDataComponentSerializer<?>> dataComponentSerializers = new LinkedHashMap<>();
     private final ItemPalette itemPalette = new ItemPalette(this);
     private int hardcodedBlockingId;
     private volatile boolean closed;
@@ -54,7 +54,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
             ItemTypes.values().forEach(this::registerVanilla);
             VanillaItemBehaviors.configure(this);
             VanillaItemTags.freeze();
-            this.registerVanillaDataSerializers();
+            this.registerVanillaDataComponentSerializers();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -64,16 +64,18 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         return INSTANCE;
     }
 
-    public synchronized <T> void registerDataSerializer(DataKey<T, T> dataKey, ItemDataSerializer<T> serializer)
-            throws RegistryException {
-        Preconditions.checkNotNull(dataKey, "dataKey");
+    private synchronized <T> void registerDataComponentSerializer(ItemDataComponentType<T> dataType, ItemDataComponentSerializer<T> serializer) throws RegistryException {
+        Preconditions.checkNotNull(dataType, "dataType");
         Preconditions.checkNotNull(serializer, "serializer");
         checkClosed();
-        this.dataSerializers.put(dataKey, serializer);
+        if (this.dataComponentSerializers.containsKey(dataType)) {
+            throw new RegistryException("A serializer is already registered for item data component " + dataType.getId());
+        }
+        this.dataComponentSerializers.put(dataType, serializer);
     }
 
-    public List<DataKey<?, ?>> getSerializedDataKeys() {
-        return List.copyOf(this.dataSerializers.keySet());
+    public List<ItemDataComponentType<?>> getSerializedDataComponents() {
+        return List.copyOf(this.dataComponentSerializers.keySet());
     }
 
     @Override
@@ -205,8 +207,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         }
 
         BlockState defaultState = type.getDefaultState();
-        components.set(ItemComponents.GET_BLOCK, item -> {
-            BlockState state = item.get(ItemKeys.BLOCK_STATE);
+        components.set(ItemBehaviors.GET_BLOCK, item -> {
+            BlockState state = item.get(ItemDataComponents.BLOCK_STATE);
             return Optional.of(state != null ? state : defaultState);
         });
     }
@@ -215,8 +217,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public ItemDataSerializer<?> getDataSerializer(DataKey<?, ?> dataKey) {
-        return dataSerializers.get(dataKey);
+    public ItemDataComponentSerializer<?> getDataComponentSerializer(ItemDataComponentType<?> dataType) {
+        return dataComponentSerializers.get(dataType);
     }
 
     @Override
@@ -379,48 +381,48 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType>
         return true;
     }
 
-    private void registerVanillaDataSerializers() throws RegistryException {
-        this.registerDataSerializer(ItemKeys.BANNER_DATA, new BannerDataSerializer());
-        this.registerDataSerializer(ItemKeys.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
-        this.registerDataSerializer(ItemKeys.ITEM_LOCK, new ItemLockModeSerializer());
-        this.registerDataSerializer(ItemKeys.KEEP_ON_DEATH, new PrimitiveSerializer<>("minecraft:keep_on_death", Boolean.class));
-        this.registerDataSerializer(ItemKeys.REPAIR_COST, new PrimitiveSerializer<>("RepairCost", Integer.class));
-        this.registerDataSerializer(ItemKeys.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
-        this.registerDataSerializer(ItemKeys.MAP_DATA, new MapSerializer());
-        this.registerDataSerializer(ItemKeys.BOOK_DATA, new WrittenBookSerializer());
-        this.registerDataSerializer(ItemKeys.SPAWN_EGG_TYPE, new EntityTypeSerializer());
+    private void registerVanillaDataComponentSerializers() throws RegistryException {
+        this.registerDataComponentSerializer(ItemDataComponents.BANNER_DATA, new BannerDataSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
+        this.registerDataComponentSerializer(ItemDataComponents.ITEM_LOCK, new ItemLockModeSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.KEEP_ON_DEATH, new PrimitiveSerializer<>("minecraft:keep_on_death", Boolean.class));
+        this.registerDataComponentSerializer(ItemDataComponents.REPAIR_COST, new PrimitiveSerializer<>("RepairCost", Integer.class));
+        this.registerDataComponentSerializer(ItemDataComponents.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
+        this.registerDataComponentSerializer(ItemDataComponents.MAP_DATA, new MapSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.BOOK_DATA, new WrittenBookSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());
     }
 
     private void registerVanillaBehaviors() {
-        this.registerComponent(ItemComponents.ALLOW_OFFHAND, () -> false);
-        this.registerComponent(ItemComponents.ARMOR);
-        this.registerComponent(ItemComponents.ATTACK_DAMAGE_TYPE, DamageTypes.PLAYER_ATTACK);
-        this.registerComponent(ItemComponents.CAN_BE_CHARGED, () -> false);
-        this.registerComponent(ItemComponents.CAN_BE_DEPLETED, () -> false);
-        this.registerComponent(ItemComponents.CAN_BE_PLACED, (item) -> false);
-        this.registerComponent(ItemComponents.CAN_BE_PLACED_ON, DefaultItemHandlers.CAN_BE_PLACED_ON);
-        this.registerComponent(ItemComponents.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
-        this.registerComponent(ItemComponents.CAN_DESTROY_IN_CREATIVE, () -> true);
-        this.registerComponent(ItemComponents.CAN_ENCHANT_WITH, (item, enchantment) -> false);
-        this.registerComponent(ItemComponents.CAN_REPAIR_WITH, (item, material) -> false);
-        this.registerComponent(ItemComponents.CAN_STORE_ENCHANTMENTS, () -> true);
-        this.registerComponent(ItemComponents.DAMAGEABLE, () -> false);
-        this.registerComponent(ItemComponents.FINISH_USE);
-        this.registerComponent(ItemComponents.FUEL_DURATION, () -> 0f);
-        this.registerComponent(ItemComponents.GET_ATTACK_DAMAGE, (item) -> 1f);
-        this.registerComponent(ItemComponents.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);
-        this.registerComponent(ItemComponents.GET_BLOCK, (item) -> Optional.empty());
-        this.registerComponent(ItemComponents.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
-        this.registerComponent(ItemComponents.GET_EQUIPMENT_SLOT, item -> null);
-        this.registerComponent(ItemComponents.GET_MAX_DAMAGE, (item) -> 0);
-        this.registerComponent(ItemComponents.GET_MAX_STACK_SIZE, (item) -> 64);
-        this.registerComponent(ItemComponents.GET_TOOL, item -> null);
-        this.registerComponent(ItemComponents.MINE_BLOCK, (item, block, owner) -> item);
-        this.registerComponent(ItemComponents.ON_DAMAGE, (item, damage, owner) -> item);
-        this.registerComponent(ItemComponents.SPAWN_EGG);
-        this.registerComponent(ItemComponents.USE);
-        this.registerComponent(ItemComponents.USE_DURATION_TICKS);
-        this.registerComponent(ItemComponents.USE_ON);
+        this.registerComponent(ItemBehaviors.ALLOW_OFFHAND, () -> false);
+        this.registerComponent(ItemBehaviors.ARMOR);
+        this.registerComponent(ItemBehaviors.ATTACK_DAMAGE_TYPE, DamageTypes.PLAYER_ATTACK);
+        this.registerComponent(ItemBehaviors.CAN_BE_CHARGED, () -> false);
+        this.registerComponent(ItemBehaviors.CAN_BE_DEPLETED, () -> false);
+        this.registerComponent(ItemBehaviors.CAN_BE_PLACED, (item) -> false);
+        this.registerComponent(ItemBehaviors.CAN_BE_PLACED_ON, DefaultItemHandlers.CAN_BE_PLACED_ON);
+        this.registerComponent(ItemBehaviors.CAN_DESTROY, DefaultItemHandlers.CAN_DESTROY);
+        this.registerComponent(ItemBehaviors.CAN_DESTROY_IN_CREATIVE, () -> true);
+        this.registerComponent(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> false);
+        this.registerComponent(ItemBehaviors.CAN_REPAIR_WITH, (item, material) -> false);
+        this.registerComponent(ItemBehaviors.CAN_STORE_ENCHANTMENTS, () -> true);
+        this.registerComponent(ItemBehaviors.DAMAGEABLE, () -> false);
+        this.registerComponent(ItemBehaviors.FINISH_USE);
+        this.registerComponent(ItemBehaviors.FUEL_DURATION, () -> 0f);
+        this.registerComponent(ItemBehaviors.GET_ATTACK_DAMAGE, (item) -> 1f);
+        this.registerComponent(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);
+        this.registerComponent(ItemBehaviors.GET_BLOCK, (item) -> Optional.empty());
+        this.registerComponent(ItemBehaviors.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
+        this.registerComponent(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> null);
+        this.registerComponent(ItemBehaviors.GET_MAX_DAMAGE, (item) -> 0);
+        this.registerComponent(ItemBehaviors.GET_MAX_STACK_SIZE, (item) -> 64);
+        this.registerComponent(ItemBehaviors.GET_TOOL, item -> null);
+        this.registerComponent(ItemBehaviors.MINE_BLOCK, (item, block, owner) -> item);
+        this.registerComponent(ItemBehaviors.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemBehaviors.SPAWN_EGG);
+        this.registerComponent(ItemBehaviors.USE);
+        this.registerComponent(ItemBehaviors.USE_DURATION_TICKS);
+        this.registerComponent(ItemBehaviors.USE_ON);
     }
 
     public void registerCreativeItem(ItemStack item) {

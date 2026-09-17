@@ -694,7 +694,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     @Override
     public Collection<Recipe> getRecipesFor(ItemStack result) {
         return recipeMap.values().stream()
-                .filter(r -> r.getResult().isSimilarMetadata(result))
+                .filter(r -> r.getResult().hasSameDataComponents(result))
                 .collect(ImmutableList.toImmutableList());
     }
 

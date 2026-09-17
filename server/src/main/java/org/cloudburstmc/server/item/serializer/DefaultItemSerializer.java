@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.item.serializer;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.data.DataKey;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponentType;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.data.BucketEntityData;
@@ -12,7 +12,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.data.serializer.ItemDataSerializer;
+import org.cloudburstmc.server.item.data.serializer.ItemDataComponentSerializer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -46,22 +46,22 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     private static void serializeRegisteredData(ItemStack item, NbtMapBuilder tag) {
-        for (Map.Entry<DataKey<?, ?>, ?> entry : item.getAllMetadata().entrySet()) {
+        for (Map.Entry<ItemDataComponentType<?>, ?> entry : item.getDataComponents().entrySet()) {
             serializeRegisteredDataValue(item, tag, entry.getKey(), entry.getValue());
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void serializeRegisteredDataValue(ItemStack item, NbtMapBuilder tag, DataKey dataKey, Object value) {
-        ItemDataSerializer serializer = CloudItemRegistry.get().getDataSerializer(dataKey);
+    private static void serializeRegisteredDataValue(ItemStack item, NbtMapBuilder tag, ItemDataComponentType dataType, Object value) {
+        ItemDataComponentSerializer serializer = CloudItemRegistry.get().getDataComponentSerializer(dataType);
         if (serializer != null) {
             serializer.serialize(item, tag, value);
         }
     }
 
     private static void serializeDisplay(ItemStack item, NbtMapBuilder tag) {
-        String customName = item.get(ItemKeys.CUSTOM_NAME);
-        List<String> customLore = item.get(ItemKeys.CUSTOM_LORE);
+        String customName = item.get(ItemDataComponents.CUSTOM_NAME);
+        List<String> customLore = item.getOrDefault(ItemDataComponents.CUSTOM_LORE, List.of());
         if (customName == null && customLore.isEmpty()) {
             return;
         }
@@ -79,7 +79,7 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     private static void serializeEnchantments(ItemStack item, NbtMapBuilder tag) {
-        Map<EnchantmentType, Enchantment> enchantments = item.get(ItemKeys.ENCHANTMENTS);
+        Map<EnchantmentType, Enchantment> enchantments = item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of());
         if (enchantments.isEmpty()) {
             return;
         }
@@ -98,7 +98,7 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     private static void serializeBucketEntityData(ItemStack item, NbtMapBuilder tag) {
-        BucketEntityData bucketEntityData = item.get(ItemKeys.BUCKET_ENTITY_DATA);
+        BucketEntityData bucketEntityData = item.get(ItemDataComponents.BUCKET_ENTITY_DATA);
         if (bucketEntityData == null) {
             return;
         }
@@ -123,21 +123,21 @@ public class DefaultItemSerializer implements ItemSerializer {
     }
 
     private static void deserializeRegisteredData(Identifier id, ItemStackBuilder builder, NbtMap tag) {
-        for (DataKey<?, ?> dataKey : CloudItemRegistry.get().getSerializedDataKeys()) {
-            deserializeRegisteredDataValue(id, builder, tag, dataKey);
+        for (ItemDataComponentType<?> dataType : CloudItemRegistry.get().getSerializedDataComponents()) {
+            deserializeRegisteredDataValue(id, builder, tag, dataType);
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void deserializeRegisteredDataValue(Identifier id, ItemStackBuilder builder, NbtMap tag, DataKey dataKey) {
-        ItemDataSerializer serializer = CloudItemRegistry.get().getDataSerializer(dataKey);
+    private static void deserializeRegisteredDataValue(Identifier id, ItemStackBuilder builder, NbtMap tag, ItemDataComponentType dataType) {
+        ItemDataComponentSerializer serializer = CloudItemRegistry.get().getDataComponentSerializer(dataType);
         if (serializer == null) {
             return;
         }
 
         Object value = serializer.deserialize(id, tag);
         if (value != null) {
-            builder.data(dataKey, value);
+            builder.setData(dataType, value);
         }
     }
 
@@ -148,13 +148,13 @@ public class DefaultItemSerializer implements ItemSerializer {
 
         NbtMap display = tag.getCompound(TAG_DISPLAY);
         if (display.containsKey(TAG_DISPLAY_NAME, NbtType.STRING)) {
-            builder.data(ItemKeys.CUSTOM_NAME, display.getString(TAG_DISPLAY_NAME));
+            builder.setData(ItemDataComponents.CUSTOM_NAME, display.getString(TAG_DISPLAY_NAME));
         }
 
         if (display.containsKey(TAG_DISPLAY_LORE, NbtType.LIST)) {
             List<String> lore = display.getList(TAG_DISPLAY_LORE, NbtType.STRING, Collections.emptyList());
             if (!lore.isEmpty()) {
-                builder.data(ItemKeys.CUSTOM_LORE, lore);
+                builder.setData(ItemDataComponents.CUSTOM_LORE, lore);
             }
         }
     }
@@ -174,7 +174,7 @@ public class DefaultItemSerializer implements ItemSerializer {
         }
 
         if (!enchantments.isEmpty()) {
-            builder.data(ItemKeys.ENCHANTMENTS, enchantments);
+            builder.setData(ItemDataComponents.ENCHANTMENTS, enchantments);
         }
     }
 
@@ -201,7 +201,7 @@ public class DefaultItemSerializer implements ItemSerializer {
         }
 
         NbtMap bucketEntityData = tag.getCompound(TAG_BUCKET_ENTITY_DATA);
-        builder.data(ItemKeys.BUCKET_ENTITY_DATA, new BucketEntityData(
+        builder.setData(ItemDataComponents.BUCKET_ENTITY_DATA, new BucketEntityData(
                 bucketEntityData.getFloat(TAG_ENTITY_HEALTH),
                 bucketEntityData.getBoolean(TAG_ENTITY_INVULNERABLE, false),
                 bucketEntityData.getBoolean(TAG_ENTITY_IMMOBILE, false)));

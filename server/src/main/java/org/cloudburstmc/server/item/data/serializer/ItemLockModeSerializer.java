@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-public class ItemLockModeSerializer implements ItemDataSerializer<ItemLockMode> {
+public class ItemLockModeSerializer implements ItemDataComponentSerializer<ItemLockMode> {
     private static final String TAG_ITEM_LOCK = "minecraft:item_lock";
     private static final byte LOCK_IN_SLOT_VALUE = 1;
     private static final byte LOCK_IN_INVENTORY_VALUE = 2;

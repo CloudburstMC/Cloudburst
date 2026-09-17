@@ -3,7 +3,7 @@ package org.cloudburstmc.server.item.component;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.EquipmentSlot;
-import org.cloudburstmc.api.item.ItemComponents;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.server.level.Sound;
@@ -26,7 +26,7 @@ public class ArmorItemHandlers {
             return -1;
         }
 
-        EquipmentSlot slot = CloudItemRegistry.get().requireComponent(item.getType(), ItemComponents.GET_EQUIPMENT_SLOT).execute(item);
+        EquipmentSlot slot = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.GET_EQUIPMENT_SLOT).execute(item);
         return slot == null || !slot.isArmor() ? -1 : slot.getArmorSlot();
     }
 
@@ -38,7 +38,7 @@ public class ArmorItemHandlers {
 
             ArmorView armor = player.getArmor();
             ItemStack equipped = armor.getItem(armorSlot);
-            if (itemStack.isSimilarMetadata(equipped)) {
+            if (itemStack.hasSameDataComponents(equipped)) {
                 return itemStack;
             }
 

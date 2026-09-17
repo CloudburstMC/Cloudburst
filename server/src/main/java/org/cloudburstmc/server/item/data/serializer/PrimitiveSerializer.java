@@ -6,11 +6,11 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
 /**
- * Serializes simple scalar metadata values stored directly on the item tag.
+ * Serializes scalar item data stored directly on the item tag.
  *
  * @param <T> the expected NBT value type
  */
-public class PrimitiveSerializer<T> implements ItemDataSerializer<T> {
+public class PrimitiveSerializer<T> implements ItemDataComponentSerializer<T> {
 
     private final String key;
     private final Class<T> type;

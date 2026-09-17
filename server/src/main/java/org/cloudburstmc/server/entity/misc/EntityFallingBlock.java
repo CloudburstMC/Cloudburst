@@ -11,7 +11,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -422,7 +422,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
                 this.getPosition(),
                 ItemStack.builder()
                         .itemType(itemType)
-                        .data(ItemKeys.BLOCK_STATE, this.blockState)
+                        .setData(ItemDataComponents.BLOCK_STATE, this.blockState)
                         .amount(1)
                         .build()));
     }

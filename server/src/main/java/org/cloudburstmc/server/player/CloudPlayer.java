@@ -2051,7 +2051,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         int slot = this.activeUseSlot;
         this.setUsingItem(false);
         FinishUseHandler handler = CloudItemRegistry.get().requireComponent(
-                item.getType(), ItemComponents.FINISH_USE);
+                item.getType(), ItemBehaviors.FINISH_USE);
         this.getInventory().setItem(slot, handler.execute(item, this));
     }
 
@@ -2146,7 +2146,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return false;
         }
 
-        IntItemHandler maxDamageHandler = CloudItemRegistry.get().requireComponent(chestplate.getType(), ItemComponents.GET_MAX_DAMAGE);
+        IntItemHandler maxDamageHandler = CloudItemRegistry.get().requireComponent(chestplate.getType(), ItemBehaviors.GET_MAX_DAMAGE);
         if (maxDamageHandler == null) {
             return true;
         }
@@ -2981,7 +2981,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         ItemStack heldItem = this.getInventory().getSelectedItem();
         float baseDamage = 1;
         if (!heldItem.isEmpty()) {
-            FloatItemHandler attackDamage = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DAMAGE);
+            FloatItemHandler attackDamage = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.GET_ATTACK_DAMAGE);
             baseDamage = attackDamage.execute(heldItem);
         }
 
@@ -2992,7 +2992,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             damage += baseDamage * 0.5f;
         }
 
-        DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.ATTACK_DAMAGE_TYPE);
+        DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ATTACK_DAMAGE_TYPE);
         DamageSource source = DamageSource.of(damageType, this);
 
         boolean damaged = target.damage(damage, source);
@@ -3084,13 +3084,13 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         int durabilityDamage = CloudItemRegistry.get()
-                .requireComponent(heldItem.getType(), ItemComponents.GET_ATTACK_DURABILITY_DAMAGE)
+                .requireComponent(heldItem.getType(), ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE)
                 .execute(heldItem);
         if (durabilityDamage <= 0) {
             return;
         }
 
-        DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemComponents.ON_DAMAGE);
+        DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ON_DAMAGE);
         ItemStack damagedItem = damageItem.execute(heldItem, durabilityDamage, this);
         if (!damagedItem.equals(heldItem)) {
             this.getInventory().setSelectedItem(damagedItem);
@@ -3370,7 +3370,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     private static void clearItemsLostOnDeath(SlotGroup slots) {
         for (int slot = 0; slot < slots.size(); slot++) {
-            if (slots.getItem(slot).get(ItemKeys.KEEP_ON_DEATH) != Boolean.TRUE) {
+            if (slots.getItem(slot).get(ItemDataComponents.KEEP_ON_DEATH) != Boolean.TRUE) {
                 slots.setItem(slot, ItemStack.EMPTY);
             }
         }
@@ -4085,10 +4085,9 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     private static boolean isMendingRepairCandidate(ItemStack item) {
         ItemType type = item.getType();
-        return type != null
-                && item.hasDamage()
-                && CloudItemRegistry.get().requireComponent(type, ItemComponents.DAMAGEABLE).get()
-                && item.get(ItemKeys.ENCHANTMENTS).containsKey(EnchantmentTypes.MENDING);
+        return item.hasDamage() && CloudItemRegistry.get().requireComponent(type,
+                ItemBehaviors.DAMAGEABLE).get() && item.getOrDefault(ItemDataComponents.ENCHANTMENTS,
+                Map.of()).containsKey(EnchantmentTypes.MENDING);
     }
 
     private record MendingRepairSlot(SlotGroup slotGroup, int slot, ItemStack item) {

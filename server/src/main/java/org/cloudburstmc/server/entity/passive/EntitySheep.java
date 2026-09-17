@@ -4,7 +4,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Sheep;
-import org.cloudburstmc.api.item.ItemKeys;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -77,8 +77,8 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public boolean onInteract(Player player, ItemStack item) {
-        if (item.getAllMetadata().containsKey(ItemKeys.COLOR)) {
-            this.setColor(item.get(ItemKeys.COLOR));
+        if (item.has(ItemDataComponents.COLOR)) {
+            this.setColor(item.get(ItemDataComponents.COLOR));
             return true;
         }
 
