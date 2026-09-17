@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
 public final class DamageType {
 
     private final Identifier id;
-    private final String messageId;
+    private final String translationKey;
     private final DamageScaling scaling;
     private final float exhaustion;
     private final DamageEffect effect;
@@ -25,16 +25,19 @@ public final class DamageType {
      * Creates a damage type.
      *
      * @param id               the stable identifier
-     * @param messageId        the suffix used by death-message translation keys
+     * @param translationKey   the death-message translation key
      * @param scaling          the difficulty scaling rule
      * @param exhaustion       the hunger exhaustion caused by the damage
-     * @param effect           the client feedback effect
+     * @param effect           the damage feedback effect
      * @param deathMessageType the death-message rule
      * @param tags             the behavioral tags
      */
-    public DamageType(Identifier id, String messageId, DamageScaling scaling, float exhaustion, DamageEffect effect, DeathMessageType deathMessageType, Set<DamageTypeTag> tags) {
+    public DamageType(Identifier id, String translationKey, DamageScaling scaling, float exhaustion, DamageEffect effect, DeathMessageType deathMessageType, Set<DamageTypeTag> tags) {
         this.id = requireNonNull(id, "id");
-        this.messageId = requireNonNull(messageId, "messageId");
+        this.translationKey = requireNonNull(translationKey, "translationKey");
+        if (translationKey.isBlank()) {
+            throw new IllegalArgumentException("translationKey cannot be blank");
+        }
         this.scaling = requireNonNull(scaling, "scaling");
         if (!Float.isFinite(exhaustion) || exhaustion < 0) {
             throw new IllegalArgumentException("exhaustion must be finite and non-negative");
@@ -55,25 +58,16 @@ public final class DamageType {
     }
 
     /**
-     * Returns the death-message translation key suffix.
-     *
-     * @return the message id
-     */
-    public String getMessageId() {
-        return this.messageId;
-    }
-
-    /**
      * Returns the default death-message translation key.
      *
      * @return the translation key
      */
     public String getTranslationKey() {
-        return "death.attack." + this.messageId;
+        return this.translationKey;
     }
 
     /**
-     * Returns when damage of this type scales with difficulty.
+     * Returns whether this damage type scales with difficulty.
      *
      * @return the difficulty scaling rule
      */

@@ -7,7 +7,6 @@ import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.translation.GlobalTranslator;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
@@ -74,7 +73,7 @@ public class CloudConsoleCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(@NotNull Component message) {
-        Component rendered = GlobalTranslator.render(message, CloudServer.getInstance().getLanguage().getLocale());
+        Component rendered = CloudConsoleMessageRenderer.render(message, CloudServer.getInstance().getLanguage());
         String text = PlainTextComponentSerializer.plainText().serialize(rendered);
         for (String line : text.split("\\R")) {
             log.info(line);

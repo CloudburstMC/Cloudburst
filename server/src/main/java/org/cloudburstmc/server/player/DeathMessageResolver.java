@@ -15,7 +15,6 @@ import java.util.Objects;
 
 @UtilityClass
 public class DeathMessageResolver {
-
     private static final String GENERIC = "death.attack.generic";
 
     public static Resolution resolve(CloudPlayer victim, @Nullable EntityDamageEvent event) {
@@ -26,7 +25,7 @@ public class DeathMessageResolver {
         DamageSource source = event.getDamageSource();
         DamageType type = source.getDamageType();
         Entity attacker = source.getCausingEntity();
-        if (type == DamageTypes.PLAYER_ATTACK || type == DamageTypes.MOB_ATTACK || type == DamageTypes.MOB_ATTACK_NO_AGGRO) {
+        if (usesAttackerName(type)) {
             return entityAttack(victim, attacker);
         }
 
@@ -55,6 +54,15 @@ public class DeathMessageResolver {
         }
 
         return message(victim, type.getTranslationKey(), null);
+    }
+
+    private static boolean usesAttackerName(DamageType type) {
+        return type.is(DamageTypeTags.IS_PLAYER_ATTACK)
+                || type == DamageTypes.INDIRECT_MAGIC
+                || type == DamageTypes.MOB_ATTACK
+                || type == DamageTypes.MOB_ATTACK_NO_AGGRO
+                || type == DamageTypes.SPIT
+                || type == DamageTypes.STING;
     }
 
     private static Resolution entityAttack(CloudPlayer victim, @Nullable Entity attacker) {

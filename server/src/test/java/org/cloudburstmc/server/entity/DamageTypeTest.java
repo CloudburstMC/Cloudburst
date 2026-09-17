@@ -5,6 +5,7 @@ import org.cloudburstmc.api.entity.damage.DamageScaling;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.damage.DeathMessageType;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.network.VanillaTranslationKeys;
 import org.junit.jupiter.api.Test;
 
 import static org.cloudburstmc.api.entity.damage.DamageTypeTags.*;
@@ -16,11 +17,19 @@ class DamageTypeTest {
     void exposesVanillaDamageBehavior() {
         assertAll(
                 () -> assertEquals("death.attack.onFire", DamageTypes.ON_FIRE.getTranslationKey()),
+                () -> assertEquals("death.attack.generic", DamageTypes.GENERIC_KILL.getTranslationKey()),
                 () -> assertEquals(DamageEffect.BURNING, DamageTypes.ON_FIRE.getDamageEffect()),
                 () -> assertEquals(DamageScaling.ALWAYS, DamageTypes.EXPLOSION.getDamageScaling()),
                 () -> assertEquals(0.1f, DamageTypes.EXPLOSION.getExhaustion()),
                 () -> assertEquals(DeathMessageType.FALL_VARIANTS, DamageTypes.FALL.getDeathMessageType())
         );
+    }
+
+    @Test
+    public void usesAvailableVanillaDeathMessageTranslations() {
+        for (var damageType : DamageTypes.values()) {
+            assertTrue(VanillaTranslationKeys.contains(damageType.getTranslationKey()), damageType::toString);
+        }
     }
 
     @Test

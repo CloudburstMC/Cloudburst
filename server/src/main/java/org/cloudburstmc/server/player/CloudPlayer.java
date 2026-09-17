@@ -112,10 +112,7 @@ import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
-import org.cloudburstmc.server.network.GameModeNetworkMapping;
-import org.cloudburstmc.server.network.NetworkUtils;
-import org.cloudburstmc.server.network.VanillaBlockNetworkData;
-import org.cloudburstmc.server.network.VanillaJigsawStructureNetworkData;
+import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
@@ -2563,7 +2560,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     @Override
     public void sendMessage(@NonNull Component message) {
-        this.sendPacket(BedrockTextPacketFactory.message(message, getLocale()));
+        this.sendPacket(TextPacketFactory.system(message, getLocale()));
     }
 
     @Override
@@ -2586,17 +2583,17 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public void sendChat(String source, Component message) {
-        this.sendPacket(BedrockTextPacketFactory.chat(source, message, getLocale()));
+        this.sendPacket(TextPacketFactory.chat(source, message, getLocale()));
     }
 
     @Override
     public void sendPopup(Component message) {
-        this.sendPacket(BedrockTextPacketFactory.popup(message, getLocale()));
+        this.sendPacket(TextPacketFactory.popup(message, getLocale()));
     }
 
     @Override
     public void sendTip(Component message) {
-        this.sendPacket(BedrockTextPacketFactory.tip(message, getLocale()));
+        this.sendPacket(TextPacketFactory.tip(message, getLocale()));
     }
 
     @Override
