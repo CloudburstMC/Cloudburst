@@ -16,13 +16,20 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Creates outbound text packets from components rendered for a recipient locale.
+ * Creates text packets for messages sent to players.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TextPacketFactory {
     private static final int MAX_TRANSLATION_PARAMETERS = 4;
     private static final BedrockLegacyTextSerializer LEGACY_TEXT_SERIALIZER = BedrockLegacyTextSerializer.getInstance();
 
+    /**
+     * Creates a packet for a system message.
+     *
+     * @param message the message
+     * @param locale  the recipient locale
+     * @return the text packet
+     */
     public static TextPacket system(Component message, Locale locale) {
         requireNonNull(message, "message");
         requireNonNull(locale, "locale");
@@ -34,16 +41,38 @@ public class TextPacketFactory {
         return localized(TextPacket.Type.SYSTEM, message, locale);
     }
 
+    /**
+     * Creates a packet for a chat message attributed to a source.
+     *
+     * @param source  the displayed source name
+     * @param message the message
+     * @param locale  the recipient locale
+     * @return the text packet
+     */
     public static TextPacket chat(String source, Component message, Locale locale) {
         TextPacket packet = localized(TextPacket.Type.CHAT, message, locale);
         packet.setSourceName(requireNonNull(source, "source"));
         return packet;
     }
 
+    /**
+     * Creates a packet for a popup message.
+     *
+     * @param message the message
+     * @param locale  the recipient locale
+     * @return the text packet
+     */
     public static TextPacket popup(Component message, Locale locale) {
         return localized(TextPacket.Type.POPUP, message, locale);
     }
 
+    /**
+     * Creates a packet for a tip message.
+     *
+     * @param message the message
+     * @param locale  the recipient locale
+     * @return the text packet
+     */
     public static TextPacket tip(Component message, Locale locale) {
         return localized(TextPacket.Type.TIP, message, locale);
     }
