@@ -175,10 +175,9 @@ public final class PendingTickSerializer {
 
                     Vector3i pos = Vector3i.from(x, y, z);
                     NbtMap serializedState = entry.getCompound(FIELD_BLOCK_STATE);
-                    BlockState state = BlockPalette.INSTANCE.getSerializedPalette().get(serializedState);
+                    BlockState state = BlockPalette.INSTANCE.getBlockState(serializedState);
                     if (state == null) {
-                        log.warn("Discarding pending tick for unknown serialized block state {} at ({}, {}, {}) "
-                                        + "in level \"{}\" chunk ({}, {})",
+                        log.warn("Discarding pending tick for unknown serialized block state {} at ({}, {}, {}) in level \"{}\" chunk ({}, {})",
                                 serializedState, x, y, z, level.getName(), chunk.getX(), chunk.getZ());
                         continue;
                     }
