@@ -32,6 +32,12 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.data;
     exports org.cloudburstmc.api.enchantment;
     exports org.cloudburstmc.api.entity;
+    exports org.cloudburstmc.api.entity.ai.behavior;
+    exports org.cloudburstmc.api.entity.ai.behaviorgroup;
+    exports org.cloudburstmc.api.entity.ai.controller;
+    exports org.cloudburstmc.api.entity.ai.memory;
+    exports org.cloudburstmc.api.entity.ai.route;
+    exports org.cloudburstmc.api.entity.ai.sensor;
     exports org.cloudburstmc.api.entity.component;
     exports org.cloudburstmc.api.entity.damage;
     exports org.cloudburstmc.api.entity.hostile;

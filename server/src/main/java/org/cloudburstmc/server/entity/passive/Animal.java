@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.ai.behaviorgroup.BehaviorGroup;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -9,6 +10,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
+import org.cloudburstmc.server.entity.CloudEntityIntelligent;
 import org.cloudburstmc.server.entity.EntityCreature;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
@@ -17,7 +19,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
  * Abstract base class for passive animals. Extends {@link EntityCreature} and implements {@link EntityAgeable}
  * for baby/adult state.
  */
-public abstract class Animal extends EntityCreature implements EntityAgeable {
+public abstract class Animal extends CloudEntityIntelligent implements EntityAgeable {
     public Animal(EntityType<?> type, Location location) {
         super(type, location);
     }
@@ -46,5 +48,10 @@ public abstract class Animal extends EntityCreature implements EntityAgeable {
             }
         }
         return false;
+    }
+
+    @Override
+    public BehaviorGroup createBehaviorGroup() {
+        return null;
     }
 }
