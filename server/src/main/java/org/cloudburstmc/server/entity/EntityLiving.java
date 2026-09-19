@@ -58,7 +58,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     private float lastDamageAmount;
 
     protected boolean invisible;
-    protected float movementSpeed = 0.1f;
     protected int turtleTicks = 200;
 
     public EntityLiving(EntityType<?> type, Location location) {
@@ -552,14 +551,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         }
 
         return null;
-    }
-
-    public void setMovementSpeed(float speed) {
-        this.movementSpeed = speed;
-    }
-
-    public float getMovementSpeed() {
-        return this.movementSpeed;
     }
 
     public int getAirTicks() {

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.ai.behaviorgroup.BehaviorGroup;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.inventory.view.OffhandView;
 import org.cloudburstmc.api.level.Location;
@@ -63,5 +64,9 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
             armor.add(ItemUtils.serializeItem(this.armor.getItem(i), i));
         }
         tag.putList("Armor", NbtType.COMPOUND, armor);
+    }
+
+    public BehaviorGroup getBehaviorGroup() {
+        return null;
     }
 }
