@@ -1184,6 +1184,7 @@ class VanillaBlockTags {
         tag(WALLS,
                 ANDESITE_WALL,
                 BLACKSTONE_WALL,
+                BORDER_BLOCK,
                 BRICK_WALL,
                 CINNABAR_BRICK_WALL,
                 CINNABAR_WALL,

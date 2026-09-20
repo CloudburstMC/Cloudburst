@@ -82,7 +82,6 @@ class BlockRegistryTest {
                 .filter(type -> type.getTraits().contains(BlockTraits.IS_IN_WALL))
                 .toList());
         Set<BlockType> wallTypes = Set.copyOf(BlockTypes.values().stream()
-                .filter(type -> type != BlockTypes.BORDER_BLOCK)
                 .filter(type -> type.getTraits().contains(BlockTraits.HAS_POST))
                 .toList());
         Set<BlockType> woodenFenceTypes = Set.copyOf(fenceTypes.stream()
