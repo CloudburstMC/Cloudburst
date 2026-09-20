@@ -229,6 +229,11 @@ public interface Entity extends Damageable {
 
     void despawnFromAll();
 
+    /**
+     * Returns an unmodifiable snapshot of players currently tracking this entity.
+     *
+     * @return the entity viewers
+     */
     Set<? extends Player> getViewers();
 
     /**

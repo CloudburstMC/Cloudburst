@@ -489,12 +489,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
                 player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator() &&
                 this.chunk != null && player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
-            if (this == player || this.getViewers().contains(player)) {
+            if (this == player || this.hasSpawned.contains(player)) {
                 return;
             }
 
             super.spawnTo(player);
-            if (!this.getViewers().contains(player)) {
+            if (!this.hasSpawned.contains(player)) {
                 return;
             }
 
@@ -2804,7 +2804,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
                 for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
                     if (entity != this) {
-                        entity.getViewers().remove(this);
+                        entity.despawnFrom(this);
                     }
                 }
             });
@@ -3396,19 +3396,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.chunk = this.getLevel().getChunk(pos);
 
             if (!this.justCreated) {
-
-                Set<CloudPlayer> viewers = this.getChunk().getViewers();
-                for (CloudPlayer player : this.hasSpawned) {
-                    if (!viewers.contains(player)) {
-                        this.despawnFrom(player);
-                    } else {
-                        viewers.remove(player);
-                    }
-                }
-
-                for (CloudPlayer player : viewers) {
-                    this.spawnTo(player);
-                }
+                this.updateViewers(this.getChunk().getViewers());
             }
 
             if (this.chunk == null) {

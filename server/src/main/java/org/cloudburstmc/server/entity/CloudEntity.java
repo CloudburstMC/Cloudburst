@@ -864,8 +864,9 @@ public abstract class CloudEntity implements Entity {
         if (!this.spawned || this.chunk == null || this.closed) {
             return;
         }
+
         boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
-        boolean added = sent && this.getViewers().add(player);
+        boolean added = sent && this.hasSpawned.add(player);
         if (!sent || !added) {
             // chunk not yet received by client, or entity already spawned
             return;
@@ -910,7 +911,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public Set<CloudPlayer> getViewers() {
-        return hasSpawned;
+        return Set.copyOf(this.hasSpawned);
     }
 
     public void sendPotionEffects(CloudPlayer player) {
@@ -1958,18 +1959,7 @@ public abstract class CloudEntity implements Entity {
             }
 
             if (!this.justCreated) {
-                Set<CloudPlayer> viewers = chunk.getViewers();
-                for (Player player : this.hasSpawned) {
-                    if (!viewers.contains(player)) {
-                        this.despawnFrom(player);
-                    } else {
-                        viewers.remove(player);
-                    }
-                }
-
-                for (Player player : viewers) {
-                    this.spawnTo(player);
-                }
+                this.updateViewers(chunk.getViewers());
             }
 
             if (this.chunk == null) {
@@ -1977,6 +1967,18 @@ public abstract class CloudEntity implements Entity {
             }
 
             this.chunk.registerEntity(this);
+        }
+    }
+
+    protected final void updateViewers(Set<CloudPlayer> viewers) {
+        for (CloudPlayer viewer : this.hasSpawned) {
+            if (!viewers.contains(viewer)) {
+                this.despawnFrom(viewer);
+            }
+        }
+
+        for (CloudPlayer viewer : viewers) {
+            this.spawnTo(viewer);
         }
     }
 
@@ -2102,13 +2104,6 @@ public abstract class CloudEntity implements Entity {
 
     public long getRuntimeId() {
         return this.runtimeId;
-    }
-
-    public void respawnToAll() {
-        for (Player player : this.hasSpawned) {
-            this.spawnTo(player);
-        }
-        this.hasSpawned.clear();
     }
 
     public void spawnToAll() {
