@@ -2,6 +2,7 @@ package org.cloudburstmc.server.utils;
 
 import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.Sets;
+import org.cloudburstmc.math.vector.Vector3d;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -320,5 +321,21 @@ public class Utils {
         } catch (NoSuchFieldException | IllegalAccessException ignore) {
 
         }
+    }
+
+    /**
+     * Calculate yaw from the direction vector.
+     *
+     * @param vector the direction vector
+     * @return the yaw
+     */
+    public static double getYawFromVector(Vector3d vector) {
+        double length = vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+        // Prevent NAN
+        if (length == 0) {
+            return 0;
+        }
+        double yaw = StrictMath.toDegrees(StrictMath.asin(-vector.getX() / StrictMath.sqrt(length)));
+        return -vector.getZ() > 0.0D ? 180.0D - yaw : StrictMath.abs(yaw) < 1E-10 ? 0 : yaw;
     }
 }
