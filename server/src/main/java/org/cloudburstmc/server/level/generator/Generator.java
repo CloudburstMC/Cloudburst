@@ -12,6 +12,13 @@ import java.util.random.RandomGenerator;
  */
 public interface Generator {
     /**
+     * Returns the sea level used for terrain and climate calculations.
+     *
+     * @return sea level
+     */
+    int getSeaLevel();
+
+    /**
      * Generates a given chunk.
      *
      * @param random an instance of {@link RandomGenerator} for generating random numbers, initialized with a seed based on chunk's position

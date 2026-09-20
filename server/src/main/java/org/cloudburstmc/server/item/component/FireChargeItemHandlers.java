@@ -35,7 +35,7 @@ public class FireChargeItemHandlers {
             return item;
         }
 
-        level.setBlockState(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 0, BlockStates.FIRE, false, true);
+        level.setBlockState(targetPos.getX(), targetPos.getY(), targetPos.getZ(), BlockStates.FIRE, false, true);
         level.addLevelSoundEvent(targetPos, SoundEvent.IGNITE);
         NetherPortals.detect(level, targetPos).ifPresent(frame -> frame.fill(level));
 

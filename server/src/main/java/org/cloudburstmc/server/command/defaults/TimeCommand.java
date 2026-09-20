@@ -12,6 +12,7 @@ import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public class TimeCommand extends AdvertisedCommand {
@@ -69,20 +70,20 @@ public class TimeCommand extends AdvertisedCommand {
     }
 
     private int setNamedTime(CommandContext<CommandSourceStack> context) {
-        int value = switch (argumentValue(context, "time")) {
-            case "day" -> CloudLevel.TIME_DAY;
-            case "sunrise" -> CloudLevel.TIME_SUNRISE;
-            case "noon" -> CloudLevel.TIME_NOON;
-            case "sunset" -> CloudLevel.TIME_SUNSET;
-            case "night" -> CloudLevel.TIME_NIGHT;
-            case "midnight" -> CloudLevel.TIME_MIDNIGHT;
+        long value = switch (argumentValue(context, "time")) {
+            case "day" -> VanillaLevelTime.DAY;
+            case "sunrise" -> VanillaLevelTime.SUNRISE;
+            case "noon" -> VanillaLevelTime.NOON;
+            case "sunset" -> VanillaLevelTime.SUNSET;
+            case "night" -> VanillaLevelTime.NIGHT;
+            case "midnight" -> VanillaLevelTime.MIDNIGHT;
             default -> throw new IllegalStateException("Unexpected time preset");
         };
 
         return setTime(context, value);
     }
 
-    private int setTime(CommandContext<CommandSourceStack> context, int value) {
+    private int setTime(CommandContext<CommandSourceStack> context, long value) {
         for (CloudLevel level : server(context).getLevels()) {
             level.checkTime();
             level.setTime(value);
@@ -98,9 +99,9 @@ public class TimeCommand extends AdvertisedCommand {
                 : (CloudLevel) sender(context).getServer().getDefaultLevel();
 
         long value = switch (argumentValue(context, "timeQuery")) {
-            case "daytime" -> Math.floorMod(level.getTime(), CloudLevel.TIME_FULL);
+            case "daytime" -> Math.floorMod(level.getTime(), VanillaLevelTime.TICKS_PER_DAY);
             case "gametime" -> level.getCurrentTick();
-            case "day" -> Math.floorDiv(level.getTime(), CloudLevel.TIME_FULL);
+            case "day" -> Math.floorDiv(level.getTime(), VanillaLevelTime.TICKS_PER_DAY);
             default -> throw new IllegalStateException("Unexpected time query");
         };
 

@@ -94,8 +94,8 @@ public class OrePopulator extends AbstractReplacingPopulator {
                         if (sideX * sideX + sideY * sideY + sideZ * sideZ >= 1.0d) {
                             continue;
                         }
-                        if (this.replace.test(level.getBlockState(dx, dy, dz, 0))) {
-                            level.setBlockState(dx, dy, dz, 0, block);
+                        if (this.replace.test(level.getBlockState(dx, dy, dz))) {
+                            level.setBlockState(dx, dy, dz, block);
                         }
                     }
                 }

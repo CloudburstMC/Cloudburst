@@ -193,6 +193,11 @@ public class BlockTags {
     public static final BlockTagKey SOLID = tag("solid");
 
     /**
+     * Vegetation that can share a position with a snow layer.
+     */
+    public static final BlockTagKey SNOWLOGGABLE = tag("snowloggable");
+
+    /**
      * Blocks that swords break faster than hand mining.
      */
     public static final BlockTagKey SWORD_EFFICIENT = tag("sword_efficient");

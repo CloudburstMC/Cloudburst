@@ -391,7 +391,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         }
 
         Block prospective = new CloudBlock(this.level, target.getPosition(),
-                new BlockState[]{this.blockState, target.getExtra()});
+                new BlockState[]{this.blockState, target.getSecondaryState()});
         return prospective.requireComponent(BlockComponents.CAN_SURVIVE).execute(prospective)
                 && !prospective.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(prospective);
     }

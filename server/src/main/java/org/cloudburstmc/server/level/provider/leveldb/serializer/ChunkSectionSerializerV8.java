@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 @Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -23,7 +23,7 @@ class ChunkSectionSerializerV8 implements ChunkSectionSerializer {
     }
 
     @Override
-    public BlockStorage[] deserialize(ByteBuf buf, ChunkBuilder builder) {
+    public BlockStorage[] deserialize(ByteBuf buf, CloudChunkBuilder builder) {
         int storageCount = buf.readUnsignedByte();
         BlockStorage[] storage = new BlockStorage[Math.max(storageCount, 2)];
 

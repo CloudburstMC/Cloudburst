@@ -30,7 +30,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
@@ -1766,10 +1766,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             // Array index for this sectionY
             int sectionIdx = sectionY - minSectionY;
 
-            // Access sections under the read lock
-            LockableChunk locked = chunk.readLockable();
-            locked.lock();
-            try {
+            try (LockedChunk locked = chunk.lockForRead()) {
                 CloudChunkSection section = (CloudChunkSection) locked.getSection(sectionIdx);
 
                 byte[] heightMap = new byte[256];
@@ -1851,8 +1848,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                     }
                 }
-            } finally {
-                locked.unlock();
             }
 
             SubChunkRequestResult result = subChunkData.getResult();

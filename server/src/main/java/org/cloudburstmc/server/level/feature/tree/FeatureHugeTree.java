@@ -47,7 +47,7 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             int radius = dy == 0 ? 1 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
+                    if (!this.test(level.getBlockState(x + dx, y + dy, z + dz))) {
                         return false;
                     }
                 }
@@ -60,10 +60,10 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height - 2; dy++) {
-            level.setBlockState(x, y + dy, z, 0, log);
-            level.setBlockState(x + 1, y + dy, z, 0, log);
-            level.setBlockState(x, y + dy, z + 1, 0, log);
-            level.setBlockState(x + 1, y + dy, z + 1, 0, log);
+            level.setBlockState(x, y + dy, z, log);
+            level.setBlockState(x + 1, y + dy, z, log);
+            level.setBlockState(x, y + dy, z + 1, log);
+            level.setBlockState(x + 1, y + dy, z + 1, log);
         }
     }
 
@@ -85,8 +85,8 @@ public abstract class FeatureHugeTree extends FeatureAbstractTree {
             for (int dz = -radius; dz <= radius + 1; dz++) {
                 int dxSq = dx > 0 ? (dx - 1) * (dx - 1) : dx * dx;
                 int dzSq = dz > 0 ? (dz - 1) * (dz - 1) : dz * dz;
-                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockState(x + dx, y, z + dz, 0, block);
+                if (dxSq + dzSq <= radiusSq && this.test(level.getBlockState(x + dx, y, z + dz))) {
+                    level.setBlockState(x + dx, y, z + dz, block);
                 }
             }
         }

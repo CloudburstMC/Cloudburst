@@ -55,7 +55,7 @@ public class SpikesPopulator extends ChancePopulator.Column {
     @Override
     protected void populate0(RandomGenerator random, GenerationRegion level, int x, int z) {
         int y = level.getChunk(x >> 4, z >> 4).getHighestBlock(x & 0xF, z & 0xF);
-        if (y < 0 || !this.on.test(level.getBlockState(x, y, z, 0))) {
+        if (y < 0 || !this.on.test(level.getBlockState(x, y, z))) {
             return;
         }
 
@@ -78,11 +78,11 @@ public class SpikesPopulator extends ChancePopulator.Column {
                     double fz = abs(dz) - 0.25d;
                     if (((dx == 0 && dz == 0) || fx * fx + fz * fz < rf)
                             && ((abs(dx) != radius && abs(dz) != radius) || random.nextInt(4) == 0)) {
-                        if (y + dy < 255 && replace.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
-                            level.setBlockState(x + dx, y + dy, z + dz, 0, block);
+                        if (y + dy < 255 && replace.test(level.getBlockState(x + dx, y + dy, z + dz))) {
+                            level.setBlockState(x + dx, y + dy, z + dz, block);
                         }
-                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockState(x + dx, y - dy, z + dz, 0))) {
-                            level.setBlockState(x + dx, y - dy, z + dz, 0, block);
+                        if (dy != 0 && radius > 1 && y - dy < 255 && replace.test(level.getBlockState(x + dx, y - dy, z + dz))) {
+                            level.setBlockState(x + dx, y - dy, z + dz, block);
                         }
                     }
                 }
@@ -90,14 +90,14 @@ public class SpikesPopulator extends ChancePopulator.Column {
         }
 
         for (; y >= 0; y--) {
-            BlockState test = level.getBlockState(x, y, z, 0);
+            BlockState test = level.getBlockState(x, y, z);
             if (test != block && !replace.test(test)) {
                 return;
             }
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
-                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                        level.setBlockState(x + dx, y, z + dz, 0, block);
+                    if ((dx == 0 || dz == 0 || random.nextBoolean()) && replace.test(level.getBlockState(x + dx, y, z + dz))) {
+                        level.setBlockState(x + dx, y, z + dz, block);
                     }
                 }
             }

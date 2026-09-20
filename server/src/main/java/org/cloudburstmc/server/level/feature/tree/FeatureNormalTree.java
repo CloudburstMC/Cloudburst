@@ -27,7 +27,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     @Override
     protected boolean canPlace(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height) {
         for (int dy = 0; dy <= height; dy++) {
-            if (y + dy < 0 || y + dy >= 256 || !this.test(level.getBlockState(x, y + dy, z, 0))) {
+            if (y + dy < 0 || y + dy >= 256 || !this.test(level.getBlockState(x, y + dy, z))) {
                 return false;
             }
         }
@@ -43,8 +43,8 @@ public class FeatureNormalTree extends FeatureAbstractTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean() && dy != 0)
-                            && this.test(level.getBlockState(x + dx, yy, z + dz, 0))) {
-                        level.setBlockState(x + dx, yy, z + dz, 0, leaves);
+                            && this.test(level.getBlockState(x + dx, yy, z + dz))) {
+                        level.setBlockState(x + dx, yy, z + dz, leaves);
                     }
                 }
             }
@@ -54,7 +54,7 @@ public class FeatureNormalTree extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height; dy++) {
-            level.setBlockState(x, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z, log);
         }
     }
 

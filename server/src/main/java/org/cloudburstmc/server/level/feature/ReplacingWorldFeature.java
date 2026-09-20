@@ -41,10 +41,10 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      * Checks whether all the blocks that horizontally neighbor the given coordinates match the given {@link BlockFilter}.
      */
     public boolean allNeighborsMatch(GenerationRegion level, int x, int y, int z, BlockFilter filter) {
-        return filter.test(level.getBlockState(x - 1, y, z, 0))
-                && filter.test(level.getBlockState(x + 1, y, z, 0))
-                && filter.test(level.getBlockState(x, y, z - 1, 0))
-                && filter.test(level.getBlockState(x, y, z + 1, 0));
+        return filter.test(level.getBlockState(x - 1, y, z))
+                && filter.test(level.getBlockState(x + 1, y, z))
+                && filter.test(level.getBlockState(x, y, z - 1))
+                && filter.test(level.getBlockState(x, y, z + 1));
     }
 
     /**
@@ -52,7 +52,7 @@ public abstract class ReplacingWorldFeature implements WorldFeature, BlockFilter
      */
     public boolean allNeighborsMatch(GenerationRegion level, int x, int y, int z, BlockFilter filter, Direction except) {
         for (Direction face : Direction.Plane.HORIZONTAL) {
-            if (face != except && !filter.test(level.getBlockState(x + face.getStepX(), y, z + face.getStepZ(), 0))) {
+            if (face != except && !filter.test(level.getBlockState(x + face.getStepX(), y, z + face.getStepZ()))) {
                 return false;
             }
         }

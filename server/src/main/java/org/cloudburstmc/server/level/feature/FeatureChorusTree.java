@@ -33,8 +33,8 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
 
     @Override
     public boolean place(GenerationRegion level, RandomGenerator random, int x, int y, int z) {
-        if (this.test(level.getBlockState(x, y, z, 0)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
-            level.setBlockState(x, y, z, 0, BlockStates.CHORUS_PLANT);
+        if (this.test(level.getBlockState(x, y, z)) && this.place0(level, random, x, y, z, 0, 0, 0)) {
+            level.setBlockState(x, y, z, BlockStates.CHORUS_PLANT);
             return true;
         } else {
             return false;
@@ -51,7 +51,7 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
         }
 
         for (int dy = 1; dy <= branchHeight; dy++) {
-            level.setBlockState(x, y + dy, z, 0, BlockStates.CHORUS_PLANT);
+            level.setBlockState(x, y + dy, z, BlockStates.CHORUS_PLANT);
         }
 
         boolean generatedBranch = false;
@@ -63,18 +63,18 @@ public class FeatureChorusTree extends ReplacingWorldFeature {
                 final int dz = face.getUnitVector().getZ();
 
                 if (abs(deltaX + dx) < this.maxOverhang && abs(deltaZ + dz) < this.maxOverhang
-                        && level.getBlockState(x + dx, y, z + dz, 0) == BlockStates.AIR
-                        && level.getBlockState(x + dx, y - 1, z + dz, 0) == BlockStates.AIR
+                        && level.getBlockState(x + dx, y, z + dz) == BlockStates.AIR
+                        && level.getBlockState(x + dx, y - 1, z + dz) == BlockStates.AIR
                         && this.allNeighborsMatch(level, x + dx, y, z + dz, BlockFilter.AIR, face.getOpposite())
                         && this.place0(level, random, x + dx, y, z + dz, depth + 1, deltaX + dx, deltaZ + dz)) {
-                    level.setBlockState(x + dx, y, z + dz, 0, BlockStates.CHORUS_PLANT);
+                    level.setBlockState(x + dx, y, z + dz, BlockStates.CHORUS_PLANT);
                     generatedBranch = true;
                 }
             }
         }
 
         if (!generatedBranch) {
-            level.setBlockState(x, y, z, 0, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5));
+            level.setBlockState(x, y, z, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, 5));
         }
 
         return true;

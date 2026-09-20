@@ -50,7 +50,7 @@ public class EndDimension {
             for (int z = 0; z < 16; z++) {
                 int highestY = chunk.getHighestBlock(x, z);
                 int gatewayY = highestY - 2;
-                if (gatewayY < level.getMinHeight() || chunk.getBlockState(x, gatewayY, z, 0).getType() != BlockTypes.END_GATEWAY) {
+                if (gatewayY < level.getMinHeight() || chunk.getBlockState(x, gatewayY, z).getType() != BlockTypes.END_GATEWAY) {
                     continue;
                 }
 

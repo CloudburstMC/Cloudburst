@@ -88,12 +88,12 @@ public class BedBlockHandlers {
                 .withTrait(BlockTraits.IS_HEAD_PIECE, true)
                 .withTrait(BlockTraits.IS_OCCUPIED, false);
 
-        if (!level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0, footState, true, true)) {
+        if (!level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), BlockLayer.PRIMARY, footState, true, true)) {
             return false;
         }
 
-        if (!level.setBlockState(headPos.getX(), headPos.getY(), headPos.getZ(), 0, headState, true, true)) {
-            level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0,
+        if (!level.setBlockState(headPos.getX(), headPos.getY(), headPos.getZ(), BlockLayer.PRIMARY, headState, true, true)) {
+            level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), BlockLayer.PRIMARY,
                     footExisting, true, true);
             return false;
         }
@@ -135,7 +135,7 @@ public class BedBlockHandlers {
         BlockState partnerState = level.getBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
         if (partnerState.getType() == bedType) {
             level.addParticle(new DestroyBlockParticle(partnerPos.toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
-            level.setBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ(), 0, BlockStates.AIR, false, true);
+            level.setBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ(), BlockLayer.PRIMARY, BlockStates.AIR, false, true);
         }
     };
 

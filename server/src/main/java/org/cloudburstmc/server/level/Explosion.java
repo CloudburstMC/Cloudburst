@@ -107,7 +107,7 @@ public class Explosion {
 
                             if (block != null && block.getState() != BlockStates.AIR) {
                                 var state = block.getState();
-                                BlockState layer1 = block.getExtra();
+                                BlockState layer1 = block.getSecondaryState();
 
                                 double resistance = Math.max(state.getExplosionResistance(), layer1.getExplosionResistance());
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;

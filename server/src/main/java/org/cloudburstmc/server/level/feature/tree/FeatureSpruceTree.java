@@ -42,7 +42,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             int radius = dy < leavesStart ? 0 : maxRadius;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockState(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockState(x, y + dy, z))) {
                         return false;
                     }
                 }
@@ -61,8 +61,8 @@ public class FeatureSpruceTree extends FeatureNormalTree {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || radius <= 0)
-                            && this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
-                        level.setBlockState(x + dx, y + dy, z + dz, 0, leaves);
+                            && this.test(level.getBlockState(x + dx, y + dy, z + dz))) {
+                        level.setBlockState(x + dx, y + dy, z + dz, leaves);
                     }
                 }
             }
@@ -81,7 +81,7 @@ public class FeatureSpruceTree extends FeatureNormalTree {
 
         //place logs
         for (int dy = 0; dy < height - 1; dy++) {
-            level.setBlockState(x, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z, log);
         }
 
         this.replaceGrassWithDirt(level, x, y - 1, z);

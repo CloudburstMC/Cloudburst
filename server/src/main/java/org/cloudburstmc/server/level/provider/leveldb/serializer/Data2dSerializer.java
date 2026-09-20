@@ -2,7 +2,7 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.iq80.leveldb.DB;
@@ -12,7 +12,7 @@ public class Data2dSerializer {
     // 512-byte heightmap + 256-byte 2D biome column (pre-3D biomes)
     private static final int LEGACY_DATA2D_SIZE = 768;
 
-    public static void deserialize(DB db, ChunkBuilder builder) {
+    public static void deserialize(DB db, CloudChunkBuilder builder) {
         byte[] data2d = db.get(LevelDBKey.DATA_2D.getKey(builder.getX(), builder.getZ()));
         int[] heightMap = new int[256];
 
@@ -33,7 +33,7 @@ public class Data2dSerializer {
                     int biomeCount = Math.min(256, buffer.readableBytes());
                     buffer.readBytes(biomesRaw, 0, biomeCount);
 
-                    builder.dataLoader(chunk -> {
+                    builder.addLoadTask(chunk -> {
                         int sectionCount = chunk.getLevel().getSectionsCount();
                         for (int i = 0; i < sectionCount; i++) {
                             CloudChunkSection section = (CloudChunkSection) chunk.getSection(i);
@@ -53,6 +53,6 @@ public class Data2dSerializer {
             }
         }
 
-        builder.heightMap(heightMap);
+        builder.setHeightMap(heightMap);
     }
 }

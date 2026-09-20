@@ -35,6 +35,11 @@ public final class FlatGenerator implements Generator {
     }
 
     @Override
+    public int getSeaLevel() {
+        return 63;
+    }
+
+    @Override
     public void generate(RandomGenerator random, Chunk chunk, int chunkX, int chunkZ) {
         int y = 0;
 

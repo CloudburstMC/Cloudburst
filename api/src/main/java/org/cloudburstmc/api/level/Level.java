@@ -20,27 +20,73 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Represents a loaded level and provides access to its blocks, entities, rules, time, and weather.
+ *
+ * <p>Unless a method explicitly refers to loaded data, block and chunk access may load or generate chunks.
+ */
 public interface Level extends ChunkManager, LevelHeightAccessor {
-    int BLOCK_UPDATE_NORMAL = 1;
-    int BLOCK_UPDATE_RANDOM = 2;
-    int BLOCK_UPDATE_SCHEDULED = 3;
-    int BLOCK_UPDATE_WEAK = 4;
-    int BLOCK_UPDATE_TOUCH = 5;
-    int BLOCK_UPDATE_REDSTONE = 6;
-    int BLOCK_UPDATE_TICK = 7;
-
-    int TIME_DAY = 0;
-    int TIME_NOON = 6000;
-    int TIME_SUNSET = 12000;
-    int TIME_NIGHT = 14000;
-    int TIME_MIDNIGHT = 18000;
-    int TIME_SUNRISE = 23000;
-    int TIME_FULL = 24000;
-
+    /**
+     * Returns the server that owns this level.
+     *
+     * @return the server
+     */
     Server getServer();
 
+    /**
+     * Returns the stable identifier used to locate this level's stored data.
+     *
+     * @return the level identifier
+     */
     String getId();
 
+    /**
+     * Returns the level's display name.
+     *
+     * @return the level name
+     */
+    String getName();
+
+    /**
+     * Returns the seed used for generation.
+     *
+     * @return the level seed
+     */
+    long getSeed();
+
+    /**
+     * Changes the seed used for future generation.
+     *
+     * @param seed the new level seed
+     */
+    void setSeed(long seed);
+
+    /**
+     * Returns the sea level used by this level's terrain generator.
+     *
+     * @return sea level
+     */
+    int getSeaLevel();
+
+    /**
+     * Returns the default spawn position.
+     *
+     * @return the spawn position
+     */
+    Vector3f getSpawnLocation();
+
+    /**
+     * Changes the default spawn position.
+     *
+     * @param position the new spawn position
+     */
+    void setSpawnLocation(Vector3f position);
+
+    /**
+     * Returns the game rules for this level.
+     *
+     * @return the level game rules
+     */
     LevelGameRules getGameRules();
 
     /**
@@ -65,21 +111,114 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     @Nullable
     DragonBattle getDragonBattle();
 
-    void doTick(int currentTick);
+    /**
+     * Returns the server tick currently being processed by this level.
+     *
+     * @return the current tick
+     */
+    long getCurrentTick();
 
+    /**
+     * Saves changed level and chunk data.
+     *
+     * @return {@code true} when saving was started
+     */
     default boolean save() {
         return save(false);
     }
 
+    /**
+     * Saves level and chunk data.
+     *
+     * @param force whether to save when automatic saving is disabled
+     * @return {@code true} when saving was started
+     */
     boolean save(boolean force);
 
+    /**
+     * Schedules a block update after a delay.
+     *
+     * @param position the block position
+     * @param delay    the delay in ticks
+     */
     void scheduleUpdate(Vector3i position, int delay);
 
-    void updateAround(Vector3i position);
-
+    /**
+     * Cancels the scheduled block update at a position.
+     *
+     * @param position the block position
+     * @return {@code true} when an update was cancelled
+     */
     boolean cancelScheduledUpdate(Vector3i position);
 
+    /**
+     * Checks whether a block update is scheduled at a position.
+     *
+     * @param position the block position
+     * @return {@code true} when an update is scheduled
+     */
     boolean isUpdateScheduled(Vector3i position);
+
+    /**
+     * Notifies the blocks neighboring a position of a block change.
+     *
+     * @param position the changed block position
+     */
+    void updateAround(Vector3i position);
+
+    /**
+     * Returns the biome ID at a position.
+     *
+     * @param x the block X coordinate
+     * @param y the block Y coordinate
+     * @param z the block Z coordinate
+     * @return the biome ID
+     */
+    int getBiomeId(int x, int y, int z);
+
+    /**
+     * Changes the biome at a position.
+     *
+     * @param x       the block X coordinate
+     * @param y       the block Y coordinate
+     * @param z       the block Z coordinate
+     * @param biomeId the biome ID
+     */
+    void setBiomeId(int x, int y, int z, int biomeId);
+
+    /**
+     * Returns the highest non-air block in a column.
+     *
+     * @param x the block X coordinate
+     * @param z the block Z coordinate
+     * @return the block Y coordinate, or {@code -1} when the column is empty
+     */
+    int getHighestBlock(int x, int z);
+
+    /**
+     * Returns the block entity at a position.
+     *
+     * @param position the block position
+     * @return the block entity, or {@code null} when none is present
+     */
+    @Nullable
+    BlockEntity getBlockEntity(Vector3i position);
+
+    /**
+     * Checks whether a position has an unobstructed view of the sky.
+     *
+     * @param position the block position
+     * @return {@code true} when the position can see the sky
+     */
+    boolean canBlockSeeSky(Vector3i position);
+
+    /**
+     * Returns the greater of sky and block light at a position.
+     *
+     * @param position the block position
+     * @return the light level from {@code 0} to {@code 15}
+     */
+    int getFullLight(Vector3i position);
 
     /**
      * Returns the liquid in either block layer.
@@ -133,8 +272,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      */
     boolean removeLiquid(Vector3i position);
 
-    int getFullLight(Vector3i position);
-
     /**
      * Breaks a block without a player or tool.
      *
@@ -180,6 +317,11 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     @Nullable
     ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player, boolean createParticles);
 
+    /**
+     * Returns the players currently present in this level, keyed by unique entity ID.
+     *
+     * @return the players in this level
+     */
     Map<Long, ? extends Player> getPlayers();
 
     /**
@@ -189,72 +331,22 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      */
     Set<? extends Entity> getEntities();
 
-    int getBiomeId(int x, int y, int z);
-
-    void setBiomeId(int x, int y, int z, int biomeId);
-
-    int getHighestBlock(int x, int z);
-
-    Vector3f getSpawnLocation();
-
-    void setSpawnLocation(Vector3f position);
-
-    int getTime();
-
-    void setTime(int time);
-
-    void stopTime();
-
-    void startTime();
-
-    default void sendTime(Player who) {
-        sendTime(new Player[]{who});
-    }
-
-    void sendTime(Player... players);
-
-    long getCurrentTick();
-
-    String getName();
-
-    long getSeed();
-
-    void setSeed(long seed);
-
-    boolean isRaining();
-
-    boolean setRaining(boolean raining);
-
-    int getRainTime();
-
-    void setRainTime(int time);
-
-    boolean isThundering();
-
-    boolean setThundering(boolean thundering);
-
-    int getThunderTime();
-
-    void setThunderTime(int time);
-
-    void sendWeather(Player... players);
+    /**
+     * Gets entities whose bounding boxes intersect the supplied box.
+     *
+     * @param boundingBox the search box
+     * @return the matching entities
+     */
+    Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox);
 
     /**
-     * Spawns a particle at a position for players tracking the surrounding chunk.
+     * Gets entities whose bounding boxes intersect the supplied box and match a filter.
      *
-     * @param particle the particle to spawn
-     * @param position the particle position
+     * @param boundingBox the search box
+     * @param filter      the entity filter, or {@code null} to include all nearby entities
+     * @return the matching entities
      */
-    void spawnParticle(ParticleType particle, Vector3f position);
-
-    /**
-     * Spawns a particle at a position for specific players.
-     *
-     * @param particle the particle to spawn
-     * @param position the particle position
-     * @param players  the players to receive the particle
-     */
-    void spawnParticle(ParticleType particle, Vector3f position, Player... players);
+    Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter);
 
     /**
      * Tests whether a bounding box collides with blocks or entities in this level.
@@ -327,47 +419,199 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      */
     boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position);
 
-    BlockEntity getBlockEntity(Vector3i position);
-
-    boolean canBlockSeeSky(Vector3i position);
-
+    /**
+     * Drops an item at the center of a block position.
+     *
+     * @param position the block position
+     * @param item     the item to drop
+     * @return the created dropped-item entity
+     */
     default DroppedItem dropItem(Vector3i position, ItemStack item) {
         return dropItem(position.toFloat().add(0.5f, 0f, 0.5f), item);
     }
 
+    /**
+     * Drops an item at a position using default motion and pickup delay.
+     *
+     * @param position the drop position
+     * @param item     the item to drop
+     * @return the created dropped-item entity
+     */
     default DroppedItem dropItem(Vector3f position, ItemStack item) {
         return dropItem(position, item, null);
     }
 
-    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion) {
+    /**
+     * Drops an item at a position.
+     *
+     * @param position the drop position
+     * @param item     the item to drop
+     * @param motion   the initial motion, or {@code null} for default motion
+     * @return the created dropped-item entity
+     */
+    default DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion) {
         return dropItem(position, item, motion, false);
     }
 
-    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, int delay) {
+    /**
+     * Drops an item at a position with a pickup delay.
+     *
+     * @param position the drop position
+     * @param item     the item to drop
+     * @param motion   the initial motion, or {@code null} for default motion
+     * @param delay    the pickup delay in ticks
+     * @return the created dropped-item entity
+     */
+    default DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, int delay) {
         return dropItem(position, item, motion, false, delay);
     }
 
-    default DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround) {
+    /**
+     * Drops an item at a position using the default pickup delay.
+     *
+     * @param position   the drop position
+     * @param item       the item to drop
+     * @param motion     the initial motion, or {@code null} for default motion
+     * @param dropAround whether default motion should spread outward
+     * @return the created dropped-item entity
+     */
+    default DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, boolean dropAround) {
         return dropItem(position, item, motion, dropAround, 10);
     }
 
-    DroppedItem dropItem(Vector3f position, ItemStack item, Vector3f motion, boolean dropAround, int delay);
+    /**
+     * Drops an item with complete control over its initial placement and pickup delay.
+     *
+     * @param position   the drop position
+     * @param item       the item to drop
+     * @param motion     the initial motion, or {@code null} for default motion
+     * @param dropAround whether default motion should spread outward
+     * @param delay      the pickup delay in ticks
+     * @return the created dropped-item entity
+     */
+    DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, boolean dropAround, int delay);
 
     /**
-     * Gets entities whose bounding boxes intersect the supplied box.
+     * Returns the elapsed daylight-cycle time.
      *
-     * @param boundingBox the search box
-     * @return the matching entities
+     * <p>The value is not limited to a single day.
+     *
+     * @return the elapsed time in ticks
      */
-    Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox);
+    long getTime();
 
     /**
-     * Gets entities whose bounding boxes intersect the supplied box and match a filter.
+     * Changes the elapsed daylight-cycle time.
      *
-     * @param boundingBox the search box
-     * @param filter      the entity filter, or {@code null} to include all nearby entities
-     * @return the matching entities
+     * @param time the time in ticks
      */
-    Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter);
+    void setTime(long time);
 
+    /**
+     * Resumes the passage of time.
+     */
+    void startTime();
+
+    /**
+     * Pauses the passage of time.
+     */
+    void stopTime();
+
+    /**
+     * Sends this level's current time to a player.
+     *
+     * @param who the recipient
+     */
+    default void sendTime(Player who) {
+        sendTime(new Player[]{who});
+    }
+
+    /**
+     * Sends this level's current time to the supplied players.
+     *
+     * @param players the recipients
+     */
+    void sendTime(Player... players);
+
+    /**
+     * Checks whether rain is active.
+     *
+     * @return {@code true} when it is raining
+     */
+    boolean isRaining();
+
+    /**
+     * Starts or stops rain.
+     *
+     * @param raining whether rain should be active
+     * @return {@code true} when the change was accepted
+     */
+    boolean setRaining(boolean raining);
+
+    /**
+     * Returns the remaining rain duration.
+     *
+     * @return the remaining duration in ticks
+     */
+    int getRainTime();
+
+    /**
+     * Changes the remaining rain duration.
+     *
+     * @param time the duration in ticks
+     */
+    void setRainTime(int time);
+
+    /**
+     * Checks whether a thunderstorm is active.
+     *
+     * @return {@code true} when it is thundering
+     */
+    boolean isThundering();
+
+    /**
+     * Starts or stops thunder.
+     *
+     * @param thundering whether thunder should be active
+     * @return {@code true} when the change was accepted
+     */
+    boolean setThundering(boolean thundering);
+
+    /**
+     * Returns the remaining thunder duration.
+     *
+     * @return the remaining duration in ticks
+     */
+    int getThunderTime();
+
+    /**
+     * Changes the remaining thunder duration.
+     *
+     * @param time the duration in ticks
+     */
+    void setThunderTime(int time);
+
+    /**
+     * Sends this level's current weather to the supplied players.
+     *
+     * @param players the recipients
+     */
+    void sendWeather(Player... players);
+
+    /**
+     * Spawns a particle at a position for players tracking the surrounding chunk.
+     *
+     * @param particle the particle to spawn
+     * @param position the particle position
+     */
+    void spawnParticle(ParticleType particle, Vector3f position);
+
+    /**
+     * Spawns a particle at a position for specific players.
+     *
+     * @param particle the particle to spawn
+     * @param position the particle position
+     * @param players  the players to receive the particle
+     */
+    void spawnParticle(ParticleType particle, Vector3f position, Player... players);
 }

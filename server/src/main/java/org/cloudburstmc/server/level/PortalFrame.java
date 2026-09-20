@@ -68,7 +68,7 @@ public record PortalFrame(
         int bz = bottomLeft.getZ();
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                level.setBlockState(bx + dx * i, by + j, bz + dz * i, 0, portalState, false, false);
+                level.setBlockState(bx + dx * i, by + j, bz + dz * i, portalState, false, false);
             }
         }
     }

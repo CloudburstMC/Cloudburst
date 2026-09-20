@@ -20,6 +20,7 @@ class VanillaBlockTags {
 
     static {
         initReplaceable();
+        initSnowloggable();
         initSolid();
         initTransparent();
         initStairs();
@@ -156,6 +157,17 @@ class VanillaBlockTags {
                 LIGHT_BLOCK_4, LIGHT_BLOCK_5, LIGHT_BLOCK_6, LIGHT_BLOCK_7,
                 LIGHT_BLOCK_8, LIGHT_BLOCK_9, LIGHT_BLOCK_10, LIGHT_BLOCK_11,
                 LIGHT_BLOCK_12, LIGHT_BLOCK_13, LIGHT_BLOCK_14, LIGHT_BLOCK_15);
+    }
+
+    private static void initSnowloggable() {
+        tag(SNOWLOGGABLE,
+                ALLIUM, AZURE_BLUET, BLUE_ORCHID, BROWN_MUSHROOM, BUSH, CACTUS_FLOWER,
+                CLOSED_EYEBLOSSOM, CORNFLOWER, CRIMSON_FUNGUS, CRIMSON_ROOTS, DANDELION, FERN,
+                FIREFLY_BUSH, GOLDEN_DANDELION, LILY_OF_THE_VALLEY, NETHER_SPROUTS, OPEN_EYEBLOSSOM,
+                ORANGE_TULIP, OXEYE_DAISY, PINK_PETALS, PINK_TULIP, POPPY, RED_MUSHROOM, RED_SHRUB,
+                RED_TULIP, SHORT_DRY_GRASS, SHORT_GRASS, TALL_DRY_GRASS, TORCHFLOWER, WARPED_FUNGUS,
+                WARPED_ROOTS, WHITE_TULIP, WILDFLOWERS, WITHER_ROSE
+        );
     }
 
     private static void initSolid() {

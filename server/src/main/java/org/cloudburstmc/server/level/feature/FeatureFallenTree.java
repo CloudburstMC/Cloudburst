@@ -31,37 +31,37 @@ public class FeatureFallenTree extends ReplacingWorldFeature {
         final int size = this.size.rand(random);
         final Direction direction = Direction.Plane.HORIZONTAL.random(random);
         for (int i = 0; i < size; i++) {
-            if (!this.test(level.getBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, 0))
-                    || this.testOrLiquid(level.getBlockState(x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i, 0))) {
+            if (!this.test(level.getBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i))
+                    || this.testOrLiquid(level.getBlockState(x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i))) {
                 return false;
             }
         }
 
-        level.setBlockState(x, y, z, 0, this.log);
+        level.setBlockState(x, y, z, this.log);
 
         BlockState log = this.log.withTrait(BlockTraits.AXIS, direction.getAxis());
         for (int i = random.nextInt(2) + 2; i < size; i++) {
-            level.setBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, 0, log);
+            level.setBlockState(x + direction.getStepX() * i, y, z + direction.getStepZ() * i, log);
 
-            if (random.nextInt(10) == 0 && this.test(level.getBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i, 0))) {
-                level.setBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i, 0, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
+            if (random.nextInt(10) == 0 && this.test(level.getBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i))) {
+                level.setBlockState(x + direction.getStepX() * i, y + 1, z + direction.getStepZ() * i, random.nextBoolean() ? BlockStates.BROWN_MUSHROOM : BlockStates.RED_MUSHROOM);
             }
 
             this.replaceGrassWithDirt(level, x + direction.getStepX() * i, y - 1, z + direction.getStepZ() * i);
         }
 
         if (this.vineChance > 0.0d) {
-            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x - 1, y, z, 0))) {
-                level.setBlockState(x - 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 8));
+            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x - 1, y, z))) {
+                level.setBlockState(x - 1, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 8));
             }
-            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x + 1, y, z, 0))) {
-                level.setBlockState(x + 1, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 2));
+            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x + 1, y, z))) {
+                level.setBlockState(x + 1, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 2));
             }
-            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z - 1, 0))) {
-                level.setBlockState(x, y, z - 1, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 1));
+            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z - 1))) {
+                level.setBlockState(x, y, z - 1, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 1));
             }
-            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z + 1, 0))) {
-                level.setBlockState(x, y, z + 1, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 4));
+            if (random.nextDouble() < this.vineChance && this.test(level.getBlockState(x, y, z + 1))) {
+                level.setBlockState(x, y, z + 1, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, 4));
             }
         }
 

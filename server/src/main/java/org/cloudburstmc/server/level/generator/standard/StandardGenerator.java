@@ -106,7 +106,6 @@ public final class StandardGenerator implements Generator {
     @Getter
     private BlockState sea = null;
     @JsonProperty
-    @Getter
     private int seaLevel = -1;
 
     private StandardGenerator init(long seed) {
@@ -152,6 +151,11 @@ public final class StandardGenerator implements Generator {
             //reset generation biome store to ensure that the replacers/decorators/populators for a given islandBiomes aren't initialized multiple times for multiple worlds
             StandardGeneratorStores.generationBiome().reset();
         }
+    }
+
+    @Override
+    public int getSeaLevel() {
+        return this.seaLevel;
     }
 
     @Override
@@ -212,9 +216,9 @@ public final class StandardGenerator implements Generator {
                                 int blockZ = sectionZ * STEP_Z | stepZ;
 
                                 if (iz > 0.0d) {
-                                    chunk.setBlockState(blockX, blockY, blockZ, 0, this.ground);
+                                    chunk.setBlockState(blockX, blockY, blockZ, this.ground);
                                 } else if (blockY <= this.seaLevel) {
-                                    chunk.setBlockState(blockX, blockY, blockZ, 0, this.sea);
+                                    chunk.setBlockState(blockX, blockY, blockZ, this.sea);
                                 }
                             }
                         }

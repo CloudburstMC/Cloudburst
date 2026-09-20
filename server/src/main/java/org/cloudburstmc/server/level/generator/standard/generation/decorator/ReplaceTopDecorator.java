@@ -41,8 +41,8 @@ public class ReplaceTopDecorator implements Decorator {
     @Override
     public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
-        if (y >= 0 && this.replace.test(chunk.getBlockState(x, y, z, 0)) && this.height.contains(y)) {
-            chunk.setBlockState(x, y, z, 0, this.block);
+        if (y >= 0 && this.replace.test(chunk.getBlockState(x, y, z)) && this.height.contains(y)) {
+            chunk.setBlockState(x, y, z, this.block);
         }
     }
 

@@ -231,7 +231,7 @@ public final class PlayerChunkManager {
             return;
         }
 
-        long key = chunk.key();
+        long key = chunk.getKey();
         if (this.readyChunks.contains(key)) {
             this.updateEntityViewsInChunk(key, EntityViewUpdate.SPAWN);
         }

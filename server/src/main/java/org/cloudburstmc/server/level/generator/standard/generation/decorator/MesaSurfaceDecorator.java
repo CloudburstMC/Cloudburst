@@ -53,7 +53,7 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         super.init0(levelSeed, localSeed, generator);
 
         this.ground = this.ground == null ? generator.ground() : this.ground;
-        this.seaLevel = this.seaLevel < 0 ? generator.seaLevel() : this.seaLevel;
+        this.seaLevel = this.seaLevel < 0 ? generator.getSeaLevel() : this.seaLevel;
 
         RandomGenerator random = new FastPRandom(localSeed);
         Arrays.fill(this.bands, Objects.requireNonNull(this.base, "base must be set!").state());
@@ -76,8 +76,8 @@ public class MesaSurfaceDecorator extends DepthNoiseDecorator {
         final int minHeight = this.seaLevel + this.getDepthNoise(random, blockX, blockZ);
 
         for (int y = chunk.getHighestBlock(x, z); y >= minHeight; y--) {
-            if (chunk.getBlockState(x, y, z, 0) == ground) {
-                chunk.setBlockState(x, y, z, 0, this.getBand(blockX, y, blockZ));
+            if (chunk.getBlockState(x, y, z) == ground) {
+                chunk.setBlockState(x, y, z, this.getBand(blockX, y, blockZ));
             }
         }
     }

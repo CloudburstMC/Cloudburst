@@ -5,7 +5,7 @@ import io.netty.util.collection.IntObjectMap;
 import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 public class ChunkSerializers {
 
@@ -69,7 +69,7 @@ public class ChunkSerializers {
         getChunkSerializer(version).serialize(db, chunk);
     }
 
-    public static void deserializeChunk(DirectDB db, ChunkBuilder chunkBuilder, int version) {
+    public static void deserializeChunk(DirectDB db, CloudChunkBuilder chunkBuilder, int version) {
         getChunkSerializer(version).deserialize(db, chunkBuilder);
     }
 }

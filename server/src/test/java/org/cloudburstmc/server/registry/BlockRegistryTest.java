@@ -5,6 +5,8 @@ import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.server.block.BlockLayerRules;
+import org.cloudburstmc.server.block.BlockLayers;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.*;
 import org.junit.jupiter.api.Test;
@@ -183,17 +185,39 @@ class BlockRegistryTest {
         }
     }
 
+    @Test
+    void snowloggingPreservesVegetationOnlyWhenSnowIsPlaced() {
+        BlockState snow = BlockStates.SNOW_LAYER.withTrait(BlockTraits.IS_COVERED, true);
+
+        BlockLayers snowPlacedOnGrass = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
+                new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), BlockLayer.PRIMARY, snow));
+        BlockLayers grassPlacedInSnow = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
+                new BlockLayers(snow, BlockStates.AIR), BlockLayer.PRIMARY, BlockStates.SHORT_GRASS));
+        BlockLayers snowRemoved = Objects.requireNonNull(
+                BlockLayerRules.resolveReplacement(snowPlacedOnGrass, BlockLayer.PRIMARY, BlockStates.AIR));
+        BlockLayers snowOnGrassBlock = BlockLayerRules.normalizeSnowCover(
+                new BlockLayers(BlockStates.SNOW_LAYER, BlockStates.AIR), BlockStates.GRASS_BLOCK);
+
+        assertAll(
+                () -> assertSame(BlockTypes.SNOW_LAYER, snowPlacedOnGrass.primary().getType()),
+                () -> assertFalse(snowPlacedOnGrass.primary().ensureTrait(BlockTraits.IS_COVERED)),
+                () -> assertSame(BlockStates.SHORT_GRASS, snowPlacedOnGrass.secondary()),
+                () -> assertEquals(new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), grassPlacedInSnow),
+                () -> assertEquals(new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), snowRemoved),
+                () -> assertTrue(snowOnGrassBlock.primary().ensureTrait(BlockTraits.IS_COVERED)),
+                () -> assertNull(BlockLayerRules.resolveReplacement(new BlockLayers(BlockStates.STONE, BlockStates.AIR), BlockLayer.SECONDARY, BlockStates.SHORT_GRASS)),
+                () -> assertTrue(BlockTypes.SHORT_GRASS.is(BlockTags.SNOWLOGGABLE)),
+                () -> assertFalse(BlockTypes.GRASS_BLOCK.is(BlockTags.SNOWLOGGABLE))
+        );
+    }
+
     private static void assertSlabPlaceHandler(BlockType blockType) {
         assertInstanceOf(SlabPlaceHandler.class, component(blockType, BlockComponents.ON_PLACE));
     }
 
     private static Object component(BlockType blockType, ComponentType<?> componentType) {
-        ComponentMap components = Objects.requireNonNull(
-                REGISTRY.getComponents(blockType),
-                () -> blockType.getId() + " has no component map");
-        return Objects.requireNonNull(
-                components.get(componentType),
-                () -> blockType.getId() + " has no " + componentType.getId() + " component");
+        ComponentMap components = Objects.requireNonNull(REGISTRY.getComponents(blockType), () -> blockType.getId() + " has no component map");
+        return Objects.requireNonNull(components.get(componentType), () -> blockType.getId() + " has no " + componentType.getId() + " component");
     }
 
     private static CloudBlockRegistry createRegistry() {

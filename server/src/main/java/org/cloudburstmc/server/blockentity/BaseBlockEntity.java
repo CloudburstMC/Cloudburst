@@ -354,7 +354,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public void setDirty() {
-        chunk.setDirty();
+        chunk.markDirty();
     }
 
     @Override

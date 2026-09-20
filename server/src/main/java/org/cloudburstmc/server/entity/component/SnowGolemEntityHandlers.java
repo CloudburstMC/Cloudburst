@@ -15,6 +15,7 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.passive.EntitySnowGolem;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 
@@ -36,14 +37,14 @@ public final class SnowGolemEntityHandlers {
     };
 
     private static void damageFromEnvironment(EntitySnowGolem snowGolem) {
+        CloudLevel level = snowGolem.getLevel();
         Vector3i position = snowGolem.getPosition().toInt();
-        CloudBiome biome = CloudBiomeRegistry.get().getBiome(
-                snowGolem.getLevel().getBiomeId(position.getX(), position.getY(), position.getZ()));
-        if (biome != null && biome.temperatureAt(position.getX(), position.getY(), position.getZ()) > 1) {
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getBiomeId(position.getX(), position.getY(), position.getZ()));
+        if (biome != null && biome.temperatureAt(position.getX(), position.getY(), position.getZ(), level.getSeaLevel()) > 1) {
             snowGolem.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
         }
 
-        if (snowGolem.getLevel().getBlock(position).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
+        if (level.getBlock(position).getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
             snowGolem.damage(1, DamageSource.of(DamageTypes.DROWN));
         }
     }

@@ -351,6 +351,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.CAN_SURVIVE, SnowLayerBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.SNOW_LAYER_BLOCK_SUPPORT_SHAPE)
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(SnowLayerBlockHandlers.getResource(block.getState())))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SnowLayerBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SnowLayerBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.ON_RANDOM_TICK, SnowLayerBlockHandlers.ON_RANDOM_TICK);
         registry.configure(SOUL_FIRE)

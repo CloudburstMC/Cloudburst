@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 /**
  * Handles on-disk sub-chunk version 9 (PALETTED_MULTI_WITH_OFFSET).
@@ -28,7 +28,7 @@ class ChunkSectionSerializerV9 implements ChunkSectionSerializer {
     }
 
     @Override
-    public BlockStorage[] deserialize(ByteBuf buf, ChunkBuilder builder) {
+    public BlockStorage[] deserialize(ByteBuf buf, CloudChunkBuilder builder) {
         int storageCount = buf.readUnsignedByte();
         buf.readByte();
 

@@ -8,161 +8,350 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.math.vector.Vector4i;
 
+/**
+ * A level position together with the block states captured at that position.
+ *
+ * <p>A block does not update its captured states when the level changes. Use
+ * {@link #refresh()} to obtain a block containing the current states.
+ */
 public interface Block extends BlockSnapshot {
-
-    BlockSnapshot snapshot();
-
-    Block refresh();
-
+    /**
+     * Returns the level containing this block.
+     *
+     * @return the level
+     */
     Level getLevel();
 
+    /**
+     * Returns the chunk containing this block, loading it when necessary.
+     *
+     * @return the containing chunk
+     */
     Chunk getChunk();
 
+    /**
+     * Returns this block's level position.
+     *
+     * @return the block position
+     */
     Vector3i getPosition();
 
+    /**
+     * Returns this block's X coordinate.
+     *
+     * @return the X coordinate
+     */
     default int getX() {
-        return getPosition().getX();
+        return this.getPosition().getX();
     }
-
-    default int getY() {
-        return getPosition().getY();
-    }
-
-    default int getZ() {
-        return getPosition().getZ();
-    }
-
-    int getBrightness();
 
     /**
-     * Gets the behavioral components of this block.
+     * Returns this block's Y coordinate.
+     *
+     * @return the Y coordinate
+     */
+    default int getY() {
+        return this.getPosition().getY();
+    }
+
+    /**
+     * Returns this block's Z coordinate.
+     *
+     * @return the Z coordinate
+     */
+    default int getZ() {
+        return this.getPosition().getZ();
+    }
+
+    /**
+     * Returns a detached snapshot of the captured states.
+     *
+     * @return the block-state snapshot
+     */
+    BlockSnapshot snapshot();
+
+    /**
+     * Returns a block containing the states currently stored at this position.
+     *
+     * @return the refreshed block
+     */
+    Block refresh();
+
+    /**
+     * Returns the effective combined light at this position.
+     *
+     * @return the light level from {@code 0} to {@code 15}
+     */
+    int getLightLevel();
+
+    /**
+     * Returns the sky light at this position.
+     *
+     * @return the sky light level from {@code 0} to {@code 15}
+     */
+    int getSkyLight();
+
+    /**
+     * Returns the propagated light from block sources at this position.
+     *
+     * @return the block light level from {@code 0} to {@code 15}
+     */
+    int getBlockLight();
+
+    /**
+     * Returns the behavioral components of the captured primary block type.
      *
      * @return the block components
      */
     ComponentMap getComponents();
 
     /**
-     * Gets a behavioral component of this block.
+     * Returns a behavioral component of the captured primary block type.
      *
      * @param type the component type
-     * @param <H> the component value type
-     * @return the component, or {@code null} if this block does not have it
+     * @param <H>  the component value type
+     * @return the component, or {@code null} when it is not present
      */
     default <H> @Nullable H getComponent(ComponentType<H> type) {
         return this.getComponents().get(type);
     }
 
     /**
-     * Gets a behavioral component required by this block operation.
+     * Returns a required behavioral component of the captured primary block type.
      *
      * @param type the component type
-     * @param <H> the component value type
+     * @param <H>  the component value type
      * @return the component
-     * @throws IllegalStateException if this block does not have the component
+     * @throws IllegalStateException when the component is not present
      */
     default <H> H requireComponent(ComponentType<H> type) {
         return this.getComponents().require(type);
     }
 
     /**
-     * Gets the level-aware collision shape of this block.
+     * Returns the collision shape at this position.
      *
      * @return the collision shape
      */
     VoxelShape getCollisionShape();
 
     /**
-     * Gets the level-aware selection and interaction outline of this block.
+     * Returns the selection and interaction outline at this position.
      *
      * @return the outline shape
      */
     VoxelShape getOutlineShape();
 
     /**
-     * Gets the geometry this block uses to support neighboring blocks.
+     * Returns the geometry used to support neighboring blocks.
      *
      * @return the block support shape
      */
     VoxelShape getBlockSupportShape();
 
     /**
-     * Checks whether one face provides the requested kind of block support.
+     * Checks whether a face provides the requested kind of block support.
      *
-     * @param face the face to check
+     * @param face        the face to check
      * @param supportType the required support type
-     * @return {@code true} if the face is sturdy for that support type
+     * @return {@code true} when the face provides the requested support
      */
     boolean isFaceSturdy(Direction face, SupportType supportType);
 
+    /**
+     * Returns the block directly above this block.
+     *
+     * @return the block above
+     */
     default Block up() {
-        return getSide(Direction.UP, 1);
+        return this.getSide(Direction.UP);
     }
 
+    /**
+     * Returns the adjacent block in a direction.
+     *
+     * @param face the direction from this block
+     * @return the adjacent block
+     */
     default Block getSide(Direction face) {
-        return getSide(face, 1);
+        return this.getSide(face, 1);
     }
 
+    /**
+     * Returns a block a number of steps in a direction.
+     *
+     * @param face the direction from this block
+     * @param step the number of blocks to move
+     * @return the relative block
+     */
     Block getSide(Direction face, int step);
 
+    /**
+     * Returns the primary state of the adjacent block in a direction.
+     *
+     * @param face the direction from this block
+     * @return the adjacent primary state
+     */
     default BlockState getSideState(Direction face) {
-        return getSideState(face, 1);
+        return this.getSideState(face, 1);
     }
 
+    /**
+     * Returns the primary state a number of steps in a direction.
+     *
+     * @param face the direction from this block
+     * @param step the number of blocks to move
+     * @return the relative primary state
+     */
     default BlockState getSideState(Direction face, int step) {
-        return getSideState(face, step, 0);
+        return this.getSideState(face, step, BlockLayer.PRIMARY);
     }
 
-    BlockState getSideState(Direction face, int step, int layer);
+    /**
+     * Returns a state a number of steps in a direction.
+     *
+     * @param face  the direction from this block
+     * @param step  the number of blocks to move
+     * @param layer the block layer
+     * @return the relative block state
+     */
+    BlockState getSideState(Direction face, int step, BlockLayer layer);
 
-    default Block getRelative(Vector3i position) {
-        return getRelative(position.getX(), position.getY(), position.getZ());
+    /**
+     * Returns a block at an offset from this block.
+     *
+     * @param offset the relative offset
+     * @return the relative block
+     */
+    default Block getRelative(Vector3i offset) {
+        return this.getRelative(offset.getX(), offset.getY(), offset.getZ());
     }
 
+    /**
+     * Returns a block at an offset from this block.
+     *
+     * @param x the relative X offset
+     * @param y the relative Y offset
+     * @param z the relative Z offset
+     * @return the relative block
+     */
     Block getRelative(int x, int y, int z);
 
+    /**
+     * Returns the primary state at an offset from this block.
+     *
+     * @param x the relative X offset
+     * @param y the relative Y offset
+     * @param z the relative Z offset
+     * @return the relative primary state
+     */
     default BlockState getRelativeState(int x, int y, int z) {
-        return getRelativeState(x, y, z, 0);
+        return this.getRelativeState(x, y, z, BlockLayer.PRIMARY);
     }
 
-    default BlockState getRelativeState(Vector3i position) {
-        return getRelativeState(position.getX(), position.getY(), position.getZ(), 0);
+    /**
+     * Returns the primary state at an offset from this block.
+     *
+     * @param offset the relative offset
+     * @return the relative primary state
+     */
+    default BlockState getRelativeState(Vector3i offset) {
+        return this.getRelativeState(offset, BlockLayer.PRIMARY);
     }
 
-    default BlockState getRelativeState(Vector4i position) {
-        return getRelativeState(position.getX(), position.getY(), position.getZ(), position.getW());
+    /**
+     * Returns a state at an offset from this block.
+     *
+     * @param offset the relative offset
+     * @param layer  the block layer
+     * @return the relative block state
+     */
+    default BlockState getRelativeState(Vector3i offset, BlockLayer layer) {
+        return this.getRelativeState(offset.getX(), offset.getY(), offset.getZ(), layer);
     }
 
-    default BlockState getRelativeState(Vector3i position, int layer) {
-        return getRelativeState(position.getX(), position.getY(), position.getZ(), layer);
-    }
+    /**
+     * Returns a state at an offset from this block.
+     *
+     * @param x     the relative X offset
+     * @param y     the relative Y offset
+     * @param z     the relative Z offset
+     * @param layer the block layer
+     * @return the relative block state
+     */
+    BlockState getRelativeState(int x, int y, int z, BlockLayer layer);
 
-    BlockState getRelativeState(int x, int y, int z, int layer);
-
+    /**
+     * Replaces the primary state and performs normal block updates.
+     *
+     * @param state the replacement state
+     */
     default void set(BlockState state) {
-        this.set(state, 0, false, true);
+        this.set(state, BlockLayer.PRIMARY, false, true);
     }
 
+    /**
+     * Replaces the primary state and performs normal block updates.
+     *
+     * @param state  the replacement state
+     * @param direct whether to send the change immediately instead of batching it
+     */
     default void set(BlockState state, boolean direct) {
-        this.set(state, 0, direct, true);
+        this.set(state, BlockLayer.PRIMARY, direct, true);
     }
 
+    /**
+     * Replaces the primary state.
+     *
+     * @param state  the replacement state
+     * @param direct whether to send the change immediately instead of batching it
+     * @param update whether to process lighting, block entities, liquids, and neighboring blocks
+     */
     default void set(BlockState state, boolean direct, boolean update) {
-        this.set(state, 0, direct, update);
+        this.set(state, BlockLayer.PRIMARY, direct, update);
     }
 
-    default void setExtra(BlockState state) {
-        this.set(state, 1, false, true);
+    /**
+     * Replaces the secondary state and performs normal block updates.
+     *
+     * @param state the replacement state
+     */
+    default void setSecondaryState(BlockState state) {
+        this.set(state, BlockLayer.SECONDARY, false, true);
     }
 
-    default void setExtra(BlockState state, boolean direct) {
-        this.set(state, 1, direct, true);
+    /**
+     * Replaces the secondary state and performs normal block updates.
+     *
+     * @param state  the replacement state
+     * @param direct whether to send the change immediately instead of batching it
+     */
+    default void setSecondaryState(BlockState state, boolean direct) {
+        this.set(state, BlockLayer.SECONDARY, direct, true);
     }
 
-    default void setExtra(BlockState state, boolean direct, boolean update) {
-        this.set(state, 1, direct, update);
+    /**
+     * Replaces the secondary state.
+     *
+     * @param state  the replacement state
+     * @param direct whether to send the change immediately instead of batching it
+     * @param update whether to process lighting, block entities, liquids, and neighboring blocks
+     */
+    default void setSecondaryState(BlockState state, boolean direct, boolean update) {
+        this.set(state, BlockLayer.SECONDARY, direct, update);
     }
 
-    void set(BlockState state, int layer, boolean direct, boolean update);
+    /**
+     * Replaces a state at this block position.
+     *
+     * <p>The captured states of this block are unchanged. Use {@link #refresh()}
+     * to obtain the states stored after this operation.
+     *
+     * @param state  the replacement state
+     * @param layer  the block layer to replace
+     * @param direct whether to send the change immediately instead of batching it
+     * @param update whether to process lighting, block entities, liquids, and neighboring blocks
+     */
+    void set(BlockState state, BlockLayer layer, boolean direct, boolean update);
 }

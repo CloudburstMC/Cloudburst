@@ -48,39 +48,39 @@ public class GlowstonePopulator extends AbstractReplacingPopulator {
         final BlockState block = this.block.selectWeighted(random);
         final BlockState ground = this.ground;
 
-        if (blockY >= 255 || !replace.test(level.getBlockState(blockX, blockY, blockZ, 0)) || level.getBlockState(blockX, blockY + 1, blockZ, 0) != ground) {
+        if (blockY >= 255 || !replace.test(level.getBlockState(blockX, blockY, blockZ)) || level.getBlockState(blockX, blockY + 1, blockZ) != ground) {
             return;
         }
-        level.setBlockState(blockX, blockY, blockZ, 0, block);
+        level.setBlockState(blockX, blockY, blockZ, block);
 
         for (int i = this.tries - 1; i >= 0; i--) {
             int x = blockX + random.nextInt(8) - random.nextInt(8);
             int y = blockY - random.nextInt(12);
             int z = blockZ + random.nextInt(8) - random.nextInt(8);
 
-            if (replace.test(level.getBlockState(x, y, z, 0))) {
+            if (replace.test(level.getBlockState(x, y, z))) {
                 int neighbors = 0;
-                if (level.getBlockState(x - 1, y, z, 0) == block) {
+                if (level.getBlockState(x - 1, y, z) == block) {
                     neighbors++;
                 }
-                if (level.getBlockState(x + 1, y, z, 0) == block) {
+                if (level.getBlockState(x + 1, y, z) == block) {
                     neighbors++;
                 }
-                if (level.getBlockState(x, y - 1, z, 0) == block) {
+                if (level.getBlockState(x, y - 1, z) == block) {
                     neighbors++;
                 }
-                if (level.getBlockState(x, y + 1, z, 0) == block) {
+                if (level.getBlockState(x, y + 1, z) == block) {
                     neighbors++;
                 }
-                if (level.getBlockState(x, y, z - 1, 0) == block) {
+                if (level.getBlockState(x, y, z - 1) == block) {
                     neighbors++;
                 }
-                if (level.getBlockState(x, y, z + 1, 0) == block) {
+                if (level.getBlockState(x, y, z + 1) == block) {
                     neighbors++;
                 }
 
                 if (neighbors == 1) {
-                    level.setBlockState(x, y, z, 0, block);
+                    level.setBlockState(x, y, z, block);
                 }
             }
         }

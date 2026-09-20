@@ -44,7 +44,17 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public int getBrightness() {
+    public int getLightLevel() {
+        return this.level.getFullLight(this.position);
+    }
+
+    @Override
+    public int getSkyLight() {
+        return this.level.getSkyLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
+    }
+
+    @Override
+    public int getBlockLight() {
         return this.level.getBlockLightAt(this.position.getX(), this.position.getY(), this.position.getZ());
     }
 
@@ -82,12 +92,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public BlockState getRelativeState(int x, int y, int z, int layer) {
+    public BlockState getRelativeState(int x, int y, int z, BlockLayer layer) {
         return this.level.getBlockState(getX() + x, getY() + y, getZ() + z, layer);
     }
 
     @Override
-    public BlockState getSideState(Direction face, int step, int layer) {
+    public BlockState getSideState(Direction face, int step, BlockLayer layer) {
         return this.level.getBlockState(
                 getX() + face.getStepX() * step,
                 getY() + face.getStepY() * step,
@@ -102,13 +112,13 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public void set(BlockState state, int layer, boolean direct, boolean update) {
+    public void set(BlockState state, BlockLayer layer, boolean direct, boolean update) {
         this.level.setBlockState(this.position, layer, state, direct, update);
     }
 
     @Override
     public BlockSnapshot snapshot() {
-        return new CloudBlockSnapshot(new BlockState[]{this.getState(0), this.getState(1)});
+        return new CloudBlockSnapshot(new BlockState[]{this.getState(), this.getSecondaryState()});
     }
 
     @Override

@@ -7,7 +7,6 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -31,7 +30,7 @@ import java.util.List;
 @Log4j2
 public class AnvilConverter {
 
-    public static void convertToCloudburst(ChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
+    public static void convertToCloudburst(CloudChunkBuilder chunkBuilder, ByteBuf chunkBuf) throws IOException {
         NbtMap tag;
 
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf);
@@ -81,7 +80,7 @@ public class AnvilConverter {
             sections[y] = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry(),
                     new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
         }
-        chunkBuilder.sections(sections);
+        chunkBuilder.setSections(sections);
 
         byte[] biomes;
         if (tag.containsKey("BiomeColors")) {
@@ -118,49 +117,17 @@ public class AnvilConverter {
                 heightMap[i] = (byte) anvilHeightMap[i];
             }
         }
-        chunkBuilder.heightMap(heightMap);
+        chunkBuilder.setHeightMap(heightMap);
 
 
-        chunkBuilder.dataLoader(new DataLoader(tag.getList("Entities", NbtType.COMPOUND)));
-        chunkBuilder.dataLoader(new TileLoader(tag.getList("TileEntities", NbtType.COMPOUND)));
-
-        List<NbtMap> updateEntries = tag.getList("TileTicks", NbtType.COMPOUND);
-
-        if (updateEntries != null && updateEntries.size() > 0) {
-            for (NbtMap entryTag : updateEntries) {
-//                Block block; //TODO: converter
-
-//                try {
-//                    String name = entryTag.getString("i");
-//
-//
-//                    @SuppressWarnings("unchecked")
-//                    Class<? extends BlockState> clazz = (Class<? extends BlockState>) Class.forName("cn.nukkit.block." + name);
-//
-//                    Constructor<? extends BlockState> constructor = clazz.getDeclaredConstructor();
-//                    constructor.setAccessible(true);
-//                    block = constructor.newInstance();
-//                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException |
-//                        IllegalAccessException | InvocationTargetException e) {
-//                    continue;
-//                }
-
-//                block.setPosition(Vector3i.from(
-//                        entryTag.getInt("x"),
-//                        entryTag.getInt("y"),
-//                        entryTag.getInt("z")
-//                ));
-//
-//                chunkBuilder.blockUpdate(BlockUpdate.of(block, block.getPosition(), entryTag.getInt("t"),
-//                        entryTag.getInt("p"), false));
-            }
-        }
+        chunkBuilder.addLoadTask(new EntityLoadTask(tag.getList("Entities", NbtType.COMPOUND)));
+        chunkBuilder.addLoadTask(new BlockEntityLoadTask(tag.getList("TileEntities", NbtType.COMPOUND)));
 
         if (tag.getBoolean("TerrainGenerated")) {
-            chunkBuilder.state(Chunk.STATE_GENERATED);
+            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.GENERATED);
         }
         if (tag.getBoolean("TerrainPopulated")) {
-            chunkBuilder.state(Chunk.STATE_POPULATED);
+            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.POPULATED);
         }
     }
 
@@ -201,7 +168,7 @@ public class AnvilConverter {
         return Location.from(position, yaw, pitch, chunk.getLevel());
     }
 
-    private record DataLoader(List<NbtMap> entityTags) implements ChunkDataLoader {
+    private record EntityLoadTask(List<NbtMap> entityTags) implements CloudChunkLoadTask {
         @Override
         public boolean load(CloudChunk chunk) {
             CloudEntityRegistry registry = CloudEntityRegistry.get();
@@ -236,7 +203,7 @@ public class AnvilConverter {
         }
     }
 
-    private record TileLoader(List<NbtMap> tileTags) implements ChunkDataLoader {
+    private record BlockEntityLoadTask(List<NbtMap> tileTags) implements CloudChunkLoadTask {
         private static final CloudBlockEntityRegistry REGISTRY = CloudBlockEntityRegistry.get();
 
         @Override

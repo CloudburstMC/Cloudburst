@@ -8,8 +8,8 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkLoadTask;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -26,7 +26,7 @@ import java.util.Set;
 @Log4j2
 public class EntitySerializer {
 
-    public static void loadEntities(DB db, ChunkBuilder builder) {
+    public static void loadEntities(DB db, CloudChunkBuilder builder) {
         byte[] key = LevelDBKey.ENTITIES.getKey(builder.getX(), builder.getZ());
 
         byte[] value = db.get(key);
@@ -44,7 +44,7 @@ public class EntitySerializer {
             throw new RuntimeException(e);
         }
 
-        builder.dataLoader(new DataLoader(entityTags));
+        builder.addLoadTask(new EntityLoadTask(entityTags));
     }
 
     public static void saveEntities(WriteBatch db, CloudChunk chunk) {
@@ -100,7 +100,7 @@ public class EntitySerializer {
         return Location.from(position, yaw, pitch, chunk.getLevel());
     }
 
-    private record DataLoader(List<NbtMap> entityTags) implements ChunkDataLoader {
+    private record EntityLoadTask(List<NbtMap> entityTags) implements CloudChunkLoadTask {
         @Override
         public boolean load(CloudChunk chunk) {
             boolean dirty = false;

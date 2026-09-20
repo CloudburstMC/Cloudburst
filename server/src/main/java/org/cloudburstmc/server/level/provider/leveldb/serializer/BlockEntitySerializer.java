@@ -10,8 +10,8 @@ import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkLoadTask;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
@@ -28,7 +28,7 @@ import java.util.Set;
 @Log4j2
 public class BlockEntitySerializer {
 
-    public static void loadBlockEntities(DB db, ChunkBuilder builder) {
+    public static void loadBlockEntities(DB db, CloudChunkBuilder builder) {
         byte[] key = LevelDBKey.BLOCK_ENTITIES.getKey(builder.getX(), builder.getZ());
 
         byte[] value = db.get(key);
@@ -46,7 +46,7 @@ public class BlockEntitySerializer {
             throw new RuntimeException(e);
         }
 
-        builder.dataLoader(new BlockEntityLoader(blockEntityTags));
+        builder.addLoadTask(new BlockEntityLoadTask(blockEntityTags));
     }
 
     public static void saveBlockEntities(WriteBatch db, CloudChunk chunk) {
@@ -71,7 +71,7 @@ public class BlockEntitySerializer {
     }
 
     @RequiredArgsConstructor
-    private static class BlockEntityLoader implements ChunkDataLoader {
+    private static class BlockEntityLoadTask implements CloudChunkLoadTask {
         private static final CloudBlockEntityRegistry REGISTRY = CloudBlockEntityRegistry.get();
         private final List<NbtMap> blockEntityTags;
 

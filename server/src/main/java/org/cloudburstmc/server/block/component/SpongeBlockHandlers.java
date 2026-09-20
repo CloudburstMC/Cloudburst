@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.component;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.SpongeAbsorbEvent;
@@ -89,7 +90,7 @@ public class SpongeBlockHandlers {
 
             boolean changed;
             BlockState primary = block.getState();
-            if (block.getLiquidLayer() == 1 && isAquaticPlant(primary)) {
+            if (block.getLiquidLayer() == BlockLayer.SECONDARY && isAquaticPlant(primary)) {
                 level.breakBlock(position);
                 changed = level.getBlock(position).getLiquid().isEmpty();
             } else {

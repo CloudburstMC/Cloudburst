@@ -4,7 +4,8 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilderFactory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.LevelImportSource;
 
@@ -40,7 +41,7 @@ public final class AnvilLevelImportSource implements LevelImportSource {
     }
 
     @Override
-    public CompletableFuture<Void> visitChunks(ChunkBuilder.Factory factory, Consumer<CloudChunk> consumer) {
+    public CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<CloudChunk> consumer) {
         checkForClosed();
 
         List<Path> paths;
@@ -64,7 +65,7 @@ public final class AnvilLevelImportSource implements LevelImportSource {
                                 }
                                 int chunkX = regionPos.x << 5 | x;
                                 int chunkZ = regionPos.z << 5 | z;
-                                ChunkBuilder builder = factory.create(chunkX, chunkZ);
+                                CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
                                 ByteBuf buffer = regionFile.readChunk(x, z);
                                 try {
                                     AnvilConverter.convertToCloudburst(builder, buffer);

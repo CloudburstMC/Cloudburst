@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.provider;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.io.Closeable;
@@ -24,7 +24,7 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
      * @return the loaded chunk, or {@code null} when no chunk is stored at those coordinates
      */
     @Nullable
-    CloudChunk readChunk(ChunkBuilder chunkBuilder);
+    CloudChunk readChunk(CloudChunkBuilder chunkBuilder);
 
     /**
      * Persists the complete state of a chunk asynchronously.

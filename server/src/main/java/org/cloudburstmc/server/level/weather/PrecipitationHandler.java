@@ -17,7 +17,6 @@ import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PrecipitationHandler {
 
-    private static final float FREEZING_TEMPERATURE = 0.15f;
     private static final int MAX_FORMATION_LIGHT = 9;
 
     public static void tickColumn(CloudLevel level, int x, int z) {
@@ -28,18 +27,18 @@ public final class PrecipitationHandler {
         }
 
         Block surface = level.getBlock(x, surfaceY, z);
-        if (isColdEnough(biome, x, surfaceY, z)
+        if (isColdEnough(level, biome, x, surfaceY, z)
                 && surface.getState().getType() == BlockTypes.WATER
                 && level.getBlockLightAt(x, surfaceY, z) <= MAX_FORMATION_LIGHT) {
             formBlock(level, surface, BlockStates.ICE);
         }
 
-        if (!level.isRaining()) {
+        if (!level.isRaining() || !biome.hasPrecipitation()) {
             return;
         }
 
         int targetY = surface.getState().getType() == BlockTypes.SNOW_LAYER ? surfaceY : surfaceY + 1;
-        if (!isColdEnough(biome, x, targetY, z) || level.getBlockLightAt(x, targetY, z) > MAX_FORMATION_LIGHT) {
+        if (level.isOutsideBuildHeight(targetY) || !isColdEnough(level, biome, x, targetY, z) || level.getBlockLightAt(x, targetY, z) > MAX_FORMATION_LIGHT) {
             return;
         }
 
@@ -50,8 +49,8 @@ public final class PrecipitationHandler {
         }
     }
 
-    private static boolean isColdEnough(CloudBiome biome, int x, int y, int z) {
-        return biome.temperatureAt(x, y, z) < FREEZING_TEMPERATURE;
+    private static boolean isColdEnough(CloudLevel level, CloudBiome biome, int x, int y, int z) {
+        return biome.coldEnoughToSnow(x, y, z, level.getSeaLevel());
     }
 
     private static void formBlock(CloudLevel level, Block block, BlockState state) {

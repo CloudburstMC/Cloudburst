@@ -41,11 +41,9 @@ import org.cloudburstmc.api.item.component.DamageItemHandler;
 import org.cloudburstmc.api.item.component.FinishUseHandler;
 import org.cloudburstmc.api.item.component.FloatItemHandler;
 import org.cloudburstmc.api.item.component.IntItemHandler;
-import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
@@ -109,6 +107,7 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.Explosion;
+import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.*;
@@ -145,7 +144,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITE
  * chunk loading, packet processing, and all player-specific game logic.
  */
 @Log4j2
-public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, ContainerListener {
+public class CloudPlayer extends EntityHuman implements Player, ContainerListener {
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
@@ -247,7 +246,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private byte containerIdCounter = 1;
     private int exp = 0;
     private int expLevel = 0;
-    private int loaderId;
     private Entity killer = null;
     private final AuthenticatedPlayerData connectionData;
     private CloudPermissible perm = null;
@@ -984,7 +982,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             int newCharge = currentCharge - 1;
 
             BlockState newAnchorState = block.getState().withTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE, newCharge);
-            spawnLevel.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, newAnchorState, false, true);
+            spawnLevel.setBlockState(pos.getX(), pos.getY(), pos.getZ(), newAnchorState, false, true);
 
             LevelSoundEventPacket depleteSound = new LevelSoundEventPacket();
             depleteSound.setSound(SoundEvent.RESPAWN_ANCHOR_DEPLETE);
@@ -1013,7 +1011,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.onInventoryContentsChange(this.armor.getContainer());
 
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime(this.getLevel().getTime());
+        setTimePacket.setTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
         this.sendPacket(setTimePacket);
 
         Location loc = Location.from(this.getPosition(), this.getYaw(), this.getPitch(), this.getLevel());
@@ -1113,10 +1111,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     pos.getZ() - facing.getStepZ()
             );
 
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, BlockStates.AIR, false, true);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), BlockStates.AIR, false, true);
             BlockState footState = level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ());
             if (footState.getType() == headState.getType()) {
-                level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0,
+                level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(),
                         BlockStates.AIR, false, true);
             }
 
@@ -1128,8 +1126,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return true;
         }
 
-        int time = level.getTime() % Level.TIME_FULL;
-        boolean canSleep = level.isThundering() || (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        boolean canSleep = level.isThundering() || VanillaLevelTime.isNight(level.getTime());
         if (!canSleep) {
             sendMessage(Component.translatable("tile.bed.noSleep"));
             return true;
@@ -1160,7 +1157,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         try {
             BlockState occupied = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, true);
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, occupied, false, true);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), occupied, false, true);
         } catch (Exception ignored) {
         }
 
@@ -1277,7 +1274,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             try {
                 BlockState clearedState = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, false);
                 this.getLevel().setBlockState(
-                        this.sleeping.getX(), this.sleeping.getY(), this.sleeping.getZ(), 0, clearedState, false, true);
+                        this.sleeping.getX(), this.sleeping.getY(), this.sleeping.getZ(),
+                        BlockLayer.PRIMARY, clearedState, false, true);
             } catch (Exception ignored) {
             }
 
@@ -2244,7 +2242,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         startGamePacket.setDifficulty(this.server.getDifficulty().getId());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setDayCycleStopTime(this.getLevel().getTime());
+        startGamePacket.setDayCycleStopTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
@@ -3669,21 +3667,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return this.getChunkManager().isChunkSent(x, z);
     }
 
-    @Override
-    public void onChunkChanged(Chunk chunk) {
-        this.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
-    }
-
-    @Override
-    public int getLoaderId() {
-        return this.loaderId;
-    }
-
-    @Override
-    public boolean isLoaderActive() {
-        return this.isConnected();
-    }
-
     public boolean isFoodEnabled() {
         return !(this.isCreative() || this.isSpectator()) && this.foodEnabled;
     }
@@ -3728,16 +3711,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         pk.setAddress(hostName);
         pk.setPort(port);
         this.sendPacket(pk);
-    }
-
-    @Override
-    public void onChunkUnloaded(Chunk chunk) {
-        //this.sentChunks.remove(Chunk.key(chunk.getX(), chunk.getZ()));
-    }
-
-    @Override
-    public void onChunkLoaded(Chunk chunk) {
-
     }
 
     @Override
@@ -3893,7 +3866,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.getChunkManager().prepareRegion(this.getPosition());
 
             SetTimePacket setTime = new SetTimePacket();
-            setTime.setTime(level.getTime());
+            setTime.setTime(VanillaLevelTime.toNetworkTime(level.getTime()));
             this.sendPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();

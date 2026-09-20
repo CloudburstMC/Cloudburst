@@ -2,10 +2,9 @@ package org.cloudburstmc.server.block;
 
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockSnapshot;
 import org.cloudburstmc.api.block.BlockState;
-
-import static com.google.common.base.Preconditions.checkElementIndex;
 
 @RequiredArgsConstructor
 @ToString
@@ -13,8 +12,10 @@ public class CloudBlockSnapshot implements BlockSnapshot {
     private final BlockState[] states;
 
     @Override
-    public BlockState getState(int layer) {
-        checkElementIndex(layer, states.length);
-        return states[layer];
+    public BlockState getState(BlockLayer layer) {
+        return this.states[switch (layer) {
+            case PRIMARY -> 0;
+            case SECONDARY -> 1;
+        }];
     }
 }

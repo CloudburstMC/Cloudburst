@@ -2,6 +2,7 @@ package org.cloudburstmc.server.container.screen;
 
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.inventory.ScreenTypes;
@@ -85,8 +86,8 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
         fakePos = Vector3i.from((int) pos.getX(), fakeY, (int) pos.getZ());
 
         originalStates = new BlockState[]{
-                level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ(), 0),
-                level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ(), 1)
+                level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ()),
+                level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ(), BlockLayer.SECONDARY)
         };
 
         BlockState chestState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST);

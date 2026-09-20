@@ -97,7 +97,7 @@ public class CloudBiomeRegistry implements BiomeRegistry {
             Identifier id = Identifier.parse(name);
             BiomeType type = BiomeTypes.get(id).orElseThrow(() -> new RegistryException("Unknown built-in biome type " + id));
             Set<Identifier> tags = data.getTags() == null ? Set.of() : Set.copyOf(data.getTags().stream().map(Identifier::parse).toList());
-            biomes.put(id, new CloudBiome(type, tags, data.getTemperature(), data.getDownfall()));
+            biomes.put(id, new CloudBiome(type, tags, data.getTemperature(), data.getDownfall(), data.isRain()));
         });
 
         return Map.copyOf(biomes);

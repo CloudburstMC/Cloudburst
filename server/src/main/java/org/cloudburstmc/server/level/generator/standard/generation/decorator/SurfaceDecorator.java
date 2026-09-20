@@ -43,7 +43,7 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
         Preconditions.checkState(this.top != null, "top must be set!");
         Preconditions.checkState(this.filler != null, "filler must be set!");
 
-        this.seaLevel = this.seaLevel < 0 ? generator.seaLevel() : this.seaLevel;
+        this.seaLevel = this.seaLevel < 0 ? generator.getSeaLevel() : this.seaLevel;
     }
 
     @Override
@@ -55,19 +55,19 @@ public class SurfaceDecorator extends DepthNoiseDecorator {
         final int min = this.height == null ? 0 : this.height.min;
 
         for (int y = chunk.getHighestBlock(x, z); y >= min; y--) {
-            if (chunk.getBlockState(x, y, z, 0) == this.ground) {
+            if (chunk.getBlockState(x, y, z) == this.ground) {
                 if (!placed) {
                     placed = true;
                     if (y <= max) {
                         if (y + 1 > this.seaLevel) {
                             if (y < 255 && this.cover != null) {
-                                chunk.setBlockState(x, y + 1, z, 0, this.cover);
+                                chunk.setBlockState(x, y + 1, z, this.cover);
                             }
-                            chunk.setBlockState(x, y--, z, 0, this.top);
+                            chunk.setBlockState(x, y--, z, this.top);
                         }
                         for (int i = depth - 1; i >= 0 && y >= 0; i--, y--) {
-                            if (chunk.getBlockState(x, y, z, 0) == this.ground) {
-                                chunk.setBlockState(x, y, z, 0, this.filler);
+                            if (chunk.getBlockState(x, y, z) == this.ground) {
+                                chunk.setBlockState(x, y, z, this.filler);
                             } else {
                                 //we hit air prematurely, abort!
                                 placed = false;

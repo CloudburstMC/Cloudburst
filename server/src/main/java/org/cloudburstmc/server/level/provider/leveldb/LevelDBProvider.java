@@ -7,10 +7,11 @@ import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
 import org.iq80.leveldb.CompressionType;
@@ -61,7 +62,7 @@ public class LevelDBProvider implements LevelProvider {
 
     @Override
     @Nullable
-    public CloudChunk readChunk(ChunkBuilder chunkBuilder) {
+    public CloudChunk readChunk(CloudChunkBuilder chunkBuilder) {
         checkForClosed();
         int x = chunkBuilder.getX();
         int z = chunkBuilder.getZ();
@@ -77,21 +78,22 @@ public class LevelDBProvider implements LevelProvider {
 
         byte[] finalizationState = this.db.get(LevelDBKey.STATE_FINALIZATION.getKey(x, z));
         if (finalizationState == null) {
-            chunkBuilder.state(Chunk.STATE_FINISHED);
+            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.FINISHED);
         } else {
             int stateValue = (finalizationState[0] & 0xFF)
                     | ((finalizationState[1] & 0xFF) << 8)
                     | ((finalizationState[2] & 0xFF) << 16)
                     | ((finalizationState[3] & 0xFF) << 24);
-            chunkBuilder.state(Math.min(stateValue + 1, Chunk.STATE_FINISHED));
+            int statusOrdinal = Math.clamp(stateValue + 1, 0, ChunkGenerationStatus.FINISHED.ordinal());
+            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.values()[statusOrdinal]);
         }
 
         byte chunkVersion = versionValue[0];
         if (chunkVersion < 7) {
-            chunkBuilder.dirty();
+            chunkBuilder.markDirty();
         }
 
-        chunkBuilder.chunkVersion(chunkVersion & 0xFF);
+        chunkBuilder.setStorageVersion(chunkVersion & 0xFF);
         ChunkSerializers.deserializeChunk(this.db, chunkBuilder, chunkVersion & 0xFF);
         Data2dSerializer.deserialize(this.db, chunkBuilder);
 
@@ -115,14 +117,14 @@ public class LevelDBProvider implements LevelProvider {
 
             try (DirectWriteBatch batch = this.db.createWriteBatch()) {
                 Runnable onSuccess;
-                LockableChunk lockableChunk = chunk.readLockable();
-                lockableChunk.lock();
-                try {
+                long saveRevision;
+                CloudChunk cloudChunk = (CloudChunk) chunk;
+                try (LockedChunk ignored = cloudChunk.lockForRead()) {
                     ChunkSerializers.serializeChunk(batch, chunk, CURRENT_CHUNK_VERSION);
 
                     batch.put(LevelDBKey.VERSION.getKey(x, z), new byte[]{(byte) CURRENT_CHUNK_VERSION});
 
-                    int stateValue = lockableChunk.getState() - 1;
+                    int stateValue = cloudChunk.getGenerationStatus().ordinal() - 1;
                     batch.put(LevelDBKey.STATE_FINALIZATION.getKey(x, z), new byte[]{
                             (byte) stateValue,
                             (byte) (stateValue >>> 8),
@@ -133,12 +135,11 @@ public class LevelDBProvider implements LevelProvider {
                     BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
                     EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
                     onSuccess = PendingTickSerializer.savePendingTicks(batch, (CloudChunk) chunk);
-                } finally {
-                    lockableChunk.unlock();
+                    saveRevision = cloudChunk.captureSaveRevision();
                 }
 
                 writeBatch(batch, "chunk (" + x + ", " + z + ')', () -> {
-                    chunk.clearDirty();
+                    cloudChunk.acknowledgeSave(saveRevision);
                     if (onSuccess != null) {
                         onSuccess.run();
                     }

@@ -1,36 +1,30 @@
 package org.cloudburstmc.server.level.chunk;
 
 import co.aikar.timings.Timing;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
-import lombok.Synchronized;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.ChunkException;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.math.vector.Vector4i;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.BlockUpdate;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.io.Closeable;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -47,18 +41,12 @@ public final class CloudChunk implements Chunk, Closeable {
     private final Lock writeLock;
 
     private final UnsafeChunk unsafe;
-    private final Set<ChunkLoader> loaders = Collections.newSetFromMap(new IdentityHashMap<>());
-
-    private final CloudLockableChunk readLockable;
-    private final CloudLockableChunk writeLockable;
-
-    private Collection<ChunkDataLoader> chunkDataLoaders;
-    private List<BlockUpdate> blockUpdates;
+    private List<CloudChunkLoadTask> loadTasks = List.of();
 
     /**
      * Pending tick entries that were deserialized from disk during
-     * {@link #init()} but could not be scheduled yet because the tick
-     * container is not registered until {@link #replayDeferredUpdates()} is
+     * {@link #initialize()} but could not be scheduled yet because the tick
+     * container is not registered until {@link #replayRestoredTicks()} is
      * called (after the chunk finishes loading and its container is wired).
      */
     private List<BlockUpdateEntry> restoredTicks;
@@ -67,10 +55,9 @@ public final class CloudChunk implements Chunk, Closeable {
         this(new UnsafeChunk(x, z, level));
     }
 
-    CloudChunk(UnsafeChunk unsafe, Collection<ChunkDataLoader> chunkDataLoaders, List<BlockUpdate> blockUpdates) {
+    CloudChunk(UnsafeChunk unsafe, List<CloudChunkLoadTask> loadTasks) {
         this(unsafe);
-        this.chunkDataLoaders = checkNotNull(chunkDataLoaders, "chunkEntityLoaders");
-        this.blockUpdates = checkNotNull(blockUpdates, "blockUpdates");
+        this.loadTasks = List.copyOf(checkNotNull(loadTasks, "loadTasks"));
     }
 
     private CloudChunk(@NonNull UnsafeChunk unsafe) {
@@ -80,30 +67,30 @@ public final class CloudChunk implements Chunk, Closeable {
         this.readLock = lock.readLock();
         this.writeLock = lock.writeLock();
 
-        this.readLockable = new CloudLockableChunk(unsafe, this.readLock);
-        this.writeLockable = new CloudLockableChunk(unsafe, this.writeLock);
     }
 
-    public void init() {
-        boolean init = this.unsafe.init();
-        if (init) {
+    /**
+     * Applies data that could not be restored until the chunk was constructed.
+     */
+    public void initialize() {
+        if (this.unsafe.beginInitialization()) {
             try (Timing ignored = ((CloudLevel) unsafe.getLevel()).timings.syncChunkLoadEntitiesTimer.startTiming()) {
-                boolean dirty = false;
-
-                for (ChunkDataLoader chunkDataLoader : this.chunkDataLoaders) {
-                    if (chunkDataLoader.load(this)) {
-                        dirty = true;
+                List<CloudChunkLoadTask> loadTasks = this.loadTasks;
+                this.loadTasks = List.of();
+                for (CloudChunkLoadTask loadTask : loadTasks) {
+                    if (loadTask.load(this)) {
+                        this.markDirty();
                     }
                 }
 
-                this.setDirty(dirty);
+                this.unsafe.completeInitialization();
             }
         }
     }
 
     /**
      * Stores tick entries that were deserialized from disk. Called by the
-     * pending-tick loader during {@link #init()} so entries can be replayed
+     * pending-tick load task during {@link #initialize()} so entries can be replayed
      * later, once the tick container is registered.
      *
      * <p>Replaces any previously stored list; only one call per chunk load.
@@ -113,25 +100,17 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     /**
-     * Schedules all deferred block updates (from disk or population) and
-     * replays all restored pending ticks into the scheduler.
+     * Replays restored pending ticks into the scheduler.
      *
      * <p>Must be called only after the tick container for this chunk has been
      * registered via {@code BlockUpdateScheduler.registerTickContainer}.
      * Calling it earlier will silently drop entries.
      *
-     * <p>This method is idempotent: it clears both lists after draining them
-     * so a second call is a no-op.
+     * <p>This method is idempotent: it clears the restored ticks after replaying
+     * them so a second call is a no-op.
      */
-    public void replayDeferredUpdates() {
+    public void replayRestoredTicks() {
         CloudLevel lvl = (CloudLevel) this.unsafe.getLevel();
-
-        if (this.blockUpdates != null) {
-            for (BlockUpdate update : this.blockUpdates) {
-                lvl.scheduleUpdate(update);
-            }
-            this.blockUpdates = null;
-        }
 
         if (this.restoredTicks != null) {
             for (BlockUpdateEntry entry : this.restoredTicks) {
@@ -169,8 +148,7 @@ public final class CloudChunk implements Chunk, Closeable {
     public ChunkSection[] getSections() {
         this.readLock.lock();
         try {
-            CloudChunkSection[] sections = unsafe.getSections();
-            return Arrays.copyOf(sections, sections.length);
+            return this.unsafe.getSections();
         } finally {
             this.readLock.unlock();
         }
@@ -178,7 +156,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState getBlockState(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, BlockLayer layer) {
         this.readLock.lock();
         try {
             return unsafe.getBlockState(x, y, z, layer);
@@ -189,7 +167,7 @@ public final class CloudChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, BlockLayer layer, BlockState blockState) {
         this.writeLock.lock();
         try {
             return unsafe.setBlockState(x, y, z, layer, blockState);
@@ -219,7 +197,17 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @Override
-    public byte getSkyLight(int x, int y, int z) {
+    public void fillColumnBiome(int x, int z, int biomeId) {
+        this.writeLock.lock();
+        try {
+            this.unsafe.fillColumnBiome(x, z, biomeId);
+        } finally {
+            this.writeLock.unlock();
+        }
+    }
+
+    @Override
+    public int getSkyLight(int x, int y, int z) {
         this.readLock.lock();
         try {
             return unsafe.getSkyLight(x, y, z);
@@ -239,7 +227,7 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @Override
-    public byte getBlockLight(int x, int y, int z) {
+    public int getBlockLight(int x, int y, int z) {
         this.readLock.lock();
         try {
             return unsafe.getBlockLight(x, y, z);
@@ -303,10 +291,10 @@ public final class CloudChunk implements Chunk, Closeable {
     }
 
     @Override
-    public int @NonNull [] getHeightMapArray() {
+    public int @NonNull [] getHeightMap() {
         this.readLock.lock();
         try {
-            return this.unsafe.getHeightMapArray().clone();
+            return this.unsafe.getHeightMap();
         } finally {
             this.readLock.unlock();
         }
@@ -317,7 +305,7 @@ public final class CloudChunk implements Chunk, Closeable {
     public Set<CloudPlayer> getPlayers() {
         this.readLock.lock();
         try {
-            return new HashSet<>(unsafe.getPlayers());
+            return this.unsafe.getPlayers();
         } finally {
             this.readLock.unlock();
         }
@@ -328,95 +316,94 @@ public final class CloudChunk implements Chunk, Closeable {
     public Set<CloudEntity> getEntities() {
         this.readLock.lock();
         try {
-            return new HashSet<>(unsafe.getEntities());
+            return this.unsafe.getEntities();
         } finally {
             this.readLock.unlock();
         }
     }
 
-    @Override
-    public int getState() {
-        return this.unsafe.getState();
+    public ChunkGenerationStatus getGenerationStatus() {
+        return this.unsafe.getGenerationStatus();
+    }
+
+    public void advanceGenerationStatus(ChunkGenerationStatus nextStatus) {
+        this.unsafe.advanceGenerationStatus(nextStatus);
     }
 
     @Override
-    public int setState(int next) {
-        return this.unsafe.setState(next);
+    public boolean isGenerated() {
+        return this.unsafe.isGenerated();
     }
 
-    @Override
+    public boolean isPopulated() {
+        return this.unsafe.isPopulated();
+    }
+
+    public boolean isFinished() {
+        return this.unsafe.isFinished();
+    }
+
     public boolean isDirty() {
         return this.unsafe.isDirty();
     }
 
-    @Override
-    public void setDirty(boolean dirty) {
-        unsafe.setDirty(dirty);
+    public void markDirty() {
+        this.unsafe.markDirty();
     }
 
-    @Override
-    public boolean clearDirty() {
-        return this.unsafe.clearDirty();
+    /**
+     * Captures the content revision represented by a serialized chunk snapshot.
+     *
+     * @return the current content revision
+     */
+    public long captureSaveRevision() {
+        return this.unsafe.captureSaveRevision();
     }
 
-    @Synchronized("loaders")
-    public void addLoader(ChunkLoader chunkLoader) {
-        Preconditions.checkNotNull(chunkLoader, "chunkLoader");
-        if (chunkLoader instanceof CloudPlayer) {
-            return;
-        }
-        this.loaders.add(chunkLoader);
-    }
-
-    @Synchronized("loaders")
-    public void removeLoader(ChunkLoader chunkLoader) {
-        Preconditions.checkNotNull(chunkLoader, "chunkLoader");
-        if (chunkLoader instanceof CloudPlayer) {
-            return;
-        }
-        this.loaders.remove(chunkLoader);
-    }
-
-    @NonNull
-    @Synchronized("loaders")
-    public Set<ChunkLoader> getLoaders() {
-        return ImmutableSet.copyOf(loaders);
-    }
-
-    @Synchronized("loaders")
-    public boolean hasLoaders() {
-        return !loaders.isEmpty();
+    /**
+     * Acknowledges that a serialized revision was persisted successfully.
+     * Changes made after that revision keep the chunk dirty.
+     *
+     * @param saveRevision the revision captured while serializing
+     */
+    public void acknowledgeSave(long saveRevision) {
+        this.unsafe.acknowledgeSave(saveRevision);
     }
 
     @NonNull
     @Override
     public Set<CloudPlayer> getViewers() {
-        return new HashSet<>(((CloudLevel) this.unsafe.getLevel()).getChunkPlayers(this.getX(), this.getZ()));
+        return this.unsafe.getViewers();
     }
 
-    public void tick(int tick) {
-        //todo
+    /**
+     * Acquires a direct chunk view under this chunk's read lock.
+     *
+     * <p>The returned view must be closed by the acquiring thread.
+     *
+     * @return the acquired chunk view
+     */
+    public LockedChunk lockForRead() {
+        return new LockedChunk(this.unsafe, this.readLock, false);
     }
 
-    @Override
-    public LockableChunk readLockable() {
-        return this.readLockable;
-    }
-
-    @Override
-    public LockableChunk writeLockable() {
-        return this.writeLockable;
+    /**
+     * Acquires a direct chunk view under this chunk's write lock.
+     *
+     * <p>The returned view must be closed by the acquiring thread.
+     *
+     * @return the acquired chunk view
+     */
+    public LockedChunk lockForWrite() {
+        return new LockedChunk(this.unsafe, this.writeLock, true);
     }
 
     public void clear() {
         this.writeLock.lock();
         try {
             unsafe.clear();
-            if (this.blockUpdates != null) {
-                this.blockUpdates.clear();
-            }
             this.restoredTicks = null;
-            this.chunkDataLoaders = null;
+            this.loadTasks = List.of();
         } finally {
             this.writeLock.unlock();
         }
@@ -450,6 +437,7 @@ public final class CloudChunk implements Chunk, Closeable {
         }
     }
 
+    @Nullable
     @Override
     public BlockEntity getBlockEntity(int x, int y, int z) {
         this.readLock.lock();
@@ -482,8 +470,7 @@ public final class CloudChunk implements Chunk, Closeable {
         try {
             dimension = ((CloudLevel) unsafe.getLevel()).getDimension();
             sectionCount = unsafe.getLevel().getSectionsCount();
-            CloudChunkSection[] live = unsafe.getSections();
-            sectionSnapshot = Arrays.copyOf(live, live.length);
+            sectionSnapshot = this.unsafe.getSections();
         } finally {
             this.readLock.unlock();
         }
@@ -542,14 +529,6 @@ public final class CloudChunk implements Chunk, Closeable {
         return Vector3i.from(x, y, z);
     }
 
-    public static Vector4i fromKey(long chunkKey, int blockKey, int minHeight) {
-        int layer = blockKey & 0x1;
-        int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
-        int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
-        return Vector4i.from(x, y, z, layer);
-    }
-
     public static Vector3i fromKeyLight(long chunkKey, int blockKey, int minHeight) {
         int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
@@ -557,8 +536,9 @@ public final class CloudChunk implements Chunk, Closeable {
         return Vector3i.from(x, y, z);
     }
 
-    public static int blockKeyWithLayer(int x, int y, int z, int layer, int minHeight) {
-        return (layer & 0x1) | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y - minHeight) & 0x1ff) << 9);
+    public static int blockKeyWithLayer(int x, int y, int z, BlockLayer layer, int minHeight) {
+        int encodedLayer = BlockLayerStorage.index(layer);
+        return encodedLayer | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y - minHeight) & 0x1ff) << 9);
     }
 
     public static long key(int x, int z) {

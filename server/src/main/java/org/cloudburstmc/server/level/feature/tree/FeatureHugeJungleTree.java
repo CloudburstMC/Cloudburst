@@ -65,8 +65,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
                 dx = floorI(1.5d + dirCos * branchLength);
                 dz = floorI(1.5d + dirSin * branchLength);
                 int ddy = (branchLength >> 1) - 3;
-                if (this.test(level.getBlockState(x + dx, y + dy + ddy, z + dz, 0))) {
-                    level.setBlockState(x + dx, y + dy + ddy, z + dz, 0, log);
+                if (this.test(level.getBlockState(x + dx, y + dy + ddy, z + dz))) {
+                    level.setBlockState(x + dx, y + dy + ddy, z + dz, log);
                 }
             }
 
@@ -79,8 +79,8 @@ public class FeatureHugeJungleTree extends FeatureHugeTree {
     protected void placeVines(GenerationRegion level, RandomGenerator random, int x, int y, int z, Direction face) {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
-        if (random.nextInt(4) != 0 && this.test(level.getBlockState(x, y, z, 0))) {
-            level.setBlockState(x, y, z, 0, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getIndex()));
+        if (random.nextInt(4) != 0 && this.test(level.getBlockState(x, y, z))) {
+            level.setBlockState(x, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getIndex()));
         }
     }
 }
