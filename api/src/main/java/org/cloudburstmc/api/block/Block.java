@@ -4,6 +4,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -130,11 +131,12 @@ public interface Block extends BlockSnapshot {
     }
 
     /**
-     * Returns the collision shape at this position.
+     * Returns the collision shape for a particular entity context.
      *
+     * @param context the entity context
      * @return the collision shape
      */
-    VoxelShape getCollisionShape();
+    VoxelShape getCollisionShape(CollisionContext context);
 
     /**
      * Returns the selection and interaction outline at this position.

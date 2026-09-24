@@ -142,9 +142,19 @@ public class ItemBehaviors {
     public static final ComponentType<DamageItemHandler> ON_DAMAGE = ComponentType.of("on_damage", DamageItemHandler.class);
 
     /**
+     * Applies an item's behavior when its holder releases the use action, if one is registered.
+     */
+    public static final ComponentType<ReleaseUseHandler> RELEASE_USE = ComponentType.of("release_use", ReleaseUseHandler.class);
+
+    /**
      * Identifies the entity type created by a spawn egg.
      */
     public static final ComponentType<SpawnEggComponent> SPAWN_EGG = ComponentType.of("spawn_egg", SpawnEggComponent.class);
+
+    /**
+     * Performs a piercing weapon's stab action.
+     */
+    public static final ComponentType<StabHandler> STAB = ComponentType.of("stab", StabHandler.class);
 
     /**
      * Applies an item's general use behavior and returns the resulting item stack.
@@ -160,4 +170,9 @@ public class ItemBehaviors {
      * Applies the behavior for using an item on a block and returns the resulting item stack.
      */
     public static final ComponentType<UseOnHandler> USE_ON = ComponentType.of("use_on", UseOnHandler.class);
+
+    /**
+     * Runs while an item is being used, before its duration completes, if one is registered.
+     */
+    public static final ComponentType<UseTickHandler> USE_TICK = ComponentType.of("use_tick", UseTickHandler.class);
 }

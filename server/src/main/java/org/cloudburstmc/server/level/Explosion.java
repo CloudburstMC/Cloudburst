@@ -15,9 +15,15 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.entity.EntityExplodeEvent;
+import org.cloudburstmc.api.level.BlockShapeMode;
+import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
+import org.cloudburstmc.api.util.CollisionContext;
+import org.cloudburstmc.api.util.MissHitResult;
+import org.cloudburstmc.api.util.MissReason;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -50,6 +56,40 @@ public class Explosion {
         this.source = center;
         this.size = Math.max(size, 0);
         this.sourceEntity = sourceEntity;
+    }
+
+    public static float getSeenPercent(Vector3f center, Entity entity) {
+        BoundingBox box = entity.getBoundingBox();
+        double xStep = 1 / ((box.getMaxX() - box.getMinX()) * 2 + 1);
+        double yStep = 1 / ((box.getMaxY() - box.getMinY()) * 2 + 1);
+        double zStep = 1 / ((box.getMaxZ() - box.getMinZ()) * 2 + 1);
+
+        double xOffset = (1 - Math.floor(1 / xStep) * xStep) / 2;
+        double zOffset = (1 - Math.floor(1 / zStep) * zStep) / 2;
+
+        int clear = 0;
+        int samples = 0;
+        for (double x = 0; x <= 1; x += xStep) {
+            for (double y = 0; y <= 1; y += yStep) {
+                for (double z = 0; z <= 1; z += zStep) {
+                    Vector3f sample = Vector3f.from(
+                            box.getMinX() + (box.getMaxX() - box.getMinX()) * x + xOffset,
+                            box.getMinY() + (box.getMaxY() - box.getMinY()) * y,
+                            box.getMinZ() + (box.getMaxZ() - box.getMinZ()) * z + zOffset
+                    );
+
+                    if (entity.getLevel().rayTraceBlocks(new RayTraceContext(sample, center,
+                            BlockShapeMode.COLLIDER, FluidCollisionMode.NONE,
+                            CollisionContext.of(entity))) instanceof MissHitResult miss
+                            && miss.reason() == MissReason.CLEAR) {
+                        clear++;
+                    }
+                    samples++;
+                }
+            }
+        }
+
+        return samples == 0 ? 0 : (float) clear / samples;
     }
 
     public void setDestroysBlocks(boolean destroysBlocks) {
@@ -164,7 +204,7 @@ public class Explosion {
 
             if (distance <= 1) {
                 Vector3f motion = entity.getPosition().sub(this.source).normalize();
-                int exposure = 1;
+                float exposure = getSeenPercent(this.source, entity);
                 double impact = (1 - distance) * exposure;
                 int damage = this.doesDamage ? (int) (((impact * impact + impact) / 2) * 8 * explosionSize + 1) : 0;
 

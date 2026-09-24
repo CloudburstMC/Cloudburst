@@ -77,7 +77,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
     }
 
     @Override
-    public void onCollideWithEntity(Entity entity) {
+    protected void onCollideWithEntity(Entity entity) {
         super.onCollideWithEntity(entity);
         resolveImpact();
     }

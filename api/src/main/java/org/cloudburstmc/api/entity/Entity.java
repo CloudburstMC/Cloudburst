@@ -12,8 +12,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Effect;
-import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
@@ -22,7 +20,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -158,47 +155,6 @@ public interface Entity extends Damageable {
     void onMount(Entity passenger);
 
     void onDismount(Entity passenger);
-
-    Map<EffectType, Effect> getEffects();
-
-    void removeAllEffects();
-
-    void addEffect(Effect effect);
-
-    /**
-     * Gets an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @return the effect, or {@code null} if this entity does not have it
-     * @deprecated use {@link #getEffect(EffectType)}
-     */
-    @Deprecated
-    Effect getEffect(int effectId);
-
-    Effect getEffect(EffectType type);
-
-    /**
-     * Removes an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @deprecated use {@link #removeEffect(EffectType)}
-     */
-    @Deprecated
-    void removeEffect(int effectId);
-
-    void removeEffect(EffectType type);
-
-    /**
-     * Tests whether this entity has an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @return {@code true} if this entity has the effect
-     * @deprecated use {@link #hasEffect(EffectType)}
-     */
-    @Deprecated
-    boolean hasEffect(int effectId);
-
-    boolean hasEffect(EffectType type);
 
     /**
      * Returns the plain name used to identify this entity.

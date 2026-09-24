@@ -24,9 +24,9 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
@@ -51,15 +51,15 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
+import org.cloudburstmc.server.potion.ActivePotionEffect;
+import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
 import static org.cloudburstmc.api.block.BlockTypes.FIRE;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
@@ -75,7 +75,7 @@ public abstract class CloudEntity implements Entity {
 
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
-    protected final Reference2ObjectOpenHashMap<EffectType, Effect> effects = new Reference2ObjectOpenHashMap<>();
+    protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
     protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
@@ -154,12 +154,8 @@ public abstract class CloudEntity implements Entity {
     };
 
     public CloudEntity(EntityType<?> type, Location location) {
-        this.type = type;
-        if (this instanceof CloudPlayer) {
-            return;
-        }
-
-        this.init(location);
+        this.type = Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(location, "location");
     }
 
     public float getHeight() {
@@ -375,7 +371,7 @@ public abstract class CloudEntity implements Entity {
         if (tag.containsKey("ActiveEffects")) {
             List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
             for (NbtMap e : effects) {
-                this.addEffect(CloudEffect.fromNBT(e));
+                this.restorePotionEffect(PotionEffectDataSerializer.deserialize(e));
             }
         }
 
@@ -445,8 +441,8 @@ public abstract class CloudEntity implements Entity {
 
         if (!this.effects.isEmpty()) {
             List<NbtMap> list = new ArrayList<>();
-            for (Effect effect : this.effects.values()) {
-                list.add(((CloudEffect) effect).createTag());
+            for (ActivePotionEffect effect : this.effects.values()) {
+                list.add(PotionEffectDataSerializer.serialize(effect.snapshot()));
             }
 
             tag.putList("ActiveEffects", NbtType.COMPOUND, list);
@@ -606,81 +602,113 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean hasControllingPassenger() {
-        return !this.passengers.isEmpty() && isControlling(this.passengers.get(0));
+        return !this.passengers.isEmpty() && isControlling(this.passengers.getFirst());
     }
 
     public Entity getVehicle() {
         return vehicle;
     }
 
-    @Override
-    public Map<EffectType, Effect> getEffects() {
-        return effects;
-    }
-
-    @Override
-    public void removeAllEffects() {
-        for (Effect effect : this.effects.values()) {
-            this.removeEffect(effect.getType());
-        }
-    }
-
-    @Deprecated
-    @Override
-    public void removeEffect(int effectId) {
-        removeEffect(NetworkUtils.effectFromLegacy((byte) effectId));
-    }
-
-    @Override
-    public void removeEffect(EffectType type) {
-        if (this.effects.containsKey(type)) {
-            Effect effect = this.effects.remove(type);
-            effect.remove(this);
-
-            this.recalculateEffectColor();
-        }
-    }
-
-    @Deprecated
-    @Override
-    public Effect getEffect(int effectId) {
-        EffectType type = NetworkUtils.effectFromLegacy((byte) effectId);
-        return this.effects.getOrDefault(type, null);
+    public Map<EffectType, PotionEffect> getActivePotionEffects() {
+        Map<EffectType, PotionEffect> snapshots = new LinkedHashMap<>(this.effects.size());
+        this.effects.forEach((type, effect) -> snapshots.put(type, effect.snapshot()));
+        return Map.copyOf(snapshots);
     }
 
     @Nullable
-    @Override
-    public CloudEffect getEffect(EffectType type) {
-        return (CloudEffect) this.effects.getOrDefault(type, null);
+    public PotionEffect getPotionEffect(EffectType type) {
+        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
+        return effect == null ? null : effect.snapshot();
     }
 
-    @Deprecated
-    @Override
-    public boolean hasEffect(int effectId) {
-        return this.hasEffect(NetworkUtils.effectFromLegacy((byte) effectId));
+    public boolean hasPotionEffect(EffectType type) {
+        return this.effects.containsKey(checkNotNull(type, "type"));
     }
 
-    @Override
-    public boolean hasEffect(EffectType type) {
-        return this.effects.containsKey(type);
+    public boolean addPotionEffect(PotionEffect effect) {
+        return this.addPotionEffect(effect, null, PotionEffectCause.PLUGIN);
     }
 
-    @Override
-    public void addEffect(Effect effect) {
-        if (effect == null) {
-            return; //here add null means add nothing
+    public boolean addPotionEffect(PotionEffect effect, @Nullable Entity source, PotionEffectCause cause) {
+        checkNotNull(effect, "effect");
+        checkNotNull(cause, "cause");
+        checkState(this instanceof Living, "Potion effects can only be applied to living entities");
+
+        ActivePotionEffect oldEffect = this.effects.get(effect.getType());
+        PotionEffect oldEffectSnapshot = oldEffect == null ? null : oldEffect.snapshot();
+        PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;
+        boolean override = oldEffectSnapshot == null || shouldOverrideEffect(oldEffectSnapshot, effect);
+
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffectSnapshot, effect, source, cause, action, override);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || action == PotionEffectAction.CHANGED && !event.isOverride()) {
+            return false;
         }
 
-        effect.add(this);
-
-        this.effects.put(effect.getType(), effect);
+        ActivePotionEffect newEffect = ActivePotionEffect.from(effect);
+        newEffect.onApplied(this, oldEffect);
+        this.effects.put(newEffect.getType(), newEffect);
 
         this.recalculateEffectColor();
 
-        if (effect.getType() == EffectTypes.HEALTH_BOOST) {
-            this.setHealth(this.getHealth() + 4 * (effect.getAmplifier() + 1));
+        if (newEffect.getType() == EffectTypes.HEALTH_BOOST) {
+            this.setHealth(this.getHealth() + 4 * (newEffect.getAmplifier() + 1));
         }
 
+        return true;
+    }
+
+    public boolean removePotionEffect(EffectType type) {
+        return this.removePotionEffect(type, PotionEffectCause.PLUGIN);
+    }
+
+    public boolean removePotionEffect(EffectType type, PotionEffectCause cause) {
+        checkState(this instanceof Living, "Potion effects can only be removed from living entities");
+        checkNotNull(cause, "cause");
+        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
+        if (effect == null) {
+            return false;
+        }
+
+        PotionEffect oldEffect = effect.snapshot();
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffect, null, null, cause, PotionEffectAction.REMOVED, false);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.effects.remove(type);
+        effect.onRemoved(this);
+        this.recalculateEffectColor();
+        return true;
+    }
+
+    public boolean clearActivePotionEffects() {
+        return this.clearActivePotionEffects(PotionEffectCause.PLUGIN);
+    }
+
+    public boolean clearActivePotionEffects(PotionEffectCause cause) {
+        checkNotNull(cause, "cause");
+        boolean changed = false;
+        for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+            changed |= this.removePotionEffect(effect.getType(), cause);
+        }
+        return changed;
+    }
+
+    private void restorePotionEffect(PotionEffect effect) {
+        ActivePotionEffect activeEffect = ActivePotionEffect.from(effect);
+        activeEffect.onApplied(this, this.effects.get(effect.getType()));
+        this.effects.put(effect.getType(), activeEffect);
+        this.recalculateEffectColor();
+    }
+
+    private static boolean shouldOverrideEffect(PotionEffect oldEffect, PotionEffect newEffect) {
+        return newEffect.getAmplifier() > oldEffect.getAmplifier()
+                || (newEffect.getAmplifier() == oldEffect.getAmplifier()
+                    && oldEffect.isShorterThan(newEffect))
+                || oldEffect.isAmbient() && !newEffect.isAmbient()
+                || oldEffect.hasParticles() != newEffect.hasParticles();
     }
 
     public void recalculateBoundingBox() {
@@ -715,12 +743,12 @@ public abstract class CloudEntity implements Entity {
     protected void recalculateEffectColor() {
         int[] color = new int[3];
         int count = 0;
-        for (Effect effect : this.effects.values()) {
-            if (effect.isVisible()) {
-                int[] c = effect.getColor();
-                color[0] += c[0] * (effect.getAmplifier() + 1);
-                color[1] += c[1] * (effect.getAmplifier() + 1);
-                color[2] += c[2] * (effect.getAmplifier() + 1);
+        for (ActivePotionEffect effect : this.effects.values()) {
+            if (effect.hasParticles()) {
+                Vector3i c = effect.getType().getColor();
+                color[0] += c.getX() * (effect.getAmplifier() + 1);
+                color[1] += c.getY() * (effect.getAmplifier() + 1);
+                color[2] += c.getZ() * (effect.getAmplifier() + 1);
                 count += effect.getAmplifier() + 1;
             }
         }
@@ -736,15 +764,15 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    protected final void init(Location location) {
-        if (location == null) {
-            throw new IllegalArgumentException("Invalid garbage Location given to Entity");
-        }
-
+    /**
+     * Initializes the entity after its constructor and subclass fields are complete.
+     */
+    public final void initialize(Location location) {
+        Objects.requireNonNull(location, "location");
         if (this.initialized) {
-            // We've already initialized this entity
             return;
         }
+
         this.initialized = true;
 
         this.timing = Timings.getEntityTiming(this.getType());
@@ -835,6 +863,14 @@ public abstract class CloudEntity implements Entity {
         return true;
     }
 
+    public void restoreFromStorage() {
+        if (this.closed || this.spawned) {
+            throw new IllegalStateException("Cannot restore an entity that is closed or already spawned");
+        }
+
+        this.registerInLevel(this.getLocation());
+    }
+
     private void registerInLevel(Location location) {
         if (this.spawned) {
             return;
@@ -915,8 +951,8 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void sendPotionEffects(CloudPlayer player) {
-        for (Effect effect : this.effects.values()) {
-            player.sendPacket(NetworkUtils.effectToNetwork(effect, this.getRuntimeId(), MobEffectPacket.Event.ADD,
+        for (ActivePotionEffect effect : this.effects.values()) {
+            player.sendPacket(NetworkUtils.effectToNetwork(effect.snapshot(), this.getRuntimeId(), MobEffectPacket.Event.ADD,
                     this.server.getTick()));
         }
     }
@@ -1009,7 +1045,7 @@ public abstract class CloudEntity implements Entity {
      * @return whether damage was applied
      */
     protected boolean applyDamage(EntityDamageEvent source) {
-        if (hasEffect(EffectTypes.FIRE_RESISTANCE)
+        if (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE)
                 && source.getDamageType().is(DamageTypeTags.IS_FIRE)
                 && !source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
             return false;
@@ -1066,7 +1102,8 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public int getMaxHealth() {
-        return maxHealth + (this.hasEffect(EffectTypes.HEALTH_BOOST) ? 4 * (this.getEffect(EffectTypes.HEALTH_BOOST).getAmplifier() + 1) : 0);
+        ActivePotionEffect healthBoost = this.effects.get(EffectTypes.HEALTH_BOOST);
+        return this.maxHealth + (healthBoost == null ? 0 : 4 * (healthBoost.getAmplifier() + 1));
     }
 
     @Override
@@ -1213,13 +1250,14 @@ public abstract class CloudEntity implements Entity {
             this.justCreated = false;
 
             if (!this.isAlive()) {
-                this.removeAllEffects();
+                this.clearActivePotionEffects(PotionEffectCause.DEATH);
                 this.despawnFromAll();
                 if (!this.isPlayer) {
                     this.close();
                 }
                 return false;
             }
+
             if (vehicle != null && !vehicle.isAlive() && vehicle instanceof Rideable) {
                 this.mount(vehicle);
             }
@@ -1227,14 +1265,16 @@ public abstract class CloudEntity implements Entity {
             updatePassengers();
 
             if (!this.effects.isEmpty()) {
-                for (Effect effect : this.effects.values()) {
-                    if (effect.canTick()) {
-                        effect.applyEffect(this);
+                for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+                    if (effect.shouldApplyTick(this.age)) {
+                        effect.applyTick(this);
                     }
-                    effect.setDuration(effect.getDuration() - tickDiff);
 
-                    if (effect.getDuration() <= 0) {
-                        this.removeEffect(effect.getType());
+                    if (!effect.isInfinite()) {
+                        effect.decreaseDuration(tickDiff);
+                        if (effect.getDuration() == 0) {
+                            this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
+                        }
                     }
                 }
             }
@@ -1259,7 +1299,7 @@ public abstract class CloudEntity implements Entity {
                         this.fireTicks = 0;
                     }
                 } else {
-                    if (!this.hasEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
+                    if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
                         this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
                     }
                     this.fireTicks -= tickDiff;
@@ -1669,7 +1709,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void applyFallDamage(float fallDistance) {
-        if (this.hasEffect(EffectTypes.SLOW_FALLING)) {
+        if (this.hasPotionEffect(EffectTypes.SLOW_FALLING)) {
             return;
         }
 
@@ -1677,7 +1717,9 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
-        float damage = (float) Math.floor(fallDistance - 3 - (this.hasEffect(EffectTypes.JUMP_BOOST) ? this.getEffect(EffectTypes.JUMP_BOOST).getAmplifier() + 1 : 0));
+        ActivePotionEffect jumpBoost = this.effects.get(EffectTypes.JUMP_BOOST);
+        int jumpReduction = jumpBoost == null ? 0 : jumpBoost.getAmplifier() + 1;
+        float damage = (float) Math.floor(fallDistance - 3 - jumpReduction);
 
         if (damage > 0) {
             this.damage(damage, DamageSource.of(DamageTypes.FALL));

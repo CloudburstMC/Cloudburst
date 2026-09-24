@@ -4,12 +4,12 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Snowball;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class EntitySnowball extends EntityProjectile implements Snowball {
 
     public EntitySnowball(EntityType<Snowball> type, Location location) {
@@ -42,9 +42,14 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
     }
 
     @Override
-    public void onCollideWithEntity(Entity entity) {
-        this.setDamage(entity.getType() == EntityTypes.BLAZE ? 3 : 0);
-        super.onCollideWithEntity(entity);
+    protected void onCollideWithEntity(Entity entity) {
+        entity.damage(entity.getType() == EntityTypes.BLAZE ? 3 : 0, this.createProjectileDamageSource());
+        this.breakApart();
+    }
+
+    @Override
+    protected void onBlockCollision(BlockHitResult hit) {
+        this.breakApart();
     }
 
     @Override
@@ -57,7 +62,7 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
 
         boolean hasUpdate = super.onUpdate(currentTick);
 
-        if (this.age > 1200 || this.isCollided) {
+        if (this.age > 1200) {
             this.kill();
             hasUpdate = true;
         }
@@ -65,5 +70,14 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
         this.timing.stopTiming();
 
         return hasUpdate;
+    }
+
+    private void breakApart() {
+        ItemStack item = ItemStack.from(ItemTypes.SNOWBALL);
+        for (int i = 0; i < 8; i++) {
+            this.getLevel().addParticle(new ItemBreakParticle(this.getPosition(), item));
+        }
+
+        this.close();
     }
 }

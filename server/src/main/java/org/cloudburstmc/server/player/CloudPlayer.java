@@ -26,9 +26,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
-import org.cloudburstmc.api.entity.projectile.Arrow;
-import org.cloudburstmc.api.entity.projectile.FishingHook;
-import org.cloudburstmc.api.entity.projectile.ThrownTrident;
+import org.cloudburstmc.api.entity.projectile.*;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
@@ -37,13 +35,8 @@ import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.component.DamageItemHandler;
-import org.cloudburstmc.api.item.component.FinishUseHandler;
-import org.cloudburstmc.api.item.component.FloatItemHandler;
-import org.cloudburstmc.api.item.component.IntItemHandler;
-import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
@@ -51,12 +44,9 @@ import org.cloudburstmc.api.player.*;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.MovementType;
+import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -98,7 +88,6 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
-import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
@@ -109,7 +98,6 @@ import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.CloudPermissible;
@@ -136,6 +124,7 @@ import java.util.function.LongConsumer;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.DAMAGE_NEARBY_MOBS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
 /**
@@ -149,6 +138,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
     private static final int BEDROCK_FIREWORK_GLIDE_BOOST_DURATION = 1_000_000;
+    private static final int SURVIVAL_INTERACTION_DISTANCE = 7;
+    private static final int CREATIVE_INTERACTION_DISTANCE = 13;
+    private static final int COMPLETED_USE_GRACE_TICKS = 9;
+    private static final float INTERACTION_BEHIND_TOLERANCE = 6.0f;
     private static final float TELEPORT_ACK_DISTANCE_TOLERANCE = 1.0f;
     private static final float TELEPORT_ACK_DISTANCE_TOLERANCE_SQUARED = TELEPORT_ACK_DISTANCE_TOLERANCE * TELEPORT_ACK_DISTANCE_TOLERANCE;
 
@@ -215,9 +208,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected Map<Integer, Form<?>> formWindows = new Int2ObjectOpenHashMap<>();
     private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
     private final Set<CloudBossBar> bossBars = new LinkedHashSet<>();
-    private @Nullable ItemType activeUseItem;
+    private @Nullable ItemStack activeUseStack;
     private int activeUseSlot = -1;
     private int itemUseCompleteTick;
+    private int lastCompletedItemUseTick = Integer.MIN_VALUE;
+    private int spinAttackEndTick = -1;
     protected Vector3f forceMovement = null;
     protected Vector3f newPosition = null;
     protected Vector3f teleportPosition = null;
@@ -817,9 +812,18 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.startAction = value ? this.server.getTick() : -1;
         this.data.setFlag(USING_ITEM, value);
         if (!value) {
-            this.activeUseItem = null;
+            this.activeUseStack = null;
             this.activeUseSlot = -1;
+            this.itemUseCompleteTick = -1;
         }
+    }
+
+    public boolean consumeRecentCompletedItemUse() {
+        // A completed charge may produce one more use packet before the client settles its held item.
+        int completedTick = this.lastCompletedItemUseTick;
+        this.lastCompletedItemUseTick = Integer.MIN_VALUE;
+        int elapsed = this.server.getTick() - completedTick;
+        return completedTick != Integer.MIN_VALUE && elapsed >= 0 && elapsed < COMPLETED_USE_GRACE_TICKS;
     }
 
     public void startUsingItem(ItemStack item, int durationTicks) {
@@ -827,14 +831,63 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (item.isEmpty()) {
             throw new IllegalArgumentException("item must not be empty");
         }
+
         if (durationTicks <= 0) {
             throw new IllegalArgumentException("durationTicks must be positive");
         }
 
-        this.activeUseItem = item.getType();
+        this.activeUseStack = item;
         this.activeUseSlot = this.getSelectedHotbarSlot();
         this.itemUseCompleteTick = this.server.getTick() + durationTicks;
         this.setUsingItem(true);
+    }
+
+    public void startUsingItem(ItemStack item) {
+        Objects.requireNonNull(item, "item");
+        if (item.isEmpty()) {
+            throw new IllegalArgumentException("item must not be empty");
+        }
+
+        this.activeUseStack = item;
+        this.activeUseSlot = this.getSelectedHotbarSlot();
+        this.itemUseCompleteTick = -1;
+        this.setUsingItem(true);
+    }
+
+    public void releaseUsingItem() {
+        int slot = this.activeUseSlot;
+        int ticksUsed = this.isUsingItem() ? Math.max(0, this.server.getTick() - this.startAction) : 0;
+        ItemStack activeStack = this.activeUseStack;
+        boolean valid = this.activeUseMatchesCurrentSlot();
+        this.setUsingItem(false);
+        if (activeStack == null || !valid) {
+            return;
+        }
+
+        ItemStack item = this.getInventory().getItem(slot);
+        ReleaseUseHandler handler = CloudItemRegistry.get().getComponent(activeStack.getType(), ItemBehaviors.RELEASE_USE);
+        if (handler != null) {
+            this.getInventory().setItem(slot, handler.execute(item, this, ticksUsed));
+        }
+    }
+
+    public void startSpinAttack(int durationTicks) {
+        if (durationTicks <= 0) {
+            throw new IllegalArgumentException("durationTicks must be positive");
+        }
+        this.spinAttackEndTick = this.server.getTick() + durationTicks;
+        this.data.setFlag(DAMAGE_NEARBY_MOBS, true);
+    }
+
+    private void stopSpinAttack() {
+        this.spinAttackEndTick = -1;
+        this.data.setFlag(DAMAGE_NEARBY_MOBS, false);
+    }
+
+    private boolean activeUseMatchesCurrentSlot() {
+        return this.activeUseStack != null && this.activeUseSlot >= 0
+                && this.activeUseSlot == this.getSelectedHotbarSlot()
+                && this.getInventory().getItem(this.activeUseSlot).hasSameDataComponents(this.activeUseStack);
     }
 
     public String getButtonText() {
@@ -1714,19 +1767,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void checkInteractNearby() {
         int interactDistance = isCreative() ? 5 : 3;
-        if (canInteract(this.getPosition(), interactDistance)) {
-            if (getEntityPlayerLookingAt(interactDistance) != null) {
-                Interactable onInteract = getEntityPlayerLookingAt(interactDistance);
-                setButtonText(onInteract.getInteractButtonText());
-            } else {
-                setButtonText("");
-            }
-        } else {
-            setButtonText("");
-        }
+        Interactable target = this.getEntityPlayerLookingAt(interactDistance);
+        this.setButtonText(target == null ? "" : target.getInteractButtonText());
     }
 
-    protected void processMovement(int tickDiff) {
+    public void applyInputMovement() {
         if (!this.isAlive() || !this.spawned || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
         }
@@ -1740,7 +1785,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         Vector3f authoritativePosition = null;
         Vector3f collisionResolvedPosition = null;
 
-        float tickDiffSq = (float) tickDiff * (float) tickDiff;
         float maxSpeedThreshold = this.server.getConfig().getMovement().getMaxSpeedThreshold();
 
         if (this.server.getConfig().getMovement().isStrictMovement()) {
@@ -1749,8 +1793,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         // TODO: Better way of getting max speed and when exempt
         boolean speedExempt = this.isGliding() || this.isCreative() || this.isSpectator() || (newPosition.getY() - currentPos.getY()) < -3.0f;
-        if ((distanceSquared / tickDiffSq) > maxSpeedThreshold && !speedExempt) {
-            log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
+        if (distanceSquared > maxSpeedThreshold && !speedExempt) {
+            log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
             revert = true;
             revertReason = "speed";
             authoritativePosition = currentPos;
@@ -1806,10 +1850,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                     revertReason = "PlayerMoveEvent cancelled";
                 }
             }
-
-            this.knownMovement = to.getPosition().sub(from.getPosition()).div(tickDiff);
-        } else {
-            this.knownMovement = Vector3f.ZERO;
         }
 
         if (!revert && (this.isFoodEnabled() || this.getServer().getDifficulty() == Difficulty.PEACEFUL)) {
@@ -1836,6 +1876,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (revert) {
+            this.knownMovement = Vector3f.ZERO;
             this.lastPosition = from.getPosition();
             this.lastYaw = from.getYaw();
             this.lastPitch = from.getPitch();
@@ -1868,6 +1909,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public Vector3f getKnownMovement() {
         return this.knownMovement;
+    }
+
+    public void setKnownMovement(Vector3f knownMovement) {
+        this.knownMovement = knownMovement;
     }
 
     @Override
@@ -1954,10 +1999,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
 
             if (this.spawned) {
-                Vector3f chunkCenter = this.newPosition != null ? this.newPosition : this.getPosition();
-                this.processMovement(tickDiff);
                 this.reconcileGlidingState();
-                this.getChunkManager().queueNewChunks(chunkCenter);
+                if (this.spinAttackEndTick >= 0 && currentTick >= this.spinAttackEndTick) {
+                    this.stopSpinAttack();
+                }
+                this.getChunkManager().queueNewChunks(this.getPosition());
 
                 if (!this.isSpectator()) {
                     this.checkNearEntities();
@@ -2031,24 +2077,49 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     private void finishItemUse(int currentTick) {
-        if (this.activeUseItem == null) {
+        if (this.activeUseStack == null) {
             return;
         }
 
-        ItemStack item = this.getInventory().getItem(this.activeUseSlot);
-        if (item.isEmpty() || item.getType() != this.activeUseItem
-                || this.getSelectedHotbarSlot() != this.activeUseSlot) {
+        if (!this.activeUseMatchesCurrentSlot()) {
             this.setUsingItem(false);
             return;
         }
-        if (currentTick < this.itemUseCompleteTick) {
+
+        ItemStack activeItem = this.getInventory().getItem(this.activeUseSlot);
+        UseTickHandler tickHandler = CloudItemRegistry.get().getComponent(activeItem.getType(), ItemBehaviors.USE_TICK);
+        if (tickHandler != null) {
+            int slot = this.activeUseSlot;
+            UseTickResult result = Objects.requireNonNull(
+                    tickHandler.execute(activeItem, this, Math.max(0, currentTick - this.startAction)),
+                    "use tick result");
+            ItemStack updatedItem = result.item();
+            if (result.stopUsing()) {
+                this.setUsingItem(false);
+                this.lastCompletedItemUseTick = currentTick;
+                this.data.update();
+            }
+
+            if (updatedItem != activeItem) {
+                this.getInventory().setItem(slot, updatedItem);
+                if (!result.stopUsing()) {
+                    this.activeUseStack = updatedItem;
+                }
+            }
+
+            if (result.stopUsing()) {
+                return;
+            }
+        }
+
+        if (this.itemUseCompleteTick < 0 || currentTick < this.itemUseCompleteTick) {
             return;
         }
 
         int slot = this.activeUseSlot;
+        ItemStack item = this.getInventory().getItem(slot);
         this.setUsingItem(false);
-        FinishUseHandler handler = CloudItemRegistry.get().requireComponent(
-                item.getType(), ItemBehaviors.FINISH_USE);
+        FinishUseHandler handler = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.FINISH_USE);
         this.getInventory().setItem(slot, handler.execute(item, this));
     }
 
@@ -2130,7 +2201,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     private boolean hasValidGlidingState() {
-        if (this.isInsideOfWater() || this.hasEffect(EffectTypes.LEVITATION)) {
+        if (this.isInsideOfWater() || this.hasPotionEffect(EffectTypes.LEVITATION)) {
             return false;
         }
 
@@ -2160,6 +2231,32 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     /**
+     * Checks the server's block-interaction distance and facing tolerance.
+     */
+    public boolean canInteractWithBlock(Vector3i position) {
+        return this.isWithinInteractionReach(position.toFloat().add(0.5f, 0.5f, 0.5f));
+    }
+
+    /**
+     * Checks the server's entity-interaction distance and facing tolerance.
+     */
+    public boolean canInteractWithEntity(Entity entity) {
+        return this.isWithinInteractionReach(entity.getPosition());
+    }
+
+    private boolean isWithinInteractionReach(Vector3f position) {
+        int maxDistance = this.isCreative() ? CREATIVE_INTERACTION_DISTANCE : SURVIVAL_INTERACTION_DISTANCE;
+        if (this.getPosition().distanceSquared(position) > (double) maxDistance * maxDistance) {
+            return false;
+        }
+
+        Vector2f direction = this.getDirectionPlane();
+        float dx = position.getX() - this.getX();
+        float dz = position.getZ() - this.getZ();
+        return direction.getX() * dx + direction.getY() * dz >= -INTERACTION_BEHIND_TOLERANCE;
+    }
+
+    /**
      * Returns the Entity the player is looking at currently
      *
      * @param maxDistance the maximum distance to check for entities
@@ -2167,55 +2264,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      */
     public Interactable getEntityPlayerLookingAt(int maxDistance) {
         try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
-            Interactable entity = null;
-
-            Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(this, boundingBox.inflate(maxDistance, maxDistance, maxDistance));
-
-            // get all blocks in looking direction until the max interact distance is reached (it's possible that startblock isn't found!)
-
-            Vector3f position = this.getPosition().add(0, getEyeHeight(), 0);
-            for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-                Block block = this.getLevel().getLoadedBlock(pos);
-                if (block == null) {
-                    break;
-                }
-
-                entity = getEntityAtPosition(nearbyEntities, pos.getX(), pos.getY(), pos.getZ());
-
-                if (entity != null) {
-                    break;
-                }
-            }
-            return entity;
-        }
-    }
-
-    public boolean canInteract(Vector3f pos, double maxDistance) {
-        return this.canInteract(pos, maxDistance, 6.0);
-    }
-
-    public boolean canInteract(Vector3f pos, double maxDistance, double maxDiff) {
-        if (this.getPosition().distanceSquared(pos) > maxDistance * maxDistance) {
-            return false;
-        }
-
-        Vector2f dV = this.getDirectionPlane();
-        double dot = dV.dot(this.getPosition().toVector2(true));
-        double dot1 = dV.dot(pos.toVector2(true));
-        return (dot1 - dot) >= -maxDiff;
-    }
-
-    private Interactable getEntityAtPosition(Set<Entity> nearbyEntities, int x, int y, int z) {
-        try (Timing ignored = Timings.playerEntityAtPositionTimer.startTiming()) {
-            for (Entity nearestEntity : nearbyEntities) {
-                Vector3f position = nearestEntity.getPosition();
-                if (position.getFloorX() == x && position.getFloorY() == y && position.getFloorZ() == z
-                        && nearestEntity instanceof Interactable
-                        && ((Interactable) nearestEntity).canDoInteraction()) {
-                    return (Interactable) nearestEntity;
-                }
-            }
-            return null;
+            Vector3f start = this.getPosition().add(0, this.getEyeHeight(), 0);
+            RayTraceContext trace = new RayTraceContext(start, start.add(this.getDirectionVector().mul(maxDistance)),
+                    BlockShapeMode.OUTLINE, FluidCollisionMode.NONE, CollisionContext.of(this));
+            HitResult hit = this.getLevel().rayTrace(trace, 0,
+                    entity -> entity != this && entity instanceof Interactable interactable
+                            && interactable.canDoInteraction());
+            return hit instanceof EntityHitResult entityHit && entityHit.entity() instanceof Interactable interactable
+                    ? interactable : null;
         }
     }
 
@@ -2429,7 +2485,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.server.onPlayerLogin(this);
 
-        super.init(this.getLocation());
+        super.initialize(this.getLocation());
 
         this.noPhysics = this.isSpectator();
 
@@ -2971,7 +3027,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public boolean attack(Entity target) {
+        return this.attackWithBonusDamage(target, 0);
+    }
+
+    public boolean attackWithBonusDamage(Entity target, float bonusDamage) {
         checkNotNull(target, "target");
+        if (!Float.isFinite(bonusDamage) || bonusDamage < 0) {
+            throw new IllegalArgumentException("bonusDamage must be finite and nonnegative");
+        }
 
         ItemStack heldItem = this.getInventory().getSelectedItem();
         float baseDamage = 1;
@@ -2980,7 +3043,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             baseDamage = attackDamage.execute(heldItem);
         }
 
-        baseDamage = Math.max(0, baseDamage * this.getAttackDamageMultiplier());
+        baseDamage = Math.max(0, (baseDamage + bonusDamage) * this.getAttackDamageMultiplier());
         float damage = CloudEnchantmentRegistry.get().modifyDamage(heldItem, target, baseDamage);
         boolean criticalHit = this.isCriticalAttack(target);
         if (criticalHit) {
@@ -2989,39 +3052,43 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ATTACK_DAMAGE_TYPE);
         DamageSource source = DamageSource.of(damageType, this);
+        boolean piercingWeapon = !heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null;
 
         boolean damaged = target.damage(damage, source);
         if (damaged) {
             CloudEnchantmentRegistry.get().applyPostAttackEffects(heldItem, this, target);
             this.applyAttackKnockback(target, heldItem, damageType);
 
-            if (criticalHit) {
+            if (criticalHit && !piercingWeapon) {
                 this.broadcastCriticalHit(target);
-            } else {
+            } else if (!piercingWeapon) {
                 this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_STRONG, -1, EntityTypes.PLAYER, false, false);
             }
 
             this.getFoodData().updateFoodExpLevel(0.1);
             this.damageHeldItemAfterAttack(heldItem);
-        } else {
+        } else if (!piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
         }
 
-        AnimatePacket swingPacket = new AnimatePacket();
-        swingPacket.setAction(AnimatePacket.Action.SWING_ARM);
-        swingPacket.setRuntimeEntityId(this.getRuntimeId());
-        CloudServer.broadcastPacket(this.getViewers(), swingPacket);
+        if (!piercingWeapon) {
+            AnimatePacket swingPacket = new AnimatePacket();
+            swingPacket.setAction(AnimatePacket.Action.SWING_ARM);
+            swingPacket.setRuntimeEntityId(this.getRuntimeId());
+            CloudServer.broadcastPacket(this.getViewers(), swingPacket);
+        }
+
         return damaged;
     }
 
     private float getAttackDamageMultiplier() {
         float multiplier = 1;
-        Effect strength = this.getEffect(EffectTypes.STRENGTH);
+        PotionEffect strength = this.getPotionEffect(EffectTypes.STRENGTH);
         if (strength != null) {
             multiplier += 0.3f * (strength.getAmplifier() + 1);
         }
 
-        Effect weakness = this.getEffect(EffectTypes.WEAKNESS);
+        PotionEffect weakness = this.getPotionEffect(EffectTypes.WEAKNESS);
         if (weakness != null) {
             multiplier -= 0.2f * (weakness.getAmplifier() + 1);
         }
@@ -3088,7 +3155,15 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ON_DAMAGE);
         ItemStack damagedItem = damageItem.execute(heldItem, durabilityDamage, this);
         if (!damagedItem.equals(heldItem)) {
+            boolean activeUseOfHeldItem = this.activeUseMatchesCurrentSlot();
             this.getInventory().setSelectedItem(damagedItem);
+            if (activeUseOfHeldItem) {
+                if (damagedItem.isEmpty()) {
+                    this.setUsingItem(false);
+                } else {
+                    this.activeUseStack = damagedItem;
+                }
+            }
         }
     }
 
@@ -3306,6 +3381,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (event.isCancelled()) {
             return;
         }
+
+        this.stopSpinAttack();
 
         this.killer = death.killer();
         if (this.fishingHook != null) {
@@ -3887,19 +3964,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         if (near) {
             CloudEntity cloudEntity = (CloudEntity) entity;
+            if (entity instanceof AbstractArrow arrow) {
+                ArrowPickupStatus pickupStatus = arrow.getPickupStatus();
+                if (pickupStatus == ArrowPickupStatus.DISALLOWED || pickupStatus == ArrowPickupStatus.CREATIVE_ONLY && !this.isCreative()) {
+                    return false;
+                }
+            }
+
             if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
                 ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
                 if (this.isSurvival() && !this.getContainer().canAddItem(item)) {
                     return false;
                 }
 
-                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), (EntityArrow) entity);
-
-                int pickupMode = ((EntityArrow) entity).getPickupMode();
-                if (pickupMode == EntityArrow.PICKUP_NONE || pickupMode == EntityArrow.PICKUP_CREATIVE && !this.isCreative()) {
-                    ev.setCancelled();
-                }
-
+                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), (Arrow) entity);
                 this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return false;
@@ -3914,6 +3992,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 if (!this.isCreative()) {
                     this.getContainer().addItem(item);
                 }
+
                 entity.close();
                 return true;
             } else if (entity instanceof ThrownTrident && entity.getMotion().lengthSquared() == 0) {

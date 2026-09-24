@@ -1,85 +1,66 @@
 package org.cloudburstmc.server.potion;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
-import org.cloudburstmc.api.event.potion.PotionApplyEvent;
-import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.potion.Potion;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-public class CloudPotion extends Potion {
+import static java.util.Objects.requireNonNull;
 
-    private PotionType potion;
+public class CloudPotion {
+    private final PotionType type;
 
-    public CloudPotion(PotionType type, boolean splash) {
-        super(type, splash);
-        this.potion = type;
+    public CloudPotion(PotionType type) {
+        this.type = requireNonNull(type, "type");
     }
 
-    @Override
-    public Effect getEffect() {
-        return new CloudEffect(potion.getType())
-                .setDuration(potion.getDuration())
-                .setAmplifier(potion.getLevel() - 1)
-                .setAmbient(potion.isSplash());
-    }
-
-    @Override
-    public void applyPotion(Entity entity) {
-        applyPotion(entity, 0.5);
-    }
-
-    public void applyPotion(Entity entity, double health) {
-        this.applyPotion(entity, health, DamageSource.of(DamageTypes.MAGIC));
-    }
-
-    public void applyPotion(Entity entity, double health, DamageSource damageSource) {
+    public void apply(Entity entity, double intensity, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
         if (!(entity instanceof EntityLiving)) {
             return;
         }
 
-        Effect applyEffect = this.getEffect();
+        for (PotionEffect effect : this.type.getEffects()) {
+            this.applyEffect(entity, effect, intensity, damageSource, source, cause);
+        }
+    }
 
-        if (applyEffect == null) {
+    private void applyEffect(Entity entity, PotionEffect effect, double intensity, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
+        if (entity instanceof CloudPlayer player && !player.isSurvival() && !player.isAdventure() && effect.isHarmful()) {
             return;
         }
 
-        if (entity instanceof CloudPlayer) {
-            if (!((CloudPlayer) entity).isSurvival() && !((CloudPlayer) entity).isAdventure() && applyEffect.isBad()) {
-                return;
-            }
-        }
-
-        PotionApplyEvent event = new PotionApplyEvent(this, applyEffect, entity);
-
-        entity.getServer().getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return;
-        }
-
-        applyEffect = event.getApplyEffect();
-
-        if (potion.getType() == EffectTypes.INSTANT_HEALTH) {
-            if (entity.isUndead()) {
-                entity.damage((float) (health * (double) (6 << (applyEffect.getAmplifier() + 1))), damageSource);
-            } else {
-                entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-            }
-        } else if (potion.getType() == EffectTypes.INSTANT_DAMAGE) {
-            if (entity.isUndead()) {
-                entity.heal(new EntityRegainHealthEvent(entity, (float) (health * (double) (4 << (applyEffect.getAmplifier() + 1))), EntityRegainHealthEvent.CAUSE_MAGIC));
-            } else {
-                entity.damage((float) (health * (double) (6 << (applyEffect.getAmplifier() + 1))), damageSource);
-            }
+        if (effect.getType() == EffectTypes.INSTANT_HEALTH) {
+            this.applyInstantHealth(entity, effect.getAmplifier(), intensity, damageSource);
+        } else if (effect.getType() == EffectTypes.INSTANT_DAMAGE) {
+            this.applyInstantDamage(entity, effect.getAmplifier(), intensity, damageSource);
         } else {
-            int duration = (int) ((isSplash() ? health : 1) * (double) applyEffect.getDuration() + 0.5);
-            applyEffect.setDuration(duration);
-            entity.addEffect(applyEffect);
+            int duration = (int) (intensity * effect.getDuration() + 0.5);
+            if (duration > 20) {
+                ((CloudEntity) entity).addPotionEffect(effect.withDuration(duration), source, cause);
+            }
+        }
+    }
+
+    private void applyInstantHealth(Entity entity, int amplifier, double intensity, DamageSource damageSource) {
+        if (entity.isUndead()) {
+            entity.damage((float) (intensity * (6 << amplifier) + 0.5), damageSource);
+        } else {
+            entity.heal(new EntityRegainHealthEvent(entity, (float) (intensity * (4 << amplifier) + 0.5), EntityRegainHealthEvent.CAUSE_MAGIC));
+        }
+    }
+
+    private void applyInstantDamage(Entity entity, int amplifier, double intensity, DamageSource damageSource) {
+        if (entity.isUndead()) {
+            entity.heal(new EntityRegainHealthEvent(entity, (float) (intensity * (4 << amplifier) + 0.5), EntityRegainHealthEvent.CAUSE_MAGIC));
+        } else {
+            entity.damage((float) (intensity * (6 << amplifier) + 0.5), damageSource);
         }
     }
 }

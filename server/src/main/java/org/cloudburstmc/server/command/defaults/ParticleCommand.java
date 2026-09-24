@@ -59,7 +59,7 @@ public class ParticleCommand extends AdvertisedCommand {
         int data = hasArgument(context, "data") ? argumentValue(context, "data", Integer.class) : -1;
 
         ParticleType type = argumentValue(context, "particle", ParticleType.class);
-        String name = type.id().getName();
+        String name = type.getId().getName();
 
         sender.sendMessage(Component.translatable("commands.particle.success",
                 Component.text(name), Component.text(count)));
@@ -82,7 +82,7 @@ public class ParticleCommand extends AdvertisedCommand {
     }
 
     private Particle createParticle(ParticleType type, Vector3f pos, int data) {
-        String name = type.id().getName();
+        String name = type.getId().getName();
         return switch (name) {
             case "explode" -> new ExplodeParticle(pos);
             case "large_explode" -> new HugeExplodeSeedParticle(pos);

@@ -13,6 +13,7 @@ import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.item.component.CanRepairWithHandler;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ArmorMaterial;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
 import org.cloudburstmc.server.item.VanillaTools;
@@ -20,6 +21,8 @@ import org.cloudburstmc.server.item.component.*;
 import org.cloudburstmc.server.item.serializer.BannerSerializer;
 import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
 import org.cloudburstmc.server.item.serializer.FireworkStarSerializer;
+import org.cloudburstmc.server.item.serializer.OminousBottleItemSerializer;
+import org.cloudburstmc.server.item.serializer.PotionItemSerializer;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
@@ -55,7 +58,9 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.BOW,
                 EnchantmentTarget.BREAKABLE,
                 EnchantmentTarget.VANISHABLE
-        );
+        )
+                .set(ItemBehaviors.USE, BowItemHandlers.USE)
+                .set(ItemBehaviors.RELEASE_USE, BowItemHandlers.RELEASE);
         configureSpawnEgg(registry, ItemTypes.BREEZE_SPAWN_EGG, EntityTypes.BREEZE);
         configureDamageableEnchantable(registry, ItemTypes.BRUSH, 64, repairWith(), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
         registry.configure(ItemTypes.BUCKET).set(ItemBehaviors.USE_ON, BucketItemHandlers.PICK_UP);
@@ -89,7 +94,9 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.COPPER_LEGGINGS, VanillaArmorMaterials.COPPER, EquipmentSlot.LEGS);
         configurePickaxe(registry, ItemTypes.COPPER_PICKAXE, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.COPPER_SHOVEL, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.COPPER_SPEAR, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.COPPER_SPEAR, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS),
+                SoundEvent.COPPER_SPEAR_ATTACK_HIT, SoundEvent.COPPER_SPEAR_ATTACK_MISS, SoundEvent.COPPER_SPEAR_USE,
+                new SpearProfile(17, 13, 0.82f, 80, 12, 165, 5.1f, 250, 4.6f));
         configureSword(registry, ItemTypes.COPPER_SWORD, ToolMaterials.COPPER, repairWith(ItemTags.COPPER_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.COW_SPAWN_EGG, EntityTypes.COW);
         configureSpawnEgg(registry, ItemTypes.CREAKING_SPAWN_EGG, EntityTypes.CREAKING);
@@ -103,7 +110,9 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.CROSSBOW,
                 EnchantmentTarget.BREAKABLE,
                 EnchantmentTarget.VANISHABLE
-        );
+        )
+                .set(ItemBehaviors.USE, CrossbowItemHandlers.USE)
+                .set(ItemBehaviors.USE_TICK, CrossbowItemHandlers.USE_TICK);
         configureAxe(registry, ItemTypes.DIAMOND_AXE, ToolMaterials.DIAMOND, 5, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
         configureArmor(registry, ItemTypes.DIAMOND_BOOTS, VanillaArmorMaterials.DIAMOND, EquipmentSlot.FEET);
         configureArmor(registry, ItemTypes.DIAMOND_CHESTPLATE, VanillaArmorMaterials.DIAMOND, EquipmentSlot.CHEST);
@@ -113,11 +122,15 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.DIAMOND_LEGGINGS, VanillaArmorMaterials.DIAMOND, EquipmentSlot.LEGS);
         configurePickaxe(registry, ItemTypes.DIAMOND_PICKAXE, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.DIAMOND_SHOVEL, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.DIAMOND_SPEAR, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.DIAMOND_SPEAR, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS),
+                SoundEvent.DIAMOND_SPEAR_ATTACK_HIT, SoundEvent.DIAMOND_SPEAR_ATTACK_MISS, SoundEvent.DIAMOND_SPEAR_USE,
+                new SpearProfile(21, 10, 1.075f, 60, 10, 130, 5.1f, 200, 4.6f));
         configureSword(registry, ItemTypes.DIAMOND_SWORD, ToolMaterials.DIAMOND, repairWith(ItemTags.DIAMOND_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.DOLPHIN_SPAWN_EGG, EntityTypes.DOLPHIN);
         configureSpawnEgg(registry, ItemTypes.DONKEY_SPAWN_EGG, EntityTypes.DONKEY);
         configureSpawnEgg(registry, ItemTypes.DROWNED_SPAWN_EGG, EntityTypes.DROWNED);
+        registry.configure(ItemTypes.EGG).set(ItemBehaviors.USE,
+                ThrowableItemHandlers.throwProjectile(EntityTypes.EGG, 1.5f, 0));
         configureSpawnEgg(registry, ItemTypes.ELDER_GUARDIAN_SPAWN_EGG, EntityTypes.ELDER_GUARDIAN);
         configureElytra(registry, repairWith(PHANTOM_MEMBRANE.getId()));
         registry.configure(ItemTypes.ENCHANTED_BOOK).set(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> true);
@@ -128,6 +141,8 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.ENDERMAN_SPAWN_EGG, EntityTypes.ENDERMAN);
         configureSpawnEgg(registry, ItemTypes.ENDERMITE_SPAWN_EGG, EntityTypes.ENDERMITE);
         configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOCATION_ILLAGER);
+        registry.configure(ItemTypes.EXPERIENCE_BOTTLE).set(ItemBehaviors.USE,
+                ThrowableItemHandlers.throwProjectile(EntityTypes.XP_BOTTLE, 0.7f, -20));
         registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, FireChargeItemHandlers.USE_ON);
         registry.configure(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
                 .set(ItemBehaviors.USE, FireworkRocketItemHandlers.USE)
@@ -157,7 +172,9 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.GOLDEN_LEGGINGS, VanillaArmorMaterials.GOLD, EquipmentSlot.LEGS);
         configurePickaxe(registry, ItemTypes.GOLDEN_PICKAXE, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.GOLDEN_SHOVEL, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.GOLDEN_SPEAR, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.GOLDEN_SPEAR, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS),
+                SoundEvent.GOLDEN_SPEAR_ATTACK_HIT, SoundEvent.GOLDEN_SPEAR_ATTACK_MISS, SoundEvent.GOLDEN_SPEAR_USE,
+                new SpearProfile(19, 14, 0.7f, 70, 13, 170, 5.1f, 275, 4.6f));
         configureSword(registry, ItemTypes.GOLDEN_SWORD, ToolMaterials.GOLD, repairWith(ItemTags.GOLD_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.GUARDIAN_SPAWN_EGG, EntityTypes.GUARDIAN);
         configureSpawnEgg(registry, ItemTypes.HAPPY_GHAST_SPAWN_EGG, EntityTypes.HAPPY_GHAST);
@@ -175,7 +192,9 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.IRON_LEGGINGS, VanillaArmorMaterials.IRON, EquipmentSlot.LEGS);
         configurePickaxe(registry, IRON_PICKAXE, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.IRON_SHOVEL, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.IRON_SPEAR, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.IRON_SPEAR, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS),
+                SoundEvent.IRON_SPEAR_ATTACK_HIT, SoundEvent.IRON_SPEAR_ATTACK_MISS, SoundEvent.IRON_SPEAR_USE,
+                new SpearProfile(19, 12, 0.95f, 50, 11, 135, 5.1f, 225, 4.6f));
         configureSword(registry, ItemTypes.IRON_SWORD, ToolMaterials.IRON, repairWith(ItemTags.IRON_TOOL_MATERIALS));
         registry.configure(ItemTypes.LAVA_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.place(BlockStates.LAVA));
@@ -184,6 +203,9 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.LEATHER_HELMET, VanillaArmorMaterials.LEATHER, EquipmentSlot.HEAD);
         configureArmor(registry, ItemTypes.LEATHER_LEGGINGS, VanillaArmorMaterials.LEATHER, EquipmentSlot.LEGS);
         configureSpawnEgg(registry, ItemTypes.LLAMA_SPAWN_EGG, EntityTypes.LLAMA);
+        registry.configure(ItemTypes.LINGERING_POTION, new PotionItemSerializer())
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.USE, PotionItemHandlers.THROW_LINGERING);
         configureDamageableEnchantableTool(
                 registry,
                 ItemTypes.MACE,
@@ -211,10 +233,16 @@ public final class VanillaItemBehaviors {
         configureArmor(registry, ItemTypes.NETHERITE_LEGGINGS, VanillaArmorMaterials.NETHERITE, EquipmentSlot.LEGS);
         configurePickaxe(registry, ItemTypes.NETHERITE_PICKAXE, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.NETHERITE_SHOVEL, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.NETHERITE_SPEAR, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.NETHERITE_SPEAR, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS),
+                SoundEvent.NETHERITE_SPEAR_ATTACK_HIT, SoundEvent.NETHERITE_SPEAR_ATTACK_MISS, SoundEvent.NETHERITE_SPEAR_USE,
+                new SpearProfile(23, 8, 1.2f, 50, 9, 110, 5.1f, 175, 4.6f));
         configureSword(registry, ItemTypes.NETHERITE_SWORD, ToolMaterials.NETHERITE, repairWith(ItemTags.NETHERITE_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.NPC_SPAWN_EGG, EntityTypes.NPC);
         configureSpawnEgg(registry, ItemTypes.OCELOT_SPAWN_EGG, EntityTypes.OCELOT);
+        registry.configure(ItemTypes.OMINOUS_BOTTLE, new OminousBottleItemSerializer())
+                .set(ItemBehaviors.USE_DURATION_TICKS, 32)
+                .set(ItemBehaviors.USE, OminousBottleItemHandlers.DRINK)
+                .set(ItemBehaviors.FINISH_USE, OminousBottleItemHandlers.FINISH_DRINK);
         configureSpawnEgg(registry, ItemTypes.PANDA_SPAWN_EGG, EntityTypes.PANDA);
         configureSpawnEgg(registry, ItemTypes.PARCHED_SPAWN_EGG, EntityTypes.PARCHED);
         configureSpawnEgg(registry, ItemTypes.PARROT_SPAWN_EGG, EntityTypes.PARROT);
@@ -223,6 +251,11 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.PIGLIN_BRUTE_SPAWN_EGG, EntityTypes.PIGLIN_BRUTE);
         configureSpawnEgg(registry, ItemTypes.PIGLIN_SPAWN_EGG, EntityTypes.PIGLIN);
         configureSpawnEgg(registry, ItemTypes.PILLAGER_SPAWN_EGG, EntityTypes.PILLAGER);
+        registry.configure(ItemTypes.POTION, new PotionItemSerializer())
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.USE_DURATION_TICKS, 32)
+                .set(ItemBehaviors.USE, PotionItemHandlers.DRINK)
+                .set(ItemBehaviors.FINISH_USE, PotionItemHandlers.FINISH_DRINK);
         configureSpawnEgg(registry, ItemTypes.POLAR_BEAR_SPAWN_EGG, EntityTypes.POLAR_BEAR);
         registry.configure(ItemTypes.POWDER_SNOW_BUCKET)
                 .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.POWDER_SNOW.getDefaultState()))
@@ -244,14 +277,21 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.SKELETON_SPAWN_EGG, EntityTypes.SKELETON);
         configureSpawnEgg(registry, ItemTypes.SLIME_SPAWN_EGG, EntityTypes.SLIME);
         configureSpawnEgg(registry, ItemTypes.SNIFFER_SPAWN_EGG, EntityTypes.SNIFFER);
+        registry.configure(ItemTypes.SNOWBALL).set(ItemBehaviors.USE,
+                ThrowableItemHandlers.throwProjectile(EntityTypes.SNOWBALL, 1.5f, 0));
         configureSpawnEgg(registry, ItemTypes.SNOW_GOLEM_SPAWN_EGG, EntityTypes.SNOW_GOLEM);
         configureSpawnEgg(registry, ItemTypes.SPIDER_SPAWN_EGG, EntityTypes.SPIDER);
+        registry.configure(ItemTypes.SPLASH_POTION, new PotionItemSerializer())
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.USE, PotionItemHandlers.THROW_SPLASH);
         configureSpawnEgg(registry, ItemTypes.SQUID_SPAWN_EGG, EntityTypes.SQUID);
         configureAxe(registry, ItemTypes.STONE_AXE, ToolMaterials.STONE, 7, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         configureHoe(registry, STONE_HOE, ToolMaterials.STONE, -1, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         configurePickaxe(registry, STONE_PICKAXE, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         configureShovel(registry, STONE_SHOVEL, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
-        configureSpear(registry, STONE_SPEAR, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
+        configureSpear(registry, STONE_SPEAR, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS),
+                SoundEvent.STONE_SPEAR_ATTACK_HIT, SoundEvent.STONE_SPEAR_ATTACK_MISS, SoundEvent.STONE_SPEAR_USE,
+                new SpearProfile(15, 14, 0.82f, 90, 13, 180, 5.1f, 275, 4.6f));
         configureSword(registry, STONE_SWORD, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.STRAY_SPAWN_EGG, EntityTypes.STRAY);
         configureSpawnEgg(registry, ItemTypes.STRIDER_SPAWN_EGG, EntityTypes.STRIDER);
@@ -280,6 +320,9 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.BREAKABLE,
                 EnchantmentTarget.VANISHABLE
         );
+        registry.configure(ItemTypes.TRIDENT)
+                .set(ItemBehaviors.USE, TridentItemHandlers.USE)
+                .set(ItemBehaviors.RELEASE_USE, TridentItemHandlers.RELEASE);
         registry.configure(ItemTypes.TROPICAL_FISH_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TROPICAL_FISH));
         configureSpawnEgg(registry, ItemTypes.TROPICAL_FISH_SPAWN_EGG, EntityTypes.TROPICAL_FISH);
@@ -301,6 +344,7 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.WATER_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
         configureSpawnEgg(registry, ItemTypes.WITCH_SPAWN_EGG, EntityTypes.WITCH);
+        registry.configure(ItemTypes.WIND_CHARGE).set(ItemBehaviors.USE, WindChargeItemHandlers.USE);
         configureSpawnEgg(registry, ItemTypes.WITHER_SKELETON_SPAWN_EGG, EntityTypes.WITHER_SKELETON);
         configureSpawnEgg(registry, ItemTypes.WITHER_SPAWN_EGG, EntityTypes.WITHER);
         configureSpawnEgg(registry, ItemTypes.WOLF_SPAWN_EGG, EntityTypes.WOLF);
@@ -308,7 +352,9 @@ public final class VanillaItemBehaviors {
         configureHoe(registry, ItemTypes.WOODEN_HOE, ToolMaterials.WOOD, 0, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
         configurePickaxe(registry, ItemTypes.WOODEN_PICKAXE, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
         configureShovel(registry, ItemTypes.WOODEN_SHOVEL, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
-        configureSpear(registry, ItemTypes.WOODEN_SPEAR, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
+        configureSpear(registry, ItemTypes.WOODEN_SPEAR, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS),
+                SoundEvent.WOODEN_SPEAR_ATTACK_HIT, SoundEvent.WOODEN_SPEAR_ATTACK_MISS, SoundEvent.WOODEN_SPEAR_USE,
+                new SpearProfile(13, 15, 0.7f, 100, 14, 200, 5.1f, 300, 4.6f));
         configureSword(registry, ItemTypes.WOODEN_SWORD, ToolMaterials.WOOD, repairWith(ItemTags.WOODEN_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.ZOGLIN_SPAWN_EGG, EntityTypes.ZOGLIN);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_HORSE_SPAWN_EGG, EntityTypes.ZOMBIE_HORSE);
@@ -429,7 +475,9 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.MINE_BLOCK, DefaultItemHandlers.MINE_BLOCK);
     }
 
-    private void configureSpear(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
+    private void configureSpear(CloudItemRegistry registry, ItemType type, ToolMaterial material,
+                                CanRepairWithHandler repairWith, SoundEvent hitSound, SoundEvent missSound,
+                                SoundEvent useSound, SpearProfile spear) {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
@@ -445,7 +493,11 @@ public final class VanillaItemBehaviors {
                 )
                 .set(ItemBehaviors.ATTACK_DAMAGE_TYPE, DamageTypes.SPEAR)
                 .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> 1 + material.getAttackDamageBonus())
-                .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1);
+                .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
+                .set(ItemBehaviors.STAB, SpearItemHandlers.stab(spear, hitSound, missSound))
+                .set(ItemBehaviors.USE, SpearItemHandlers.use(useSound))
+                .set(ItemBehaviors.USE_TICK, SpearItemHandlers.kinetic(spear, hitSound))
+                .set(ItemBehaviors.RELEASE_USE, SpearItemHandlers.RELEASE);
     }
 
     private void configureDamageableEnchantableTool(

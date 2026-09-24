@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.SmithingScreen;
 import org.cloudburstmc.api.inventory.view.SmithingView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudSmithingView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -38,9 +38,9 @@ public class CloudSmithingContainerScreen extends CloudBlockContainerScreen impl
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_TEMPLATE, smithingView, 1, -53));
-        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_INPUT, smithingView, 1, -50));
-        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_MATERIAL, smithingView, 1, -50));
-        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_RESULT, smithingView, 1, -47));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, smithingView, 1, -47));
+        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_INPUT, smithingView, 1, 1, -50));
+        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_MATERIAL, smithingView, 2, 1, -50));
+        this.addMapping(new ContainerMapping(ContainerSlotType.SMITHING_TABLE_RESULT, smithingView, 3, 1, -47));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, smithingView, 3, 1, -47));
     }
 }

@@ -11,7 +11,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -64,13 +64,13 @@ public final class ToolUtils {
             }
         }
 
-        if (player.hasEffect(EffectTypes.HASTE)) {
-            Effect haste = player.getEffect(EffectTypes.HASTE);
+        if (player.hasPotionEffect(EffectTypes.HASTE)) {
+            PotionEffect haste = player.getPotionEffect(EffectTypes.HASTE);
             speed *= 1 + (haste.getAmplifier() + 1) * 0.2f;
         }
 
-        if (player.hasEffect(EffectTypes.MINING_FATIGUE)) {
-            Effect miningFatigue = player.getEffect(EffectTypes.MINING_FATIGUE);
+        if (player.hasPotionEffect(EffectTypes.MINING_FATIGUE)) {
+            PotionEffect miningFatigue = player.getPotionEffect(EffectTypes.MINING_FATIGUE);
             speed *= switch (miningFatigue.getAmplifier()) {
                 case 0 -> 0.3f;
                 case 1 -> 0.09f;

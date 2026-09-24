@@ -105,7 +105,8 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
                 .putInt("x", fakePos.getX())
                 .putInt("y", fakePos.getY())
                 .putInt("z", fakePos.getZ())
-                .putString("CustomName", title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Chest")
+                .putString("CustomName",
+                        title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Chest")
                 .build();
 
         BlockEntityDataPacket beData = new BlockEntityDataPacket();

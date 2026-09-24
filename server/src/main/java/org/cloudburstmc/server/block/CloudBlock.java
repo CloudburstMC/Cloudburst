@@ -65,9 +65,9 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
     }
 
     @Override
-    public VoxelShape getCollisionShape() {
+    public VoxelShape getCollisionShape(CollisionContext context) {
         return this.requireComponent(BlockComponents.GET_COLLISION_SHAPE)
-                .execute(this.getState(), BlockShapeContext.at(this.level, this.position), CollisionContext.empty());
+                .execute(this.getState(), BlockShapeContext.at(this.level, this.position), context);
     }
 
     @Override

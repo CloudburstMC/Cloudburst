@@ -104,7 +104,8 @@ public class CloudVirtualHopperScreen extends CloudContainerScreen implements Vi
                 .putInt("x", fakePos.getX())
                 .putInt("y", fakePos.getY())
                 .putInt("z", fakePos.getZ())
-                .putString("CustomName", title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Hopper")
+                .putString("CustomName",
+                        title != null ? BedrockLegacyTextSerializer.getInstance().serialize(title) : "Hopper")
                 .build();
 
         BlockEntityDataPacket beData = new BlockEntityDataPacket();

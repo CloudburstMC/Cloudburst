@@ -1,46 +1,55 @@
 package org.cloudburstmc.api.potion;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Setter;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import java.util.HashMap;
+import java.util.List;
 
-@Data
-@Builder
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * An immutable potion definition and its base effects.
+ */
 public class PotionType {
+    private final Identifier id;
+    private final List<PotionEffect> effects;
 
-    private static final HashMap<Identifier, PotionType> typeMap = new HashMap<>();
-
-    @NonNull
-    private Identifier potionId;
-    private final EffectType type;
-    private final int level;
-    private final int duration;
-    private final boolean instant;
-    @Setter
-    private boolean splash;
-
-    public PotionType(Identifier id, EffectType type, int level, int duration, boolean instant) {
-        this(id, type, level, duration, instant, false);
+    private PotionType(Identifier id, List<PotionEffect> effects) {
+        this.id = checkNotNull(id, "id");
+        this.effects = List.copyOf(checkNotNull(effects, "effects"));
     }
 
-    public PotionType(Identifier id, EffectType type, int level, int duration, boolean instant, boolean splash) {
-        this.type = type;
-        this.level = level;
-        this.duration = duration;
-        this.instant = instant;
-        this.splash = splash;
-
-        typeMap.put(id, this);
+    /**
+     * Creates a potion type.
+     *
+     * @param id      potion identifier
+     * @param effects base effects applied by the potion
+     * @return potion type
+     */
+    public static PotionType of(Identifier id, PotionEffect... effects) {
+        checkNotNull(effects, "effects");
+        return new PotionType(id, List.of(effects));
     }
 
-    @Nullable
-    public static PotionType byName(String name) {
-        return typeMap.get(Identifier.parse(name));
+    /**
+     * Returns the potion identifier.
+     *
+     * @return potion identifier
+     */
+    public Identifier getId() {
+        return this.id;
     }
 
+    /**
+     * Returns the potion's base effects.
+     *
+     * @return immutable effect list
+     */
+    public List<PotionEffect> getEffects() {
+        return this.effects;
+    }
+
+    @Override
+    public String toString() {
+        return "PotionType{id=" + this.id + '}';
+    }
 }

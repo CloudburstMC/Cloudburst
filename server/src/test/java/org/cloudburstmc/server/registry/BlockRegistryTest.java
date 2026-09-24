@@ -210,6 +210,20 @@ class BlockRegistryTest {
         );
     }
 
+    @Test
+    public void groupsAllLightningRodVariantsForChanneling() {
+        assertEquals(Set.of(
+                BlockTypes.LIGHTNING_ROD,
+                BlockTypes.EXPOSED_LIGHTNING_ROD,
+                BlockTypes.WEATHERED_LIGHTNING_ROD,
+                BlockTypes.OXIDIZED_LIGHTNING_ROD,
+                BlockTypes.WAXED_LIGHTNING_ROD,
+                BlockTypes.WAXED_EXPOSED_LIGHTNING_ROD,
+                BlockTypes.WAXED_WEATHERED_LIGHTNING_ROD,
+                BlockTypes.WAXED_OXIDIZED_LIGHTNING_ROD
+        ), REGISTRY.getTag(BlockTags.LIGHTNING_RODS).getValues());
+    }
+
     private static void assertSlabPlaceHandler(BlockType blockType) {
         assertInstanceOf(SlabPlaceHandler.class, component(blockType, BlockComponents.ON_PLACE));
     }

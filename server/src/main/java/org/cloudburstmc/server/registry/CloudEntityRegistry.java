@@ -26,6 +26,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
 import org.cloudburstmc.server.entity.component.BucketableEntityHandlers;
@@ -192,7 +193,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkNotNull(type, "type");
         checkNotNull(location, "location");
         EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue();
-        return factory.create(type, location);
+        T entity = factory.create(type, location);
+        if (!(entity instanceof CloudEntity cloudEntity)) {
+            throw new RegistryException("Entity factory must create a CloudEntity for " + type.getId());
+        }
+        cloudEntity.initialize(location);
+        return entity;
     }
 
     public <T extends Entity> T newEntity(EntityType<T> type, Location location) {

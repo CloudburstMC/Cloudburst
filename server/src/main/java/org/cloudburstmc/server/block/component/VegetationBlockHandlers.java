@@ -10,12 +10,14 @@ import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.passive.Bee;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.player.PlayerHarvestBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -24,7 +26,6 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,17 +94,17 @@ public class VegetationBlockHandlers {
 
     public static final EntityInsideBlockHandler WITHER_ROSE_ENTITY_INSIDE = (block, entity, precise) -> {
         if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Living
+                && entity instanceof Living living
                 && canReceiveWither(entity)) {
-            entity.addEffect(new CloudEffect(EffectTypes.WITHER).setDuration(40));
+            ((CloudEntity) living).addPotionEffect(new PotionEffect(EffectTypes.WITHER, 40, 0), null, PotionEffectCause.WITHER_ROSE);
         }
     };
 
     public static final EntityInsideBlockHandler EYEBLOSSOM_ENTITY_INSIDE = (block, entity, precise) -> {
         if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Bee
-                && !entity.hasEffect(EffectTypes.POISON)) {
-            entity.addEffect(new CloudEffect(EffectTypes.POISON).setDuration(25));
+                && entity instanceof Bee bee
+                && !bee.hasPotionEffect(EffectTypes.POISON)) {
+            ((CloudEntity) entity).addPotionEffect(new PotionEffect(EffectTypes.POISON, 25, 0), null, PotionEffectCause.ATTACK);
         }
     };
 

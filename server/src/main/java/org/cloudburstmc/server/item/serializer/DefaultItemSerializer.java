@@ -38,6 +38,11 @@ public class DefaultItemSerializer implements ItemSerializer {
     private static final String TAG_ENTITY_INVULNERABLE = "Invulnerable";
 
     @Override
+    public int getAuxValue(ItemStack item) {
+        return item.getDamage();
+    }
+
+    @Override
     public void serialize(ItemStack item, NbtMapBuilder tag) {
         serializeRegisteredData(item, tag);
         serializeDisplay(item, tag);

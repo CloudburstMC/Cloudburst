@@ -49,14 +49,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     public EntityBoat(EntityType<? extends Boat> type, Location location) {
         super(type, location);
-
-        this.setMaxHealth(40);
-        this.setHealth(40);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
+        this.setMaxHealth(40);
+        this.setHealth(40);
         this.data.set(ROW_TIME_LEFT, 0f);
         this.data.set(ROW_TIME_RIGHT, 0f);
     }

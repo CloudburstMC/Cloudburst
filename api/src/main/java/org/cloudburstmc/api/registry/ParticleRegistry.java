@@ -4,12 +4,12 @@ import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.util.Identifier;
 
 /**
- * Registry for particle types.
+ * Provides the particle types known to the server.
  */
 public interface ParticleRegistry extends KeyedRegistry<ParticleType> {
 
     @Override
     default Identifier getId(ParticleType value) {
-        return value.id();
+        return value.getId();
     }
 }

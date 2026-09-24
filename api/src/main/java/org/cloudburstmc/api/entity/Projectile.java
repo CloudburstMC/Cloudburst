@@ -8,21 +8,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public interface Projectile extends Entity {
 
     /**
-     * Returns the entity that launched this projectile.
+     * Returns the source that launched this projectile.
      *
      * @return the shooter, or {@code null}
      */
     @Nullable
-    default Entity getShooter() {
-        return getOwner();
-    }
+    ProjectileSource getShooter();
 
     /**
-     * Changes the entity that launched this projectile.
+     * Changes the source that launched this projectile.
      *
-     * @param entity the shooter, or {@code null}
+     * @param shooter the shooter, or {@code null}
      */
-    default void setShooter(@Nullable Entity entity) {
-        setOwner(entity);
-    }
+    void setShooter(@Nullable ProjectileSource shooter);
 }

@@ -11,6 +11,8 @@ public interface ItemSerializer {
     String ITEM_TAG = "tag";
     String NAME_TAG = "Name";
 
+    int getAuxValue(ItemStack item);
+
     void serialize(ItemStack item, NbtMapBuilder tag);
 
     void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag);

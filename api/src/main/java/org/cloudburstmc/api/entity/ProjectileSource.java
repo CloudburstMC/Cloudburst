@@ -15,9 +15,9 @@ public interface ProjectileSource {
      *
      * @param type the projectile type
      * @param <T>  the projectile type
-     * @return the launched projectile
+     * @return the launched projectile, or {@code null} if the launch is canceled
      */
-    default <T extends Projectile> T launchProjectile(EntityType<T> type) {
+    default <T extends Projectile> @Nullable T launchProjectile(EntityType<T> type) {
         return this.launchProjectile(type, null, null);
     }
 
@@ -27,9 +27,9 @@ public interface ProjectileSource {
      * @param type     the projectile type
      * @param velocity the initial velocity, or {@code null} to use the facing direction
      * @param <T>      the projectile type
-     * @return the launched projectile
+     * @return the launched projectile, or {@code null} if the launch is canceled
      */
-    default <T extends Projectile> T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity) {
+    default <T extends Projectile> @Nullable T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity) {
         return this.launchProjectile(type, velocity, null);
     }
 
@@ -40,7 +40,7 @@ public interface ProjectileSource {
      * @param velocity     the initial velocity, or {@code null} to use the facing direction
      * @param configurator an optional pre-spawn configurator
      * @param <T>          the projectile type
-     * @return the launched projectile
+     * @return the launched projectile, or {@code null} if the launch is canceled
      */
-    <T extends Projectile> T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity, @Nullable Consumer<? super T> configurator);
+    <T extends Projectile> @Nullable T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity, @Nullable Consumer<? super T> configurator);
 }

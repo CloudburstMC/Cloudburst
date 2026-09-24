@@ -22,13 +22,6 @@ public interface AbstractArrow extends Projectile {
     void setCritical(boolean critical);
 
     /**
-     * Marks this projectile as critical.
-     */
-    default void setCritical() {
-        this.setCritical(true);
-    }
-
-    /**
      * Returns the projectile's base damage.
      *
      * @return the base damage
@@ -41,4 +34,18 @@ public interface AbstractArrow extends Projectile {
      * @param damage the base damage
      */
     void setDamage(float damage);
+
+    /**
+     * Returns who may pick up this projectile after it lands.
+     *
+     * @return the pickup status
+     */
+    ArrowPickupStatus getPickupStatus();
+
+    /**
+     * Changes who may pick up this projectile after it lands.
+     *
+     * @param status the pickup status
+     */
+    void setPickupStatus(ArrowPickupStatus status);
 }

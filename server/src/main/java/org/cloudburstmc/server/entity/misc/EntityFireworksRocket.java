@@ -1,17 +1,27 @@
 package org.cloudburstmc.server.entity.misc;
 
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.BlockShapeMode;
+import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -21,8 +31,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.projectile.EntityProjectile;
 import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
+import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.List;
@@ -31,7 +42,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-public class EntityFireworksRocket extends CloudEntity implements FireworksRocket {
+public class EntityFireworksRocket extends EntityProjectile implements FireworksRocket {
     private static final double GLIDE_BOOST_TARGET_SPEED = 1.5;
     private static final double GLIDE_BOOST_DIRECT_PUSH = 0.1;
     private static final double GLIDE_BOOST_CORRECTION = 0.5;
@@ -39,17 +50,14 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
     private int life;
     private int lifetime;
+    @Setter
+    private boolean shotAtAngle;
 
     private ItemStack firework;
     private CloudPlayer boostedPlayer;
 
     public EntityFireworksRocket(EntityType<FireworksRocket> type, Location location) {
         super(type, location);
-    }
-
-    @Override
-    public float getBaseOffset() {
-        return 0.49f;
     }
 
     @Override
@@ -62,8 +70,6 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
         this.setMotion(Vector3f.from(rand.nextGaussian() * 0.001, 0.05, rand.nextGaussian() * 0.001));
 
         this.data.set(DISPLAY_FIREWORK, this.createFireworkDisplayData(DEFAULT_FIREWORK_DATA));
-        this.data.set(DISPLAY_OFFSET, 0);
-        this.data.set(CUSTOM_DISPLAY, (byte) 1);
     }
 
     @Override
@@ -72,6 +78,7 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
         tag.listenForInt("Life", v -> this.life = v);
         tag.listenForInt("LifeTime", v -> this.lifetime = v);
+        tag.listenForBoolean("ShotAtAngle", v -> this.shotAtAngle = v);
     }
 
     @Override
@@ -80,6 +87,7 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
         tag.putInt("Life", this.life);
         tag.putInt("LifeTime", this.lifetime);
+        tag.putBoolean("ShotAtAngle", this.shotAtAngle);
     }
 
     @Override
@@ -98,7 +106,6 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
 
         this.timing.startTiming();
 
-
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
         if (this.isAlive()) {
@@ -108,6 +115,11 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
                 this.updateFreeFlight();
             }
 
+            if (!this.isAlive()) {
+                this.timing.stopTiming();
+                return true;
+            }
+
             if (this.life == 0) {
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
             }
@@ -115,17 +127,8 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
             this.life++;
 
             hasUpdate = true;
-            if (this.life >= this.lifetime) {
-                EntityEventPacket packet = new EntityEventPacket();
-                packet.setType(EntityEventType.FIREWORK_EXPLODE);
-                packet.setRuntimeEntityId(this.getRuntimeId());
-
-                this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, getType());
-
-                CloudServer.broadcastPacket(getViewers(), packet);
-
-                this.kill();
-                hasUpdate = true;
+            if (this.life > this.lifetime) {
+                this.explode();
             }
         }
 
@@ -138,10 +141,90 @@ public class EntityFireworksRocket extends CloudEntity implements FireworksRocke
     }
 
     private void updateFreeFlight() {
-        this.motion = this.motion.mul(1.15, 1.0, 1.15).add(0, 0.04, 0);
-        this.setPosition(this.position.add(this.motion));
+        double horizontalAcceleration = this.isCollidedHorizontally ? 1.0 : 1.15;
+        Vector3f nextMotion = this.shotAtAngle ? this.motion
+                : this.motion.mul(horizontalAcceleration, 1.0, horizontalAcceleration).add(0, 0.04, 0);
+        Vector3f nextPosition = this.position.add(nextMotion);
+        RayTraceContext trace = new RayTraceContext(this.position, nextPosition, BlockShapeMode.COLLIDER,
+                FluidCollisionMode.NONE, CollisionContext.of(this));
+
+        float entityHitMargin = Math.clamp((this.age - 2) / 20.0f, 0.0f, 0.3f);
+        HitResult hit = this.traceMovement(trace, entityHitMargin);
+
+        if (hit instanceof MissHitResult(Vector3f boundary, MissReason reason) && reason == MissReason.UNLOADED) {
+            this.setPosition(boundary);
+            this.updateMovement();
+            return;
+        }
+
+        this.move(nextMotion);
+        this.motion = nextMotion;
+
+        if (hit instanceof EntityHitResult entityHit) {
+            ProjectileHitEvent event = new ProjectileHitEvent(this, entityHit);
+            this.server.getEventManager().fire(event);
+            if (!event.isCancelled()) {
+                this.explode();
+                return;
+            }
+
+            hit = this.level.rayTraceBlocks(trace);
+        }
+
+        if (hit instanceof BlockHitResult blockHit) {
+            ProjectileHitEvent event = new ProjectileHitEvent(this, blockHit);
+            this.server.getEventManager().fire(event);
+            if (!event.isCancelled()) {
+                blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
+                if (!this.getFireworkData().getExplosions().isEmpty()) {
+                    this.explode();
+                    return;
+                }
+            } else {
+                this.setPosition(nextPosition);
+            }
+        }
+
         this.updateRotationFromMotion();
         this.updateMovement();
+    }
+
+    private void explode() {
+        this.updateMovement();
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setType(EntityEventType.FIREWORK_EXPLODE);
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        CloudServer.broadcastPacket(this.getViewers(), packet);
+        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LARGE_BLAST, -1, this.getType());
+        this.dealExplosionDamage();
+        this.kill();
+    }
+
+    private void dealExplosionDamage() {
+        int explosions = this.getFireworkData().getExplosions().size();
+        if (explosions == 0) {
+            return;
+        }
+
+        Vector3f center = this.getPosition();
+        DamageSource.Builder source = DamageSource.builder(DamageTypes.FIREWORKS).directEntity(this);
+        Entity owner = this.getOwner();
+        if (owner != null) {
+            source.causingEntity(owner);
+        }
+
+        DamageSource damageSource = source.build();
+        BoundingBox area = new BoundingBox(center, center).inflate(5, 5, 5);
+        for (Entity entity : this.getLevel().getNearbyEntities(area)) {
+            if (!(entity instanceof Living) || entity.getPosition().distanceSquared(center) > 25) {
+                continue;
+            }
+
+            if (Explosion.getSeenPercent(center, entity) > 0) {
+                float distance = (float) entity.getPosition().distance(center);
+                entity.damage((5 + explosions * 2) * (float) Math.sqrt((5 - distance) / 5), damageSource);
+            }
+        }
     }
 
     private void updateBoostedFlight() {

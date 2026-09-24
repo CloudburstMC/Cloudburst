@@ -7,9 +7,9 @@ import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
-import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
 import org.cloudburstmc.api.util.Identifier;
@@ -77,10 +77,10 @@ public class NetworkUtils {
         potionTypeMap.put(PotionTypes.SLOW_FALLING, (short) 40);
         potionTypeMap.put(PotionTypes.LONG_SLOW_FALLING, (short) 41);
         potionTypeMap.put(PotionTypes.STRONG_SLOWNESS, (short) 42);
-        potionTypeMap.put(PotionTypes.WIND_CHARGING, (short) 43);
+        potionTypeMap.put(PotionTypes.WIND_CHARGED, (short) 43);
         potionTypeMap.put(PotionTypes.WEAVING, (short) 44);
         potionTypeMap.put(PotionTypes.OOZING, (short) 45);
-        potionTypeMap.put(PotionTypes.INFESTATION, (short) 46);
+        potionTypeMap.put(PotionTypes.INFESTED, (short) 46);
 
         effectTypeMap.put(EffectTypes.SPEED, (byte) 1);
         effectTypeMap.put(EffectTypes.SLOWNESS, (byte) 2);
@@ -113,10 +113,12 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.VILLAGE_HERO, (byte) 29);
         effectTypeMap.put(EffectTypes.DARKNESS, (byte) 30);
         effectTypeMap.put(EffectTypes.TRIAL_OMEN, (byte) 31);
-        effectTypeMap.put(EffectTypes.WIND_CHARGING, (byte) 32);
+        effectTypeMap.put(EffectTypes.WIND_CHARGED, (byte) 32);
         effectTypeMap.put(EffectTypes.WEAVING, (byte) 33);
         effectTypeMap.put(EffectTypes.OOZING, (byte) 34);
-        effectTypeMap.put(EffectTypes.INFESTATION, (byte) 35);
+        effectTypeMap.put(EffectTypes.INFESTED, (byte) 35);
+        effectTypeMap.put(EffectTypes.RAID_OMEN, (byte) 36);
+        effectTypeMap.put(EffectTypes.BREATH_OF_THE_NAUTILUS, (byte) 37);
     }
 
     public static AttributeData attributeToNetwork(Attribute attr) {
@@ -136,29 +138,50 @@ public class NetworkUtils {
     }
 
     public static short potionToNetwork(PotionType type) {
-        return potionTypeMap.get(type);
+        Objects.requireNonNull(type, "type");
+        Short networkId = potionTypeMap.get(type);
+        if (networkId == null) {
+            throw new IllegalArgumentException("Potion type is not available on the network: " + type.getId());
+        }
+
+        return networkId;
     }
 
-    public static PotionType potionFromLegacy(short potionId) {
-        return potionTypeMap.inverse().get(potionId);
+    public static PotionType potionFromNetwork(short potionId) {
+        PotionType type = potionTypeMap.inverse().get(potionId);
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown network potion ID: " + potionId);
+        }
+
+        return type;
     }
 
     public static byte effectToNetwork(EffectType type) {
-        return effectTypeMap.get(type);
+        Objects.requireNonNull(type, "type");
+        Byte networkId = effectTypeMap.get(type);
+        if (networkId == null) {
+            throw new IllegalArgumentException("Effect type is not available on the network: " + type.getId());
+        }
+
+        return networkId;
     }
 
-    public static EffectType effectFromLegacy(byte effectId) {
-        return effectTypeMap.inverse().get(effectId);
+    public static EffectType effectFromNetwork(byte effectId) {
+        EffectType type = effectTypeMap.inverse().get(effectId);
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown network effect ID: " + effectId);
+        }
+
+        return type;
     }
 
-    public static MobEffectPacket effectToNetwork(Effect effect, long runtimeEntityId,
-                                                  MobEffectPacket.Event event, long tick) {
+    public static MobEffectPacket effectToNetwork(PotionEffect effect, long runtimeEntityId, MobEffectPacket.Event event, long tick) {
         MobEffectPacket packet = new MobEffectPacket();
         packet.setRuntimeEntityId(runtimeEntityId);
         packet.setEvent(event);
         packet.setEffectId(effectToNetwork(effect.getType()));
         packet.setAmplifier(effect.getAmplifier());
-        packet.setParticles(effect.isVisible());
+        packet.setParticles(effect.hasParticles());
         packet.setDuration(effect.getDuration());
         packet.setTick(tick);
         packet.setAmbient(effect.isAmbient());

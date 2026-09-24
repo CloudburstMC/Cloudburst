@@ -4,15 +4,12 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.XpBottle;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.particle.EnchantParticle;
-import org.cloudburstmc.server.level.particle.Particle;
-import org.cloudburstmc.server.level.particle.SpellParticle;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * @author xtypr
- */
 public class EntityXpBottle extends EntityProjectile implements XpBottle {
 
     public EntityXpBottle(EntityType<XpBottle> type, Location location) {
@@ -36,7 +33,7 @@ public class EntityXpBottle extends EntityProjectile implements XpBottle {
 
     @Override
     public float getGravity() {
-        return 0.1f;
+        return 0.07f;
     }
 
     @Override
@@ -59,29 +56,26 @@ public class EntityXpBottle extends EntityProjectile implements XpBottle {
             hasUpdate = true;
         }
 
-        if (this.isCollided) {
-            this.kill();
-            this.dropXp();
-            hasUpdate = true;
-        }
-
         this.timing.stopTiming();
 
         return hasUpdate;
     }
 
     @Override
-    public void onCollideWithEntity(Entity entity) {
-        this.kill();
+    protected void onCollideWithEntity(Entity entity) {
         this.dropXp();
     }
 
-    public void dropXp() {
-        Particle particle1 = new EnchantParticle(this.getPosition());
-        this.getLevel().addParticle(particle1);
-        Particle particle2 = new SpellParticle(this.getPosition(), 0x00385dc6);
-        this.getLevel().addParticle(particle2);
+    @Override
+    protected void onBlockCollision(BlockHitResult hit) {
+        this.dropXp();
+    }
 
-        this.getLevel().dropExpOrb(this.getPosition(), ThreadLocalRandom.current().nextInt(3, 12));
+    private void dropXp() {
+        this.getLevel().addParticle(new EnchantParticle(this.getPosition()));
+        this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        this.getLevel().dropExpOrb(this.getPosition(), 3 + random.nextInt(5) + random.nextInt(5));
+        this.close();
     }
 }

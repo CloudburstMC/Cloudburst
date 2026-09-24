@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.CartographyScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.CartographyView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudCartographyView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -37,7 +37,7 @@ public class CloudCartographyContainerScreen extends CloudBlockContainerScreen i
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.CARTOGRAPHY_INPUT, cartography, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, cartography, 1, 1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CARTOGRAPHY_RESULT, cartography, 1, 2));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, cartography, 1, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CARTOGRAPHY_RESULT, cartography, 2, 1, 2));
     }
 }

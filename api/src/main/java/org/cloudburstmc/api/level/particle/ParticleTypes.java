@@ -7,9 +7,13 @@ import org.cloudburstmc.api.util.Identifier;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Particle types supplied by the base game. Resource-pack particles may be
+ * represented with {@link ParticleType#of(Identifier)}.
+ */
 @UtilityClass
 public class ParticleTypes {
-    private static final BuiltInTypeCatalog<ParticleType> TYPES = BuiltInTypeCatalog.create(ParticleType::id);
+    private static final BuiltInTypeCatalog<ParticleType> TYPES = BuiltInTypeCatalog.create(ParticleType::getId);
 
     public static final ParticleType BALLOON_GAS = type("balloon_gas");
     public static final ParticleType BLEACH = type("bleach");

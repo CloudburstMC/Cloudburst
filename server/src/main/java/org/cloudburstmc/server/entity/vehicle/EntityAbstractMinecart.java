@@ -47,9 +47,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public EntityAbstractMinecart(EntityType<?> type, Location location) {
         super(type, location);
-
-        setMaxHealth(40);
-        setHealth(40);
     }
 
     public abstract boolean isRideable();
@@ -108,6 +105,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     @Override
     public void initEntity() {
         super.initEntity();
+        this.setMaxHealth(40);
+        this.setHealth(40);
 
         setRollingAmplitude(0);
         setRollingDirection(1);

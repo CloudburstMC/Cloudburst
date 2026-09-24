@@ -1,9 +1,9 @@
 package org.cloudburstmc.server.entity.projectile;
 
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityComponents;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.Projectile;
+import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -11,9 +11,11 @@ import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
+import org.cloudburstmc.api.level.BlockShapeMode;
+import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.MovingObjectPosition;
+import org.cloudburstmc.api.level.RayTraceContext;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -23,32 +25,55 @@ import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
-import java.util.Set;
-
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
-
 public abstract class EntityProjectile extends CloudEntity implements Projectile {
 
-    public boolean hadCollision = false;
-    public boolean closeOnCollide = true;
+    protected boolean hadCollision;
+    @Getter
     protected float damage;
     private boolean leftShooter;
+    private @Nullable ProjectileSource shooter;
 
     public EntityProjectile(EntityType<?> type, Location location) {
         super(type, location);
     }
 
     @Override
+    public boolean setMotion(Vector3f motion) {
+        if (motion.lengthSquared() > 0) {
+            this.orientToMotion(motion);
+        }
+
+        return super.setMotion(motion);
+    }
+
+    @Override
+    public @Nullable ProjectileSource getShooter() {
+        Entity owner = this.getOwner();
+        return owner instanceof ProjectileSource source ? source : this.shooter;
+    }
+
+    @Override
+    public void setShooter(@Nullable ProjectileSource shooter) {
+        this.setOwner(shooter instanceof Entity entity ? entity : null);
+        this.shooter = shooter;
+    }
+
+    @Override
+    public void setOwner(@Nullable Entity owner) {
+        super.setOwner(owner);
+        this.shooter = owner instanceof ProjectileSource source ? source : null;
+        this.leftShooter = false;
+    }
+
+    @Override
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
-
-        tag.listenForNumber("damage", v -> this.damage = v.floatValue());
+        tag.listenForNumber("damage", v -> this.setDamage(v.floatValue()));
     }
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-
         tag.putFloat("damage", this.damage);
     }
 
@@ -56,11 +81,11 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         return GenericMath.ceil(this.motion.length() * getDamage());
     }
 
-    public float getDamage() {
-        return damage <= 0 ? getBaseDamage() : damage;
-    }
-
     public void setDamage(float damage) {
+        if (!Float.isFinite(damage) || damage < 0) {
+            throw new IllegalArgumentException("damage must be finite and nonnegative");
+        }
+
         this.damage = damage;
     }
 
@@ -79,8 +104,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
-    public void onCollideWithEntity(Entity entity) {
-        this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
+    protected void onCollideWithEntity(Entity entity) {
         float damage = this.getResultDamage();
         if (entity.damage(damage, this.createProjectileDamageSource())) {
             this.hadCollision = true;
@@ -93,9 +117,8 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                 }
             }
         }
-        if (closeOnCollide) {
-            this.close();
-        }
+
+        this.close();
     }
 
     protected final DamageSource createProjectileDamageSource() {
@@ -119,6 +142,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     protected void initEntity() {
         super.initEntity();
 
+        this.damage = this.getBaseDamage();
         this.setMaxHealth(1);
         this.setHealth(1);
     }
@@ -143,98 +167,87 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
         if (tickDiff <= 0 && !this.justCreated) {
             return true;
         }
-        this.lastUpdate = currentTick;
 
+        this.lastUpdate = currentTick;
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
         if (this.isAlive()) {
+            Vector3f nextMotion = this.motion.mul(this.isInsideOfWater() ? this.getWaterInertia() : 1 - this.getDrag())
+                    .sub(0, this.getGravity(), 0);
+            Vector3f moveVector = this.position.add(nextMotion);
+            RayTraceContext trace = new RayTraceContext(this.position, moveVector, BlockShapeMode.COLLIDER,
+                    FluidCollisionMode.NONE, CollisionContext.of(this));
 
-            this.updateLeftShooter();
-
-            MovingObjectPosition movingObjectPosition = null;
-
-            if (!this.isCollided) {
-                this.motion = motion.sub(0, this.getGravity(), 0);
-            }
-
-            Vector3f moveVector = this.position.add(this.motion);
-
-            Set<Entity> collidingEntities = this.getLevel().getCollidingEntities(
-                    this,
-                    this.boundingBox.expandTowards(this.motion).inflate(1, 1, 1));
-
-            double nearDistance = Integer.MAX_VALUE;
-            Entity nearEntity = null;
-
-            for (Entity entity : collidingEntities) {
-                if (!this.canHitEntity(entity)) {
-                    continue;
+            float hitMargin = Math.clamp((this.age - 2) / 20.0f, 0.0f, 0.3f);
+            HitResult hit = this.traceMovement(trace, hitMargin);
+            if (hit instanceof EntityHitResult entityHit) {
+                ProjectileHitEvent event = new ProjectileHitEvent(this, entityHit);
+                this.server.getEventManager().fire(event);
+                if (!event.isCancelled()) {
+                    this.motion = nextMotion;
+                    this.setPosition(entityHit.position());
+                    this.onCollideWithEntity(entityHit.entity());
+                    this.data.update();
+                    return true;
                 }
 
-                BoundingBox boundingBox = entity.getBoundingBox().inflate(0.3f, 0.3f, 0.3f);
-                MovingObjectPosition ob = boundingBox.clip(this.getPosition(), moveVector);
-
-                if (ob == null) {
-                    continue;
-                }
-
-                double distance = this.position.distanceSquared(ob.hitVector);
-
-                if (distance < nearDistance) {
-                    nearDistance = distance;
-                    nearEntity = entity;
-                }
+                hit = this.level.rayTraceBlocks(trace);
             }
 
-            if (nearEntity != null) {
-                movingObjectPosition = MovingObjectPosition.fromEntity(nearEntity);
-            }
-
-            if (movingObjectPosition != null) {
-                if (movingObjectPosition.entityHit != null) {
-                    onCollideWithEntity(movingObjectPosition.entityHit);
+            if (hit instanceof BlockHitResult blockHit) {
+                ProjectileHitEvent event = new ProjectileHitEvent(this, blockHit);
+                this.server.getEventManager().fire(event);
+                if (!event.isCancelled()) {
+                    this.motion = nextMotion;
+                    this.setPosition(blockHit.position());
+                    this.isCollided = true;
+                    this.hadCollision = true;
+                    this.onBlockCollision(blockHit);
+                    blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
+                    this.motion = Vector3f.ZERO;
+                    this.updateMovement();
+                    this.data.update();
                     return true;
                 }
             }
 
-            this.move(this.motion);
-
-            if (this.isCollided && !this.hadCollision) { //collide with block
-                this.hadCollision = true;
-
-                this.motion = Vector3f.ZERO;
-
-                this.server.getEventManager().fire(new ProjectileHitEvent(this,
-                        MovingObjectPosition.fromBlock(this.position.toInt(), -1, this.getPosition())));
-                return false;
-            } else if (!this.isCollided && this.hadCollision) {
-                this.hadCollision = false;
+            if (hit instanceof MissHitResult(Vector3f position1, MissReason reason) && reason == MissReason.UNLOADED) {
+                this.setPosition(position1);
+                this.updateMovement();
+                this.data.update();
+                return hasUpdate;
             }
 
-            if (!this.hadCollision || motion.length() > 0.00001) {
-                double f = Math.sqrt((this.motion.getX() * this.motion.getX()) + (this.motion.getZ() * this.motion.getZ()));
-                this.yaw = (float) (Math.atan2(this.motion.getX(), this.motion.getZ()) * 180 / Math.PI);
-                this.pitch = (float) (Math.atan2(this.motion.getY(), f) * 180 / Math.PI);
+            this.motion = nextMotion;
+            this.setPosition(moveVector);
+            if (this.motion.lengthSquared() > 0.0000000001f) {
+                this.orientToMotion(this.motion);
                 hasUpdate = true;
             }
 
             this.updateMovement();
-
         }
 
+        this.data.update();
         return hasUpdate;
     }
 
-    public void setCritical() {
-        this.setCritical(true);
+    protected void onBlockCollision(BlockHitResult hit) {
     }
 
-    public boolean isCritical() {
-        return this.data.getFlag(CRITICAL);
+    protected final HitResult traceMovement(RayTraceContext trace, float hitMargin) {
+        this.updateLeftShooter();
+        return this.level.rayTrace(trace, hitMargin, this::canHitEntity);
     }
 
-    public void setCritical(boolean value) {
-        this.data.setFlag(CRITICAL, value);
+    protected float getWaterInertia() {
+        return 0.8f;
+    }
+
+    private void orientToMotion(Vector3f motion) {
+        double horizontal = Math.hypot(motion.getX(), motion.getZ());
+        this.yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
+        this.pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontal));
     }
 
     private void updateLeftShooter() {

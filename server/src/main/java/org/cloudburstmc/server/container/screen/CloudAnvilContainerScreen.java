@@ -76,9 +76,9 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_INPUT, anvilSection, 1, -1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_MATERIAL, anvilSection, 1, -1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_RESULT, anvilSection, 1, -48));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, anvilSection, 1, -48));
+        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_MATERIAL, anvilSection, 1, 1, -1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_RESULT, anvilSection, 2, 1, -48));
+        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, anvilSection, 2, 1, -48));
     }
 
     public void updateRenameText(String text) {

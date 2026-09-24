@@ -8,6 +8,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.item.data.Record;
+import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.FireworkData;
@@ -71,6 +72,21 @@ public class ItemDataComponents {
      * Enchantments indexed by type.
      */
     public static final ItemDataComponentType<Map<EnchantmentType, Enchantment>> ENCHANTMENTS = ItemDataComponentType.registerMap(Identifier.parse("enchantments"), EnchantmentType.class, Enchantment.class);
+
+    /**
+     * Potion contained in a drinkable or thrown potion item.
+     */
+    public static final ItemDataComponentType<PotionType> POTION_TYPE = value("potion_type", PotionType.class);
+
+    /**
+     * Zero-based Bad Omen level stored by an ominous bottle.
+     */
+    public static final ItemDataComponentType<Integer> OMINOUS_BOTTLE_AMPLIFIER = value("ominous_bottle_amplifier", Integer.class);
+
+    /**
+     * Projectile stored in a charged crossbow.
+     */
+    public static final ItemDataComponentType<ItemStack> CHARGED_PROJECTILE = value("charged_projectile", ItemStack.class);
 
     /**
      * Firework rocket or star data.

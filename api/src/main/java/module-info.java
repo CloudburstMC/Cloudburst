@@ -45,7 +45,6 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.event.inventory;
     exports org.cloudburstmc.api.event.level;
     exports org.cloudburstmc.api.event.player;
-    exports org.cloudburstmc.api.event.potion;
     exports org.cloudburstmc.api.event.redstone;
     exports org.cloudburstmc.api.event.server;
     exports org.cloudburstmc.api.event.vehicle;

@@ -3,10 +3,12 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -15,7 +17,6 @@ import org.cloudburstmc.server.container.screen.CloudBeaconContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
 
 import java.util.Map;
 
@@ -89,35 +90,15 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
             //If the player is in range
             if (p.getPosition().distance(this.getPosition().toFloat()) < range) {
-                CloudEffect e;
-
                 if (getPrimaryEffect() != null) {
-                    //Apply the primary power
-                    e = new CloudEffect(getPrimaryEffect())
-                            .setDuration(duration * 20)
-                            .setVisible(false);
-
-                    //If secondary is selected as the primary too, apply 2 amplification
-                    if (getSecondaryEffect() == getPrimaryEffect()) {
-                        e.setAmplifier(1);
-                    } else {
-                        e.setAmplifier(0);
-                    }
-
-                    //Add the effect
-                    p.addEffect(e);
+                    int amplifier = getSecondaryEffect() == getPrimaryEffect() ? 1 : 0;
+                    PotionEffect effect = new PotionEffect(getPrimaryEffect(), duration * 20, amplifier, false, false);
+                    p.addPotionEffect(effect, null, PotionEffectCause.BEACON);
                 }
 
-                //If we have a secondary power as regen, apply it
                 if (getSecondaryEffect() == EffectTypes.REGENERATION) {
-                    //Get the regen effect
-                    e = new CloudEffect(EffectTypes.REGENERATION)
-                            .setDuration(duration * 20)
-                            .setAmplifier(0)
-                            .setVisible(false);
-
-                    //Add effect
-                    p.addEffect(e);
+                    PotionEffect effect = new PotionEffect(EffectTypes.REGENERATION, duration * 20, 0, false, false);
+                    p.addPotionEffect(effect, null, PotionEffectCause.BEACON);
                 }
             }
         }
@@ -179,7 +160,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public void setPrimaryEffect(int legacyId) {
-        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
+        this.setPrimaryEffect(NetworkUtils.effectFromNetwork((byte) legacyId));
     }
 
     public EffectType getSecondaryEffect() {
@@ -195,13 +176,13 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public void setSecondaryEffect(int legacyId) {
-        this.setSecondaryEffect(NetworkUtils.effectFromLegacy((byte) legacyId));
+        this.setSecondaryEffect(NetworkUtils.effectFromNetwork((byte) legacyId));
     }
 
     @Override
     public boolean updateNbtMap(NbtMap nbt, CloudPlayer player) {
-        this.setPrimaryEffect(NetworkUtils.effectFromLegacy((byte) nbt.getInt("primary")));
-        this.setSecondaryEffect(NetworkUtils.effectFromLegacy((byte) nbt.getInt("secondary")));
+        this.setPrimaryEffect(NetworkUtils.effectFromNetwork((byte) nbt.getInt("primary")));
+        this.setSecondaryEffect(NetworkUtils.effectFromNetwork((byte) nbt.getInt("secondary")));
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.BEACON_POWER);
 

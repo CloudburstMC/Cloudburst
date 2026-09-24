@@ -390,6 +390,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
         this.registerDataComponentSerializer(ItemDataComponents.MAP_DATA, new MapSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.BOOK_DATA, new WrittenBookSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.CHARGED_PROJECTILE, new ChargedProjectileSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());
     }
 
@@ -419,10 +420,13 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.GET_TOOL, item -> null);
         this.registerComponent(ItemBehaviors.MINE_BLOCK, (item, block, owner) -> item);
         this.registerComponent(ItemBehaviors.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemBehaviors.RELEASE_USE);
         this.registerComponent(ItemBehaviors.SPAWN_EGG);
+        this.registerComponent(ItemBehaviors.STAB);
         this.registerComponent(ItemBehaviors.USE);
         this.registerComponent(ItemBehaviors.USE_DURATION_TICKS);
         this.registerComponent(ItemBehaviors.USE_ON);
+        this.registerComponent(ItemBehaviors.USE_TICK);
     }
 
     public void registerCreativeItem(ItemStack item) {

@@ -444,14 +444,14 @@ public class CloudLevel implements Level, BlockStateRegion {
     public void spawnParticle(ParticleType particle, Vector3f position) {
         checkNotNull(particle, "particle");
         checkNotNull(position, "position");
-        this.addParticleEffect(position, particle.id());
+        this.addParticleEffect(position, particle.getId());
     }
 
     @Override
     public void spawnParticle(ParticleType particle, Vector3f position, Player... players) {
         checkNotNull(particle, "particle");
         checkNotNull(position, "position");
-        this.addParticleEffect(position, particle.id(), -1, this.levelData.getDimension(), players);
+        this.addParticleEffect(position, particle.getId(), -1, this.levelData.getDimension(), players);
     }
 
     public void addParticleEffect(Vector3f pos, Identifier identifier) {
@@ -721,16 +721,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             if (blockType != BlockTypes.TALL_GRASS && !blockType.isLiquid())
                 vector = vector.add(0, 1, 0);
 
-            Location location = Location.from(vector, this);
-            LightningBolt bolt = this.entityRegistry.newEntity(EntityTypes.LIGHTNING_BOLT, location);
-            bolt.setPosition(vector);
-            LightningStrikeEvent ev = new LightningStrikeEvent(this, bolt);
-            getServer().getEventManager().fire(ev);
-            if (!ev.isCancelled()) {
-                bolt.spawnToAll();
-            } else {
-                bolt.setEffect(false);
-            }
+            this.strikeLightning(vector);
         }
     }
 
@@ -2429,6 +2420,21 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.getNearbyEntities(boundingBox, filter, false);
     }
 
+    @Override
+    public HitResult rayTraceBlocks(RayTraceContext context) {
+        return LevelRayTracer.rayTraceBlocks(this, context);
+    }
+
+    @Override
+    public HitResult rayTraceEntities(Vector3f start, Vector3f end, float raySize, Predicate<? super Entity> filter) {
+        return LevelRayTracer.rayTraceEntities(this, start, end, raySize, filter);
+    }
+
+    @Override
+    public HitResult rayTrace(RayTraceContext context, float raySize, Predicate<? super Entity> entityFilter) {
+        return LevelRayTracer.rayTrace(this, context, raySize, entityFilter);
+    }
+
     public Set<Entity> getNearbyEntities(@Nullable Entity except, BoundingBox boundingBox) {
         return this.getNearbyEntities(except, boundingBox, false);
     }
@@ -2997,6 +3003,14 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     public boolean isThundering() {
         return isRaining() && this.levelData.getLightningLevel() > 0;
+    }
+
+    @Override
+    public boolean strikeLightning(Vector3f position) {
+        LightningBolt bolt = this.entityRegistry.newEntity(EntityTypes.LIGHTNING_BOLT, Location.from(position, this));
+        LightningStrikeEvent event = new LightningStrikeEvent(this, bolt);
+        this.getServer().getEventManager().fire(event);
+        return !event.isCancelled() && ((CloudEntity) bolt).spawn();
     }
 
     public boolean setThundering(boolean thundering) {

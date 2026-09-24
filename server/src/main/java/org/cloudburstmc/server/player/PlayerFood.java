@@ -162,7 +162,7 @@ public class PlayerFood {
                     this.foodTickTimer = 0;
                 }
             }
-            if (this.getPlayer().hasEffect(EffectTypes.HUNGER)) {
+            if (this.getPlayer().hasPotionEffect(EffectTypes.HUNGER)) {
                 this.updateFoodExpLevel(0.025);
             }
         }
@@ -171,7 +171,7 @@ public class PlayerFood {
     public void updateFoodExpLevel(double use) {
         if (!this.getPlayer().isFoodEnabled()) return;
         if (CloudServer.getInstance().getDifficulty() == Difficulty.PEACEFUL) return;
-        if (this.getPlayer().hasEffect(EffectTypes.SATURATION)) return;
+        if (this.getPlayer().hasPotionEffect(EffectTypes.SATURATION)) return;
         this.foodExpLevel += use;
         if (this.foodExpLevel > 4) {
             this.useHunger(1);

@@ -12,6 +12,7 @@ import org.cloudburstmc.api.level.gamerule.LevelGameRules;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
+import org.cloudburstmc.api.util.HitResult;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -349,6 +350,37 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter);
 
     /**
+     * Traces a segment against the requested block shapes and liquids without loading chunks.
+     * Tracing stops at the first unloaded cell.
+     *
+     * @param context the segment and shape rules
+     * @return the nearest hit, or a miss at the segment end or first unloaded cell
+     */
+    HitResult rayTraceBlocks(RayTraceContext context);
+
+    /**
+     * Finds the first entity collision along a line segment.
+     *
+     * @param start   the segment start
+     * @param end     the segment end
+     * @param raySize expands entity hitboxes by this amount
+     * @param filter  selects entities eligible for a hit
+     * @return the nearest entity hit, or a miss at the segment end
+     */
+    HitResult rayTraceEntities(Vector3f start, Vector3f end, float raySize, Predicate<? super Entity> filter);
+
+    /**
+     * Finds the first block, liquid, or eligible entity collision along a segment.
+     * Entities beyond an unloaded cell are excluded.
+     *
+     * @param context      the segment and block shape rules
+     * @param raySize      expands entity hitboxes by this amount
+     * @param entityFilter selects entities eligible for a hit
+     * @return the nearest hit, or a miss at the segment end or first unloaded cell
+     */
+    HitResult rayTrace(RayTraceContext context, float raySize, Predicate<? super Entity> entityFilter);
+
+    /**
      * Tests whether a bounding box collides with blocks or entities in this level.
      *
      * @param boundingBox the box to test
@@ -568,6 +600,14 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @return {@code true} when it is thundering
      */
     boolean isThundering();
+
+    /**
+     * Attempts to spawn a lightning bolt at the given position.
+     *
+     * @param position the strike position
+     * @return {@code true} if the bolt spawned, or {@code false} otherwise
+     */
+    boolean strikeLightning(Vector3f position);
 
     /**
      * Starts or stops thunder.

@@ -88,6 +88,11 @@ public class BlockTags {
     public static final BlockTagKey LEAVES = tag("leaves");
 
     /**
+     * Blocks that conduct a Channeling trident strike.
+     */
+    public static final BlockTagKey LIGHTNING_RODS = tag("lightning_rods");
+
+    /**
      * Blocks that are liquids.
      */
     public static final BlockTagKey LIQUID = tag("liquid");

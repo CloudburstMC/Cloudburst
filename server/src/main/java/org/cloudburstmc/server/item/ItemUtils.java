@@ -81,7 +81,7 @@ public class ItemUtils {
 
         nbtTag.putString("Name", item.getType().getId().toString())
                 .putByte("Count", (byte) item.getCount())
-                .putShort("Damage", (short) 0);
+                .putShort("Damage", (short) registry.getSerializer(item.getType()).getAuxValue(item));
 
         if (item.isBlock()) {
             NbtMapBuilder blockTag = NbtMap.builder();
@@ -273,7 +273,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkRecipeBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.getDamage();
+        int damage = registry.getSerializer(item.getType()).getAuxValue(item);
         ItemDefinition rawDefinition = registry.getDefinition(identifier, damage);
 
         ItemDefinition recipeDefinition = rawDefinition != null
@@ -344,7 +344,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.getDamage();
+        int damage = registry.getSerializer(item.getType()).getAuxValue(item);
         ItemDefinition definition = registry.getDefinition(identifier, damage);
 
         String[] canPlace = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()).stream()

@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
-public interface BreezeWindChargeProjectile extends Projectile {
+/**
+ * A breeze-fired wind charge with a wider impact burst.
+ */
+public interface BreezeWindChargeProjectile extends AbstractWindCharge {
 }

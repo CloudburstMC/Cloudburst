@@ -2,7 +2,6 @@ package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.FurnaceScreen;
 import org.cloudburstmc.api.inventory.ScreenType;
 import org.cloudburstmc.api.inventory.ScreenTypes;
@@ -11,6 +10,7 @@ import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudFurnaceView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -41,8 +41,7 @@ public class CloudFurnaceContainerScreen extends CloudBlockContainerScreen imple
     }
 
     public static CloudFurnaceContainerScreen blastFurnace(CloudPlayer player, Block block) {
-        return new CloudFurnaceContainerScreen(ScreenTypes.BLAST_FURNACE, player, block,
-                ContainerSlotType.BLAST_FURNACE_INGREDIENT, SlotGroupTypes.BLAST_FURNACE, BlockEntityTypes.BLAST_FURNACE);
+        return new CloudFurnaceContainerScreen(ScreenTypes.BLAST_FURNACE, player, block, ContainerSlotType.BLAST_FURNACE_INGREDIENT, SlotGroupTypes.BLAST_FURNACE, BlockEntityTypes.BLAST_FURNACE);
     }
 
     public static CloudFurnaceContainerScreen smoker(CloudPlayer player, Block block) {
@@ -65,7 +64,7 @@ public class CloudFurnaceContainerScreen extends CloudBlockContainerScreen imple
         super.setupMappings();
         this.furnaceView = new CloudFurnaceView(slotGroupType, getBlock(), furnaceEntity.getContainer());
         this.addMapping(new ContainerMapping(ingredientSlotType, furnaceView, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.FURNACE_FUEL, furnaceView, 1, 1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.FURNACE_RESULT, furnaceView, 1, 2));
+        this.addMapping(new ContainerMapping(ContainerSlotType.FURNACE_FUEL, furnaceView, 1, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.FURNACE_RESULT, furnaceView, 2, 1, 2));
     }
 }

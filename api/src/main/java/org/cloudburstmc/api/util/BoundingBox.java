@@ -310,7 +310,7 @@ public final class BoundingBox {
      * @param pos2 the segment end
      * @return the hit result, or {@code null} when the segment misses this box
      */
-    public @Nullable MovingObjectPosition clip(Vector3f pos1, Vector3f pos2) {
+    public @Nullable BoxIntersection intersectSegment(Vector3f pos1, Vector3f pos2) {
         float dx = pos2.getX() - pos1.getX();
         float dy = pos2.getY() - pos1.getY();
         float dz = pos2.getZ() - pos1.getZ();
@@ -345,7 +345,17 @@ public final class BoundingBox {
         }
 
         Vector3f hit = Vector3f.from(pos1.getX() + result.scale() * dx, pos1.getY() + result.scale() * dy, pos1.getZ() + result.scale() * dz);
-        return MovingObjectPosition.fromBlock(Vector3i.ZERO, result.face(), hit);
+        Direction face = switch (result.face()) {
+            case 0 -> Direction.DOWN;
+            case 1 -> Direction.UP;
+            case 2 -> Direction.NORTH;
+            case 3 -> Direction.SOUTH;
+            case 4 -> Direction.WEST;
+            case 5 -> Direction.EAST;
+            default -> throw new IllegalStateException("Unknown box face " + result.face());
+        };
+
+        return new BoxIntersection(hit, face);
     }
 
     private static @Nullable ClipResult clipPoint(@Nullable ClipResult current, float da, float db, float dc, float point,
@@ -355,7 +365,7 @@ public final class BoundingBox {
         float pointB = fromB + scale * db;
         float pointC = fromC + scale * dc;
         float closestScale = current == null ? 1 : current.scale();
-        if (scale > 0 && scale < closestScale
+        if (scale >= 0 && scale <= closestScale
                 && pointB > minB - EPSILON && pointB < maxB + EPSILON
                 && pointC > minC - EPSILON && pointC < maxC + EPSILON) {
             return new ClipResult(scale, face);

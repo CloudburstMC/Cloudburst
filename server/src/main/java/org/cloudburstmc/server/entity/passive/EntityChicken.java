@@ -6,6 +6,8 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
+
 /**
  * Author: BeYkeRYkt Nukkit Project
  */
@@ -13,6 +15,10 @@ public class EntityChicken extends Animal implements Chicken {
 
     public EntityChicken(EntityType<Chicken> type, Location location) {
         super(type, location);
+    }
+
+    public void setBaby(boolean baby) {
+        this.data.setFlag(BABY, baby);
     }
 
     @Override

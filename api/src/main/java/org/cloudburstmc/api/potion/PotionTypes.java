@@ -1,55 +1,92 @@
 package org.cloudburstmc.api.potion;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.util.Identifiers;
+import org.cloudburstmc.api.internal.BuiltInTypeCatalog;
+import org.cloudburstmc.api.util.Identifier;
+
+import java.util.List;
+import java.util.Optional;
 
 @UtilityClass
 public class PotionTypes {
-    public static final PotionType AWKWARD = PotionType.builder().potionId(Identifiers.POTION_AWKWARD).level(1).build();
-    public static final PotionType FIRE_RESISTANCE = PotionType.builder().potionId(Identifiers.POTION_FiRE_RESISTANCE).type(EffectTypes.FIRE_RESISTANCE).level(1).duration(180).build();
-    public static final PotionType HARMING = PotionType.builder().potionId(Identifiers.POTION_HARMING).type(EffectTypes.INSTANT_DAMAGE).level(1).instant(true).build();
-    public static final PotionType HEALING = PotionType.builder().potionId(Identifiers.POTION_HEALING).type(EffectTypes.INSTANT_HEALTH).level(1).instant(true).build();
-    public static final PotionType INVISIBILITY = PotionType.builder().potionId(Identifiers.POTION_INVISIBILITY).type(EffectTypes.INVISIBILITY).level(1).duration(180).build();
-    public static final PotionType LEAPING = PotionType.builder().potionId(Identifiers.POTION_LEAPING).type(EffectTypes.JUMP_BOOST).level(1).duration(180).build();
-    public static final PotionType LONG_FIRE_RESISTANCE = PotionType.builder().potionId(Identifiers.POTION_LONG_FIRE_RESISTANCE).type(EffectTypes.FIRE_RESISTANCE).duration(480).level(1).build();
-    public static final PotionType LONG_INVISIBILITY = PotionType.builder().potionId(Identifiers.POTION_LONG_INVISIBILITY).type(EffectTypes.INVISIBILITY).level(1).duration(480).build();
-    public static final PotionType LONG_LEAPING = PotionType.builder().potionId(Identifiers.POTION_LONG_LEAPING).type(EffectTypes.JUMP_BOOST).level(1).duration(480).build();
-    public static final PotionType LONG_MUNDANE = PotionType.builder().potionId(Identifiers.POTION_LONG_MUNDANE).level(1).build();
-    public static final PotionType LONG_NIGHT_VISION = PotionType.builder().potionId(Identifiers.POTION_LONG_NIGHT_VISION).type(EffectTypes.NIGHT_VISION).level(1).duration(480).build();
-    public static final PotionType LONG_POISON = PotionType.builder().potionId(Identifiers.POTION_LONG_POISON).type(EffectTypes.POISON).level(1).duration(120).build();
-    public static final PotionType LONG_REGENERATION = PotionType.builder().potionId(Identifiers.POTION_LONG_REGENERATION).type(EffectTypes.REGENERATION).level(1).duration(120).build();
-    public static final PotionType LONG_SLOW_FALLING = PotionType.builder().potionId(Identifiers.POTION_LONG_SLOW_FALLING).type(EffectTypes.SLOW_FALLING).level(1).duration(240).build();
-    public static final PotionType LONG_SLOWNESS = PotionType.builder().potionId(Identifiers.POTION_LONG_SLOWNESS).type(EffectTypes.SLOWNESS).level(1).duration(240).build();
-    public static final PotionType LONG_STRENGTH = PotionType.builder().potionId(Identifiers.POTION_LONG_STRENGTH).type(EffectTypes.STRENGTH).level(1).duration(480).build();
-    public static final PotionType LONG_SWIFTNESS = PotionType.builder().potionId(Identifiers.POTION_LONG_SWIFTNESS).type(EffectTypes.SPEED).level(1).duration(480).build();
-    public static final PotionType LONG_TURTLE_MASTER = PotionType.builder().potionId(Identifiers.POTION_LONG_TURTLE_MASTER).type(EffectTypes.RESISTANCE).level(1).duration(480).build(); // TODO: Multiple effects
-    public static final PotionType LONG_WATER_BREATHING = PotionType.builder().potionId(Identifiers.POTION_LONG_WATER_BREATHING).type(EffectTypes.WATER_BREATHING).level(1).duration(480).build();
-    public static final PotionType LONG_WEAKNESS = PotionType.builder().potionId(Identifiers.POTION_LONG_WEAKNESS).type(EffectTypes.WEAKNESS).level(1).duration(240).build();
-    public static final PotionType MUNDANE = PotionType.builder().potionId(Identifiers.POTION_MUNDANE).level(1).build();
-    public static final PotionType NIGHT_VISION = PotionType.builder().potionId(Identifiers.POTION_NIGHT_VISION).type(EffectTypes.NIGHT_VISION).level(1).duration(180).build();
-    public static final PotionType POISON = PotionType.builder().potionId(Identifiers.POTION_POISON).type(EffectTypes.POISON).level(1).duration(45).build();
-    public static final PotionType REGENERATION = PotionType.builder().potionId(Identifiers.POTION_REGENERATION).type(EffectTypes.REGENERATION).level(1).duration(45).build();
-    public static final PotionType SLOW_FALLING = PotionType.builder().potionId(Identifiers.POTION_SLOW_FALLING).type(EffectTypes.SLOW_FALLING).level(1).duration(90).build();
-    public static final PotionType SLOWNESS = PotionType.builder().potionId(Identifiers.POTION_SLOWNESS).type(EffectTypes.SLOWNESS).level(1).duration(90).build();
-    public static final PotionType STRENGTH = PotionType.builder().potionId(Identifiers.POTION_STRENGTH).type(EffectTypes.STRENGTH).level(1).duration(180).build();
-    public static final PotionType STRONG_HARMING = PotionType.builder().potionId(Identifiers.POTION_STRONG_HARMING).type(EffectTypes.INSTANT_DAMAGE).level(2).instant(true).build();
-    public static final PotionType STRONG_HEALING = PotionType.builder().potionId(Identifiers.POTION_STRONG_HEALING).type(EffectTypes.INSTANT_HEALTH).level(2).instant(true).build();
-    public static final PotionType STRONG_LEAPING = PotionType.builder().potionId(Identifiers.POTION_STRONG_LEAPING).type(EffectTypes.JUMP_BOOST).level(2).duration(90).build();
-    public static final PotionType STRONG_POISON = PotionType.builder().potionId(Identifiers.POTION_STRONG_POISON).type(EffectTypes.POISON).level(2).duration(22).build();
-    public static final PotionType STRONG_REGENERATION = PotionType.builder().potionId(Identifiers.POTION_STRONG_REGENERATION).type(EffectTypes.REGENERATION).level(2).duration(22).build();
-    public static final PotionType STRONG_SLOWNESS = PotionType.builder().potionId(Identifiers.POTION_STRONG_SLOWNESS).type(EffectTypes.SLOWNESS).level(2).duration(20).build();
-    public static final PotionType STRONG_STRENGTH = PotionType.builder().potionId(Identifiers.POTION_STRONG_STRENGTH).type(EffectTypes.STRENGTH).level(2).duration(90).build();
-    public static final PotionType STRONG_SWIFTNESS = PotionType.builder().potionId(Identifiers.POTION_STRONG_SWIFTNESS).type(EffectTypes.SPEED).level(2).duration(90).build();
-    public static final PotionType STRONG_TURTLE_MASTER = PotionType.builder().potionId(Identifiers.POTION_STRONG_TURTLE_MASTER).type(EffectTypes.RESISTANCE).level(2).duration(90).build(); // TODO: Multiple effects
-    public static final PotionType SWIFTNESS = PotionType.builder().potionId(Identifiers.POTION_SWIFTNESS).type(EffectTypes.SPEED).level(1).duration(180).build();
-    public static final PotionType THICK = PotionType.builder().potionId(Identifiers.POTION_THICK).level(1).build();
-    public static final PotionType TURTLE_MASTER = PotionType.builder().potionId(Identifiers.POTION_TURTLE_MASTER).type(EffectTypes.RESISTANCE).level(1).duration(120).build(); // TODO: Multiple effects
-    public static final PotionType WATER = PotionType.builder().potionId(Identifiers.POTION_WATER).level(1).build();
-    public static final PotionType WATER_BREATHING = PotionType.builder().potionId(Identifiers.POTION_WATER_BREATHING).type(EffectTypes.WATER_BREATHING).level(1).duration(180).build();
-    public static final PotionType WEAKNESS = PotionType.builder().potionId(Identifiers.POTION_WEAKNESS).type(EffectTypes.WEAKNESS).level(1).duration(90).build();
-    public static final PotionType WITHER = PotionType.builder().potionId(Identifiers.POTION_WITHER).type(EffectTypes.WITHER).level(1).duration(40).build();
-    public static final PotionType WIND_CHARGING = PotionType.builder().potionId(Identifiers.POTION_WIND_CHARGING).type(EffectTypes.WIND_CHARGING).level(1).duration(180).build();
-    public static final PotionType WEAVING = PotionType.builder().potionId(Identifiers.POTION_WEAVING).type(EffectTypes.WEAVING).level(1).duration(180).build();
-    public static final PotionType OOZING = PotionType.builder().potionId(Identifiers.POTION_OOZING).type(EffectTypes.OOZING).level(1).duration(180).build();
-    public static final PotionType INFESTATION = PotionType.builder().potionId(Identifiers.POTION_INFESTATION).type(EffectTypes.INFESTATION).level(1).duration(180).build();
+    private static final BuiltInTypeCatalog<PotionType> TYPES = BuiltInTypeCatalog.create(PotionType::getId);
+
+    public static final PotionType AWKWARD = type("awkward");
+    public static final PotionType FIRE_RESISTANCE = type("fire_resistance", effect(EffectTypes.FIRE_RESISTANCE, 3600));
+    public static final PotionType HARMING = type("harming", effect(EffectTypes.INSTANT_DAMAGE, 1));
+    public static final PotionType HEALING = type("healing", effect(EffectTypes.INSTANT_HEALTH, 1));
+    public static final PotionType INFESTED = type("infested", effect(EffectTypes.INFESTED, 3600));
+    public static final PotionType INVISIBILITY = type("invisibility", effect(EffectTypes.INVISIBILITY, 3600));
+    public static final PotionType LEAPING = type("leaping", effect(EffectTypes.JUMP_BOOST, 3600));
+    public static final PotionType LONG_FIRE_RESISTANCE = type("long_fire_resistance", effect(EffectTypes.FIRE_RESISTANCE, 9600));
+    public static final PotionType LONG_INVISIBILITY = type("long_invisibility", effect(EffectTypes.INVISIBILITY, 9600));
+    public static final PotionType LONG_LEAPING = type("long_leaping", effect(EffectTypes.JUMP_BOOST, 9600));
+    public static final PotionType LONG_MUNDANE = type("long_mundane");
+    public static final PotionType LONG_NIGHT_VISION = type("long_nightvision", effect(EffectTypes.NIGHT_VISION, 9600));
+    public static final PotionType LONG_POISON = type("long_poison", effect(EffectTypes.POISON, 1800));
+    public static final PotionType LONG_REGENERATION = type("long_regeneration", effect(EffectTypes.REGENERATION, 1800));
+    public static final PotionType LONG_SLOW_FALLING = type("long_slow_falling", effect(EffectTypes.SLOW_FALLING, 4800));
+    public static final PotionType LONG_SLOWNESS = type("long_slowness", effect(EffectTypes.SLOWNESS, 4800));
+    public static final PotionType LONG_STRENGTH = type("long_strength", effect(EffectTypes.STRENGTH, 9600));
+    public static final PotionType LONG_SWIFTNESS = type("long_swiftness", effect(EffectTypes.SPEED, 9600));
+    public static final PotionType LONG_TURTLE_MASTER = type("long_turtle_master", effect(EffectTypes.SLOWNESS, 800, 3), effect(EffectTypes.RESISTANCE, 800, 2));
+    public static final PotionType LONG_WATER_BREATHING = type("long_water_breathing", effect(EffectTypes.WATER_BREATHING, 9600));
+    public static final PotionType LONG_WEAKNESS = type("long_weakness", effect(EffectTypes.WEAKNESS, 4800));
+    public static final PotionType MUNDANE = type("mundane");
+    public static final PotionType NIGHT_VISION = type("nightvision", effect(EffectTypes.NIGHT_VISION, 3600));
+    public static final PotionType OOZING = type("oozing", effect(EffectTypes.OOZING, 3600));
+    public static final PotionType POISON = type("poison", effect(EffectTypes.POISON, 900));
+    public static final PotionType REGENERATION = type("regeneration", effect(EffectTypes.REGENERATION, 900));
+    public static final PotionType SLOW_FALLING = type("slow_falling", effect(EffectTypes.SLOW_FALLING, 1800));
+    public static final PotionType SLOWNESS = type("slowness", effect(EffectTypes.SLOWNESS, 1800));
+    public static final PotionType STRENGTH = type("strength", effect(EffectTypes.STRENGTH, 3600));
+    public static final PotionType STRONG_HARMING = type("strong_harming", effect(EffectTypes.INSTANT_DAMAGE, 1, 1));
+    public static final PotionType STRONG_HEALING = type("strong_healing", effect(EffectTypes.INSTANT_HEALTH, 1, 1));
+    public static final PotionType STRONG_LEAPING = type("strong_leaping", effect(EffectTypes.JUMP_BOOST, 1800, 1));
+    public static final PotionType STRONG_POISON = type("strong_poison", effect(EffectTypes.POISON, 432, 1));
+    public static final PotionType STRONG_REGENERATION = type("strong_regeneration", effect(EffectTypes.REGENERATION, 450, 1));
+    public static final PotionType STRONG_SLOWNESS = type("strong_slowness", effect(EffectTypes.SLOWNESS, 400, 3));
+    public static final PotionType STRONG_STRENGTH = type("strong_strength", effect(EffectTypes.STRENGTH, 1800, 1));
+    public static final PotionType STRONG_SWIFTNESS = type("strong_swiftness", effect(EffectTypes.SPEED, 1800, 1));
+    public static final PotionType STRONG_TURTLE_MASTER = type("strong_turtle_master", effect(EffectTypes.SLOWNESS, 400, 5), effect(EffectTypes.RESISTANCE, 400, 3));
+    public static final PotionType SWIFTNESS = type("swiftness", effect(EffectTypes.SPEED, 3600));
+    public static final PotionType THICK = type("thick");
+    public static final PotionType TURTLE_MASTER = type("turtle_master", effect(EffectTypes.SLOWNESS, 400, 3), effect(EffectTypes.RESISTANCE, 400, 2));
+    public static final PotionType WATER = type("water");
+    public static final PotionType WATER_BREATHING = type("water_breathing", effect(EffectTypes.WATER_BREATHING, 3600));
+    public static final PotionType WEAKNESS = type("weakness", effect(EffectTypes.WEAKNESS, 1800));
+    public static final PotionType WEAVING = type("weaving", effect(EffectTypes.WEAVING, 3600));
+    public static final PotionType WIND_CHARGED = type("wind_charged", effect(EffectTypes.WIND_CHARGED, 3600));
+    public static final PotionType WITHER = type("wither", effect(EffectTypes.WITHER, 800));
+
+    /**
+     * Finds a built-in potion type by identifier.
+     *
+     * @param id potion identifier
+     * @return matching built-in potion type, if present
+     */
+    public static Optional<PotionType> get(Identifier id) {
+        return TYPES.get(id);
+    }
+
+    /**
+     * Returns all built-in potion types in declaration order.
+     *
+     * @return built-in potion types
+     */
+    public static List<PotionType> values() {
+        return TYPES.values();
+    }
+
+    private static PotionType type(String id, PotionEffect... effects) {
+        return TYPES.register(PotionType.of(Identifier.parse(id), effects));
+    }
+
+    private static PotionEffect effect(EffectType type, int duration) {
+        return effect(type, duration, 0);
+    }
+
+    private static PotionEffect effect(EffectType type, int duration, int amplifier) {
+        return new PotionEffect(type, duration, amplifier);
+    }
 }

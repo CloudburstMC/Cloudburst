@@ -38,8 +38,7 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
     }
 
     @SuppressWarnings("unchecked")
-    protected static <T extends ContainerBlockEntity> T getOrCreateBlockEntity(
-            Block block, BlockEntityType<?> type) {
+    protected static <T extends ContainerBlockEntity> T getOrCreateBlockEntity(Block block, BlockEntityType<?> type) {
         BlockEntity existing = block.getLevel().getBlockEntity(block.getPosition());
         if (existing == null) {
             log.warn("No block entity found at {} for block {}; auto-creating {}",
@@ -47,10 +46,12 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
                     type.getId());
             return (T) CloudBlockEntityRegistry.get().newEntity((BlockEntityType) type, block);
         }
+
         if (!(existing instanceof ContainerBlockEntity)) {
             throw new IllegalStateException(
                     "Block entity at " + block.getPosition() + " is not a ContainerBlockEntity: " + existing.getClass().getSimpleName());
         }
+
         return (T) existing;
     }
 
@@ -82,10 +83,12 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
         if (override != null) {
             return BedrockLegacyTextSerializer.getInstance().deserialize(override);
         }
+
         BlockEntity be = block.getLevel().getBlockEntity(block.getPosition());
         if (be instanceof BaseBlockEntity base && base.hasCustomName()) {
             return BedrockLegacyTextSerializer.getInstance().deserialize(base.getCustomName());
         }
+
         return null;
     }
 }

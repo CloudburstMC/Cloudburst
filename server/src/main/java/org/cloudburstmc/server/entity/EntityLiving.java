@@ -2,9 +2,9 @@ package org.cloudburstmc.server.entity;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.DamageEffect;
@@ -13,16 +13,14 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
-import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -34,17 +32,12 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
@@ -81,10 +74,9 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    public <T extends Projectile> T launchProjectile(EntityType<T> type, Vector3f velocity, Consumer<? super T> configurator) {
+    public <T extends Projectile> @Nullable T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity, @Nullable Consumer<? super T> configurator) {
         Objects.requireNonNull(type, "type");
-        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight() - 0.1f, 0),
-                this.getYaw(), this.getPitch(), this.level);
+        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight() - 0.1f, 0), this.getYaw(), this.getPitch(), this.level);
         T projectile = CloudEntityRegistry.get().newEntity(type, location);
         projectile.setShooter(this);
         projectile.setMotion(velocity == null ? this.getDirectionVector() : velocity);
@@ -92,9 +84,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             configurator.accept(projectile);
         }
 
-        ProjectileLaunchEvent event = new ProjectileLaunchEvent(projectile);
-        ((CloudEntity) projectile).spawn(event);
-        return projectile;
+        return projectile.spawn() ? projectile : null;
     }
 
     @Override
@@ -205,7 +195,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             return;
         }
 
-        Effect resistanceEffect = this.getEffect(EffectTypes.RESISTANCE);
+        PotionEffect resistanceEffect = this.getPotionEffect(EffectTypes.RESISTANCE);
         if (resistanceEffect == null) {
             return;
         }
@@ -361,11 +351,11 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
                 var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
-                if (ignore || this.hasEffect(EffectTypes.LEVITATION)) {
+                if (ignore || this.hasPotionEffect(EffectTypes.LEVITATION)) {
                     this.resetFallDistance();
                 }
 
-                if (!this.hasEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
+                if (!this.hasPotionEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
                     if (this instanceof EntityWaterAnimal || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
                         this.setAirTicks(400);
                     } else {
@@ -481,77 +471,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
     public ItemStack[] getDrops() {
         return new ItemStack[0];
-    }
-
-    public Block[] getLineOfSight(int maxDistance) {
-        return this.getLineOfSight(maxDistance, 0);
-    }
-
-    public Block[] getLineOfSight(int maxDistance, int maxLength) {
-        return this.getLineOfSight(maxDistance, maxLength, new BlockType[0]);
-    }
-
-    public Block[] getLineOfSight(int maxDistance, int maxLength, BlockType[] transparent) {
-        if (maxDistance > 120) {
-            maxDistance = 120;
-        }
-
-        if (transparent != null && transparent.length == 0) {
-            transparent = null;
-        }
-
-        List<Block> blocks = new ArrayList<>();
-
-        Vector3f position = getPosition().add(0, this.getEyeHeight(), 0);
-        for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-            Block block = this.getLevel().getLoadedBlock(pos);
-            if (block == null) {
-                break;
-            }
-            blocks.add(block);
-
-            if (maxLength != 0 && blocks.size() > maxLength) {
-                blocks.remove(0);
-            }
-
-            var id = block.getState().getType();
-
-            if (transparent == null) {
-                if (id != AIR) {
-                    break;
-                }
-            } else {
-                if (Arrays.binarySearch(transparent, id) < 0) {
-                    break;
-                }
-            }
-        }
-
-        return blocks.toArray(new Block[0]);
-    }
-
-    public Block getTargetBlock(int maxDistance) {
-        return getTargetBlock(maxDistance, new BlockType[0]);
-    }
-
-    public Block getTargetBlock(int maxDistance, BlockType[] transparent) {
-        try {
-            Block[] blocks = this.getLineOfSight(maxDistance, 1, transparent);
-            Block block = blocks[0];
-            if (block != null) {
-                if (transparent != null && transparent.length != 0) {
-                    if (Arrays.binarySearch(transparent, block.getState().getType()) < 0) {
-                        return block;
-                    }
-                } else {
-                    return block;
-                }
-            }
-        } catch (Exception ignored) {
-
-        }
-
-        return null;
     }
 
     public void setMovementSpeed(float speed) {

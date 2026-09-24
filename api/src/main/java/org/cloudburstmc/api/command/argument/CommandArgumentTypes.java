@@ -796,7 +796,7 @@ public class CommandArgumentTypes {
      * @return a particle argument
      */
     public static CommandArgumentType<ParticleType> particle(@Nullable String displayName) {
-        return registryArgument(CommandArgumentKind.PARTICLE, displayName, ParticleTypes::get, identifiers(ParticleTypes.values(), ParticleType::id), "particle");
+        return registryArgument(CommandArgumentKind.PARTICLE, displayName, ParticleTypes::get, identifiers(ParticleTypes.values(), ParticleType::getId), "particle");
     }
 
     /**

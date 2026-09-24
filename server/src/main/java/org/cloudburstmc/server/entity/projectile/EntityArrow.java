@@ -3,24 +3,12 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
-public class EntityArrow extends EntityProjectile implements Arrow {
-
-    public static final int PICKUP_NONE = 0;
-    public static final int PICKUP_ANY = 1;
-    public static final int PICKUP_CREATIVE = 2;
-
-    protected int pickupMode = PICKUP_ANY;
-    protected float gravity = 0.05f;
-    protected float drag = 0.01f;
+public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
     public EntityArrow(EntityType<Arrow> type, Location location) {
         super(type, location);
@@ -68,6 +56,12 @@ public class EntityArrow extends EntityProjectile implements Arrow {
     }
 
     @Override
+    protected void onBlockCollision(BlockHitResult hit) {
+        super.onBlockCollision(hit);
+        this.getLevel().addLevelSoundEvent(hit.position(), SoundEvent.BOW_HIT);
+    }
+
+    @Override
     public boolean onUpdate(int currentTick) {
         if (this.closed) {
             return false;
@@ -89,27 +83,5 @@ public class EntityArrow extends EntityProjectile implements Arrow {
         this.timing.stopTiming();
 
         return hasUpdate;
-    }
-
-    @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        this.pickupMode = tag.getByte("pickup", (byte) PICKUP_ANY);
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("pickup", (byte) this.pickupMode);
-    }
-
-    public int getPickupMode() {
-        return this.pickupMode;
-    }
-
-    public void setPickupMode(int pickupMode) {
-        this.pickupMode = pickupMode;
     }
 }

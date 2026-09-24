@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**

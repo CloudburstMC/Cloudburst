@@ -12,7 +12,6 @@ import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.entity.projectile.FishingHookState;
 import org.cloudburstmc.api.event.entity.FishingHookStateChangeEvent;
-import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.event.player.PlayerFishEvent;
 import org.cloudburstmc.api.event.player.PlayerFishState;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -20,7 +19,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.MovingObjectPosition;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -56,7 +54,6 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
 
     public EntityFishingHook(EntityType<FishingHook> type, Location location) {
         super(type, location);
-        this.closeOnCollide = false;
     }
 
     public void configure(ItemStack rod) {
@@ -400,8 +397,7 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
     }
 
     @Override
-    public void onCollideWithEntity(Entity entity) {
-        this.server.getEventManager().fire(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
+    protected void onCollideWithEntity(Entity entity) {
         setHookedEntity(entity);
     }
 
@@ -521,14 +517,5 @@ public final class EntityFishingHook extends EntityProjectile implements Fishing
         }
 
         super.close();
-    }
-
-    @Override
-    public boolean isCritical() {
-        return false;
-    }
-
-    @Override
-    public void setCritical(boolean critical) {
     }
 }
