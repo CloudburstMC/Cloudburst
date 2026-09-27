@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.generator.standard.population;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
@@ -67,7 +69,14 @@ public class EndSpikePopulator extends AbstractGenerationPass implements Populat
             for (int z = -2; z <= 2; z++) {
                 for (int y = 0; y <= 3; y++) {
                     if (Math.abs(x) == 2 || Math.abs(z) == 2 || y == 3) {
-                        level.setBlockState(spike.x() + x, spike.height() + y, spike.z() + z, BlockStates.IRON_BARS);
+                        boolean xEdge = Math.abs(x) == 2 || y == 3;
+                        boolean zEdge = Math.abs(z) == 2 || y == 3;
+                        BlockState bars = BlockStates.IRON_BARS
+                                .withTrait(BlockTraits.CONNECTION_NORTH, xEdge && z != -2)
+                                .withTrait(BlockTraits.CONNECTION_SOUTH, xEdge && z != 2)
+                                .withTrait(BlockTraits.CONNECTION_WEST, zEdge && x != -2)
+                                .withTrait(BlockTraits.CONNECTION_EAST, zEdge && x != 2);
+                        level.setBlockState(spike.x() + x, spike.height() + y, spike.z() + z, bars);
                     }
                 }
             }

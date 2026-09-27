@@ -17,10 +17,10 @@ public class BlockIgniteEvent extends BlockEvent implements Cancellable {
     private final BlockIgniteCause cause;
 
     /**
-     * @param block the block where fire would be placed
-     * @param cause the ignition cause
+     * @param block          the block where fire would be placed
+     * @param cause          the ignition cause
      * @param ignitingEntity the responsible entity, or {@code null}
-     * @param ignitingBlock the responsible block, or {@code null}
+     * @param ignitingBlock  the responsible block, or {@code null}
      */
     public BlockIgniteEvent(Block block, BlockIgniteCause cause, @Nullable Entity ignitingEntity, @Nullable Block ignitingBlock) {
         super(block);
@@ -29,12 +29,16 @@ public class BlockIgniteEvent extends BlockEvent implements Cancellable {
         this.ignitingBlock = ignitingBlock;
     }
 
-    /** Returns the responsible block, or {@code null} if there was none. */
+    /**
+     * Returns the responsible block, or {@code null} if there was none.
+     */
     public @Nullable Block getIgnitingBlock() {
         return this.ignitingBlock;
     }
 
-    /** Returns the responsible entity, or {@code null} if there was none. */
+    /**
+     * Returns the responsible entity, or {@code null} if there was none.
+     */
     public @Nullable Entity getIgnitingEntity() {
         return this.ignitingEntity;
     }

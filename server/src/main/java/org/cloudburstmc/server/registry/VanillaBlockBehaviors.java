@@ -56,6 +56,7 @@ public class VanillaBlockBehaviors {
     public static void configure(CloudBlockRegistry registry) {
         configureFenceGates(registry);
         configureFences(registry);
+        configureBars(registry);
         configureColoredBuildingBlockSlabs(registry);
         configureStairs(registry);
         configureVegetation(registry);
@@ -525,6 +526,20 @@ public class VanillaBlockBehaviors {
                                 landingSound, breakSound, damagePerBlock, MAXIMUM_FALL_DAMAGE))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FallingBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_TICK, FallingBlockHandlers.ON_TICK);
+    }
+
+    private void configureBars(CloudBlockRegistry registry) {
+        for (BlockType type : VanillaBlockTags.values(BlockTags.BARS)) {
+            registry.configure(type)
+                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, BarBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, BarBlockHandlers.ON_NEIGHBOUR_CHANGED);
+        }
+
+        for (BlockType type : VanillaBlockTags.values(BlockTags.GLASS_PANES)) {
+            registry.configure(type)
+                    .set(BlockComponents.RESOLVE_PLACEMENT_STATE, BarBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, BarBlockHandlers.ON_NEIGHBOUR_CHANGED);
+        }
     }
 
     private void configureFenceGates(CloudBlockRegistry registry) {

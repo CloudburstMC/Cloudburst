@@ -7,6 +7,12 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class BlockTags {
+
+    /**
+     * Bars that connect to other bars, glass panes, and walls.
+     */
+    public static final BlockTagKey BARS = tag("bars");
+
     /**
      * Blocks that are beds.
      */
@@ -41,6 +47,11 @@ public class BlockTags {
      * Blocks that are fence gates.
      */
     public static final BlockTagKey FENCE_GATE = tag("fence_gate");
+
+    /**
+     * Glass panes that connect to bars, other panes, and walls.
+     */
+    public static final BlockTagKey GLASS_PANES = tag("glass_panes");
 
     /**
      * Ground blocks used by vanilla placement, support, or movement checks.

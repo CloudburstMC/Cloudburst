@@ -156,6 +156,34 @@ class BlockRegistryTest {
     }
 
     @Test
+    void barsAndPanesConnectToEachOtherAndWalls() {
+        Set<BlockType> bars = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type == BlockTypes.IRON_BARS || type.getId().getName().endsWith("copper_bars"))
+                .toList());
+        Set<BlockType> panes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type.getId().getName().endsWith("_pane"))
+                .toList());
+
+        assertAll(
+                () -> assertEquals(bars, REGISTRY.getTag(BlockTags.BARS).getValues()),
+                () -> assertEquals(panes, REGISTRY.getTag(BlockTags.GLASS_PANES).getValues()),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.GLASS_PANE.getDefaultState(), false)),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.COPPER_BARS.getDefaultState(), false)),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.COBBLESTONE_WALL.getDefaultState(), false)),
+                () -> assertFalse(BarBlockHandlers.connectsTo(BlockTypes.OAK_FENCE.getDefaultState(), false)),
+                () -> assertFalse(BarBlockHandlers.connectsTo(BlockTypes.OAK_LEAVES.getDefaultState(), true))
+        );
+
+        for (BlockType type : BlockTypes.values()) {
+            if (bars.contains(type) || panes.contains(type)) {
+                assertAll(type.toString(),
+                        () -> assertSame(BarBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                        () -> assertSame(BarBlockHandlers.ON_NEIGHBOUR_CHANGED, component(type, BlockComponents.ON_NEIGHBOUR_CHANGED)));
+            }
+        }
+    }
+
+    @Test
     void fencesAndWallsRespectGateAlignment() {
         BlockState alignedGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.EAST.getCardinalDirection());
         BlockState crossingGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.NORTH.getCardinalDirection());
