@@ -67,10 +67,21 @@ public class EndFightManager implements DragonBattle {
         loadCentralChunks();
 
         if (!this.data.isInitialized()) {
+            Integer existingPortalY = EndPodiumFeature.findExistingBase(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+            Integer activePortalY = EndPodiumFeature.findActivePortal(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+
             this.data.setInitialized(true);
-            this.data.setDragonKilled(false);
-            this.spawnDragonAfterInitialization = true;
-            EndPodiumFeature.place(this.level, exitPortalPosition(), false);
+            if (existingPortalY != null || activePortalY != null) {
+                this.data.setExitPortalY(existingPortalY != null ? existingPortalY : activePortalY);
+                boolean dragonPresent = !findDragons().isEmpty();
+                this.data.setDragonPreviouslyKilled(activePortalY != null);
+                this.data.setDragonKilled(activePortalY != null && !dragonPresent);
+                this.spawnDragonAfterInitialization = activePortalY == null && !dragonPresent;
+            } else {
+                this.data.setDragonKilled(false);
+                this.spawnDragonAfterInitialization = findDragons().isEmpty();
+                EndPodiumFeature.place(this.level, exitPortalPosition(), false);
+            }
         }
     }
 
@@ -93,8 +104,8 @@ public class EndFightManager implements DragonBattle {
             if (--this.initializationTime == 0) {
                 reconcileDragons(this.spawnDragonAfterInitialization);
                 this.spawnDragonAfterInitialization = false;
-                if (this.respawnStage == null && !restoreRespawn()) {
-                    this.initiateRespawn();
+                if (this.respawnStage == null) {
+                    restoreRespawn();
                 }
             }
 
@@ -364,22 +375,21 @@ public class EndFightManager implements DragonBattle {
         return crystals;
     }
 
-    private boolean restoreRespawn() {
+    private void restoreRespawn() {
         EndDragonRespawnStage stage = this.data.getRespawnStage();
         if (!this.data.isDragonKilled() || stage == null) {
-            return false;
+            return;
         }
 
         List<EntityEnderCrystal> crystals = findRespawnCrystals();
         if (crystals.isEmpty()) {
             clearRespawnState();
-            return false;
+            return;
         }
 
         this.respawnStage = stage;
         this.respawnTime = this.data.getRespawnTime();
         this.respawnCrystals.addAll(crystals);
-        return true;
     }
 
     private void tickStart() {
@@ -627,13 +637,22 @@ public class EndFightManager implements DragonBattle {
     }
 
     private Vector3i exitPortalPosition() {
+        Integer existingY = EndPodiumFeature.findExistingBase(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+        if (existingY != null) {
+            this.data.setExitPortalY(existingY);
+            return Vector3i.from(0, existingY, 0);
+        }
+
+        Integer activeY = EndPodiumFeature.findActivePortal(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+        if (activeY != null) {
+            this.data.setExitPortalY(activeY);
+            return Vector3i.from(0, activeY, 0);
+        }
+
         Integer storedY = this.data.getExitPortalY();
         int y;
         if (storedY == null) {
             y = this.level.getHighestBlock(0, 0);
-            while (y > 63 && this.level.getBlockState(0, y, 0).getType() == BlockStates.BEDROCK.getType()) {
-                y--;
-            }
             y = Math.max(this.level.getMinHeight() + 1, y);
             this.data.setExitPortalY(y);
         } else {

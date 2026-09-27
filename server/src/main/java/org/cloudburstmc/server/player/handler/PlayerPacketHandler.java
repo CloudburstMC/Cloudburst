@@ -353,13 +353,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
-        if (attackHandler != null && attackHandler.execute(target, player, face)) {
-            player.breakingBlock = null;
-            if (player.isCreative()) {
-                restorePredictedBlock(blockPos);
+        if (!player.isCreative()) {
+            AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
+            if (attackHandler != null && attackHandler.execute(target, player, face)) {
+                player.breakingBlock = null;
+                return;
             }
-            return;
         }
 
         Block block = target.getSide(face);
