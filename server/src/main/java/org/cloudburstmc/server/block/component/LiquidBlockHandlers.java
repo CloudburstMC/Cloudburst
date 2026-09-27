@@ -180,7 +180,7 @@ public class LiquidBlockHandlers {
     }
 
     private static void ignite(CloudLevel level, Block target) {
-        BlockIgniteEvent event = new BlockIgniteEvent(target, null, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
+        BlockIgniteEvent event = new BlockIgniteEvent(target, BlockIgniteCause.LAVA, null, null);
         level.getServer().getEventManager().fire(event);
         if (!event.isCancelled()) {
             target.set(BlockStates.FIRE);

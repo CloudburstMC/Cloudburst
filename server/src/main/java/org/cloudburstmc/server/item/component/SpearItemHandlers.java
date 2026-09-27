@@ -78,7 +78,7 @@ public class SpearItemHandlers {
         }
 
         Vector3f look = player.getDirectionVector();
-        float forwardSpeed = look.dot(player.getKnownMovement()) * 20;
+        float forwardSpeed = look.dot(player.getMotion()) * 20;
         Map<Long, Integer> contacts = RECENT_CONTACTS.computeIfAbsent(player, ignored -> new HashMap<>());
         contacts.entrySet().removeIf(entry -> ticksUsed - entry.getValue() >= CONTACT_COOLDOWN_TICKS);
         boolean hitAnything = false;
@@ -88,7 +88,7 @@ public class SpearItemHandlers {
                 continue;
             }
 
-            Vector3f targetMovement = target instanceof CloudPlayer other ? other.getKnownMovement() : target.getMotion();
+            Vector3f targetMovement = target.getMotion();
             float relativeSpeed = Math.max(0, forwardSpeed - look.dot(targetMovement) * 20);
             boolean dismount = activeTicks <= profile.dismountTicks() && forwardSpeed >= profile.dismountSpeed();
             boolean knockback = activeTicks <= profile.knockbackTicks() && forwardSpeed >= profile.knockbackSpeed();
@@ -168,7 +168,7 @@ public class SpearItemHandlers {
             return;
         }
 
-        Vector3f motion = player.getKnownMovement().add(horizontal.normalize().mul(0.458f * lungeLevel));
+        Vector3f motion = player.getMotion().add(horizontal.normalize().mul(0.458f * lungeLevel));
         player.setMotion(motion);
         player.getFoodData().updateFoodExpLevel(4.0f * lungeLevel);
         player.getLevel().addLevelSoundEvent(player.getPosition(), switch (Math.min(lungeLevel, 3)) {
@@ -192,7 +192,7 @@ public class SpearItemHandlers {
         Vector3f start = eye.add(look.mul(MINIMUM_REACH));
 
         float reach = player.isCreative() ? CREATIVE_STAB_REACH : STAB_REACH;
-        float forwardMotion = Math.max(0, look.dot(player.getKnownMovement()));
+        float forwardMotion = Math.max(0, look.dot(player.getMotion()));
 
         Vector3f end = eye.add(look.mul(reach + forwardMotion));
         HitResult blockHit = player.getLevel().rayTraceBlocks(new RayTraceContext(eye, end,

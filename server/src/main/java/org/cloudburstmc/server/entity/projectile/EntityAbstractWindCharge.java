@@ -121,7 +121,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
                 continue;
             }
 
-            Vector3f movement = entity instanceof CloudPlayer player ? player.getKnownMovement() : entity.getMotion();
+            Vector3f movement = entity.getMotion();
             entity.setMotion(movement.add(delta.normalize().mul(strength)));
         }
 

@@ -25,7 +25,6 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,7 +48,7 @@ public class VegetationBlockHandlers {
         return block.getRelativeState(0, -1, 0).is(BlockTags.SUPPORTS_VEGETATION);
     };
 
-    public static final PlayerBlockHandler DOUBLE_PLANT_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler DOUBLE_PLANT_DESTROY = (block, cause) -> {
         BlockState state = block.getState();
         boolean upper = isUpperHalf(state);
         Block partner = block.getRelative(0, upper ? -1 : 1, 0);
@@ -116,7 +115,7 @@ public class VegetationBlockHandlers {
         }
 
         entity.makeStuckInBlock(block.getState(), Vector3f.from(0.8f, 0.75f, 0.8f));
-        Vector3f movement = entity instanceof CloudPlayer player ? player.getKnownMovement() : entity.getMotion();
+        Vector3f movement = entity.getMotion();
         if (block.getState().ensureTrait(BlockTraits.GROWTH) != 0
                 && (Math.abs(movement.getX()) >= 0.003f || Math.abs(movement.getZ()) >= 0.003f)) {
             DamageSource source = DamageSource.builder(DamageTypes.SWEET_BERRY_BUSH).block(block).build();

@@ -58,9 +58,26 @@ class BlockRegistryTest {
                 () -> assertSame(ContainerBlockHandlers.ENCHANTING_TABLE, component(BlockTypes.ENCHANTING_TABLE, BlockComponents.USE)),
                 () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(BlockTypes.ENDER_CHEST, BlockComponents.CAN_BE_USED)),
                 () -> assertSame(ContainerBlockHandlers.ENDER_CHEST, component(BlockTypes.ENDER_CHEST, BlockComponents.USE)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.FIRE, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.SOUL_FIRE, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.PORTAL, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.END_PORTAL, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.END_GATEWAY, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.MOB_SPAWNER, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.SUSPICIOUS_SAND, BlockComponents.GET_LOOT)),
                 () -> assertSlabPlaceHandler(BlockTypes.GRANITE_SLAB),
                 () -> assertSlabPlaceHandler(BlockTypes.MOSSY_STONE_BRICK_SLAB)
         );
+
+        for (BlockType type : BlockTypes.values()) {
+            if (type.getTraits().contains(BlockTraits.EXPLODE)) {
+                assertAll(type.toString(),
+                        () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(type, BlockComponents.CAN_BE_USED)),
+                        () -> assertSame(TntBlockHandlers.USE, component(type, BlockComponents.USE)),
+                        () -> assertSame(TntBlockHandlers.ON_EXPLOSION_HIT, component(type, BlockComponents.ON_EXPLOSION_HIT)),
+                        () -> assertSame(TntBlockHandlers.ON_PROJECTILE_HIT, component(type, BlockComponents.ON_PROJECTILE_HIT)));
+            }
+        }
     }
 
     @Test

@@ -7,6 +7,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.level.ExplosionBlockInteraction;
+import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
@@ -454,12 +456,9 @@ public class EndFightManager implements DragonBattle {
     }
 
     private void destroyRespawnCrystal(EntityEnderCrystal crystal) {
-        Explosion explosion = new Explosion(this.level, crystal.getPosition(), 6, crystal);
-        explosion.setDestroysBlocks(false);
+        Vector3f position = crystal.getPosition();
         crystal.close();
-        if (explosion.explodeA()) {
-            explosion.explodeB();
-        }
+        this.level.explode(position, new ExplosionSettings(6, ExplosionBlockInteraction.KEEP, false, crystal, null));
     }
 
     private void regenerateSpike(EndSpikeLayout.Spike spike) {
@@ -472,10 +471,8 @@ public class EndFightManager implements DragonBattle {
             }
         }
 
-        Explosion explosion = new Explosion(this.level, Vector3f.from(spike.x() + 0.5f, spike.height(), spike.z() + 0.5f), 5, null);
-        if (explosion.explodeA()) {
-            explosion.explodeB();
-        }
+        this.level.explode(Vector3f.from(spike.x() + 0.5f, spike.height(), spike.z() + 0.5f),
+                new ExplosionSettings(5, ExplosionBlockInteraction.DESTROY, false, null, null));
 
         EndSpikePopulator.placeSpike(this.level, spike);
         EntityEnderCrystal crystal = EndDimension.spawnSpikeCrystal(this.level, spike);

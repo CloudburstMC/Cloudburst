@@ -95,7 +95,6 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
-import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
@@ -183,7 +182,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     public long lastSkinChange;
     public Block breakingBlock = null;
     private @Nullable FishingHook fishingHook;
-    private Vector3f knownMovement = Vector3f.ZERO;
 
     protected boolean connected = true;
     protected boolean enableClientCommand = true;
@@ -1164,6 +1162,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                     pos.getZ() - facing.getStepZ()
             );
 
+            Block sourceBlock = level.getBlock(pos);
             level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), BlockStates.AIR, false, true);
             BlockState footState = level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ());
             if (footState.getType() == headState.getType()) {
@@ -1171,11 +1170,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                         BlockStates.AIR, false, true);
             }
 
-            Explosion explosion = new Explosion(level,
-                    Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
-                    5, this);
-            explosion.explodeA();
-            explosion.explodeB();
+            level.explode(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
+                    new ExplosionSettings(5, ExplosionBlockInteraction.DESTROY_WITH_DECAY, true, null, sourceBlock));
             return true;
         }
 
@@ -1725,7 +1721,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 SetEntityMotionPacket packet = new SetEntityMotionPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setMotion(motion);
-                packet.setTick(this.clientTick);
+                packet.setTick(this.server.getTick());
                 this.sendPacket(packet);  //Send to self
             }
 
@@ -1876,7 +1872,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (revert) {
-            this.knownMovement = Vector3f.ZERO;
+            this.motion = Vector3f.ZERO;
             this.lastPosition = from.getPosition();
             this.lastYaw = from.getYaw();
             this.lastPitch = from.getPitch();
@@ -1907,12 +1903,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.newPosition = null;
     }
 
-    public Vector3f getKnownMovement() {
-        return this.knownMovement;
-    }
-
-    public void setKnownMovement(Vector3f knownMovement) {
-        this.knownMovement = knownMovement;
+    public void acceptInputMotion(Vector3f motion) {
+        this.motion = motion;
     }
 
     @Override

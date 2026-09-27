@@ -1,12 +1,11 @@
 package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.component.BlockLootHandler;
-import org.cloudburstmc.api.block.component.NeighborBlockHandler;
-import org.cloudburstmc.api.block.component.PlayerBlockHandler;
-import org.cloudburstmc.api.block.component.UseBlockHandler;
-import org.cloudburstmc.api.block.component.UseCheckHandler;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.PlacementSupport;
@@ -74,7 +73,7 @@ public class DoorBlockHandlers {
         level.breakBlock(pos, null, null, true);
     };
 
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
         BlockState state = block.getState();
         boolean isUpperBlock = state.ensureTrait(BlockTraits.IS_UPPER_BLOCK);
         Vector3i pos = block.getPosition();

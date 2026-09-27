@@ -319,6 +319,15 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     ItemStack breakBlock(Vector3i position, @Nullable ItemStack item, @Nullable Player player, boolean createParticles);
 
     /**
+     * Applies an explosion at a position. Cancelling its event prevents all effects.
+     *
+     * @param position explosion center
+     * @param settings radius, block interaction, fire, and source
+     * @return {@code true} when the explosion was applied
+     */
+    boolean explode(Vector3f position, ExplosionSettings settings);
+
+    /**
      * Returns the players currently present in this level, keyed by unique entity ID.
      *
      * @return the players in this level

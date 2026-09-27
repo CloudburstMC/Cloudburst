@@ -21,13 +21,31 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  */
 @UtilityClass
 public class VanillaBlockBehaviors {
+
     private static final List<BlockType> DOUBLE_PLANTS = List.of(
             LARGE_FERN, LILAC, PEONY, PITCHER_PLANT, ROSE_BUSH, SUNFLOWER, TALL_GRASS
     );
+
     private static final int MAXIMUM_FALL_DAMAGE = 40;
+
+    private static final List<BlockType> NO_LOOT_BLOCKS = List.of(
+            AIR, BARRIER, BEDROCK, BUDDING_AMETHYST, CAKE, CHAIN_COMMAND_BLOCK,
+            COMMAND_BLOCK, END_GATEWAY, END_PORTAL, END_PORTAL_FRAME, FIRE, FROG_SPAWN,
+            FROSTED_ICE, INVISIBLE_BEDROCK, JIGSAW,
+            LIGHT_BLOCK_0, LIGHT_BLOCK_1, LIGHT_BLOCK_2, LIGHT_BLOCK_3,
+            LIGHT_BLOCK_4, LIGHT_BLOCK_5, LIGHT_BLOCK_6, LIGHT_BLOCK_7,
+            LIGHT_BLOCK_8, LIGHT_BLOCK_9, LIGHT_BLOCK_10, LIGHT_BLOCK_11,
+            LIGHT_BLOCK_12, LIGHT_BLOCK_13, LIGHT_BLOCK_14, LIGHT_BLOCK_15,
+            MOB_SPAWNER, MOVING_BLOCK, PISTON_ARM_COLLISION, PORTAL, POWDER_SNOW,
+            REINFORCED_DEEPSLATE, REPEATING_COMMAND_BLOCK, SOUL_FIRE,
+            STICKY_PISTON_ARM_COLLISION, STRUCTURE_BLOCK, STRUCTURE_VOID,
+            SUSPICIOUS_GRAVEL, SUSPICIOUS_SAND, TRIAL_SPAWNER, VAULT
+    );
+
     private static final List<BlockType> RENEWABLE_TALL_FLOWERS = List.of(
             LILAC, PEONY, ROSE_BUSH, SUNFLOWER
     );
+
     private static final List<BlockType> SINGLE_PLANTS = List.of(
             ALLIUM, AZURE_BLUET, BLUE_ORCHID, CLOSED_EYEBLOSSOM, CORNFLOWER, DANDELION,
             FERN, GOLDEN_DANDELION, LILY_OF_THE_VALLEY, OPEN_EYEBLOSSOM, ORANGE_TULIP,
@@ -49,7 +67,6 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, ACACIA_SLAB, ACACIA_DOUBLE_SLAB);
         configureTrapdoor(registry, ACACIA_TRAPDOOR);
         configurePoweredRail(registry, ACTIVATOR_RAIL);
-        registry.configure(AIR).set(BlockComponents.GET_LOOT, (block, context) -> List.of());
         configureSlab(registry, ANDESITE_SLAB, ANDESITE_DOUBLE_SLAB);
         configureAnvil(registry, ANVIL);
         configureLeaves(registry, AZALEA_LEAVES, VanillaBlockLoot.leaves(AZALEA_LEAVES, AZALEA, false));
@@ -311,7 +328,6 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.BUCKET_PICKUP, PowderSnowBlockHandlers.BUCKET_PICKUP)
                 .set(BlockComponents.GET_COLLISION_SHAPE, PowderSnowBlockHandlers.COLLISION_SHAPE)
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
-                .set(BlockComponents.GET_LOOT, (block, context) -> List.of())
                 .set(BlockComponents.ON_FALL_ON, PowderSnowBlockHandlers.FALL_ON)
                 .set(BlockComponents.ON_ENTITY_INSIDE, PowderSnowBlockHandlers.ENTITY_INSIDE);
         configureSlab(registry, PRISMARINE_BRICK_SLAB, PRISMARINE_BRICK_DOUBLE_SLAB);
@@ -391,6 +407,14 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.sweetBerryBush())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, VegetationBlockHandlers.SWEET_BERRY_BUSH_USE);
+        BlockTypes.values().stream()
+                .filter(type -> type.getTraits().contains(BlockTraits.EXPLODE))
+                .forEach(type -> registry.configure(type)
+                        .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                        .set(BlockComponents.USE, TntBlockHandlers.USE)
+                        .set(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.NO_LOOT)
+                        .set(BlockComponents.ON_EXPLOSION_HIT, TntBlockHandlers.ON_EXPLOSION_HIT)
+                        .set(BlockComponents.ON_PROJECTILE_HIT, TntBlockHandlers.ON_PROJECTILE_HIT));
         configureTorch(registry, TORCH);
         configureUsable(registry, TRAPPED_CHEST, ContainerBlockHandlers.TRAPPED_CHEST);
         registry.configure(TRIP_WIRE)
@@ -444,6 +468,9 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, YELLOW_CONCRETE_POWDER, YELLOW_CONCRETE);
         configureLeaves(registry, YELLOW_POPLAR_LEAVES, VanillaBlockLoot.leaves(YELLOW_POPLAR_LEAVES, POPLAR_SAPLING, false));
         configureShulkerBox(registry, YELLOW_SHULKER_BOX);
+        for (BlockType type : NO_LOOT_BLOCKS) {
+            registry.configure(type).set(BlockComponents.GET_LOOT, DefaultBlockHandlers.NO_LOOT);
+        }
     }
 
     private void configureAnvil(CloudBlockRegistry registry, BlockType type) {

@@ -164,13 +164,15 @@ public class DefaultBlockHandlers {
     public static final EntityBlockHandler ON_STEP_ON = (block, entity) -> {
     };
 
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
         block.set(BlockStates.AIR);
     };
 
     // ON_REMOVE runs after a block type is replaced. ON_DESTROY owns explicit destruction.
     public static final ComplexBlockHandler ON_REMOVE = (block) -> {
     };
+
+    public static final BlockLootHandler NO_LOOT = (block, context) -> List.of();
 
     public static final BlockLootHandler GET_LOOT = (block, context) -> {
         BlockState state = block.getState();
@@ -182,6 +184,11 @@ public class DefaultBlockHandlers {
                         .build()))
                 .orElseGet(List::of);
     };
+
+    public static final BlockLootHandler GET_EXPLOSION_LOOT = (block, context) ->
+            block.getComponents().require(BlockComponents.GET_LOOT).execute(block, context);
+
+    public static final BlockExplosionHandler ON_EXPLOSION_HIT = (block, cause, sourceBlock) -> true;
 
     public static final BlockExperienceHandler GET_EXPERIENCE = (block, context) -> 0;
 

@@ -31,6 +31,7 @@ import org.cloudburstmc.api.event.block.BlockBreakEvent;
 import org.cloudburstmc.api.event.block.BlockDropItemEvent;
 import org.cloudburstmc.api.event.block.BlockPhysicsEvent;
 import org.cloudburstmc.api.event.block.BlockPlaceEvent;
+import org.cloudburstmc.api.event.entity.ExplosionPrimeEvent;
 import org.cloudburstmc.api.event.level.*;
 import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.item.EquipmentSlot;
@@ -514,6 +515,14 @@ public class CloudLevel implements Level, BlockStateRegion {
         packet.setBabySound(isBaby);
 
         this.addChunkPacket(pos, packet);
+    }
+
+    public void addLevelEvent(Vector3f position, LevelEvent event, int data) {
+        LevelEventPacket packet = new LevelEventPacket();
+        packet.setType(event);
+        packet.setPosition(position);
+        packet.setData(data);
+        this.addChunkPacket(position, packet);
     }
 
     public void checkTime() {
@@ -1718,7 +1727,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         LiquidReaction reaction = primary.getLiquidReaction();
         if (reaction.removesBlock()) {
             if (reaction == LiquidReaction.POPPED) {
-                this.breakBlock(position, ItemStack.EMPTY, null, true);
+                this.breakBlock(position, ItemStack.EMPTY, null, false);
             } else {
                 this.setBlockState(position, BlockStates.AIR);
             }
@@ -1899,6 +1908,22 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles) {
         return breakBlock(pos, item, player, createParticles, false);
+    }
+
+    @Override
+    public boolean explode(Vector3f position, ExplosionSettings settings) {
+        if (settings.sourceEntity() != null) {
+            ExplosionPrimeEvent prime = new ExplosionPrimeEvent(settings.sourceEntity(), settings.radius(), settings.blockInteraction());
+            prime.setCausesFire(settings.causesFire());
+            this.server.getEventManager().fire(prime);
+            if (prime.isCancelled()) {
+                return false;
+            }
+
+            settings = new ExplosionSettings(prime.getRadius(), prime.getBlockInteraction(), prime.causesFire(), settings.sourceEntity(), null);
+        }
+
+        return new Explosion(this, position, settings).explode();
     }
 
     public ItemStack breakBlockPredicted(Vector3i pos, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride) {
@@ -2906,6 +2931,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.levelData.getCurrentTick();
     }
 
+    @Override
     public String getName() {
         return this.levelData.getName();
     }

@@ -179,6 +179,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             refreshBlockBreak();
         }
 
+        if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_INTERACTION)) {
+            ItemUseTransaction transaction = packet.getItemUseTransaction();
+            if (transaction != null) {
+                handleItemUse(new ItemInteraction(transaction.getActionType(), transaction.getBlockPosition(),
+                        Direction.fromIndex(transaction.getBlockFace()), transaction.getClickPosition(), transaction.getItemInHand()));
+            } else {
+                log.debug("{} sent item interaction input without a transaction", player.getName());
+            }
+        }
+
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
             player.getItemStackNetManager().handleSingleRequest(packet.getItemStackRequest());
         }
@@ -252,7 +262,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        player.setKnownMovement(delta);
+        player.acceptInputMotion(delta);
 
         final float ROT_EPSILON = 0.001f;
         boolean posUnchanged = newPos.equals(currentPos);
@@ -585,13 +595,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
      * in the selected hotbar slot. When this occurs the interaction must be rejected and the player's
      * inventory resynchronized to avoid ghost items.
      */
-    private boolean isHeldItemDesynced(@Nullable ItemUseTransaction transaction) {
-        if (transaction == null) {
-            return false;
-        }
-        return isHeldItemDesynced(transaction.getItemInHand());
-    }
-
     private boolean isHeldItemDesynced(@Nullable ItemData clientItemData) {
         ItemStack clientItem = clientItemData == null ? ItemStack.EMPTY : ItemUtils.fromNetwork(clientItemData);
         ItemStack serverItem = player.getInventory().getSelectedItem();
@@ -604,7 +607,37 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 != (clientItem.get(ItemDataComponents.CHARGED_PROJECTILE) == null);
     }
 
-    private void handleItemUseOnBlock(ItemUseTransaction transaction, Vector3i blockPos, Direction face, Vector3f clickPos) {
+    private record ItemInteraction(int actionType, Vector3i blockPosition, Direction face, Vector3f clickPosition, @Nullable ItemData clientItem) {
+    }
+
+    private void handleItemUse(ItemInteraction interaction) {
+        switch (interaction.actionType()) {
+            case 0 -> handleItemUseOnBlock(interaction.clientItem(), interaction.blockPosition(), interaction.face(), interaction.clickPosition());
+            case 1 -> handleItemUseInAir(interaction.clientItem(), interaction.face());
+            case 2 -> {
+                // Block destruction is processed through player block actions.
+            }
+            case 3 -> {
+                ItemStack stabItem = player.getInventory().getSelectedItem();
+                StabHandler stab = stabItem.isEmpty() ? null : CloudItemRegistry.get().getComponent(stabItem.getType(), ItemBehaviors.STAB);
+                if (stab != null) {
+                    if (isHeldItemDesynced(interaction.clientItem())) {
+                        player.sendHeldItemSlot();
+                    } else {
+                        stab.execute(stabItem, player);
+                    }
+                } else if (stabItem.getType() == ItemTypes.TRIDENT) {
+                    AnimatePacket animation = new AnimatePacket();
+                    animation.setAction(AnimatePacket.Action.SWING_ARM);
+                    animation.setRuntimeEntityId(player.getRuntimeId());
+                    CloudServer.broadcastPacket(player.getViewers(), animation);
+                }
+            }
+            default -> log.debug("{} sent unsupported item interaction action {}", player.getName(), interaction.actionType());
+        }
+    }
+
+    private void handleItemUseOnBlock(@Nullable ItemData clientItemData, Vector3i blockPos, Direction face, Vector3f clickPos) {
         boolean spamBug = System.currentTimeMillis() - lastRightClickTime < 110.0
                 && blockPos.distanceSquared(lastRightClickPos) < 0.00001
                 && face == lastRightClickFace;
@@ -616,7 +649,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         lastRightClickTime = System.currentTimeMillis();
 
-        if (isHeldItemDesynced(transaction)) {
+        if (isHeldItemDesynced(clientItemData)) {
             rollbackBlock(blockPos, face);
             return;
         }
@@ -663,11 +696,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         rollbackBlock(blockPos, face);
-    }
-
-    private void handleItemUseInAir(@Nullable ItemUseTransaction transaction, Direction face) {
-        ItemData clientItemData = transaction != null ? transaction.getItemInHand() : null;
-        handleItemUseInAir(clientItemData, face);
     }
 
     private void handleItemUseInAir(@Nullable ItemData clientItemData, Direction face) {
@@ -1584,39 +1612,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventoryManager().sendAllInventories();
                 return PacketSignal.HANDLED;
             case ITEM_USE:
-                switch (packet.getActionType()) {
-                    case 0:
-                        handleItemUseOnBlock(
-                                null,
-                                packet.getBlockPosition(),
-                                Direction.fromIndex(packet.getBlockFace()),
-                                packet.getClickPosition()
-                        );
-                        break;
-                    case 1:
-                        handleItemUseInAir(packet.getItemInHand(), Direction.fromIndex(packet.getBlockFace()));
-                        break;
-                    case 2: // break-block no-o
-                        break;
-                    case 3:
-                        ItemStack stabItem = player.getInventory().getSelectedItem();
-                        StabHandler stab = stabItem.isEmpty() ? null : CloudItemRegistry.get().getComponent(stabItem.getType(), ItemBehaviors.STAB);
-                        if (stab != null) {
-                            if (isHeldItemDesynced(packet.getItemInHand())) {
-                                player.sendHeldItemSlot();
-                            } else {
-                                stab.execute(stabItem, player);
-                            }
-                        } else if (stabItem.getType() == ItemTypes.TRIDENT) {
-                            AnimatePacket animation = new AnimatePacket();
-                            animation.setAction(AnimatePacket.Action.SWING_ARM);
-                            animation.setRuntimeEntityId(player.getRuntimeId());
-                            CloudServer.broadcastPacket(player.getViewers(), animation);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                handleItemUse(new ItemInteraction(packet.getActionType(), packet.getBlockPosition(),
+                        Direction.fromIndex(packet.getBlockFace()), packet.getClickPosition(), packet.getItemInHand()));
                 player.getItemStackNetManager().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
                 return PacketSignal.HANDLED;
             case ITEM_USE_ON_ENTITY: {

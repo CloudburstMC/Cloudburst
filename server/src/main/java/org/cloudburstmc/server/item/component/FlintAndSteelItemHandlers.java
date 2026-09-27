@@ -4,10 +4,12 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.event.block.BlockIgniteCause;
 import org.cloudburstmc.api.event.block.BlockIgniteEvent;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.component.TntBlockHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.NetherPortals;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -21,6 +23,11 @@ public class FlintAndSteelItemHandlers {
         }
 
         CloudLevel level = player.getLevel();
+        Block clickedBlock = level.getBlock(blockPosition);
+        if (TntBlockHandlers.isTnt(clickedBlock)) {
+            return TntBlockHandlers.ignite(clickedBlock, player, item);
+        }
+
         Vector3i targetPos = face.relative(blockPosition);
         Block targetBlock = level.getBlock(targetPos.getX(), targetPos.getY(), targetPos.getZ());
 
@@ -28,7 +35,7 @@ public class FlintAndSteelItemHandlers {
             return item;
         }
 
-        BlockIgniteEvent event = new BlockIgniteEvent(targetBlock, null, player, BlockIgniteEvent.BlockIgniteCause.FLINT_AND_STEEL);
+        BlockIgniteEvent event = new BlockIgniteEvent(targetBlock, BlockIgniteCause.FLINT_AND_STEEL, player, null);
         level.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return item;

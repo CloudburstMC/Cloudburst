@@ -125,7 +125,7 @@ public class BedBlockHandlers {
      * Destroys whichever half (foot or head) was broken and simultaneously
      * removes the partner half, leaving no orphaned block state behind.
      */
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
         Vector3i partnerPos = resolvePartnerPos(block);
         BlockType bedType = block.getState().getType();
         CloudLevel level = (CloudLevel) block.getLevel();

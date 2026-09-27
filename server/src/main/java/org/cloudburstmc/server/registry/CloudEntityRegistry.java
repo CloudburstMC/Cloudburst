@@ -371,7 +371,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61);
         registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62);
         registerVanilla(ITEM, EntityItem::new, 64);
-        registerVanilla(TNT, EntityTnt::new, 65);
+        registerVanilla(TNT, EntityPrimedTnt::new, 65);
         registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66);
         registerVanilla(XP_BOTTLE, EntityXpBottle::new, 68);
         registerVanilla(XP_ORB, EntityXpOrb::new, 69);
