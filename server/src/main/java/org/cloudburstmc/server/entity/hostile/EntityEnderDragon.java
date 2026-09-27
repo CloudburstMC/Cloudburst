@@ -20,7 +20,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.boss.CloudBossBar;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.ParticleEffectIds;
@@ -144,7 +143,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
         this.bossBar.setProgress(this.getHealth() / this.getMaxHealth());
         tickAmbientSound();
-        if (currentTick % 20 == 0) {
+        if (currentTick % 20 == 0 && this.getLevel().getDimension() != CloudLevel.DIMENSION_THE_END) {
             updateBossBarPlayers();
         }
 

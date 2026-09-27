@@ -17,7 +17,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.boss.CloudEntityBossBar;
+import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.hostile.EntityEnderDragon;
 import org.cloudburstmc.server.entity.misc.EntityEnderCrystal;
@@ -42,7 +42,7 @@ public class EndFightManager implements DragonBattle {
 
     private final CloudLevel level;
     private final CloudEndFightData data;
-    private final CloudEntityBossBar bossBar = new CloudEntityBossBar(Component.translatable("entity.ender_dragon.name"), BossBarColor.PURPLE, BossBarStyle.SOLID);
+    private final CloudStandaloneBossBar bossBar = new CloudStandaloneBossBar(Component.translatable("entity.ender_dragon.name"), BossBarColor.PURPLE, BossBarStyle.SOLID);
     private final List<EntityEnderCrystal> respawnCrystals = new ArrayList<>();
     private EndDragonRespawnStage respawnStage;
     private boolean started;
@@ -51,6 +51,7 @@ public class EndFightManager implements DragonBattle {
     private int missingDragonTime;
     private int reconciliationTime;
     private int respawnTime;
+    private int playerScanTime = 19;
 
     public EndFightManager(CloudLevel level, CloudEndFightData data) {
         this.level = level;
@@ -74,8 +75,18 @@ public class EndFightManager implements DragonBattle {
     }
 
     public void tick() {
+        this.bossBar.setVisible(!this.data.isDragonKilled());
+        if (++this.playerScanTime >= 20) {
+            this.playerScanTime = 0;
+            updateBossBarPlayers();
+        }
+
         if (!hasArenaPlayer()) {
             return;
+        }
+
+        if (!this.started) {
+            ensureStarted();
         }
 
         if (this.initializationTime > 0) {
@@ -286,8 +297,24 @@ public class EndFightManager implements DragonBattle {
     private EnderDragon spawnDragon() {
         EnderDragon dragon = CloudEntityRegistry.get().newEntity(EntityTypes.ENDER_DRAGON, Location.from(Vector3f.from(0, 128, 0), this.level));
         dragon.spawnToAll();
-        this.bossBar.bindEntity(dragon);
         return dragon;
+    }
+
+    private void updateBossBarPlayers() {
+        Vector3f center = Vector3f.from(0.5f, 128, 0.5f);
+        for (Player player : List.copyOf(this.bossBar.getPlayers())) {
+            if (player.getLevel() != this.level || !player.isOnline() || !player.isSpawned()
+                    || player.getPosition().distanceSquared(center) > ARENA_PLAYER_RANGE * ARENA_PLAYER_RANGE) {
+                this.bossBar.removePlayer(player);
+            }
+        }
+
+        for (Player player : this.level.getPlayers().values()) {
+            if (player.isOnline() && player.isSpawned()
+                    && player.getPosition().distanceSquared(center) <= ARENA_PLAYER_RANGE * ARENA_PLAYER_RANGE) {
+                this.bossBar.addPlayer(player);
+            }
+        }
     }
 
     private boolean hasArenaPlayer() {
@@ -552,9 +579,6 @@ public class EndFightManager implements DragonBattle {
         } else if (dragons.isEmpty() && spawnMissing) {
             spawnDragon();
         } else {
-            if (!dragons.isEmpty()) {
-                this.bossBar.bindEntity(dragons.getFirst());
-            }
             dragons.stream().skip(1).forEach(this::removeDragon);
         }
     }
