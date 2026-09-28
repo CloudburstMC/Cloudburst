@@ -8,9 +8,10 @@ import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.server.block.component.*;
-import org.cloudburstmc.server.level.Sound;
 
 import java.util.List;
 
@@ -175,7 +176,7 @@ public class VanillaBlockBehaviors {
         configureOre(registry, DIAMOND_ORE, OreLoot.diamond(DIAMOND_ORE.getDefaultState()));
         configureSlab(registry, DIORITE_SLAB, DIORITE_DOUBLE_SLAB);
         configureUsable(registry, DISPENSER, ContainerBlockHandlers.DISPENSER);
-        configureFalling(registry, DRAGON_EGG, Sound.LAND_STONE, Sound.DIG_STONE)
+        configureFalling(registry, DRAGON_EGG, SoundTypes.LAND_STONE, SoundTypes.DIG_STONE)
                 .set(BlockComponents.ATTACK, DragonEggBlockHandlers.ATTACK)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, DragonEggBlockHandlers.USE);
@@ -221,7 +222,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchAlternative(GRASS_BLOCK, DIRT));
         registry.configure(GRASS_PATH)
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(DIRT.getDefaultState())));
-        configureFalling(registry, GRAVEL, Sound.LAND_GRAVEL, Sound.DIG_GRAVEL);
+        configureFalling(registry, GRAVEL, SoundTypes.LAND_GRAVEL, SoundTypes.DIG_GRAVEL);
         configureConcretePowder(registry, GRAY_CONCRETE_POWDER, GRAY_CONCRETE);
         configureShulkerBox(registry, GRAY_SHULKER_BOX);
         configureConcretePowder(registry, GREEN_CONCRETE_POWDER, GREEN_CONCRETE);
@@ -346,14 +347,14 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, RED_CONCRETE_POWDER, RED_CONCRETE);
         configureSlab(registry, RED_NETHER_BRICK_SLAB, RED_NETHER_BRICK_DOUBLE_SLAB);
         configureLeaves(registry, RED_POPLAR_LEAVES, VanillaBlockLoot.leaves(RED_POPLAR_LEAVES, POPLAR_SAPLING, false));
-        configureFalling(registry, RED_SAND, Sound.LAND_SAND, Sound.DIG_SAND);
+        configureFalling(registry, RED_SAND, SoundTypes.LAND_SAND, SoundTypes.DIG_SAND);
         configureSlab(registry, RED_SANDSTONE_SLAB, RED_SANDSTONE_DOUBLE_SLAB);
         configureShulkerBox(registry, RED_SHULKER_BOX);
         configureOre(registry, REDSTONE_ORE, OreLoot.redstone(REDSTONE_ORE.getDefaultState()));
         configureTorch(registry, REDSTONE_TORCH);
         configureSlab(registry, RESIN_BRICK_SLAB, RESIN_BRICK_DOUBLE_SLAB);
         configureUsable(registry, RESPAWN_ANCHOR, RespawnAnchorBlockHandlers.RESPAWN_ANCHOR);
-        configureFalling(registry, SAND, Sound.LAND_SAND, Sound.DIG_SAND);
+        configureFalling(registry, SAND, SoundTypes.LAND_SAND, SoundTypes.DIG_SAND);
         configureSlab(registry, SANDSTONE_SLAB, SANDSTONE_DOUBLE_SLAB);
         configureUsable(registry, SMITHING_TABLE, ContainerBlockHandlers.SMITHING_TABLE);
         configureUsable(registry, SMOKER, ContainerBlockHandlers.SMOKER);
@@ -363,7 +364,7 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, SMOOTH_STONE_SLAB, SMOOTH_STONE_DOUBLE_SLAB);
         registry.configure(SNOW)
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(ItemTypes.SNOWBALL).withCount(4)));
-        configureFalling(registry, SNOW_LAYER, Sound.LAND_SNOW, Sound.DIG_SNOW)
+        configureFalling(registry, SNOW_LAYER, SoundTypes.LAND_SNOW, SoundTypes.DIG_SNOW)
                 .set(BlockComponents.CAN_BE_REPLACED, SnowLayerBlockHandlers.CAN_BE_REPLACED)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.CAN_SURVIVE, SnowLayerBlockHandlers.CAN_SURVIVE)
@@ -476,7 +477,7 @@ public class VanillaBlockBehaviors {
     }
 
     private void configureAnvil(CloudBlockRegistry registry, BlockType type) {
-        configureFalling(registry, type, Sound.RANDOM_ANVIL_LAND, Sound.RANDOM_ANVIL_BREAK, 2)
+        configureFalling(registry, type, SoundTypes.RANDOM_ANVIL_LAND, SoundTypes.RANDOM_ANVIL_BREAK, 2)
                 .set(BlockComponents.ON_FALLING_LAND, FallingBlockHandlers.ANVIL_LAND)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, AnvilBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
@@ -500,7 +501,7 @@ public class VanillaBlockBehaviors {
     }
 
     private void configureConcretePowder(CloudBlockRegistry registry, BlockType powderType, BlockType concreteType) {
-        configureFalling(registry, powderType, Sound.LAND_SAND, Sound.DIG_SAND)
+        configureFalling(registry, powderType, SoundTypes.LAND_SAND, SoundTypes.DIG_SAND)
                 .set(BlockComponents.ON_FALLING_LAND, FallingBlockHandlers.solidifyConcretePowder(concreteType));
     }
 
@@ -514,11 +515,11 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_DESTROY, DoorBlockHandlers.ON_DESTROY);
     }
 
-    private ComponentBuilder configureFalling(CloudBlockRegistry registry, BlockType type, Sound landingSound, Sound breakSound) {
+    private ComponentBuilder configureFalling(CloudBlockRegistry registry, BlockType type, SoundType landingSound, SoundType breakSound) {
         return configureFalling(registry, type, landingSound, breakSound, 0);
     }
 
-    private ComponentBuilder configureFalling(CloudBlockRegistry registry, BlockType type, Sound landingSound, Sound breakSound, float damagePerBlock) {
+    private ComponentBuilder configureFalling(CloudBlockRegistry registry, BlockType type, SoundType landingSound, SoundType breakSound, float damagePerBlock) {
         return registry.configure(type)
                 .set(BlockComponents.IS_FREE_TO_FALL, FallingBlockHandlers.IS_FREE_TO_FALL)
                 .set(

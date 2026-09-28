@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.entity;
 
+import net.kyori.adventure.sound.Sound.Emitter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public interface Entity extends Damageable {
+public interface Entity extends Damageable, Emitter {
 
     EntityType<?> getType();
 

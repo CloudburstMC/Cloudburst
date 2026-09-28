@@ -1,11 +1,13 @@
 package org.cloudburstmc.api.player;
 
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Creature;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
 import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
@@ -14,10 +16,15 @@ import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundPlayback;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.player.skin.Skin;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
+import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.UUID;
 
@@ -26,6 +33,7 @@ import java.util.UUID;
  * inventory management, game mode control, permissions, ban/whitelist handling, and screen interactions.
  */
 public interface Player extends Creature, CommandSender {
+
     /**
      * Checks if this player is currently online.
      *
@@ -329,6 +337,146 @@ public interface Player extends Creature, CommandSender {
     int getPing();
 
     /**
+     * Plays a named sound at this player's position for this player only.
+     *
+     * @param sound  the sound to play
+     * @param volume a finite, non-negative volume multiplier
+     * @param pitch  a finite, positive pitch multiplier
+     */
+    default void playSound(SoundType sound, float volume, float pitch) {
+        this.playSound(this.getPosition(), sound, volume, pitch);
+    }
+
+    /**
+     * Plays a named sound for this player only. The resource-pack definition
+     * determines its category and attenuation.
+     *
+     * @param position the finite sound origin
+     * @param sound    the sound to play
+     * @param volume   a finite, non-negative volume multiplier
+     * @param pitch    a finite, positive pitch multiplier
+     */
+    default void playSound(Vector3f position, SoundType sound, float volume, float pitch) {
+        this.playSound(position, new SoundPlayback(sound, volume, pitch));
+    }
+
+    /**
+     * Plays a sound with the supplied settings at this player's current position.
+     *
+     * @param playback the sound and playback settings
+     */
+    default void playSound(SoundPlayback playback) {
+        this.playSound(this.getPosition(), playback);
+    }
+
+    /**
+     * Plays a sound with the supplied settings for this player only.
+     *
+     * @param position the finite sound origin
+     * @param playback the sound and playback settings
+     */
+    void playSound(Vector3f position, SoundPlayback playback);
+
+    /**
+     * Plays a sound at this player's position. The resource-pack definition selects
+     * the category and samples, so source and seed overrides are not applied.
+     *
+     * @param sound the sound to play
+     */
+    @Override
+    default void playSound(net.kyori.adventure.sound.@NonNull Sound sound) {
+        Objects.requireNonNull(sound, "sound");
+        this.playSound(this.getPosition(),
+                SoundType.of(Identifier.parse(sound.name().asString())),
+                sound.volume(),
+                sound.pitch());
+    }
+
+    /**
+     * Plays a sound at a fixed position. Category and sample selection follow the
+     * resource-pack definition, not the sound's source or seed overrides.
+     *
+     * @param sound the sound to play
+     * @param x     the finite x coordinate
+     * @param y     the finite y coordinate
+     * @param z     the finite z coordinate
+     */
+    @Override
+    default void playSound(net.kyori.adventure.sound.@NonNull Sound sound, double x, double y, double z) {
+        Objects.requireNonNull(sound, "sound");
+        this.playSound(Vector3f.from(x, y, z),
+                SoundType.of(Identifier.parse(sound.name().asString())),
+                sound.volume(),
+                sound.pitch());
+    }
+
+    /**
+     * Plays a sound at the emitter's current position. Playback is not attached
+     * to subsequent movement. Category and sample selection follow the resource pack.
+     *
+     * @param sound   the sound to play
+     * @param emitter an entity or {@link net.kyori.adventure.sound.Sound.Emitter#self()}
+     * @throws IllegalArgumentException if the emitter is neither an entity nor self
+     */
+    @Override
+    default void playSound(net.kyori.adventure.sound.@NonNull Sound sound,
+                           net.kyori.adventure.sound.Sound.@NonNull Emitter emitter) {
+        Objects.requireNonNull(emitter, "emitter");
+        if (emitter == net.kyori.adventure.sound.Sound.Emitter.self()) {
+            this.playSound(sound);
+        } else if (emitter instanceof Entity entity) {
+            Vector3f position = entity.getPosition();
+            this.playSound(sound, position.getX(), position.getY(), position.getZ());
+        } else {
+            throw new IllegalArgumentException("Sound emitter must be an entity or self");
+        }
+    }
+
+    /**
+     * Stops all playing instances of the named sound for this player.
+     *
+     * @param sound the sound to stop
+     */
+    void stopSound(SoundType sound);
+
+    /**
+     * Stops all playing instances of the sound's identifier. Its source override
+     * does not change the resource-pack category used during playback.
+     *
+     * @param sound the sound to stop
+     */
+    @Override
+    default void stopSound(net.kyori.adventure.sound.@NonNull Sound sound) {
+        Objects.requireNonNull(sound, "sound");
+        this.stopSound(SoundType.of(Identifier.parse(sound.name().asString())));
+    }
+
+    /**
+     * Stops a named sound or all sounds. Category-filtered stops are not supported.
+     *
+     * @param stop the sounds to stop
+     * @throws IllegalArgumentException if a category filter is supplied
+     */
+    @Override
+    default void stopSound(net.kyori.adventure.sound.@NonNull SoundStop stop) {
+        Objects.requireNonNull(stop, "stop");
+        if (stop.source() != null) {
+            throw new IllegalArgumentException("Sound categories cannot be filtered when stopping sounds");
+        }
+        net.kyori.adventure.key.Key name = stop.sound();
+        if (name == null) {
+            this.stopAllSounds();
+        } else {
+            this.stopSound(SoundType.of(Identifier.parse(name.asString())));
+        }
+    }
+
+    /**
+     * Stops all sounds currently playing for this player.
+     */
+    void stopAllSounds();
+
+    /**
      * Sends a popup message.
      *
      * @param message the popup message
@@ -348,7 +496,7 @@ public interface Player extends Creature, CommandSender {
      * @param message the action bar message
      */
     @Override
-    void sendActionBar(Component message);
+    void sendActionBar(@NonNull Component message);
 
     /**
      * Sends an action bar message with explicit animation timing in ticks.

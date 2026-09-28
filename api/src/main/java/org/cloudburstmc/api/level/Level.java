@@ -9,10 +9,15 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.gamerule.LevelGameRules;
-import org.cloudburstmc.api.level.particle.ParticleType;
+import org.cloudburstmc.api.level.particle.ParticleEmission;
+import org.cloudburstmc.api.level.particle.ParticleEmitter;
+import org.cloudburstmc.api.level.particle.ParticleOptions;
+import org.cloudburstmc.api.level.sound.SoundPlayback;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.HitResult;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -648,19 +653,163 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     void sendWeather(Player... players);
 
     /**
-     * Spawns a particle at a position for players tracking the surrounding chunk.
+     * Plays a named sound for players in this level. Its resource-pack definition
+     * determines the audible range and category.
+     *
+     * @param position the sound origin
+     * @param sound    the sound to play
+     */
+    default void playSound(Vector3f position, SoundType sound) {
+        this.playSound(position, sound, 1, 1);
+    }
+
+    /**
+     * Plays a named sound at the center of a block.
+     *
+     * @param position the block position
+     * @param sound    the sound to play
+     */
+    default void playSound(Vector3i position, SoundType sound) {
+        this.playSound(position.toFloat().add(0.5f, 0.5f, 0.5f), sound);
+    }
+
+    /**
+     * Plays a named sound at the center of a block with adjusted volume and pitch.
+     *
+     * @param position the block position
+     * @param sound    the sound to play
+     * @param volume   a finite, non-negative volume multiplier
+     * @param pitch    a finite, positive pitch multiplier
+     */
+    default void playSound(Vector3i position, SoundType sound, float volume, float pitch) {
+        this.playSound(position.toFloat().add(0.5f, 0.5f, 0.5f), sound, volume, pitch);
+    }
+
+    /**
+     * Plays a named sound for players in this level. Playback and attenuation are
+     * determined by the resource-pack definition.
+     *
+     * @param position the finite sound origin
+     * @param sound    the sound to play
+     * @param volume   a finite, non-negative volume multiplier
+     * @param pitch    a finite, positive pitch multiplier
+     */
+    default void playSound(Vector3f position, SoundType sound, float volume, float pitch) {
+        this.playSound(position, new SoundPlayback(sound, volume, pitch));
+    }
+
+    /**
+     * Plays a named sound only for the supplied players. An empty recipient list
+     * does not send the sound to anyone.
+     *
+     * @param position the finite sound origin
+     * @param sound    the sound to play
+     * @param volume   a finite, non-negative volume multiplier
+     * @param pitch    a finite, positive pitch multiplier
+     * @param players  the recipients
+     */
+    default void playSound(Vector3f position, SoundType sound, float volume, float pitch, Player... players) {
+        this.playSound(position, new SoundPlayback(sound, volume, pitch), players);
+    }
+
+    /**
+     * Plays a sound with the supplied playback settings for players in this level.
+     *
+     * @param position the finite sound origin
+     * @param playback the sound and playback settings
+     */
+    void playSound(Vector3f position, SoundPlayback playback);
+
+    /**
+     * Plays a sound with the supplied settings only for the supplied players.
+     *
+     * @param position the finite sound origin
+     * @param playback the sound and playback settings
+     * @param players  the recipients, empty to send to nobody
+     */
+    void playSound(Vector3f position, SoundPlayback playback, Player... players);
+
+    /**
+     * Spawns a built-in particle at a position for players tracking the surrounding chunk.
      *
      * @param particle the particle to spawn
      * @param position the particle position
      */
-    void spawnParticle(ParticleType particle, Vector3f position);
+    default void spawnParticle(ParticleOptions particle, Vector3f position) {
+        this.spawnParticle(new ParticleEmission(particle), position);
+    }
 
     /**
-     * Spawns a particle at a position for specific players.
+     * Spawns a built-in particle only for the supplied players. An empty recipient
+     * list does not send the particle to anyone.
      *
      * @param particle the particle to spawn
      * @param position the particle position
      * @param players  the players to receive the particle
      */
-    void spawnParticle(ParticleType particle, Vector3f position, Player... players);
+    default void spawnParticle(ParticleOptions particle, Vector3f position, Player... players) {
+        this.spawnParticle(new ParticleEmission(particle), position, players);
+    }
+
+    /**
+     * Spawns a particle group for players tracking the chunks where its particles appear.
+     * Unsupported options or missing required values are rejected before any particles are sent.
+     *
+     * @param emission the particle values, count, and spread
+     * @param position the finite group origin
+     * @throws IllegalArgumentException if the particle does not support the supplied options
+     */
+    void spawnParticle(ParticleEmission emission, Vector3f position);
+
+    /**
+     * Spawns a particle group only for the supplied players.
+     *
+     * @param emission the particle values, count, and spread
+     * @param position the finite group origin
+     * @param players  the recipients, empty to send to nobody
+     * @throws IllegalArgumentException if the particle does not support the supplied options
+     */
+    void spawnParticle(ParticleEmission emission, Vector3f position, Player... players);
+
+    /**
+     * Spawns a named resource-pack particle emitter for players tracking the surrounding chunk.
+     * The identifier must refer to a particle effect in their resource packs.
+     *
+     * @param effect   the particle emitter identifier
+     * @param position the finite emitter position
+     */
+    default void spawnParticleEffect(Identifier effect, Vector3f position) {
+        this.spawnParticleEffect(new ParticleEmitter(effect), position);
+    }
+
+    /**
+     * Spawns a named resource-pack particle emitter only for the supplied players.
+     * An empty recipient list does not send the effect to anyone.
+     *
+     * @param effect   the particle emitter identifier
+     * @param position the finite emitter position
+     * @param players  the recipients
+     */
+    default void spawnParticleEffect(Identifier effect, Vector3f position, Player... players) {
+        this.spawnParticleEffect(new ParticleEmitter(effect), position, players);
+    }
+
+    /**
+     * Spawns a named emitter with optional entity attachment and initial variables.
+     * An attachment must belong to this level. Attached positions are entity-relative offsets.
+     *
+     * @param emitter  the resource-pack emitter and its settings
+     * @param position the finite world position or attachment offset
+     */
+    void spawnParticleEffect(ParticleEmitter emitter, Vector3f position);
+
+    /**
+     * Spawns a named emitter only for the supplied players.
+     * An attachment must belong to this level. Attached positions are entity-relative offsets.
+     *
+     * @param emitter  the resource-pack emitter and its settings
+     * @param position the finite world position or attachment offset
+     * @param players  the recipients, empty to send to nobody
+     */
+    void spawnParticleEffect(ParticleEmitter emitter, Vector3f position, Player... players);
 }

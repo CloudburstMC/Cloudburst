@@ -8,11 +8,11 @@ import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.SmokeParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -120,7 +120,7 @@ public class BlockTransformationItemHandlers {
 
             if (rule.sound() == SoundEvent.EXTINGUISH_FIRE) {
                 for (int i = 0; i < 10; i++) {
-                    level.addParticle(new SmokeParticle(center));
+                    level.spawnParticle(ParticleTypes.SMOKE, center);
                 }
             }
         }

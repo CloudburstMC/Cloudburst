@@ -38,6 +38,8 @@ import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.player.*;
@@ -2635,6 +2637,21 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
+    public void playSound(Vector3f position, SoundPlayback playback) {
+        this.sendPacket(SoundPacketFactory.play(playback, position));
+    }
+
+    @Override
+    public void stopSound(SoundType sound) {
+        this.sendPacket(SoundPacketFactory.stop(sound));
+    }
+
+    @Override
+    public void stopAllSounds() {
+        this.sendPacket(SoundPacketFactory.stopAll());
+    }
+
+    @Override
     public void sendMessage(@NonNull Component message) {
         this.sendPacket(TextPacketFactory.system(message, getLocale()));
     }
@@ -2759,7 +2776,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    public void sendActionBar(Component title) {
+    public void sendActionBar(@NonNull Component title) {
         this.sendActionBar(title, 1, 0, 1);
     }
 

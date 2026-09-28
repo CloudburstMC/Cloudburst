@@ -10,6 +10,7 @@ import org.cloudburstmc.api.entity.hostile.ZombiePigman;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -487,7 +488,7 @@ public class NetherPortals {
                 }
 
                 spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
-                targetLevel.addSound(spawnPos, Sound.PORTAL_TRAVEL);
+                targetLevel.playSound(spawnPos, SoundTypes.PORTAL_TRAVEL);
                 entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
 
                 entity.setMotion(Vector3f.ZERO);

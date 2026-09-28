@@ -6,11 +6,12 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.*;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.List;
@@ -85,7 +86,8 @@ public class DoorBlockHandlers {
         level.setBlockState(pos, BlockStates.AIR, false, false);
 
         if (partnerState.getType() == state.getType()) {
-            level.addParticle(new DestroyBlockParticle(partnerPos.toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
+            Vector3f position = partnerPos.toFloat().add(0.5f, 0.5f, 0.5f);
+            level.addChunkPacket(position, LevelEffectPacketFactory.blockDestruction(position, partnerState, true));
             level.setBlockState(partnerPos, BlockStates.AIR, false, false);
             level.updateAround(partnerPos);
         }

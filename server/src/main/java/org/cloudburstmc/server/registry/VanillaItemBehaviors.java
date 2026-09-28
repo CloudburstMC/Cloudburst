@@ -13,6 +13,7 @@ import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.item.component.AttackBlockingComponent;
 import org.cloudburstmc.api.item.component.CanRepairWithHandler;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ArmorMaterial;
@@ -24,7 +25,6 @@ import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
 import org.cloudburstmc.server.item.serializer.FireworkStarSerializer;
 import org.cloudburstmc.server.item.serializer.OminousBottleItemSerializer;
 import org.cloudburstmc.server.item.serializer.PotionItemSerializer;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.Optional;
@@ -410,7 +410,7 @@ public final class VanillaItemBehaviors {
                         ItemBehaviors.CAN_ENCHANT_WITH,
                         CloudItemRegistry.enchantableWith(EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE, EnchantmentTarget.WEARABLE)
                 )
-                .set(ItemBehaviors.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, Sound.ARMOR_EQUIP_ELYTRA));
+                .set(ItemBehaviors.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, SoundTypes.ARMOR_EQUIP_ELYTRA));
     }
 
     private void configureTool(

@@ -9,7 +9,8 @@ import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
@@ -43,7 +44,9 @@ import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.level.particle.ParticleType;
+import org.cloudburstmc.api.level.particle.ParticleEmission;
+import org.cloudburstmc.api.level.particle.ParticleEmitter;
+import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -81,12 +84,13 @@ import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
-import org.cloudburstmc.server.level.particle.Particle;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.ParticlePacketFactory;
+import org.cloudburstmc.server.network.SoundPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
@@ -342,44 +346,14 @@ public class CloudLevel implements Level, BlockStateRegion {
         // this.blockMetadata = null;
     }
 
-    public void addSound(Vector3i pos, Sound sound) {
-        this.addSound(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f), sound);
+    @Override
+    public void playSound(Vector3f position, SoundPlayback playback) {
+        CloudServer.broadcastPacket(this.getPlayers().values().toArray(Player[]::new), SoundPacketFactory.play(playback, position));
     }
 
-    public void addSound(Vector3f pos, Sound sound) {
-        this.addSound(pos, sound, 1, 1, (Player[]) null);
-    }
-
-    public void addSound(Vector3i pos, Sound sound, float volume, float pitch) {
-        this.addSound(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f), sound, volume, pitch);
-    }
-
-    public void addSound(Vector3f pos, Sound sound, float volume, float pitch) {
-        this.addSound(pos, sound, volume, pitch, (Player[]) null);
-    }
-
-    public void addSound(Vector3f pos, Sound sound, float volume, float pitch, Collection<Player> players) {
-        this.addSound(pos, sound, volume, pitch, players.toArray(new Player[0]));
-    }
-
-    public void addSound(Vector3f pos, Sound sound, float volume, float pitch, Player... players) {
-        Preconditions.checkArgument(volume >= 0, "Sound volume cannot be negative");
-        Preconditions.checkArgument(pitch >= 0, "Sound pitch must be higher than 0");
-
-        PlaySoundPacket packet = new PlaySoundPacket();
-        packet.setSound(sound.getSound());
-        packet.setVolume(volume);
-        packet.setPitch(pitch);
-        packet.setPosition(pos);
-
-        if (players == null) {
-            float audibleDistance = 16 * Math.max(1, volume);
-            float audibleDistanceSquared = audibleDistance * audibleDistance;
-            players = this.getPlayers().values().stream()
-                    .filter(player -> player.getPosition().distanceSquared(pos) <= audibleDistanceSquared)
-                    .toArray(Player[]::new);
-        }
-        CloudServer.broadcastPacket(players, packet);
+    @Override
+    public void playSound(Vector3f position, SoundPlayback playback, Player... players) {
+        CloudServer.broadcastPacket(Objects.requireNonNull(players, "players"), SoundPacketFactory.play(playback, position));
     }
 
     public void addLevelSoundEvent(Vector3f pos, SoundEvent event, int data, EntityType<?> type) {
@@ -414,77 +388,71 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.addLevelSoundEvent(pos, event, data, Identifier.EMPTY, false, false);
     }
 
-    public void addParticle(Particle particle) {
-        this.addParticle(particle, (Player[]) null);
-    }
-
-    public void addParticle(Particle particle, Player player) {
-        this.addParticle(particle, new Player[]{player});
-    }
-
-    public void addParticle(Particle particle, Player[] players) {
-        BedrockPacket[] packets = particle.encode();
-
-        if (players == null) {
-            if (packets != null) {
-                for (BedrockPacket packet : packets) {
-                    this.addChunkPacket(particle.getPosition(), packet);
-                }
-            }
-        } else {
-            if (packets != null) {
-                CloudServer.broadcastPackets(players, packets);
-            }
+    @Override
+    public void spawnParticle(ParticleEmission emission, Vector3f position) {
+        for (LevelEventPacket packet : particlePackets(emission, position)) {
+            this.addChunkPacket(packet.getPosition(), packet);
         }
     }
 
-    public void addParticle(Particle particle, Collection<Player> players) {
-        this.addParticle(particle, players.toArray(new Player[0]));
+    @Override
+    public void spawnParticle(ParticleEmission emission, Vector3f position, Player... players) {
+        Objects.requireNonNull(players, "players");
+        List<LevelEventPacket> packets = particlePackets(emission, position);
+        CloudServer.broadcastPackets(players, packets.toArray(BedrockPacket[]::new));
     }
 
     @Override
-    public void spawnParticle(ParticleType particle, Vector3f position) {
-        checkNotNull(particle, "particle");
-        checkNotNull(position, "position");
-        this.addParticleEffect(position, particle.getId());
+    public void spawnParticleEffect(ParticleEmitter emitter, Vector3f position) {
+        Vector3f origin = emitterOrigin(emitter, position);
+        this.addChunkPacket(origin, ParticlePacketFactory.emitter(emitter, position, this.getDimension()));
     }
 
     @Override
-    public void spawnParticle(ParticleType particle, Vector3f position, Player... players) {
-        checkNotNull(particle, "particle");
-        checkNotNull(position, "position");
-        this.addParticleEffect(position, particle.getId(), -1, this.levelData.getDimension(), players);
+    public void spawnParticleEffect(ParticleEmitter emitter, Vector3f position, Player... players) {
+        Objects.requireNonNull(players, "players");
+        emitterOrigin(emitter, position);
+        CloudServer.broadcastPacket(players, ParticlePacketFactory.emitter(emitter, position, this.getDimension()));
     }
 
-    public void addParticleEffect(Vector3f pos, Identifier identifier) {
-        this.addParticleEffect(pos, identifier, -1, this.levelData.getDimension(), (Player[]) null);
-    }
+    private static List<LevelEventPacket> particlePackets(ParticleEmission emission, Vector3f position) {
+        Objects.requireNonNull(emission, "emission");
+        ParticlePacketFactory.validatePosition(position);
 
-    public void addParticleEffect(Vector3f pos, Identifier identifier, long uniqueEntityId) {
-        this.addParticleEffect(pos, identifier, uniqueEntityId, this.levelData.getDimension(), (Player[]) null);
-    }
+        LevelEventPacket prototype = ParticlePacketFactory.builtIn(emission.options(), position);
+        List<LevelEventPacket> packets = new ArrayList<>(emission.count());
+        ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    public void addParticleEffect(Vector3f pos, Identifier identifier, long uniqueEntityId, int dimensionId) {
-        this.addParticleEffect(pos, identifier, uniqueEntityId, dimensionId, (Player[]) null);
-    }
-
-    public void addParticleEffect(Vector3f pos, Identifier identifier, long uniqueEntityId, int dimensionId, Collection<Player> players) {
-        this.addParticleEffect(pos, identifier, uniqueEntityId, dimensionId, players.toArray(new Player[0]));
-    }
-
-    public void addParticleEffect(Vector3f pos, Identifier identifier, long uniqueEntityId, int dimensionId, Player... players) {
-        SpawnParticleEffectPacket packet = new SpawnParticleEffectPacket();
-        packet.setIdentifier(identifier.toString());
-        packet.setUniqueEntityId(uniqueEntityId);
-        packet.setDimensionId(dimensionId);
-        packet.setPosition(pos);
-        packet.setMolangVariablesJson(Optional.empty());
-
-        if (players == null || players.length == 0) {
-            addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, packet);
-        } else {
-            CloudServer.broadcastPacket(players, packet);
+        for (int index = 0; index < emission.count(); index++) {
+            Vector3f spread = emission.spread();
+            Vector3f location = position.add(
+                    random.nextGaussian() * spread.getX(),
+                    random.nextGaussian() * spread.getY(),
+                    random.nextGaussian() * spread.getZ());
+            ParticlePacketFactory.validatePosition(location);
+            LevelEventPacket packet = prototype.clone();
+            packet.setPosition(location);
+            packets.add(packet);
         }
+
+        return packets;
+    }
+
+    private Vector3f emitterOrigin(ParticleEmitter emitter, Vector3f position) {
+        Objects.requireNonNull(emitter, "emitter");
+        ParticlePacketFactory.validatePosition(position);
+        Entity attachment = emitter.attachment();
+        if (attachment == null) {
+            return position;
+        }
+
+        if (attachment.getLevel() != this) {
+            throw new IllegalArgumentException("Particle attachment must belong to this level");
+        }
+
+        Vector3f origin = attachment.getPosition().add(position);
+        ParticlePacketFactory.validatePosition(origin);
+        return origin;
     }
 
     public boolean getAutoSave() {
@@ -2096,7 +2064,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     private void addBlockDestroyParticle(Block target, @Nullable Player player) {
         Vector3f position = target.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
-        Particle particle = new DestroyBlockParticle(position, target.getState());
+        LevelEventPacket effect = LevelEffectPacketFactory.blockDestruction(position, target.getState(), true);
         List<Player> viewers = new ArrayList<>(this.getChunkPlayers(position.getFloorX() >> 4, position.getFloorZ() >> 4));
 
         if (player != null && !viewers.contains(player)) {
@@ -2104,7 +2072,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         if (!viewers.isEmpty()) {
-            this.addParticle(particle, viewers);
+            CloudServer.broadcastPacket(viewers.toArray(Player[]::new), effect);
         }
     }
 

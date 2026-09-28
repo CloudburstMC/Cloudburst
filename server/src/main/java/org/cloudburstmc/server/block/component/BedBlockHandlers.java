@@ -19,7 +19,7 @@ import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.entity.vehicle.DismountHelper;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
@@ -47,17 +47,16 @@ public class BedBlockHandlers {
     );
 
     /**
-     * Places both the foot (at {@code blockPosition}) and head (one block ahead
+     * Places both the foot (at {@code footPos}) and head (one block ahead
      * in the player's facing direction).
      */
-    public static final PlaceBlockHandler PLACE = (blockState, player, blockPosition, face, clickPosition) -> {
+    public static final PlaceBlockHandler PLACE = (blockState, player, footPos, face, clickPosition) -> {
         if (!(player instanceof CloudPlayer cloudPlayer)) {
             return false;
         }
 
         Direction facing = Direction.fromYaw(player.getYaw());
 
-        Vector3i footPos = blockPosition;
         Vector3i headPos = Vector3i.from(
                 footPos.getX() + facing.getStepX(),
                 footPos.getY(),
@@ -134,7 +133,8 @@ public class BedBlockHandlers {
 
         BlockState partnerState = level.getBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
         if (partnerState.getType() == bedType) {
-            level.addParticle(new DestroyBlockParticle(partnerPos.toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
+            Vector3f position = partnerPos.toFloat().add(0.5f, 0.5f, 0.5f);
+            level.addChunkPacket(position, LevelEffectPacketFactory.blockDestruction(position, partnerState, true));
             level.setBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ(), BlockLayer.PRIMARY, BlockStates.AIR, false, true);
         }
     };

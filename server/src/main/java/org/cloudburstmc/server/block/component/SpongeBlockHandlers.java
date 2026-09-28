@@ -13,7 +13,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DestroyBlockNoSoundParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.*;
 
@@ -70,7 +70,7 @@ public class SpongeBlockHandlers {
             Vector3i position = sponge.getPosition();
             level.setBlockState(position, BlockTypes.WET_SPONGE.getDefaultState());
             level.addLevelSoundEvent(position, SoundEvent.SPONGE_ABSORB);
-            level.addParticle(new DestroyBlockNoSoundParticle(position.toFloat(), BlockTypes.WATER.getDefaultState()));
+            level.addChunkPacket(position.toFloat(), LevelEffectPacketFactory.blockDestruction(position.toFloat(), BlockTypes.WATER.getDefaultState(), false));
         }
     }
 

@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Particle types supplied by the base game. Resource-pack particles may be
- * represented with {@link ParticleType#of(Identifier)}.
+ * Built-in particle effects. Use {@code Level.spawnParticleEffect} for named resource-pack emitters.
+ *
+ * <p>Generated catalog. Do not edit by hand.
  */
 @UtilityClass
 public class ParticleTypes {
@@ -106,7 +107,6 @@ public class ParticleTypes {
     public static final ParticleType TOTEM = type("totem");
     public static final ParticleType TOWN_AURA = type("town_aura");
     public static final ParticleType TRACKER_EMITTER = type("tracker_emitter");
-    public static final ParticleType UNDEFINED = type("undefined");
     public static final ParticleType VAULT_CONNECTION = type("vault_connection");
     public static final ParticleType VIBRATION_SIGNAL = type("vibration_signal");
     public static final ParticleType VILLAGER_ANGRY = type("villager_angry");
@@ -122,19 +122,19 @@ public class ParticleTypes {
     public static final ParticleType YELLOW_POPLAR_LEAVES = type("yellow_poplar_leaves");
 
     /**
-     * Finds a built-in particle type by identifier.
+     * Finds a built-in type by identifier.
      *
-     * @param id the particle identifier
-     * @return matching built-in particle type, if present
+     * @param id the identifier
+     * @return the matching type, if present
      */
     public static Optional<ParticleType> get(Identifier id) {
         return TYPES.get(id);
     }
 
     /**
-     * Returns all built-in particle types in declaration order.
+     * Returns the built-in types in declaration order.
      *
-     * @return built-in particle types
+     * @return an unmodifiable list of built-in types
      */
     public static List<ParticleType> values() {
         return TYPES.values();

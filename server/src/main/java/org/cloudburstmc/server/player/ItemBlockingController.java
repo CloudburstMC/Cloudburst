@@ -8,11 +8,11 @@ import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.AttackBlockingComponent;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Objects;
@@ -110,7 +110,7 @@ public class ItemBlockingController {
                 this.player.getServer().getEventManager().fire(disable);
                 if (!disable.isCancelled() && disable.getCooldown() > 0) {
                     this.player.setItemCooldown(item.getType(), disable.getCooldown());
-                    this.player.getLevel().addSound(this.player.getPosition(), Sound.RANDOM_BREAK,
+                    this.player.getLevel().playSound(this.player.getPosition(), SoundTypes.RANDOM_BREAK,
                             0.8f, 0.8f + this.player.getLevel().getRandom().nextFloat() * 0.4f);
                     this.clear();
                 }

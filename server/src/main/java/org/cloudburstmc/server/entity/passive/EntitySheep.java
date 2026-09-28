@@ -8,11 +8,11 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.level.Sound;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -92,7 +92,7 @@ public class EntitySheep extends Animal implements Sheep {
 
         this.setSheared(true);
         this.data.setFlag(SHEARED, true);
-        this.level.addSound(this.getPosition(), Sound.MOB_SHEEP_SHEAR);
+        this.level.playSound(this.getPosition(), SoundTypes.MOB_SHEEP_SHEAR);
 
         ItemStack itemStack = ItemStack.builder(getWoolState(getColor()))
                 .amount(ThreadLocalRandom.current().nextInt(2) + 1)

@@ -15,6 +15,7 @@ import org.cloudburstmc.api.event.player.PlayerHarvestBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Difficulty;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
@@ -23,8 +24,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,7 +57,8 @@ public class VegetationBlockHandlers {
         block.set(BlockStates.AIR, false, false);
         if (partnerState.getType() == state.getType() && isUpperHalf(partnerState) != upper) {
             partner.set(BlockStates.AIR, false, true);
-            ((CloudLevel) block.getLevel()).addParticle(new DestroyBlockParticle(partner.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
+            Vector3f position = partner.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
+            ((CloudLevel) block.getLevel()).addChunkPacket(position, LevelEffectPacketFactory.blockDestruction(position, partnerState, true));
         }
     };
 
@@ -141,7 +142,7 @@ public class VegetationBlockHandlers {
         for (ItemStack harvested : event.getItemsHarvested()) {
             block.getLevel().dropItem(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), harvested);
         }
-        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.BLOCK_SWEET_BERRY_BUSH_PICK);
+        block.getLevel().playSound(block.getPosition(), SoundTypes.BLOCK_SWEET_BERRY_BUSH_PICK);
         return true;
     };
 

@@ -16,7 +16,6 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
-import org.cloudburstmc.server.registry.CloudParticleRegistry;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -190,22 +189,31 @@ public class NetworkUtils {
 
     public static org.cloudburstmc.protocol.bedrock.data.ParticleType particleToNetwork(ParticleType type) {
         Objects.requireNonNull(type, "type");
-        return particleTypeMap.getOrDefault(type, org.cloudburstmc.protocol.bedrock.data.ParticleType.UNDEFINED);
+        org.cloudburstmc.protocol.bedrock.data.ParticleType particle = particleTypeMap.get(type);
+        if (particle == null) {
+            throw new IllegalArgumentException("Unsupported built-in particle: " + type.getId());
+        }
+        return particle;
     }
 
     public static ParticleType particleFromNetwork(org.cloudburstmc.protocol.bedrock.data.ParticleType type) {
         Objects.requireNonNull(type, "type");
         Identifier id = Identifier.parse(type.name().toLowerCase(Locale.ROOT));
-        return CloudParticleRegistry.get().get(id).orElse(ParticleTypes.UNDEFINED);
+        return ParticleTypes.get(id).orElseThrow(() -> new IllegalArgumentException("Unsupported built-in particle: " + type));
     }
 
     private static Map<ParticleType, org.cloudburstmc.protocol.bedrock.data.ParticleType> createParticleTypeMap() {
         Map<ParticleType, org.cloudburstmc.protocol.bedrock.data.ParticleType> values = new HashMap<>();
-        for (org.cloudburstmc.protocol.bedrock.data.ParticleType type :
-                org.cloudburstmc.protocol.bedrock.data.ParticleType.values()) {
+        for (org.cloudburstmc.protocol.bedrock.data.ParticleType type : org.cloudburstmc.protocol.bedrock.data.ParticleType.values()) {
+            if (type == org.cloudburstmc.protocol.bedrock.data.ParticleType.UNDEFINED) {
+                continue;
+            }
+
             Identifier id = Identifier.parse(type.name().toLowerCase(Locale.ROOT));
-            CloudParticleRegistry.get().get(id).ifPresent(apiType -> values.put(apiType, type));
+            ParticleType apiType = ParticleTypes.get(id).orElseThrow(() -> new IllegalStateException("Particle catalog is missing " + id + ". Regenerate vanilla data."));
+            values.put(apiType, type);
         }
+
         return Map.copyOf(values);
     }
 

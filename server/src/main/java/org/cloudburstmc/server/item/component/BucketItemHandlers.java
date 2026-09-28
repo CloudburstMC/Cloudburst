@@ -16,12 +16,12 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.item.data.BucketEntityData;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -48,7 +48,7 @@ public final class BucketItemHandlers {
 
             clicked.set(BlockStates.AIR);
             addCreativeFilledBucket(player, blockBucket);
-            level.addSound(position, Sound.BUCKET_FILL_POWDER_SNOW);
+            level.playSound(position, SoundTypes.BUCKET_FILL_POWDER_SNOW);
             return event.getItemStack();
         }
 
@@ -71,7 +71,7 @@ public final class BucketItemHandlers {
         }
 
         addCreativeFilledBucket(player, filledBucket);
-        level.addSound(position, isWater(liquid) ? Sound.BUCKET_FILL_WATER : Sound.BUCKET_FILL_LAVA);
+        level.playSound(position, isWater(liquid) ? SoundTypes.BUCKET_FILL_WATER : SoundTypes.BUCKET_FILL_LAVA);
         return event.getItemStack();
     };
 
@@ -107,7 +107,7 @@ public final class BucketItemHandlers {
             }
 
             spawnBucketEntity(level, target, entityType, item);
-            level.addSound(target, Sound.BUCKET_EMPTY_FISH);
+            level.playSound(target, SoundTypes.BUCKET_EMPTY_FISH);
             return event.getItemStack();
         };
     }
@@ -136,7 +136,7 @@ public final class BucketItemHandlers {
                 return item;
             }
 
-            level.addSound(target.getPosition(), Sound.BUCKET_EMPTY_POWDER_SNOW);
+            level.playSound(target.getPosition(), SoundTypes.BUCKET_EMPTY_POWDER_SNOW);
             return event.getItemStack();
         };
     }
@@ -181,7 +181,7 @@ public final class BucketItemHandlers {
                 spawnBucketEntity(level, target, entityType, item);
             }
 
-            level.addSound(target, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
+            level.playSound(target, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
             return event.getItemStack();
         }
 
@@ -193,8 +193,8 @@ public final class BucketItemHandlers {
             spawnBucketEntity(level, target, entityType, item);
         }
 
-        level.addSound(target, entityType != null ? Sound.BUCKET_EMPTY_FISH
-                : isWater(liquid) ? Sound.BUCKET_EMPTY_WATER : Sound.BUCKET_EMPTY_LAVA);
+        level.playSound(target, entityType != null ? SoundTypes.BUCKET_EMPTY_FISH
+                : isWater(liquid) ? SoundTypes.BUCKET_EMPTY_WATER : SoundTypes.BUCKET_EMPTY_LAVA);
         return event.getItemStack();
     }
 

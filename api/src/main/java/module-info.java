@@ -58,6 +58,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
     exports org.cloudburstmc.api.level.particle;
+    exports org.cloudburstmc.api.level.sound;
     exports org.cloudburstmc.api.pack;
     exports org.cloudburstmc.api.pack.loader;
     exports org.cloudburstmc.api.permission;

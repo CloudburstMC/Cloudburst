@@ -11,7 +11,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.Explosion;
-import org.cloudburstmc.server.level.particle.GenericParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 public abstract class EntityAbstractWindCharge extends EntityProjectile implements AbstractWindCharge {
@@ -125,7 +125,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
             entity.setMotion(movement.add(delta.normalize().mul(strength)));
         }
 
-        this.getLevel().addParticle(new GenericParticle(position, this.burstParticle()));
+        this.getLevel().addChunkPacket(position, LevelEffectPacketFactory.event(position, this.burstParticle(), 0));
         this.getLevel().addLevelSoundEvent(position, this.burstSound());
         this.close();
     }

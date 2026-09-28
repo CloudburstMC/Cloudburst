@@ -20,6 +20,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.AttackBlockingComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -35,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -516,7 +516,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
                     .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
                     .execute(this);
             if (this.damage(multiplier, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
-                this.getLevel().addSound(this.getPosition(), Sound.MOB_PLAYER_HURT_FREEZE);
+                this.getLevel().playSound(this.getPosition(), SoundTypes.MOB_PLAYER_HURT_FREEZE);
             }
         }
     }

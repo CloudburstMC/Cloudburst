@@ -7,8 +7,8 @@ import org.cloudburstmc.api.entity.projectile.Snowball;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.particle.ItemParticleOptions;
 import org.cloudburstmc.api.util.BlockHitResult;
-import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 
 public class EntitySnowball extends EntityProjectile implements Snowball {
 
@@ -75,7 +75,7 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
     private void breakApart() {
         ItemStack item = ItemStack.from(ItemTypes.SNOWBALL);
         for (int i = 0; i < 8; i++) {
-            this.getLevel().addParticle(new ItemBreakParticle(this.getPosition(), item));
+            this.getLevel().spawnParticle(new ItemParticleOptions(item), this.getPosition());
         }
 
         this.close();

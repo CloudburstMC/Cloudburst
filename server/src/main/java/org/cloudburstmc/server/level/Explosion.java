@@ -14,6 +14,7 @@ import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -23,7 +24,6 @@ import org.cloudburstmc.api.util.MissReason;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.level.particle.HugeExplodeSeedParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
@@ -80,7 +80,7 @@ public class Explosion {
             this.createFire(affected);
         }
 
-        this.level.addParticle(new HugeExplodeSeedParticle(this.center));
+        this.level.spawnParticle(ParticleTypes.LARGE_EXPLODE, this.center);
         this.level.addLevelSoundEvent(this.center, SoundEvent.EXPLODE);
         return true;
     }

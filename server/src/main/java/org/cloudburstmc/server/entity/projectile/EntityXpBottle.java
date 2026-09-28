@@ -4,9 +4,9 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.XpBottle;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.level.particle.EnchantParticle;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -72,7 +72,7 @@ public class EntityXpBottle extends EntityProjectile implements XpBottle {
     }
 
     private void dropXp() {
-        this.getLevel().addParticle(new EnchantParticle(this.getPosition()));
+        this.getLevel().spawnParticle(ParticleTypes.MOB_SPELL, this.getPosition());
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
         ThreadLocalRandom random = ThreadLocalRandom.current();
         this.getLevel().dropExpOrb(this.getPosition(), 3 + random.nextInt(5) + random.nextInt(5));

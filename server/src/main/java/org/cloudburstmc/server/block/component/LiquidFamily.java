@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.block.component;
 
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 
 /**
  * Simulation rules shared by the source and flowing block types of a liquid.
@@ -151,7 +151,7 @@ public enum LiquidFamily {
             return false;
         }
 
-        level.addSound(position, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
+        level.playSound(position, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
         return true;
     }
 }

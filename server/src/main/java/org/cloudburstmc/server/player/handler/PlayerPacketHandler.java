@@ -73,7 +73,7 @@ import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.level.particle.PunchBlockParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.RespawnConfig;
@@ -554,10 +554,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         Vector3f position = blockPos.toFloat().add(0.5f, 0.5f, 0.5f);
-        for (BedrockPacket packet : new PunchBlockParticle(position, state, face).encode()) {
-            player.sendPacket(packet);
-            player.getLevel().addChunkPacket(blockPos, packet);
-        }
+        LevelEventPacket packet = LevelEffectPacketFactory.blockPunch(position, state, face);
+        player.sendPacket(packet);
+        player.getLevel().addChunkPacket(blockPos, packet);
     }
 
     private @Nullable Boolean getPredictedFastBreak(Vector3i blockPos, BlockState state) {

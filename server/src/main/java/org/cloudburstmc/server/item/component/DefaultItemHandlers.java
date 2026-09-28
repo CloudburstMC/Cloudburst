@@ -10,10 +10,10 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.level.particle.ItemParticleOptions;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
@@ -100,12 +100,12 @@ public class DefaultItemHandlers {
         return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
     };
 
-    public static ItemBreakHandler breakEffects(Sound sound) {
+    public static ItemBreakHandler breakEffects(SoundType sound) {
         return (item, owner) -> {
             if (owner.getLevel() instanceof CloudLevel level) {
-                level.addSound(owner.getPosition(), sound);
+                level.playSound(owner.getPosition(), sound);
                 for (int i = 0; i < 5; i++) {
-                    level.addParticle(new ItemBreakParticle(owner.getPosition().add(0, owner.getEyeHeight(), 0), item));
+                    level.spawnParticle(new ItemParticleOptions(item), owner.getPosition().add(0, owner.getEyeHeight(), 0));
                 }
             }
         };

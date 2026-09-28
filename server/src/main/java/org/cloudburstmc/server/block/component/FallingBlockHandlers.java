@@ -7,11 +7,11 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -58,7 +58,7 @@ public class FallingBlockHandlers {
         block.getLevel().scheduleUpdate(block.getPosition(), FALL_DELAY);
     }
 
-    public static ComplexBlockHandler startFalling(Sound landingSound, Sound breakSound,
+    public static ComplexBlockHandler startFalling(SoundType landingSound, SoundType breakSound,
                                                    float damagePerBlock, int maximumDamage) {
         return block -> {
             EntityFallingBlock fallingBlock = (EntityFallingBlock) CloudEntityRegistry.get().newEntity(

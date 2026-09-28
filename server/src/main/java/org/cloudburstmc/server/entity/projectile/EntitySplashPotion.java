@@ -14,7 +14,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.level.particle.GenericParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 import org.cloudburstmc.server.potion.CloudPotionColor;
@@ -76,8 +76,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     protected void splash(Entity collidedWith) {
         this.close();
         int color = CloudPotionColor.calculateEffects(this.type.getEffects()).orElse(0x2828ff);
-        this.getLevel().addParticle(new GenericParticle(this.getPosition(), LevelEvent.PARTICLE_POTION_SPLASH,
-                0xff000000 | color));
+        this.getLevel().addChunkPacket(this.getPosition(), LevelEffectPacketFactory.event(this.getPosition(), LevelEvent.PARTICLE_POTION_SPLASH, 0xff000000 | color));
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
 
         this.applyPotionImpact(collidedWith);
