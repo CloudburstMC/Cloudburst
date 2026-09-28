@@ -2109,10 +2109,12 @@ public abstract class CloudEntity implements Entity {
         return false;
     }
 
+    @Override
     public long getUniqueId() {
         return this.runtimeId;
     }
 
+    @Override
     public long getRuntimeId() {
         return this.runtimeId;
     }

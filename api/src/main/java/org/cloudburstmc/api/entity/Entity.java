@@ -38,6 +38,8 @@ public interface Entity extends Damageable {
 
     long getUniqueId();
 
+    long getRuntimeId();
+
     float getHeight();
 
     long getLastDamageTime();
