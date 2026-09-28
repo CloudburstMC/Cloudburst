@@ -89,6 +89,7 @@ import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
@@ -122,6 +123,7 @@ import java.util.function.LongConsumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.DAMAGE_NEARBY_MOBS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
@@ -209,6 +211,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private @Nullable ItemStack activeUseStack;
     private int activeUseSlot = -1;
     private int itemUseCompleteTick;
+    private final ItemBlockingController itemBlocking = new ItemBlockingController(this);
     private int lastCompletedItemUseTick = Integer.MIN_VALUE;
     private int spinAttackEndTick = -1;
     protected Vector3f forceMovement = null;
@@ -492,6 +495,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
 
             player.sendPacket(buildArmorEquipmentPacket());
+            player.sendPacket(this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
         }
     }
 
@@ -504,6 +508,24 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setBoots(ItemUtils.toNetwork(this.armor.getBoots()));
         packet.setBody(ItemData.AIR);
         return packet;
+    }
+
+    private MobEquipmentPacket createEquipmentPacket(ItemStack item, int containerId, int slot) {
+        MobEquipmentPacket packet = new MobEquipmentPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setItem(ItemUtils.toNetwork(item));
+        packet.setContainerId(containerId);
+        packet.setInventorySlot(slot);
+        packet.setHotbarSlot(slot);
+        return packet;
+    }
+
+    private void sendHandEquipmentToViewers() {
+        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getInventory().getSelectedItem(), ContainerId.INVENTORY, this.selectedHotbarSlot));
+    }
+
+    private void sendOffhandEquipmentToViewers() {
+        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
     }
 
     @Override
@@ -523,7 +545,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setCommandPermission(CommandPermission.ANY);
         packet.setPlayerPermission(PlayerPermission.MEMBER);
         packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
-        this.getData().putAllIn(packet.getMetadata());
+        packet.getMetadata().putAll(this.getData().snapshot());
         return packet;
     }
 
@@ -805,6 +827,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return this.data.getFlag(USING_ITEM) && this.startAction > -1;
     }
 
+    @Override
+    public ItemStack getBlockingItem() {
+        return this.itemBlocking.getBlockingItem();
+    }
+
+    public void updateBlockingState() {
+        this.itemBlocking.update();
+    }
+
+    public void interruptBlocking() {
+        this.itemBlocking.interrupt();
+    }
+
     public void setUsingItem(boolean value) {
         this.startAction = value ? this.server.getTick() : -1;
         this.data.setFlag(USING_ITEM, value);
@@ -813,6 +848,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.activeUseSlot = -1;
             this.itemUseCompleteTick = -1;
         }
+        this.updateBlockingState();
     }
 
     public boolean consumeRecentCompletedItemUse() {
@@ -1579,7 +1615,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             SetEntityDataPacket entityDataPk = new SetEntityDataPacket();
             entityDataPk.setRuntimeEntityId(this.getRuntimeId());
             entityDataPk.setTick(this.clientTick);
-            this.data.putFlagsIn(entityDataPk.getMetadata());
+            entityDataPk.getMetadata().putAll(this.data.snapshot(FLAGS));
             this.putNetworkBounds(entityDataPk.getMetadata());
             this.sendPacket(entityDataPk);
             CloudServer.broadcastPacket(this.getViewers(), entityDataPk);
@@ -2005,6 +2041,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
                 this.entityBaseTick(tickDiff);
                 this.finishItemUse(currentTick);
+                this.updateBlockingState();
                 this.updateUnderwaterSound();
 
                 if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
@@ -2058,7 +2095,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 this.bossBars.forEach(bossBar -> bossBar.updatePosition(this));
             }
 
-            this.data.update();
+            this.flushEntityData();
         }
 
         return true;
@@ -2085,7 +2122,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             if (result.stopUsing()) {
                 this.setUsingItem(false);
                 this.lastCompletedItemUseTick = currentTick;
-                this.data.update();
+                this.flushEntityData();
             }
 
             if (updatedItem != activeItem) {
@@ -3024,6 +3061,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             throw new IllegalArgumentException("bonusDamage must be finite and nonnegative");
         }
 
+        this.interruptBlocking();
+
         ItemStack heldItem = this.getInventory().getSelectedItem();
         float baseDamage = 1;
         if (!heldItem.isEmpty()) {
@@ -3156,7 +3195,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected void onDamageBlocked(EntityDamageEvent event) {
+        super.onDamageBlocked(event);
+        this.itemBlocking.onDamageBlocked(event);
+    }
+
+    @Override
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (!this.isAlive()) {
             return false;
         }
@@ -3384,6 +3429,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         CloudServer.broadcastPacket(this.hasSpawned, deathPacket);
 
         this.enterDeathState();
+        this.updateBlockingState();
         this.sendHealthAttribute();
 
         if (!event.getKeepInventory()) {
@@ -3563,7 +3609,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         PlayerStartItemCooldownPacket packet = new PlayerStartItemCooldownPacket();
-        packet.setItemCategory(itemType.getId().toString());
+        packet.setItemCategory(itemType == ItemTypes.SHIELD || itemType == ItemTypes.GOAT_HORN
+                ? itemType.getId().getName() : itemType.getId().toString());
         packet.setCooldownDuration(ticks);
         this.sendPacket(packet);
     }
@@ -4155,6 +4202,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         if (inventory == this.armor.getContainer()) {
             this.sendArmorEquipmentToViewers();
+        } else if (inventory == this.offhand.getContainer()) {
+            this.sendOffhandEquipmentToViewers();
+        } else if (inventory == this.container && slot == this.selectedHotbarSlot) {
+            this.sendHandEquipmentToViewers();
         }
     }
 
@@ -4185,6 +4236,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setContents(contents);
         packet.setContainerId(containerId);
         this.sendPacket(packet);
+
+        if (inventory == this.armor.getContainer()) {
+            this.sendArmorEquipmentToViewers();
+        } else if (inventory == this.offhand.getContainer()) {
+            this.sendOffhandEquipmentToViewers();
+        } else if (inventory == this.container) {
+            this.sendHandEquipmentToViewers();
+        }
     }
 
     private void sendUISlot(int localSlot, ItemStack item) {
@@ -4255,7 +4314,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void setSelectedHotbarSlot(int slot) {
-        this.selectedHotbarSlot = slot;
+        this.updateSelectedHotbarSlot(slot);
 
         PlayerHotbarPacket packet = new PlayerHotbarPacket();
         packet.setSelectedHotbarSlot(slot);
@@ -4265,7 +4324,23 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void acknowledgeHotbarSlot(int slot) {
+        this.updateSelectedHotbarSlot(slot);
+    }
+
+    private void updateSelectedHotbarSlot(int slot) {
+        if (slot < 0 || slot > 8) {
+            throw new IllegalArgumentException("Hotbar slot must be between 0 and 8");
+        }
+
+        if (this.selectedHotbarSlot == slot) {
+            return;
+        }
+
         this.selectedHotbarSlot = slot;
+        this.setUsingItem(false);
+        if (this.spawned) {
+            this.sendHandEquipmentToViewers();
+        }
     }
 
     public void sendInventoryContents() {

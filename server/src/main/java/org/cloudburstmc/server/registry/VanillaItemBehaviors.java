@@ -10,6 +10,7 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.ArmorComponent;
+import org.cloudburstmc.api.item.component.AttackBlockingComponent;
 import org.cloudburstmc.api.item.component.CanRepairWithHandler;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -271,6 +272,10 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.SALMON_SPAWN_EGG, EntityTypes.SALMON);
         configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, repairWith());
         configureSpawnEgg(registry, ItemTypes.SHEEP_SPAWN_EGG, EntityTypes.SHEEP);
+        configureDamageableEnchantable(registry, ItemTypes.SHIELD, 336, repairWith(ItemTags.WOODEN_TOOL_MATERIALS), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
+        registry.configure(ItemTypes.SHIELD)
+                .set(ItemBehaviors.ALLOW_OFFHAND, () -> true)
+                .set(ItemBehaviors.BLOCKS_ATTACKS, new AttackBlockingComponent(5, 90, 3, 1, 1, 1));
         configureSpawnEgg(registry, ItemTypes.SHULKER_SPAWN_EGG, EntityTypes.SHULKER);
         registry.configure(ItemTypes.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE);
         configureSpawnEgg(registry, ItemTypes.SILVERFISH_SPAWN_EGG, EntityTypes.SILVERFISH);
@@ -436,7 +441,9 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.SHARP_WEAPON,
                 EnchantmentTarget.WEAPON
         );
-        registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.AXE));
+        registry.configure(type)
+                .set(ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS, item -> 5f)
+                .set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.AXE));
     }
 
     private void configurePickaxe(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {

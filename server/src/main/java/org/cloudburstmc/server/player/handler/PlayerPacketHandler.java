@@ -201,6 +201,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (packetSneaking != player.isSneaking()) {
             player.setSneaking(packetSneaking);
         }
+        player.updateBlockingState();
     }
 
     private void processMovement(PlayerAuthInputPacket packet) {
@@ -353,6 +354,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
+        player.interruptBlocking();
         if (!player.isCreative()) {
             AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
             if (attackHandler != null && attackHandler.execute(target, player, face)) {
@@ -658,6 +660,8 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
+        player.interruptBlocking();
+
         CloudLevel level = player.getLevel();
         Block target = level.getBlock(blockPos);
         Block side = target.getSide(face);
@@ -734,6 +738,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (!useItem.isEmpty()) {
+            if (CloudItemRegistry.get().getComponent(useItem.getType(), ItemBehaviors.BLOCKS_ATTACKS) == null) {
+                player.interruptBlocking();
+            }
+
             CloudLevel level = player.getLevel();
             ItemStack afterUse = level.tryActivateItem(useItem, player);
             if (afterUse != null) {
@@ -865,6 +873,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     player.getServer().getEventManager().fire(new PlayerJumpEvent(player));
                     break;
                 case MISSED_SWING:
+                    player.interruptBlocking();
                     AnimatePacket animatePacket = new AnimatePacket();
                     animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                     animatePacket.setRuntimeEntityId(player.getRuntimeId());
@@ -899,7 +908,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
             }
         }
-        player.getData().update();
+        player.flushEntityData();
     }
 
     private void processVehicleInput(Set<PlayerAuthInputData> inputData) {
@@ -1008,7 +1017,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         if (player.getSelectedHotbarSlot() != newSlot) {
             applyClientHotbarSlot(newSlot);
-            player.setUsingItem(false);
         }
 
         return PacketSignal.HANDLED;
@@ -1353,6 +1361,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getServer().getEventManager().fire(animationEvent);
         if (animationEvent.isCancelled()) {
             return PacketSignal.HANDLED;
+        }
+
+        if (animationEvent.getAnimationType() == PlayerAnimationEvent.Type.SWING_ARM) {
+            player.interruptBlocking();
         }
 
         AnimatePacket animatePacket = new AnimatePacket();

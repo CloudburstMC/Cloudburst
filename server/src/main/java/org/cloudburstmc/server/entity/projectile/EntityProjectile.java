@@ -9,7 +9,6 @@ import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.level.BlockShapeMode;
 import org.cloudburstmc.api.level.FluidCollisionMode;
@@ -22,6 +21,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -100,15 +100,19 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                 && this.canCollideWith(entity);
     }
 
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
     protected void onCollideWithEntity(Entity entity) {
+        this.damageEntity(entity);
+        this.close();
+    }
+
+    protected boolean damageEntity(Entity entity) {
         float damage = this.getResultDamage();
         if (entity.damage(damage, this.createProjectileDamageSource())) {
             this.hadCollision = true;
-
             if (this.fireTicks > 0) {
                 EntityCombustByEntityEvent event = new EntityCombustByEntityEvent(this, entity, 5);
                 this.server.getEventManager().fire(event);
@@ -116,9 +120,11 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     entity.setOnFire(event.getDuration());
                 }
             }
+
+            return true;
         }
 
-        this.close();
+        return false;
     }
 
     protected final DamageSource createProjectileDamageSource() {
@@ -187,7 +193,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     this.motion = nextMotion;
                     this.setPosition(entityHit.position());
                     this.onCollideWithEntity(entityHit.entity());
-                    this.data.update();
+                    this.flushEntityData();
                     return true;
                 }
 
@@ -206,7 +212,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
                     blockHit.block().requireComponent(BlockComponents.ON_PROJECTILE_HIT).execute(blockHit.block(), this);
                     this.motion = Vector3f.ZERO;
                     this.updateMovement();
-                    this.data.update();
+                    this.flushEntityData();
                     return true;
                 }
             }
@@ -214,7 +220,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
             if (hit instanceof MissHitResult(Vector3f position1, MissReason reason) && reason == MissReason.UNLOADED) {
                 this.setPosition(position1);
                 this.updateMovement();
-                this.data.update();
+                this.flushEntityData();
                 return hasUpdate;
             }
 
@@ -228,7 +234,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
             this.updateMovement();
         }
 
-        this.data.update();
+        this.flushEntityData();
         return hasUpdate;
     }
 

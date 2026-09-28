@@ -6,6 +6,7 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.entity.Pose;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityPoseChangeEvent;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.DoubleUnaryOperator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
@@ -400,7 +402,7 @@ public class EntityHuman extends EntityCreature implements Human {
         packet.setDeviceId("");
         packet.setGameType(GameType.SURVIVAL); // TODO
         packet.getAbilityLayers().add(CloudPlayerAbilities.defaultBaseLayer());
-        this.getData().putAllIn(packet.getMetadata());
+        packet.getMetadata().putAll(this.getData().snapshot());
         return packet;
     }
 
@@ -423,16 +425,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    protected void applyDamageReductions(EntityDamageEvent source) {
-        if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)) {
-            source.setDamage(this.calculateDamageAfterArmor(source.getDamage()));
-        }
-
-        super.applyDamageReductions(source);
-
-        if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ENCHANTMENTS)) {
-            source.setDamage(this.calculateDamageAfterEnchantments(source));
-        }
+    protected DoubleUnaryOperator createDamageReduction(DamageSource source) {
+        DoubleUnaryOperator armor = source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR) ? damage -> damage : this.createArmorReduction();
+        DoubleUnaryOperator effects = super.createDamageReduction(source);
+        float enchantmentFactor = source.getDamageType().is(DamageTypeTags.BYPASSES_ENCHANTMENTS) ? 1 : this.getEnchantmentDamageFactor(source);
+        return damage -> Math.max(0, effects.applyAsDouble(armor.applyAsDouble(damage)) * enchantmentFactor);
     }
 
     @Override
@@ -463,7 +460,7 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
-    private float calculateDamageAfterArmor(float damage) {
+    private DoubleUnaryOperator createArmorReduction() {
         float armorPoints = 0;
         float toughness = 0;
 
@@ -478,11 +475,14 @@ public class EntityHuman extends EntityCreature implements Human {
         }
 
         float toughnessFactor = 2 + toughness / 4;
-        float effectiveArmor = Math.clamp(armorPoints - damage / toughnessFactor, armorPoints * 0.2f, 20);
-        return damage * (1 - effectiveArmor / 25);
+        float defense = armorPoints;
+        return damage -> {
+            double effectiveArmor = Math.clamp(defense - damage / toughnessFactor, defense * 0.2, 20);
+            return damage * (1 - effectiveArmor / 25);
+        };
     }
 
-    private float calculateDamageAfterEnchantments(EntityDamageEvent source) {
+    private float getEnchantmentDamageFactor(DamageSource source) {
         float enchantmentProtection = 0;
         ArmorView armorView = this.getArmor();
         for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
@@ -490,7 +490,7 @@ public class EntityHuman extends EntityCreature implements Human {
         }
 
         float enchantmentReduction = Math.min(enchantmentProtection, 20) * 0.04f;
-        return Math.max(0, source.getDamage() * (1 - enchantmentReduction));
+        return 1 - enchantmentReduction;
     }
 
     @Override

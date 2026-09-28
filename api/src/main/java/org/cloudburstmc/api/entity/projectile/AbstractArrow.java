@@ -36,6 +36,21 @@ public interface AbstractArrow extends Projectile {
     void setDamage(float damage);
 
     /**
+     * Returns how many additional entities this projectile can pierce.
+     * Piercing projectiles also bypass item blocking.
+     *
+     * @return piercing level, or zero for a non-piercing projectile
+     */
+    int getPierceLevel();
+
+    /**
+     * Changes how many additional entities the projectile can pierce.
+     *
+     * @param level piercing level between zero and 127
+     */
+    void setPierceLevel(int level);
+
+    /**
      * Returns who may pick up this projectile after it lands.
      *
      * @return the pickup status

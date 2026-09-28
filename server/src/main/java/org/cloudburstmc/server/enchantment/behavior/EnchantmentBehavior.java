@@ -2,7 +2,7 @@ package org.cloudburstmc.server.enchantment.behavior;
 
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -10,7 +10,7 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 public abstract class EnchantmentBehavior {
 
-    public float getDamageProtection(Enchantment enchantment, EntityDamageEvent event) {
+    public float getDamageProtection(Enchantment enchantment, DamageSource source) {
         return 0;
     }
 

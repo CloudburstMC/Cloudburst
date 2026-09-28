@@ -161,14 +161,14 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
         if (offset.lengthSquared() < 2.25f) {
             this.motion = Vector3f.ZERO;
             owner.pickupEntity(this, true);
-            this.data.update();
+            this.flushEntityData();
             return true;
         }
 
         this.motion = this.motion.mul(0.95f).add(offset.normalize().mul(0.05f * this.loyaltyLevel()));
         this.setPosition(this.getPosition().add(this.motion));
         this.updateMovement();
-        this.data.update();
+        this.flushEntityData();
         return true;
     }
 

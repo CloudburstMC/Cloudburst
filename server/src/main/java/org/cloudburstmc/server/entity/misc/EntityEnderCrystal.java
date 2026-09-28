@@ -8,7 +8,6 @@ import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
@@ -18,6 +17,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOCK_TARGET_POS;
@@ -65,7 +65,7 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (this.isClosed() || this.isInvulnerable() || source.getDamageType().is(DamageTypeTags.IS_FIRE)
                 || source.getDamageSource().getCausingEntity() instanceof EnderDragon) {
             return false;

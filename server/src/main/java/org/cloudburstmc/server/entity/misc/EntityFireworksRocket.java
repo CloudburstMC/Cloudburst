@@ -10,7 +10,6 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -32,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.projectile.EntityProjectile;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -258,7 +258,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION))

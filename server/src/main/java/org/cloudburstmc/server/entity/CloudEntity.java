@@ -43,6 +43,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
@@ -75,7 +76,7 @@ public abstract class CloudEntity implements Entity {
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
     protected final List<Entity> passengers = new ArrayList<>();
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
-    protected final SyncedEntityData data = new SyncedEntityData(this::onDataChange);
+    protected final SyncedEntityData data = new SyncedEntityData();
     private final EntityType<?> type;
     public CloudChunk chunk;
     public NbtMap tag;
@@ -934,7 +935,7 @@ public abstract class CloudEntity implements Entity {
         addEntity.setHeadRotation(this.yaw);
         addEntity.setMotion(this.getMotion());
         addEntity.setBodyRotation(this.getYaw());
-        this.data.putAllIn(addEntity.getMetadata());
+        addEntity.getMetadata().putAll(this.data.snapshot());
 
         for (int i = 0; i < this.passengers.size(); i++) {
             addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
@@ -959,7 +960,15 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    private void onDataChange(EntityDataMap changeSet) {
+    /**
+     * Sends pending metadata to viewers and, for a player, to the player itself.
+     */
+    public void flushEntityData() {
+        EntityDataMap changeSet = this.data.drainChanges();
+        if (changeSet.isEmpty()) {
+            return;
+        }
+
         EntityDataMap metadata = this.withPlayerPoseMetadata(changeSet);
         this.sendDataToViewers(metadata);
 
@@ -989,7 +998,7 @@ public abstract class CloudEntity implements Entity {
     public void sendData(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        this.data.putAllIn(packet.getMetadata());
+        packet.getMetadata().putAll(this.data.snapshot());
         player.sendPacket(packet);
     }
 
@@ -1004,9 +1013,7 @@ public abstract class CloudEntity implements Entity {
     public void sendData(CloudPlayer player, EntityDataType<?>... data) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        for (EntityDataType<?> entityData : data) {
-            packet.getMetadata().put(entityData, this.data.get(entityData));
-        }
+        packet.getMetadata().putAll(this.data.snapshot(data));
 
         player.sendPacket(packet);
     }
@@ -1014,7 +1021,7 @@ public abstract class CloudEntity implements Entity {
     public void sendFlags(CloudPlayer player) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        this.data.putFlagsIn(packet.getMetadata());
+        packet.getMetadata().putAll(this.data.snapshot(FLAGS));
         if (this.isPlayer) {
             this.putNetworkBounds(packet.getMetadata());
         }
@@ -1037,7 +1044,18 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public boolean damage(float amount, DamageSource source) {
-        return this.applyDamage(new EntityDamageEvent(this, source, amount));
+        return this.applyDamage(this.createDamageEvent(source, amount));
+    }
+
+    /**
+     * Captures the damage calculation exposed to listeners for this hit.
+     *
+     * @param source the damage source
+     * @param amount the incoming damage
+     * @return the damage event
+     */
+    protected CloudEntityDamageEvent createDamageEvent(DamageSource source, float amount) {
+        return new CloudEntityDamageEvent(this, source, amount, this.getAbsorption());
     }
 
     /**
@@ -1046,7 +1064,7 @@ public abstract class CloudEntity implements Entity {
      * @param source the damage event
      * @return whether damage was applied
      */
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE)
                 && source.getDamageType().is(DamageTypeTags.IS_FIRE)
                 && !source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
@@ -1058,10 +1076,15 @@ public abstract class CloudEntity implements Entity {
             return false;
         }
 
+        float damage = source.getFinalDamage();
+        float absorbed = source.getAbsorbedDamage();
+        if (damage <= 0 && absorbed <= 0) {
+            return true;
+        }
+
         setLastDamageCause(source);
-        float absorbed = Math.min(this.getAbsorption(), source.getDamage());
-        this.setAbsorption(this.getAbsorption() - absorbed);
-        setHealth(getHealth() - (source.getDamage() - absorbed));
+        this.setAbsorption(Math.max(0, this.getAbsorption() - absorbed));
+        setHealth(getHealth() - damage);
         return true;
     }
 
@@ -1461,7 +1484,7 @@ public abstract class CloudEntity implements Entity {
 
         this.updateMovement();
 
-        this.data.update();
+        this.flushEntityData();
 
         return hasUpdate;
     }
@@ -1492,7 +1515,7 @@ public abstract class CloudEntity implements Entity {
 
         vehicle.onMount(this); // Flags have to be set before
 //        this.data.setFlag(RIDING, true);
-        this.data.update(); // force any data that needs to be sent
+        this.flushEntityData();
         broadcastLinkPacket(vehicle, EntityLinkData.Type.byId(mode.ordinal()));
         onMountComplete(vehicle);
 

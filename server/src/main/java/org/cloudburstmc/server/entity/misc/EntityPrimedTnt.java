@@ -5,7 +5,6 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.PrimedTnt;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
 import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
@@ -13,6 +12,7 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
@@ -61,7 +61,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
@@ -117,7 +117,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
             this.data.setFlag(IGNITED, true);
             this.setFuse(Math.max(0, this.fuse - tickDiff));
-            this.data.update();
+            this.flushEntityData();
             if (this.fuse == 0) {
                 this.explode();
                 this.close();

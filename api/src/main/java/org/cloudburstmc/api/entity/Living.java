@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.PotionEffect;
 
@@ -58,6 +59,20 @@ public interface Living extends Entity, ProjectileSource {
      * @return {@code true} when at least one effect was removed
      */
     boolean clearActivePotionEffects();
+
+    /**
+     * Returns the item currently protecting this entity, after its raising delay.
+     *
+     * @return the blocking item, or {@link ItemStack#EMPTY} when not blocking
+     */
+    ItemStack getBlockingItem();
+
+    /**
+     * Returns whether this entity is ready to block attacks with a raised item.
+     *
+     * @return whether item blocking is active
+     */
+    boolean isBlocking();
 
     /**
      * Performs this entity's standard attack against a target.

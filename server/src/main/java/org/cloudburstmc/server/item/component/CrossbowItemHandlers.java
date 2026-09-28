@@ -138,13 +138,14 @@ public class CrossbowItemHandlers {
 
         boolean firework = ammunition.getType() == ItemTypes.FIREWORK_ROCKET;
         boolean multishot = enchantmentLevel(crossbow, EnchantmentTypes.MULTISHOT) > 0;
-        if (!shoot(player, ammunition, 0, false)) {
+        int piercing = enchantmentLevel(crossbow, EnchantmentTypes.PIERCING);
+        if (!shoot(player, ammunition, 0, false, piercing)) {
             return crossbow;
         }
 
         if (multishot) {
-            shoot(player, ammunition, -MULTISHOT_ANGLE, true);
-            shoot(player, ammunition, MULTISHOT_ANGLE, true);
+            shoot(player, ammunition, -MULTISHOT_ANGLE, true, piercing);
+            shoot(player, ammunition, MULTISHOT_ANGLE, true, piercing);
         }
 
         player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.CROSSBOW_SHOOT);
@@ -157,7 +158,7 @@ public class CrossbowItemHandlers {
         return damage.execute(unloaded, firework ? 3 : 1, player);
     }
 
-    private static boolean shoot(CloudPlayer player, ItemStack ammunition, float yawOffset, boolean sideShot) {
+    private static boolean shoot(CloudPlayer player, ItemStack ammunition, float yawOffset, boolean sideShot, int piercing) {
         Vector3f direction = shotDirection(player, yawOffset);
         if (ammunition.getType() == ItemTypes.FIREWORK_ROCKET) {
             FireworksRocket entity = CloudEntityRegistry.get().newEntity(EntityTypes.FIREWORKS_ROCKET,
@@ -173,6 +174,7 @@ public class CrossbowItemHandlers {
         Vector3f motion = direction.mul(3.15f);
         Arrow arrow = player.launchProjectile(EntityTypes.ARROW, motion, projectile -> {
             projectile.setCritical(true);
+            projectile.setPierceLevel(piercing);
             projectile.setPickupStatus(player.isCreative() || sideShot ? ArrowPickupStatus.CREATIVE_ONLY : ArrowPickupStatus.ALLOWED);
         });
 

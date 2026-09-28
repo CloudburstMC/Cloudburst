@@ -114,11 +114,6 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<List<BlockType>> CAN_PLACE_ON = list("can_place_on", BlockType.class);
 
     /**
-     * Tick at which a shield began blocking.
-     */
-    public static final ItemDataComponentType<Long> SHIELD_BLOCKING_TICKS = value("shield_blocking_ticks", Long.class);
-
-    /**
      * Music record represented by the item.
      */
     public static final ItemDataComponentType<Record> RECORD_TYPE = value("record_type", Record.class);

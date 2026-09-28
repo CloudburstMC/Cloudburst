@@ -11,10 +11,13 @@ import org.cloudburstmc.api.entity.damage.DamageEffect;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.AttackBlockingComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -31,12 +34,15 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
@@ -44,7 +50,7 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING
 public abstract class EntityLiving extends CloudEntity implements Living {
 
     private static final int HURT_COOLDOWN_TICKS = 10;
-    private static final float DEFAULT_KNOCKBACK_STRENGTH = 1f;
+    private static final float DEFAULT_KNOCKBACK_STRENGTH = 0.4f;
 
     private boolean inPowderSnow;
     private int hurtCooldownTicks;
@@ -138,7 +144,58 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    public ItemStack getBlockingItem() {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public boolean isBlocking() {
+        return !this.getBlockingItem().isEmpty();
+    }
+
+    protected DoubleUnaryOperator createBlockingReduction(DamageSource source) {
+        if (source.getDamageType().is(DamageTypeTags.BYPASSES_SHIELD) || source.getDirectEntity() instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
+            return _ -> 0;
+        }
+
+        ItemStack item = this.getBlockingItem();
+        Location origin = source.getSourceLocation();
+        if (item.isEmpty() || origin == null || origin.getLevel() != this.level) {
+            return _ -> 0;
+        }
+
+        AttackBlockingComponent blocking = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.BLOCKS_ATTACKS);
+        if (blocking == null) {
+            return _ -> 0;
+        }
+
+        Vector2f toSource = origin.getPosition().sub(this.getPosition()).toVector2(true);
+        if (toSource.lengthSquared() == 0) {
+            return _ -> 0;
+        }
+
+        boolean blocks = blocking.blocksDirection(this.getDirectionPlane().dot(toSource.normalize()));
+        return damage -> blocks ? damage : 0;
+    }
+
+    protected void onDamageBlocked(EntityDamageEvent event) {
+        Entity attacker = event.getDamageSource().getDirectEntity();
+        if (attacker instanceof EntityLiving livingAttacker
+                && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)
+                && !event.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {
+            Vector2f direction = attacker.getPosition().sub(this.getPosition()).toVector2(true);
+            livingAttacker.knockBack(this, 0.5f, direction.getX(), direction.getY());
+        }
+    }
+
+    @Override
+    protected CloudEntityDamageEvent createDamageEvent(DamageSource source, float amount) {
+        float cooldownDamage = source.getDamageType().is(DamageTypeTags.BYPASSES_COOLDOWN) || this.hurtCooldownTicks <= 0 && this.noDamageTicks <= 0 ? 0 : this.lastDamageAmount;
+        return new CloudEntityDamageEvent(this, source, amount, this.createBlockingReduction(source), cooldownDamage, this.createDamageReduction(source), this.getAbsorption());
+    }
+
+    @Override
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (this.isClosed() || !this.isAlive()) {
             return false;
         }
@@ -146,18 +203,17 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         Entity directEntity = source.getDamageSource().getDirectEntity();
         Entity causingEntity = source.getDamageSource().getCausingEntity();
 
-        float incomingDamage = source.getDamage();
         boolean fullDamage = source.getDamageType().is(DamageTypeTags.BYPASSES_COOLDOWN) || (this.hurtCooldownTicks <= 0 && this.noDamageTicks <= 0);
-        float cooldownAdjustedDamage = fullDamage ? incomingDamage : Math.max(incomingDamage - this.lastDamageAmount, 0);
-
-        if (cooldownAdjustedDamage <= 0) {
+        if (!super.applyDamage(source)) {
             return false;
         }
 
-        source.setDamage(cooldownAdjustedDamage);
-        this.applyDamageReductions(source);
+        float cooldownAdjustedDamage = source.getDamageBeforeReductions();
+        if (source.getBlockedDamage() > 0) {
+            this.onDamageBlocked(source);
+        }
 
-        if (!super.applyDamage(source)) {
+        if (cooldownAdjustedDamage <= 0) {
             return false;
         }
 
@@ -181,27 +237,29 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             this.hurtCooldownTicks = HURT_COOLDOWN_TICKS;
         }
 
-        this.lastDamageAmount = incomingDamage;
+        this.lastDamageAmount = source.getUnblockedDamage();
         return true;
     }
 
     /**
-     * Applies living-entity damage reductions in gameplay order.
+     * Captures living-entity defenses for one hit without applying their side effects.
      *
-     * @param source the mutable damage event
+     * @param source the damage source
+     * @return the reduction applied after blocking and the hurt cooldown
      */
-    protected void applyDamageReductions(EntityDamageEvent source) {
+    protected DoubleUnaryOperator createDamageReduction(DamageSource source) {
         if (source.getDamageType().is(DamageTypeTags.BYPASSES_EFFECTS) || source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
-            return;
+            return damage -> damage;
         }
 
         PotionEffect resistanceEffect = this.getPotionEffect(EffectTypes.RESISTANCE);
         if (resistanceEffect == null) {
-            return;
+            return damage -> damage;
         }
 
         int resistance = (resistanceEffect.getAmplifier() + 1) * 5;
-        source.setDamage(source.getDamage() * Math.max(25 - resistance, 0) / 25f);
+        float factor = Math.max(25 - resistance, 0) / 25f;
+        return damage -> damage * factor;
     }
 
     /**
@@ -264,7 +322,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     public void knockBack(Entity attacker, float strength, float diffX, float diffZ) {
-        float effectiveStrength = 0.4f * strength * (1 - this.getKnockbackResistance());
+        float effectiveStrength = strength * (1 - this.getKnockbackResistance());
         if (effectiveStrength <= 0) {
             return;
         }

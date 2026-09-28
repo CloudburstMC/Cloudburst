@@ -7,7 +7,6 @@ import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
@@ -21,6 +20,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
@@ -92,7 +92,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent event) {
+    protected boolean applyDamage(CloudEntityDamageEvent event) {
         Entity direct = event.getDamageSource().getDirectEntity();
         boolean burningProjectile = direct instanceof Projectile && direct.isOnFire();
         if (this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES) && (burningProjectile

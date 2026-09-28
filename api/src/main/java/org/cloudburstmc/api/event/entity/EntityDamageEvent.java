@@ -9,9 +9,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Called when an entity takes damage.
+ * Called before damage is applied. Cancellation prevents damage and its associated effects.
+ * Defenses are captured for the hit. Changing the raw damage recalculates blocking
+ * and damage reductions using those defenses.
  */
-public final class EntityDamageEvent extends EntityEvent implements Cancellable {
+public abstract class EntityDamageEvent extends EntityEvent implements Cancellable {
 
     private final DamageSource damageSource;
     private final float originalDamage;
@@ -22,9 +24,9 @@ public final class EntityDamageEvent extends EntityEvent implements Cancellable 
      *
      * @param entity       the damaged entity
      * @param damageSource the damage source
-     * @param damage       the non-negative damage
+     * @param damage       the non-negative incoming damage before reductions
      */
-    public EntityDamageEvent(Entity entity, DamageSource damageSource, float damage) {
+    protected EntityDamageEvent(Entity entity, DamageSource damageSource, float damage) {
         this.entity = requireNonNull(entity, "entity");
         this.damageSource = requireNonNull(damageSource, "damageSource");
         checkArgument(Float.isFinite(damage) && damage >= 0, "damage must be finite and non-negative");
@@ -60,7 +62,7 @@ public final class EntityDamageEvent extends EntityEvent implements Cancellable 
     }
 
     /**
-     * Returns the damage that will be applied.
+     * Returns the incoming damage before blocking and other reductions.
      *
      * @return the current damage
      */
@@ -69,7 +71,7 @@ public final class EntityDamageEvent extends EntityEvent implements Cancellable 
     }
 
     /**
-     * Sets the damage that will be applied.
+     * Sets the incoming damage before blocking and other reductions.
      *
      * @param damage the new non-negative damage
      */
@@ -77,4 +79,28 @@ public final class EntityDamageEvent extends EntityEvent implements Cancellable 
         checkArgument(Float.isFinite(damage) && damage >= 0, "damage must be finite and non-negative");
         this.damage = damage;
     }
+
+    /**
+     * Returns the damage prevented by a raised item before other reductions.
+     * This is recalculated when raw damage changes.
+     *
+     * @return the blocked damage
+     */
+    public abstract float getBlockedDamage();
+
+    /**
+     * Returns the damage prevented by absorption hearts after other reductions.
+     * This is recalculated when raw damage changes.
+     *
+     * @return the absorbed damage
+     */
+    public abstract float getAbsorbedDamage();
+
+    /**
+     * Returns the health damage after blocking, hurt cooldowns, armor, potion effects
+     * and absorption. This is recalculated when raw damage changes.
+     *
+     * @return the reduced damage
+     */
+    public abstract float getFinalDamage();
 }

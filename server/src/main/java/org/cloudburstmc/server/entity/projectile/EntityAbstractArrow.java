@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
@@ -14,12 +15,18 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static java.util.Objects.requireNonNull;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.CRITICAL;
 
 public abstract class EntityAbstractArrow extends EntityProjectile implements AbstractArrow {
 
     private ArrowPickupStatus pickupStatus = ArrowPickupStatus.ALLOWED;
+    private int pierceLevel;
+    private final Set<Entity> piercedEntities = new HashSet<>();
+    private Entity deflectedFrom;
     private boolean inGround;
     private Vector3i embeddedPosition;
     private BlockState embeddedState;
@@ -49,10 +56,25 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
+    public int getPierceLevel() {
+        return this.pierceLevel;
+    }
+
+    @Override
+    public void setPierceLevel(int level) {
+        if (level < 0 || level > 127) {
+            throw new IllegalArgumentException("level must be between zero and 127");
+        }
+
+        this.pierceLevel = level;
+    }
+
+    @Override
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
         tag.listenForBoolean("inGround", value -> this.inGround = value);
+        tag.listenForByte("PierceLevel", value -> this.setPierceLevel(Byte.toUnsignedInt(value)));
         if (tag.containsKey("inBlockX") && tag.containsKey("inBlockY") && tag.containsKey("inBlockZ")) {
             this.embeddedPosition = Vector3i.from(tag.getInt("inBlockX"), tag.getInt("inBlockY"), tag.getInt("inBlockZ"));
         }
@@ -69,6 +91,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         super.saveAdditionalData(tag);
 
         tag.putBoolean("inGround", this.inGround);
+        tag.putByte("PierceLevel", (byte) this.pierceLevel);
         if (this.inGround && this.embeddedPosition != null) {
             tag.putInt("inBlockX", this.embeddedPosition.getX());
             tag.putInt("inBlockY", this.embeddedPosition.getY());
@@ -82,6 +105,32 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         };
 
         tag.putByte("pickup", pickup);
+    }
+
+    @Override
+    protected boolean canHitEntity(Entity entity) {
+        return entity != this.deflectedFrom && !this.piercedEntities.contains(entity) && super.canHitEntity(entity);
+    }
+
+    @Override
+    protected void onCollideWithEntity(Entity entity) {
+        if (this.damageEntity(entity)) {
+            this.piercedEntities.add(entity);
+            if (this.piercedEntities.size() > this.pierceLevel) {
+                this.close();
+            } else {
+                this.updateMovement();
+            }
+
+            return;
+        }
+
+        this.deflectedFrom = entity;
+        this.setCritical(false);
+        this.motion = this.motion.mul(-0.2f);
+        this.yaw = (this.yaw + 180) % 360;
+        this.pitch = -this.pitch;
+        this.updateMovement();
     }
 
     @Override
@@ -147,7 +196,7 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
         this.lastUpdate = currentTick;
         boolean hasUpdate = this.entityBaseTick(tickDiff);
         this.motion = Vector3f.ZERO;
-        this.data.update();
+        this.flushEntityData();
         return hasUpdate;
     }
 }

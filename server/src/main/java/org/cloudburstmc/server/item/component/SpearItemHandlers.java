@@ -103,7 +103,7 @@ public class SpearItemHandlers {
             }
 
             if (knockback && target instanceof EntityLiving living) {
-                living.knockBack(player, 1.0f, look.getX(), look.getZ());
+                living.knockBack(player, 0.4f, look.getX(), look.getZ());
             }
 
             boolean affected = knockback || dismount && target.getVehicle() != null;
@@ -145,7 +145,7 @@ public class SpearItemHandlers {
             if (player.attack(target)) {
                 damaged = true;
                 if (target instanceof EntityLiving living) {
-                    living.knockBack(player, 1.0f, look.getX(), look.getZ());
+                    living.knockBack(player, 0.4f, look.getX(), look.getZ());
                 }
             }
         }
