@@ -11,7 +11,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class ItemUseBehaviorRegistrationTest {
 
     @Test
-    public void distinguishesOptionalUseCallbacksFromTimedCompletion() {
+    void registersTransformationsForEveryToolTier() {
+        CloudItemRegistry items = CloudItemRegistry.get();
+        ItemTypes.values().forEach(type -> {
+            String name = type.getId().getName();
+            if (name.endsWith("_axe") || name.endsWith("_hoe") || name.endsWith("_shovel")) {
+                assertNotNull(items.requireComponent(type, ItemBehaviors.USE_ON));
+            }
+        });
+        assertNotNull(items.requireComponent(ItemTypes.HONEYCOMB, ItemBehaviors.USE_ON));
+    }
+
+    @Test
+    void distinguishesOptionalUseCallbacksFromTimedCompletion() {
         CloudItemRegistry items = CloudItemRegistry.get();
 
         assertNull(items.getComponent(ItemTypes.BOW, ItemBehaviors.USE_TICK));
@@ -28,7 +40,7 @@ class ItemUseBehaviorRegistrationTest {
     }
 
     @Test
-    public void registersStabOnlyForPiercingWeapons() {
+    void registersStabOnlyForPiercingWeapons() {
         CloudItemRegistry items = CloudItemRegistry.get();
 
         assertNotNull(items.requireComponent(ItemTypes.WOODEN_SPEAR, ItemBehaviors.STAB));

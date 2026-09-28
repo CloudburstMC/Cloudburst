@@ -16,9 +16,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
-import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.entity.*;
-import org.cloudburstmc.api.event.player.PlayerInteractEvent;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -60,7 +58,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.google.common.base.Preconditions.*;
-import static org.cloudburstmc.api.block.BlockTypes.FARMLAND;
 import static org.cloudburstmc.api.block.BlockTypes.FIRE;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
@@ -355,7 +352,7 @@ public abstract class CloudEntity implements Entity {
             this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
 
-//        this.highestPosition = this.y + this.namedTag.getFloat("FallDistance");
+        this.highestPosition = this.getY();
         tag.listenForFloat("FallDistance", this::setFallDistance);
 
         tag.listenForShort("Fire", this::setOnFire);
@@ -1667,24 +1664,21 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void resetFallDistance() {
-        this.highestPosition = 0;
+        this.fallDistance = 0;
+        this.highestPosition = this.getY();
     }
 
     protected void updateFallState(boolean onGround) {
-        if (onGround) {
-            fallDistance = this.highestPosition - this.getY();
+        if (!onGround) {
+            this.highestPosition = Math.max(this.highestPosition, this.getY());
+            this.fallDistance = Math.max(0, this.highestPosition - this.getY());
+            return;
+        }
 
-            if (fallDistance > 0) {
-                // check if we fell into at least 1 block of water
-                if (this instanceof EntityLiving) {
-                    var liquid = this.level.getBlock(this.position.toInt()).getLiquid().getType();
-
-                    if (!liquid.isSameFamily(LiquidTypes.WATER)) {
-                        this.fall(fallDistance);
-                    }
-                }
-                this.resetFallDistance();
-            }
+        float distance = Math.max(0, this.highestPosition - this.getY());
+        this.resetFallDistance();
+        if (distance > 0 && this instanceof EntityLiving && !this.level.getLiquidState(this.position.toInt()).getType().isSameFamily(LiquidTypes.WATER)) {
+            this.fall(distance);
         }
     }
 
@@ -1693,24 +1687,12 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void fall(float fallDistance) {
-        Block down = this.level.getBlock(Direction.DOWN.getUnitVector().add(this.getPosition().toInt()));
+        Block down = this.level.getBlock(this.getLandingBlockPosition());
         down.requireComponent(BlockComponents.ON_FALL_ON).execute(down, this, fallDistance);
+    }
 
-        if (fallDistance > 0.75 && down.getState().getType() == FARMLAND) {
-            Event ev;
-
-            if (this instanceof CloudPlayer) {
-                ev = new PlayerInteractEvent((Player) this, null, down, null, PlayerInteractEvent.Action.PHYSICAL);
-            } else {
-                ev = new EntityInteractEvent(this, down);
-            }
-
-            this.server.getEventManager().fire(ev);
-            if (ev.isCancelled()) {
-                return;
-            }
-            this.level.setBlockState(down.getPosition(), BlockStates.DIRT, false, true);
-        }
+    protected Vector3i getLandingBlockPosition() {
+        return this.supportingBlockPosition.orElseGet(() -> this.position.sub(0, 0.2f, 0).toInt());
     }
 
     public void applyFallDamage(float fallDistance) {
@@ -1886,6 +1868,20 @@ public abstract class CloudEntity implements Entity {
 
     public void move(MovementType type, float dx, float dy, float dz) {
         EntityMovementController.move(this, type, dx, dy, dz);
+    }
+
+    public void displace(Vector3f displacement) {
+        checkNotNull(displacement, "displacement");
+        if (displacement.equals(Vector3f.ZERO)) {
+            return;
+        }
+
+        BoundingBox previousBox = this.boundingBox;
+        if (this.setPosition(this.position.add(displacement))) {
+            this.highestPosition += displacement.getY();
+            this.recordMovement(previousBox, this.boundingBox);
+            this.sendAuthoritativeDisplacement();
+        }
     }
 
     public void recordMovement(BoundingBox previousBox, BoundingBox currentBox) {

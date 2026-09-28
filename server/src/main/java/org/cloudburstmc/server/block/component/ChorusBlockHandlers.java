@@ -7,7 +7,7 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
-import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -57,7 +57,7 @@ public class ChorusBlockHandlers {
             return;
         }
 
-        EntityBlockChangeEvent event = new EntityBlockChangeEvent(projectile, block, BlockStates.AIR);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(projectile, block, BlockStates.AIR);
         block.getLevel().getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return;

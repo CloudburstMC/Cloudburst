@@ -58,6 +58,7 @@ class BlockRegistryTest {
                 () -> assertSame(ContainerBlockHandlers.ENCHANTING_TABLE, component(BlockTypes.ENCHANTING_TABLE, BlockComponents.USE)),
                 () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(BlockTypes.ENDER_CHEST, BlockComponents.CAN_BE_USED)),
                 () -> assertSame(ContainerBlockHandlers.ENDER_CHEST, component(BlockTypes.ENDER_CHEST, BlockComponents.USE)),
+                () -> assertSame(FarmlandBlockHandlers.FALL_ON, component(BlockTypes.FARMLAND, BlockComponents.ON_FALL_ON)),
                 () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.FIRE, BlockComponents.GET_LOOT)),
                 () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.SOUL_FIRE, BlockComponents.GET_LOOT)),
                 () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.PORTAL, BlockComponents.GET_LOOT)),
@@ -256,7 +257,7 @@ class BlockRegistryTest {
     }
 
     @Test
-    public void groupsAllLightningRodVariantsForChanneling() {
+    void groupsAllLightningRodVariantsForChanneling() {
         assertEquals(Set.of(
                 BlockTypes.LIGHTNING_ROD,
                 BlockTypes.EXPOSED_LIGHTNING_ROD,

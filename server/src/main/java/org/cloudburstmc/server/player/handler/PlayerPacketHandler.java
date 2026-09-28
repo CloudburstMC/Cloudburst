@@ -663,8 +663,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         Block side = target.getSide(face);
         ItemStack item = player.getInventory().getSelectedItem();
 
-        if (level.tryUseBlock(target, side, face, item, player)) {
-            return;
+        switch (level.interactWithBlock(target, face, item, player)) {
+            case CONSUMED -> {
+                return;
+            }
+            case DENIED -> {
+                rollbackBlock(blockPos, face);
+                return;
+            }
+            case PASS -> {
+            }
         }
 
         if (!item.isEmpty()) {

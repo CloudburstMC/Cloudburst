@@ -67,6 +67,7 @@ import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
+import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
@@ -1605,7 +1606,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             this.blockRegistry.requireComponent(oldLayers.primary().getType(), BlockComponents.ON_REMOVE).execute(oldBlock);
 
             BlockEntity blockEntity = this.getLoadedBlockEntity(position);
-            if (blockEntity != null) {
+            if (blockEntity != null && (blockEntity instanceof UnknownBlockEntity || !blockEntity.isValid())) {
                 blockEntity.close();
                 this.updateComparatorOutputLevel(position);
             }
@@ -2145,11 +2146,10 @@ public class CloudLevel implements Level, BlockStateRegion {
      * Attempts to interact with the target block.
      * Does not require an item in hand.
      *
-     * @return true if the block consumed the interaction
+     * @return whether item use may proceed, the block consumed the interaction, or the interaction was denied
      */
-    public boolean tryUseBlock(Block target, Block side, Direction face, ItemStack item, Player player) {
+    public BlockInteractionResult interactWithBlock(Block target, Direction face, ItemStack item, Player player) {
         ComponentMap targetBehaviors = target.getComponents();
-
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
             if (player.getGameMode() == GameMode.SPECTATOR) {
@@ -2162,18 +2162,20 @@ public class CloudLevel implements Level, BlockStateRegion {
             this.server.getEventManager().fire(ev);
 
             if (ev.isCancelled()) {
-                return false;
+                return BlockInteractionResult.DENIED;
             }
 
-
             if (player.isSneaking() && !item.isEmpty()) {
-                return false;
+                return BlockInteractionResult.PASS;
             }
 
             boolean canUse = targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, player);
-            return canUse && targetBehaviors.require(BlockComponents.USE).execute(target, player, face, item);
+            return canUse && targetBehaviors.require(BlockComponents.USE).execute(target, player, face, item)
+                    ? BlockInteractionResult.CONSUMED : BlockInteractionResult.PASS;
         } else {
-            return targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, null) && targetBehaviors.require(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY);
+            return targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, null)
+                    && targetBehaviors.require(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY)
+                    ? BlockInteractionResult.CONSUMED : BlockInteractionResult.PASS;
         }
     }
 

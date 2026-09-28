@@ -9,7 +9,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
-import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -340,14 +340,14 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, target, this.blockState);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(this, target, this.blockState);
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             this.close();
             return;
         }
 
-        if (!this.level.placeBlockFromFallingEntity(position, event.getTo(), this)) {
+        if (!this.level.placeBlockFromFallingEntity(position, event.getBlockState(), this)) {
             this.close();
             this.breakBlock();
             return;

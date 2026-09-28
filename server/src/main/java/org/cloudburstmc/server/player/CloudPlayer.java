@@ -687,7 +687,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.startAirTicks = 5;
         }
         this.inAirTicks = 0;
-        this.highestPosition = this.getPosition().getY();
     }
 
     @Override
@@ -1931,7 +1930,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         CorrectPlayerMovePredictionPacket correction = new CorrectPlayerMovePredictionPacket();
         correction.setPredictionType(PredictionType.PLAYER);
         correction.setPosition(authoritativePos.add(0, getBaseOffset(), 0));
-        correction.setDelta(Vector3f.ZERO);
+        correction.setDelta(this.getMotion());
         correction.setVehicleRotation(Vector2f.ZERO);
         correction.setVehicleAngularVelocity(0.0f);
         correction.setOnGround(this.isNetworkOnGround());
@@ -1942,7 +1941,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Override
     public void sendAuthoritativeDisplacement() {
         super.sendAuthoritativeDisplacement();
-        this.sendPacket(this.createAuthoritativeDisplacementPacket());
+        this.sendMovementCorrection(this.getPosition(), this.clientTick);
     }
 
     public void beginFireworkGlideBoost(long fireworkRuntimeId) {
@@ -2036,13 +2035,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                             this.startAirTicks = 5;
                         }
                         this.inAirTicks = 0;
-                        this.highestPosition = this.getPosition().getY();
                     } else {
-                        float curY = this.getPosition().getY();
-                        if (curY > highestPosition) {
-                            this.highestPosition = curY;
-                        }
-
                         if (this.isGliding()) this.resetFallDistance();
 
                         ++this.inAirTicks;

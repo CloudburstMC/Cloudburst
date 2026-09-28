@@ -197,6 +197,7 @@ public class VanillaBlockBehaviors {
         configureDoor(registry, EXPOSED_COPPER_DOOR);
         configureTrapdoor(registry, EXPOSED_COPPER_TRAPDOOR);
         configureSlab(registry, EXPOSED_CUT_COPPER_SLAB, EXPOSED_DOUBLE_CUT_COPPER_SLAB);
+        registry.configure(FARMLAND).set(BlockComponents.ON_FALL_ON, FarmlandBlockHandlers.FALL_ON);
         registry.configure(FIRE)
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE)
                 .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);

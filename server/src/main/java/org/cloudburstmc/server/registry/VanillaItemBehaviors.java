@@ -179,6 +179,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.GUARDIAN_SPAWN_EGG, EntityTypes.GUARDIAN);
         configureSpawnEgg(registry, ItemTypes.HAPPY_GHAST_SPAWN_EGG, EntityTypes.HAPPY_GHAST);
         configureSpawnEgg(registry, ItemTypes.HOGLIN_SPAWN_EGG, EntityTypes.HOGLIN);
+        registry.configure(ItemTypes.HONEYCOMB).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.HONEYCOMB));
         registry.configure(ItemTypes.HOPPER_MINECART)
                 .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.HOPPER_MINECART));
         configureSpawnEgg(registry, ItemTypes.HORSE_SPAWN_EGG, EntityTypes.HORSE);
@@ -435,6 +436,7 @@ public final class VanillaItemBehaviors {
                 EnchantmentTarget.SHARP_WEAPON,
                 EnchantmentTarget.WEAPON
         );
+        registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.AXE));
     }
 
     private void configurePickaxe(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
@@ -443,6 +445,7 @@ public final class VanillaItemBehaviors {
 
     private void configureShovel(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
         configureTool(registry, type, VanillaTools.shovel(material.getSpeed()), material.getDurability(), 2.5f + material.getAttackDamageBonus(), repairWith);
+        registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHOVEL));
     }
 
     private void configureHoe(CloudItemRegistry registry, ItemType type, ToolMaterial material, float attackDamageBaseline, CanRepairWithHandler repairWith) {
@@ -454,6 +457,7 @@ public final class VanillaItemBehaviors {
                 1 + attackDamageBaseline + material.getAttackDamageBonus(),
                 repairWith
         );
+        registry.configure(type).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.HOE));
     }
 
     private void configureSword(CloudItemRegistry registry, ItemType type, ToolMaterial material, CanRepairWithHandler repairWith) {
