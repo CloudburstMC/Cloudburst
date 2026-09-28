@@ -16,7 +16,11 @@ import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -30,6 +34,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
 import org.cloudburstmc.server.entity.component.BucketableEntityHandlers;
+import org.cloudburstmc.server.entity.component.PickItemEntityHandlers;
 import org.cloudburstmc.server.entity.component.SnowGolemEntityHandlers;
 import org.cloudburstmc.server.entity.hostile.*;
 import org.cloudburstmc.server.entity.misc.*;
@@ -96,6 +101,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private CloudEntityRegistry() {
         this.registerVanillaEntityComponents();
         this.registerVanillaEntities();
+        this.registerPickItemComponents();
         this.registerProjectileDamageComponents();
         this.registerBucketableEntities();
         this.registerPowderSnowProperties();
@@ -309,12 +315,38 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private void registerVanillaEntityComponents() {
         this.registerComponent(EntityComponents.GET_ATTACK_DAMAGE, entity -> 2f);
         this.registerComponent(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.MOB_PROJECTILE);
+        this.registerComponent(EntityComponents.GET_PICK_ITEM, (entity, includeData) -> ItemStack.EMPTY);
         this.registerComponent(EntityComponents.ON_INTERACT, (entity, player, item, clickedPos) -> false);
         this.registerComponent(EntityComponents.ON_TICK, (entity, currentTick) -> true);
         this.registerComponent(EntityComponents.CAN_BE_NAMED, entity -> true);
         this.registerComponent(EntityComponents.CAN_FREEZE, entity -> true);
         this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> false);
         this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
+    }
+
+    private void registerPickItemComponents() {
+        CloudItemRegistry items = CloudItemRegistry.get();
+        for (ItemType item : items.values()) {
+            SpawnEggComponent egg = items.getComponent(item, ItemBehaviors.SPAWN_EGG);
+            if (egg != null && this.dataMap.containsKey(egg.entityType())) {
+                this.registerPickItem(egg.entityType(), item);
+            }
+        }
+
+        this.registerPickItem(ARMOR_STAND, ItemTypes.ARMOR_STAND);
+        this.registerPickItem(PAINTING, ItemTypes.PAINTING);
+        this.registerPickItem(ENDER_CRYSTAL, ItemTypes.END_CRYSTAL);
+        this.registerPickItem(MINECART, ItemTypes.MINECART);
+        this.registerPickItem(CHEST_MINECART, ItemTypes.CHEST_MINECART);
+        this.registerPickItem(HOPPER_MINECART, ItemTypes.HOPPER_MINECART);
+        this.registerPickItem(TNT_MINECART, ItemTypes.TNT_MINECART);
+        this.registerPickItem(COMMAND_BLOCK_MINECART, ItemTypes.COMMAND_BLOCK_MINECART);
+        this.configure(BOAT).set(EntityComponents.GET_PICK_ITEM, PickItemEntityHandlers.BOAT);
+        this.configure(CHEST_BOAT).set(EntityComponents.GET_PICK_ITEM, PickItemEntityHandlers.CHEST_BOAT);
+    }
+
+    private void registerPickItem(EntityType<?> type, ItemType item) {
+        this.configure(type).set(EntityComponents.GET_PICK_ITEM, (entity, includeData) -> ItemStack.from(item));
     }
 
     private void registerVanillaEntities() {

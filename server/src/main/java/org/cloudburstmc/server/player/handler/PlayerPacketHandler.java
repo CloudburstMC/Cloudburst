@@ -76,6 +76,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
@@ -1254,86 +1255,60 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(BlockPickRequestPacket packet) {
-        if (player.isSpectator()) {
-            log.debug("Got block-pick request from {} when in spectator mode", player.getName());
+        Vector3i position = packet.getBlockPosition();
+        CloudLevel level = player.getLevel();
+        if (!player.isAlive() || player.isSpectator() || !player.isSpawned()
+                || level.isOutsideBuildHeight(position.getY())
+                || level.getLoadedChunk(position) == null || !player.canInteractWithBlock(position)) {
             return PacketSignal.HANDLED;
         }
 
-        Vector3i pickPos = packet.getBlockPosition();
-        Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
-
-        if (block.getState().getType() == BlockTypes.AIR) {
-            log.debug("Got block-pick request from {} for air block", player.getName());
+        Block block = level.getBlock(position.getX(), position.getY(), position.getZ());
+        ItemStack item = block.requireComponent(BlockComponents.GET_PICK_BLOCK).execute(block);
+        if (item.isEmpty()) {
             return PacketSignal.HANDLED;
         }
 
-        ItemStack item = block.requireComponent(BlockComponents.GET_PICK_BLOCK)
-                .execute(block);
-        if (packet.isAddUserData()) {
-            BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
-                    Vector3i.from(pickPos.getX(), pickPos.getY(), pickPos.getZ()));
-            if (blockEntity != null) {
-                NbtMap nbt = blockEntity.getItemTag();
-                if (nbt != null) {
-//                    ItemStackBuilder builder = (ItemStackBuilder) item.toBuilder(); //TODO
-//                    builder.nbt()
-//                    item.addTag(nbt);
-//                    item.setLore("+(DATA)");
-                }
-            }
+        boolean includeData = player.isCreative() && packet.isAddUserData();
+        int sourceSlot = player.getInventory().first(item);
+        int targetSlot = ItemPickController.getTargetSlot(player.getInventory(), sourceSlot);
+
+        PlayerPickBlockEvent event = new PlayerPickBlockEvent(player, block, item, includeData, targetSlot, sourceSlot);
+        player.getServer().getEventManager().fire(event);
+        if (!event.isCancelled() && player.isAlive() && !player.isSpectator() && player.isSpawned()) {
+            ItemPickController.pick(player.getInventory(), event.getItem(), event.getSourceSlot(), event.getTargetSlot(), player.isCreative());
         }
 
-        PlayerBlockPickEvent pickEvent = new PlayerBlockPickEvent(player, block, item);
-        player.getServer().getEventManager().fire(pickEvent);
+        return PacketSignal.HANDLED;
+    }
 
-        if (!pickEvent.isCancelled()) {
-            item = pickEvent.getItem();
-            boolean itemExists = false;
-            int itemSlot = -1;
-            for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                if (pickBlockMatchesDamage(player.getContainer().getItem(slot), item)) {
-                    if (slot < player.getInventory().getHotbarSize()) {
-                        player.setSelectedHotbarSlot(slot);
-                    } else {
-                        itemSlot = slot;
-                    }
-                    itemExists = true;
-                    break;
-                }
-            }
-
-            for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getContainer().getItem(slot).isEmpty()) {
-                    if (!itemExists && player.isCreative()) {
-                        player.setSelectedHotbarSlot(slot);
-                        player.getInventory().setSelectedItem(item);
-                        return PacketSignal.HANDLED;
-                    } else if (itemSlot > -1) {
-                        player.setSelectedHotbarSlot(slot);
-                        player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
-                        player.getInventory().setItem(itemSlot, ItemStack.EMPTY);
-                        return PacketSignal.HANDLED;
-                    }
-                }
-            }
-
-            if (!itemExists && player.isCreative()) {
-                ItemStack itemInHand = player.getInventory().getSelectedItem();
-                player.getInventory().setSelectedItem(item);
-                if (!player.getContainer().isFull()) {
-                    for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                        if (player.getContainer().getItem(slot).isEmpty()) {
-                            player.getContainer().setItem(slot, itemInHand);
-                            break;
-                        }
-                    }
-                }
-            } else if (itemSlot > -1) {
-                ItemStack itemInHand = player.getInventory().getSelectedItem();
-                player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
-                player.getContainer().setItem(itemSlot, itemInHand);
-            }
+    @Override
+    public PacketSignal handle(EntityPickRequestPacket packet) {
+        if (!player.isAlive() || player.isSpectator() || !player.isSpawned()) {
+            return PacketSignal.HANDLED;
         }
+
+        Entity entity = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
+        if (entity == null || entity.isClosed() || !entity.isAlive()
+                || !entity.getViewers().contains(player) || !player.canInteractWithEntity(entity)) {
+            return PacketSignal.HANDLED;
+        }
+
+        boolean includeData = player.isCreative() && packet.isWithData();
+        ItemStack item = entity.getPickItem(includeData);
+        if (item.isEmpty()) {
+            return PacketSignal.HANDLED;
+        }
+
+        int sourceSlot = player.getInventory().first(item);
+        int targetSlot = ItemPickController.getTargetSlot(player.getInventory(), sourceSlot);
+
+        PlayerPickEntityEvent event = new PlayerPickEntityEvent(player, entity, item, includeData, targetSlot, sourceSlot);
+        player.getServer().getEventManager().fire(event);
+        if (!event.isCancelled() && player.isAlive() && !player.isSpectator() && player.isSpawned()) {
+            ItemPickController.pick(player.getInventory(), event.getItem(), event.getSourceSlot(), event.getTargetSlot(), player.isCreative());
+        }
+
         return PacketSignal.HANDLED;
     }
 
@@ -1941,14 +1916,4 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         return PacketSignal.HANDLED;
     }
 
-    /**
-     * Returns {@code true} if {@code inventoryItem} has the same type as
-     * {@code pickedItem} and carries the same {@link ItemDataComponents#DAMAGE} value.
-     */
-    private static boolean pickBlockMatchesDamage(ItemStack inventoryItem, ItemStack pickedItem) {
-        if (!inventoryItem.isSimilar(pickedItem)) {
-            return false;
-        }
-        return inventoryItem.getDamage() == pickedItem.getDamage();
-    }
 }

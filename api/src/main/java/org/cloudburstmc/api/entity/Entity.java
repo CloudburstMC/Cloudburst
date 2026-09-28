@@ -28,6 +28,23 @@ public interface Entity extends Damageable, Emitter {
 
     EntityType<?> getType();
 
+    /**
+     * Returns the item representing this entity without changing it or an inventory.
+     *
+     * @param includeData whether supported entity-specific data should be included
+     * @return the picked item, or {@link ItemStack#EMPTY} when this entity has no item representation
+     * @see EntityComponents#GET_PICK_ITEM
+     */
+    ItemStack getPickItem(boolean includeData);
+
+    /**
+     * Captures an immutable copy of this entity's persistent state for later recreation.
+     * Players cannot be copied this way. Identity and placement data are not retained.
+     *
+     * @return the snapshot, or an empty optional when copying is unsupported
+     */
+    Optional<EntitySnapshot> createSnapshot();
+
     Level getLevel();
 
     Chunk getChunk();

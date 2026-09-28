@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.component.PickItemEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -18,6 +19,7 @@ import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
@@ -306,6 +308,29 @@ public abstract class CloudEntity implements Entity {
     }
 
     @Override
+    public ItemStack getPickItem(boolean includeData) {
+        PickItemEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.GET_PICK_ITEM);
+        ItemStack item = handler == null ? ItemStack.EMPTY : Objects.requireNonNull(handler.execute(this, includeData), "picked item");
+
+        if (!includeData || item.isEmpty() || item.has(ItemDataComponents.ENTITY_DATA)) {
+            return item;
+        }
+
+        return this.createSnapshot()
+                .map(snapshot -> item.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build())
+                .orElse(item);
+    }
+
+    @Override
+    public Optional<EntitySnapshot> createSnapshot() {
+        if (this instanceof CloudPlayer || this.type == EntityTypes.PLAYER || Player.class.isAssignableFrom(this.type.getEntityClass())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(CloudEntitySnapshot.capture(this));
+    }
+
+    @Override
     public CloudLevel getLevel() {
         return level;
     }
@@ -369,7 +394,7 @@ public abstract class CloudEntity implements Entity {
             tag.listenForBoolean("FromBucket", this::setFromBucket);
         }
 
-        tag.listenForFloat("scale", this::setScale);
+        tag.listenForFloat("Scale", this::setScale);
 
         if (tag.containsKey("ActiveEffects")) {
             List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);

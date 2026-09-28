@@ -5,6 +5,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.entity.EntitySnapshot;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.item.data.Record;
@@ -102,6 +103,11 @@ public class ItemDataComponents {
      * Entity state stored by an entity bucket.
      */
     public static final ItemDataComponentType<BucketEntityData> BUCKET_ENTITY_DATA = value("bucket_entity_data", BucketEntityData.class);
+
+    /**
+     * Persistent entity state to restore when an entity-placement item is used.
+     */
+    public static final ItemDataComponentType<EntitySnapshot> ENTITY_DATA = value("entity_data", EntitySnapshot.class);
 
     /**
      * Blocks the item may destroy in adventure mode.

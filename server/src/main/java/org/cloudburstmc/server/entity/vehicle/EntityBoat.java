@@ -16,6 +16,8 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -56,8 +58,27 @@ public class EntityBoat extends EntityVehicle implements Boat {
         super.initEntity();
         this.setMaxHealth(40);
         this.setHealth(40);
+        this.setWoodType(TreeSpecies.OAK);
         this.data.set(ROW_TIME_LEFT, 0f);
         this.data.set(ROW_TIME_RIGHT, 0f);
+    }
+
+    @Override
+    public void loadAdditionalData(NbtMap tag) {
+        super.loadAdditionalData(tag);
+        tag.listenForInt("WoodType", woodType -> {
+            TreeSpecies[] species = TreeSpecies.values();
+            if (woodType < 0 || woodType >= species.length) {
+                throw new IllegalArgumentException("Unknown boat wood type " + woodType);
+            }
+            this.setWoodType(species[woodType]);
+        });
+    }
+
+    @Override
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        super.saveAdditionalData(tag);
+        tag.putInt("WoodType", this.getWoodType());
     }
 
     public int getWoodType() {
