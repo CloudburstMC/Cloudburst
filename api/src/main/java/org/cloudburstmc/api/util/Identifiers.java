@@ -605,16 +605,19 @@ public class Identifiers {
     public static final Identifier VANISHING = Identifier.parse("vanishing");
     public static final Identifier WIND_BURST = Identifier.parse("wind_burst");
 
-    //Effects
+    // Effects
     public static final Identifier ABSORPTION = Identifier.parse("absorption");
     public static final Identifier BAD_OMEN = Identifier.parse("bad_omen");
     public static final Identifier BLINDNESS = Identifier.parse("blindness");
+    public static final Identifier BREATH_OF_THE_NAUTILUS = Identifier.parse("breath_of_the_nautilus");
     public static final Identifier CONDUIT_POWER = Identifier.parse("conduit_power");
+    public static final Identifier DARKNESS = Identifier.parse("darkness");
     public static final Identifier FATAL_POISON = Identifier.parse("fatal_poison");
     public static final Identifier FIRE_RESISTANCE = Identifier.parse("fire_resistance");
     public static final Identifier HASTE = Identifier.parse("haste");
     public static final Identifier HEALTH_BOOST = Identifier.parse("health_boost");
     public static final Identifier HUNGER = Identifier.parse("hunger");
+    public static final Identifier INFESTED = Identifier.parse("infested");
     public static final Identifier INSTANT_DAMAGE = Identifier.parse("instant_damage");
     public static final Identifier INSTANT_HEALTH = Identifier.parse("instant_health");
     public static final Identifier INVISIBILITY = Identifier.parse("invisibility");
@@ -623,7 +626,9 @@ public class Identifiers {
     public static final Identifier MINING_FATIGUE = Identifier.parse("mining_fatigue");
     public static final Identifier NAUSEA = Identifier.parse("nausea");
     public static final Identifier NIGHT_VISION = Identifier.parse("night_vision");
+    public static final Identifier OOZING = Identifier.parse("oozing");
     public static final Identifier POISON = Identifier.parse("poison");
+    public static final Identifier RAID_OMEN = Identifier.parse("raid_omen");
     public static final Identifier REGENERATION = Identifier.parse("regeneration");
     public static final Identifier RESISTANCE = Identifier.parse("resistance");
     public static final Identifier SATURATION = Identifier.parse("saturation");
@@ -631,63 +636,12 @@ public class Identifiers {
     public static final Identifier SLOWNESS = Identifier.parse("slowness");
     public static final Identifier SPEED = Identifier.parse("speed");
     public static final Identifier STRENGTH = Identifier.parse("strength");
+    public static final Identifier TRIAL_OMEN = Identifier.parse("trial_omen");
     public static final Identifier VILLAGE_HERO = Identifier.parse("village_hero");
     public static final Identifier WATER_BREATHING = Identifier.parse("water_breathing");
     public static final Identifier WEAKNESS = Identifier.parse("weakness");
-    public static final Identifier WITHER = Identifier.parse("wither");
-    public static final Identifier DARKNESS = Identifier.parse("darkness");
-    public static final Identifier TRIAL_OMEN = Identifier.parse("trial_omen");
-    public static final Identifier WIND_CHARGING = Identifier.parse("wind_charging");
     public static final Identifier WEAVING = Identifier.parse("weaving");
-    public static final Identifier OOZING = Identifier.parse("oozing");
-    public static final Identifier INFESTATION = Identifier.parse("infestation");
+    public static final Identifier WIND_CHARGED = Identifier.parse("wind_charged");
+    public static final Identifier WITHER = Identifier.parse("wither");
 
-    //Potions
-    public static final Identifier POTION_AWKWARD = Identifier.parse("awkward");
-    public static final Identifier POTION_FiRE_RESISTANCE = Identifier.parse("fire_resistance");
-    public static final Identifier POTION_HARMING = Identifier.parse("harming");
-    public static final Identifier POTION_HEALING = Identifier.parse("healing");
-    public static final Identifier POTION_INVISIBILITY = Identifier.parse("invisibility");
-    public static final Identifier POTION_LEAPING = Identifier.parse("leaping");
-    public static final Identifier POTION_LONG_FIRE_RESISTANCE = Identifier.parse("long_fire_resistance");
-    public static final Identifier POTION_LONG_INVISIBILITY = Identifier.parse("long_invisibility");
-    public static final Identifier POTION_LONG_LEAPING = Identifier.parse("long_leaping");
-    public static final Identifier POTION_LONG_MUNDANE = Identifier.parse("long_mundane");
-    public static final Identifier POTION_LONG_NIGHT_VISION = Identifier.parse("long_night_vision");
-    public static final Identifier POTION_LONG_POISON = Identifier.parse("long_poison");
-    public static final Identifier POTION_LONG_REGENERATION = Identifier.parse("long_regeneration");
-    public static final Identifier POTION_LONG_SLOW_FALLING = Identifier.parse("long_slow_falling");
-    public static final Identifier POTION_LONG_SLOWNESS = Identifier.parse("long_slowness");
-    public static final Identifier POTION_LONG_STRENGTH = Identifier.parse("long_strength");
-    public static final Identifier POTION_LONG_SWIFTNESS = Identifier.parse("long_swiftness");
-    public static final Identifier POTION_LONG_TURTLE_MASTER = Identifier.parse("long_turtle_master");
-    public static final Identifier POTION_LONG_WATER_BREATHING = Identifier.parse("long_water_breathing");
-    public static final Identifier POTION_LONG_WEAKNESS = Identifier.parse("long_weakness");
-    public static final Identifier POTION_MUNDANE = Identifier.parse("mundane");
-    public static final Identifier POTION_NIGHT_VISION = Identifier.parse("night_vision");
-    public static final Identifier POTION_POISON = Identifier.parse("poison");
-    public static final Identifier POTION_REGENERATION = Identifier.parse("regeneration");
-    public static final Identifier POTION_SLOW_FALLING = Identifier.parse("slow_falling");
-    public static final Identifier POTION_SLOWNESS = Identifier.parse("slowness");
-    public static final Identifier POTION_STRENGTH = Identifier.parse("strength");
-    public static final Identifier POTION_STRONG_HARMING = Identifier.parse("strong_harming");
-    public static final Identifier POTION_STRONG_HEALING = Identifier.parse("strong_healing");
-    public static final Identifier POTION_STRONG_LEAPING = Identifier.parse("strong_leaping");
-    public static final Identifier POTION_STRONG_POISON = Identifier.parse("strong_poison");
-    public static final Identifier POTION_STRONG_REGENERATION = Identifier.parse("strong_regeneration");
-    public static final Identifier POTION_STRONG_SLOWNESS = Identifier.parse("strong_slowness");
-    public static final Identifier POTION_STRONG_STRENGTH = Identifier.parse("strong_strength");
-    public static final Identifier POTION_STRONG_SWIFTNESS = Identifier.parse("strong_swiftness");
-    public static final Identifier POTION_STRONG_TURTLE_MASTER = Identifier.parse("strong_turtle_master");
-    public static final Identifier POTION_SWIFTNESS = Identifier.parse("swiftness");
-    public static final Identifier POTION_THICK = Identifier.parse("thick");
-    public static final Identifier POTION_TURTLE_MASTER = Identifier.parse("turtle_master");
-    public static final Identifier POTION_WATER = Identifier.parse("water");
-    public static final Identifier POTION_WATER_BREATHING = Identifier.parse("water_breathing");
-    public static final Identifier POTION_WEAKNESS = Identifier.parse("weakness");
-    public static final Identifier POTION_WITHER = Identifier.parse("wither");
-    public static final Identifier POTION_WIND_CHARGING = Identifier.parse("wind_charging");
-    public static final Identifier POTION_WEAVING = Identifier.parse("weaving");
-    public static final Identifier POTION_OOZING = Identifier.parse("oozing");
-    public static final Identifier POTION_INFESTATION = Identifier.parse("infestation");
 }

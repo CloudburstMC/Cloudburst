@@ -7,15 +7,15 @@ import org.cloudburstmc.api.item.ItemStack;
 import java.util.List;
 
 /**
- * Resolves the item stacks produced when a block is broken.
+ * Resolves item stacks produced when a block is destroyed.
  */
 @FunctionalInterface
 public interface BlockLootHandler {
 
     /**
-     * Resolves the block's item drops for a break operation.
+     * Resolves the block's item drops for a destruction operation.
      *
-     * @param block the block being broken
+     * @param block   the block being destroyed
      * @param context the loot context
      * @return the item stacks to drop
      */

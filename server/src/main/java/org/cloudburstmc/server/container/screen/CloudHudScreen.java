@@ -5,8 +5,8 @@ import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.HotbarView;
 import org.cloudburstmc.api.inventory.view.OffhandView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.mapping.LimitedContainerMapping;
-import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -27,7 +27,7 @@ public class CloudHudScreen extends CloudInventoryScreen implements HudScreen {
     protected void setupMappings() {
         this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR, this.hotbar, 9));
         this.addMapping(new LimitedContainerMapping(ContainerSlotType.HOTBAR_AND_INVENTORY, this.hotbar, 9));
-        this.addMapping(SimpleContainerMapping.offhandView(this.player.getOffhand()));
+        this.addMapping(ContainerMapping.offhandView(this.player.getOffhand()));
     }
 
     @Override

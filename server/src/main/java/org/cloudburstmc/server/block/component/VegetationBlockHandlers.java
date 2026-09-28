@@ -10,21 +10,21 @@ import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.passive.Bee;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.player.PlayerHarvestBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Difficulty;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.DestroyBlockParticle;
-import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.potion.CloudEffect;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,7 +48,7 @@ public class VegetationBlockHandlers {
         return block.getRelativeState(0, -1, 0).is(BlockTags.SUPPORTS_VEGETATION);
     };
 
-    public static final PlayerBlockHandler DOUBLE_PLANT_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler DOUBLE_PLANT_DESTROY = (block, cause) -> {
         BlockState state = block.getState();
         boolean upper = isUpperHalf(state);
         Block partner = block.getRelative(0, upper ? -1 : 1, 0);
@@ -57,7 +57,8 @@ public class VegetationBlockHandlers {
         block.set(BlockStates.AIR, false, false);
         if (partnerState.getType() == state.getType() && isUpperHalf(partnerState) != upper) {
             partner.set(BlockStates.AIR, false, true);
-            ((CloudLevel) block.getLevel()).addParticle(new DestroyBlockParticle(partner.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), partnerState));
+            Vector3f position = partner.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
+            ((CloudLevel) block.getLevel()).addChunkPacket(position, LevelEffectPacketFactory.blockDestruction(position, partnerState, true));
         }
     };
 
@@ -93,17 +94,17 @@ public class VegetationBlockHandlers {
 
     public static final EntityInsideBlockHandler WITHER_ROSE_ENTITY_INSIDE = (block, entity, precise) -> {
         if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Living
+                && entity instanceof Living living
                 && canReceiveWither(entity)) {
-            entity.addEffect(new CloudEffect(EffectTypes.WITHER).setDuration(40));
+            ((CloudEntity) living).addPotionEffect(new PotionEffect(EffectTypes.WITHER, 40, 0), null, PotionEffectCause.WITHER_ROSE);
         }
     };
 
     public static final EntityInsideBlockHandler EYEBLOSSOM_ENTITY_INSIDE = (block, entity, precise) -> {
         if (block.getLevel().getDifficulty() != Difficulty.PEACEFUL
-                && entity instanceof Bee
-                && !entity.hasEffect(EffectTypes.POISON)) {
-            entity.addEffect(new CloudEffect(EffectTypes.POISON).setDuration(25));
+                && entity instanceof Bee bee
+                && !bee.hasPotionEffect(EffectTypes.POISON)) {
+            ((CloudEntity) entity).addPotionEffect(new PotionEffect(EffectTypes.POISON, 25, 0), null, PotionEffectCause.ATTACK);
         }
     };
 
@@ -115,7 +116,7 @@ public class VegetationBlockHandlers {
         }
 
         entity.makeStuckInBlock(block.getState(), Vector3f.from(0.8f, 0.75f, 0.8f));
-        Vector3f movement = entity instanceof CloudPlayer player ? player.getKnownMovement() : entity.getMotion();
+        Vector3f movement = entity.getMotion();
         if (block.getState().ensureTrait(BlockTraits.GROWTH) != 0
                 && (Math.abs(movement.getX()) >= 0.003f || Math.abs(movement.getZ()) >= 0.003f)) {
             DamageSource source = DamageSource.builder(DamageTypes.SWEET_BERRY_BUSH).block(block).build();
@@ -141,7 +142,7 @@ public class VegetationBlockHandlers {
         for (ItemStack harvested : event.getItemsHarvested()) {
             block.getLevel().dropItem(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), harvested);
         }
-        ((CloudLevel) block.getLevel()).addSound(block.getPosition(), Sound.BLOCK_SWEET_BERRY_BUSH_PICK);
+        block.getLevel().playSound(block.getPosition(), SoundTypes.BLOCK_SWEET_BERRY_BUSH_PICK);
         return true;
     };
 

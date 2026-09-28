@@ -41,8 +41,9 @@ public class TripwireBlockHandlers {
         }
     };
 
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
-        boolean holdingShears = player != null && player.getInventory().getSelectedItem().getType() == ItemTypes.SHEARS;
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
+        boolean holdingShears = cause instanceof Player player
+                && player.getInventory().getSelectedItem().getType() == ItemTypes.SHEARS;
 
         CloudLevel level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();

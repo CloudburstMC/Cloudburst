@@ -11,6 +11,7 @@ import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
@@ -24,7 +25,6 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -124,7 +124,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
         if (this.viewerCount == 1) {
             this.sendOpenState();
             this.animationState = ShulkerBoxAnimationState.OPENING;
-            this.getLevel().addSound(this.getPosition(), Sound.RANDOM_SHULKERBOXOPEN, 0.5f, randomPitch());
+            this.getLevel().playSound(this.getPosition(), SoundTypes.RANDOM_SHULKERBOXOPEN, 0.5f, randomPitch());
             this.scheduleUpdate();
         }
     }
@@ -138,7 +138,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
         if (this.viewerCount == 0) {
             this.sendOpenState();
             this.animationState = ShulkerBoxAnimationState.CLOSING;
-            this.getLevel().addSound(this.getPosition(), Sound.RANDOM_SHULKERBOXCLOSED, 0.5f, randomPitch());
+            this.getLevel().playSound(this.getPosition(), SoundTypes.RANDOM_SHULKERBOXCLOSED, 0.5f, randomPitch());
             this.scheduleUpdate();
         }
     }

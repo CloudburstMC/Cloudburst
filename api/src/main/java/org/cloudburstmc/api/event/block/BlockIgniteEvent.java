@@ -1,40 +1,49 @@
 package org.cloudburstmc.api.event.block;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.event.Cancellable;
 
-public final class BlockIgniteEvent extends BlockEvent implements Cancellable {
+import java.util.Objects;
 
-    private final Block source;
-    private final Entity entity;
+/**
+ * Fired before a block is ignited. Cancelling prevents the fire from being placed.
+ */
+public class BlockIgniteEvent extends BlockEvent implements Cancellable {
+
+    private final @Nullable Block ignitingBlock;
+    private final @Nullable Entity ignitingEntity;
     private final BlockIgniteCause cause;
 
-    public BlockIgniteEvent(Block block, Block source, Entity entity, BlockIgniteCause cause) {
+    /**
+     * @param block          the block where fire would be placed
+     * @param cause          the ignition cause
+     * @param ignitingEntity the responsible entity, or {@code null}
+     * @param ignitingBlock  the responsible block, or {@code null}
+     */
+    public BlockIgniteEvent(Block block, BlockIgniteCause cause, @Nullable Entity ignitingEntity, @Nullable Block ignitingBlock) {
         super(block);
-        this.source = source;
-        this.entity = entity;
-        this.cause = cause;
+        this.cause = Objects.requireNonNull(cause, "cause");
+        this.ignitingEntity = ignitingEntity;
+        this.ignitingBlock = ignitingBlock;
     }
 
-    public Block getSource() {
-        return source;
+    /**
+     * Returns the responsible block, or {@code null} if there was none.
+     */
+    public @Nullable Block getIgnitingBlock() {
+        return this.ignitingBlock;
     }
 
-    public Entity getEntity() {
-        return entity;
+    /**
+     * Returns the responsible entity, or {@code null} if there was none.
+     */
+    public @Nullable Entity getIgnitingEntity() {
+        return this.ignitingEntity;
     }
 
     public BlockIgniteCause getCause() {
-        return cause;
-    }
-
-    public enum BlockIgniteCause {
-        EXPLOSION,
-        FIREBALL,
-        FLINT_AND_STEEL,
-        LAVA,
-        LIGHTNING,
-        SPREAD
+        return this.cause;
     }
 }

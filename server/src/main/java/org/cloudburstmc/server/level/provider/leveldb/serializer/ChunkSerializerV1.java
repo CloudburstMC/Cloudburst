@@ -5,8 +5,8 @@ import lombok.NoArgsConstructor;
 import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.ChunkException;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.ChunkException;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.iq80.leveldb.DB;
 
@@ -21,11 +21,11 @@ class ChunkSerializerV1 implements ChunkSerializer {
     }
 
     @Override
-    public void deserialize(DirectDB db, ChunkBuilder chunkBuilder) {
+    public void deserialize(DirectDB db, CloudChunkBuilder chunkBuilder) {
         this.deserializeTerrain(db, chunkBuilder);
     }
 
-    protected void deserializeTerrain(DB db, ChunkBuilder chunkBuilder) {
+    protected void deserializeTerrain(DB db, CloudChunkBuilder chunkBuilder) {
         byte[] terrain = db.get(LevelDBKey.LEGACY_TERRAIN.getKey(chunkBuilder.getX(), chunkBuilder.getZ()));
         if (terrain == null) {
             throw new ChunkException("No terrain found in chunk");

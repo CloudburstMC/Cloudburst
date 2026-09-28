@@ -10,10 +10,10 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
-import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.api.level.particle.ItemParticleOptions;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.ItemBreakParticle;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.List;
@@ -71,13 +71,7 @@ public class DefaultItemHandlers {
         int damageValue = itemStack.getDamage() + appliedDamage;
 
         if (damageValue >= maxDamage) {
-            if (owner.getLevel() instanceof CloudLevel level) {
-                level.addLevelSoundEvent(owner.getPosition(), SoundEvent.BREAK);
-                for (int i = 0; i < 5; i++) {
-                    level.addParticle(new ItemBreakParticle(owner.getPosition().add(0, owner.getEyeHeight(), 0), itemStack));
-                }
-            }
-
+            CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.ON_BREAK).execute(itemStack, owner);
             return ItemStack.EMPTY;
         }
 
@@ -105,4 +99,15 @@ public class DefaultItemHandlers {
         List<BlockType> whitelist = item.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of());
         return !whitelist.isEmpty() && whitelist.contains(block.getState().getType());
     };
+
+    public static ItemBreakHandler breakEffects(SoundType sound) {
+        return (item, owner) -> {
+            if (owner.getLevel() instanceof CloudLevel level) {
+                level.playSound(owner.getPosition(), sound);
+                for (int i = 0; i < 5; i++) {
+                    level.spawnParticle(new ItemParticleOptions(item), owner.getPosition().add(0, owner.getEyeHeight(), 0));
+                }
+            }
+        };
+    }
 }

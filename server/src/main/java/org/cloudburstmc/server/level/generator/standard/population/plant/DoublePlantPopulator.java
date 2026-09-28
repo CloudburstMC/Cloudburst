@@ -53,11 +53,11 @@ public class DoublePlantPopulator extends AbstractPlantPopulator {
             int blockZ = z + random.nextInt(8) - random.nextInt(8);
 
             Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            if (on.test(chunk.getBlockState(blockX & 0xF, blockY, blockZ & 0xF, 0))
-                    && replace.test(chunk.getBlockState(blockX & 0xF, blockY + 1, blockZ & 0xF, 0))
-                    && replace.test(chunk.getBlockState(blockX & 0xF, blockY + 2, blockZ & 0xF, 0))) {
-                chunk.setBlockState(blockX & 0xF, blockY + 1, blockZ & 0xF, 0, bottom);
-                chunk.setBlockState(blockX & 0xF, blockY + 2, blockZ & 0xF, 0, top);
+            if (on.test(chunk.getBlockState(blockX & 0xF, blockY, blockZ & 0xF))
+                    && replace.test(chunk.getBlockState(blockX & 0xF, blockY + 1, blockZ & 0xF))
+                    && replace.test(chunk.getBlockState(blockX & 0xF, blockY + 2, blockZ & 0xF))) {
+                chunk.setBlockState(blockX & 0xF, blockY + 1, blockZ & 0xF, bottom);
+                chunk.setBlockState(blockX & 0xF, blockY + 2, blockZ & 0xF, top);
             }
         }
     }

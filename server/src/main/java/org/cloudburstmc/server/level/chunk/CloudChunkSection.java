@@ -3,13 +3,12 @@ package org.cloudburstmc.server.level.chunk;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.api.block.BlockComponents;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.chunk.ChunkSection;
 import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.server.utils.NibbleArray;
-
-import static com.google.common.base.Preconditions.checkElementIndex;
 
 public class CloudChunkSection implements ChunkSection {
 
@@ -22,15 +21,18 @@ public class CloudChunkSection implements ChunkSection {
     private final BlockStorage[] storage;
     private final NibbleArray blockLight;
     private final NibbleArray skyLight;
+
     /**
      * Compact position index of all randomly-ticking blocks in this section.
      * Kept in sync with {@link #tickingBlockCount} by {@link #setBlockState}.
      * Used by the random-tick loop for O(1) rejection of non-ticking rolls.
      */
     private final SectionTickList tickingList;
+
     private BiomeStorage biomeStorage;
+
     /**
-     * Number of blocks in layer 0 of this section that have the
+     * Number of primary states in this section that have the
      * {@code CAN_RANDOM_TICK} component set to {@code true}.
      * Maintained incrementally in {@link #setBlockState}.
      */
@@ -115,30 +117,24 @@ public class CloudChunkSection implements ChunkSection {
                 "Random tick component is not registered for %s", state.getType());
     }
 
-    void checkLayer(int layer) {
-        checkElementIndex(layer, this.storage.length, "Invalid block layer");
-    }
-
-    public BlockState getBlockState(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, BlockLayer layer) {
         checkBounds(x, y, z);
-        checkLayer(layer);
-        return this.storage[layer].getBlock(blockIndex(x, y, z));
+        return this.storage[BlockLayerStorage.index(layer)].getBlock(blockIndex(x, y, z));
     }
 
     /**
      * Sets the block at the given intra-section coordinates and maintains the
      * {@link #tickingBlockCount} counter and {@link #tickingList} index
-     * incrementally for layer 0 only.
+     * incrementally for the primary layer only.
      */
-    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, BlockLayer layer, BlockState blockState) {
         checkBounds(x, y, z);
-        checkLayer(layer);
+        int storageIndex = BlockLayerStorage.index(layer);
         int idx = blockIndex(x, y, z);
 
-        BlockState oldState = this.storage[layer].getBlock(idx);
-        if (layer == 0) {
-            BlockState old = oldState;
-            boolean oldTicks = canRandomTick(old);
+        BlockState oldState = this.storage[storageIndex].getBlock(idx);
+        if (layer == BlockLayer.PRIMARY) {
+            boolean oldTicks = canRandomTick(oldState);
             boolean newTicks = canRandomTick(blockState);
 
             if (oldTicks && !newTicks) {
@@ -153,7 +149,7 @@ public class CloudChunkSection implements ChunkSection {
             }
         }
 
-        this.storage[layer].setBlock(idx, blockState);
+        this.storage[storageIndex].setBlock(idx, blockState);
         return oldState;
     }
 
@@ -175,24 +171,26 @@ public class CloudChunkSection implements ChunkSection {
         return tickingList;
     }
 
-    public byte getSkyLight(int x, int y, int z) {
+    public int getSkyLight(int x, int y, int z) {
         checkBounds(x, y, z);
         return this.skyLight.get(blockIndex(x, y, z));
     }
 
-    public void setSkyLight(int x, int y, int z, byte val) {
+    public void setSkyLight(int x, int y, int z, int val) {
         checkBounds(x, y, z);
-        this.skyLight.set(blockIndex(x, y, z), val);
+        Preconditions.checkArgument(val >= 0 && val <= 15, "sky light (%s) is not between 0 and 15", val);
+        this.skyLight.set(blockIndex(x, y, z), (byte) val);
     }
 
-    public byte getBlockLight(int x, int y, int z) {
+    public int getBlockLight(int x, int y, int z) {
         checkBounds(x, y, z);
         return this.blockLight.get(blockIndex(x, y, z));
     }
 
-    public void setBlockLight(int x, int y, int z, byte val) {
+    public void setBlockLight(int x, int y, int z, int val) {
         checkBounds(x, y, z);
-        this.blockLight.set(blockIndex(x, y, z), val);
+        Preconditions.checkArgument(val >= 0 && val <= 15, "block light (%s) is not between 0 and 15", val);
+        this.blockLight.set(blockIndex(x, y, z), (byte) val);
     }
 
     /**
@@ -234,7 +232,7 @@ public class CloudChunkSection implements ChunkSection {
     /**
      * Returns the number of layers to actually serialize. Trailing layers are excluded
      * when they are both all-air and unmodified since load, but the count is always at
-     * least 1 (layer 0 is always present).
+     * least 1 because the primary layer is always present.
      */
     private int effectiveLayerCount() {
         int count = this.storage.length;
@@ -324,7 +322,7 @@ public class CloudChunkSection implements ChunkSection {
 
     /**
      * Rebuilds {@link #tickingBlockCount} and {@link #tickingList} from
-     * scratch by scanning layer 0.
+     * scratch by scanning the primary layer.
      */
     private void recalcTickingBlocks() {
         tickingList.clear();

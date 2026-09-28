@@ -5,9 +5,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
+import org.cloudburstmc.api.entity.EntitySnapshot;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.item.data.Record;
+import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.api.util.data.FireworkData;
@@ -73,6 +75,21 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<Map<EnchantmentType, Enchantment>> ENCHANTMENTS = ItemDataComponentType.registerMap(Identifier.parse("enchantments"), EnchantmentType.class, Enchantment.class);
 
     /**
+     * Potion contained in a drinkable potion, thrown potion, or tipped arrow.
+     */
+    public static final ItemDataComponentType<PotionType> POTION_TYPE = value("potion_type", PotionType.class);
+
+    /**
+     * Zero-based Bad Omen level stored by an ominous bottle.
+     */
+    public static final ItemDataComponentType<Integer> OMINOUS_BOTTLE_AMPLIFIER = value("ominous_bottle_amplifier", Integer.class);
+
+    /**
+     * Projectile stored in a charged crossbow.
+     */
+    public static final ItemDataComponentType<ItemStack> CHARGED_PROJECTILE = value("charged_projectile", ItemStack.class);
+
+    /**
      * Firework rocket or star data.
      */
     public static final ItemDataComponentType<FireworkData> FIREWORK_DATA = value("firework_data", FireworkData.class);
@@ -88,6 +105,11 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<BucketEntityData> BUCKET_ENTITY_DATA = value("bucket_entity_data", BucketEntityData.class);
 
     /**
+     * Persistent entity state to restore when an entity-placement item is used.
+     */
+    public static final ItemDataComponentType<EntitySnapshot> ENTITY_DATA = value("entity_data", EntitySnapshot.class);
+
+    /**
      * Blocks the item may destroy in adventure mode.
      */
     public static final ItemDataComponentType<List<BlockType>> CAN_DESTROY = list("can_destroy", BlockType.class);
@@ -96,11 +118,6 @@ public class ItemDataComponents {
      * Blocks against which the item may be placed in adventure mode.
      */
     public static final ItemDataComponentType<List<BlockType>> CAN_PLACE_ON = list("can_place_on", BlockType.class);
-
-    /**
-     * Tick at which a shield began blocking.
-     */
-    public static final ItemDataComponentType<Long> SHIELD_BLOCKING_TICKS = value("shield_blocking_ticks", Long.class);
 
     /**
      * Music record represented by the item.

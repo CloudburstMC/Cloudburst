@@ -2,9 +2,9 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.component.BlockDestroyHandler;
 import org.cloudburstmc.api.block.component.CollisionShapeHandler;
 import org.cloudburstmc.api.block.component.EntityInsideBlockHandler;
-import org.cloudburstmc.api.block.component.PlayerBlockHandler;
 import org.cloudburstmc.api.block.component.VoxelShapeBlockHandler;
 import org.cloudburstmc.server.block.util.EndPortalFrame;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -24,7 +24,7 @@ public class EndPortalBlockHandlers {
         }
     };
 
-    public static final PlayerBlockHandler DESTROY_FRAME = (block, player) -> {
+    public static final BlockDestroyHandler DESTROY_FRAME = (block, cause) -> {
         CloudLevel level = (CloudLevel) block.getLevel();
         EndPortalFrame frame = EndPortalFrame.find(level, block.getPosition());
         if (frame != null) {

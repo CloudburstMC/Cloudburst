@@ -65,12 +65,24 @@ public final class BlockState {
         return stateForTrait(trait, trait.getIndex(value), value);
     }
 
+    /**
+     * Copies values for traits shared with another state. Traits absent from this
+     * block type are ignored, and its other trait values are retained.
+     *
+     * @param from state supplying trait values
+     * @return state with the shared values applied
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public BlockState copyTraits(BlockState from) {
+        checkNotNull(from, "from");
+
         BlockState result = this;
         for (Map.Entry<BlockTrait<?>, Comparable<?>> entry : from.getTraits().entrySet()) {
-            result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
+            if (this.traits.containsKey(entry.getKey())) {
+                result = result.withTrait((BlockTrait) entry.getKey(), (Comparable) entry.getValue());
+            }
         }
+
         return result;
     }
 

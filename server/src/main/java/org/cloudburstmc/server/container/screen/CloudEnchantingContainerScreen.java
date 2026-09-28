@@ -1,11 +1,11 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.EnchantingScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.EnchantingView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudEnchantingView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -36,6 +36,6 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.ENCHANTING_INPUT, enchantSection, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.ENCHANTING_MATERIAL, enchantSection, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.ENCHANTING_MATERIAL, enchantSection, 1, 1, 1));
     }
 }

@@ -5,8 +5,8 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -32,7 +32,7 @@ public class BlockShapeTransitions {
             BoundingBox raisedEntity = entity.getBoundingBox().move(0, 1, 0);
             float movement = 1 + addedShape.collide(Direction.Axis.Y, raisedEntity, -1);
             if (movement > 0) {
-                cloudEntity.move(MovementType.PISTON, 0, movement, 0);
+                cloudEntity.displace(Vector3f.from(0, movement, 0));
             }
         }
     }

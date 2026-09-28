@@ -26,9 +26,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
-import org.cloudburstmc.api.entity.projectile.Arrow;
-import org.cloudburstmc.api.entity.projectile.FishingHook;
-import org.cloudburstmc.api.entity.projectile.ThrownTrident;
+import org.cloudburstmc.api.entity.projectile.*;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
@@ -37,28 +35,20 @@ import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.component.DamageItemHandler;
-import org.cloudburstmc.api.item.component.FinishUseHandler;
-import org.cloudburstmc.api.item.component.FloatItemHandler;
-import org.cloudburstmc.api.item.component.IntItemHandler;
-import org.cloudburstmc.api.level.ChunkLoader;
-import org.cloudburstmc.api.level.Difficulty;
-import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.item.component.*;
+import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.player.*;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.plugin.PluginContainer;
-import org.cloudburstmc.api.potion.Effect;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.api.util.BoundingBox;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.MovementType;
+import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -100,17 +90,16 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EntityExperienceOrb;
-import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.projectile.EntityFishingHook;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
-import org.cloudburstmc.server.level.Explosion;
+import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
-import org.cloudburstmc.server.math.BlockRayTrace;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.permission.CloudPermissible;
@@ -136,7 +125,9 @@ import java.util.function.LongConsumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.DAMAGE_NEARBY_MOBS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
 /**
@@ -145,11 +136,15 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITE
  * chunk loading, packet processing, and all player-specific game logic.
  */
 @Log4j2
-public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, ContainerListener {
+public class CloudPlayer extends EntityHuman implements Player, ContainerListener {
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
     private static final int BEDROCK_FIREWORK_GLIDE_BOOST_DURATION = 1_000_000;
+    private static final int SURVIVAL_INTERACTION_DISTANCE = 7;
+    private static final int CREATIVE_INTERACTION_DISTANCE = 13;
+    private static final int COMPLETED_USE_GRACE_TICKS = 9;
+    private static final float INTERACTION_BEHIND_TOLERANCE = 6.0f;
     private static final float TELEPORT_ACK_DISTANCE_TOLERANCE = 1.0f;
     private static final float TELEPORT_ACK_DISTANCE_TOLERANCE_SQUARED = TELEPORT_ACK_DISTANCE_TOLERANCE * TELEPORT_ACK_DISTANCE_TOLERANCE;
 
@@ -191,7 +186,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     public long lastSkinChange;
     public Block breakingBlock = null;
     private @Nullable FishingHook fishingHook;
-    private Vector3f knownMovement = Vector3f.ZERO;
 
     protected boolean connected = true;
     protected boolean enableClientCommand = true;
@@ -216,9 +210,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     protected Map<Integer, Form<?>> formWindows = new Int2ObjectOpenHashMap<>();
     private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
     private final Set<CloudBossBar> bossBars = new LinkedHashSet<>();
-    private @Nullable ItemType activeUseItem;
+    private @Nullable ItemStack activeUseStack;
     private int activeUseSlot = -1;
     private int itemUseCompleteTick;
+    private final ItemBlockingController itemBlocking = new ItemBlockingController(this);
+    private int lastCompletedItemUseTick = Integer.MIN_VALUE;
+    private int spinAttackEndTick = -1;
     protected Vector3f forceMovement = null;
     protected Vector3f newPosition = null;
     protected Vector3f teleportPosition = null;
@@ -247,7 +244,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     private byte containerIdCounter = 1;
     private int exp = 0;
     private int expLevel = 0;
-    private int loaderId;
     private Entity killer = null;
     private final AuthenticatedPlayerData connectionData;
     private CloudPermissible perm = null;
@@ -491,16 +487,17 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         if (this.spawned && player.spawned && this.isAlive() && player.isAlive() &&
                 player.getLevel() == this.getLevel() && player.canSee(this) && !this.isSpectator() &&
                 this.chunk != null && player.isChunkSent(this.chunk.getX(), this.chunk.getZ())) {
-            if (this == player || this.getViewers().contains(player)) {
+            if (this == player || this.hasSpawned.contains(player)) {
                 return;
             }
 
             super.spawnTo(player);
-            if (!this.getViewers().contains(player)) {
+            if (!this.hasSpawned.contains(player)) {
                 return;
             }
 
             player.sendPacket(buildArmorEquipmentPacket());
+            player.sendPacket(this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
         }
     }
 
@@ -513,6 +510,24 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setBoots(ItemUtils.toNetwork(this.armor.getBoots()));
         packet.setBody(ItemData.AIR);
         return packet;
+    }
+
+    private MobEquipmentPacket createEquipmentPacket(ItemStack item, int containerId, int slot) {
+        MobEquipmentPacket packet = new MobEquipmentPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setItem(ItemUtils.toNetwork(item));
+        packet.setContainerId(containerId);
+        packet.setInventorySlot(slot);
+        packet.setHotbarSlot(slot);
+        return packet;
+    }
+
+    private void sendHandEquipmentToViewers() {
+        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getInventory().getSelectedItem(), ContainerId.INVENTORY, this.selectedHotbarSlot));
+    }
+
+    private void sendOffhandEquipmentToViewers() {
+        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
     }
 
     @Override
@@ -532,7 +547,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setCommandPermission(CommandPermission.ANY);
         packet.setPlayerPermission(PlayerPermission.MEMBER);
         packet.getAbilityLayers().add(this.abilities.buildBaseLayer());
-        this.getData().putAllIn(packet.getMetadata());
+        packet.getMetadata().putAll(this.getData().snapshot());
         return packet;
     }
 
@@ -696,7 +711,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.startAirTicks = 5;
         }
         this.inAirTicks = 0;
-        this.highestPosition = this.getPosition().getY();
     }
 
     @Override
@@ -815,13 +829,36 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return this.data.getFlag(USING_ITEM) && this.startAction > -1;
     }
 
+    @Override
+    public ItemStack getBlockingItem() {
+        return this.itemBlocking.getBlockingItem();
+    }
+
+    public void updateBlockingState() {
+        this.itemBlocking.update();
+    }
+
+    public void interruptBlocking() {
+        this.itemBlocking.interrupt();
+    }
+
     public void setUsingItem(boolean value) {
         this.startAction = value ? this.server.getTick() : -1;
         this.data.setFlag(USING_ITEM, value);
         if (!value) {
-            this.activeUseItem = null;
+            this.activeUseStack = null;
             this.activeUseSlot = -1;
+            this.itemUseCompleteTick = -1;
         }
+        this.updateBlockingState();
+    }
+
+    public boolean consumeRecentCompletedItemUse() {
+        // A completed charge may produce one more use packet before the client settles its held item.
+        int completedTick = this.lastCompletedItemUseTick;
+        this.lastCompletedItemUseTick = Integer.MIN_VALUE;
+        int elapsed = this.server.getTick() - completedTick;
+        return completedTick != Integer.MIN_VALUE && elapsed >= 0 && elapsed < COMPLETED_USE_GRACE_TICKS;
     }
 
     public void startUsingItem(ItemStack item, int durationTicks) {
@@ -829,14 +866,65 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         if (item.isEmpty()) {
             throw new IllegalArgumentException("item must not be empty");
         }
+
         if (durationTicks <= 0) {
             throw new IllegalArgumentException("durationTicks must be positive");
         }
 
-        this.activeUseItem = item.getType();
+        this.activeUseStack = item;
         this.activeUseSlot = this.getSelectedHotbarSlot();
         this.itemUseCompleteTick = this.server.getTick() + durationTicks;
         this.setUsingItem(true);
+    }
+
+    public void startUsingItem(ItemStack item) {
+        Objects.requireNonNull(item, "item");
+        if (item.isEmpty()) {
+            throw new IllegalArgumentException("item must not be empty");
+        }
+
+        this.activeUseStack = item;
+        this.activeUseSlot = this.getSelectedHotbarSlot();
+        this.itemUseCompleteTick = -1;
+        this.setUsingItem(true);
+    }
+
+    public void releaseUsingItem() {
+        int slot = this.activeUseSlot;
+        int ticksUsed = this.isUsingItem() ? Math.max(0, this.server.getTick() - this.startAction) : 0;
+        ItemStack activeStack = this.activeUseStack;
+        boolean valid = this.activeUseMatchesCurrentSlot();
+        this.setUsingItem(false);
+        if (activeStack == null || !valid) {
+            return;
+        }
+
+        ItemStack item = this.getInventory().getItem(slot);
+        ReleaseUseHandler handler = CloudItemRegistry.get().getComponent(activeStack.getType(), ItemBehaviors.RELEASE_USE);
+        if (handler != null) {
+            this.getInventory().setItem(slot, handler.execute(item, this, ticksUsed));
+        }
+    }
+
+    public void startSpinAttack(int durationTicks) {
+        if (durationTicks <= 0) {
+            throw new IllegalArgumentException("durationTicks must be positive");
+        }
+        this.spinAttackEndTick = this.server.getTick() + durationTicks;
+        this.data.setFlag(DAMAGE_NEARBY_MOBS, true);
+        this.recalculateBoundingBox();
+    }
+
+    private void stopSpinAttack() {
+        this.spinAttackEndTick = -1;
+        this.data.setFlag(DAMAGE_NEARBY_MOBS, false);
+        this.recalculateBoundingBox();
+    }
+
+    private boolean activeUseMatchesCurrentSlot() {
+        return this.activeUseStack != null && this.activeUseSlot >= 0
+                && this.activeUseSlot == this.getSelectedHotbarSlot()
+                && this.getInventory().getItem(this.activeUseSlot).hasSameDataComponents(this.activeUseStack);
     }
 
     public String getButtonText() {
@@ -984,7 +1072,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             int newCharge = currentCharge - 1;
 
             BlockState newAnchorState = block.getState().withTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE, newCharge);
-            spawnLevel.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, newAnchorState, false, true);
+            spawnLevel.setBlockState(pos.getX(), pos.getY(), pos.getZ(), newAnchorState, false, true);
 
             LevelSoundEventPacket depleteSound = new LevelSoundEventPacket();
             depleteSound.setSound(SoundEvent.RESPAWN_ANCHOR_DEPLETE);
@@ -1013,7 +1101,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.onInventoryContentsChange(this.armor.getContainer());
 
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime(this.getLevel().getTime());
+        setTimePacket.setTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
         this.sendPacket(setTimePacket);
 
         Location loc = Location.from(this.getPosition(), this.getYaw(), this.getPitch(), this.getLevel());
@@ -1113,23 +1201,20 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     pos.getZ() - facing.getStepZ()
             );
 
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, BlockStates.AIR, false, true);
+            Block sourceBlock = level.getBlock(pos);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), BlockStates.AIR, false, true);
             BlockState footState = level.getBlockState(footPos.getX(), footPos.getY(), footPos.getZ());
             if (footState.getType() == headState.getType()) {
-                level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(), 0,
+                level.setBlockState(footPos.getX(), footPos.getY(), footPos.getZ(),
                         BlockStates.AIR, false, true);
             }
 
-            Explosion explosion = new Explosion(level,
-                    Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
-                    5, this);
-            explosion.explodeA();
-            explosion.explodeB();
+            level.explode(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
+                    new ExplosionSettings(5, ExplosionBlockInteraction.DESTROY_WITH_DECAY, true, null, sourceBlock));
             return true;
         }
 
-        int time = level.getTime() % Level.TIME_FULL;
-        boolean canSleep = level.isThundering() || (time >= Level.TIME_NIGHT && time < Level.TIME_SUNRISE);
+        boolean canSleep = level.isThundering() || VanillaLevelTime.isNight(level.getTime());
         if (!canSleep) {
             sendMessage(Component.translatable("tile.bed.noSleep"));
             return true;
@@ -1160,7 +1245,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         try {
             BlockState occupied = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, true);
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, occupied, false, true);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), occupied, false, true);
         } catch (Exception ignored) {
         }
 
@@ -1277,11 +1362,13 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             try {
                 BlockState clearedState = bedBlock.getState().withTrait(BlockTraits.IS_OCCUPIED, false);
                 this.getLevel().setBlockState(
-                        this.sleeping.getX(), this.sleeping.getY(), this.sleeping.getZ(), 0, clearedState, false, true);
+                        this.sleeping.getX(), this.sleeping.getY(), this.sleeping.getZ(),
+                        BlockLayer.PRIMARY, clearedState, false, true);
             } catch (Exception ignored) {
             }
 
             this.sleeping = null;
+            this.recalculateBoundingBox();
             this.data.set(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 
@@ -1530,7 +1617,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             SetEntityDataPacket entityDataPk = new SetEntityDataPacket();
             entityDataPk.setRuntimeEntityId(this.getRuntimeId());
             entityDataPk.setTick(this.clientTick);
-            this.data.putFlagsIn(entityDataPk.getMetadata());
+            entityDataPk.getMetadata().putAll(this.data.snapshot(FLAGS));
             this.putNetworkBounds(entityDataPk.getMetadata());
             this.sendPacket(entityDataPk);
             CloudServer.broadcastPacket(this.getViewers(), entityDataPk);
@@ -1674,7 +1761,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 SetEntityMotionPacket packet = new SetEntityMotionPacket();
                 packet.setRuntimeEntityId(this.getRuntimeId());
                 packet.setMotion(motion);
-                packet.setTick(this.clientTick);
+                packet.setTick(this.server.getTick());
                 this.sendPacket(packet);  //Send to self
             }
 
@@ -1716,19 +1803,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     public void checkInteractNearby() {
         int interactDistance = isCreative() ? 5 : 3;
-        if (canInteract(this.getPosition(), interactDistance)) {
-            if (getEntityPlayerLookingAt(interactDistance) != null) {
-                Interactable onInteract = getEntityPlayerLookingAt(interactDistance);
-                setButtonText(onInteract.getInteractButtonText());
-            } else {
-                setButtonText("");
-            }
-        } else {
-            setButtonText("");
-        }
+        Interactable target = this.getEntityPlayerLookingAt(interactDistance);
+        this.setButtonText(target == null ? "" : target.getInteractButtonText());
     }
 
-    protected void processMovement(int tickDiff) {
+    public void applyInputMovement() {
         if (!this.isAlive() || !this.spawned || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
         }
@@ -1742,7 +1821,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         Vector3f authoritativePosition = null;
         Vector3f collisionResolvedPosition = null;
 
-        float tickDiffSq = (float) tickDiff * (float) tickDiff;
         float maxSpeedThreshold = this.server.getConfig().getMovement().getMaxSpeedThreshold();
 
         if (this.server.getConfig().getMovement().isStrictMovement()) {
@@ -1751,8 +1829,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         // TODO: Better way of getting max speed and when exempt
         boolean speedExempt = this.isGliding() || this.isCreative() || this.isSpectator() || (newPosition.getY() - currentPos.getY()) < -3.0f;
-        if ((distanceSquared / tickDiffSq) > maxSpeedThreshold && !speedExempt) {
-            log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared / tickDiffSq)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
+        if (distanceSquared > maxSpeedThreshold && !speedExempt) {
+            log.trace("[{}] movement reverted: claimed speed {} blocks/tick exceeds threshold {}", this.getName(), String.format("%.2f", Math.sqrt(distanceSquared)), String.format("%.2f", Math.sqrt(maxSpeedThreshold)));
             revert = true;
             revertReason = "speed";
             authoritativePosition = currentPos;
@@ -1808,10 +1886,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                     revertReason = "PlayerMoveEvent cancelled";
                 }
             }
-
-            this.knownMovement = to.getPosition().sub(from.getPosition()).div(tickDiff);
-        } else {
-            this.knownMovement = Vector3f.ZERO;
         }
 
         if (!revert && (this.isFoodEnabled() || this.getServer().getDifficulty() == Difficulty.PEACEFUL)) {
@@ -1838,6 +1912,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         if (revert) {
+            this.motion = Vector3f.ZERO;
             this.lastPosition = from.getPosition();
             this.lastYaw = from.getYaw();
             this.lastPitch = from.getPitch();
@@ -1868,8 +1943,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         this.newPosition = null;
     }
 
-    public Vector3f getKnownMovement() {
-        return this.knownMovement;
+    public void acceptInputMotion(Vector3f motion) {
+        this.motion = motion;
     }
 
     @Override
@@ -1893,7 +1968,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         CorrectPlayerMovePredictionPacket correction = new CorrectPlayerMovePredictionPacket();
         correction.setPredictionType(PredictionType.PLAYER);
         correction.setPosition(authoritativePos.add(0, getBaseOffset(), 0));
-        correction.setDelta(Vector3f.ZERO);
+        correction.setDelta(this.getMotion());
         correction.setVehicleRotation(Vector2f.ZERO);
         correction.setVehicleAngularVelocity(0.0f);
         correction.setOnGround(this.isNetworkOnGround());
@@ -1904,7 +1979,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     @Override
     public void sendAuthoritativeDisplacement() {
         super.sendAuthoritativeDisplacement();
-        this.sendPacket(this.createAuthoritativeDisplacementPacket());
+        this.sendMovementCorrection(this.getPosition(), this.clientTick);
     }
 
     public void beginFireworkGlideBoost(long fireworkRuntimeId) {
@@ -1956,10 +2031,11 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             }
 
             if (this.spawned) {
-                Vector3f chunkCenter = this.newPosition != null ? this.newPosition : this.getPosition();
-                this.processMovement(tickDiff);
                 this.reconcileGlidingState();
-                this.getChunkManager().queueNewChunks(chunkCenter);
+                if (this.spinAttackEndTick >= 0 && currentTick >= this.spinAttackEndTick) {
+                    this.stopSpinAttack();
+                }
+                this.getChunkManager().queueNewChunks(this.getPosition());
 
                 if (!this.isSpectator()) {
                     this.checkNearEntities();
@@ -1967,6 +2043,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
                 this.entityBaseTick(tickDiff);
                 this.finishItemUse(currentTick);
+                this.updateBlockingState();
                 this.updateUnderwaterSound();
 
                 if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
@@ -1997,13 +2074,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                             this.startAirTicks = 5;
                         }
                         this.inAirTicks = 0;
-                        this.highestPosition = this.getPosition().getY();
                     } else {
-                        float curY = this.getPosition().getY();
-                        if (curY > highestPosition) {
-                            this.highestPosition = curY;
-                        }
-
                         if (this.isGliding()) this.resetFallDistance();
 
                         ++this.inAirTicks;
@@ -2026,31 +2097,56 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 this.bossBars.forEach(bossBar -> bossBar.updatePosition(this));
             }
 
-            this.data.update();
+            this.flushEntityData();
         }
 
         return true;
     }
 
     private void finishItemUse(int currentTick) {
-        if (this.activeUseItem == null) {
+        if (this.activeUseStack == null) {
             return;
         }
 
-        ItemStack item = this.getInventory().getItem(this.activeUseSlot);
-        if (item.isEmpty() || item.getType() != this.activeUseItem
-                || this.getSelectedHotbarSlot() != this.activeUseSlot) {
+        if (!this.activeUseMatchesCurrentSlot()) {
             this.setUsingItem(false);
             return;
         }
-        if (currentTick < this.itemUseCompleteTick) {
+
+        ItemStack activeItem = this.getInventory().getItem(this.activeUseSlot);
+        UseTickHandler tickHandler = CloudItemRegistry.get().getComponent(activeItem.getType(), ItemBehaviors.USE_TICK);
+        if (tickHandler != null) {
+            int slot = this.activeUseSlot;
+            UseTickResult result = Objects.requireNonNull(
+                    tickHandler.execute(activeItem, this, Math.max(0, currentTick - this.startAction)),
+                    "use tick result");
+            ItemStack updatedItem = result.item();
+            if (result.stopUsing()) {
+                this.setUsingItem(false);
+                this.lastCompletedItemUseTick = currentTick;
+                this.flushEntityData();
+            }
+
+            if (updatedItem != activeItem) {
+                this.getInventory().setItem(slot, updatedItem);
+                if (!result.stopUsing()) {
+                    this.activeUseStack = updatedItem;
+                }
+            }
+
+            if (result.stopUsing()) {
+                return;
+            }
+        }
+
+        if (this.itemUseCompleteTick < 0 || currentTick < this.itemUseCompleteTick) {
             return;
         }
 
         int slot = this.activeUseSlot;
+        ItemStack item = this.getInventory().getItem(slot);
         this.setUsingItem(false);
-        FinishUseHandler handler = CloudItemRegistry.get().requireComponent(
-                item.getType(), ItemBehaviors.FINISH_USE);
+        FinishUseHandler handler = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.FINISH_USE);
         this.getInventory().setItem(slot, handler.execute(item, this));
     }
 
@@ -2132,7 +2228,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     private boolean hasValidGlidingState() {
-        if (this.isInsideOfWater() || this.hasEffect(EffectTypes.LEVITATION)) {
+        if (this.isInsideOfWater() || this.hasPotionEffect(EffectTypes.LEVITATION)) {
             return false;
         }
 
@@ -2162,6 +2258,32 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     /**
+     * Checks the server's block-interaction distance and facing tolerance.
+     */
+    public boolean canInteractWithBlock(Vector3i position) {
+        return this.isWithinInteractionReach(position.toFloat().add(0.5f, 0.5f, 0.5f));
+    }
+
+    /**
+     * Checks the server's entity-interaction distance and facing tolerance.
+     */
+    public boolean canInteractWithEntity(Entity entity) {
+        return this.isWithinInteractionReach(entity.getPosition());
+    }
+
+    private boolean isWithinInteractionReach(Vector3f position) {
+        int maxDistance = this.isCreative() ? CREATIVE_INTERACTION_DISTANCE : SURVIVAL_INTERACTION_DISTANCE;
+        if (this.getPosition().distanceSquared(position) > (double) maxDistance * maxDistance) {
+            return false;
+        }
+
+        Vector2f direction = this.getDirectionPlane();
+        float dx = position.getX() - this.getX();
+        float dz = position.getZ() - this.getZ();
+        return direction.getX() * dx + direction.getY() * dz >= -INTERACTION_BEHIND_TOLERANCE;
+    }
+
+    /**
      * Returns the Entity the player is looking at currently
      *
      * @param maxDistance the maximum distance to check for entities
@@ -2169,55 +2291,14 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
      */
     public Interactable getEntityPlayerLookingAt(int maxDistance) {
         try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
-            Interactable entity = null;
-
-            Set<Entity> nearbyEntities = this.getLevel().getNearbyEntities(this, boundingBox.inflate(maxDistance, maxDistance, maxDistance));
-
-            // get all blocks in looking direction until the max interact distance is reached (it's possible that startblock isn't found!)
-
-            Vector3f position = this.getPosition().add(0, getEyeHeight(), 0);
-            for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-                Block block = this.getLevel().getLoadedBlock(pos);
-                if (block == null) {
-                    break;
-                }
-
-                entity = getEntityAtPosition(nearbyEntities, pos.getX(), pos.getY(), pos.getZ());
-
-                if (entity != null) {
-                    break;
-                }
-            }
-            return entity;
-        }
-    }
-
-    public boolean canInteract(Vector3f pos, double maxDistance) {
-        return this.canInteract(pos, maxDistance, 6.0);
-    }
-
-    public boolean canInteract(Vector3f pos, double maxDistance, double maxDiff) {
-        if (this.getPosition().distanceSquared(pos) > maxDistance * maxDistance) {
-            return false;
-        }
-
-        Vector2f dV = this.getDirectionPlane();
-        double dot = dV.dot(this.getPosition().toVector2(true));
-        double dot1 = dV.dot(pos.toVector2(true));
-        return (dot1 - dot) >= -maxDiff;
-    }
-
-    private Interactable getEntityAtPosition(Set<Entity> nearbyEntities, int x, int y, int z) {
-        try (Timing ignored = Timings.playerEntityAtPositionTimer.startTiming()) {
-            for (Entity nearestEntity : nearbyEntities) {
-                Vector3f position = nearestEntity.getPosition();
-                if (position.getFloorX() == x && position.getFloorY() == y && position.getFloorZ() == z
-                        && nearestEntity instanceof Interactable
-                        && ((Interactable) nearestEntity).canDoInteraction()) {
-                    return (Interactable) nearestEntity;
-                }
-            }
-            return null;
+            Vector3f start = this.getPosition().add(0, this.getEyeHeight(), 0);
+            RayTraceContext trace = new RayTraceContext(start, start.add(this.getDirectionVector().mul(maxDistance)),
+                    BlockShapeMode.OUTLINE, FluidCollisionMode.NONE, CollisionContext.of(this));
+            HitResult hit = this.getLevel().rayTrace(trace, 0,
+                    entity -> entity != this && entity instanceof Interactable interactable
+                            && interactable.canDoInteraction());
+            return hit instanceof EntityHitResult entityHit && entityHit.entity() instanceof Interactable interactable
+                    ? interactable : null;
         }
     }
 
@@ -2244,7 +2325,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         startGamePacket.setDifficulty(this.server.getDifficulty().getId());
         startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setDayCycleStopTime(this.getLevel().getTime());
+        startGamePacket.setDayCycleStopTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
@@ -2431,7 +2512,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         this.server.onPlayerLogin(this);
 
-        super.init(this.getLocation());
+        super.initialize(this.getLocation());
 
         this.noPhysics = this.isSpectator();
 
@@ -2553,6 +2634,21 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     public String getXuid() {
         return this.connectionData.isAuthenticated() ? this.connectionData.getXuid() : "";
+    }
+
+    @Override
+    public void playSound(Vector3f position, SoundPlayback playback) {
+        this.sendPacket(SoundPacketFactory.play(playback, position));
+    }
+
+    @Override
+    public void stopSound(SoundType sound) {
+        this.sendPacket(SoundPacketFactory.stop(sound));
+    }
+
+    @Override
+    public void stopAllSounds() {
+        this.sendPacket(SoundPacketFactory.stopAll());
     }
 
     @Override
@@ -2680,7 +2776,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     @Override
-    public void sendActionBar(Component title) {
+    public void sendActionBar(@NonNull Component title) {
         this.sendActionBar(title, 1, 0, 1);
     }
 
@@ -2806,7 +2902,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
                 for (Entity entity : this.getLevel().getLoadedChunkEntities(chunkX, chunkZ)) {
                     if (entity != this) {
-                        entity.getViewers().remove(this);
+                        entity.despawnFrom(this);
                     }
                 }
             });
@@ -2973,7 +3069,16 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
     @Override
     public boolean attack(Entity target) {
+        return this.attackWithBonusDamage(target, 0);
+    }
+
+    public boolean attackWithBonusDamage(Entity target, float bonusDamage) {
         checkNotNull(target, "target");
+        if (!Float.isFinite(bonusDamage) || bonusDamage < 0) {
+            throw new IllegalArgumentException("bonusDamage must be finite and nonnegative");
+        }
+
+        this.interruptBlocking();
 
         ItemStack heldItem = this.getInventory().getSelectedItem();
         float baseDamage = 1;
@@ -2982,7 +3087,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             baseDamage = attackDamage.execute(heldItem);
         }
 
-        baseDamage = Math.max(0, baseDamage * this.getAttackDamageMultiplier());
+        baseDamage = Math.max(0, (baseDamage + bonusDamage) * this.getAttackDamageMultiplier());
         float damage = CloudEnchantmentRegistry.get().modifyDamage(heldItem, target, baseDamage);
         boolean criticalHit = this.isCriticalAttack(target);
         if (criticalHit) {
@@ -2991,39 +3096,43 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ATTACK_DAMAGE_TYPE);
         DamageSource source = DamageSource.of(damageType, this);
+        boolean piercingWeapon = !heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null;
 
         boolean damaged = target.damage(damage, source);
         if (damaged) {
             CloudEnchantmentRegistry.get().applyPostAttackEffects(heldItem, this, target);
             this.applyAttackKnockback(target, heldItem, damageType);
 
-            if (criticalHit) {
+            if (criticalHit && !piercingWeapon) {
                 this.broadcastCriticalHit(target);
-            } else {
+            } else if (!piercingWeapon) {
                 this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_STRONG, -1, EntityTypes.PLAYER, false, false);
             }
 
             this.getFoodData().updateFoodExpLevel(0.1);
             this.damageHeldItemAfterAttack(heldItem);
-        } else {
+        } else if (!piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
         }
 
-        AnimatePacket swingPacket = new AnimatePacket();
-        swingPacket.setAction(AnimatePacket.Action.SWING_ARM);
-        swingPacket.setRuntimeEntityId(this.getRuntimeId());
-        CloudServer.broadcastPacket(this.getViewers(), swingPacket);
+        if (!piercingWeapon) {
+            AnimatePacket swingPacket = new AnimatePacket();
+            swingPacket.setAction(AnimatePacket.Action.SWING_ARM);
+            swingPacket.setRuntimeEntityId(this.getRuntimeId());
+            CloudServer.broadcastPacket(this.getViewers(), swingPacket);
+        }
+
         return damaged;
     }
 
     private float getAttackDamageMultiplier() {
         float multiplier = 1;
-        Effect strength = this.getEffect(EffectTypes.STRENGTH);
+        PotionEffect strength = this.getPotionEffect(EffectTypes.STRENGTH);
         if (strength != null) {
             multiplier += 0.3f * (strength.getAmplifier() + 1);
         }
 
-        Effect weakness = this.getEffect(EffectTypes.WEAKNESS);
+        PotionEffect weakness = this.getPotionEffect(EffectTypes.WEAKNESS);
         if (weakness != null) {
             multiplier -= 0.2f * (weakness.getAmplifier() + 1);
         }
@@ -3090,12 +3199,26 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ON_DAMAGE);
         ItemStack damagedItem = damageItem.execute(heldItem, durabilityDamage, this);
         if (!damagedItem.equals(heldItem)) {
+            boolean activeUseOfHeldItem = this.activeUseMatchesCurrentSlot();
             this.getInventory().setSelectedItem(damagedItem);
+            if (activeUseOfHeldItem) {
+                if (damagedItem.isEmpty()) {
+                    this.setUsingItem(false);
+                } else {
+                    this.activeUseStack = damagedItem;
+                }
+            }
         }
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected void onDamageBlocked(EntityDamageEvent event) {
+        super.onDamageBlocked(event);
+        this.itemBlocking.onDamageBlocked(event);
+    }
+
+    @Override
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (!this.isAlive()) {
             return false;
         }
@@ -3309,6 +3432,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             return;
         }
 
+        this.stopSpinAttack();
+
         this.killer = death.killer();
         if (this.fishingHook != null) {
             this.stopFishing();
@@ -3321,6 +3446,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         CloudServer.broadcastPacket(this.hasSpawned, deathPacket);
 
         this.enterDeathState();
+        this.updateBlockingState();
         this.sendHealthAttribute();
 
         if (!event.getKeepInventory()) {
@@ -3398,19 +3524,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.chunk = this.getLevel().getChunk(pos);
 
             if (!this.justCreated) {
-
-                Set<CloudPlayer> viewers = this.getChunk().getViewers();
-                for (CloudPlayer player : this.hasSpawned) {
-                    if (!viewers.contains(player)) {
-                        this.despawnFrom(player);
-                    } else {
-                        viewers.remove(player);
-                    }
-                }
-
-                for (CloudPlayer player : viewers) {
-                    this.spawnTo(player);
-                }
+                this.updateViewers(this.getChunk().getViewers());
             }
 
             if (this.chunk == null) {
@@ -3512,7 +3626,8 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         }
 
         PlayerStartItemCooldownPacket packet = new PlayerStartItemCooldownPacket();
-        packet.setItemCategory(itemType.getId().toString());
+        packet.setItemCategory(itemType == ItemTypes.SHIELD || itemType == ItemTypes.GOAT_HORN
+                ? itemType.getId().getName() : itemType.getId().toString());
         packet.setCooldownDuration(ticks);
         this.sendPacket(packet);
     }
@@ -3669,21 +3784,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         return this.getChunkManager().isChunkSent(x, z);
     }
 
-    @Override
-    public void onChunkChanged(Chunk chunk) {
-        this.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
-    }
-
-    @Override
-    public int getLoaderId() {
-        return this.loaderId;
-    }
-
-    @Override
-    public boolean isLoaderActive() {
-        return this.isConnected();
-    }
-
     public boolean isFoodEnabled() {
         return !(this.isCreative() || this.isSpectator()) && this.foodEnabled;
     }
@@ -3728,16 +3828,6 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         pk.setAddress(hostName);
         pk.setPort(port);
         this.sendPacket(pk);
-    }
-
-    @Override
-    public void onChunkUnloaded(Chunk chunk) {
-        //this.sentChunks.remove(Chunk.key(chunk.getX(), chunk.getZ()));
-    }
-
-    @Override
-    public void onChunkLoaded(Chunk chunk) {
-
     }
 
     @Override
@@ -3893,7 +3983,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
             this.getChunkManager().prepareRegion(this.getPosition());
 
             SetTimePacket setTime = new SetTimePacket();
-            setTime.setTime(level.getTime());
+            setTime.setTime(VanillaLevelTime.toNetworkTime(level.getTime()));
             this.sendPacket(setTime);
 
             GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
@@ -3926,19 +4016,20 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (near) {
             CloudEntity cloudEntity = (CloudEntity) entity;
-            if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
+            if (entity instanceof AbstractArrow arrow) {
+                ArrowPickupStatus pickupStatus = arrow.getPickupStatus();
+                if (pickupStatus == ArrowPickupStatus.DISALLOWED || pickupStatus == ArrowPickupStatus.CREATIVE_ONLY && !this.isCreative()) {
+                    return false;
+                }
+            }
+
+            if (entity instanceof Arrow arrow && entity.getMotion().lengthSquared() == 0) {
+                ItemStack item = arrow.getItemStack();
                 if (this.isSurvival() && !this.getContainer().canAddItem(item)) {
                     return false;
                 }
 
-                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), (EntityArrow) entity);
-
-                int pickupMode = ((EntityArrow) entity).getPickupMode();
-                if (pickupMode == EntityArrow.PICKUP_NONE || pickupMode == EntityArrow.PICKUP_CREATIVE && !this.isCreative()) {
-                    ev.setCancelled();
-                }
-
+                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), arrow);
                 this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return false;
@@ -3953,6 +4044,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
                 if (!this.isCreative()) {
                     this.getContainer().addItem(item);
                 }
+
                 entity.close();
                 return true;
             } else if (entity instanceof ThrownTrident && entity.getMotion().lengthSquared() == 0) {
@@ -4127,6 +4219,10 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         if (inventory == this.armor.getContainer()) {
             this.sendArmorEquipmentToViewers();
+        } else if (inventory == this.offhand.getContainer()) {
+            this.sendOffhandEquipmentToViewers();
+        } else if (inventory == this.container && slot == this.selectedHotbarSlot) {
+            this.sendHandEquipmentToViewers();
         }
     }
 
@@ -4157,6 +4253,14 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
         packet.setContents(contents);
         packet.setContainerId(containerId);
         this.sendPacket(packet);
+
+        if (inventory == this.armor.getContainer()) {
+            this.sendArmorEquipmentToViewers();
+        } else if (inventory == this.offhand.getContainer()) {
+            this.sendOffhandEquipmentToViewers();
+        } else if (inventory == this.container) {
+            this.sendHandEquipmentToViewers();
+        }
     }
 
     private void sendUISlot(int localSlot, ItemStack item) {
@@ -4227,7 +4331,7 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public void setSelectedHotbarSlot(int slot) {
-        this.selectedHotbarSlot = slot;
+        this.updateSelectedHotbarSlot(slot);
 
         PlayerHotbarPacket packet = new PlayerHotbarPacket();
         packet.setSelectedHotbarSlot(slot);
@@ -4237,7 +4341,23 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
     }
 
     public void acknowledgeHotbarSlot(int slot) {
+        this.updateSelectedHotbarSlot(slot);
+    }
+
+    private void updateSelectedHotbarSlot(int slot) {
+        if (slot < 0 || slot > 8) {
+            throw new IllegalArgumentException("Hotbar slot must be between 0 and 8");
+        }
+
+        if (this.selectedHotbarSlot == slot) {
+            return;
+        }
+
         this.selectedHotbarSlot = slot;
+        this.setUsingItem(false);
+        if (this.spawned) {
+            this.sendHandEquipmentToViewers();
+        }
     }
 
     public void sendInventoryContents() {
@@ -4279,7 +4399,12 @@ public class CloudPlayer extends EntityHuman implements ChunkLoader, Player, Con
 
         @Override
         public void onDisconnect(CharSequence reason) {
-            CloudPlayer.this.close("", reason.toString());
+            String disconnectReason = reason.toString();
+            if (CloudPlayer.this.server.isPrimaryThread()) {
+                CloudPlayer.this.close("", disconnectReason);
+            } else {
+                CloudPlayer.this.server.getGlobalScheduler().execute(null, () -> CloudPlayer.this.close("", disconnectReason));
+            }
         }
 
         @Override

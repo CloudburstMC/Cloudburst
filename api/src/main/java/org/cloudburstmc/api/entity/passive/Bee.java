@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.passive;
 
-import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Creature;
 
-public interface Bee extends Entity {
+/**
+ * Represents a bee.
+ */
+public interface Bee extends Creature {
 }

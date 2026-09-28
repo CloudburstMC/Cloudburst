@@ -36,6 +36,9 @@ public final class ChunkHolder {
     private volatile boolean promoted;
     @Getter
     private volatile boolean newChunk;
+    @Getter
+    private volatile boolean populationEventPending;
+    private boolean lifecycleCallback;
 
     private final CompletableFuture<CloudChunk> loadFuture;
 
@@ -73,6 +76,10 @@ public final class ChunkHolder {
         this.newChunk = true;
     }
 
+    public void markPopulationComplete() {
+        this.populationEventPending = true;
+    }
+
     public synchronized void addTicket(ChunkTicketType type, Object identifier) {
         ChunkTicket ticket = new ChunkTicket(type, identifier);
         this.tickets.merge(ticket, 1, Integer::sum);
@@ -103,9 +110,10 @@ public final class ChunkHolder {
     }
 
     public synchronized boolean close() {
-        if (this.closed) {
+        if (this.closed || !this.tickets.isEmpty()) {
             return false;
         }
+
         this.closed = true;
         this.cancelUnneededWork();
         return true;
@@ -136,23 +144,38 @@ public final class ChunkHolder {
 
     @Nullable
     public CloudChunk getPromotedChunk() {
-        if (!this.promoted) {
+        if (!this.promoted || this.closed) {
             return null;
         }
+
         return this.getCompleteChunk();
     }
 
-    public void promote() {
+    public synchronized boolean beginPromotion() {
+        if (this.closed || this.promoted || this.lifecycleCallback) {
+            return false;
+        }
+
         this.promoted = true;
+        this.lifecycleCallback = true;
+        return true;
+    }
+
+    public synchronized boolean beginUnload() {
+        if (this.closed || this.lifecycleCallback || !this.isIdle() || !this.tickets.isEmpty()) {
+            return false;
+        }
+
+        this.lifecycleCallback = true;
+        return true;
+    }
+
+    public synchronized void endLifecycleCallback() {
+        this.lifecycleCallback = false;
     }
 
     public boolean isIdle() {
         return isDone(this.loadFuture) && isDone(this.generatedFuture) && isDone(this.populatedFuture) && isDone(this.finishedFuture);
-    }
-
-    public boolean isComplete() {
-        CloudChunk current = this.chunk;
-        return current != null && current.isGenerated() && current.isPopulated() && current.isFinished();
     }
 
     private CompletableFuture<CloudChunk> generate() {
@@ -232,7 +255,10 @@ public final class ChunkHolder {
                         .thenCompose(neighbors -> {
                             this.populationWorkFuture = this.manager.getScheduler()
                                     .schedulePopulation(this.x, this.z, chunk, neighbors, ChunkTaskPriority.NORMAL);
-                            return this.populationWorkFuture;
+                            return this.populationWorkFuture.thenApply(populatedChunk -> {
+                                this.markPopulationComplete();
+                                return populatedChunk;
+                            });
                         })
                         .whenComplete((populatedChunk, throwable) -> dependencies.release(this.manager));
             });

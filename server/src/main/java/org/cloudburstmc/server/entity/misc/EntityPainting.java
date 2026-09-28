@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.misc.Painting;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
@@ -13,6 +12,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.entity.HangingEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 /**
@@ -63,7 +63,7 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (super.applyDamage(source)) {
             Entity damager = source.getDamageSource().getCausingEntity();
             if (damager instanceof CloudPlayer player) {

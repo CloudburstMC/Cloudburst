@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block.component;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.SpongeAbsorbEvent;
@@ -12,7 +13,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DestroyBlockNoSoundParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.*;
 
@@ -69,7 +70,7 @@ public class SpongeBlockHandlers {
             Vector3i position = sponge.getPosition();
             level.setBlockState(position, BlockTypes.WET_SPONGE.getDefaultState());
             level.addLevelSoundEvent(position, SoundEvent.SPONGE_ABSORB);
-            level.addParticle(new DestroyBlockNoSoundParticle(position.toFloat(), BlockTypes.WATER.getDefaultState()));
+            level.addChunkPacket(position.toFloat(), LevelEffectPacketFactory.blockDestruction(position.toFloat(), BlockTypes.WATER.getDefaultState(), false));
         }
     }
 
@@ -89,7 +90,7 @@ public class SpongeBlockHandlers {
 
             boolean changed;
             BlockState primary = block.getState();
-            if (block.getLiquidLayer() == 1 && isAquaticPlant(primary)) {
+            if (block.getLiquidLayer() == BlockLayer.SECONDARY && isAquaticPlant(primary)) {
                 level.breakBlock(position);
                 changed = level.getBlock(position).getLiquid().isEmpty();
             } else {

@@ -5,7 +5,6 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -25,6 +24,7 @@ import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
@@ -47,9 +47,6 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     public EntityAbstractMinecart(EntityType<?> type, Location location) {
         super(type, location);
-
-        setMaxHealth(40);
-        setHealth(40);
     }
 
     public abstract boolean isRideable();
@@ -108,6 +105,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     @Override
     public void initEntity() {
         super.initEntity();
+        this.setMaxHealth(40);
+        this.setHealth(40);
 
         setRollingAmplitude(0);
         setRollingDirection(1);
@@ -284,7 +283,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (invulnerable) {
             return false;
         } else {

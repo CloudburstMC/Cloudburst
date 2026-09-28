@@ -10,6 +10,7 @@ import org.cloudburstmc.api.entity.hostile.ZombiePigman;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -263,9 +264,9 @@ public class NetherPortals {
             for (int p = -1; p <= 1; p++) {
                 int bx = x + dx * i + px * p;
                 int bz = z + dz * i + pz * p;
-                level.setBlockState(bx, y - 1, bz, 0, obsidian, false, true);
+                level.setBlockState(bx, y - 1, bz, obsidian, false, true);
                 for (int j = 0; j < NEW_PORTAL_HEIGHT; j++) {
-                    level.setBlockState(bx, y + j, bz, 0, air, false, true);
+                    level.setBlockState(bx, y + j, bz, air, false, true);
                 }
             }
         }
@@ -274,13 +275,13 @@ public class NetherPortals {
             for (int j = -1; j <= NEW_PORTAL_HEIGHT; j++) {
                 boolean isFrame = i == -1 || i == NEW_PORTAL_WIDTH || j == -1 || j == NEW_PORTAL_HEIGHT;
                 if (!isFrame) continue;
-                level.setBlockState(x + dx * i, y + j, z + dz * i, 0, obsidian, false, true);
+                level.setBlockState(x + dx * i, y + j, z + dz * i, obsidian, false, true);
             }
         }
 
         for (int i = 0; i < NEW_PORTAL_WIDTH; i++) {
             for (int j = 0; j < NEW_PORTAL_HEIGHT; j++) {
-                level.setBlockState(x + dx * i, y + j, z + dz * i, 0, portalState, false, false);
+                level.setBlockState(x + dx * i, y + j, z + dz * i, portalState, false, false);
             }
         }
     }
@@ -487,7 +488,7 @@ public class NetherPortals {
                 }
 
                 spawnPos = findCollisionFreeSpawn(targetLevel, entity, spawnPos);
-                targetLevel.addSound(spawnPos, Sound.PORTAL_TRAVEL);
+                targetLevel.playSound(spawnPos, SoundTypes.PORTAL_TRAVEL);
                 entity.teleport(Location.from(spawnPos, exitYaw, entity.getPitch(), targetLevel));
 
                 entity.setMotion(Vector3f.ZERO);

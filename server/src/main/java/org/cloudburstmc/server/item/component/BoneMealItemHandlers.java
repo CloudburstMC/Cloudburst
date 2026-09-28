@@ -9,9 +9,9 @@ import org.cloudburstmc.api.block.FertilizationResult;
 import org.cloudburstmc.api.event.block.BlockFertilizeEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseOnHandler;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.BoneMealParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,8 +47,8 @@ public class BoneMealItemHandlers {
             level.dropItem(block.getPosition().toFloat().add(0.5f, 0.5f, 0.5f), drop);
         }
 
-        level.addParticle(new BoneMealParticle(position));
-        level.addSound(position, Sound.ITEM_BONE_MEAL_USE);
+        level.addChunkPacket(position, LevelEffectPacketFactory.cropGrowth(position));
+        level.playSound(position, SoundTypes.ITEM_BONE_MEAL_USE);
         return player.isCreative() ? item : item.decreaseCount();
     };
 }

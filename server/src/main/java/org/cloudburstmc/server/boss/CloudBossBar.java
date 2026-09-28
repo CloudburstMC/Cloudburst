@@ -143,7 +143,7 @@ public abstract class CloudBossBar implements BossBar {
     }
 
     public void refresh(CloudPlayer player) {
-        if (this.visible && isBound() && this.players.contains(player)) {
+        if (this.visible && this.players.contains(player)) {
             hide(player);
             show(player);
         }
@@ -151,8 +151,6 @@ public abstract class CloudBossBar implements BossBar {
 
     public void updatePosition(CloudPlayer player) {
     }
-
-    protected abstract boolean isBound();
 
     protected abstract long getBossEntityId();
 
@@ -166,36 +164,20 @@ public abstract class CloudBossBar implements BossBar {
         return this.visible && this.players.contains(player);
     }
 
-    protected final void replaceBinding(Runnable replacement) {
-        Objects.requireNonNull(replacement, "replacement");
-        if (this.visible && isBound()) {
-            this.players.forEach(this::hide);
-        }
-
-        replacement.run();
-        if (this.visible && isBound()) {
-            this.players.forEach(this::show);
-        }
-    }
-
     private void broadcast(BossEventPacket.Action action) {
-        if (this.visible && isBound()) {
+        if (this.visible) {
             this.players.forEach(player -> player.sendPacket(packet(action)));
         }
     }
 
     private void show(CloudPlayer player) {
-        if (isBound()) {
-            showBackingEntity(player);
-            player.sendPacket(packet(BossEventPacket.Action.CREATE));
-        }
+        showBackingEntity(player);
+        player.sendPacket(packet(BossEventPacket.Action.CREATE));
     }
 
     private void hide(CloudPlayer player) {
-        if (isBound()) {
-            player.sendPacket(packet(BossEventPacket.Action.REMOVE));
-            hideBackingEntity(player);
-        }
+        player.sendPacket(packet(BossEventPacket.Action.REMOVE));
+        hideBackingEntity(player);
     }
 
     private BossEventPacket packet(BossEventPacket.Action action) {

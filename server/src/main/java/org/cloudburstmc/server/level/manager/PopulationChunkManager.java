@@ -2,10 +2,10 @@ package org.cloudburstmc.server.level.manager;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
-import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 
 import java.util.Arrays;
@@ -20,13 +20,13 @@ public final class PopulationChunkManager implements GenerationRegion {
 
     @Getter
     private final long seed;
-    private final LockableChunk[] chunks = new LockableChunk[DIAMETER_IN_CHUNKS * DIAMETER_IN_CHUNKS];
+    private final LockedChunk[] chunks = new LockedChunk[DIAMETER_IN_CHUNKS * DIAMETER_IN_CHUNKS];
     private final int centerChunkX;
     private final int centerChunkZ;
     private final int cornerChunkX;
     private final int cornerChunkZ;
 
-    public PopulationChunkManager(Chunk center, LockableChunk[] chunks, long seed) {
+    public PopulationChunkManager(Chunk center, LockedChunk[] chunks, long seed) {
         Objects.requireNonNull(center, "center");
         Objects.requireNonNull(chunks, "chunks");
         Preconditions.checkArgument(chunks.length == this.chunks.length,
@@ -38,7 +38,7 @@ public final class PopulationChunkManager implements GenerationRegion {
         this.cornerChunkX = this.centerChunkX - 1;
         this.cornerChunkZ = this.centerChunkZ - 1;
 
-        for (LockableChunk chunk : chunks) {
+        for (LockedChunk chunk : chunks) {
             Objects.requireNonNull(chunk, "chunks contains null");
             this.chunks[this.chunkIndex(chunk.getX(), chunk.getZ())] = chunk;
         }
@@ -69,34 +69,14 @@ public final class PopulationChunkManager implements GenerationRegion {
     }
 
     @Override
-    public BlockState getBlockState(int x, int y, int z) {
-        return this.getBlockState(x, y, z, 0);
-    }
-
-    @Override
-    public BlockState getBlockState(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, BlockLayer layer) {
         return this.chunkFromBlock(x, z).getBlockState(x & 0xF, y, z & 0xF, layer);
     }
 
     @Override
-    public BlockState getBlockState(Vector3i position) {
-        return this.getBlockState(position.getX(), position.getY(), position.getZ());
-    }
-
-    @Override
-    public boolean setBlockState(int x, int y, int z, BlockState state) {
-        return this.setBlockState(x, y, z, 0, state);
-    }
-
-    @Override
-    public boolean setBlockState(int x, int y, int z, int layer, BlockState state) {
+    public boolean setBlockState(int x, int y, int z, BlockLayer layer, BlockState state) {
         this.chunkFromBlock(x, z).setBlockState(x & 0xF, y, z & 0xF, layer, state);
         return true;
-    }
-
-    @Override
-    public boolean setBlockState(Vector3i position, BlockState state) {
-        return this.setBlockState(position.getX(), position.getY(), position.getZ(), state);
     }
 
     @Override
@@ -104,7 +84,7 @@ public final class PopulationChunkManager implements GenerationRegion {
         return this.chunks[this.chunkIndex(chunkX, chunkZ)];
     }
 
-    private LockableChunk chunkFromBlock(int blockX, int blockZ) {
+    private LockedChunk chunkFromBlock(int blockX, int blockZ) {
         Preconditions.checkArgument(this.containsBlock(blockX, blockZ), "Block position (%s,%s) is outside the generation region", blockX, blockZ);
         return this.chunks[this.chunkIndex(blockX >> 4, blockZ >> 4)];
     }

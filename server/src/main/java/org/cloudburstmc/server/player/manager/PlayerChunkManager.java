@@ -3,22 +3,25 @@ package org.cloudburstmc.server.player.manager;
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.longs.*;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.player.PlayerChunkLoadEvent;
+import org.cloudburstmc.api.event.player.PlayerChunkUnloadEvent;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
+import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.LongConsumer;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 @Log4j2
 public final class PlayerChunkManager {
@@ -48,7 +51,7 @@ public final class PlayerChunkManager {
     private final LongSet shellSentChunks = new LongOpenHashSet();
 
     /**
-     * Chunk keys for which all sub-chunk sections have been served to the
+     * Chunks for which all sub-chunk sections have been served to the
      * client.
      * <p>
      * This is the authoritative gate for both movement validation and
@@ -59,7 +62,7 @@ public final class PlayerChunkManager {
      * immediately when the shell is sent, because the client will not
      * send any sub-chunk requests for them.
      */
-    private final LongSet readyChunks = new LongOpenHashSet();
+    private final Long2ObjectMap<CloudChunk> readyChunks = new Long2ObjectOpenHashMap<>();
 
     /**
      * Outstanding sub-chunk section count per chunk key.
@@ -84,28 +87,26 @@ public final class PlayerChunkManager {
     private final LongList loadQueue = new LongArrayList();
 
     /**
-     * Pending serialized shell packets waiting to be sent, keyed by chunk
-     * key. A {@code null} value means async serialization is still in
-     * flight. The entry is present from the moment serialization starts
+     * Pending shell sends, keyed by chunk key. A request without a packet is
+     * still being serialized. The entry is present from the moment serialization starts
      * until the packet has been dispatched in {@link #sendQueued}.
      */
-    private final Long2ObjectMap<LevelChunkPacket> sendQueue = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<ChunkSend> sendQueue = new Long2ObjectOpenHashMap<>();
 
-    private final LongSet retainedChunks = new LongOpenHashSet();
+    private final Long2ObjectMap<CloudLevel> retainedChunks = new Long2ObjectOpenHashMap<>();
 
     private final LongComparator distanceSorter = this::compareDistanceToPlayer;
     private final AtomicLong chunksSentCounter = new AtomicLong();
-    private final LongConsumer removeChunkView;
 
     private volatile int chunkRadius;
 
     private int lastQueuedChunkX = Integer.MIN_VALUE;
     private int lastQueuedChunkZ = Integer.MIN_VALUE;
     private int lastQueuedChunkRadius = Integer.MIN_VALUE;
+    private long viewRevision;
 
     public PlayerChunkManager(CloudPlayer player) {
         this.player = player;
-        this.removeChunkView = key -> this.updateEntityViewsInChunk(key, EntityViewUpdate.DESPAWN);
     }
 
     /**
@@ -116,19 +117,18 @@ public final class PlayerChunkManager {
      * serialization completing and this tick are discarded without sending.
      */
     public synchronized void sendQueued() {
+        long revision = this.viewRevision;
         int chunksPerTick = this.player.getServer().getConfig().getChunkSending().getPerTick();
 
         LongList keysToDiscard = new LongArrayList();
-        for (Long2ObjectMap.Entry<LevelChunkPacket> entry : this.sendQueue.long2ObjectEntrySet()) {
+        for (Long2ObjectMap.Entry<ChunkSend> entry : this.sendQueue.long2ObjectEntrySet()) {
             if (!this.viewChunks.contains(entry.getLongKey())) {
                 keysToDiscard.add(entry.getLongKey());
             }
         }
 
         for (long key : keysToDiscard) {
-            this.release(this.sendQueue.remove(key));
-            this.releaseChunk(key);
-            this.removeChunkView.accept(key);
+            this.removeFromView(key);
         }
 
         this.scheduleQueuedChunkLoads(chunksPerTick);
@@ -145,39 +145,40 @@ public final class PlayerChunkManager {
                     break;
                 }
 
-                LevelChunkPacket packet = this.sendQueue.get(key);
-                if (packet == null) {
+                ChunkSend request = this.sendQueue.get(key);
+                if (request == null || request.packet == null) {
                     continue;
                 }
+                LevelChunkPacket packet = request.packet;
 
                 this.sendQueue.remove(key);
                 if (!this.player.sendPacket(packet)) {
                     this.release(packet);
+                    if (this.viewRevision != revision) {
+                        return;
+                    }
+                    this.loadQueue.add(key);
                     continue;
+                }
+
+                chunksPerTick--;
+                this.chunksSentCounter.incrementAndGet();
+                if (this.viewRevision != revision) {
+                    return;
                 }
 
                 int subChunkLimit = packet.getSubChunkLimit();
                 this.shellSentChunks.add(key);
 
                 if (subChunkLimit <= 0) {
-                    this.readyChunks.add(key);
-                    this.spawnEntityViewsInChunk(key);
-
-                    CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
-                    checkArgument(
-                            chunk != null,
-                            "Attempted to send unloaded chunk (%s, %s) to %s",
-                            CloudChunk.fromKeyX(key),
-                            CloudChunk.fromKeyZ(key),
-                            this.player.getName()
-                    );
+                    this.markReady(key);
                 } else {
-                    int pending = subChunkLimit;
-                    this.pendingSubChunks.put(key, pending);
+                    this.pendingSubChunks.put(key, subChunkLimit);
                 }
 
-                chunksPerTick--;
-                this.chunksSentCounter.incrementAndGet();
+                if (this.viewRevision != revision) {
+                    return;
+                }
             }
         }
 
@@ -192,7 +193,7 @@ public final class PlayerChunkManager {
      * promoted to {@link #readyChunks} and entities in it are spawned to
      * the player.
      * <p>
-     * This method is called from the packet-handling thread and acquires
+     * This method is called from packet handling on the server thread and acquires
      * the manager lock to keep all state mutations consistent.
      */
     public synchronized void recordSubChunkServed(int chunkX, int chunkZ, int sectionsServed) {
@@ -209,9 +210,7 @@ public final class PlayerChunkManager {
         }
 
         this.pendingSubChunks.remove(key);
-        this.readyChunks.add(key);
-
-        this.spawnEntityViewsInChunk(key);
+        this.markReady(key);
     }
 
     public synchronized void despawnVisibleEntities() {
@@ -219,11 +218,11 @@ public final class PlayerChunkManager {
     }
 
     public synchronized void spawnReadyEntities() {
-        this.updateEntityViewsInChunks(this.readyChunks, EntityViewUpdate.SPAWN);
+        this.updateEntityViewsInChunks(this.readyChunks.keySet(), EntityViewUpdate.SPAWN);
     }
 
     public synchronized void refreshReadyEntities() {
-        this.updateEntityViewsInChunks(this.readyChunks, EntityViewUpdate.REFRESH);
+        this.updateEntityViewsInChunks(this.readyChunks.keySet(), EntityViewUpdate.REFRESH);
     }
 
     public synchronized void spawnReadyEntitiesIn(CloudChunk chunk) {
@@ -231,14 +230,27 @@ public final class PlayerChunkManager {
             return;
         }
 
-        long key = chunk.key();
-        if (this.readyChunks.contains(key)) {
+        long key = chunk.getKey();
+        if (this.readyChunks.containsKey(key)) {
             this.updateEntityViewsInChunk(key, EntityViewUpdate.SPAWN);
         }
     }
 
     private void spawnEntityViewsInChunk(long key) {
         this.updateEntityViewsInChunk(key, EntityViewUpdate.SPAWN);
+    }
+
+    private void markReady(long key) {
+        CloudLevel level = this.retainedChunks.get(key);
+        CloudChunk chunk = level == null ? null : level.getLoadedChunk(key);
+        if (chunk == null) {
+            throw new IllegalStateException("Cannot complete a view of an unloaded chunk");
+        }
+
+        if (this.readyChunks.putIfAbsent(key, chunk) == null) {
+            this.spawnEntityViewsInChunk(key);
+            this.player.getServer().getEventManager().fire(new PlayerChunkLoadEvent(chunk, this.player));
+        }
     }
 
     private void updateEntityViewsInChunks(LongCollection chunks, EntityViewUpdate update) {
@@ -249,11 +261,16 @@ public final class PlayerChunkManager {
     }
 
     private void updateEntityViewsInChunk(long key, EntityViewUpdate update) {
-        CloudChunk chunk = this.player.getLevel().getLoadedChunk(key);
+        CloudLevel level = this.retainedChunks.get(key);
+        CloudChunk chunk = level == null ? null : level.getLoadedChunk(key);
         if (chunk == null) {
             return;
         }
 
+        this.updateEntityViewsInChunk(chunk, update);
+    }
+
+    private void updateEntityViewsInChunk(CloudChunk chunk, EntityViewUpdate update) {
         for (Entity entity : chunk.getEntities()) {
             this.updateEntityViewIfVisible(entity, update);
         }
@@ -304,6 +321,7 @@ public final class PlayerChunkManager {
         this.lastQueuedChunkX = chunkX;
         this.lastQueuedChunkZ = chunkZ;
         this.lastQueuedChunkRadius = radius;
+        long revision = ++this.viewRevision;
 
         int radiusSqr = radius * radius;
 
@@ -337,9 +355,11 @@ public final class PlayerChunkManager {
         for (long key : chunksToRemove) {
             this.viewChunks.remove(key);
             this.shellSentChunks.remove(key);
-            this.readyChunks.remove(key);
             this.pendingSubChunks.remove(key);
             this.removeFromView(key);
+            if (this.viewRevision != revision) {
+                return;
+            }
         }
 
         for (int i = this.loadQueue.size() - 1; i >= 0; i--) {
@@ -391,14 +411,16 @@ public final class PlayerChunkManager {
         if (this.sendQueue.containsKey(key)) {
             return;
         }
-        this.sendQueue.put(key, null);
-        this.retainChunk(key);
+
+        ChunkSend request = new ChunkSend(this.player.getLevel());
+        this.sendQueue.put(key, request);
+        this.retainChunk(key, request.level);
 
         Executor asyncExecutor = ((CloudAsyncScheduler) this.player.getServer().getAsyncScheduler()).getExecutor();
-        this.player.getLevel().getChunkFuture(cx, cz)
+        request.level.getChunkFuture(cx, cz)
                 .thenApplyAsync(chunk -> {
                     synchronized (PlayerChunkManager.this) {
-                        return this.viewChunks.contains(key) && this.sendQueue.containsKey(key) ? chunk : null;
+                        return this.viewChunks.contains(key) && this.sendQueue.get(key) == request ? chunk : null;
                     }
                 }, asyncExecutor)
                 .thenApplyAsync(
@@ -407,26 +429,26 @@ public final class PlayerChunkManager {
                 )
                 .whenCompleteAsync((packet, throwable) -> {
                     synchronized (PlayerChunkManager.this) {
+                        if (this.sendQueue.get(key) != request) {
+                            this.release(packet);
+                            return;
+                        }
+
                         if (throwable != null) {
-                            if (this.sendQueue.remove(key, null)) {
-                                this.viewChunks.remove(key);
-                                this.removeFromView(key);
-                                this.invalidateQueuedCenter();
-                            }
+                            this.viewChunks.remove(key);
+                            this.removeFromView(key);
+                            this.invalidateQueuedCenter();
                             log.error("Unable to create chunk packet for {}", this.player.getName(), throwable);
                         } else if (packet == null) {
-                            this.sendQueue.remove(key, null);
-                        } else if (!this.sendQueue.replace(key, null, packet)) {
-                            this.release(packet);
-                            if (this.sendQueue.containsKey(key)) {
-                                log.warn("Chunk ({},{}) already queued for {}, dropping duplicate", cx, cz, this.player.getName());
-                            }
+                            this.removeFromView(key);
+                        } else {
+                            request.packet = packet;
                         }
                     }
                 }, asyncExecutor);
     }
 
-    private void release(LevelChunkPacket packet) {
+    private void release(@Nullable LevelChunkPacket packet) {
         if (packet != null && packet.refCnt() > 0) {
             packet.release();
         }
@@ -438,22 +460,36 @@ public final class PlayerChunkManager {
                 this.loadQueue.removeLong(i);
             }
         }
+
         if (this.sendQueue.containsKey(key)) {
-            this.release(this.sendQueue.remove(key));
+            this.release(this.sendQueue.remove(key).packet);
         }
-        this.releaseChunk(key);
-        this.removeChunkView.accept(key);
+
+        CloudLevel level = this.retainedChunks.remove(key);
+        CloudChunk readyChunk = this.readyChunks.remove(key);
+        this.releaseView(key, level, readyChunk);
     }
 
-    private void retainChunk(long key) {
-        if (this.retainedChunks.add(key)) {
-            this.player.getLevel().addPlayerViewChunkTicket(key, this.player);
+    private void releaseView(long key, @Nullable CloudLevel level, @Nullable CloudChunk readyChunk) {
+        try {
+            CloudChunk chunk = readyChunk != null ? readyChunk : level == null ? null : level.getLoadedChunk(key);
+            if (chunk != null) {
+                this.updateEntityViewsInChunk(chunk, EntityViewUpdate.DESPAWN);
+            }
+
+            if (readyChunk != null) {
+                this.player.getServer().getEventManager().fire(new PlayerChunkUnloadEvent(readyChunk, this.player));
+            }
+        } finally {
+            if (level != null) {
+                level.removePlayerViewChunkTicket(key, this.player);
+            }
         }
     }
 
-    private void releaseChunk(long key) {
-        if (this.retainedChunks.remove(key)) {
-            this.player.getLevel().removePlayerViewChunkTicket(key, this.player);
+    private void retainChunk(long key, CloudLevel level) {
+        if (this.retainedChunks.putIfAbsent(key, level) == null) {
+            level.addPlayerViewChunkTicket(key, this.player);
         }
     }
 
@@ -511,7 +547,7 @@ public final class PlayerChunkManager {
     }
 
     public synchronized boolean isChunkSent(long key) {
-        return this.readyChunks.contains(key);
+        return this.readyChunks.containsKey(key);
     }
 
     /**
@@ -543,18 +579,18 @@ public final class PlayerChunkManager {
      * been served. These are chunks the client can walk in.
      */
     public LongSet getReadyChunks() {
-        return LongSets.unmodifiable(this.readyChunks);
+        return LongSets.unmodifiable(this.readyChunks.keySet());
     }
 
     public synchronized void resendChunk(int chunkX, int chunkZ) {
         long key = CloudChunk.key(chunkX, chunkZ);
-        if (this.viewChunks.remove(key)) {
-            this.removeFromView(key);
-        }
+        boolean wasInView = this.viewChunks.remove(key);
         this.shellSentChunks.remove(key);
-        this.readyChunks.remove(key);
         this.pendingSubChunks.remove(key);
         this.invalidateQueuedCenter();
+        if (wasInView) {
+            this.removeFromView(key);
+        }
     }
 
     public void prepareRegion(Vector3f pos) {
@@ -569,20 +605,35 @@ public final class PlayerChunkManager {
     public synchronized void clear() {
         LongList pendingSends = new LongArrayList(this.sendQueue.keySet());
         for (long key : pendingSends) {
-            this.release(this.sendQueue.remove(key));
+            this.release(this.sendQueue.remove(key).packet);
         }
+
+        Long2ObjectMap<CloudLevel> previousLevels = new Long2ObjectOpenHashMap<>(this.retainedChunks);
+        Long2ObjectMap<CloudChunk> previousReady = new Long2ObjectOpenHashMap<>(this.readyChunks);
+        this.retainedChunks.clear();
         this.loadQueue.clear();
-        this.viewChunks.forEach((LongConsumer) this::removeFromView);
         this.viewChunks.clear();
         this.shellSentChunks.clear();
         this.readyChunks.clear();
         this.pendingSubChunks.clear();
         this.invalidateQueuedCenter();
+
+        for (Long2ObjectMap.Entry<CloudLevel> entry : previousLevels.long2ObjectEntrySet()) {
+            long key = entry.getLongKey();
+            this.releaseView(key, entry.getValue(), previousReady.get(key));
+        }
     }
 
     private void invalidateQueuedCenter() {
+        this.viewRevision++;
         this.lastQueuedChunkX = Integer.MIN_VALUE;
         this.lastQueuedChunkZ = Integer.MIN_VALUE;
         this.lastQueuedChunkRadius = Integer.MIN_VALUE;
+    }
+
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    private static final class ChunkSend {
+        private final CloudLevel level;
+        private @Nullable LevelChunkPacket packet;
     }
 }

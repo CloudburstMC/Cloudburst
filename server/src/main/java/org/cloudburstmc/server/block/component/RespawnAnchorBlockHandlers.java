@@ -2,12 +2,11 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.ExplosionBlockInteraction;
+import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -15,7 +14,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.vehicle.DismountHelper;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.List;
@@ -45,7 +43,7 @@ public class RespawnAnchorBlockHandlers {
                 && currentCharge < MAX_CHARGES) {
             int newCharge = currentCharge + 1;
             BlockState newState = block.getState().withTrait(BlockTraits.RESPAWN_ANCHOR_CHARGE, newCharge);
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, newState, false, true);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), BlockLayer.PRIMARY, newState, false, true);
 
             if (!cloudPlayer.isCreative()) {
                 cloudPlayer.getInventory().setSelectedItem(item.decreaseCount());
@@ -64,12 +62,10 @@ public class RespawnAnchorBlockHandlers {
                 return true;
             }
 
-            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), 0, BlockStates.AIR, false, true);
-            Explosion explosion = new Explosion(level,
-                    Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
-                    5, cloudPlayer);
-            explosion.explodeA();
-            explosion.explodeB();
+            Block sourceBlock = level.getBlock(pos);
+            level.setBlockState(pos.getX(), pos.getY(), pos.getZ(), BlockLayer.PRIMARY, BlockStates.AIR, false, true);
+            level.explode(Vector3f.from(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f),
+                    new ExplosionSettings(5, ExplosionBlockInteraction.DESTROY_WITH_DECAY, true, null, sourceBlock));
             return true;
         }
 

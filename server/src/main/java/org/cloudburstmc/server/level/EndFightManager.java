@@ -7,6 +7,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
+import org.cloudburstmc.api.level.ExplosionBlockInteraction;
+import org.cloudburstmc.api.level.ExplosionSettings;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
@@ -15,7 +17,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.boss.CloudEntityBossBar;
+import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.hostile.EntityEnderDragon;
 import org.cloudburstmc.server.entity.misc.EntityEnderCrystal;
@@ -40,7 +42,7 @@ public class EndFightManager implements DragonBattle {
 
     private final CloudLevel level;
     private final CloudEndFightData data;
-    private final CloudEntityBossBar bossBar = new CloudEntityBossBar(Component.translatable("entity.ender_dragon.name"), BossBarColor.PURPLE, BossBarStyle.SOLID);
+    private final CloudStandaloneBossBar bossBar = new CloudStandaloneBossBar(Component.translatable("entity.ender_dragon.name"), BossBarColor.PURPLE, BossBarStyle.SOLID);
     private final List<EntityEnderCrystal> respawnCrystals = new ArrayList<>();
     private EndDragonRespawnStage respawnStage;
     private boolean started;
@@ -49,6 +51,7 @@ public class EndFightManager implements DragonBattle {
     private int missingDragonTime;
     private int reconciliationTime;
     private int respawnTime;
+    private int playerScanTime = 19;
 
     public EndFightManager(CloudLevel level, CloudEndFightData data) {
         this.level = level;
@@ -64,24 +67,45 @@ public class EndFightManager implements DragonBattle {
         loadCentralChunks();
 
         if (!this.data.isInitialized()) {
+            Integer existingPortalY = EndPodiumFeature.findExistingBase(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+            Integer activePortalY = EndPodiumFeature.findActivePortal(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+
             this.data.setInitialized(true);
-            this.data.setDragonKilled(false);
-            this.spawnDragonAfterInitialization = true;
-            EndPodiumFeature.place(this.level, exitPortalPosition(), false);
+            if (existingPortalY != null || activePortalY != null) {
+                this.data.setExitPortalY(existingPortalY != null ? existingPortalY : activePortalY);
+                boolean dragonPresent = !findDragons().isEmpty();
+                this.data.setDragonPreviouslyKilled(activePortalY != null);
+                this.data.setDragonKilled(activePortalY != null && !dragonPresent);
+                this.spawnDragonAfterInitialization = activePortalY == null && !dragonPresent;
+            } else {
+                this.data.setDragonKilled(false);
+                this.spawnDragonAfterInitialization = findDragons().isEmpty();
+                EndPodiumFeature.place(this.level, exitPortalPosition(), false);
+            }
         }
     }
 
     public void tick() {
+        this.bossBar.setVisible(!this.data.isDragonKilled());
+        if (++this.playerScanTime >= 20) {
+            this.playerScanTime = 0;
+            updateBossBarPlayers();
+        }
+
         if (!hasArenaPlayer()) {
             return;
+        }
+
+        if (!this.started) {
+            ensureStarted();
         }
 
         if (this.initializationTime > 0) {
             if (--this.initializationTime == 0) {
                 reconcileDragons(this.spawnDragonAfterInitialization);
                 this.spawnDragonAfterInitialization = false;
-                if (this.respawnStage == null && !restoreRespawn()) {
-                    this.initiateRespawn();
+                if (this.respawnStage == null) {
+                    restoreRespawn();
                 }
             }
 
@@ -284,8 +308,24 @@ public class EndFightManager implements DragonBattle {
     private EnderDragon spawnDragon() {
         EnderDragon dragon = CloudEntityRegistry.get().newEntity(EntityTypes.ENDER_DRAGON, Location.from(Vector3f.from(0, 128, 0), this.level));
         dragon.spawnToAll();
-        this.bossBar.bindEntity(dragon);
         return dragon;
+    }
+
+    private void updateBossBarPlayers() {
+        Vector3f center = Vector3f.from(0.5f, 128, 0.5f);
+        for (Player player : List.copyOf(this.bossBar.getPlayers())) {
+            if (player.getLevel() != this.level || !player.isOnline() || !player.isSpawned()
+                    || player.getPosition().distanceSquared(center) > ARENA_PLAYER_RANGE * ARENA_PLAYER_RANGE) {
+                this.bossBar.removePlayer(player);
+            }
+        }
+
+        for (Player player : this.level.getPlayers().values()) {
+            if (player.isOnline() && player.isSpawned()
+                    && player.getPosition().distanceSquared(center) <= ARENA_PLAYER_RANGE * ARENA_PLAYER_RANGE) {
+                this.bossBar.addPlayer(player);
+            }
+        }
     }
 
     private boolean hasArenaPlayer() {
@@ -335,22 +375,21 @@ public class EndFightManager implements DragonBattle {
         return crystals;
     }
 
-    private boolean restoreRespawn() {
+    private void restoreRespawn() {
         EndDragonRespawnStage stage = this.data.getRespawnStage();
         if (!this.data.isDragonKilled() || stage == null) {
-            return false;
+            return;
         }
 
         List<EntityEnderCrystal> crystals = findRespawnCrystals();
         if (crystals.isEmpty()) {
             clearRespawnState();
-            return false;
+            return;
         }
 
         this.respawnStage = stage;
         this.respawnTime = this.data.getRespawnTime();
         this.respawnCrystals.addAll(crystals);
-        return true;
     }
 
     private void tickStart() {
@@ -454,12 +493,9 @@ public class EndFightManager implements DragonBattle {
     }
 
     private void destroyRespawnCrystal(EntityEnderCrystal crystal) {
-        Explosion explosion = new Explosion(this.level, crystal.getPosition(), 6, crystal);
-        explosion.setDestroysBlocks(false);
+        Vector3f position = crystal.getPosition();
         crystal.close();
-        if (explosion.explodeA()) {
-            explosion.explodeB();
-        }
+        this.level.explode(position, new ExplosionSettings(6, ExplosionBlockInteraction.KEEP, false, crystal, null));
     }
 
     private void regenerateSpike(EndSpikeLayout.Spike spike) {
@@ -472,10 +508,8 @@ public class EndFightManager implements DragonBattle {
             }
         }
 
-        Explosion explosion = new Explosion(this.level, Vector3f.from(spike.x() + 0.5f, spike.height(), spike.z() + 0.5f), 5, null);
-        if (explosion.explodeA()) {
-            explosion.explodeB();
-        }
+        this.level.explode(Vector3f.from(spike.x() + 0.5f, spike.height(), spike.z() + 0.5f),
+                new ExplosionSettings(5, ExplosionBlockInteraction.DESTROY, false, null, null));
 
         EndSpikePopulator.placeSpike(this.level, spike);
         EntityEnderCrystal crystal = EndDimension.spawnSpikeCrystal(this.level, spike);
@@ -555,9 +589,6 @@ public class EndFightManager implements DragonBattle {
         } else if (dragons.isEmpty() && spawnMissing) {
             spawnDragon();
         } else {
-            if (!dragons.isEmpty()) {
-                this.bossBar.bindEntity(dragons.getFirst());
-            }
             dragons.stream().skip(1).forEach(this::removeDragon);
         }
     }
@@ -606,13 +637,22 @@ public class EndFightManager implements DragonBattle {
     }
 
     private Vector3i exitPortalPosition() {
+        Integer existingY = EndPodiumFeature.findExistingBase(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+        if (existingY != null) {
+            this.data.setExitPortalY(existingY);
+            return Vector3i.from(0, existingY, 0);
+        }
+
+        Integer activeY = EndPodiumFeature.findActivePortal(this.level, this.level.getMinHeight(), this.level.getMaxHeight());
+        if (activeY != null) {
+            this.data.setExitPortalY(activeY);
+            return Vector3i.from(0, activeY, 0);
+        }
+
         Integer storedY = this.data.getExitPortalY();
         int y;
         if (storedY == null) {
             y = this.level.getHighestBlock(0, 0);
-            while (y > 63 && this.level.getBlockState(0, y, 0).getType() == BlockStates.BEDROCK.getType()) {
-                y--;
-            }
             y = Math.max(this.level.getMinHeight() + 1, y);
             this.data.setExitPortalY(y);
         } else {

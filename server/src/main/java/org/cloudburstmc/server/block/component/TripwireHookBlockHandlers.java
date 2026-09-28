@@ -1,9 +1,11 @@
 package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.component.BlockDestroyHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
-import org.cloudburstmc.api.block.component.PlayerBlockHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -35,7 +37,7 @@ public class TripwireHookBlockHandlers {
         }
     };
 
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
         BlockState state = block.getState();
         CloudLevel level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();

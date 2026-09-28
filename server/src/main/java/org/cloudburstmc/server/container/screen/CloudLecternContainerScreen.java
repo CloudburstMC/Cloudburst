@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.container.screen;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
@@ -29,6 +30,7 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 @Log4j2
 public class CloudLecternContainerScreen extends CloudInventoryScreen implements LecternScreen {
 
+    @Getter
     private final Block block;
     private final CloudLecternView lectern;
 
@@ -44,10 +46,12 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
         if (existing instanceof LecternBlockEntity lecternBE) {
             return lecternBE;
         }
+
         if (existing != null) {
             log.warn("Unexpected block entity at {} for lectern: {}", block.getPosition(), existing.getClass().getSimpleName());
             return null;
         }
+
         log.warn("No block entity found at {} for lectern; auto-creating", block.getPosition());
         return (LecternBlockEntity) CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
     }
@@ -75,9 +79,5 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
     @Override
     protected void setupMappings() {
         this.addMapping(new ContainerMapping(ContainerSlotType.LEVEL_ENTITY, lectern, 1, 0));
-    }
-
-    public Block getBlock() {
-        return block;
     }
 }

@@ -56,8 +56,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
                 bendSize--;
             }
 
-            if (this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
-                level.setBlockState(x + dx, y + dy, z + dz, 0, log);
+            if (this.test(level.getBlockState(x + dx, y + dy, z + dz))) {
+                level.setBlockState(x + dx, y + dy, z + dz, log);
             }
         }
         this.placeLeaves(level, random, x + dx, y + height - 1, z + dz, height, log, leaves);
@@ -76,8 +76,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             dx += secondDirection.getStepX();
             dz += secondDirection.getStepZ();
 
-            if (this.test(level.getBlockState(x + dx, y + secondBendHeight, z + dz, 0))) {
-                level.setBlockState(x + dx, y + secondBendHeight, z + dz, 0, log);
+            if (this.test(level.getBlockState(x + dx, y + secondBendHeight, z + dz))) {
+                level.setBlockState(x + dx, y + secondBendHeight, z + dz, log);
                 lastPlacedY = y + secondBendHeight;
             }
         }
@@ -98,7 +98,7 @@ public class FeatureSavannaTree extends FeatureNormalTree {
             int radius = dy == 0 ? 0 : 2;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockState(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockState(x, y + dy, z))) {
                         return false;
                     }
                 }
@@ -112,8 +112,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
     protected void placeLeaves(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dx = -3; dx <= 3; dx++) {
             for (int dz = -3; dz <= 3; dz++) {
-                if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockState(x + dx, y, z + dz, 0, leaves);
+                if ((abs(dx) != 3 || abs(dz) != 3) && this.test(level.getBlockState(x + dx, y, z + dz))) {
+                    level.setBlockState(x + dx, y, z + dz, leaves);
                 }
             }
         }
@@ -122,8 +122,8 @@ public class FeatureSavannaTree extends FeatureNormalTree {
 
         for (int dx = -2; dx <= 2; dx++) {
             for (int dz = -2; dz <= 2; dz++) {
-                if ((abs(dx) != 2 || abs(dz) != 2) && this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                    level.setBlockState(x + dx, y, z + dz, 0, leaves);
+                if ((abs(dx) != 2 || abs(dz) != 2) && this.test(level.getBlockState(x + dx, y, z + dz))) {
+                    level.setBlockState(x + dx, y, z + dz, leaves);
                 }
             }
         }

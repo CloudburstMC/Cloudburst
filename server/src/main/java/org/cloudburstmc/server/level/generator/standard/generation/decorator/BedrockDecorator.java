@@ -35,20 +35,20 @@ public class BedrockDecorator extends AbstractGenerationPass implements Decorato
         final BlockState state = this.block.state();
 
         for (int y = this.base.min, max = this.base.max; y < max; y++) {
-            chunk.setBlockState(x, y, z, 0, state);
+            chunk.setBlockState(x, y, z, state);
         }
 
         if (!this.fade.empty()) {
             if (this.reverseFade) {
                 for (int y = this.fade.min, i = 1, size = this.fade.size() + 1; i < size; y++, i++) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockState(x, y, z, 0, state);
+                        chunk.setBlockState(x, y, z, state);
                     }
                 }
             } else {
                 for (int y = this.fade.min, i = this.fade.size(), size = i + 1; i > 0; y++, i--) {
                     if (random.nextInt(size) < i) {
-                        chunk.setBlockState(x, y, z, 0, state);
+                        chunk.setBlockState(x, y, z, state);
                     }
                 }
             }

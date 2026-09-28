@@ -5,10 +5,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.level.generator.Generator;
 
 import java.util.ArrayList;
@@ -35,24 +35,18 @@ public final class FinishingTask implements BiFunction<CloudChunk, List<CloudChu
         chunks.addAll(neighbors);
         chunks.add(chunk);
 
-        LockableChunk[] lockableChunks = chunks.stream()
+        LockedChunk[] lockedChunks = chunks.stream()
                 .peek(populationChunk -> Preconditions.checkState(populationChunk.isPopulated(), "Chunk %d,%d was used for finishing before being populated!", populationChunk.getX(), populationChunk.getZ()))
-                .map(Chunk::writeLockable)
                 .sorted()
-                .toArray(LockableChunk[]::new);
-
-        int lockedCount = 0;
-        for (; lockedCount < lockableChunks.length; lockedCount++) {
-            lockableChunks[lockedCount].lock();
-        }
+                .map(CloudChunk::lockForWrite)
+                .toArray(LockedChunk[]::new);
 
         try {
-            ((CloudLevel) chunk.getLevel()).getGenerator().finish(random, new PopulationChunkManager(chunk, lockableChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
-            chunk.setState(Chunk.STATE_FINISHED);
-            chunk.setDirty();
+            ((CloudLevel) chunk.getLevel()).getGenerator().finish(random, new PopulationChunkManager(chunk, lockedChunks, chunk.getLevel().getSeed()), chunk.getX(), chunk.getZ());
+            chunk.advanceGenerationStatus(ChunkGenerationStatus.FINISHED);
         } finally {
-            for (int k = 0; k < lockedCount; k++) {
-                lockableChunks[k].unlock();
+            for (int i = lockedChunks.length - 1; i >= 0; i--) {
+                lockedChunks[i].close();
             }
         }
 

@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.LoomScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.LoomView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudLoomView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -37,8 +37,8 @@ public class CloudLoomContainerScreen extends CloudBlockContainerScreen implemen
         super.setupMappings();
         this.loomView = new CloudLoomView(new CloudContainer(4));
         this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_INPUT, loomView, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_DYE, loomView, 1, 1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_MATERIAL, loomView, 1, 2));
-        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_RESULT, loomView, 1, 3));
+        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_DYE, loomView, 1, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_MATERIAL, loomView, 2, 1, 2));
+        this.addMapping(new ContainerMapping(ContainerSlotType.LOOM_RESULT, loomView, 3, 1, 3));
     }
 }

@@ -13,9 +13,13 @@ import org.cloudburstmc.server.player.CloudPlayer;
 /**
  * Shulker-box screen that owns the viewer lifecycle driving its lid animation.
  */
-public final class CloudShulkerBoxContainerScreen extends CloudChestContainerScreen {
+public class CloudShulkerBoxContainerScreen extends CloudChestContainerScreen {
 
     private boolean lifecycleStarted;
+
+    private CloudShulkerBoxContainerScreen(CloudPlayer player, Block block) {
+        super(ScreenTypes.SHULKER_BOX, player, block, ContainerSlotType.SHULKER_BOX, BlockEntityTypes.SHULKER_BOX, SlotGroupTypes.SHULKER_BOX);
+    }
 
     public static @Nullable CloudShulkerBoxContainerScreen create(CloudPlayer player, Block block) {
         BlockEntity blockEntity = block.getLevel().getBlockEntity(block.getPosition());
@@ -24,11 +28,6 @@ public final class CloudShulkerBoxContainerScreen extends CloudChestContainerScr
         }
 
         return new CloudShulkerBoxContainerScreen(player, block);
-    }
-
-    private CloudShulkerBoxContainerScreen(CloudPlayer player, Block block) {
-        super(ScreenTypes.SHULKER_BOX, player, block, ContainerSlotType.SHULKER_BOX,
-                BlockEntityTypes.SHULKER_BOX, SlotGroupTypes.SHULKER_BOX);
     }
 
     @Override

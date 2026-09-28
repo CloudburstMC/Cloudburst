@@ -6,7 +6,6 @@ import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Boat;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -17,10 +16,13 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.api.util.data.TreeSpecies;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.collision.BlockBoxTraversal;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -49,16 +51,34 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     public EntityBoat(EntityType<? extends Boat> type, Location location) {
         super(type, location);
-
-        this.setMaxHealth(40);
-        this.setHealth(40);
     }
 
     @Override
     protected void initEntity() {
         super.initEntity();
+        this.setMaxHealth(40);
+        this.setHealth(40);
+        this.setWoodType(TreeSpecies.OAK);
         this.data.set(ROW_TIME_LEFT, 0f);
         this.data.set(ROW_TIME_RIGHT, 0f);
+    }
+
+    @Override
+    public void loadAdditionalData(NbtMap tag) {
+        super.loadAdditionalData(tag);
+        tag.listenForInt("WoodType", woodType -> {
+            TreeSpecies[] species = TreeSpecies.values();
+            if (woodType < 0 || woodType >= species.length) {
+                throw new IllegalArgumentException("Unknown boat wood type " + woodType);
+            }
+            this.setWoodType(species[woodType]);
+        });
+    }
+
+    @Override
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        super.saveAdditionalData(tag);
+        tag.putInt("WoodType", this.getWoodType());
     }
 
     public int getWoodType() {
@@ -101,7 +121,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (invulnerable) {
             return false;
         } else {

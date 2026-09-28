@@ -9,7 +9,6 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -25,6 +24,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -110,7 +110,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
@@ -305,7 +305,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
         addEntity.setMotion(this.getMotion());
         addEntity.setFromFishing(this.fromFishing);
-        this.data.putAllIn(addEntity.getMetadata());
+        addEntity.getMetadata().putAll(this.data.snapshot());
         addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
         return addEntity;
     }

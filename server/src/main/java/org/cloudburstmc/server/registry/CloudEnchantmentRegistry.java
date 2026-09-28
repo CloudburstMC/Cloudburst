@@ -10,7 +10,7 @@ import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.EnchantmentRegistry;
@@ -67,13 +67,13 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         return !first.type().conflictsWith(second.type());
     }
 
-    public float getDamageProtection(@NonNull ItemStack item, @NonNull EntityDamageEvent event) {
+    public float getDamageProtection(@NonNull ItemStack item, @NonNull DamageSource source) {
         Preconditions.checkNotNull(item, "item");
-        Preconditions.checkNotNull(event, "event");
+        Preconditions.checkNotNull(source, "source");
 
         float protection = 0;
         for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
-            protection += getBehavior(enchantment.type()).getDamageProtection(enchantment, event);
+            protection += getBehavior(enchantment.type()).getDamageProtection(enchantment, source);
         }
 
         return protection;

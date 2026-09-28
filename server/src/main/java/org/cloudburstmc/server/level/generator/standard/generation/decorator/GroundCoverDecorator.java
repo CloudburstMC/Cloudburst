@@ -45,9 +45,9 @@ public class GroundCoverDecorator implements Decorator {
     @Override
     public void decorate(RandomGenerator random, Chunk chunk, int x, int z) {
         int y = chunk.getHighestBlock(x, z);
-        if (y >= 0 && y < 255 && (this.on == null || this.on.test(chunk.getBlockState(x, y, z, 0)))
-                && this.replace.test(chunk.getBlockState(x, y + 1, z, 0)) && random.nextDouble() < this.chance) {
-            chunk.setBlockState(x, y + 1, z, 0, this.cover.selectWeighted(random));
+        if (y >= 0 && y < 255 && (this.on == null || this.on.test(chunk.getBlockState(x, y, z)))
+                && this.replace.test(chunk.getBlockState(x, y + 1, z)) && random.nextDouble() < this.chance) {
+            chunk.setBlockState(x, y + 1, z, this.cover.selectWeighted(random));
         }
     }
 

@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.CollisionContext;
@@ -21,10 +22,8 @@ import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
-import org.cloudburstmc.server.level.particle.DestroyBlockNoSoundParticle;
-import org.cloudburstmc.server.level.particle.FizzEffectParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -63,7 +62,7 @@ public class PowderSnowBlockHandlers {
 
     public static final FallOnBlockHandler FALL_ON = (block, entity, fallDistance) -> {
         if (entity instanceof EntityLiving && fallDistance >= 4) {
-            ((CloudLevel) block.getLevel()).addSound(entity.getPosition(), Sound.FALL_POWDER_SNOW);
+            block.getLevel().playSound(entity.getPosition(), SoundTypes.FALL_POWDER_SNOW);
         }
     };
 
@@ -83,8 +82,9 @@ public class PowderSnowBlockHandlers {
             CloudLevel level = (CloudLevel) block.getLevel();
             BlockState state = block.getState();
             BoundingBox bounds = entity.getBoundingBox();
-            level.addParticle(new FizzEffectParticle(Vector3f.from(bounds.getMinX(), bounds.getMinY(), bounds.getMinZ())));
-            level.addParticle(new DestroyBlockNoSoundParticle(block.getPosition().toFloat(), state));
+            Vector3f position = Vector3f.from(bounds.getMinX(), bounds.getMinY(), bounds.getMinZ());
+            level.addChunkPacket(position, LevelEffectPacketFactory.fizz(position));
+            level.addChunkPacket(block.getPosition().toFloat(), LevelEffectPacketFactory.blockDestruction(block.getPosition().toFloat(), state, false));
             level.addLevelSoundEvent(entity.getPosition(), SoundEvent.FIZZ);
             block.set(BlockStates.AIR);
         }

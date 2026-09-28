@@ -2,27 +2,29 @@ package org.cloudburstmc.server.entity;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
-import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.DamageEffect;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
-import org.cloudburstmc.api.event.entity.ProjectileLaunchEvent;
+import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.AttackBlockingComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.potion.Effect;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -33,25 +35,22 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.math.BlockRayTrace;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.DoubleUnaryOperator;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
 public abstract class EntityLiving extends CloudEntity implements Living {
 
     private static final int HURT_COOLDOWN_TICKS = 10;
-    private static final float DEFAULT_KNOCKBACK_STRENGTH = 1f;
+    private static final float DEFAULT_KNOCKBACK_STRENGTH = 0.4f;
 
     private boolean inPowderSnow;
     private int hurtCooldownTicks;
@@ -80,10 +79,9 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    public <T extends Projectile> T launchProjectile(EntityType<T> type, Vector3f velocity, Consumer<? super T> configurator) {
+    public <T extends Projectile> @Nullable T launchProjectile(EntityType<T> type, @Nullable Vector3f velocity, @Nullable Consumer<? super T> configurator) {
         Objects.requireNonNull(type, "type");
-        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight() - 0.1f, 0),
-                this.getYaw(), this.getPitch(), this.level);
+        Location location = Location.from(this.getPosition().add(0, this.getEyeHeight() - 0.1f, 0), this.getYaw(), this.getPitch(), this.level);
         T projectile = CloudEntityRegistry.get().newEntity(type, location);
         projectile.setShooter(this);
         projectile.setMotion(velocity == null ? this.getDirectionVector() : velocity);
@@ -91,9 +89,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             configurator.accept(projectile);
         }
 
-        ProjectileLaunchEvent event = new ProjectileLaunchEvent(projectile);
-        ((CloudEntity) projectile).spawn(event);
-        return projectile;
+        return projectile.spawn() ? projectile : null;
     }
 
     @Override
@@ -147,7 +143,58 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    public ItemStack getBlockingItem() {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public boolean isBlocking() {
+        return !this.getBlockingItem().isEmpty();
+    }
+
+    protected DoubleUnaryOperator createBlockingReduction(DamageSource source) {
+        if (source.getDamageType().is(DamageTypeTags.BYPASSES_SHIELD) || source.getDirectEntity() instanceof AbstractArrow arrow && arrow.getPierceLevel() > 0) {
+            return _ -> 0;
+        }
+
+        ItemStack item = this.getBlockingItem();
+        Location origin = source.getSourceLocation();
+        if (item.isEmpty() || origin == null || origin.getLevel() != this.level) {
+            return _ -> 0;
+        }
+
+        AttackBlockingComponent blocking = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.BLOCKS_ATTACKS);
+        if (blocking == null) {
+            return _ -> 0;
+        }
+
+        Vector2f toSource = origin.getPosition().sub(this.getPosition()).toVector2(true);
+        if (toSource.lengthSquared() == 0) {
+            return _ -> 0;
+        }
+
+        boolean blocks = blocking.blocksDirection(this.getDirectionPlane().dot(toSource.normalize()));
+        return damage -> blocks ? damage : 0;
+    }
+
+    protected void onDamageBlocked(EntityDamageEvent event) {
+        Entity attacker = event.getDamageSource().getDirectEntity();
+        if (attacker instanceof EntityLiving livingAttacker
+                && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)
+                && !event.getDamageType().is(DamageTypeTags.NO_KNOCKBACK)) {
+            Vector2f direction = attacker.getPosition().sub(this.getPosition()).toVector2(true);
+            livingAttacker.knockBack(this, 0.5f, direction.getX(), direction.getY());
+        }
+    }
+
+    @Override
+    protected CloudEntityDamageEvent createDamageEvent(DamageSource source, float amount) {
+        float cooldownDamage = source.getDamageType().is(DamageTypeTags.BYPASSES_COOLDOWN) || this.hurtCooldownTicks <= 0 && this.noDamageTicks <= 0 ? 0 : this.lastDamageAmount;
+        return new CloudEntityDamageEvent(this, source, amount, this.createBlockingReduction(source), cooldownDamage, this.createDamageReduction(source), this.getAbsorption());
+    }
+
+    @Override
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (this.isClosed() || !this.isAlive()) {
             return false;
         }
@@ -155,18 +202,17 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         Entity directEntity = source.getDamageSource().getDirectEntity();
         Entity causingEntity = source.getDamageSource().getCausingEntity();
 
-        float incomingDamage = source.getDamage();
         boolean fullDamage = source.getDamageType().is(DamageTypeTags.BYPASSES_COOLDOWN) || (this.hurtCooldownTicks <= 0 && this.noDamageTicks <= 0);
-        float cooldownAdjustedDamage = fullDamage ? incomingDamage : Math.max(incomingDamage - this.lastDamageAmount, 0);
-
-        if (cooldownAdjustedDamage <= 0) {
+        if (!super.applyDamage(source)) {
             return false;
         }
 
-        source.setDamage(cooldownAdjustedDamage);
-        this.applyDamageReductions(source);
+        float cooldownAdjustedDamage = source.getDamageBeforeReductions();
+        if (source.getBlockedDamage() > 0) {
+            this.onDamageBlocked(source);
+        }
 
-        if (!super.applyDamage(source)) {
+        if (cooldownAdjustedDamage <= 0) {
             return false;
         }
 
@@ -190,27 +236,29 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             this.hurtCooldownTicks = HURT_COOLDOWN_TICKS;
         }
 
-        this.lastDamageAmount = incomingDamage;
+        this.lastDamageAmount = source.getUnblockedDamage();
         return true;
     }
 
     /**
-     * Applies living-entity damage reductions in gameplay order.
+     * Captures living-entity defenses for one hit without applying their side effects.
      *
-     * @param source the mutable damage event
+     * @param source the damage source
+     * @return the reduction applied after blocking and the hurt cooldown
      */
-    protected void applyDamageReductions(EntityDamageEvent source) {
+    protected DoubleUnaryOperator createDamageReduction(DamageSource source) {
         if (source.getDamageType().is(DamageTypeTags.BYPASSES_EFFECTS) || source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
-            return;
+            return damage -> damage;
         }
 
-        Effect resistanceEffect = this.getEffect(EffectTypes.RESISTANCE);
+        PotionEffect resistanceEffect = this.getPotionEffect(EffectTypes.RESISTANCE);
         if (resistanceEffect == null) {
-            return;
+            return damage -> damage;
         }
 
         int resistance = (resistanceEffect.getAmplifier() + 1) * 5;
-        source.setDamage(source.getDamage() * Math.max(25 - resistance, 0) / 25f);
+        float factor = Math.max(25 - resistance, 0) / 25f;
+        return damage -> damage * factor;
     }
 
     /**
@@ -273,7 +321,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     public void knockBack(Entity attacker, float strength, float diffX, float diffZ) {
-        float effectiveStrength = 0.4f * strength * (1 - this.getKnockbackResistance());
+        float effectiveStrength = strength * (1 - this.getKnockbackResistance());
         if (effectiveStrength <= 0) {
             return;
         }
@@ -360,11 +408,11 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
                 var block = this.getLevel().getBlockState(this.getPosition().toInt()).getType();
                 boolean ignore = block == BlockTypes.LADDER || block == BlockTypes.VINE || block == BlockTypes.WEB;
-                if (ignore || this.hasEffect(EffectTypes.LEVITATION)) {
+                if (ignore || this.hasPotionEffect(EffectTypes.LEVITATION)) {
                     this.resetFallDistance();
                 }
 
-                if (!this.hasEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
+                if (!this.hasPotionEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
                     if (this instanceof EntityWaterAnimal || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
                         this.setAirTicks(400);
                     } else {
@@ -467,7 +515,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
                     .requireComponent(this.getType(), EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER)
                     .execute(this);
             if (this.damage(multiplier, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
-                this.getLevel().addSound(this.getPosition(), Sound.MOB_PLAYER_HURT_FREEZE);
+                this.getLevel().playSound(this.getPosition(), SoundTypes.MOB_PLAYER_HURT_FREEZE);
             }
         }
     }
@@ -480,77 +528,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
     public ItemStack[] getDrops() {
         return new ItemStack[0];
-    }
-
-    public Block[] getLineOfSight(int maxDistance) {
-        return this.getLineOfSight(maxDistance, 0);
-    }
-
-    public Block[] getLineOfSight(int maxDistance, int maxLength) {
-        return this.getLineOfSight(maxDistance, maxLength, new BlockType[0]);
-    }
-
-    public Block[] getLineOfSight(int maxDistance, int maxLength, BlockType[] transparent) {
-        if (maxDistance > 120) {
-            maxDistance = 120;
-        }
-
-        if (transparent != null && transparent.length == 0) {
-            transparent = null;
-        }
-
-        List<Block> blocks = new ArrayList<>();
-
-        Vector3f position = getPosition().add(0, this.getEyeHeight(), 0);
-        for (Vector3i pos : BlockRayTrace.of(position, getDirectionVector(), maxDistance)) {
-            Block block = this.getLevel().getLoadedBlock(pos);
-            if (block == null) {
-                break;
-            }
-            blocks.add(block);
-
-            if (maxLength != 0 && blocks.size() > maxLength) {
-                blocks.remove(0);
-            }
-
-            var id = block.getState().getType();
-
-            if (transparent == null) {
-                if (id != AIR) {
-                    break;
-                }
-            } else {
-                if (Arrays.binarySearch(transparent, id) < 0) {
-                    break;
-                }
-            }
-        }
-
-        return blocks.toArray(new Block[0]);
-    }
-
-    public Block getTargetBlock(int maxDistance) {
-        return getTargetBlock(maxDistance, new BlockType[0]);
-    }
-
-    public Block getTargetBlock(int maxDistance, BlockType[] transparent) {
-        try {
-            Block[] blocks = this.getLineOfSight(maxDistance, 1, transparent);
-            Block block = blocks[0];
-            if (block != null) {
-                if (transparent != null && transparent.length != 0) {
-                    if (Arrays.binarySearch(transparent, block.getState().getType()) < 0) {
-                        return block;
-                    }
-                } else {
-                    return block;
-                }
-            }
-        } catch (Exception ignored) {
-
-        }
-
-        return null;
     }
 
     public int getAirTicks() {

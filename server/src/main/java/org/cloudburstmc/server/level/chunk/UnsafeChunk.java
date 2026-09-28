@@ -5,15 +5,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.level.ChunkLoader;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -21,21 +20,37 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.io.Closeable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static com.google.common.base.Preconditions.checkElementIndex;
 
-public final class UnsafeChunk implements Chunk, Closeable {
+/**
+ * Mutable chunk storage guarded by {@link CloudChunk}.
+ *
+ * <p>Direct access is limited to construction and lifecycle code or code that
+ * holds the owning chunk's corresponding read or write lock.
+ */
+final class UnsafeChunk implements Chunk, Closeable {
+    private static final int INITIALIZATION_NOT_STARTED = 0;
+    private static final int INITIALIZATION_IN_PROGRESS = 1;
+    private static final int INITIALIZATION_COMPLETE = 2;
 
     static final AtomicIntegerFieldUpdater<UnsafeChunk> CLEAR_CACHE_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "clearCache");
-    private static final AtomicIntegerFieldUpdater<UnsafeChunk> DIRTY_FIELD = AtomicIntegerFieldUpdater
-            .newUpdater(UnsafeChunk.class, "dirty");
+    private static final AtomicLongFieldUpdater<UnsafeChunk> CONTENT_REVISION_FIELD = AtomicLongFieldUpdater
+            .newUpdater(UnsafeChunk.class, "contentRevision");
+    private static final AtomicLongFieldUpdater<UnsafeChunk> SAVED_REVISION_FIELD = AtomicLongFieldUpdater
+            .newUpdater(UnsafeChunk.class, "savedRevision");
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> INITIALIZED_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "initialized");
-    private static final AtomicIntegerFieldUpdater<UnsafeChunk> STATE_FIELD = AtomicIntegerFieldUpdater
-            .newUpdater(UnsafeChunk.class, "state");
+    private static final AtomicReferenceFieldUpdater<UnsafeChunk, ChunkGenerationStatus> STATUS_FIELD =
+            AtomicReferenceFieldUpdater.newUpdater(UnsafeChunk.class, ChunkGenerationStatus.class, "generationStatus");
     private static final AtomicIntegerFieldUpdater<UnsafeChunk> CLOSED_FIELD = AtomicIntegerFieldUpdater
             .newUpdater(UnsafeChunk.class, "closed");
     private final int x;
@@ -54,25 +69,29 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     private final int[] heightMap;
 
-    private volatile int dirty;
+    private volatile long contentRevision;
+
+    private volatile long savedRevision;
 
     private volatile int initialized;
 
-    private volatile int state = STATE_NEW;
+    private volatile ChunkGenerationStatus generationStatus = ChunkGenerationStatus.NEW;
 
     private volatile int closed;
 
     private volatile int clearCache;
 
-    public UnsafeChunk(int x, int z, Level level) {
+    UnsafeChunk(int x, int z, Level level) {
         this.x = x;
         this.z = z;
         this.level = level;
         this.sections = new CloudChunkSection[level.getSectionsCount()];
         this.heightMap = new int[CloudChunk.ARRAY_SIZE];
+        this.initialized = INITIALIZATION_COMPLETE;
     }
 
-    UnsafeChunk(int x, int z, Level level, CloudChunkSection[] sections, int[] heightMap) {
+    UnsafeChunk(int x, int z, Level level, CloudChunkSection[] sections, int[] heightMap,
+                ChunkGenerationStatus generationStatus) {
         this.x = x;
         this.z = z;
         this.level = level;
@@ -80,6 +99,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         this.sections = Arrays.copyOf(sections, level.getSectionsCount());
         Preconditions.checkNotNull(heightMap, "heightMap");
         this.heightMap = Arrays.copyOf(heightMap, CloudChunk.ARRAY_SIZE);
+        this.generationStatus = Preconditions.checkNotNull(generationStatus, "generationStatus");
     }
 
     static void checkBounds(int x, int y, int z) {
@@ -95,10 +115,16 @@ public final class UnsafeChunk implements Chunk, Closeable {
         return z << 4 | x;
     }
 
-    public boolean init() {
-        return INITIALIZED_FIELD.compareAndSet(this, 0, 1);
+    public boolean beginInitialization() {
+        return INITIALIZED_FIELD.compareAndSet(this, INITIALIZATION_NOT_STARTED, INITIALIZATION_IN_PROGRESS);
     }
 
+    public void completeInitialization() {
+        Preconditions.checkState(
+                INITIALIZED_FIELD.compareAndSet(this, INITIALIZATION_IN_PROGRESS, INITIALIZATION_COMPLETE),
+                "chunk initialization is not in progress"
+        );
+    }
 
     @NonNull
     @Override
@@ -109,7 +135,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         if (section == null) {
             section = new CloudChunkSection(this.level.getServer().getBlockRegistry());
             this.sections[y] = section;
-            this.setDirty();
+            this.markDirty();
         }
         return section;
     }
@@ -120,17 +146,16 @@ public final class UnsafeChunk implements Chunk, Closeable {
         checkElementIndex(y, sections.length, "section Y");
         return this.sections[y];
     }
-
     @NonNull
     @Override
     public CloudChunkSection[] getSections() {
-        return this.sections;
+        return Arrays.copyOf(this.sections, this.sections.length);
     }
 
 
     @NonNull
     @Override
-    public BlockState getBlockState(int x, int y, int z, int layer) {
+    public BlockState getBlockState(int x, int y, int z, BlockLayer layer) {
         checkBounds(x, y, z);
         if (this.level.isOutsideBuildHeight(y)) {
             return BlockStates.AIR;
@@ -147,7 +172,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
 
     @NonNull
     @Override
-    public BlockState setBlockState(int x, int y, int z, int layer, BlockState blockState) {
+    public BlockState setBlockState(int x, int y, int z, BlockLayer layer, BlockState blockState) {
         checkBounds(x, y, z);
         if (this.level.isOutsideBuildHeight(y)) {
             return BlockStates.AIR;
@@ -163,7 +188,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
         }
 
         BlockState previousBlockState = section.setBlockState(x, y & 0xf, z, layer, blockState);
-        this.setDirty();
+        this.markDirty();
         return previousBlockState;
     }
 
@@ -189,14 +214,9 @@ public final class UnsafeChunk implements Chunk, Closeable {
             return;
         }
         this.getOrCreateSection(this.level.getSectionIndex(y)).setBiome(x, y & 0xf, z, biome);
-        this.setDirty();
+        this.markDirty();
     }
 
-    /**
-     * Fast-path override: fills every section column at (x, z) with {@code biomeId}
-     * by delegating directly to {@link CloudChunkSection#fillColumnBiome}, avoiding
-     * per-Y section lookups and dirty-marking overhead.
-     */
     @Override
     public void fillColumnBiome(int x, int z, int biomeId) {
         checkBounds(x, z);
@@ -204,11 +224,11 @@ public final class UnsafeChunk implements Chunk, Closeable {
         for (int i = 0; i < sectionCount; i++) {
             this.getOrCreateSection(i).fillColumnBiome(x, z, biomeId);
         }
-        this.setDirty();
+        this.markDirty();
     }
 
     @Override
-    public byte getSkyLight(int x, int y, int z) {
+    public int getSkyLight(int x, int y, int z) {
         checkBounds(x, y, z);
         CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         return section == null ? 0 : section.getSkyLight(x, y & 0xf, z);
@@ -217,12 +237,12 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void setSkyLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection(this.level.getSectionIndex(y)).setSkyLight(x, y & 0xf, z, (byte) level);
-        setDirty();
+        this.getOrCreateSection(this.level.getSectionIndex(y)).setSkyLight(x, y & 0xf, z, level);
+        this.markDirty();
     }
 
     @Override
-    public byte getBlockLight(int x, int y, int z) {
+    public int getBlockLight(int x, int y, int z) {
         checkBounds(x, y, z);
         CloudChunkSection section = this.getSection(this.level.getSectionIndex(y));
         return section == null ? 0 : section.getBlockLight(x, y & 0xf, z);
@@ -231,8 +251,8 @@ public final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public void setBlockLight(int x, int y, int z, int level) {
         checkBounds(x, y, z);
-        this.getOrCreateSection(this.level.getSectionIndex(y)).setBlockLight(x, y & 0xf, z, (byte) level);
-        setDirty();
+        this.getOrCreateSection(this.level.getSectionIndex(y)).setBlockLight(x, y & 0xf, z, level);
+        this.markDirty();
     }
 
     @Override
@@ -242,7 +262,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
             CloudChunkSection section = this.sections[sectionIdx];
             if (section != null) {
                 for (int y = 15; y >= 0; y--) {
-                    if (section.getBlockState(x, y, z, 0) != BlockStates.AIR) {
+                    if (section.getBlockState(x, y, z, BlockLayer.PRIMARY) != BlockStates.AIR) {
                         return ((sectionIdx + this.level.getMinSectionY()) << 4) | y;
                     }
                 }
@@ -255,8 +275,8 @@ public final class UnsafeChunk implements Chunk, Closeable {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof CloudPlayer) {
             this.players.add((CloudPlayer) entity);
-        } else if (this.entities.add((CloudEntity) entity) && this.initialized == 1) {
-            this.setDirty();
+        } else if (this.entities.add((CloudEntity) entity) && this.isInitializationComplete()) {
+            this.markDirty();
         }
     }
 
@@ -264,24 +284,24 @@ public final class UnsafeChunk implements Chunk, Closeable {
         Preconditions.checkNotNull(entity, "entity");
         if (entity instanceof CloudPlayer) {
             this.players.remove(entity);
-        } else if (this.entities.remove(entity) && this.initialized == 1) {
-            this.setDirty();
+        } else if (this.entities.remove(entity) && this.isInitializationComplete()) {
+            this.markDirty();
         }
     }
 
     public void registerBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
         int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
-        if (this.tiles.put(hash, (BaseBlockEntity) blockEntity) != blockEntity && this.initialized == 1) {
-            this.setDirty();
+        if (this.tiles.put(hash, (BaseBlockEntity) blockEntity) != blockEntity && this.isInitializationComplete()) {
+            this.markDirty();
         }
     }
 
     public void unregisterBlockEntity(BlockEntity blockEntity) {
         Preconditions.checkNotNull(blockEntity, "blockEntity");
         int hash = CloudChunk.blockKey(blockEntity.getPosition(), this.level.getMinHeight());
-        if (this.tiles.remove(hash) == blockEntity && this.initialized == 1) {
-            this.setDirty();
+        if (this.tiles.remove(hash) == blockEntity && this.isInitializationComplete()) {
+            this.markDirty();
         }
     }
 
@@ -301,65 +321,61 @@ public final class UnsafeChunk implements Chunk, Closeable {
     public int getZ() {
         return z;
     }
-
     @NonNull
     @Override
     public Level getLevel() {
         return level;
     }
 
-    @NonNull
     @Override
-    public int[] getHeightMapArray() {
-        return heightMap;
+    public int @NonNull [] getHeightMap() {
+        return this.heightMap.clone();
     }
 
 
-    /**
-     * Gets an immutable copy of players currently in this chunk
-     *
-     * @return player set
-     */
     @NonNull
     @Override
     public Set<CloudPlayer> getPlayers() {
-        return players;
+        return Set.copyOf(this.players);
     }
 
-    /**
-     * Gets an immutable copy of entities currently in this chunk
-     *
-     * @return entity set
-     */
     @NonNull
     @Override
     public Set<CloudEntity> getEntities() {
-        return this.entities;
+        return Set.copyOf(this.entities);
     }
 
-    /**
-     * Gets an immutable copy of all block entities within the current chunk.
-     *
-     * @return block entity collection
-     */
     @NonNull
     @Override
     public Set<BaseBlockEntity> getBlockEntities() {
-        return new HashSet<>(this.tiles.values());
+        return Set.copyOf(this.tiles.values());
     }
 
-    @Override
-    public int getState() {
-        return this.state;
+    public ChunkGenerationStatus getGenerationStatus() {
+        return this.generationStatus;
     }
 
-    @Override
-    public int setState(int nextIn) {
-        return STATE_FIELD.getAndAccumulate(this, nextIn, (curr, next) -> {
-            Preconditions.checkArgument(next >= 0 && next <= STATE_FINISHED, "invalid state: %s", next);
-            Preconditions.checkState(curr < next, "invalid state transition: %s => %s", curr, next);
+    public void advanceGenerationStatus(ChunkGenerationStatus nextStatus) {
+        Preconditions.checkNotNull(nextStatus, "nextStatus");
+        STATUS_FIELD.accumulateAndGet(this, nextStatus, (current, next) -> {
+            Preconditions.checkState(current.compareTo(next) < 0,
+                    "invalid generation status transition: %s => %s", current, next);
             return next;
         });
+        this.markDirty();
+    }
+
+    @Override
+    public boolean isGenerated() {
+        return this.generationStatus.isAtLeast(ChunkGenerationStatus.GENERATED);
+    }
+
+    public boolean isPopulated() {
+        return this.generationStatus.isAtLeast(ChunkGenerationStatus.POPULATED);
+    }
+
+    public boolean isFinished() {
+        return this.generationStatus == ChunkGenerationStatus.FINISHED;
     }
 
     /**
@@ -367,38 +383,39 @@ public final class UnsafeChunk implements Chunk, Closeable {
      *
      * @return dirty
      */
-    @Override
     public boolean isDirty() {
-        return this.state >= STATE_GENERATED && this.dirty == 1;
+        return this.isGenerated() && this.contentRevision != this.savedRevision;
     }
 
-    /**
-     * Sets the chunk's dirty status.
-     */
-    @Override
-    public void setDirty(boolean dirty) {
-        if (dirty) {
-            CLEAR_CACHE_FIELD.set(this, 1);
-        }
-        DIRTY_FIELD.set(this, dirty ? 1 : 0);
+    public long captureSaveRevision() {
+        return this.contentRevision;
     }
 
-    @Override
-    public boolean clearDirty() {
-        return this.state >= STATE_GENERATED && DIRTY_FIELD.compareAndSet(this, 1, 0);
+    public void markDirty() {
+        CLEAR_CACHE_FIELD.set(this, 1);
+        CONTENT_REVISION_FIELD.incrementAndGet(this);
+    }
+
+    private boolean isInitializationComplete() {
+        return this.initialized == INITIALIZATION_COMPLETE;
+    }
+
+    public void acknowledgeSave(long saveRevision) {
+        Preconditions.checkArgument(saveRevision <= this.contentRevision,
+                "saved revision %s is newer than current revision %s", saveRevision, this.contentRevision);
+        SAVED_REVISION_FIELD.accumulateAndGet(this, saveRevision, Math::max);
     }
 
     /**
      * Clear chunk to a state as if it was not generated.
      */
-    @Override
     public void clear() {
         Arrays.fill(this.sections, null);
         Arrays.fill(this.heightMap, 0);
         this.tiles.clear();
         this.entities.clear();
-        this.state = STATE_NEW;
-        this.dirty = 1;
+        this.generationStatus = ChunkGenerationStatus.NEW;
+        this.markDirty();
     }
 
     @Override
@@ -421,27 +438,7 @@ public final class UnsafeChunk implements Chunk, Closeable {
     }
 
     @Override
-    public Set<? extends ChunkLoader> getLoaders() {
-        return Collections.emptySet();
-    }
-
-    @Override
     public Set<CloudPlayer> getViewers() {
-        return new HashSet<>(((CloudLevel) this.level).getChunkPlayers(this.x, this.z));
-    }
-
-    @Override
-    public long key() {
-        return CloudChunk.key(getX(), getZ());
-    }
-
-    @Override
-    public LockableChunk readLockable() {
-        throw new UnsupportedOperationException("UnsafeChunk does not support locking; use CloudChunk");
-    }
-
-    @Override
-    public LockableChunk writeLockable() {
-        throw new UnsupportedOperationException("UnsafeChunk does not support locking; use CloudChunk");
+        return ((CloudLevel) this.level).getChunkPlayers(this.x, this.z);
     }
 }

@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.level.chunk.ChunkException;
+import org.cloudburstmc.server.level.chunk.ChunkException;
 import org.cloudburstmc.server.level.chunk.BiomeStorage;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
@@ -67,7 +67,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
     }
 
     @Override
-    public void deserialize(DirectDB db, ChunkBuilder chunkBuilder) {
+    public void deserialize(DirectDB db, CloudChunkBuilder chunkBuilder) {
         int chunkX = chunkBuilder.getX();
         int chunkZ = chunkBuilder.getZ();
 
@@ -94,7 +94,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
         CloudChunkSection[] sections = new CloudChunkSection[sectionCount];
 
         // Chunk versions 24-26 stored subchunk keys with a +4 Y offset.
-        int chunkVersion = chunkBuilder.getChunkVersion();
+        int chunkVersion = chunkBuilder.getStorageVersion();
         int subChunkKeyOffset = (chunkVersion >= 24 && chunkVersion <= 26) ? 4 : 0;
 
         int maxSectionY = minSectionY + sectionCount - 1;
@@ -120,7 +120,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
 
                     int subChunkVersion = buf.readUnsignedByte();
                     if (subChunkVersion < 8) {
-                        chunkBuilder.dirty();
+                        chunkBuilder.markDirty();
                     }
 
                     BlockStorage[] blockStorage = ChunkSectionSerializers.deserialize(buf, chunkBuilder, subChunkVersion);
@@ -152,7 +152,7 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
             subchunkKeyBuf.release();
         }
 
-        chunkBuilder.sections(sections);
+        chunkBuilder.setSections(sections);
 
         ByteBuf biomeKeyBuf = ByteBufAllocator.DEFAULT.ioBuffer(9, 9);
         try {

@@ -41,7 +41,7 @@ public class BushPopulator extends AbstractTreePopulator {
 
     @Override
     protected void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
-        level.setBlockState(x, ++y, z, 0, this.log.selectWeighted(random));
+        level.setBlockState(x, ++y, z, this.log.selectWeighted(random));
 
         final BlockState leaves = this.leaves.selectWeighted(random);
         final int size = this.size;
@@ -51,8 +51,8 @@ public class BushPopulator extends AbstractTreePopulator {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     if ((abs(dx) != radius || abs(dz) != radius || random.nextBoolean())
-                            && this.replace.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
-                        level.setBlockState(x + dx, y + dy, z + dz, 0, leaves);
+                            && this.replace.test(level.getBlockState(x + dx, y + dy, z + dz))) {
+                        level.setBlockState(x + dx, y + dy, z + dz, leaves);
                     }
                 }
             }

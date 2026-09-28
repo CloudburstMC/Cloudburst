@@ -4,9 +4,9 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.LingeringPotion;
+import org.cloudburstmc.api.event.entity.LingeringPotionSplashEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.misc.EntityAreaEffectCloud;
-import org.cloudburstmc.server.potion.CloudEffect;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.LINGERING;
@@ -24,16 +24,23 @@ public class EntityLingeringPotion extends EntitySplashPotion implements Lingeri
     }
 
     @Override
-    protected void splash(Entity collidedWith) {
-        super.splash(collidedWith);
-
-        EntityAreaEffectCloud entity = (EntityAreaEffectCloud) CloudEntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, this.getLocation());
+    protected void applyPotionImpact(Entity collidedWith) {
+        Location location = this.getLocation();
+        EntityAreaEffectCloud entity = (EntityAreaEffectCloud) CloudEntityRegistry.get().newEntity(EntityTypes.AREA_EFFECT_CLOUD, location);
         entity.setOwner(this.getOwner());
-        entity.setPosition(this.getLocation().getPosition());
         entity.setPotionType(this.getPotionType());
-        if (this.getPotionType().getType() != null) {
-            entity.getCloudEffects().add(new CloudEffect(this.getPotionType().getType()));
+        entity.setPotionDurationScale(0.25F);
+        entity.setRadius(3.0F);
+        entity.setRadiusOnUse(-0.5F);
+        entity.setDuration(600);
+        entity.setWaitTime(10);
+        entity.setReapplicationDelay(20);
+        entity.setRadiusPerTick(-entity.getRadius() / entity.getDuration());
+
+        LingeringPotionSplashEvent event = new LingeringPotionSplashEvent(this, entity);
+        this.server.getEventManager().fire(event);
+        if (!event.isCancelled()) {
+            entity.spawnToAll();
         }
-        entity.spawnToAll();
     }
 }

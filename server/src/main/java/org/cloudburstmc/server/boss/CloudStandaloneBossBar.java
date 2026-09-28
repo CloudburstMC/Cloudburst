@@ -35,11 +35,6 @@ public class CloudStandaloneBossBar extends CloudBossBar {
     }
 
     @Override
-    protected boolean isBound() {
-        return true;
-    }
-
-    @Override
     protected long getBossEntityId() {
         return this.entityId;
     }

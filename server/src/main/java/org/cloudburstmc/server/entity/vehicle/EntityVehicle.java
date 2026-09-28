@@ -4,11 +4,11 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Interactable;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDamageEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleDestroyEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
@@ -83,7 +83,7 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         Entity attacker = source.getDamageSource().getCausingEntity();
         VehicleDamageEvent event = new VehicleDamageEvent(this, attacker, source.getDamage());
         getServer().getEventManager().fire(event);

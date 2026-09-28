@@ -2,7 +2,7 @@ package org.cloudburstmc.server.item;
 
 import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemTagKey;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.api.level.sound.SoundType;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
@@ -12,7 +12,7 @@ import static java.util.Objects.requireNonNull;
  */
 public record ArmorMaterial(int durabilityMultiplier, int bootsDefense, int leggingsDefense, int chestplateDefense,
                             int helmetDefense, float toughness, float knockbackResistance, ItemTagKey repairTag,
-                            Sound equipSound) {
+                            SoundType equipSound) {
 
     public ArmorMaterial {
         checkArgument(durabilityMultiplier > 0, "durabilityMultiplier must be positive");
