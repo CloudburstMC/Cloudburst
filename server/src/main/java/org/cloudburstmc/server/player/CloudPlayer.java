@@ -4311,7 +4311,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         @Override
         public void onDisconnect(CharSequence reason) {
-            CloudPlayer.this.close("", reason.toString());
+            String disconnectReason = reason.toString();
+            if (CloudPlayer.this.server.isPrimaryThread()) {
+                CloudPlayer.this.close("", disconnectReason);
+            } else {
+                CloudPlayer.this.server.getGlobalScheduler().execute(null, () -> CloudPlayer.this.close("", disconnectReason));
+            }
         }
 
         @Override

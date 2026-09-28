@@ -339,7 +339,9 @@ public interface ChunkManager {
     Chunk getLoadedChunk(long key);
 
     /**
-     * Loads a chunk asynchronously.
+     * Loads a chunk asynchronously. Successful completion occurs on the server thread
+     * after any load and population events for that load have been dispatched.
+     * Do not block the server thread waiting for this future.
      *
      * @param chunkX the chunk X coordinate
      * @param chunkZ the chunk Z coordinate

@@ -1898,7 +1898,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         response.setDimension(packet.getDimension());
         response.setCenterPosition(center);
         response.setSubChunks(responseChunks);
-        player.sendPacket(response);
+        if (!player.sendPacket(response)) {
+            response.release();
+            return PacketSignal.HANDLED;
+        }
 
         servedPerColumn.long2IntEntrySet().forEach(entry -> {
             long key = entry.getLongKey();
