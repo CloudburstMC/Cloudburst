@@ -9,6 +9,10 @@ public enum PotionEffectCause {
      */
     AREA_EFFECT_CLOUD,
     /**
+     * Applied by a tipped arrow.
+     */
+    ARROW,
+    /**
      * Applied as part of an entity attack.
      */
     ATTACK,

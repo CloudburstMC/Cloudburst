@@ -20,11 +20,7 @@ import org.cloudburstmc.server.item.ArmorMaterial;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
 import org.cloudburstmc.server.item.VanillaTools;
 import org.cloudburstmc.server.item.component.*;
-import org.cloudburstmc.server.item.serializer.BannerSerializer;
-import org.cloudburstmc.server.item.serializer.FireworkRocketSerializer;
-import org.cloudburstmc.server.item.serializer.FireworkStarSerializer;
-import org.cloudburstmc.server.item.serializer.OminousBottleItemSerializer;
-import org.cloudburstmc.server.item.serializer.PotionItemSerializer;
+import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.Optional;
@@ -42,6 +38,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.AGENT_SPAWN_EGG, EntityTypes.AGENT);
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);
         configureSpawnEgg(registry, ItemTypes.ARMADILLO_SPAWN_EGG, EntityTypes.ARMADILLO);
+        registry.configure(ItemTypes.ARROW, new ArrowItemSerializer());
         registry.configure(ItemTypes.AXOLOTL_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.AXOLOTL));
         configureSpawnEgg(registry, ItemTypes.AXOLOTL_SPAWN_EGG, EntityTypes.AXOLOTL);

@@ -173,6 +173,7 @@ public class CrossbowItemHandlers {
 
         Vector3f motion = direction.mul(3.15f);
         Arrow arrow = player.launchProjectile(EntityTypes.ARROW, motion, projectile -> {
+            projectile.setItemStack(ammunition);
             projectile.setCritical(true);
             projectile.setPierceLevel(piercing);
             projectile.setPickupStatus(player.isCreative() || sideShot ? ArrowPickupStatus.CREATIVE_ONLY : ArrowPickupStatus.ALLOWED);

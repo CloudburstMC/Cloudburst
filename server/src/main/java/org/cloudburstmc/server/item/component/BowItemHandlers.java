@@ -8,7 +8,9 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.item.ItemBehaviors;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.DamageItemHandler;
 import org.cloudburstmc.api.item.component.ReleaseUseHandler;
 import org.cloudburstmc.api.item.component.UseHandler;
@@ -49,9 +51,11 @@ public class BowItemHandlers {
         }
 
         int powerLevel = enchantmentLevel(item, EnchantmentTypes.POWER);
-        boolean infinite = player.isCreative() || enchantmentLevel(item, EnchantmentTypes.INFINITY) > 0;
+        ItemStack ammunition = slot == NO_AMMO ? ItemStack.from(ItemTypes.ARROW) : slot == OFFHAND ? player.getOffhand().getOffhandItem() : player.getInventory().getItem(slot);
+        boolean infinite = player.isCreative() || enchantmentLevel(item, EnchantmentTypes.INFINITY) > 0 && !ammunition.has(ItemDataComponents.POTION_TYPE);
 
         Arrow arrow = player.launchProjectile(EntityTypes.ARROW, ThrowableItemHandlers.launchMotion(player, 3.0f * power, 0), projectile -> {
+            projectile.setItemStack(ammunition);
             projectile.setCritical(power == 1.0f);
             projectile.setDamage(2.0f + (powerLevel == 0 ? 0 : powerLevel * 0.5f + 0.5f));
             projectile.setPickupStatus(infinite ? ArrowPickupStatus.CREATIVE_ONLY : ArrowPickupStatus.ALLOWED);

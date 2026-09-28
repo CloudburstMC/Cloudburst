@@ -102,7 +102,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
         CloudPotion potion = new CloudPotion(this.type);
         for (Living living : event.getAffectedEntities()) {
-            potion.apply(living, event.getIntensity(living), damageSource, this, PotionEffectCause.POTION_SPLASH);
+            potion.apply(living, event.getIntensity(living), 1.0f, damageSource, this, PotionEffectCause.POTION_SPLASH);
         }
     }
 

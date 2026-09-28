@@ -4023,13 +4023,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 }
             }
 
-            if (entity instanceof Arrow && entity.getMotion().lengthSquared() == 0) {
-                ItemStack item = ItemStack.builder().itemType(ItemTypes.ARROW).build();
+            if (entity instanceof Arrow arrow && entity.getMotion().lengthSquared() == 0) {
+                ItemStack item = arrow.getItemStack();
                 if (this.isSurvival() && !this.getContainer().canAddItem(item)) {
                     return false;
                 }
 
-                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), (Arrow) entity);
+                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.getInventory(), arrow);
                 this.server.getEventManager().fire(ev);
                 if (ev.isCancelled()) {
                     return false;

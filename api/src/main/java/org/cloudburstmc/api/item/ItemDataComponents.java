@@ -75,7 +75,7 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<Map<EnchantmentType, Enchantment>> ENCHANTMENTS = ItemDataComponentType.registerMap(Identifier.parse("enchantments"), EnchantmentType.class, Enchantment.class);
 
     /**
-     * Potion contained in a drinkable or thrown potion item.
+     * Potion contained in a drinkable potion, thrown potion, or tipped arrow.
      */
     public static final ItemDataComponentType<PotionType> POTION_TYPE = value("potion_type", PotionType.class);
 

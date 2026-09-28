@@ -21,17 +21,17 @@ public class CloudPotion {
         this.type = requireNonNull(type, "type");
     }
 
-    public void apply(Entity entity, double intensity, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
+    public void apply(Entity entity, double intensity, float durationScale, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
         if (!(entity instanceof EntityLiving)) {
             return;
         }
 
         for (PotionEffect effect : this.type.getEffects()) {
-            this.applyEffect(entity, effect, intensity, damageSource, source, cause);
+            this.applyEffect(entity, effect, intensity, durationScale, damageSource, source, cause);
         }
     }
 
-    private void applyEffect(Entity entity, PotionEffect effect, double intensity, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
+    private void applyEffect(Entity entity, PotionEffect effect, double intensity, float durationScale, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
         if (entity instanceof CloudPlayer player && !player.isSurvival() && !player.isAdventure() && effect.isHarmful()) {
             return;
         }
@@ -41,8 +41,9 @@ public class CloudPotion {
         } else if (effect.getType() == EffectTypes.INSTANT_DAMAGE) {
             this.applyInstantDamage(entity, effect.getAmplifier(), intensity, damageSource);
         } else {
-            int duration = (int) (intensity * effect.getDuration() + 0.5);
-            if (duration > 20) {
+            int baseDuration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : effect.getDuration() == 0 ? 0 : Math.max(1, (int) Math.floor(effect.getDuration() * durationScale));
+            int duration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : (int) (intensity * baseDuration + 0.5);
+            if (effect.isInfinite() || duration > (cause == PotionEffectCause.ARROW ? 0 : 20)) {
                 ((CloudEntity) entity).addPotionEffect(effect.withDuration(duration), source, cause);
             }
         }

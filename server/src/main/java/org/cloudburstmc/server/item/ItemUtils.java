@@ -357,15 +357,16 @@ public class ItemUtils {
                 .toArray(String[]::new);
 
         CloudBlockDefinition blockDefinition = null;
-        try {
-            blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
-        } catch (IllegalArgumentException e) {
-            // Block state exists but doesn't have a definition in the vanilla palette
-            // This can happen when creative_items.json has block states that were merged
-            // but don't exist as exact matches in block_palette.nbt
+        BlockState blockState = item.getBlockState().orElse(null);
+        if (blockState != null) {
+            try {
+                blockDefinition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+            } catch (IllegalArgumentException e) {
+                // Some creative entries reference block states absent from the palette.
+            }
         }
-        NbtMap tag = ItemUtils.getSerializedTag(item);
 
+        NbtMap tag = ItemUtils.getSerializedTag(item);
         return ItemData.builder()
                 .definition(definition)
                 .damage(damage)

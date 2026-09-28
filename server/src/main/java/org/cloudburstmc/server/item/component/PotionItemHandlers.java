@@ -31,7 +31,7 @@ public class PotionItemHandlers {
 
         PotionType type = item.getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER);
         DamageSource source = DamageSource.of(DamageTypes.MAGIC, player);
-        new CloudPotion(type).apply(player, 1.0, source, player, PotionEffectCause.POTION_DRINK);
+        new CloudPotion(type).apply(player, 1.0, 1.0f, source, player, PotionEffectCause.POTION_DRINK);
         player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.DRINK);
         return player.isCreative() ? item : ItemStack.from(ItemTypes.GLASS_BOTTLE);
     };
