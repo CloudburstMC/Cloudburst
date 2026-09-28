@@ -6,4 +6,5 @@ package org.cloudburstmc.api.entity;
  */
 public interface EntityAgeable {
     boolean isBaby();
+    void setBaby(boolean baby);
 }

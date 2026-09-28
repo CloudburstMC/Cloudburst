@@ -14,6 +14,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.level.Sound;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLOR;
@@ -78,7 +79,7 @@ public class EntitySheep extends Animal implements Sheep {
     @Override
     public boolean onInteract(Player player, ItemStack item) {
         if (item.has(ItemDataComponents.COLOR)) {
-            this.setColor(item.get(ItemDataComponents.COLOR));
+            this.setColor(Objects.requireNonNull(item.get(ItemDataComponents.COLOR)));
             return true;
         }
 

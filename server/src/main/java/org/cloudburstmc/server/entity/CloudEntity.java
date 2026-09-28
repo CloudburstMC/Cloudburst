@@ -41,6 +41,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
@@ -89,6 +90,7 @@ public abstract class CloudEntity implements Entity {
     protected Vector3f motion = Vector3f.ZERO;
     protected Vector3f lastMotion = Vector3f.ZERO;
     protected Vector3f stuckSpeedMultiplier = Vector3f.ZERO;
+    private int lastDamageTime = Integer.MIN_VALUE;
     protected float yaw;
     protected float pitch;
     protected float lastYaw;
@@ -1030,6 +1032,7 @@ public abstract class CloudEntity implements Entity {
         }
 
         setLastDamageCause(source);
+        this.lastDamageTime = this.server.getTick();
         float absorbed = Math.min(this.getAbsorption(), source.getDamage());
         this.setAbsorption(this.getAbsorption() - absorbed);
         setHealth(getHealth() - (source.getDamage() - absorbed));
@@ -2192,6 +2195,23 @@ public abstract class CloudEntity implements Entity {
     @Override
     public CloudServer getServer() {
         return server;
+    }
+
+    @Override
+    public long getLastDamageTime() {
+        return this.lastDamageTime;
+    }
+
+    public void broadcastEntityEvent(EntityEventType type) {
+        this.broadcastEntityEvent(type, 0);
+    }
+
+    public void broadcastEntityEvent(EntityEventType type, int data) {
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setType(type);
+        packet.setData(data);
+        CloudServer.broadcastPacket(this.hasSpawned, packet);
     }
 
     @Override

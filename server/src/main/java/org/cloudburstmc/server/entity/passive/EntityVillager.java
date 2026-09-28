@@ -82,4 +82,10 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     public boolean isBaby() {
         return this.data.getFlag(BABY);
     }
+
+    @Override
+    public void setBaby(boolean baby) {
+        this.data.setFlag(BABY, baby);
+        this.recalculateBoundingBox();
+    }
 }

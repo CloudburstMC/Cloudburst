@@ -40,6 +40,8 @@ public interface Entity extends Damageable {
 
     float getHeight();
 
+    long getLastDamageTime();
+
     float getEyeHeight();
 
     double getHeadYaw();
