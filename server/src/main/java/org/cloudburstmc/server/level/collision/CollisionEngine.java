@@ -74,7 +74,13 @@ public final class CollisionEngine {
     }
 
     public boolean hasEntityCollision(@Nullable Entity entity, BoundingBox boundingBox) {
-        return !this.getEntityCollisions(entity, boundingBox).isEmpty();
+        for (VoxelShape shape : this.getEntityCollisions(entity, boundingBox)) {
+            if (shape.overlaps(boundingBox, 0, 0, 0)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position) {

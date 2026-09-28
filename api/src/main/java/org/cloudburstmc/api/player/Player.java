@@ -109,6 +109,11 @@ public interface Player extends Creature, CommandSender {
 
     boolean isInsideOfWater();
 
+    /**
+     * Reports the sneaking state independently of the resolved {@link #getPose() pose}.
+     *
+     * @return whether sneaking is active
+     */
     boolean isSneaking();
 
     boolean isSleeping();

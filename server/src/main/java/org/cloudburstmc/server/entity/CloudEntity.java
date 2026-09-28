@@ -158,6 +158,11 @@ public abstract class CloudEntity implements Entity {
         Objects.requireNonNull(location, "location");
     }
 
+    @Override
+    public Pose getPose() {
+        return Pose.STANDING;
+    }
+
     public float getHeight() {
         return 0;
     }

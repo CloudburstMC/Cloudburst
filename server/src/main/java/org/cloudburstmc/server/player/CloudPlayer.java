@@ -875,11 +875,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
         this.spinAttackEndTick = this.server.getTick() + durationTicks;
         this.data.setFlag(DAMAGE_NEARBY_MOBS, true);
+        this.recalculateBoundingBox();
     }
 
     private void stopSpinAttack() {
         this.spinAttackEndTick = -1;
         this.data.setFlag(DAMAGE_NEARBY_MOBS, false);
+        this.recalculateBoundingBox();
     }
 
     private boolean activeUseMatchesCurrentSlot() {
@@ -1329,6 +1331,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
 
             this.sleeping = null;
+            this.recalculateBoundingBox();
             this.data.set(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 

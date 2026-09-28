@@ -5,14 +5,17 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
+import org.cloudburstmc.api.entity.Pose;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityPoseChangeEvent;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -50,12 +53,13 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
  * Adds skin, game type, permissions, and player inventory support.
  */
 public class EntityHuman extends EntityCreature implements Human {
-    private static final float STANDING_HEIGHT = 1.8f;
-    private static final float SNEAKING_HEIGHT = 1.5f;
-    private static final float CRAWLING_HEIGHT = 0.625f;
-    private static final float SWIMMING_OR_GLIDING_HEIGHT = 0.6f;
-    private static final float WIDTH = 0.6f;
     private static final float STANDING_EYE_HEIGHT = 1.62f;
+
+    private Pose pose = Pose.STANDING;
+    private boolean sneaking;
+    private boolean swimming;
+    private boolean gliding;
+    private boolean crawling;
 
     protected final CloudContainer container = new CloudContainer(36);
     protected UUID identity;
@@ -66,42 +70,99 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
+    public Pose getPose() {
+        return this.pose;
+    }
+
+    @Override
     public float getWidth() {
-        return WIDTH;
+        return HumanPoses.dimensions(this.pose).width();
     }
 
     @Override
     public float getLength() {
-        return WIDTH;
+        return this.getWidth();
     }
 
     @Override
     public float getHeight() {
-        if (this.isSwimming() || this.isGliding()) {
-            return SWIMMING_OR_GLIDING_HEIGHT;
-        } else if (this.isCrawling()) {
-            return CRAWLING_HEIGHT;
-        } else if (this.isSneaking()) {
-            return SNEAKING_HEIGHT;
-        }
-
-        return STANDING_HEIGHT;
+        return HumanPoses.dimensions(this.pose).height();
     }
 
     @Override
     public float getEyeHeight() {
-        if (this.isSwimming() || this.isGliding() || this.isCrawling()) {
-            return this.getHeight() * 0.67f;
-        } else if (this.isSneaking()) {
-            return SNEAKING_HEIGHT * 0.85f;
-        }
-
-        return STANDING_EYE_HEIGHT;
+        return HumanPoses.dimensions(this.pose).eyeHeight();
     }
 
     @Override
     public float getBaseOffset() {
         return STANDING_EYE_HEIGHT;
+    }
+
+    @Override
+    public void recalculateBoundingBox() {
+        this.refreshPose(true);
+    }
+
+    @Override
+    public boolean entityBaseTick(int tickDiff) {
+        this.refreshPose(false);
+        return super.entityBaseTick(tickDiff);
+    }
+
+    private void refreshPose(boolean updateBounds) {
+        Pose previousPose = this.pose;
+        Pose desiredPose = this.getDesiredPose();
+        boolean unrestricted = desiredPose == Pose.SLEEPING || this.level == null || this.vehicle != null
+                || this instanceof CloudPlayer player && player.isSpectator();
+
+        Pose resolvedPose = HumanPoses.resolve(previousPose, desiredPose, unrestricted, this::canFitPose);
+        if (!updateBounds && resolvedPose == previousPose) {
+            return;
+        }
+
+        this.pose = resolvedPose;
+        this.data.setFlag(SNEAKING, this.pose == Pose.CROUCHING);
+        this.data.setFlag(SWIMMING, this.pose == Pose.SWIMMING);
+        this.data.setFlag(CRAWLING, this.pose == Pose.CRAWLING);
+        this.data.setFlag(GLIDING, this.pose == Pose.FALL_FLYING);
+        super.recalculateBoundingBox();
+
+        if (previousPose != this.pose) {
+            this.server.getEventManager().fire(new EntityPoseChangeEvent(this, previousPose, this.pose));
+        }
+    }
+
+    private Pose getDesiredPose() {
+        if (this instanceof CloudPlayer player && player.isSleeping()) {
+            return Pose.SLEEPING;
+        }
+
+        if (this.swimming) {
+            return Pose.SWIMMING;
+        }
+
+        if (this.crawling) {
+            return Pose.CRAWLING;
+        }
+
+        if (this.gliding) {
+            return Pose.FALL_FLYING;
+        }
+
+        if (this.data.getFlag(DAMAGE_NEARBY_MOBS)) {
+            return Pose.SPIN_ATTACK;
+        }
+
+        if (!this.sneaking) {
+            return Pose.STANDING;
+        }
+
+        return this instanceof CloudPlayer player && player.getAbilities().get(Ability.FLYING) ? Pose.STANDING : Pose.CROUCHING;
+    }
+
+    private boolean canFitPose(Pose pose) {
+        return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.scale).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
     }
 
     public Skin getSkin() {
@@ -486,11 +547,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     public boolean isSneaking() {
-        return this.data.getFlag(SNEAKING);
+        return this.sneaking;
     }
 
     public void setSneaking(boolean value) {
-        this.data.setFlag(SNEAKING, value);
+        this.sneaking = value;
         this.recalculateBoundingBox();
     }
 
@@ -499,11 +560,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     public boolean isSwimming() {
-        return this.data.getFlag(SWIMMING);
+        return this.swimming;
     }
 
     public void setSwimming(boolean value) {
-        this.data.setFlag(SWIMMING, value);
+        this.swimming = value;
         this.recalculateBoundingBox();
     }
 
@@ -524,11 +585,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     public boolean isGliding() {
-        return this.data.getFlag(GLIDING);
+        return this.gliding;
     }
 
     public void setGliding(boolean value) {
-        this.data.setFlag(GLIDING, value);
+        this.gliding = value;
         this.recalculateBoundingBox();
     }
 
@@ -537,11 +598,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     public boolean isCrawling() {
-        return this.data.getFlag(CRAWLING);
+        return this.crawling;
     }
 
     public void setCrawling(boolean value) {
-        this.data.setFlag(CRAWLING, value);
+        this.crawling = value;
         this.recalculateBoundingBox();
     }
 }

@@ -35,8 +35,27 @@ public interface Entity extends Damageable {
 
     long getUniqueId();
 
+    /**
+     * Returns the resolved posture used to determine this entity's dimensions.
+     * A movement state such as sneaking does not guarantee a matching pose.
+     *
+     * @return current posture
+     */
+    Pose getPose();
+
+    /**
+     * Returns the collision height for the current pose in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision height before scaling
+     */
     float getHeight();
 
+    /**
+     * Returns the vertical eye offset from the entity's position in blocks.
+     *
+     * @return eye height for the current pose
+     */
     float getEyeHeight();
 
     default float getBaseOffset() {
@@ -55,8 +74,20 @@ public interface Entity extends Damageable {
         return 0f;
     }
 
+    /**
+     * Returns the collision width along the X axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision width before scaling
+     */
     float getWidth();
 
+    /**
+     * Returns the collision length along the Z axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision length before scaling
+     */
     float getLength();
 
     boolean canCollide();
@@ -119,8 +150,16 @@ public interface Entity extends Damageable {
 
     void setNameTagVisible(boolean visible);
 
+    /**
+     * @return size multiplier applied to the entity's collision dimensions
+     */
     float getScale();
 
+    /**
+     * Changes the entity's scale and refreshes its collision bounds.
+     *
+     * @param scale size multiplier
+     */
     void setScale(float scale);
 
     List<? extends Entity> getPassengers();
@@ -271,6 +310,12 @@ public interface Entity extends Damageable {
 
     void resetFallDistance();
 
+    /**
+     * Returns the current world-space collision bounds, including pose and scale.
+     * The returned box is immutable and does not track later changes.
+     *
+     * @return current collision bounds
+     */
     BoundingBox getBoundingBox();
 
     /**
