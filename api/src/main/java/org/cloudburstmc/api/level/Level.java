@@ -369,5 +369,4 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @return the matching entities
      */
     Set<? extends Entity> getNearbyEntities(BoundingBox boundingBox, @Nullable Predicate<? super Entity> filter);
-
 }
