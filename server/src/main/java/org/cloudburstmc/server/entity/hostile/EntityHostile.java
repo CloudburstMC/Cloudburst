@@ -29,6 +29,12 @@ public abstract class EntityHostile extends EntityCreature implements EntityAgea
     }
 
     @Override
+    public void setBaby(boolean baby) {
+        this.data.setFlag(BABY, baby);
+        this.recalculateBoundingBox();
+    }
+
+    @Override
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (super.onInteract(player, item, clickedPos)) {
             return true;

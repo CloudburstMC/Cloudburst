@@ -36,4 +36,27 @@ public interface MemoryTypes {
      * Written by {@code NearestPlayerSensor}.
      */
     MemoryType<Long> NEAREST_PLAYER = new MemoryType<>(Identifier.from("minecraft", "nearest_player"));
+
+    /**
+     * Unique ID of the nearest player holding a breeding item.
+     * Written by {@code NearestFeedingPlayerSensor}.
+     */
+    MemoryType<Long> NEAREST_FEEDING_PLAYER = new MemoryType<>(Identifier.from("minecraft", "nearest_feeding_player"));
+
+    /**
+     * Whether the entity is currently in love mode.
+     */
+    MemoryType<Boolean> IS_IN_LOVE = new MemoryType<>(Identifier.from("minecraft", "is_in_love"), () -> false);
+
+    /**
+     * Runtime ID of this entity's breeding spouse.
+     */
+    MemoryType<Long> ENTITY_SPOUSE = new MemoryType<>(Identifier.from("minecraft", "entity_spouse"));
+
+    /**
+     * The entity tick when this entity last entered love mode.
+     */
+    MemoryType<Long> LAST_IN_LOVE_TIME = new MemoryType<>(Identifier.from("minecraft", "last_in_love_time"), () -> -1L);
+
+    MemoryType<Long> LAST_BE_FEED_TIME = new MemoryType<>(Identifier.from("minecraft", "last_be_feed_time"), () -> -1L);
 }

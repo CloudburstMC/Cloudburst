@@ -20,4 +20,10 @@ public abstract class EntityWaterAnimal extends EntityCreature implements Entity
     public boolean isBaby() {
         return this.data.getFlag(BABY);
     }
+
+    @Override
+    public void setBaby(boolean baby) {
+        this.data.setFlag(BABY, baby);
+        this.recalculateBoundingBox();
+    }
 }

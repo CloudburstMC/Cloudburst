@@ -76,10 +76,6 @@ public interface Entity extends Damageable, Emitter {
      */
     float getEyeHeight();
 
-    double getHeadYaw();
-
-    void setHeadYaw(double headYaw);
-
     default float getBaseOffset() {
         return 0f;
     }
@@ -462,10 +458,6 @@ public interface Entity extends Damageable, Emitter {
     Entity getOwner();
 
     void setOwner(@Nullable Entity entity);
-
-    void setMovementSpeed(float speed);
-
-    float getMovementSpeed();
 
     //SyncedEntityData getData();
 
