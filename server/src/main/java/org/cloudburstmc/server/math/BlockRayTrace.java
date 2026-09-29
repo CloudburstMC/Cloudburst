@@ -1,139 +1,113 @@
 package org.cloudburstmc.server.math;
 
-import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
+import static java.util.Objects.requireNonNull;
+
+/**
+ * Visits block cells crossed by a line segment, nearest first.
+ */
 public class BlockRayTrace implements Iterable<Vector3i> {
+
     private final Vector3f start;
     private final Vector3f end;
-    private final Vector3f direction;
 
-    private final double stepX;
-    private final double stepY;
-    private final double stepZ;
-
-    private final double deltaX;
-    private final double deltaY;
-    private final double deltaZ;
-
-    private BlockRayTrace(Vector3f start, Vector3f end, Vector3f direction) {
-        this.start = start;
-        this.end = end;
-        Preconditions.checkArgument(direction.lengthSquared() > 0, "Invalid direction vector");
-        this.direction = direction;
-
-        this.stepX = Double.compare(direction.getX(), 0);
-        this.stepY = Double.compare(direction.getY(), 0);
-        this.stepZ = Double.compare(direction.getZ(), 0);
-
-        this.deltaX = BlockRayTrace.this.direction.getX() == 0 ? 0 : BlockRayTrace.this.stepX / BlockRayTrace.this.direction.getX();
-        this.deltaY = BlockRayTrace.this.direction.getY() == 0 ? 0 : BlockRayTrace.this.stepY / BlockRayTrace.this.direction.getY();
-        this.deltaZ = BlockRayTrace.this.direction.getZ() == 0 ? 0 : BlockRayTrace.this.stepZ / BlockRayTrace.this.direction.getZ();
+    private BlockRayTrace(Vector3f start, Vector3f end) {
+        this.start = requireNonNull(start, "start");
+        this.end = requireNonNull(end, "end");
+        if (nonFinite(start) || nonFinite(end)) {
+            throw new IllegalArgumentException("Ray endpoints must be finite");
+        }
     }
 
     public static BlockRayTrace of(Vector3f start, Vector3f direction, double distance) {
-        return new BlockRayTrace(start, start.add(direction.mul(distance)), direction);
+        requireNonNull(direction, "direction");
+        if (!Double.isFinite(distance) || distance < 0 || nonFinite(direction) || distance > 0 && direction.lengthSquared() == 0) {
+            throw new IllegalArgumentException("Ray direction and distance must be finite and valid");
+        }
+
+        return new BlockRayTrace(start, distance == 0 ? start : start.add(direction.normalize().mul(distance)));
     }
 
     public static BlockRayTrace of(Vector3f start, Vector3f end) {
-        return new BlockRayTrace(start, end, end.sub(start).normalize());
+        return new BlockRayTrace(start, end);
     }
 
-    private static double rayTraceDistanceToBoundary(double s, double ds) {
-        if (ds == 0) {
-            return Double.POSITIVE_INFINITY;
-        }
-        if (ds < 0) {
-            s = -s;
-            ds = -ds;
-            if (Math.floor(s) == s) {
-                return 0;
-            }
-        }
-
-        return (1 - (s - Math.floor(s))) / ds;
-    }
-
-    public Vector3f getStart() {
-        return start;
-    }
-
-    public Vector3f getEnd() {
-        return end;
-    }
-
-    public Vector3f getDirection() {
-        return direction;
-    }
-
-    public double distance() {
-        return this.start.distance(this.end);
-    }
-
-    @NonNull
     @Override
-    public Iterator<Vector3i> iterator() {
-        return new BlockRayTraceIterator();
+    public @NonNull Iterator<Vector3i> iterator() {
+        return new CellIterator();
     }
 
-    private class BlockRayTraceIterator implements Iterator<Vector3i> {
-        private Vector3f currentBlock;
+    private static boolean nonFinite(Vector3f vector) {
+        return !Float.isFinite(vector.getX()) || !Float.isFinite(vector.getY()) || !Float.isFinite(vector.getZ());
+    }
 
-        private double maxX;
-        private double maxY;
-        private double maxZ;
+    private class CellIterator implements Iterator<Vector3i> {
 
-        public BlockRayTraceIterator() {
-            this.maxX = rayTraceDistanceToBoundary(BlockRayTrace.this.start.getX(), BlockRayTrace.this.direction.getX());
-            this.maxY = rayTraceDistanceToBoundary(BlockRayTrace.this.start.getY(), BlockRayTrace.this.direction.getY());
-            this.maxZ = rayTraceDistanceToBoundary(BlockRayTrace.this.start.getZ(), BlockRayTrace.this.direction.getZ());
-        }
+        private final float dx = end.getX() - start.getX();
+        private final float dy = end.getY() - start.getY();
+        private final float dz = end.getZ() - start.getZ();
+
+        private final int stepX = dx > 0 ? 1 : dx < 0 ? -1 : 0;
+        private final int stepY = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+        private final int stepZ = dz > 0 ? 1 : dz < 0 ? -1 : 0;
+
+        private final double deltaX = dx == 0 ? Double.POSITIVE_INFINITY : 1d / Math.abs(dx);
+        private final double deltaY = dy == 0 ? Double.POSITIVE_INFINITY : 1d / Math.abs(dy);
+        private final double deltaZ = dz == 0 ? Double.POSITIVE_INFINITY : 1d / Math.abs(dz);
+
+        private int x = start.getFloorX();
+        private int y = start.getFloorY();
+        private int z = start.getFloorZ();
+
+        private double maxX = firstBoundary(start.getX(), x, dx);
+        private double maxY = firstBoundary(start.getY(), y, dy);
+        private double maxZ = firstBoundary(start.getZ(), z, dz);
+
+        private boolean first = true;
 
         @Override
         public boolean hasNext() {
-            if (currentBlock == null) {
-                return true;
-            } else if (this.maxX < this.maxY && this.maxX < this.maxZ) {
-                return !(this.maxX > BlockRayTrace.this.distance());
-            } else if (this.maxY < this.maxZ) {
-                return !(this.maxY > BlockRayTrace.this.distance());
-            } else {
-                return !(this.maxZ > BlockRayTrace.this.distance());
-            }
+            return this.first || Math.min(this.maxX, Math.min(this.maxY, this.maxZ)) <= 1d;
         }
 
         @Override
         public Vector3i next() {
-            if (currentBlock == null) {
-                this.currentBlock = BlockRayTrace.this.start.floor();
-                return currentBlock.toInt();
+            if (!this.hasNext()) {
+                throw new NoSuchElementException();
             }
 
-            if (this.maxX < this.maxY && this.maxX < this.maxZ) {
-                if (this.maxX > BlockRayTrace.this.distance()) {
-                    return null;
-                }
-                this.currentBlock = this.currentBlock.add(BlockRayTrace.this.stepX, 0, 0);
-                this.maxX += BlockRayTrace.this.deltaX;
-            } else if (this.maxY < this.maxZ) {
-                if (this.maxY > BlockRayTrace.this.distance()) {
-                    return null;
-                }
-                this.currentBlock = this.currentBlock.add(0, BlockRayTrace.this.stepY, 0);
-                this.maxY += BlockRayTrace.this.deltaY;
+            if (this.first) {
+                this.first = false;
+            } else if (this.maxX <= this.maxY && this.maxX <= this.maxZ) {
+                this.x += this.stepX;
+                this.maxX += this.deltaX;
+            } else if (this.maxY <= this.maxZ) {
+                this.y += this.stepY;
+                this.maxY += this.deltaY;
             } else {
-                if (this.maxZ > BlockRayTrace.this.distance()) {
-                    return null;
-                }
-                this.currentBlock = this.currentBlock.add(0, 0, BlockRayTrace.this.stepZ);
-                this.maxZ += BlockRayTrace.this.deltaZ;
+                this.z += this.stepZ;
+                this.maxZ += this.deltaZ;
             }
 
-            return currentBlock.toInt();
+            return Vector3i.from(this.x, this.y, this.z);
+        }
+
+        private static double firstBoundary(float start, int cell, float delta) {
+            if (delta > 0) {
+                return (cell + 1d - start) / delta;
+            }
+
+            if (delta < 0) {
+                return (start - cell) / -delta;
+            }
+
+            return Double.POSITIVE_INFINITY;
         }
     }
 }

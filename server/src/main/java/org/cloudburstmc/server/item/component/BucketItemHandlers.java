@@ -2,6 +2,7 @@ package org.cloudburstmc.server.item.component;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.Bucketable;
 import org.cloudburstmc.api.entity.Entity;
@@ -15,11 +16,12 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.item.data.BucketEntityData;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -46,7 +48,7 @@ public final class BucketItemHandlers {
 
             clicked.set(BlockStates.AIR);
             addCreativeFilledBucket(player, blockBucket);
-            level.addSound(position, Sound.BUCKET_FILL_POWDER_SNOW);
+            level.playSound(position, SoundTypes.BUCKET_FILL_POWDER_SNOW);
             return event.getItemStack();
         }
 
@@ -69,7 +71,7 @@ public final class BucketItemHandlers {
         }
 
         addCreativeFilledBucket(player, filledBucket);
-        level.addSound(position, isWater(liquid) ? Sound.BUCKET_FILL_WATER : Sound.BUCKET_FILL_LAVA);
+        level.playSound(position, isWater(liquid) ? SoundTypes.BUCKET_FILL_WATER : SoundTypes.BUCKET_FILL_LAVA);
         return event.getItemStack();
     };
 
@@ -105,7 +107,7 @@ public final class BucketItemHandlers {
             }
 
             spawnBucketEntity(level, target, entityType, item);
-            level.addSound(target, Sound.BUCKET_EMPTY_FISH);
+            level.playSound(target, SoundTypes.BUCKET_EMPTY_FISH);
             return event.getItemStack();
         };
     }
@@ -134,7 +136,7 @@ public final class BucketItemHandlers {
                 return item;
             }
 
-            level.addSound(target.getPosition(), Sound.BUCKET_EMPTY_POWDER_SNOW);
+            level.playSound(target.getPosition(), SoundTypes.BUCKET_EMPTY_POWDER_SNOW);
             return event.getItemStack();
         };
     }
@@ -155,39 +157,45 @@ public final class BucketItemHandlers {
             Block clicked = level.getBlock(position);
             Vector3i target = LiquidBlockHandlers.canOccupySecondaryLayer(liquid)
                     && clicked.getState().canContainLiquidSource() ? position : face.relative(position);
-            if (!level.canSetLiquidState(target, liquid)) {
-                return item;
+            if (level.canSetLiquidState(target, liquid)) {
+                return emptyLiquidBucket(item, player, level, clicked, target, face, liquid, entityType);
             }
 
-            ItemStack result = player.isCreative() ? item : ItemStack.from(ItemTypes.BUCKET);
-            Block affected = level.getBlock(target);
-            PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(player, affected, clicked, face, item, result);
-            level.getServer().getEventManager().fire(event);
-            if (event.isCancelled()) {
-                return item;
-            }
+            return item;
+        };
+    }
 
-            if (isWater(liquid) && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
-                if (entityType != null) {
-                    spawnBucketEntity(level, target, entityType, item);
-                }
+    private static ItemStack emptyLiquidBucket(ItemStack item, CloudPlayer player, CloudLevel level, Block clicked,
+                                               Vector3i target, Direction face, LiquidState liquid,
+                                               @Nullable EntityType<?> entityType) {
+        ItemStack result = player.isCreative() ? item : ItemStack.from(ItemTypes.BUCKET);
+        Block affected = level.getBlock(target);
+        PlayerBucketEmptyEvent event = new PlayerBucketEmptyEvent(player, affected, clicked, face, item, result);
+        level.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return item;
+        }
 
-                level.addSound(target, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
-                return event.getItemStack();
-            }
-
-            if (!level.setLiquidState(target, liquid)) {
-                return item;
-            }
-
+        if (isWater(liquid) && level.getDimension() == CloudLevel.DIMENSION_NETHER) {
             if (entityType != null) {
                 spawnBucketEntity(level, target, entityType, item);
             }
 
-            level.addSound(target, entityType != null ? Sound.BUCKET_EMPTY_FISH
-                    : isWater(liquid) ? Sound.BUCKET_EMPTY_WATER : Sound.BUCKET_EMPTY_LAVA);
+            level.playSound(target, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
             return event.getItemStack();
-        };
+        }
+
+        if (!level.setLiquidState(target, liquid)) {
+            return item;
+        }
+
+        if (entityType != null) {
+            spawnBucketEntity(level, target, entityType, item);
+        }
+
+        level.playSound(target, entityType != null ? SoundTypes.BUCKET_EMPTY_FISH
+                : isWater(liquid) ? SoundTypes.BUCKET_EMPTY_WATER : SoundTypes.BUCKET_EMPTY_LAVA);
+        return event.getItemStack();
     }
 
     private static <T extends Entity> void spawnBucketEntity(CloudLevel level, Vector3i position, EntityType<T> type, ItemStack bucket) {

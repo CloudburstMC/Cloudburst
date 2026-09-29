@@ -19,13 +19,18 @@ public final class VoidGenerator implements Generator {
     }
 
     @Override
+    public int getSeaLevel() {
+        return 63;
+    }
+
+    @Override
     public void generate(RandomGenerator random, Chunk chunk, int chunkX, int chunkZ) {
         int i = chunkX | chunkZ;
         if (((i | (i >> 31)) & ~1) == 0) {
             //both chunk coordinates are either 0 or 1
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    chunk.setBlockState(x, 64, z, 0, BlockStates.STONE);
+                    chunk.setBlockState(x, 64, z, BlockStates.STONE);
                 }
             }
         }

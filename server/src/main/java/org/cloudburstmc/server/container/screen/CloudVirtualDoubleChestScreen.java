@@ -2,6 +2,7 @@ package org.cloudburstmc.server.container.screen;
 
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.inventory.ScreenTypes;
@@ -89,12 +90,12 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
         fakePosB = Vector3i.from((int) pos.getX() + 1, fakeY, (int) pos.getZ());
 
         originalStatesA = new BlockState[]{
-                level.getBlockState(fakePosA.getX(), fakePosA.getY(), fakePosA.getZ(), 0),
-                level.getBlockState(fakePosA.getX(), fakePosA.getY(), fakePosA.getZ(), 1)
+                level.getBlockState(fakePosA.getX(), fakePosA.getY(), fakePosA.getZ()),
+                level.getBlockState(fakePosA.getX(), fakePosA.getY(), fakePosA.getZ(), BlockLayer.SECONDARY)
         };
         originalStatesB = new BlockState[]{
-                level.getBlockState(fakePosB.getX(), fakePosB.getY(), fakePosB.getZ(), 0),
-                level.getBlockState(fakePosB.getX(), fakePosB.getY(), fakePosB.getZ(), 1)
+                level.getBlockState(fakePosB.getX(), fakePosB.getY(), fakePosB.getZ()),
+                level.getBlockState(fakePosB.getX(), fakePosB.getY(), fakePosB.getZ(), BlockLayer.SECONDARY)
         };
 
         BlockState chestState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST);

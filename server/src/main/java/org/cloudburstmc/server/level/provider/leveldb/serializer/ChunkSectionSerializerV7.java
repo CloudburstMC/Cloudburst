@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.provider.leveldb.BlockStorageConverter;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -17,14 +17,14 @@ class ChunkSectionSerializerV7 implements ChunkSectionSerializer {
     }
 
     @Override
-    public BlockStorage[] deserialize(ByteBuf buf, ChunkBuilder builder) {
+    public BlockStorage[] deserialize(ByteBuf buf, CloudChunkBuilder builder) {
         byte[] blockIds = new byte[4096];
         buf.readBytes(blockIds);
         byte[] blockData = new byte[2048];
         buf.readBytes(blockData);
         if (buf.isReadable(4096)) {
             buf.skipBytes(4096); // light
-            builder.dirty();
+            builder.markDirty();
         }
 
         BlockStorage[] blockStorage = new BlockStorage[2];

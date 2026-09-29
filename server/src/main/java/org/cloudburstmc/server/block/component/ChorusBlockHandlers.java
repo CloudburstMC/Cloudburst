@@ -7,14 +7,13 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
-import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 
 import java.util.List;
 import java.util.random.RandomGenerator;
@@ -57,7 +56,7 @@ public class ChorusBlockHandlers {
             return;
         }
 
-        EntityBlockChangeEvent event = new EntityBlockChangeEvent(projectile, block, BlockStates.AIR);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(projectile, block, BlockStates.AIR);
         block.getLevel().getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return;
@@ -157,7 +156,7 @@ public class ChorusBlockHandlers {
                 && above.getSide(Direction.UP).getState().getType() == BlockTypes.AIR) {
             if (spread(block, above, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, age))) {
                 block.set(BlockStates.CHORUS_PLANT, false, true);
-                ((CloudLevel) block.getLevel()).addSound(above.getPosition().toFloat(), Sound.BLOCK_CHORUSFLOWER_GROW);
+                block.getLevel().playSound(above.getPosition().toFloat(), SoundTypes.BLOCK_CHORUSFLOWER_GROW);
             }
             return;
         }
@@ -183,7 +182,7 @@ public class ChorusBlockHandlers {
         }
 
         if (grow(block, state.withTrait(BlockTraits.AGE, 5))) {
-            ((CloudLevel) block.getLevel()).addSound(block.getPosition().toFloat(), Sound.BLOCK_CHORUSFLOWER_DEATH);
+            block.getLevel().playSound(block.getPosition().toFloat(), SoundTypes.BLOCK_CHORUSFLOWER_DEATH);
         }
     }
 

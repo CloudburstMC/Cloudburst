@@ -27,6 +27,7 @@ public final class BlockComponents {
     public static final ComponentType<DescriptionBlockHandler> GET_DESCRIPTION_ID = ComponentType.of("get_description_id", DescriptionBlockHandler.class);
     public static final ComponentType<VoxelShapeBlockHandler> GET_ENTITY_INSIDE_COLLISION_SHAPE = ComponentType.of("get_entity_inside_collision_shape", VoxelShapeBlockHandler.class);
     public static final ComponentType<BlockExperienceHandler> GET_EXPERIENCE = ComponentType.of("get_experience", BlockExperienceHandler.class);
+    public static final ComponentType<BlockLootHandler> GET_EXPLOSION_LOOT = ComponentType.of("get_explosion_loot", BlockLootHandler.class);
     public static final ComponentType<FloatBlockHandler> GET_GRAVITY = ComponentType.of("get_gravity", FloatBlockHandler.class);
     public static final ComponentType<BlockLootHandler> GET_LOOT = ComponentType.of("get_loot", BlockLootHandler.class);
     public static final ComponentType<MapColorHandler> GET_MAP_COLOR = ComponentType.of("get_map_color", MapColorHandler.class);
@@ -37,9 +38,10 @@ public final class BlockComponents {
     public static final ComponentType<BooleanBlockHandler> MAY_PICK = ComponentType.of("may_pick", BooleanBlockHandler.class);
     public static final ComponentType<MayPlaceBlockHandler> MAY_PLACE = ComponentType.of("may_place", MayPlaceBlockHandler.class);
     public static final ComponentType<BooleanBlockHandler> MAY_PLACE_ON = ComponentType.of("may_place_on", BooleanBlockHandler.class);
-    public static final ComponentType<PlayerBlockHandler> ON_DESTROY = ComponentType.of("on_destroy", PlayerBlockHandler.class);
+    public static final ComponentType<BlockDestroyHandler> ON_DESTROY = ComponentType.of("on_destroy", BlockDestroyHandler.class);
     public static final ComponentType<EntityBlockHandler> ON_ENTITY_COLLIDE = ComponentType.of("on_entity_collide", EntityBlockHandler.class);
     public static final ComponentType<EntityInsideBlockHandler> ON_ENTITY_INSIDE = ComponentType.of("on_entity_inside", EntityInsideBlockHandler.class);
+    public static final ComponentType<BlockExplosionHandler> ON_EXPLOSION_HIT = ComponentType.of("on_explosion_hit", BlockExplosionHandler.class);
     public static final ComponentType<FallOnBlockHandler> ON_FALL_ON = ComponentType.of("on_fall_on", FallOnBlockHandler.class);
     public static final ComponentType<FallingLandBlockHandler> ON_FALLING_LAND = ComponentType.of("on_falling_land", FallingLandBlockHandler.class);
     public static final ComponentType<ComplexBlockHandler> ON_LIGHTNING_HIT = ComponentType.of("on_lightning_hit", ComplexBlockHandler.class);

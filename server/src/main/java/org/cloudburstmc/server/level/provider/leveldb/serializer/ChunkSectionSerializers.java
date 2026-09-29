@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 public class ChunkSectionSerializers {
     private static final ChunkSectionSerializer[] SERIALIZERS = new ChunkSectionSerializer[10];
@@ -25,7 +25,7 @@ public class ChunkSectionSerializers {
         getSerializer(version).serialize(buf, storage);
     }
 
-    public static BlockStorage[] deserialize(ByteBuf buf, ChunkBuilder builder, int version) {
+    public static BlockStorage[] deserialize(ByteBuf buf, CloudChunkBuilder builder, int version) {
         return getSerializer(version).deserialize(buf, builder);
     }
 

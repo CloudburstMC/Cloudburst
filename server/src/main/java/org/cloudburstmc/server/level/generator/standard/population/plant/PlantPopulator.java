@@ -55,21 +55,21 @@ public class PlantPopulator extends AbstractPlantPopulator {
             int blockZ = z + random.nextInt(8) - random.nextInt(8);
 
             Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            if (!on.test(chunk.getBlockState(blockX & 0xF, blockY, blockZ & 0xF, 0))) {
+            if (!on.test(chunk.getBlockState(blockX & 0xF, blockY, blockZ & 0xF))) {
                 continue;
             }
-            if (water != null && !(water.test(level.getBlockState(blockX + 1, blockY, blockZ, 0))
-                    || water.test(level.getBlockState(blockX - 1, blockY, blockZ, 0))
-                    || water.test(level.getBlockState(blockX, blockY, blockZ + 1, 0))
-                    || water.test(level.getBlockState(blockX, blockY, blockZ - 1, 0)))) {
+            if (water != null && !(water.test(level.getBlockState(blockX + 1, blockY, blockZ))
+                    || water.test(level.getBlockState(blockX - 1, blockY, blockZ))
+                    || water.test(level.getBlockState(blockX, blockY, blockZ + 1))
+                    || water.test(level.getBlockState(blockX, blockY, blockZ - 1)))) {
                 continue;
             }
-            for (int dy = 1; dy <= height && replace.test(chunk.getBlockState(blockX & 0xF, blockY + dy, blockZ & 0xF, 0))
-                    && replace.test(level.getBlockState(blockX + 1, blockY + dy, blockZ, 0))
-                    && replace.test(level.getBlockState(blockX - 1, blockY + dy, blockZ, 0))
-                    && replace.test(level.getBlockState(blockX, blockY + dy, blockZ + 1, 0))
-                    && replace.test(level.getBlockState(blockX, blockY + dy, blockZ - 1, 0)); dy++) {
-                chunk.setBlockState(blockX & 0xF, blockY + dy, blockZ & 0xF, 0, block);
+            for (int dy = 1; dy <= height && replace.test(chunk.getBlockState(blockX & 0xF, blockY + dy, blockZ & 0xF))
+                    && replace.test(level.getBlockState(blockX + 1, blockY + dy, blockZ))
+                    && replace.test(level.getBlockState(blockX - 1, blockY + dy, blockZ))
+                    && replace.test(level.getBlockState(blockX, blockY + dy, blockZ + 1))
+                    && replace.test(level.getBlockState(blockX, blockY + dy, blockZ - 1)); dy++) {
+                chunk.setBlockState(blockX & 0xF, blockY + dy, blockZ & 0xF, block);
             }
         }
     }

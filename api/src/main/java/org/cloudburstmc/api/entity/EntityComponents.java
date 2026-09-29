@@ -25,6 +25,11 @@ public class EntityComponents {
     public static final ComponentType<DamageTypeEntityHandler> GET_PROJECTILE_DAMAGE_TYPE = ComponentType.of("entity_get_projectile_damage_type", DamageTypeEntityHandler.class);
 
     /**
+     * Resolves the item representing an entity when it is picked.
+     */
+    public static final ComponentType<PickItemEntityHandler> GET_PICK_ITEM = ComponentType.of("entity_get_pick_item", PickItemEntityHandler.class);
+
+    /**
      * Called when a player interacts with this entity.
      */
     public static final ComponentType<InteractEntityHandler> ON_INTERACT = ComponentType.of("entity_on_interact", InteractEntityHandler.class);

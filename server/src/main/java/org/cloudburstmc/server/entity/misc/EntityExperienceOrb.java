@@ -7,12 +7,12 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VALUE;
@@ -93,7 +93,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return (source.getDamageType() == DamageTypes.OUT_OF_WORLD ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&

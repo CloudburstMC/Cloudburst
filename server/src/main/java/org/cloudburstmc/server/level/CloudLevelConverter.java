@@ -1,7 +1,8 @@
 package org.cloudburstmc.server.level;
 
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilderFactory;
 import org.cloudburstmc.server.level.provider.LevelImportSource;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 
@@ -25,10 +26,10 @@ public class CloudLevelConverter {
     }
 
     public CompletableFuture<Void> convert() {
-        ChunkBuilder.Factory factory = (x, z) -> new ChunkBuilder(x, z, this.level);
+        CloudChunkBuilderFactory factory = (x, z) -> new CloudChunkBuilder(x, z, this.level);
         AtomicInteger converted = new AtomicInteger();
         return this.source.visitChunks(factory, chunk -> {
-            chunk.init();
+            chunk.initialize();
             this.target.saveChunk(chunk).join();
             int count = converted.incrementAndGet();
             if ((count & 1023) == 512) {

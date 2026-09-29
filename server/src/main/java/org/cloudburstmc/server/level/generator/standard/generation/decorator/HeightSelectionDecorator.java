@@ -55,7 +55,7 @@ public class HeightSelectionDecorator extends AbstractGenerationPass implements 
         }
 
         if (this.addSeaLevelToOffset) {
-            this.additionalOffset += generator.seaLevel();
+            this.additionalOffset += generator.getSeaLevel();
         }
     }
 

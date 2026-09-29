@@ -33,7 +33,7 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
             int radius = dy == 0 ? 0 : dy >= height - 1 ? 2 : 1;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockState(x + dx, y + dy, z + dz, 0))) {
+                    if (!this.test(level.getBlockState(x + dx, y + dy, z + dz))) {
                         return false;
                     }
                 }
@@ -50,55 +50,55 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
         y += height;
         for (int dx = -2; dx <= 0; dx++) {
             for (int dz = -2; dz <= 0; dz++) {
-                if (this.test(level.getBlockState(x + dx, y - 2, z + dz, 0))) {
-                    level.setBlockState(x + dx, y - 2, z + dz, 0, leaves);
+                if (this.test(level.getBlockState(x + dx, y - 2, z + dz))) {
+                    level.setBlockState(x + dx, y - 2, z + dz, leaves);
                 }
-                if (this.test(level.getBlockState(x - dx + 1, y - 2, z + dz, 0))) {
-                    level.setBlockState(x - dx + 1, y - 2, z + dz, 0, leaves);
+                if (this.test(level.getBlockState(x - dx + 1, y - 2, z + dz))) {
+                    level.setBlockState(x - dx + 1, y - 2, z + dz, leaves);
                 }
-                if (this.test(level.getBlockState(x + dx, y - 2, z - dz + 1, 0))) {
-                    level.setBlockState(x + dx, y - 2, z - dz + 1, 0, leaves);
+                if (this.test(level.getBlockState(x + dx, y - 2, z - dz + 1))) {
+                    level.setBlockState(x + dx, y - 2, z - dz + 1, leaves);
                 }
-                if (this.test(level.getBlockState(x - dx + 1, y - 2, z - dz + 1, 0))) {
-                    level.setBlockState(x - dx + 1, y - 2, z - dz + 1, 0, leaves);
+                if (this.test(level.getBlockState(x - dx + 1, y - 2, z - dz + 1))) {
+                    level.setBlockState(x - dx + 1, y - 2, z - dz + 1, leaves);
                 }
                 if ((dx > -2 || dz > -1) && (dx != -1 || dz != -2)) {
-                    if (this.test(level.getBlockState(x + dx, y, z + dz, 0))) {
-                        level.setBlockState(x + dx, y, z + dz, 0, leaves);
+                    if (this.test(level.getBlockState(x + dx, y, z + dz))) {
+                        level.setBlockState(x + dx, y, z + dz, leaves);
                     }
-                    if (this.test(level.getBlockState(x - dx + 1, y, z + dz, 0))) {
-                        level.setBlockState(x - dx + 1, y, z + dz, 0, leaves);
+                    if (this.test(level.getBlockState(x - dx + 1, y, z + dz))) {
+                        level.setBlockState(x - dx + 1, y, z + dz, leaves);
                     }
-                    if (this.test(level.getBlockState(x + dx, y, z - dz + 1, 0))) {
-                        level.setBlockState(x + dx, y, z - dz + 1, 0, leaves);
+                    if (this.test(level.getBlockState(x + dx, y, z - dz + 1))) {
+                        level.setBlockState(x + dx, y, z - dz + 1, leaves);
                     }
-                    if (this.test(level.getBlockState(x - dx + 1, y, z - dz + 1, 0))) {
-                        level.setBlockState(x - dx + 1, y, z - dz + 1, 0, leaves);
+                    if (this.test(level.getBlockState(x - dx + 1, y, z - dz + 1))) {
+                        level.setBlockState(x - dx + 1, y, z - dz + 1, leaves);
                     }
                 }
             }
         }
 
         if (random.nextBoolean()) {
-            if (this.test(level.getBlockState(x, y + 1, z, 0))) {
-                level.setBlockState(x, y + 1, z, 0, leaves);
+            if (this.test(level.getBlockState(x, y + 1, z))) {
+                level.setBlockState(x, y + 1, z, leaves);
             }
-            if (this.test(level.getBlockState(x + 1, y + 1, z, 0))) {
-                level.setBlockState(x + 1, y + 1, z, 0, leaves);
+            if (this.test(level.getBlockState(x + 1, y + 1, z))) {
+                level.setBlockState(x + 1, y + 1, z, leaves);
             }
-            if (this.test(level.getBlockState(x, y + 1, z + 1, 0))) {
-                level.setBlockState(x, y + 1, z + 1, 0, leaves);
+            if (this.test(level.getBlockState(x, y + 1, z + 1))) {
+                level.setBlockState(x, y + 1, z + 1, leaves);
             }
-            if (this.test(level.getBlockState(x + 1, y + 1, z + 1, 0))) {
-                level.setBlockState(x + 1, y + 1, z + 1, 0, leaves);
+            if (this.test(level.getBlockState(x + 1, y + 1, z + 1))) {
+                level.setBlockState(x + 1, y + 1, z + 1, leaves);
             }
         }
 
         for (int dx = -3; dx <= 4; ++dx) {
             for (int dz = -3; dz <= 4; ++dz) {
                 if ((dx != -3 || dz != -3) && (dx != -3 || dz != 4) && (dx != 4 || dz != -3) && (dx != 4 || dz != 4) && (abs(dx) < 3 || abs(dz) < 3)
-                        && this.test(level.getBlockState(x + dx, y - 1, z + dz, 0))) {
-                    level.setBlockState(x + dx, y - 1, z + dz, 0, leaves);
+                        && this.test(level.getBlockState(x + dx, y - 1, z + dz))) {
+                    level.setBlockState(x + dx, y - 1, z + dz, leaves);
                 }
             }
         }
@@ -117,18 +117,18 @@ public class FeatureDarkOakTree extends FeatureHugeTree {
 
                 int branchSize = random.nextInt(2, 5);
                 for (int dy = 0; dy < branchSize; dy++) {
-                    if (this.test(level.getBlockState(x + dx, y + height - dy - 2, z + dz, 0))) {
-                        level.setBlockState(x + dx, y + height - dy - 2, z + dz, 0, log);
+                    if (this.test(level.getBlockState(x + dx, y + height - dy - 2, z + dz))) {
+                        level.setBlockState(x + dx, y + height - dy - 2, z + dz, log);
                     }
                 }
 
                 for (int ddx = -2; ddx <= 2; ddx++) {
                     for (int ddz = -2; ddz <= 2; ddz++) {
-                        if ((abs(ddx) != 2 && abs(ddz) != 2) && this.test(level.getBlockState(x + dx + ddx, y + height, z + dz + ddz, 0))) {
-                            level.setBlockState(x + dx + ddx, y + height, z + dz + ddz, 0, leaves);
+                        if ((abs(ddx) != 2 && abs(ddz) != 2) && this.test(level.getBlockState(x + dx + ddx, y + height, z + dz + ddz))) {
+                            level.setBlockState(x + dx + ddx, y + height, z + dz + ddz, leaves);
                         }
-                        if ((abs(ddx) != 2 || abs(ddz) != 2) && this.test(level.getBlockState(x + dx + ddx, y + height - 1, z + dz + ddz, 0))) {
-                            level.setBlockState(x + dx + ddx, y + height - 1, z + dz + ddz, 0, leaves);
+                        if ((abs(ddx) != 2 || abs(ddz) != 2) && this.test(level.getBlockState(x + dx + ddx, y + height - 1, z + dz + ddz))) {
+                            level.setBlockState(x + dx + ddx, y + height - 1, z + dz + ddz, leaves);
                         }
                     }
                 }

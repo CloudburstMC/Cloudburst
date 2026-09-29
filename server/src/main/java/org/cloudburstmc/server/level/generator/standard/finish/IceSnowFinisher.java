@@ -5,6 +5,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.SupportType;
+import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.block.util.BlockSupport;
@@ -22,26 +23,52 @@ import java.util.random.RandomGenerator;
 @JsonDeserialize
 public class IceSnowFinisher implements Finisher {
     public static final Identifier ID = Identifier.parse("cloudburst:ice_snow");
+    private static final int MAX_FORMATION_LIGHT = 9;
 
     @JsonProperty
     protected IntRange height;
+    private int seaLevel;
 
     @Override
     public void init(long levelSeed, long localSeed, StandardGenerator generator) {
         Objects.requireNonNull(this.height, "height must be set!");
+        this.seaLevel = generator.getSeaLevel();
     }
 
     @Override
     public void finish(RandomGenerator random, GenerationRegion level, int blockX, int blockZ) {
-        int y = level.getChunk(blockX >> 4, blockZ >> 4).getHighestBlock(blockX & 0xF, blockZ & 0xF);
-        CloudBiome biome = CloudBiomeRegistry.get().getBiome(level.getChunk(blockX >> 4, blockZ >> 4).getBiome(blockX & 0xF, y, blockZ & 0xF));
-        if (this.height.contains(y) && biome.canSnowAt(level, blockX, y + 1, blockZ)) {
-            BlockState state = level.getBlockState(blockX, y, blockZ, 0);
-            if (state.getType() == BlockTypes.WATER) {
-                level.setBlockState(blockX, y, blockZ, 0, BlockStates.ICE);
-            } else if (y < 255 && BlockSupport.isFaceSturdy(CloudBlockRegistry.REGISTRY, state, Direction.UP, SupportType.FULL)) {
-                level.setBlockState(blockX, y + 1, blockZ, 0, BlockStates.SNOW_LAYER);
-            }
+        int localX = blockX & 0xF;
+        int localZ = blockZ & 0xF;
+        Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
+        int surfaceY = chunk.getHighestBlock(localX, localZ);
+        if (!this.height.contains(surfaceY)) {
+            return;
+        }
+
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(chunk.getBiome(localX, surfaceY, localZ));
+        if (biome == null) {
+            return;
+        }
+
+        BlockState surfaceState = level.getBlockState(blockX, surfaceY, blockZ);
+        if (surfaceState.getType() == BlockTypes.WATER
+                && chunk.getBlockLight(localX, surfaceY, localZ) <= MAX_FORMATION_LIGHT
+                && biome.coldEnoughToSnow(blockX, surfaceY, blockZ, this.seaLevel)) {
+            surfaceState = BlockStates.ICE;
+            level.setBlockState(blockX, surfaceY, blockZ, surfaceState);
+        }
+
+        int snowY = surfaceY + 1;
+        if (!biome.hasPrecipitation()
+                || chunk.getLevel().isOutsideBuildHeight(snowY)
+                || chunk.getBlockLight(localX, snowY, localZ) > MAX_FORMATION_LIGHT
+                || !biome.coldEnoughToSnow(blockX, snowY, blockZ, this.seaLevel)
+                || level.getBlockState(blockX, snowY, blockZ) != BlockStates.AIR) {
+            return;
+        }
+
+        if (BlockSupport.isFaceSturdy(CloudBlockRegistry.REGISTRY, surfaceState, Direction.UP, SupportType.FULL)) {
+            level.setBlockState(blockX, snowY, blockZ, BlockStates.SNOW_LAYER);
         }
     }
 

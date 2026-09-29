@@ -45,8 +45,8 @@ public class EntityMovementController {
             entity.checkChunks();
             entity.recordMovement(previousBox, entity.boundingBox);
             applyCollisionState(entity, movementResult);
-            entity.updateFallState(entity.onGround);
             stopBlockedMotion(entity, movementResult);
+            entity.updateFallState(entity.onGround);
             synchronizeForcedMovement(entity, type, previousBox);
         }
     }

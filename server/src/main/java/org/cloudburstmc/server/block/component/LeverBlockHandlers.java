@@ -2,9 +2,10 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.component.BlockDestroyHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
-import org.cloudburstmc.api.block.component.PlayerBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.LeverDirection;
@@ -56,8 +57,9 @@ public class LeverBlockHandlers {
         level.breakBlock(pos, null, null, true);
     };
 
-    public static final PlayerBlockHandler ON_DESTROY = (block, player) -> {
+    public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {
         BlockState state = block.getState();
+        block.set(BlockStates.AIR);
         if (!state.ensureTrait(BlockTraits.IS_OPEN)) {
             return;
         }

@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.StonecutterScreen;
 import org.cloudburstmc.api.inventory.view.StonecutterView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudStonecutterView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -37,6 +37,6 @@ public class CloudStonecutterContainerScreen extends CloudBlockContainerScreen i
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.STONECUTTER_INPUT, stonecutter, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.STONECUTTER_RESULT, stonecutter, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.STONECUTTER_RESULT, stonecutter, 1, 1, 1));
     }
 }

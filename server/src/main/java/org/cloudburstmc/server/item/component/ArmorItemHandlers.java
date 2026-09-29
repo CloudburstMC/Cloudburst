@@ -6,14 +6,14 @@ import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.UseHandler;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 @UtilityClass
 public class ArmorItemHandlers {
 
-    public static UseHandler equip(EquipmentSlot slot, Sound equipSound) {
+    public static UseHandler equip(EquipmentSlot slot, SoundType equipSound) {
         if (!slot.isArmor()) {
             throw new IllegalArgumentException("slot must be an armor slot");
         }
@@ -30,7 +30,7 @@ public class ArmorItemHandlers {
         return slot == null || !slot.isArmor() ? -1 : slot.getArmorSlot();
     }
 
-    private static UseHandler equip(int armorSlot, Sound equipSound) {
+    private static UseHandler equip(int armorSlot, SoundType equipSound) {
         return (itemStack, entity) -> {
             if (!(entity instanceof CloudPlayer player)) {
                 return itemStack;
@@ -45,7 +45,7 @@ public class ArmorItemHandlers {
             ItemStack itemToEquip = itemStack.withCount(1);
             armor.setItem(armorSlot, itemToEquip);
             player.getItemStackNetManager().recordServerAuthoritativeArmorUse(armorSlot);
-            player.getLevel().addSound(player.getPosition(), equipSound);
+            player.getLevel().playSound(player.getPosition(), equipSound);
 
             if (itemStack.getCount() == 1) {
                 return equipped;

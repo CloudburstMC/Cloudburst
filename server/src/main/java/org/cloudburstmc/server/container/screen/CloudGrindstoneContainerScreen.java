@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.GrindstoneScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.GrindstoneView;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.view.CloudGrindstoneView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -37,7 +37,7 @@ public class CloudGrindstoneContainerScreen extends CloudBlockContainerScreen im
     protected void setupMappings() {
         super.setupMappings();
         this.addMapping(new ContainerMapping(ContainerSlotType.GRINDSTONE_INPUT, grindstoneView, 1, 0));
-        this.addMapping(new ContainerMapping(ContainerSlotType.GRINDSTONE_ADDITIONAL, grindstoneView, 1, 1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.GRINDSTONE_RESULT, grindstoneView, 1, 2));
+        this.addMapping(new ContainerMapping(ContainerSlotType.GRINDSTONE_ADDITIONAL, grindstoneView, 1, 1, 1));
+        this.addMapping(new ContainerMapping(ContainerSlotType.GRINDSTONE_RESULT, grindstoneView, 2, 1, 2));
     }
 }

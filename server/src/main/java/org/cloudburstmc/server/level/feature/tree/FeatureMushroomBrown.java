@@ -32,7 +32,7 @@ public class FeatureMushroomBrown extends FeatureAbstractTree {
             int radius = dy < 3 ? 0 : 4;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    if (!this.test(level.getBlockState(x, y + dy, z, 0))) {
+                    if (!this.test(level.getBlockState(x, y + dy, z))) {
                         return false;
                     }
                 }
@@ -82,7 +82,7 @@ public class FeatureMushroomBrown extends FeatureAbstractTree {
     @Override
     protected void placeTrunk(GenerationRegion level, RandomGenerator random, int x, int y, int z, int height, BlockState log, BlockState leaves) {
         for (int dy = 0; dy < height; dy++) {
-            level.setBlockState(x, y + dy, z, 0, log);
+            level.setBlockState(x, y + dy, z, log);
         }
     }
 

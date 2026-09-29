@@ -9,12 +9,12 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.data.BucketEntityData;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class BucketableEntityHandlers {
+public class BucketableEntityHandlers {
 
     public static InteractEntityHandler capture(ItemType requiredBucket) {
         return (entity, player, item, clickedPos) -> {
@@ -50,7 +50,7 @@ public final class BucketableEntityHandlers {
                 }
             }
 
-            cloudPlayer.getLevel().addSound(entity.getPosition(), Sound.BUCKET_FILL_FISH);
+            cloudPlayer.getLevel().playSound(entity.getPosition(), SoundTypes.BUCKET_FILL_FISH);
             entity.close();
             return true;
         };

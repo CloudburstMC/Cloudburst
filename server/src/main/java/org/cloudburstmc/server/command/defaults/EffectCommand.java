@@ -7,15 +7,18 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
-import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
+import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
-import org.cloudburstmc.server.command.CommandUtils;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.server.command.AdvertisedCommand;
+import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
-import org.cloudburstmc.server.potion.CloudEffect;
+import org.cloudburstmc.server.entity.CloudEntity;
 
 import java.util.List;
 
@@ -43,17 +46,22 @@ public class EffectCommand extends AdvertisedCommand {
     @Override
     protected int execute(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSender sender = sender(context);
-        List<Entity> targets = CommandArgumentTypes.entities(context, "player");
+        List<Living> targets = CommandArgumentTypes.entities(context, "player").stream()
+                .filter(Living.class::isInstance)
+                .map(Living.class::cast)
+                .toList();
+
         if (targets.isEmpty()) {
             return success();
         }
 
         if (hasArgument(context, "clear")) {
-            for (Entity target : targets) {
-                target.removeAllEffects();
+            for (Living target : targets) {
+                ((CloudEntity) target).clearActivePotionEffects(PotionEffectCause.COMMAND);
                 sender.sendMessage(Component.translatable("commands.effect.success.removed.all",
                         Component.text(target.getName())));
             }
+
             return success();
         }
 
@@ -74,10 +82,10 @@ public class EffectCommand extends AdvertisedCommand {
         boolean visible = !hasArgument(context, "hideParticles")
                 || !argumentValue(context, "hideParticles", Boolean.class);
 
-        for (Entity target : targets) {
+        for (Living target : targets) {
             if (duration == 0) {
-                if (!target.hasEffect(effectType)) {
-                    if (target.getEffects().isEmpty()) {
+                if (!target.hasPotionEffect(effectType)) {
+                    if (target.getActivePotionEffects().isEmpty()) {
                         sender.sendMessage(Component.translatable("commands.effect.failure.notActive.all",
                                 Component.text(target.getName())));
                     } else {
@@ -85,21 +93,19 @@ public class EffectCommand extends AdvertisedCommand {
                                 Component.text(effectType.getId().toString()), Component.text(target.getName())));
                     }
                 } else {
-                    target.removeEffect(effectType);
+                    ((CloudEntity) target).removePotionEffect(effectType, PotionEffectCause.COMMAND);
                     sender.sendMessage(Component.translatable("commands.effect.success.removed",
                             Component.text(effectType.getId().toString()), Component.text(target.getName())));
                 }
                 continue;
             }
 
-            CloudEffect effect = new CloudEffect(effectType)
-                    .setDuration(duration)
-                    .setAmplifier(amplification)
-                    .setVisible(visible);
-            target.addEffect(effect);
+            PotionEffect effect = new PotionEffect(effectType, duration, amplification, false, visible);
+            ((CloudEntity) target).addPotionEffect(effect, sender instanceof Entity entity ? entity : null,
+                    PotionEffectCause.COMMAND);
             CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.effect.success",
-                    Component.text(effect.getName()), Component.text(effect.getAmplifier()),
-                    Component.text(target.getName()), Component.text(effect.getDuration() / 20)));
+                    Component.text(effectType.getId().getName()), Component.text(amplification),
+                    Component.text(target.getName()), Component.text(duration / 20)));
         }
 
         return success();

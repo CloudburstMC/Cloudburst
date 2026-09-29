@@ -10,7 +10,7 @@ import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.registry.CloudEntityRegistry;
+import org.cloudburstmc.server.entity.CloudEntitySnapshot;
 
 @UtilityClass
 public class SpawnEggItemHandlers {
@@ -22,7 +22,7 @@ public class SpawnEggItemHandlers {
             float spawnZ = blockPos.getZ() + 0.5f;
 
             Location location = Location.from(spawnX, spawnY, spawnZ, entity.getLevel());
-            CloudEntity spawned = (CloudEntity) CloudEntityRegistry.get().newEntity(entityType, location);
+            CloudEntity spawned = CloudEntitySnapshot.createFromItem(item, entityType, location);
             boolean spawnedSuccessfully = spawned instanceof Creature creature
                     ? spawned.spawn(new CreatureSpawnEvent(creature, CreatureSpawnReason.SPAWN_EGG))
                     : spawned.spawn();

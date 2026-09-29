@@ -5,6 +5,8 @@ import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.server.block.BlockLayerRules;
+import org.cloudburstmc.server.block.BlockLayers;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.*;
 import org.junit.jupiter.api.Test;
@@ -56,9 +58,27 @@ class BlockRegistryTest {
                 () -> assertSame(ContainerBlockHandlers.ENCHANTING_TABLE, component(BlockTypes.ENCHANTING_TABLE, BlockComponents.USE)),
                 () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(BlockTypes.ENDER_CHEST, BlockComponents.CAN_BE_USED)),
                 () -> assertSame(ContainerBlockHandlers.ENDER_CHEST, component(BlockTypes.ENDER_CHEST, BlockComponents.USE)),
+                () -> assertSame(FarmlandBlockHandlers.FALL_ON, component(BlockTypes.FARMLAND, BlockComponents.ON_FALL_ON)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.FIRE, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.SOUL_FIRE, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.PORTAL, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.END_PORTAL, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.END_GATEWAY, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.MOB_SPAWNER, BlockComponents.GET_LOOT)),
+                () -> assertSame(DefaultBlockHandlers.NO_LOOT, component(BlockTypes.SUSPICIOUS_SAND, BlockComponents.GET_LOOT)),
                 () -> assertSlabPlaceHandler(BlockTypes.GRANITE_SLAB),
                 () -> assertSlabPlaceHandler(BlockTypes.MOSSY_STONE_BRICK_SLAB)
         );
+
+        for (BlockType type : BlockTypes.values()) {
+            if (type.getTraits().contains(BlockTraits.EXPLODE)) {
+                assertAll(type.toString(),
+                        () -> assertSame(DefaultBlockHandlers.CAN_BE_USED, component(type, BlockComponents.CAN_BE_USED)),
+                        () -> assertSame(TntBlockHandlers.USE, component(type, BlockComponents.USE)),
+                        () -> assertSame(TntBlockHandlers.ON_EXPLOSION_HIT, component(type, BlockComponents.ON_EXPLOSION_HIT)),
+                        () -> assertSame(TntBlockHandlers.ON_PROJECTILE_HIT, component(type, BlockComponents.ON_PROJECTILE_HIT)));
+            }
+        }
     }
 
     @Test
@@ -80,7 +100,6 @@ class BlockRegistryTest {
                 .filter(type -> type.getTraits().contains(BlockTraits.IS_IN_WALL))
                 .toList());
         Set<BlockType> wallTypes = Set.copyOf(BlockTypes.values().stream()
-                .filter(type -> type != BlockTypes.BORDER_BLOCK)
                 .filter(type -> type.getTraits().contains(BlockTraits.HAS_POST))
                 .toList());
         Set<BlockType> woodenFenceTypes = Set.copyOf(fenceTypes.stream()
@@ -138,6 +157,34 @@ class BlockRegistryTest {
     }
 
     @Test
+    void barsAndPanesConnectToEachOtherAndWalls() {
+        Set<BlockType> bars = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type == BlockTypes.IRON_BARS || type.getId().getName().endsWith("copper_bars"))
+                .toList());
+        Set<BlockType> panes = Set.copyOf(BlockTypes.values().stream()
+                .filter(type -> type.getId().getName().endsWith("_pane"))
+                .toList());
+
+        assertAll(
+                () -> assertEquals(bars, REGISTRY.getTag(BlockTags.BARS).getValues()),
+                () -> assertEquals(panes, REGISTRY.getTag(BlockTags.GLASS_PANES).getValues()),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.GLASS_PANE.getDefaultState(), false)),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.COPPER_BARS.getDefaultState(), false)),
+                () -> assertTrue(BarBlockHandlers.connectsTo(BlockTypes.COBBLESTONE_WALL.getDefaultState(), false)),
+                () -> assertFalse(BarBlockHandlers.connectsTo(BlockTypes.OAK_FENCE.getDefaultState(), false)),
+                () -> assertFalse(BarBlockHandlers.connectsTo(BlockTypes.OAK_LEAVES.getDefaultState(), true))
+        );
+
+        for (BlockType type : BlockTypes.values()) {
+            if (bars.contains(type) || panes.contains(type)) {
+                assertAll(type.toString(),
+                        () -> assertSame(BarBlockHandlers.RESOLVE_PLACEMENT_STATE, component(type, BlockComponents.RESOLVE_PLACEMENT_STATE)),
+                        () -> assertSame(BarBlockHandlers.ON_NEIGHBOUR_CHANGED, component(type, BlockComponents.ON_NEIGHBOUR_CHANGED)));
+            }
+        }
+    }
+
+    @Test
     void fencesAndWallsRespectGateAlignment() {
         BlockState alignedGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.EAST.getCardinalDirection());
         BlockState crossingGate = BlockTypes.OAK_FENCE_GATE.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, Direction.NORTH.getCardinalDirection());
@@ -183,17 +230,53 @@ class BlockRegistryTest {
         }
     }
 
+    @Test
+    void snowloggingPreservesVegetationOnlyWhenSnowIsPlaced() {
+        BlockState snow = BlockStates.SNOW_LAYER.withTrait(BlockTraits.IS_COVERED, true);
+
+        BlockLayers snowPlacedOnGrass = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
+                new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), BlockLayer.PRIMARY, snow));
+        BlockLayers grassPlacedInSnow = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
+                new BlockLayers(snow, BlockStates.AIR), BlockLayer.PRIMARY, BlockStates.SHORT_GRASS));
+        BlockLayers snowRemoved = Objects.requireNonNull(
+                BlockLayerRules.resolveReplacement(snowPlacedOnGrass, BlockLayer.PRIMARY, BlockStates.AIR));
+        BlockLayers snowOnGrassBlock = BlockLayerRules.normalizeSnowCover(
+                new BlockLayers(BlockStates.SNOW_LAYER, BlockStates.AIR), BlockStates.GRASS_BLOCK);
+
+        assertAll(
+                () -> assertSame(BlockTypes.SNOW_LAYER, snowPlacedOnGrass.primary().getType()),
+                () -> assertFalse(snowPlacedOnGrass.primary().ensureTrait(BlockTraits.IS_COVERED)),
+                () -> assertSame(BlockStates.SHORT_GRASS, snowPlacedOnGrass.secondary()),
+                () -> assertEquals(new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), grassPlacedInSnow),
+                () -> assertEquals(new BlockLayers(BlockStates.SHORT_GRASS, BlockStates.AIR), snowRemoved),
+                () -> assertTrue(snowOnGrassBlock.primary().ensureTrait(BlockTraits.IS_COVERED)),
+                () -> assertNull(BlockLayerRules.resolveReplacement(new BlockLayers(BlockStates.STONE, BlockStates.AIR), BlockLayer.SECONDARY, BlockStates.SHORT_GRASS)),
+                () -> assertTrue(BlockTypes.SHORT_GRASS.is(BlockTags.SNOWLOGGABLE)),
+                () -> assertFalse(BlockTypes.GRASS_BLOCK.is(BlockTags.SNOWLOGGABLE))
+        );
+    }
+
+    @Test
+    void groupsAllLightningRodVariantsForChanneling() {
+        assertEquals(Set.of(
+                BlockTypes.LIGHTNING_ROD,
+                BlockTypes.EXPOSED_LIGHTNING_ROD,
+                BlockTypes.WEATHERED_LIGHTNING_ROD,
+                BlockTypes.OXIDIZED_LIGHTNING_ROD,
+                BlockTypes.WAXED_LIGHTNING_ROD,
+                BlockTypes.WAXED_EXPOSED_LIGHTNING_ROD,
+                BlockTypes.WAXED_WEATHERED_LIGHTNING_ROD,
+                BlockTypes.WAXED_OXIDIZED_LIGHTNING_ROD
+        ), REGISTRY.getTag(BlockTags.LIGHTNING_RODS).getValues());
+    }
+
     private static void assertSlabPlaceHandler(BlockType blockType) {
         assertInstanceOf(SlabPlaceHandler.class, component(blockType, BlockComponents.ON_PLACE));
     }
 
     private static Object component(BlockType blockType, ComponentType<?> componentType) {
-        ComponentMap components = Objects.requireNonNull(
-                REGISTRY.getComponents(blockType),
-                () -> blockType.getId() + " has no component map");
-        return Objects.requireNonNull(
-                components.get(componentType),
-                () -> blockType.getId() + " has no " + componentType.getId() + " component");
+        ComponentMap components = Objects.requireNonNull(REGISTRY.getComponents(blockType), () -> blockType.getId() + " has no component map");
+        return Objects.requireNonNull(components.get(componentType), () -> blockType.getId() + " has no " + componentType.getId() + " component");
     }
 
     private static CloudBlockRegistry createRegistry() {

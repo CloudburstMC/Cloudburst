@@ -63,9 +63,9 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             final int min = this.height.min;
 
             Chunk chunk = level.getChunk(blockX >> 4, blockZ >> 4);
-            BlockState lastId = chunk.getBlockState(blockX & 0xF, max + 1, blockZ & 0xF, 0);
+            BlockState lastId = chunk.getBlockState(blockX & 0xF, max + 1, blockZ & 0xF);
             for (int y = max; y >= min; y--) {
-                BlockState id = chunk.getBlockState(blockX & 0xF, y, blockZ & 0xF, 0);
+                BlockState id = chunk.getBlockState(blockX & 0xF, y, blockZ & 0xF);
 
                 if (replace.test(lastId) && on.test(id)) {
                     this.placeTree(random, level, blockX, y, blockZ);
@@ -82,8 +82,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
     protected void placeTree(RandomGenerator random, GenerationRegion level, int x, int y, int z) {
         for (int dx = 0; dx <= 1; dx++) {
             for (int dz = 0; dz <= 1; dz++) {
-                BlockState test = level.getBlockState(x + dx, y, z + dz, 0);
-                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockState(x + dx, y - 1, z + dz, 0)))) {
+                BlockState test = level.getBlockState(x + dx, y, z + dz);
+                if (!this.on.test(test) && (!this.replace.test(test) || !this.on.test(level.getBlockState(x + dx, y - 1, z + dz)))) {
                     return;
                 }
             }
@@ -93,8 +93,8 @@ public class HugeTreePopulator extends AbstractTreePopulator {
             BlockState below = this.below.selectWeighted(random);
             for (int dx = 0; dx <= 1; dx++) {
                 for (int dz = 0; dz <= 1; dz++) {
-                    level.setBlockState(x + dx, y, z + dz, 0, below);
-                    level.setBlockState(x + dx, y - 1, z + dz, 0, below);
+                    level.setBlockState(x + dx, y, z + dz, below);
+                    level.setBlockState(x + dx, y - 1, z + dz, below);
                 }
             }
         }

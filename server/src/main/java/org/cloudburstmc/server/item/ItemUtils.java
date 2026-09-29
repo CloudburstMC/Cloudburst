@@ -81,7 +81,7 @@ public class ItemUtils {
 
         nbtTag.putString("Name", item.getType().getId().toString())
                 .putByte("Count", (byte) item.getCount())
-                .putShort("Damage", (short) 0);
+                .putShort("Damage", (short) registry.getSerializer(item.getType()).getAuxValue(item));
 
         if (item.isBlock()) {
             NbtMapBuilder blockTag = NbtMap.builder();
@@ -273,7 +273,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkRecipeBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.getDamage();
+        int damage = registry.getSerializer(item.getType()).getAuxValue(item);
         ItemDefinition rawDefinition = registry.getDefinition(identifier, damage);
 
         ItemDefinition recipeDefinition = rawDefinition != null
@@ -344,7 +344,7 @@ public class ItemUtils {
 
     private static ItemData.Builder toNetworkBuilder(ItemStack item) {
         Identifier identifier = item.getType().getId();
-        int damage = item.getDamage();
+        int damage = registry.getSerializer(item.getType()).getAuxValue(item);
         ItemDefinition definition = registry.getDefinition(identifier, damage);
 
         String[] canPlace = item.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()).stream()
@@ -357,15 +357,16 @@ public class ItemUtils {
                 .toArray(String[]::new);
 
         CloudBlockDefinition blockDefinition = null;
-        try {
-            blockDefinition = item.getBlockState().map(CloudBlockRegistry.REGISTRY::getDefinition).orElse(null);
-        } catch (IllegalArgumentException e) {
-            // Block state exists but doesn't have a definition in the vanilla palette
-            // This can happen when creative_items.json has block states that were merged
-            // but don't exist as exact matches in block_palette.nbt
+        BlockState blockState = item.getBlockState().orElse(null);
+        if (blockState != null) {
+            try {
+                blockDefinition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+            } catch (IllegalArgumentException e) {
+                // Some creative entries reference block states absent from the palette.
+            }
         }
-        NbtMap tag = ItemUtils.getSerializedTag(item);
 
+        NbtMap tag = ItemUtils.getSerializedTag(item);
         return ItemData.builder()
                 .definition(definition)
                 .damage(damage)

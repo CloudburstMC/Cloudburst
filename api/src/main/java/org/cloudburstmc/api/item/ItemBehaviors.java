@@ -30,6 +30,11 @@ public class ItemBehaviors {
     public static final ComponentType<DamageType> ATTACK_DAMAGE_TYPE = ComponentType.of("attack_damage_type", DamageType.class);
 
     /**
+     * Defines directional damage protection when this item is raised.
+     */
+    public static final ComponentType<AttackBlockingComponent> BLOCKS_ATTACKS = ComponentType.of("blocks_attacks", AttackBlockingComponent.class);
+
+    /**
      * Determines whether an item stack represents a placeable item.
      */
     public static final ComponentType<BooleanItemHandler> CAN_BE_PLACED = ComponentType.of("can_be_placed", BooleanItemHandler.class);
@@ -107,6 +112,11 @@ public class ItemBehaviors {
     public static final ComponentType<GetItemHandler> GET_BLOCK = ComponentType.of("get_block", GetItemHandler.class);
 
     /**
+     * Supplies how many seconds a successful melee attack disables item blocking.
+     */
+    public static final ComponentType<FloatItemHandler> GET_BLOCKING_DISABLE_SECONDS = ComponentType.of("get_blocking_disable_seconds", FloatItemHandler.class);
+
+    /**
      * Calculates the percentage chance that one point of durability damage is applied.
      */
     public static final ComponentType<DamageChanceHandler> GET_DAMAGE_CHANCE = ComponentType.of("get_damage_chance", DamageChanceHandler.class);
@@ -137,14 +147,29 @@ public class ItemBehaviors {
     public static final ComponentType<MineBlockHandler> MINE_BLOCK = ComponentType.of("mine_block", MineBlockHandler.class);
 
     /**
+     * Applies feedback when an item's durability is exhausted, before its slot is cleared.
+     */
+    public static final ComponentType<ItemBreakHandler> ON_BREAK = ComponentType.of("on_break", ItemBreakHandler.class);
+
+    /**
      * Applies durability damage and returns the resulting item stack.
      */
     public static final ComponentType<DamageItemHandler> ON_DAMAGE = ComponentType.of("on_damage", DamageItemHandler.class);
 
     /**
+     * Applies an item's behavior when its holder releases the use action, if one is registered.
+     */
+    public static final ComponentType<ReleaseUseHandler> RELEASE_USE = ComponentType.of("release_use", ReleaseUseHandler.class);
+
+    /**
      * Identifies the entity type created by a spawn egg.
      */
     public static final ComponentType<SpawnEggComponent> SPAWN_EGG = ComponentType.of("spawn_egg", SpawnEggComponent.class);
+
+    /**
+     * Performs a piercing weapon's stab action.
+     */
+    public static final ComponentType<StabHandler> STAB = ComponentType.of("stab", StabHandler.class);
 
     /**
      * Applies an item's general use behavior and returns the resulting item stack.
@@ -160,4 +185,9 @@ public class ItemBehaviors {
      * Applies the behavior for using an item on a block and returns the resulting item stack.
      */
     public static final ComponentType<UseOnHandler> USE_ON = ComponentType.of("use_on", UseOnHandler.class);
+
+    /**
+     * Runs while an item is being used, before its duration completes, if one is registered.
+     */
+    public static final ComponentType<UseTickHandler> USE_TICK = ComponentType.of("use_tick", UseTickHandler.class);
 }

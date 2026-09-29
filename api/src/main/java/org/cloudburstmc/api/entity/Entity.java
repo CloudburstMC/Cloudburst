@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.entity;
 
+import net.kyori.adventure.sound.Sound.Emitter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -12,8 +13,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.potion.Effect;
-import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.MountType;
@@ -22,13 +21,29 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public interface Entity extends Damageable {
+public interface Entity extends Damageable, Emitter {
 
     EntityType<?> getType();
+
+    /**
+     * Returns the item representing this entity without changing it or an inventory.
+     *
+     * @param includeData whether supported entity-specific data should be included
+     * @return the picked item, or {@link ItemStack#EMPTY} when this entity has no item representation
+     * @see EntityComponents#GET_PICK_ITEM
+     */
+    ItemStack getPickItem(boolean includeData);
+
+    /**
+     * Captures an immutable copy of this entity's persistent state for later recreation.
+     * Players cannot be copied this way. Identity and placement data are not retained.
+     *
+     * @return the snapshot, or an empty optional when copying is unsupported
+     */
+    Optional<EntitySnapshot> createSnapshot();
 
     Level getLevel();
 
@@ -38,17 +53,28 @@ public interface Entity extends Damageable {
 
     long getUniqueId();
 
-    long getRuntimeId();
+    /**
+     * Returns the resolved posture used to determine this entity's dimensions.
+     * A movement state such as sneaking does not guarantee a matching pose.
+     *
+     * @return current posture
+     */
+    Pose getPose();
 
+    /**
+     * Returns the collision height for the current pose in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision height before scaling
+     */
     float getHeight();
 
-    long getLastDamageTime();
-
+    /**
+     * Returns the vertical eye offset from the entity's position in blocks.
+     *
+     * @return eye height for the current pose
+     */
     float getEyeHeight();
-
-    double getHeadYaw();
-
-    void setHeadYaw(double headYaw);
 
     default float getBaseOffset() {
         return 0f;
@@ -66,8 +92,20 @@ public interface Entity extends Damageable {
         return 0f;
     }
 
+    /**
+     * Returns the collision width along the X axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision width before scaling
+     */
     float getWidth();
 
+    /**
+     * Returns the collision length along the Z axis in blocks.
+     * Use {@link #getBoundingBox()} for the scaled world-space bounds.
+     *
+     * @return current pose's collision length before scaling
+     */
     float getLength();
 
     boolean canCollide();
@@ -130,8 +168,16 @@ public interface Entity extends Damageable {
 
     void setNameTagVisible(boolean visible);
 
+    /**
+     * @return size multiplier applied to the entity's collision dimensions
+     */
     float getScale();
 
+    /**
+     * Changes the entity's scale and refreshes its collision bounds.
+     *
+     * @param scale size multiplier
+     */
     void setScale(float scale);
 
     List<? extends Entity> getPassengers();
@@ -167,47 +213,6 @@ public interface Entity extends Damageable {
 
     void onDismount(Entity passenger);
 
-    Map<EffectType, Effect> getEffects();
-
-    void removeAllEffects();
-
-    void addEffect(Effect effect);
-
-    /**
-     * Gets an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @return the effect, or {@code null} if this entity does not have it
-     * @deprecated use {@link #getEffect(EffectType)}
-     */
-    @Deprecated
-    Effect getEffect(int effectId);
-
-    Effect getEffect(EffectType type);
-
-    /**
-     * Removes an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @deprecated use {@link #removeEffect(EffectType)}
-     */
-    @Deprecated
-    void removeEffect(int effectId);
-
-    void removeEffect(EffectType type);
-
-    /**
-     * Tests whether this entity has an effect by its numeric id.
-     *
-     * @param effectId the effect id
-     * @return {@code true} if this entity has the effect
-     * @deprecated use {@link #hasEffect(EffectType)}
-     */
-    @Deprecated
-    boolean hasEffect(int effectId);
-
-    boolean hasEffect(EffectType type);
-
     /**
      * Returns the plain name used to identify this entity.
      *
@@ -237,6 +242,11 @@ public interface Entity extends Damageable {
 
     void despawnFromAll();
 
+    /**
+     * Returns an unmodifiable snapshot of players currently tracking this entity.
+     *
+     * @return the entity viewers
+     */
     Set<? extends Player> getViewers();
 
     /**
@@ -318,6 +328,12 @@ public interface Entity extends Damageable {
 
     void resetFallDistance();
 
+    /**
+     * Returns the current world-space collision bounds, including pose and scale.
+     * The returned box is immutable and does not track later changes.
+     *
+     * @return current collision bounds
+     */
     BoundingBox getBoundingBox();
 
     /**
@@ -442,10 +458,6 @@ public interface Entity extends Damageable {
     Entity getOwner();
 
     void setOwner(@Nullable Entity entity);
-
-    void setMovementSpeed(float speed);
-
-    float getMovementSpeed();
 
     //SyncedEntityData getData();
 

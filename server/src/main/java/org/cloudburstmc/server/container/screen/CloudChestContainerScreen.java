@@ -3,7 +3,6 @@ package org.cloudburstmc.server.container.screen;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.ScreenType;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.StorageScreen;
@@ -13,6 +12,7 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 import org.cloudburstmc.server.blockentity.ContainerBlockEntity;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudChestView;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -33,8 +33,8 @@ public class CloudChestContainerScreen extends CloudBlockContainerScreen impleme
     private final SlotGroupType<BlockStorageView> storageSlotGroupType;
 
     protected CloudChestContainerScreen(ScreenType<StorageScreen> type, CloudPlayer player, Block block,
-                                      ContainerSlotType slotType, BlockEntityType<?> beType,
-                                      SlotGroupType<BlockStorageView> storageSlotGroupType) {
+                                        ContainerSlotType slotType, BlockEntityType<?> beType,
+                                        SlotGroupType<BlockStorageView> storageSlotGroupType) {
         super(type, player, block);
         this.chestEntity = getOrCreateBlockEntity(block, beType);
         this.slotType = slotType;

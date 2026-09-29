@@ -9,8 +9,9 @@ import org.cloudburstmc.api.block.component.AttackBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.DragonEggTeleportParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -50,8 +51,8 @@ public class DragonEggBlockHandlers {
                 continue;
             }
 
-            level.addParticle(new DragonEggTeleportParticle(origin, destination),
-                    level.getChunk(origin).getViewers().toArray(Player[]::new));
+            CloudServer.broadcastPacket(level.getChunk(origin).getViewers().toArray(Player[]::new),
+                    LevelEffectPacketFactory.dragonEggTeleport(origin, destination));
             level.setBlockState(destination, state);
             level.setBlockState(origin, BlockStates.AIR);
             return;

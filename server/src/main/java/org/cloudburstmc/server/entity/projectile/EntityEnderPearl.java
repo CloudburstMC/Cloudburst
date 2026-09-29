@@ -10,10 +10,10 @@ import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.Sound;
-import org.cloudburstmc.server.level.particle.PortalParticle;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -77,7 +77,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
     }
 
     @Override
-    public void onCollideWithEntity(Entity entity) {
+    protected void onCollideWithEntity(Entity entity) {
         super.onCollideWithEntity(entity);
         resolveImpact();
     }
@@ -89,10 +89,10 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
         this.resolved = true;
 
         for (int i = 0; i < 32; i++) {
-            this.level.addParticle(new PortalParticle(this.getPosition().add(
+            this.level.spawnParticle(ParticleTypes.PORTAL, this.getPosition().add(
                     ThreadLocalRandom.current().nextGaussian(),
                     ThreadLocalRandom.current().nextDouble() * 2,
-                    ThreadLocalRandom.current().nextGaussian())));
+                    ThreadLocalRandom.current().nextGaussian()));
         }
 
         Entity owner = this.getOwner();
@@ -117,7 +117,7 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
             }
         }
 
-        this.level.addSound(this.getPosition(), Sound.MOB_ENDERMEN_PORTAL);
+        this.level.playSound(this.getPosition(), SoundTypes.MOB_ENDERMEN_PORTAL);
         this.close();
     }
 

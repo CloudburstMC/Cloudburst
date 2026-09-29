@@ -15,6 +15,7 @@ import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.CanEnchantWithHandler;
 import org.cloudburstmc.api.item.component.CanRepairWithHandler;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -390,13 +391,16 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
         this.registerDataComponentSerializer(ItemDataComponents.MAP_DATA, new MapSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.BOOK_DATA, new WrittenBookSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.CHARGED_PROJECTILE, new ChargedProjectileSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.ENTITY_DATA, new EntitySnapshotSerializer());
     }
 
     private void registerVanillaBehaviors() {
         this.registerComponent(ItemBehaviors.ALLOW_OFFHAND, () -> false);
         this.registerComponent(ItemBehaviors.ARMOR);
         this.registerComponent(ItemBehaviors.ATTACK_DAMAGE_TYPE, DamageTypes.PLAYER_ATTACK);
+        this.registerComponent(ItemBehaviors.BLOCKS_ATTACKS);
         this.registerComponent(ItemBehaviors.CAN_BE_CHARGED, () -> false);
         this.registerComponent(ItemBehaviors.CAN_BE_DEPLETED, () -> false);
         this.registerComponent(ItemBehaviors.CAN_BE_PLACED, (item) -> false);
@@ -412,17 +416,22 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.GET_ATTACK_DAMAGE, (item) -> 1f);
         this.registerComponent(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 0);
         this.registerComponent(ItemBehaviors.GET_BLOCK, (item) -> Optional.empty());
+        this.registerComponent(ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS, item -> 0f);
         this.registerComponent(ItemBehaviors.GET_DAMAGE_CHANCE, (unbreaking) -> 0);
         this.registerComponent(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> null);
         this.registerComponent(ItemBehaviors.GET_MAX_DAMAGE, (item) -> 0);
         this.registerComponent(ItemBehaviors.GET_MAX_STACK_SIZE, (item) -> 64);
         this.registerComponent(ItemBehaviors.GET_TOOL, item -> null);
         this.registerComponent(ItemBehaviors.MINE_BLOCK, (item, block, owner) -> item);
+        this.registerComponent(ItemBehaviors.ON_BREAK, DefaultItemHandlers.breakEffects(SoundTypes.RANDOM_BREAK));
         this.registerComponent(ItemBehaviors.ON_DAMAGE, (item, damage, owner) -> item);
+        this.registerComponent(ItemBehaviors.RELEASE_USE);
         this.registerComponent(ItemBehaviors.SPAWN_EGG);
+        this.registerComponent(ItemBehaviors.STAB);
         this.registerComponent(ItemBehaviors.USE);
         this.registerComponent(ItemBehaviors.USE_DURATION_TICKS);
         this.registerComponent(ItemBehaviors.USE_ON);
+        this.registerComponent(ItemBehaviors.USE_TICK);
     }
 
     public void registerCreativeItem(ItemStack item) {

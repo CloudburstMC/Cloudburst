@@ -290,11 +290,13 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
         this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
+        this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
         this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
         this.registerComponent(BlockComponents.MAY_PICK, (block) -> true);
         this.registerComponent(BlockComponents.MAY_PLACE, (block, direction) -> true);
         this.registerComponent(BlockComponents.MAY_PLACE_ON, (block) -> true);
         this.registerComponent(BlockComponents.ON_DESTROY, DefaultBlockHandlers.ON_DESTROY);
+        this.registerComponent(BlockComponents.ON_EXPLOSION_HIT, DefaultBlockHandlers.ON_EXPLOSION_HIT);
         this.registerComponent(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {});
         this.registerComponent(BlockComponents.ON_FALL_ON, DefaultBlockHandlers.ON_FALL_ON);
         this.registerComponent(BlockComponents.ON_FALLING_LAND, (entity, target, fallDistance) -> {});

@@ -5,12 +5,14 @@ import org.cloudburstmc.api.boss.BossBar;
 import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.entity.Attribute;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.particle.ParticleEmitter;
+import org.cloudburstmc.api.level.particle.ParticleEmitterTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -20,13 +22,12 @@ import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.boss.CloudBossBar;
 import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.ParticleEffectIds;
 import org.cloudburstmc.server.network.NetworkUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.STRUCTURAL_INTEGRITY;
@@ -144,7 +145,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
         this.bossBar.setProgress(this.getHealth() / this.getMaxHealth());
         tickAmbientSound();
-        if (currentTick % 20 == 0) {
+        if (currentTick % 20 == 0 && this.getLevel().getDimension() != CloudLevel.DIMENSION_THE_END) {
             updateBossBarPlayers();
         }
 
@@ -159,10 +160,9 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     @Override
     public void broadcastCriticalHit() {
         super.broadcastCriticalHit();
-        this.getLevel().addParticleEffect(
-                this.getPosition().add(0, this.getHeight() * 0.5f, 0),
-                ParticleEffectIds.CRITICAL_HIT_EMITTER,
-                this.getUniqueId()
+        this.getLevel().spawnParticleEffect(
+                new ParticleEmitter(ParticleEmitterTypes.CRITICAL_HIT_EMITTER, this, Map.of()),
+                Vector3f.from(0, this.getHeight() * 0.5f, 0)
         );
     }
 

@@ -22,15 +22,17 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.event.block.LecternPageChangeEvent;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.player.*;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.StabHandler;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.level.chunk.LockableChunk;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
@@ -71,9 +73,10 @@ import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.level.particle.PunchBlockParticle;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
@@ -169,11 +172,22 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         processVehicleInput(inputData);
 
         processMovement(packet);
+        player.applyInputMovement();
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             processBlockActions(packet);
         } else {
             refreshBlockBreak();
+        }
+
+        if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_INTERACTION)) {
+            ItemUseTransaction transaction = packet.getItemUseTransaction();
+            if (transaction != null) {
+                handleItemUse(new ItemInteraction(transaction.getActionType(), transaction.getBlockPosition(),
+                        Direction.fromIndex(transaction.getBlockFace()), transaction.getClickPosition(), transaction.getItemInHand()));
+            } else {
+                log.debug("{} sent item interaction input without a transaction", player.getName());
+            }
         }
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
@@ -188,6 +202,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (packetSneaking != player.isSneaking()) {
             player.setSneaking(packetSneaking);
         }
+        player.updateBlockingState();
     }
 
     private void processMovement(PlayerAuthInputPacket packet) {
@@ -209,15 +224,18 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         Vector3f rawPos = packet.getPosition();
         Vector3f rawRot = packet.getRotation();
+        Vector3f delta = packet.getDelta();
 
-        if (!Float.isFinite(rawPos.getX()) || !Float.isFinite(rawPos.getY()) || !Float.isFinite(rawPos.getZ()) || !Float.isFinite(rawRot.getX()) || !Float.isFinite(rawRot.getY()) || !Float.isFinite(rawRot.getZ())) {
-            log.debug("[{}] movement packet dropped: non-finite position/rotation {}/{}", player.getName(), rawPos, rawRot);
+        if (!Float.isFinite(rawPos.getX()) || !Float.isFinite(rawPos.getY()) || !Float.isFinite(rawPos.getZ())
+                || !Float.isFinite(rawRot.getX()) || !Float.isFinite(rawRot.getY()) || !Float.isFinite(rawRot.getZ())
+                || !Float.isFinite(delta.getX()) || !Float.isFinite(delta.getY()) || !Float.isFinite(delta.getZ())) {
+            log.debug("[{}] movement packet dropped: non-finite position/rotation/delta {}/{}/{}", player.getName(), rawPos, rawRot, delta);
             return;
         }
 
         boolean verticalCollision = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
         boolean horizontalCollision = packet.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
-        boolean onGround = verticalCollision && packet.getDelta().getY() <= 0;
+        boolean onGround = verticalCollision && delta.getY() <= 0;
 
         player.isCollidedVertically = verticalCollision;
         player.isCollidedHorizontally = horizontalCollision;
@@ -232,13 +250,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             yaw += 360;
         }
 
-        final float ROT_EPSILON = 0.001f;
-        boolean posUnchanged = newPos.distanceSquared(currentPos) < 0.01f;
-        boolean rotUnchanged = Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON;
-        if (posUnchanged && rotUnchanged) {
-            return;
-        }
-
         float maxDelta = player.getServer().getConfig().getMovement().getMaxPositionDelta();
         float distance = currentPos.distance(newPos);
         if (distance > maxDelta) {
@@ -250,6 +261,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (!player.isAlive() || !player.spawned) {
             log.debug("[{}] movement packet dropped: player not alive or not spawned (alive={} spawned={})", player.getName(), player.isAlive(), player.spawned);
             player.sendMovementCorrection(currentPos, player.getClientTick());
+            return;
+        }
+
+        player.acceptInputMotion(delta);
+
+        final float ROT_EPSILON = 0.001f;
+        boolean posUnchanged = newPos.equals(currentPos);
+        boolean rotUnchanged = Math.abs(yaw - player.getYaw()) < ROT_EPSILON && Math.abs(pitch - player.getPitch()) < ROT_EPSILON;
+        if (posUnchanged && rotUnchanged) {
             return;
         }
 
@@ -335,13 +355,13 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
-        if (attackHandler != null && attackHandler.execute(target, player, face)) {
-            player.breakingBlock = null;
-            if (player.isCreative()) {
-                restorePredictedBlock(blockPos);
+        player.interruptBlocking();
+        if (!player.isCreative()) {
+            AttackBlockHandler attackHandler = target.getComponent(BlockComponents.ATTACK);
+            if (attackHandler != null && attackHandler.execute(target, player, face)) {
+                player.breakingBlock = null;
+                return;
             }
-            return;
         }
 
         Block block = target.getSide(face);
@@ -469,7 +489,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         ItemStack selectedItem = player.getInventory().getSelectedItem();
         ItemStack oldItem = selectedItem;
 
-        if (player.canInteract(blockPos.toFloat().add(0.5f, 0.5f, 0.5f), player.isCreative() ? 13 : 7)) {
+        if (player.canInteractWithBlock(blockPos)) {
             selectedItem = player.getLevel().breakBlockPredicted(blockPos, selectedItem, player, true, fastBreak);
             if (selectedItem != null) {
                 if (player.isSurvival() || player.isAdventure()) {
@@ -535,10 +555,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         Vector3f position = blockPos.toFloat().add(0.5f, 0.5f, 0.5f);
-        for (BedrockPacket packet : new PunchBlockParticle(position, state, face).encode()) {
-            player.sendPacket(packet);
-            player.getLevel().addChunkPacket(blockPos, packet);
-        }
+        LevelEventPacket packet = LevelEffectPacketFactory.blockPunch(position, state, face);
+        player.sendPacket(packet);
+        player.getLevel().addChunkPacket(blockPos, packet);
     }
 
     private @Nullable Boolean getPredictedFastBreak(Vector3i blockPos, BlockState state) {
@@ -577,22 +596,49 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
      * in the selected hotbar slot. When this occurs the interaction must be rejected and the player's
      * inventory resynchronized to avoid ghost items.
      */
-    private boolean isHeldItemDesynced(@Nullable ItemUseTransaction transaction) {
-        if (transaction == null) {
-            return false;
-        }
-        return isHeldItemDesynced(transaction.getItemInHand());
-    }
-
     private boolean isHeldItemDesynced(@Nullable ItemData clientItemData) {
-        ItemStack clientItem = clientItemData == null
-                ? ItemStack.EMPTY
-                : ItemUtils.fromNetwork(clientItemData);
+        ItemStack clientItem = clientItemData == null ? ItemStack.EMPTY : ItemUtils.fromNetwork(clientItemData);
         ItemStack serverItem = player.getInventory().getSelectedItem();
-        return !serverItem.isSimilar(clientItem);
+        if (!serverItem.isSimilar(clientItem)) {
+            return true;
+        }
+
+        return serverItem.getType() == ItemTypes.CROSSBOW
+                && (serverItem.get(ItemDataComponents.CHARGED_PROJECTILE) == null)
+                != (clientItem.get(ItemDataComponents.CHARGED_PROJECTILE) == null);
     }
 
-    private void handleItemUseOnBlock(ItemUseTransaction transaction, Vector3i blockPos, Direction face, Vector3f clickPos) {
+    private record ItemInteraction(int actionType, Vector3i blockPosition, Direction face, Vector3f clickPosition, @Nullable ItemData clientItem) {
+    }
+
+    private void handleItemUse(ItemInteraction interaction) {
+        switch (interaction.actionType()) {
+            case 0 -> handleItemUseOnBlock(interaction.clientItem(), interaction.blockPosition(), interaction.face(), interaction.clickPosition());
+            case 1 -> handleItemUseInAir(interaction.clientItem(), interaction.face());
+            case 2 -> {
+                // Block destruction is processed through player block actions.
+            }
+            case 3 -> {
+                ItemStack stabItem = player.getInventory().getSelectedItem();
+                StabHandler stab = stabItem.isEmpty() ? null : CloudItemRegistry.get().getComponent(stabItem.getType(), ItemBehaviors.STAB);
+                if (stab != null) {
+                    if (isHeldItemDesynced(interaction.clientItem())) {
+                        player.sendHeldItemSlot();
+                    } else {
+                        stab.execute(stabItem, player);
+                    }
+                } else if (stabItem.getType() == ItemTypes.TRIDENT) {
+                    AnimatePacket animation = new AnimatePacket();
+                    animation.setAction(AnimatePacket.Action.SWING_ARM);
+                    animation.setRuntimeEntityId(player.getRuntimeId());
+                    CloudServer.broadcastPacket(player.getViewers(), animation);
+                }
+            }
+            default -> log.debug("{} sent unsupported item interaction action {}", player.getName(), interaction.actionType());
+        }
+    }
+
+    private void handleItemUseOnBlock(@Nullable ItemData clientItemData, Vector3i blockPos, Direction face, Vector3f clickPos) {
         boolean spamBug = System.currentTimeMillis() - lastRightClickTime < 110.0
                 && blockPos.distanceSquared(lastRightClickPos) < 0.00001
                 && face == lastRightClickFace;
@@ -604,23 +650,33 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         lastRightClickTime = System.currentTimeMillis();
 
-        if (isHeldItemDesynced(transaction)) {
+        if (isHeldItemDesynced(clientItemData)) {
             rollbackBlock(blockPos, face);
             return;
         }
 
-        if (!player.canInteract(blockPos.toFloat().add(0.5f, 0.5f, 0.5f), player.isCreative() ? 13 : 7)) {
+        if (!player.canInteractWithBlock(blockPos)) {
             rollbackBlock(blockPos, face);
             return;
         }
+
+        player.interruptBlocking();
 
         CloudLevel level = player.getLevel();
         Block target = level.getBlock(blockPos);
         Block side = target.getSide(face);
         ItemStack item = player.getInventory().getSelectedItem();
 
-        if (level.tryUseBlock(target, side, face, item, player)) {
-            return;
+        switch (level.interactWithBlock(target, face, item, player)) {
+            case CONSUMED -> {
+                return;
+            }
+            case DENIED -> {
+                rollbackBlock(blockPos, face);
+                return;
+            }
+            case PASS -> {
+            }
         }
 
         if (!item.isEmpty()) {
@@ -653,11 +709,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         rollbackBlock(blockPos, face);
     }
 
-    private void handleItemUseInAir(@Nullable ItemUseTransaction transaction, Direction face) {
-        ItemData clientItemData = transaction != null ? transaction.getItemInHand() : null;
-        handleItemUseInAir(clientItemData, face);
-    }
-
     private void handleItemUseInAir(@Nullable ItemData clientItemData, Direction face) {
         if (this.usingItemOnBlock || this.blockItemActivationTick == player.getServer().getTick()) {
             return;
@@ -665,6 +716,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         ItemStack useItem = player.getInventory().getSelectedItem();
         if (isHeldItemDesynced(clientItemData)) {
+            if (useItem.getType() == ItemTypes.CROSSBOW && useItem.get(ItemDataComponents.CHARGED_PROJECTILE) != null) {
+                player.consumeRecentCompletedItemUse();
+            }
+
             player.sendHeldItemSlot();
             return;
         }
@@ -683,6 +738,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (!useItem.isEmpty()) {
+            if (CloudItemRegistry.get().getComponent(useItem.getType(), ItemBehaviors.BLOCKS_ATTACKS) == null) {
+                player.interruptBlocking();
+            }
+
             CloudLevel level = player.getLevel();
             ItemStack afterUse = level.tryActivateItem(useItem, player);
             if (afterUse != null) {
@@ -704,87 +763,103 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     private void processInputFlags(Set<PlayerAuthInputData> inputData) {
         processGlidingInput(inputData);
 
+        Set<PlayerAuthInputData> remainingInput = new HashSet<>(inputData);
         for (PlayerAuthInputData input : inputData) {
+            remainingInput.remove(input);
             switch (input) {
-                case START_SPRINTING:
-                    PlayerToggleSprintEvent sprintEvent = new PlayerToggleSprintEvent(player, true);
-                    player.getServer().getEventManager().fire(sprintEvent);
-                    if (sprintEvent.isCancelled()) {
+                case START_SPRINTING: {
+                    if (remainingInput.contains(PlayerAuthInputData.STOP_SPRINTING) || player.isSprinting()) {
+                        break;
+                    }
+
+                    PlayerToggleSprintEvent event = new PlayerToggleSprintEvent(player, true);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setSprinting(true);
                     }
+
                     break;
-                case STOP_SPRINTING:
-                    sprintEvent = new PlayerToggleSprintEvent(player, false);
-                    player.getServer().getEventManager().fire(sprintEvent);
-                    if (sprintEvent.isCancelled()) {
-                        player.sendFlags(player);
-                    } else {
-                        player.setSprinting(false);
+                }
+                case STOP_SPRINTING: {
+                    if (!remainingInput.contains(PlayerAuthInputData.START_SPRINTING) && player.isSprinting()) {
+                        PlayerToggleSprintEvent event = new PlayerToggleSprintEvent(player, false);
+                        player.getServer().getEventManager().fire(event);
+                        if (event.isCancelled()) {
+                            player.sendFlags(player);
+                        } else {
+                            player.setSprinting(false);
+                        }
                     }
                     if (player.isSwimming()) {
-                        PlayerToggleSwimEvent ptse = new PlayerToggleSwimEvent(player, false);
-                        player.getServer().getEventManager().fire(ptse);
-                        if (ptse.isCancelled()) {
+                        PlayerToggleSwimEvent event = new PlayerToggleSwimEvent(player, false);
+                        player.getServer().getEventManager().fire(event);
+                        if (event.isCancelled()) {
                             player.sendFlags(player);
                         } else {
                             player.setSwimming(false);
                         }
                     }
                     break;
-                case START_SNEAKING:
-                    PlayerToggleSneakEvent sneakEvent = new PlayerToggleSneakEvent(player, true);
-                    player.getServer().getEventManager().fire(sneakEvent);
-                    if (sneakEvent.isCancelled()) {
+                }
+                case START_SNEAKING: {
+                    PlayerToggleSneakEvent event = new PlayerToggleSneakEvent(player, true);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setSneaking(true);
                     }
                     break;
-                case STOP_SNEAKING:
-                    sneakEvent = new PlayerToggleSneakEvent(player, false);
-                    player.getServer().getEventManager().fire(sneakEvent);
-                    if (sneakEvent.isCancelled()) {
+                }
+                case STOP_SNEAKING: {
+                    PlayerToggleSneakEvent event = new PlayerToggleSneakEvent(player, false);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setSneaking(false);
                     }
                     break;
-                case START_SWIMMING:
-                    PlayerToggleSwimEvent swimEvent = new PlayerToggleSwimEvent(player, true);
-                    player.getServer().getEventManager().fire(swimEvent);
-                    if (swimEvent.isCancelled()) {
+                }
+                case START_SWIMMING: {
+                    PlayerToggleSwimEvent event = new PlayerToggleSwimEvent(player, true);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setSwimming(true);
                     }
                     break;
-                case STOP_SWIMMING:
-                    swimEvent = new PlayerToggleSwimEvent(player, false);
-                    player.getServer().getEventManager().fire(swimEvent);
-                    if (swimEvent.isCancelled()) {
+                }
+                case STOP_SWIMMING: {
+                    PlayerToggleSwimEvent event = new PlayerToggleSwimEvent(player, false);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setSwimming(false);
                     }
                     break;
+                }
                 case START_GLIDING:
                 case STOP_GLIDING:
                     break;
-                case START_CRAWLING:
-                    PlayerToggleCrawlEvent startCrawlEvent = new PlayerToggleCrawlEvent(player, true);
-                    player.getServer().getEventManager().fire(startCrawlEvent);
-                    if (startCrawlEvent.isCancelled()) {
+                case START_CRAWLING: {
+                    PlayerToggleCrawlEvent event = new PlayerToggleCrawlEvent(player, true);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setCrawling(true);
                     }
                     break;
+                }
                 case STOP_CRAWLING:
-                    PlayerToggleCrawlEvent stopCrawlEvent = new PlayerToggleCrawlEvent(player, false);
-                    player.getServer().getEventManager().fire(stopCrawlEvent);
-                    if (stopCrawlEvent.isCancelled()) {
+                    PlayerToggleCrawlEvent event = new PlayerToggleCrawlEvent(player, false);
+                    player.getServer().getEventManager().fire(event);
+                    if (event.isCancelled()) {
                         player.sendFlags(player);
                     } else {
                         player.setCrawling(false);
@@ -798,6 +873,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     player.getServer().getEventManager().fire(new PlayerJumpEvent(player));
                     break;
                 case MISSED_SWING:
+                    player.interruptBlocking();
                     AnimatePacket animatePacket = new AnimatePacket();
                     animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                     animatePacket.setRuntimeEntityId(player.getRuntimeId());
@@ -832,7 +908,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
             }
         }
-        player.getData().update();
+        player.flushEntityData();
     }
 
     private void processVehicleInput(Set<PlayerAuthInputData> inputData) {
@@ -942,7 +1018,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         if (player.getSelectedHotbarSlot() != newSlot) {
             applyClientHotbarSlot(newSlot);
         }
-        player.setUsingItem(false);
 
         return PacketSignal.HANDLED;
     }
@@ -1009,7 +1084,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getData().set(EntityDataTypes.AIR_SUPPLY, (short) 400);
         player.deadTicks = 0;
         player.noDamageTicks = 60;
-        player.removeAllEffects();
+        player.clearActivePotionEffects(PotionEffectCause.DEATH);
         player.setHealth(player.getMaxHealth());
         player.getFoodData().setLevel(20, 20);
         player.setMovementSpeed(DEFAULT_SPEED);
@@ -1180,86 +1255,60 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(BlockPickRequestPacket packet) {
-        if (player.isSpectator()) {
-            log.debug("Got block-pick request from {} when in spectator mode", player.getName());
+        Vector3i position = packet.getBlockPosition();
+        CloudLevel level = player.getLevel();
+        if (!player.isAlive() || player.isSpectator() || !player.isSpawned()
+                || level.isOutsideBuildHeight(position.getY())
+                || level.getLoadedChunk(position) == null || !player.canInteractWithBlock(position)) {
             return PacketSignal.HANDLED;
         }
 
-        Vector3i pickPos = packet.getBlockPosition();
-        Block block = player.getLevel().getBlock(pickPos.getX(), pickPos.getY(), pickPos.getZ());
-
-        if (block.getState().getType() == BlockTypes.AIR) {
-            log.debug("Got block-pick request from {} for air block", player.getName());
+        Block block = level.getBlock(position.getX(), position.getY(), position.getZ());
+        ItemStack item = block.requireComponent(BlockComponents.GET_PICK_BLOCK).execute(block);
+        if (item.isEmpty()) {
             return PacketSignal.HANDLED;
         }
 
-        ItemStack item = block.requireComponent(BlockComponents.GET_PICK_BLOCK)
-                .execute(block);
-        if (packet.isAddUserData()) {
-            BaseBlockEntity blockEntity = (BaseBlockEntity) player.getLevel().getLoadedBlockEntity(
-                    Vector3i.from(pickPos.getX(), pickPos.getY(), pickPos.getZ()));
-            if (blockEntity != null) {
-                NbtMap nbt = blockEntity.getItemTag();
-                if (nbt != null) {
-//                    ItemStackBuilder builder = (ItemStackBuilder) item.toBuilder(); //TODO
-//                    builder.nbt()
-//                    item.addTag(nbt);
-//                    item.setLore("+(DATA)");
-                }
-            }
+        boolean includeData = player.isCreative() && packet.isAddUserData();
+        int sourceSlot = player.getInventory().first(item);
+        int targetSlot = ItemPickController.getTargetSlot(player.getInventory(), sourceSlot);
+
+        PlayerPickBlockEvent event = new PlayerPickBlockEvent(player, block, item, includeData, targetSlot, sourceSlot);
+        player.getServer().getEventManager().fire(event);
+        if (!event.isCancelled() && player.isAlive() && !player.isSpectator() && player.isSpawned()) {
+            ItemPickController.pick(player.getInventory(), event.getItem(), event.getSourceSlot(), event.getTargetSlot(), player.isCreative());
         }
 
-        PlayerBlockPickEvent pickEvent = new PlayerBlockPickEvent(player, block, item);
-        player.getServer().getEventManager().fire(pickEvent);
+        return PacketSignal.HANDLED;
+    }
 
-        if (!pickEvent.isCancelled()) {
-            item = pickEvent.getItem();
-            boolean itemExists = false;
-            int itemSlot = -1;
-            for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                if (pickBlockMatchesDamage(player.getContainer().getItem(slot), item)) {
-                    if (slot < player.getInventory().getHotbarSize()) {
-                        player.setSelectedHotbarSlot(slot);
-                    } else {
-                        itemSlot = slot;
-                    }
-                    itemExists = true;
-                    break;
-                }
-            }
-
-            for (int slot = 0; slot < player.getInventory().getHotbarSize(); slot++) {
-                if (player.getContainer().getItem(slot).isEmpty()) {
-                    if (!itemExists && player.isCreative()) {
-                        player.setSelectedHotbarSlot(slot);
-                        player.getInventory().setSelectedItem(item);
-                        return PacketSignal.HANDLED;
-                    } else if (itemSlot > -1) {
-                        player.setSelectedHotbarSlot(slot);
-                        player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
-                        player.getInventory().setItem(itemSlot, ItemStack.EMPTY);
-                        return PacketSignal.HANDLED;
-                    }
-                }
-            }
-
-            if (!itemExists && player.isCreative()) {
-                ItemStack itemInHand = player.getInventory().getSelectedItem();
-                player.getInventory().setSelectedItem(item);
-                if (!player.getContainer().isFull()) {
-                    for (int slot = 0; slot < player.getContainer().size(); slot++) {
-                        if (player.getContainer().getItem(slot).isEmpty()) {
-                            player.getContainer().setItem(slot, itemInHand);
-                            break;
-                        }
-                    }
-                }
-            } else if (itemSlot > -1) {
-                ItemStack itemInHand = player.getInventory().getSelectedItem();
-                player.getInventory().setSelectedItem(player.getContainer().getItem(itemSlot));
-                player.getContainer().setItem(itemSlot, itemInHand);
-            }
+    @Override
+    public PacketSignal handle(EntityPickRequestPacket packet) {
+        if (!player.isAlive() || player.isSpectator() || !player.isSpawned()) {
+            return PacketSignal.HANDLED;
         }
+
+        Entity entity = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
+        if (entity == null || entity.isClosed() || !entity.isAlive()
+                || !entity.getViewers().contains(player) || !player.canInteractWithEntity(entity)) {
+            return PacketSignal.HANDLED;
+        }
+
+        boolean includeData = player.isCreative() && packet.isWithData();
+        ItemStack item = entity.getPickItem(includeData);
+        if (item.isEmpty()) {
+            return PacketSignal.HANDLED;
+        }
+
+        int sourceSlot = player.getInventory().first(item);
+        int targetSlot = ItemPickController.getTargetSlot(player.getInventory(), sourceSlot);
+
+        PlayerPickEntityEvent event = new PlayerPickEntityEvent(player, entity, item, includeData, targetSlot, sourceSlot);
+        player.getServer().getEventManager().fire(event);
+        if (!event.isCancelled() && player.isAlive() && !player.isSpectator() && player.isSpawned()) {
+            ItemPickController.pick(player.getInventory(), event.getItem(), event.getSourceSlot(), event.getTargetSlot(), player.isCreative());
+        }
+
         return PacketSignal.HANDLED;
     }
 
@@ -1286,6 +1335,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.getServer().getEventManager().fire(animationEvent);
         if (animationEvent.isCancelled()) {
             return PacketSignal.HANDLED;
+        }
+
+        if (animationEvent.getAnimationType() == PlayerAnimationEvent.Type.SWING_ARM) {
+            player.interruptBlocking();
         }
 
         AnimatePacket animatePacket = new AnimatePacket();
@@ -1552,38 +1605,16 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getInventoryManager().sendAllInventories();
                 return PacketSignal.HANDLED;
             case ITEM_USE:
-                switch (packet.getActionType()) {
-                    case 0:
-                        handleItemUseOnBlock(
-                                null,
-                                packet.getBlockPosition(),
-                                Direction.fromIndex(packet.getBlockFace()),
-                                packet.getClickPosition()
-                        );
-                        break;
-                    case 1:
-                        handleItemUseInAir(packet.getItemInHand(), Direction.fromIndex(packet.getBlockFace()));
-                        break;
-                    case 2: // break-block no-op
-                        break;
-                    case 3:
-                        if (player.isUsingItem()) {
-                            player.setUsingItem(false);
-                        }
-
-                        if (player.getInventory().getSelectedItem().getType() == ItemTypes.TRIDENT) {
-                            AnimatePacket animPkt = new AnimatePacket();
-                            animPkt.setAction(AnimatePacket.Action.SWING_ARM);
-                            animPkt.setRuntimeEntityId(player.getRuntimeId());
-                            CloudServer.broadcastPacket(player.getViewers(), animPkt);
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                handleItemUse(new ItemInteraction(packet.getActionType(), packet.getBlockPosition(),
+                        Direction.fromIndex(packet.getBlockFace()), packet.getClickPosition(), packet.getItemInHand()));
                 player.getItemStackNetManager().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
                 return PacketSignal.HANDLED;
             case ITEM_USE_ON_ENTITY: {
+                ItemStack heldItem = player.getInventory().getSelectedItem();
+                if (!heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null) {
+                    break;
+                }
+
                 Entity target = player.getLevel().getEntityByRuntimeId(packet.getRuntimeEntityId());
                 if (target == null || !target.isAlive()) {
                     break;
@@ -1593,11 +1624,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 }
 
-                if (!player.canInteract(target.getPosition(), player.isCreative() ? 13 : 7)) {
+                if (!player.canInteractWithEntity(target)) {
                     break;
                 }
 
-                ItemStack heldItem = player.getInventory().getSelectedItem();
                 Vector3f clickPos = packet.getClickPosition();
                 switch (packet.getActionType()) {
                     case 0: { // interact with entity
@@ -1626,8 +1656,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
-                    // TODO: trigger full item-release completion handler (bow arrow spawn, etc.)
-                    player.setUsingItem(false);
+                    player.releaseUsingItem();
                 }
                 break;
             default:
@@ -1766,10 +1795,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             // Array index for this sectionY
             int sectionIdx = sectionY - minSectionY;
 
-            // Access sections under the read lock
-            LockableChunk locked = chunk.readLockable();
-            locked.lock();
-            try {
+            try (LockedChunk locked = chunk.lockForRead()) {
                 CloudChunkSection section = (CloudChunkSection) locked.getSection(sectionIdx);
 
                 byte[] heightMap = new byte[256];
@@ -1851,8 +1877,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         }
                     }
                 }
-            } finally {
-                locked.unlock();
             }
 
             SubChunkRequestResult result = subChunkData.getResult();
@@ -1868,7 +1892,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         response.setDimension(packet.getDimension());
         response.setCenterPosition(center);
         response.setSubChunks(responseChunks);
-        player.sendPacket(response);
+        if (!player.sendPacket(response)) {
+            response.release();
+            return PacketSignal.HANDLED;
+        }
 
         servedPerColumn.long2IntEntrySet().forEach(entry -> {
             long key = entry.getLongKey();
@@ -1889,14 +1916,4 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         return PacketSignal.HANDLED;
     }
 
-    /**
-     * Returns {@code true} if {@code inventoryItem} has the same type as
-     * {@code pickedItem} and carries the same {@link ItemDataComponents#DAMAGE} value.
-     */
-    private static boolean pickBlockMatchesDamage(ItemStack inventoryItem, ItemStack pickedItem) {
-        if (!inventoryItem.isSimilar(pickedItem)) {
-            return false;
-        }
-        return inventoryItem.getDamage() == pickedItem.getDamage();
-    }
 }

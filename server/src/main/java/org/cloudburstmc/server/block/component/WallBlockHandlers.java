@@ -68,7 +68,8 @@ public class WallBlockHandlers {
 
     public static boolean connectsTo(BlockState neighbor, boolean faceSturdy, Direction connectionDirection) {
         return neighbor.is(BlockTags.WALLS)
-                || isBarOrPane(neighbor)
+                || neighbor.is(BlockTags.BARS)
+                || neighbor.is(BlockTags.GLASS_PANES)
                 || BlockConnectionSupport.isAlignedFenceGate(neighbor, connectionDirection)
                 || faceSturdy && BlockConnectionSupport.allowsSturdyFaceConnection(neighbor);
     }
@@ -105,15 +106,6 @@ public class WallBlockHandlers {
                 || (east == WallConnectionType.TALL && west == WallConnectionType.TALL);
         return !opposingTallSides
                 && (above.is(BlockTags.WALL_POST_OVERRIDE) || aboveFace.covers(POST_TEST_SHAPE));
-    }
-
-    private static boolean isBarOrPane(BlockState state) {
-        return !state.is(BlockTags.FENCE)
-                && state.getType() != BlockTypes.TRIP_WIRE
-                && state.getTraits().containsKey(BlockTraits.CONNECTION_NORTH)
-                && state.getTraits().containsKey(BlockTraits.CONNECTION_EAST)
-                && state.getTraits().containsKey(BlockTraits.CONNECTION_SOUTH)
-                && state.getTraits().containsKey(BlockTraits.CONNECTION_WEST);
     }
 
     private static EnumBlockTrait<WallConnectionType> connectionTrait(Direction direction) {

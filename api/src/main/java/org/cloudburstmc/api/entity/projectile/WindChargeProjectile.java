@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.entity.projectile;
 
-import org.cloudburstmc.api.entity.Projectile;
-
-public interface WindChargeProjectile extends Projectile {
+/**
+ * A player-thrown wind charge that releases a small burst on impact.
+ */
+public interface WindChargeProjectile extends AbstractWindCharge {
 }

@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.cloudburstmc.api.block.Block;
-import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.api.inventory.EnderChestScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.EnderChestView;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.player.CloudPlayer;

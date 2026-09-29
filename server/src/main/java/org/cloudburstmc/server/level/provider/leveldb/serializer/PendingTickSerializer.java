@@ -8,8 +8,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.chunk.ChunkBuilder;
-import org.cloudburstmc.server.level.chunk.ChunkDataLoader;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
+import org.cloudburstmc.server.level.chunk.CloudChunkLoadTask;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
@@ -40,10 +40,10 @@ public final class PendingTickSerializer {
 
     /**
      * Reads the {@code PENDING_TICKS} record for the chunk described by
-     * {@code builder} and registers a {@link ChunkDataLoader} that will
+     * {@code builder} and registers a {@link CloudChunkLoadTask} that will
      * re-schedule the ticks once the chunk is fully built.
      */
-    public static void loadPendingTicks(DB db, ChunkBuilder builder) {
+    public static void loadPendingTicks(DB db, CloudChunkBuilder builder) {
         byte[] key = LevelDBKey.PENDING_TICKS.getKey(builder.getX(), builder.getZ());
         byte[] value = db.get(key);
         if (value == null) {
@@ -62,7 +62,7 @@ public final class PendingTickSerializer {
         }
 
         if (!tickEntries.isEmpty()) {
-            builder.dataLoader(new PendingTickLoader(tickEntries));
+            builder.addLoadTask(new PendingTickLoadTask(tickEntries));
         }
     }
 
@@ -145,7 +145,7 @@ public final class PendingTickSerializer {
         return () -> markSaved(blockScheduler, liquidScheduler, chunkKey);
     }
 
-    private record PendingTickLoader(List<NbtMap> tickEntries) implements ChunkDataLoader {
+    private record PendingTickLoadTask(List<NbtMap> tickEntries) implements CloudChunkLoadTask {
         @Override
         public boolean load(CloudChunk chunk) {
             CloudLevel level = (CloudLevel) chunk.getLevel();

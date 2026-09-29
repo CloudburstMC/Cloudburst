@@ -3,18 +3,18 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.SnowGolem;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.player.PlayerShearEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.EntityCreature;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
-import org.cloudburstmc.server.level.Sound;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -83,12 +83,12 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (!super.applyDamage(source)) {
             return false;
         }
 
-        this.level.addSound(this.getPosition(), this.isAlive() ? Sound.MOB_SNOWGOLEM_HURT : Sound.MOB_SNOWGOLEM_DEATH);
+        this.level.playSound(this.getPosition(), this.isAlive() ? SoundTypes.MOB_SNOWGOLEM_HURT : SoundTypes.MOB_SNOWGOLEM_DEATH);
         return true;
     }
 

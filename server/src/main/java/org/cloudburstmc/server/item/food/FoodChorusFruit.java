@@ -3,6 +3,7 @@ package org.cloudburstmc.server.item.food;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -10,7 +11,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.particle.PortalParticle;
 import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -119,7 +119,7 @@ public final class FoodChorusFruit extends FoodNormal {
                     random.nextDouble() * 2,
                     random.nextGaussian() * 0.2
             );
-            level.addParticle(new PortalParticle(position));
+            level.spawnParticle(ParticleTypes.PORTAL, position);
         }
     }
 }

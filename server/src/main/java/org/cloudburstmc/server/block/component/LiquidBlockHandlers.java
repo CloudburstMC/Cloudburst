@@ -8,13 +8,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.event.block.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.level.Sound;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.utils.Hash;
 
@@ -76,7 +76,7 @@ public class LiquidBlockHandlers {
 
         if (family == LiquidFamily.LAVA && LiquidFamily.WATER.matches(belowBlock.getLiquid())) {
             if (form(level, below, BlockStates.STONE)) {
-                level.addSound(below, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
+                level.playSound(below, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
             }
             return;
         }
@@ -180,7 +180,7 @@ public class LiquidBlockHandlers {
     }
 
     private static void ignite(CloudLevel level, Block target) {
-        BlockIgniteEvent event = new BlockIgniteEvent(target, null, null, BlockIgniteEvent.BlockIgniteCause.LAVA);
+        BlockIgniteEvent event = new BlockIgniteEvent(target, BlockIgniteCause.LAVA, null, null);
         level.getServer().getEventManager().fire(event);
         if (!event.isCancelled()) {
             target.set(BlockStates.FIRE);
@@ -570,7 +570,7 @@ public class LiquidBlockHandlers {
 
         LiquidReaction reaction = target.getState().getLiquidReaction();
         if (family == LiquidFamily.LAVA && target.getState() != BlockStates.AIR) {
-            level.addSound(targetPos, Sound.RANDOM_FIZZ, 0.5f, 2.6f);
+            level.playSound(targetPos, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
         }
 
         if (reaction.removesBlock() && !allowBlockReplacement(source, target, liquid)) {

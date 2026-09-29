@@ -9,19 +9,20 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
-import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.level.Sound;
+import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
@@ -37,8 +38,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private static final int SETTLED_REMOVAL_DELAY = 3;
 
     private BlockState blockState = BlockStates.SAND;
-    private Sound landingSound;
-    private Sound breakSound;
+    private SoundType landingSound;
+    private SoundType breakSound;
     private int time;
     private boolean dropItem = true;
     private boolean cancelDrop;
@@ -106,7 +107,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    protected boolean applyDamage(EntityDamageEvent source) {
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
         return source.getDamageType() == DamageTypes.OUT_OF_WORLD && super.applyDamage(source);
     }
 
@@ -128,11 +129,11 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.autoExpire = !tag.containsKey("AutoExpire") || tag.getBoolean("AutoExpire");
 
         if (tag.containsKey("LandingSound")) {
-            this.landingSound = Sound.valueOf(tag.getString("LandingSound"));
+            this.landingSound = SoundType.of(Identifier.parse(tag.getString("LandingSound")));
         }
 
         if (tag.containsKey("BreakSound")) {
-            this.breakSound = Sound.valueOf(tag.getString("BreakSound"));
+            this.breakSound = SoundType.of(Identifier.parse(tag.getString("BreakSound")));
         }
     }
 
@@ -149,11 +150,11 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         tag.putBoolean("AutoExpire", this.autoExpire);
 
         if (this.landingSound != null) {
-            tag.putString("LandingSound", this.landingSound.name());
+            tag.putString("LandingSound", this.landingSound.getId().toString());
         }
 
         if (this.breakSound != null) {
-            tag.putString("BreakSound", this.breakSound.name());
+            tag.putString("BreakSound", this.breakSound.getId().toString());
         }
     }
 
@@ -258,11 +259,11 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.autoExpire = autoExpire;
     }
 
-    public void setLandingSound(Sound landingSound) {
+    public void setLandingSound(SoundType landingSound) {
         this.landingSound = landingSound;
     }
 
-    public void setBreakSound(Sound breakSound) {
+    public void setBreakSound(SoundType breakSound) {
         this.breakSound = breakSound;
     }
 
@@ -340,14 +341,14 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, target, this.blockState);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(this, target, this.blockState);
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             this.close();
             return;
         }
 
-        if (!this.level.placeBlockFromFallingEntity(position, event.getTo(), this)) {
+        if (!this.level.placeBlockFromFallingEntity(position, event.getBlockState(), this)) {
             this.close();
             this.breakBlock();
             return;
@@ -391,7 +392,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         }
 
         Block prospective = new CloudBlock(this.level, target.getPosition(),
-                new BlockState[]{this.blockState, target.getExtra()});
+                new BlockState[]{this.blockState, target.getSecondaryState()});
         return prospective.requireComponent(BlockComponents.CAN_SURVIVE).execute(prospective)
                 && !prospective.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(prospective);
     }
@@ -409,7 +410,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private void breakBlock() {
         this.dropBlockItem();
         if (this.breakSound != null) {
-            this.level.addSound(this.getPosition(), this.breakSound);
+            this.level.playSound(this.getPosition(), this.breakSound);
         }
     }
 
@@ -429,7 +430,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     private void playLandingSound(Vector3i position) {
         if (this.landingSound != null) {
-            this.level.addSound(position, this.landingSound);
+            this.level.playSound(position, this.landingSound);
         }
     }
 

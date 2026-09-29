@@ -5,7 +5,7 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.event.entity.EntityBlockChangeEvent;
+import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.BlockShapeTransitions;
@@ -29,7 +29,7 @@ public class EnderEyeItemHandlers {
         }
 
         BlockState filledState = state.withTrait(BlockTraits.HAS_END_PORTAL_EYE, true);
-        EntityBlockChangeEvent event = new EntityBlockChangeEvent(player, frame, filledState);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(player, frame, filledState);
         level.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             return item;

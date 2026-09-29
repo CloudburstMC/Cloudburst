@@ -7,6 +7,7 @@ import org.cloudburstmc.api.event.player.PlayerRespawnFlag;
 import org.cloudburstmc.api.event.player.PlayerRespawnReason;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.feature.EndPlatformFeature;
@@ -51,7 +52,7 @@ public class EndPortals {
         }
 
         entity.setMotion(Vector3f.ZERO);
-        entity.getLevel().addSound(entity.getPosition(), Sound.PORTAL_TRAVEL);
+        entity.getLevel().playSound(entity.getPosition(), SoundTypes.PORTAL_TRAVEL);
         return true;
     }
 
