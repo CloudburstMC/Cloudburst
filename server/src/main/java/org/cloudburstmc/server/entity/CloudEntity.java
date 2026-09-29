@@ -152,6 +152,8 @@ public abstract class CloudEntity implements Entity {
             Direction.EAST,
             Direction.UP
     };
+    private double headYaw;
+    protected float movementSpeed = 0.1f;
 
     public CloudEntity(EntityType<?> type, Location location) {
         this.type = Objects.requireNonNull(type, "type");
@@ -169,6 +171,14 @@ public abstract class CloudEntity implements Entity {
 
     public float getEyeHeight() {
         return this.getHeight() / 2 + 0.1f;
+    }
+
+    public double getHeadYaw() {
+        return headYaw;
+    }
+
+    public void setHeadYaw(double headViewYaw) {
+        this.headYaw = headViewYaw;
     }
 
     public float getWidth() {
@@ -2253,6 +2263,16 @@ public abstract class CloudEntity implements Entity {
     public void setOwner(@Nullable Entity entity) {
         this.owner = entity;
         this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
+    }
+
+    @Override
+    public void setMovementSpeed(float speed) {
+        this.movementSpeed = speed;
+    }
+
+    @Override
+    public float getMovementSpeed() {
+        return this.movementSpeed;
     }
 
     @Override

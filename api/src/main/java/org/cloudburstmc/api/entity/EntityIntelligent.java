@@ -57,8 +57,4 @@ public interface EntityIntelligent extends Living {
     default void setShouldUpdateMoveDirection(boolean v) {
         getMemoryStorage().put(MemoryTypes.SHOULD_UPDATE_MOVE_DIRECTION, v);
     }
-
-    default long getTick() {
-        return getServer().getTick();
-    }
 }
