@@ -4,8 +4,6 @@ import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.Sets;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -14,10 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public class Utils {
 
     public static final FinalizableReferenceQueue REFERENCE_QUEUE = new FinalizableReferenceQueue();
@@ -132,16 +126,6 @@ public class Utils {
             if (out != null) out.close();
         }
     }
-
-    public static String getAllThreadDumps() {
-        ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
-        StringBuilder builder = new StringBuilder();
-        for (ThreadInfo info : threads) {
-            builder.append('\n').append(info);
-        }
-        return builder.toString();
-    }
-
 
     public static String getExceptionMessage(Throwable e) {
         StringWriter stringWriter = new StringWriter();

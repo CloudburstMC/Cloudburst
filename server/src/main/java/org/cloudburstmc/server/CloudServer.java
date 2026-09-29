@@ -49,6 +49,7 @@ import org.cloudburstmc.server.config.ServerConfig;
 import org.cloudburstmc.server.config.ServerProperties;
 import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.crafting.CraftingManager;
+import org.cloudburstmc.server.diagnostics.ThreadDump;
 import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
@@ -734,7 +735,7 @@ public class CloudServer implements Server {
             }
         } catch (Throwable e) {
             log.fatal("Exception happened while ticking server", e);
-            log.fatal(Utils.getAllThreadDumps());
+            log.fatal(ThreadDump.capture());
         }
     }
 
