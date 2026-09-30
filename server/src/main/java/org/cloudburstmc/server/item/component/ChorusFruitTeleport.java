@@ -1,8 +1,8 @@
-package org.cloudburstmc.server.item.food;
+package org.cloudburstmc.server.item.component;
 
+import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -11,26 +11,18 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class FoodChorusFruit extends FoodNormal {
+@UtilityClass
+public class ChorusFruitTeleport {
 
     private static final int TELEPORT_ATTEMPTS = 16;
     private static final double TELEPORT_DIAMETER = 16;
 
-    public FoodChorusFruit() {
-        super(4, 2.4F);
-        setMetadata(ItemTypes.CHORUS_FRUIT.getId());
-    }
-
-    @Override
-    public boolean onEatenBy(@NonNull Player player) {
-        super.onEatenBy(player);
-
+    public static void teleport(Player player) {
         if (player.getVehicle() != null && !player.dismount(player.getVehicle())) {
-            return true;
+            return;
         }
 
         CloudLevel level = (CloudLevel) player.getLevel();
@@ -54,8 +46,6 @@ public final class FoodChorusFruit extends FoodNormal {
             level.addLevelSoundEvent(player.getPosition(), SoundEvent.TELEPORT);
             break;
         }
-
-        return true;
     }
 
     private static Vector3f findDestination(Player player, CloudLevel level, double x, double y, double z) {

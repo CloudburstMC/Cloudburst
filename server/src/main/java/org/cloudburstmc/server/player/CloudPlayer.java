@@ -96,6 +96,7 @@ import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.VanillaLevelTime;
@@ -150,7 +151,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     protected final BedrockServerSession session;
     protected final PlayerData playerData = new PlayerData();
-    protected final PlayerFood foodData = new PlayerFood(this, 20, 20);
+    protected final CloudPlayerFood foodData = new CloudPlayerFood(this);
     protected final Map<UUID, CloudPlayer> hiddenPlayers = new HashMap<>();
     protected final int chunksPerTick;
     protected final int spawnThreshold;
@@ -1155,16 +1156,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         //todo Updater
 
-        //Weather
         if (this.getLevel().isRaining() || this.getLevel().isThundering()) {
             this.getLevel().sendWeather(this);
         }
 
-        //FoodLevel
-        PlayerFood food = this.getFoodData();
-        if (food.getLevel() != food.getMaxLevel()) {
-            food.sendFoodLevel();
-        }
+        CloudPlayerFood food = this.getFoodData();
+        food.sendAttributes();
     }
 
     @Override
@@ -1795,6 +1792,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         List<AttributeData> attributes = pk.getAttributes();
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.SATURATION).setValue(this.foodData.getSaturation())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXHAUSTION).setValue(Math.min(this.foodData.getExhaustion(), 5.0f))));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))));
@@ -1836,10 +1835,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             authoritativePosition = currentPos;
         }
 
-        float tdx = newPosition.getX() - currentPos.getX();
-        float tdz = newPosition.getZ() - currentPos.getZ();
-        double distance = Math.sqrt(tdx * tdx + tdz * tdz);
-
         if (!revert && distanceSquared != 0) {
             float dx = newPosition.getX() - currentPos.getX();
             float dy = newPosition.getY() - currentPos.getY();
@@ -1859,6 +1854,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         Location from = Location.from(this.lastPosition, this.lastYaw, this.lastPitch, this.getLevel());
         Location to = this.getLocation();
 
+        boolean firstMovement = this.firstMove;
+        boolean redirectedMovement = false;
+
         double delta = Math.pow(this.lastPosition.getX() - to.getX(), 2) + Math.pow(this.lastPosition.getY() - to.getY(), 2) + Math.pow(this.lastPosition.getZ() - to.getZ(), 2);
         double deltaAngle = Math.abs(this.lastYaw - to.getYaw()) + Math.abs(this.lastPitch - to.getPitch());
 
@@ -1873,11 +1871,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             if (!isFirst) {
                 PlayerMoveEvent ev = new PlayerMoveEvent(this, from, to);
-
                 this.server.getEventManager().fire(ev);
 
-                if (!(revert = ev.isCancelled())) { //Yes, this is intended
-                    if (!to.equals(ev.getTo())) { //If plugins modify the destination
+                if (!(revert = ev.isCancelled())) {
+                    if (!to.equals(ev.getTo())) {
+                        redirectedMovement = true;
                         this.teleportWithoutEvent(ev.getTo());
                     } else {
                         this.addMovement(this.getX(), this.getY() + getBaseOffset(), this.getZ(), this.getYaw(), this.getPitch(), this.getYaw());
@@ -1888,27 +1886,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
         }
 
-        if (!revert && (this.isFoodEnabled() || this.getServer().getDifficulty() == Difficulty.PEACEFUL)) {
-            if ((this.isSurvival() || this.isAdventure())/* && !this.getRiddingOn() instanceof Entity*/) {
-
-                //UpdateFoodExpLevel
-                if (distance >= 0.05) {
-                    double jump = 0;
-                    double swimming = this.isInsideOfWater() ? 0.015 * distance : 0;
-                    if (swimming != 0) distance = 0;
-                    if (this.isSprinting()) {  //Running
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.7;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.06 * distance + jump + swimming);
-                    } else {
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.2;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.01 * distance + jump + swimming);
-                    }
-                }
-            }
+        if (!revert && !firstMovement && !redirectedMovement && this.getVehicle() == null) {
+            this.addMovementExhaustion(currentPos, this.getPosition());
         }
 
         if (revert) {
@@ -1941,6 +1920,36 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         this.newPosition = null;
+    }
+
+    private void addMovementExhaustion(Vector3f from, Vector3f to) {
+        float dx = to.getX() - from.getX();
+        float dy = to.getY() - from.getY();
+        float dz = to.getZ() - from.getZ();
+
+        float horizontalDistance = (float) Math.sqrt(dx * dx + dz * dz);
+        boolean swimming = this.isSwimming();
+
+        if (swimming || this.isInsideOfWater()) {
+            float distance = Math.round((float) Math.sqrt(dx * dx + dy * dy + dz * dz) * 100.0f) / 100.0f;
+            if (distance > 0) {
+                this.addExhaustion(distance * 0.01f, swimming ? ExhaustionReason.SWIM : ExhaustionReason.WALK_UNDERWATER);
+            }
+        } else if (this.isTouchingWater()) {
+            float distance = Math.round(horizontalDistance * 100.0f) / 100.0f;
+            if (distance > 0) {
+                this.addExhaustion(distance * 0.01f, ExhaustionReason.WALK_ON_WATER);
+            }
+        } else if (this.isOnGround()) {
+            float distance = Math.round(horizontalDistance * 100.0f) / 100.0f;
+            if (distance > 0) {
+                if (this.isSprinting()) {
+                    this.addExhaustion(distance * 0.1f, ExhaustionReason.SPRINT);
+                } else {
+                    this.addExhaustion(0, this.isSneaking() ? ExhaustionReason.CROUCH : ExhaustionReason.WALK);
+                }
+            }
+        }
     }
 
     public void acceptInputMotion(Vector3f motion) {
@@ -2051,10 +2060,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                         this.heal(1);
                     }
 
-                    PlayerFood foodData = this.getFoodData();
+                    CloudPlayerFood foodData = this.getFoodData();
+                    if (foodData.getSaturation() < CloudPlayerFood.MAX_LEVEL && this.ticksLived % 20 == 0) {
+                        foodData.setSaturation(foodData.getSaturation() + 1.0f);
+                    }
 
                     if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
-                        foodData.addFoodLevel(1, 0);
+                        foodData.setLevel(foodData.getLevel() + 1);
                     }
                 }
 
@@ -2082,7 +2094,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                     }
 
                     if (this.isSurvival() || this.isAdventure()) {
-                        if (this.getFoodData() != null) this.getFoodData().update(tickDiff);
+                        this.foodData.update(tickDiff);
                     }
                 }
             }
@@ -2146,8 +2158,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         int slot = this.activeUseSlot;
         ItemStack item = this.getInventory().getItem(slot);
         this.setUsingItem(false);
+        this.flushEntityData();
         FinishUseHandler handler = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.FINISH_USE);
-        this.getInventory().setItem(slot, handler.execute(item, this));
+        ItemStack result = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.CONSUMABLE) != null
+                ? ConsumableItemHandlers.finishConsumption(item, this) : handler.execute(item, this);
+        this.getInventory().setItem(slot, result);
     }
 
     private void updateUnderwaterSound() {
@@ -3048,6 +3063,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendPacket(packet);
     }
 
+    public void sendFoodAttributes() {
+        if (!this.spawned) {
+            return;
+        }
+
+        UpdateAttributesPacket packet = new UpdateAttributesPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.foodData.getLevel())));
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.SATURATION).setValue(this.foodData.getSaturation())));
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXHAUSTION).setValue(Math.min(this.foodData.getExhaustion(), 5.0f))));
+        this.sendPacket(packet);
+    }
+
     @Override
     public void setMovementSpeed(float speed) {
         setMovementSpeed(speed, true);
@@ -3109,7 +3137,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_STRONG, -1, EntityTypes.PLAYER, false, false);
             }
 
-            this.getFoodData().updateFoodExpLevel(0.1);
+            this.addExhaustion(0.1f, ExhaustionReason.ATTACK);
             this.damageHeldItemAfterAttack(heldItem);
         } else if (!piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
@@ -3249,7 +3277,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (this.getHealth() < healthBeforeDamage) {
-            this.getFoodData().updateFoodExpLevel(source.getDamageSource().getFoodExhaustion());
+            this.addExhaustion((float) source.getDamageSource().getFoodExhaustion(), ExhaustionReason.DAMAGED);
         }
 
         return true;
@@ -3350,8 +3378,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         int expLevel = tag.getInt("expLevel");
         this.setExperience(exp, expLevel);
 
-        tag.listenForInt("foodLevel", this.foodData::setLevel);
-        tag.listenForFloat("FoodSaturationLevel", this.foodData::setFoodSaturationLevel);
+        this.foodData.load(tag.getInt("foodLevel", 20), tag.getFloat("foodSaturationLevel", 5.0f),
+                tag.getFloat("foodExhaustionLevel", 0.0f), tag.getInt("foodTickTimer", 0));
         tag.listenForBoolean("seenCredits", value -> this.seenCredits = value);
         tag.listenForList("EnderChestInventory", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
@@ -3394,7 +3422,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         tag.putInt("expLevel", this.getExperienceLevel());
 
         tag.putInt("foodLevel", this.getFoodData().getLevel());
-        tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
+        tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());
+        tag.putFloat("foodExhaustionLevel", this.foodData.getExhaustion());
+        tag.putInt("foodTickTimer", this.foodData.getTickTimer());
         tag.putBoolean("seenCredits", this.seenCredits);
 
         tag.putList("Inventory", NbtType.COMPOUND, this.getContainer().toNbt());
@@ -3792,8 +3822,38 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.foodEnabled = foodEnabled;
     }
 
-    public PlayerFood getFoodData() {
+    public CloudPlayerFood getFoodData() {
         return this.foodData;
+    }
+
+    @Override
+    public int getFoodLevel() {
+        return this.foodData.getLevel();
+    }
+
+    @Override
+    public void setFoodLevel(int level) {
+        this.foodData.setLevel(level);
+    }
+
+    @Override
+    public float getSaturation() {
+        return this.foodData.getSaturation();
+    }
+
+    @Override
+    public void setSaturation(float saturation) {
+        this.foodData.setSaturation(saturation);
+    }
+
+    @Override
+    public float getExhaustion() {
+        return this.foodData.getExhaustion();
+    }
+
+    @Override
+    public void addExhaustion(float amount, ExhaustionReason reason) {
+        this.foodData.addExhaustion(amount, reason);
     }
 
     //todo a lot on dimension

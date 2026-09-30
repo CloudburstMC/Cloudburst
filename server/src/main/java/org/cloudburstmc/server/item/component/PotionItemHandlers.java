@@ -10,7 +10,6 @@ import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.FinishUseHandler;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.potion.PotionType;
@@ -32,8 +31,7 @@ public class PotionItemHandlers {
         PotionType type = item.getOrDefault(ItemDataComponents.POTION_TYPE, PotionTypes.WATER);
         DamageSource source = DamageSource.of(DamageTypes.MAGIC, player);
         new CloudPotion(type).apply(player, 1.0, 1.0f, source, player, PotionEffectCause.POTION_DRINK);
-        player.getLevel().addLevelSoundEvent(player.getPosition(), SoundEvent.DRINK);
-        return player.isCreative() ? item : ItemStack.from(ItemTypes.GLASS_BOTTLE);
+        return ConsumableItemHandlers.afterConsumption(item, player);
     };
 
     public static final UseHandler THROW_SPLASH = (item, entity) -> throwPotion(item, entity, EntityTypes.SPLASH_POTION);

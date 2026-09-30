@@ -289,6 +289,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
+        this.registerComponent(BlockComponents.GET_IGNITED_STATE, block -> null);
         this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
         this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
         this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
@@ -319,6 +320,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {});
         this.registerComponent(BlockComponents.CAN_SLIDE, (block) -> false);
         this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
+        this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);
         this.registerComponent(BlockComponents.START_FALLING, (block) -> {});
         this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {});
         this.registerComponent(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.ON_ENTITY_INSIDE);

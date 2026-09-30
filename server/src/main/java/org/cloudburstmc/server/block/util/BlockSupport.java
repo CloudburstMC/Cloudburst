@@ -64,8 +64,8 @@ public class BlockSupport {
         return !state.getCollisionShape().isEmpty();
     }
 
-    public static boolean isSolid(BlockState state) {
-        return state.isSolid();
+    public static boolean isSolidSupport(BlockRegistry registry, BlockState state) {
+        return registry.requireComponent(state.getType(), BlockComponents.IS_SOLID_SUPPORT).execute(state);
     }
 
     public static boolean isViewBlocking(BlockState state) {

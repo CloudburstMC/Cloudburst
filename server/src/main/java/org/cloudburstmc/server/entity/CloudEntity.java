@@ -1316,14 +1316,19 @@ public abstract class CloudEntity implements Entity {
 
             if (!this.effects.isEmpty()) {
                 for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
-                    if (effect.shouldApplyTick(this.age)) {
-                        effect.applyTick(this);
-                    }
+                    for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
+                        if (effect.shouldApplyTick(this.age + elapsed)) {
+                            effect.applyTick(this);
+                        }
 
-                    if (!effect.isInfinite()) {
-                        effect.decreaseDuration(tickDiff);
-                        if (effect.getDuration() == 0) {
+                        if (this.effects.get(effect.getType()) != effect) {
+                            break;
+                        }
+
+                        effect.decreaseDuration(1);
+                        if (!effect.isInfinite() && effect.getDuration() == 0) {
                             this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
+                            break;
                         }
                     }
                 }
@@ -1966,7 +1971,21 @@ public abstract class CloudEntity implements Entity {
     }
 
     private void applyLiquidCurrent() {
-        boolean movesWithCurrent = this.canBeMovedByCurrents();
+        LiquidContact contact = this.scanLiquidContact(this.canBeMovedByCurrents());
+        if (contact.flow().lengthSquared() > 0) {
+            this.motion = this.motion.add(contact.flow().normalize().mul(0.014f));
+        }
+
+        if (contact.touchingWater() && this.fireTicks > 0) {
+            this.extinguish();
+        }
+    }
+
+    protected boolean isTouchingWater() {
+        return this.scanLiquidContact(false).touchingWater();
+    }
+
+    private LiquidContact scanLiquidContact(boolean includeFlow) {
         BoundingBox box = this.getBoundingBox().deflate(0.001f, 0.001f, 0.001f);
 
         int minX = GenericMath.floor(box.getMinX());
@@ -1977,13 +1996,16 @@ public abstract class CloudEntity implements Entity {
         int maxZ = GenericMath.floor(box.getMaxZ());
 
         Vector3f total = Vector3f.ZERO;
-        int count = 0;
         boolean touchingWater = false;
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    Block block = this.level.getBlock(x, y, z);
+                    Block block = this.level.getLoadedBlock(x, y, z);
+                    if (block == null) {
+                        continue;
+                    }
+
                     LiquidState liquid = block.getLiquid();
                     if (liquid.isEmpty()) {
                         continue;
@@ -1998,21 +2020,17 @@ public abstract class CloudEntity implements Entity {
                         touchingWater = true;
                     }
 
-                    if (movesWithCurrent) {
+                    if (includeFlow) {
                         total = total.add(this.level.getLiquidFlow(block.getPosition()));
-                        count++;
                     }
                 }
             }
         }
 
-        if (count > 0 && total.lengthSquared() > 0) {
-            this.motion = this.motion.add(total.normalize().mul(0.014f));
-        }
+        return new LiquidContact(touchingWater, total);
+    }
 
-        if (touchingWater && this.fireTicks > 0) {
-            this.extinguish();
-        }
+    private record LiquidContact(boolean touchingWater, Vector3f flow) {
     }
 
     protected void checkBlockCollision() {

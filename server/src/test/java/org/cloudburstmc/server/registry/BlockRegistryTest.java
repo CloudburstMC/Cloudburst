@@ -1,22 +1,25 @@
 package org.cloudburstmc.server.registry;
 
+import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.ComponentType;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentMap;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.BlockLayers;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.*;
+import org.cloudburstmc.server.block.util.BlockSupport;
+import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,6 +81,130 @@ class BlockRegistryTest {
                         () -> assertSame(TntBlockHandlers.ON_EXPLOSION_HIT, component(type, BlockComponents.ON_EXPLOSION_HIT)),
                         () -> assertSame(TntBlockHandlers.ON_PROJECTILE_HIT, component(type, BlockComponents.ON_PROJECTILE_HIT)));
             }
+        }
+    }
+
+    @Test
+    void cakeSurvivalUsesSolidSupportWithoutRequiringAFullFace() {
+        Server server = InterfaceProxy.create(Server.class, Map.of("getBlockRegistry", REGISTRY));
+        Level level = InterfaceProxy.create(Level.class, Map.of("getServer", server));
+
+        for (BlockType type : List.of(BlockTypes.CAKE, BlockTypes.CANDLE_CAKE, BlockTypes.RED_CANDLE_CAKE)) {
+            for (BlockState state : type.getStates()) {
+                Block prospectiveCake = InterfaceProxy.create(Block.class, Map.of("getLevel", level, "getRelativeState", state));
+                assertTrue(CakeBlockHandlers.CAN_SURVIVE.execute(prospectiveCake), state.toString());
+                assertTrue(BlockSupport.isSolidSupport(REGISTRY, state));
+                assertFalse(BlockSupport.isFaceSturdy(REGISTRY, state, Direction.UP, SupportType.FULL));
+            }
+        }
+
+        for (BlockState state : List.of(BlockTypes.AIR.getDefaultState(), BlockTypes.CANDLE.getDefaultState())) {
+            Block prospectiveCake = InterfaceProxy.create(Block.class,
+                    Map.of("getLevel", level, "getRelativeState", state));
+            assertFalse(CakeBlockHandlers.CAN_SURVIVE.execute(prospectiveCake), state.toString());
+        }
+
+        assertTrue(BlockSupport.isSolidSupport(REGISTRY, BlockTypes.STONE.getDefaultState()));
+    }
+
+    @Test
+    void ignitionLightsExistingBlocksWithoutLosingTheirState() {
+        for (BlockType type : List.of(BlockTypes.CANDLE, BlockTypes.RED_CANDLE, BlockTypes.CANDLE_CAKE, BlockTypes.RED_CANDLE_CAKE)) {
+            BlockState unlit = type.getDefaultState().withTrait(BlockTraits.IS_LIT, false);
+            if (type.getTraits().contains(BlockTraits.CANDLES)) {
+                unlit = unlit.withTrait(BlockTraits.CANDLES, 2);
+            }
+
+            Block block = InterfaceProxy.create(Block.class, Map.of("getState", unlit, "getLiquid", LiquidState.empty()));
+            BlockState lit = Objects.requireNonNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(block));
+            assertEquals(unlit.withTrait(BlockTraits.IS_LIT, true), lit);
+            Block alreadyLit = InterfaceProxy.create(Block.class, Map.of("getState", lit, "getLiquid", LiquidState.empty()));
+            assertNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(alreadyLit));
+            Block waterlogged = InterfaceProxy.create(Block.class,
+                    Map.of("getState", unlit, "getLiquid", LiquidState.of(BlockStates.WATER)));
+            assertNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(waterlogged));
+        }
+
+        for (BlockType type : List.of(BlockTypes.CAMPFIRE, BlockTypes.SOUL_CAMPFIRE)) {
+            BlockState extinguished = type.getDefaultState().withTrait(BlockTraits.IS_EXTINGUISHED, true);
+            Block block = InterfaceProxy.create(Block.class, Map.of("getState", extinguished, "getLiquid", LiquidState.empty()));
+            assertEquals(extinguished.withTrait(BlockTraits.IS_EXTINGUISHED, false),
+                    component(type, BlockComponents.GET_IGNITED_STATE).execute(block));
+        }
+
+        Block stone = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.STONE.getDefaultState(), "getLiquid", LiquidState.empty()));
+        assertNull(component(BlockTypes.STONE, BlockComponents.GET_IGNITED_STATE).execute(stone));
+    }
+
+    @Test
+    void fireCannotSurviveBesideOrAboveCandles() {
+        for (BlockType type : BlockTypes.values()) {
+            if (!type.getTraits().contains(BlockTraits.CANDLES) && type != BlockTypes.CANDLE_CAKE) {
+                continue;
+            }
+
+            for (BlockState state : type.getStates()) {
+                Block candle = InterfaceProxy.create(Block.class, Map.of(
+                        "getState", state, "getLiquid", LiquidState.empty(),
+                        "isFaceSturdy", BlockSupport.isFaceSturdy(REGISTRY, state, Direction.UP, SupportType.FULL)));
+                Block adjacent = InterfaceProxy.create(Block.class, Map.of(
+                        "getSide", candle, "getLiquid", LiquidState.empty()));
+                assertFalse(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(adjacent), state.toString());
+            }
+        }
+    }
+
+    @Test
+    void fireSurvivalUsesSupportFlammabilityAndLiquidState() {
+        Block stone = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.STONE.getDefaultState(), "getLiquid", LiquidState.empty(), "isFaceSturdy", true));
+        Block supported = InterfaceProxy.create(Block.class, Map.of("getSide", stone, "getLiquid", LiquidState.empty()));
+        assertTrue(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(supported));
+
+        Block wood = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.OAK_PLANKS.getDefaultState(), "getLiquid", LiquidState.empty()));
+        Block besideWood = InterfaceProxy.create(Block.class, Map.of("getSide", wood, "getLiquid", LiquidState.empty()));
+        assertTrue(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(besideWood));
+
+        Block submerged = InterfaceProxy.create(Block.class, Map.of("getSide", stone, "getLiquid", LiquidState.of(BlockStates.WATER)));
+        assertFalse(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(submerged));
+
+        Block wetWood = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.OAK_PLANKS.getDefaultState(), "getLiquid", LiquidState.of(BlockStates.WATER)));
+        Block besideWetWood = InterfaceProxy.create(Block.class, Map.of("getSide", wetWood, "getLiquid", LiquidState.empty()));
+        assertFalse(component(BlockTypes.FIRE, BlockComponents.CAN_SURVIVE).execute(besideWetWood));
+    }
+
+    @Test
+    void soulFireRequiresItsOwnBaseBlocks() {
+        for (BlockType type : List.of(BlockTypes.SOUL_SAND, BlockTypes.SOUL_SOIL, BlockTypes.STONE)) {
+            Block target = InterfaceProxy.create(Block.class, Map.of("getSideState", type.getDefaultState(), "getLiquid", LiquidState.empty()));
+            boolean soulBase = type != BlockTypes.STONE;
+            assertEquals(soulBase, component(BlockTypes.SOUL_FIRE, BlockComponents.CAN_SURVIVE).execute(target));
+            assertSame(soulBase ? BlockStates.SOUL_FIRE : BlockStates.FIRE, FireBlockHandlers.placementState(target));
+        }
+    }
+
+    @Test
+    void underwaterCandlePlacementPreservesSourceWaterAndStaysUnlit() {
+        Server server = InterfaceProxy.create(Server.class, Map.of("getBlockRegistry", REGISTRY));
+        Level level = InterfaceProxy.create(Level.class, Map.of("getServer", server, "getBlockState", BlockTypes.STONE.getDefaultState()));
+
+        for (BlockType type : BlockTypes.values()) {
+            if (!type.getTraits().contains(BlockTraits.CANDLES)) {
+                continue;
+            }
+
+            Block sourceWater = InterfaceProxy.create(Block.class, Map.of("getState", BlockStates.WATER));
+            assertTrue(component(BlockTypes.WATER, BlockComponents.CAN_BE_REPLACED)
+                    .execute(sourceWater, type.getDefaultState(), null, Direction.UP, Vector3f.ZERO));
+            BlockLayers placement = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
+                    new BlockLayers(BlockStates.WATER, BlockStates.AIR), BlockLayer.PRIMARY, type.getDefaultState()));
+            assertSame(BlockStates.WATER, placement.secondary());
+            assertFalse(placement.primary().ensureTrait(BlockTraits.IS_LIT));
+            Block placed = InterfaceProxy.create(Block.class, Map.of(
+                    "getState", placement.primary(), "getLiquid", LiquidState.of(placement.secondary()),
+                    "getLevel", level, "getPosition", Vector3i.ZERO,
+                    "getRelativeState", BlockTypes.STONE.getDefaultState()));
+            assertTrue(component(type, BlockComponents.CAN_SURVIVE).execute(placed));
+            assertNull(component(type, BlockComponents.GET_IGNITED_STATE).execute(placed));
         }
     }
 
@@ -274,7 +401,7 @@ class BlockRegistryTest {
         assertInstanceOf(SlabPlaceHandler.class, component(blockType, BlockComponents.ON_PLACE));
     }
 
-    private static Object component(BlockType blockType, ComponentType<?> componentType) {
+    private static <T> T component(BlockType blockType, ComponentType<T> componentType) {
         ComponentMap components = Objects.requireNonNull(REGISTRY.getComponents(blockType), () -> blockType.getId() + " has no component map");
         return Objects.requireNonNull(components.get(componentType), () -> blockType.getId() + " has no " + componentType.getId() + " component");
     }

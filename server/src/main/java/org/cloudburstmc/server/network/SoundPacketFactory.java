@@ -28,7 +28,7 @@ public class SoundPacketFactory {
         packet.setPosition(position);
         packet.setVolume(playback.volume());
         packet.setPitch(playback.pitch());
-        packet.setLoopCount(playback.repeatCount() == 0 ? -1 : playback.repeatCount());
+        packet.setLoopCount(playback.repeatCount());
         packet.setBypassListenerRangeCheck(playback.ignoreDistance());
         if (playback.startOffset() > 0) {
             packet.setPlaybackPositionSeconds(playback.startOffset());

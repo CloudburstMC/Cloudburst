@@ -5,6 +5,7 @@ import org.cloudburstmc.api.item.ItemStack;
 
 /**
  * Applies an item's behavior after its use duration completes.
+ * For consumable items, the consume event is fired first and may select a different item.
  */
 @FunctionalInterface
 public interface FinishUseHandler {

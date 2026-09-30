@@ -12,6 +12,7 @@ import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.BlockShapeMode;
 import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.RayTraceContext;
+import org.cloudburstmc.api.player.ExhaustionReason;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -170,7 +171,7 @@ public class SpearItemHandlers {
 
         Vector3f motion = player.getMotion().add(horizontal.normalize().mul(0.458f * lungeLevel));
         player.setMotion(motion);
-        player.getFoodData().updateFoodExpLevel(4.0f * lungeLevel);
+        player.addExhaustion(4.0f * lungeLevel, ExhaustionReason.ENCHANTMENT_EFFECT);
         player.getLevel().addLevelSoundEvent(player.getPosition(), switch (Math.min(lungeLevel, 3)) {
             case 1 -> SoundEvent.LUNGE_1;
             case 2 -> SoundEvent.LUNGE_2;

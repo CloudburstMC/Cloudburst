@@ -40,6 +40,11 @@ public class CloudPotion {
             this.applyInstantHealth(entity, effect.getAmplifier(), intensity, damageSource);
         } else if (effect.getType() == EffectTypes.INSTANT_DAMAGE) {
             this.applyInstantDamage(entity, effect.getAmplifier(), intensity, damageSource);
+        } else if (effect.getType() == EffectTypes.SATURATION) {
+            if (entity instanceof CloudPlayer player) {
+                int nutrition = effect.getAmplifier() + 1;
+                player.getFoodData().eat(nutrition, nutrition * 2.0f);
+            }
         } else {
             int baseDuration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : effect.getDuration() == 0 ? 0 : Math.max(1, (int) Math.floor(effect.getDuration() * durationScale));
             int duration = effect.isInfinite() ? PotionEffect.INFINITE_DURATION : (int) (intensity * baseDuration + 0.5);

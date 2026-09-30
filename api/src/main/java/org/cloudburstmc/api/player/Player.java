@@ -289,6 +289,54 @@ public interface Player extends Creature, CommandSender {
     }
 
     /**
+     * Returns the current food level, from zero to twenty.
+     *
+     * @return food level
+     */
+    int getFoodLevel();
+
+    /**
+     * Sets the food level, clamped to the range from 0 to 20.
+     *
+     * @param level food level
+     */
+    void setFoodLevel(int level);
+
+    /**
+     * Returns the saturation remaining before exhaustion starts reducing food.
+     *
+     * @return saturation level
+     */
+    float getSaturation();
+
+    /**
+     * Sets the saturation level, clamped to the range from 0 to 20.
+     * Saturation may exceed the current food level.
+     *
+     * @param saturation saturation level
+     */
+    void setSaturation(float saturation);
+
+    /**
+     * Returns accumulated exhaustion.
+     *
+     * @return exhaustion level
+     */
+    float getExhaustion();
+
+    /**
+     * Adds exhaustion with the supplied cause, firing
+     * {@link org.cloudburstmc.api.event.player.PlayerExhaustionEvent} before the increase.
+     * A zero amount still fires the event so listeners may supply an increase.
+     * Negative or non-finite amounts have no effect.
+     *
+     * @param amount exhaustion to add
+     * @param reason the cause of the increase
+     * @throws NullPointerException if the reason is {@code null}
+     */
+    void addExhaustion(float amount, ExhaustionReason reason);
+
+    /**
      * Returns the player's experience level.
      *
      * @return the experience level

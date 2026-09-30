@@ -80,6 +80,11 @@ public class ItemBehaviors {
     public static final ComponentType<BooleanTypeHandler> CAN_STORE_ENCHANTMENTS = ComponentType.of("can_store_enchantments", BooleanTypeHandler.class);
 
     /**
+     * Defines the result and feedback of consuming an item.
+     */
+    public static final ComponentType<ConsumableComponent> CONSUMABLE = ComponentType.of("consumable", ConsumableComponent.class);
+
+    /**
      * Determines whether this item type has durability.
      */
     public static final ComponentType<BooleanTypeHandler> DAMAGEABLE = ComponentType.of("damageable", BooleanTypeHandler.class);
@@ -88,6 +93,11 @@ public class ItemBehaviors {
      * Applies the behavior that occurs when an item's use duration completes.
      */
     public static final ComponentType<FinishUseHandler> FINISH_USE = ComponentType.of("finish_use", FinishUseHandler.class);
+
+    /**
+     * Defines the nutrition and saturation restored by eating an item.
+     */
+    public static final ComponentType<FoodComponent> FOOD = ComponentType.of("food", FoodComponent.class);
 
     /**
      * Supplies the burn duration when this item type is used as fuel.

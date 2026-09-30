@@ -34,6 +34,7 @@ import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.api.player.Ability;
+import org.cloudburstmc.api.player.ExhaustionReason;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
@@ -493,7 +494,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             selectedItem = player.getLevel().breakBlockPredicted(blockPos, selectedItem, player, true, fastBreak);
             if (selectedItem != null) {
                 if (player.isSurvival() || player.isAdventure()) {
-                    player.getFoodData().updateFoodExpLevel(0.025);
+                    player.addExhaustion(0.005f, ExhaustionReason.BLOCK_MINED);
                     if (!selectedItem.equals(oldItem) || selectedItem.getCount() != oldItem.getCount()) {
                         player.getInventory().setSelectedItem(selectedItem);
                     }
@@ -772,6 +773,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                         break;
                     }
 
+                    if (player.isFoodEnabled() && player.getFoodLevel() <= 6) {
+                        player.sendFlags(player);
+                        break;
+                    }
+
                     PlayerToggleSprintEvent event = new PlayerToggleSprintEvent(player, true);
                     player.getServer().getEventManager().fire(event);
                     if (event.isCancelled()) {
@@ -871,6 +877,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 case START_JUMPING:
                     player.getServer().getEventManager().fire(new PlayerJumpEvent(player));
+                    if (player.isOnGround() && (player.isSurvival() || player.isAdventure())) {
+                        player.addExhaustion(player.isSprinting() ? 0.2f : 0.05f, player.isSprinting() ? ExhaustionReason.JUMP_SPRINT : ExhaustionReason.JUMP);
+                    }
                     break;
                 case MISSED_SWING:
                     player.interruptBlocking();
@@ -1086,7 +1095,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.noDamageTicks = 60;
         player.clearActivePotionEffects(PotionEffectCause.DEATH);
         player.setHealth(player.getMaxHealth());
-        player.getFoodData().setLevel(20, 20);
+        player.getFoodData().reset();
         player.setMovementSpeed(DEFAULT_SPEED);
 
         player.recalculateBoundingBox();
