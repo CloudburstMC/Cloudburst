@@ -1,20 +1,15 @@
 package org.cloudburstmc.server.entity;
 
-import org.cloudburstmc.api.enchantment.Enchantment;
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
-import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
 import org.cloudburstmc.api.entity.Pose;
-import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageTypeTags;
-import org.cloudburstmc.api.event.entity.EntityDamageEvent;
 import org.cloudburstmc.api.event.entity.EntityPoseChangeEvent;
-import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.component.ArmorComponent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.Player;
@@ -37,7 +32,6 @@ import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.CloudPlayerAbilities;
-import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.utils.SkinUtils;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -45,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.DoubleUnaryOperator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.*;
@@ -58,129 +51,23 @@ public class EntityHuman extends EntityCreature implements Human {
     private static final float STANDING_EYE_HEIGHT = 1.62f;
 
     private Pose pose = Pose.STANDING;
+    @Getter
     private boolean sneaking;
+    @Getter
     private boolean swimming;
+    @Getter
     private boolean gliding;
+    @Getter
     private boolean crawling;
 
     protected final CloudContainer container = new CloudContainer(36);
     protected UUID identity;
+    @Getter
+    @Setter
     protected Skin skin;
 
     public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
-    }
-
-    @Override
-    public Pose getPose() {
-        return this.pose;
-    }
-
-    @Override
-    public float getWidth() {
-        return HumanPoses.dimensions(this.pose).width();
-    }
-
-    @Override
-    public float getLength() {
-        return this.getWidth();
-    }
-
-    @Override
-    public float getHeight() {
-        return HumanPoses.dimensions(this.pose).height();
-    }
-
-    @Override
-    public float getEyeHeight() {
-        return HumanPoses.dimensions(this.pose).eyeHeight();
-    }
-
-    @Override
-    public float getBaseOffset() {
-        return STANDING_EYE_HEIGHT;
-    }
-
-    @Override
-    public void recalculateBoundingBox() {
-        this.refreshPose(true);
-    }
-
-    @Override
-    public boolean entityBaseTick(int tickDiff) {
-        this.refreshPose(false);
-        return super.entityBaseTick(tickDiff);
-    }
-
-    private void refreshPose(boolean updateBounds) {
-        Pose previousPose = this.pose;
-        Pose desiredPose = this.getDesiredPose();
-        boolean unrestricted = desiredPose == Pose.SLEEPING || this.level == null || this.vehicle != null
-                || this instanceof CloudPlayer player && player.isSpectator();
-
-        Pose resolvedPose = HumanPoses.resolve(previousPose, desiredPose, unrestricted, this::canFitPose);
-        if (!updateBounds && resolvedPose == previousPose) {
-            return;
-        }
-
-        this.pose = resolvedPose;
-        this.data.setFlag(SNEAKING, this.pose == Pose.CROUCHING);
-        this.data.setFlag(SWIMMING, this.pose == Pose.SWIMMING);
-        this.data.setFlag(CRAWLING, this.pose == Pose.CRAWLING);
-        this.data.setFlag(GLIDING, this.pose == Pose.FALL_FLYING);
-        super.recalculateBoundingBox();
-
-        if (previousPose != this.pose) {
-            this.server.getEventManager().fire(new EntityPoseChangeEvent(this, previousPose, this.pose));
-        }
-    }
-
-    private Pose getDesiredPose() {
-        if (this instanceof CloudPlayer player && player.isSleeping()) {
-            return Pose.SLEEPING;
-        }
-
-        if (this.swimming) {
-            return Pose.SWIMMING;
-        }
-
-        if (this.crawling) {
-            return Pose.CRAWLING;
-        }
-
-        if (this.gliding) {
-            return Pose.FALL_FLYING;
-        }
-
-        if (this.data.getFlag(DAMAGE_NEARBY_MOBS)) {
-            return Pose.SPIN_ATTACK;
-        }
-
-        if (!this.sneaking) {
-            return Pose.STANDING;
-        }
-
-        return this instanceof CloudPlayer player && player.getAbilities().get(Ability.FLYING) ? Pose.STANDING : Pose.CROUCHING;
-    }
-
-    private boolean canFitPose(Pose pose) {
-        return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.scale).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
-    }
-
-    public Skin getSkin() {
-        return skin;
-    }
-
-    public void setSkin(Skin skin) {
-        this.skin = skin;
-    }
-
-    public UUID getServerId() {
-        return identity;
-    }
-
-    public void setServerId(UUID uuid) {
-        this.identity = uuid;
     }
 
     @Override
@@ -315,6 +202,204 @@ public class EntityHuman extends EntityCreature implements Human {
         return this.getNameTag();
     }
 
+    public UUID getServerId() {
+        return identity;
+    }
+
+    public void setServerId(UUID uuid) {
+        this.identity = uuid;
+    }
+
+    @Override
+    public float getWidth() {
+        return HumanPoses.dimensions(this.pose).width();
+    }
+
+    @Override
+    public float getLength() {
+        return this.getWidth();
+    }
+
+    @Override
+    public float getHeight() {
+        return HumanPoses.dimensions(this.pose).height();
+    }
+
+    @Override
+    public float getEyeHeight() {
+        return HumanPoses.dimensions(this.pose).eyeHeight();
+    }
+
+    @Override
+    public float getBaseOffset() {
+        return STANDING_EYE_HEIGHT;
+    }
+
+    @Override
+    public Pose getPose() {
+        return this.pose;
+    }
+
+    public void setSneaking(boolean value) {
+        this.sneaking = value;
+        this.recalculateBoundingBox();
+    }
+
+    public void setSneaking() {
+        this.setSneaking(true);
+    }
+
+    public void setSwimming(boolean value) {
+        this.swimming = value;
+        this.recalculateBoundingBox();
+    }
+
+    public void setSwimming() {
+        this.setSwimming(true);
+    }
+
+    public boolean isSprinting() {
+        return this.data.getFlag(SPRINTING);
+    }
+
+    public void setSprinting(boolean value) {
+        this.data.setFlag(SPRINTING, value);
+    }
+
+    public void setSprinting() {
+        this.setSprinting(true);
+    }
+
+    public void setGliding(boolean value) {
+        this.gliding = value;
+        this.recalculateBoundingBox();
+    }
+
+    public void setGliding() {
+        this.setGliding(true);
+    }
+
+    public void setCrawling(boolean value) {
+        this.crawling = value;
+        this.recalculateBoundingBox();
+    }
+    @Override
+    public void recalculateBoundingBox() {
+        this.refreshPose(true);
+    }
+
+    private void refreshPose(boolean updateBounds) {
+        Pose previousPose = this.pose;
+        Pose desiredPose = this.getDesiredPose();
+        boolean unrestricted = desiredPose == Pose.SLEEPING || this.level == null || this.vehicle != null
+                || this instanceof CloudPlayer player && player.isSpectator();
+
+        Pose resolvedPose = HumanPoses.resolve(previousPose, desiredPose, unrestricted, this::canFitPose);
+        if (!updateBounds && resolvedPose == previousPose) {
+            return;
+        }
+
+        this.pose = resolvedPose;
+        this.data.setFlag(SNEAKING, this.pose == Pose.CROUCHING);
+        this.data.setFlag(SWIMMING, this.pose == Pose.SWIMMING);
+        this.data.setFlag(CRAWLING, this.pose == Pose.CRAWLING);
+        this.data.setFlag(GLIDING, this.pose == Pose.FALL_FLYING);
+        super.recalculateBoundingBox();
+
+        if (previousPose != this.pose) {
+            this.server.getEventManager().fire(new EntityPoseChangeEvent(this, previousPose, this.pose));
+        }
+    }
+
+    private Pose getDesiredPose() {
+        if (this instanceof CloudPlayer player && player.isSleeping()) {
+            return Pose.SLEEPING;
+        }
+
+        if (this.swimming) {
+            return Pose.SWIMMING;
+        }
+
+        if (this.crawling) {
+            return Pose.CRAWLING;
+        }
+
+        if (this.gliding) {
+            return Pose.FALL_FLYING;
+        }
+
+        if (this.data.getFlag(DAMAGE_NEARBY_MOBS)) {
+            return Pose.SPIN_ATTACK;
+        }
+
+        if (!this.sneaking) {
+            return Pose.STANDING;
+        }
+
+        return this instanceof CloudPlayer player && player.getAbilities().get(Ability.FLYING) ? Pose.STANDING : Pose.CROUCHING;
+    }
+
+    private boolean canFitPose(Pose pose) {
+        return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.scale).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
+    }
+
+    @Override
+    public boolean entityBaseTick(int tickDiff) {
+        this.refreshPose(false);
+        return super.entityBaseTick(tickDiff);
+    }
+
+
+    @Override
+    protected void hurtHelmet(float damage) {
+        ItemStack helmet = this.getArmor().getHelmet();
+        ItemStack damagedHelmet = this.damageArmorItem(helmet, damage);
+        if (!damagedHelmet.equals(helmet) && this.getArmor().getHelmet().equals(helmet)) {
+            this.getArmor().setHelmet(damagedHelmet);
+        }
+    }
+
+    @Override
+    protected void hurtArmor(float damage) {
+        for (int slot = 0; slot < this.armor.size(); slot++) {
+            ItemStack item = this.armor.getItem(slot);
+            if (!item.isEmpty() && this.server.getItemRegistry().getComponent(item.getType(), ItemBehaviors.ARMOR) != null) {
+                ItemStack damagedItem = this.damageArmorItem(item, damage);
+                if (!damagedItem.equals(item) && this.armor.getItem(slot).equals(item)) {
+                    this.armor.setItem(slot, damagedItem);
+                }
+            }
+        }
+    }
+
+    private ItemStack damageArmorItem(ItemStack item, float damage) {
+        if (item.isEmpty() || damage <= 0 || !this.server.getItemRegistry().requireComponent(item.getType(), ItemBehaviors.DAMAGEABLE).get()) {
+            return item;
+        }
+
+        int durabilityDamage = Math.max((int) (damage / 4), 1);
+        return this.server.getItemRegistry().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE).execute(item, durabilityDamage, this);
+    }
+
+    @Override
+    public ItemStack[] getDrops() {
+        List<ItemStack> drops = new ArrayList<>(this.container.size() + this.armor.size() + this.offhand.size());
+        addDrops(drops, this.container.getContents());
+        addDrops(drops, this.armor.getContents());
+        addDrops(drops, this.offhand.getContents());
+        return drops.toArray(ItemStack[]::new);
+    }
+
+    private static void addDrops(List<ItemStack> drops, ItemStack[] contents) {
+        for (ItemStack item : contents) {
+            if (!item.isEmpty()
+                    && item.get(ItemDataComponents.KEEP_ON_DEATH) != Boolean.TRUE
+                    && !item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).containsKey(EnchantmentTypes.VANISHING)) {
+                drops.add(item);
+            }
+        }
+    }
+
     @Override
     public void spawnTo(CloudPlayer player) {
         if (this == player || this.hasSpawned.contains(player) || this.chunk == null || !player.isChunkSent(this.chunk.getX(),
@@ -375,15 +460,6 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
-    private PlayerSkinPacket createPlayerSkinPacket(SerializedSkin skin) {
-        PlayerSkinPacket packet = new PlayerSkinPacket();
-        packet.setUuid(this.getServerId());
-        packet.setSkin(skin);
-        packet.setNewSkinName(skin.getSkinId());
-        packet.setOldSkinName("");
-        return packet;
-    }
-
     @Override
     protected BedrockPacket createAddEntityPacket() {
         AddPlayerPacket packet = new AddPlayerPacket();
@@ -406,6 +482,15 @@ public class EntityHuman extends EntityCreature implements Human {
         return packet;
     }
 
+    private PlayerSkinPacket createPlayerSkinPacket(SerializedSkin skin) {
+        PlayerSkinPacket packet = new PlayerSkinPacket();
+        packet.setUuid(this.getServerId());
+        packet.setSkin(skin);
+        packet.setNewSkinName(skin.getSkinId());
+        packet.setOldSkinName("");
+        return packet;
+    }
+
     @Override
     public void despawnFrom(Player player) {
         if (this.hasSpawned.contains(player)) {
@@ -424,185 +509,4 @@ public class EntityHuman extends EntityCreature implements Human {
         }
     }
 
-    @Override
-    protected DoubleUnaryOperator createDamageReduction(DamageSource source) {
-        DoubleUnaryOperator armor = source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR) ? damage -> damage : this.createArmorReduction();
-        DoubleUnaryOperator effects = super.createDamageReduction(source);
-        float enchantmentFactor = source.getDamageType().is(DamageTypeTags.BYPASSES_ENCHANTMENTS) ? 1 : this.getEnchantmentDamageFactor(source);
-        return damage -> Math.max(0, effects.applyAsDouble(armor.applyAsDouble(damage)) * enchantmentFactor);
-    }
-
-    @Override
-    protected void afterDamageApplied(EntityDamageEvent source, float damageBeforeReductions) {
-        super.afterDamageApplied(source, damageBeforeReductions);
-
-        Entity damager = source.getDamageSource().getCausingEntity();
-        for (int slot = 0; slot < 4; slot++) {
-            ItemStack armor = this.getArmor().getItem(slot);
-            ItemStack damagedArmor = armor;
-            if (!source.getDamageType().is(DamageTypeTags.BYPASSES_ARMOR)
-                    && !damagedArmor.isEmpty()
-                    && this.server.getItemRegistry().getComponent(damagedArmor.getType(), ItemBehaviors.ARMOR) != null
-                    && damageBeforeReductions > 0) {
-                int durabilityDamage = Math.max((int) (damageBeforeReductions / 4), 1);
-                damagedArmor = this.server.getItemRegistry()
-                        .requireComponent(damagedArmor.getType(), ItemBehaviors.ON_DAMAGE)
-                        .execute(damagedArmor, durabilityDamage, this);
-            }
-
-            if (damager != null && !damagedArmor.isEmpty()) {
-                damagedArmor = CloudEnchantmentRegistry.get().applyPostHurtEffects(damagedArmor, this, damager);
-            }
-
-            if (!damagedArmor.equals(armor)) {
-                this.getArmor().setItem(slot, damagedArmor);
-            }
-        }
-    }
-
-    private DoubleUnaryOperator createArmorReduction() {
-        float armorPoints = 0;
-        float toughness = 0;
-
-        ArmorView armorView = this.getArmor();
-        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-            ItemStack armor = armorView.getItem(armorSlot);
-            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemBehaviors.ARMOR);
-            if (armorComponent != null) {
-                armorPoints += armorComponent.defense();
-                toughness += armorComponent.toughness();
-            }
-        }
-
-        float toughnessFactor = 2 + toughness / 4;
-        float defense = armorPoints;
-        return damage -> {
-            double effectiveArmor = Math.clamp(defense - damage / toughnessFactor, defense * 0.2, 20);
-            return damage * (1 - effectiveArmor / 25);
-        };
-    }
-
-    private float getEnchantmentDamageFactor(DamageSource source) {
-        float enchantmentProtection = 0;
-        ArmorView armorView = this.getArmor();
-        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-            enchantmentProtection += CloudEnchantmentRegistry.get().getDamageProtection(armorView.getItem(armorSlot), source);
-        }
-
-        float enchantmentReduction = Math.min(enchantmentProtection, 20) * 0.04f;
-        return 1 - enchantmentReduction;
-    }
-
-    @Override
-    protected float getKnockbackResistance() {
-        float resistance = 0;
-        ArmorView armorView = this.getArmor();
-
-        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-            ItemStack armor = armorView.getItem(armorSlot);
-            ArmorComponent armorComponent = this.server.getItemRegistry().getComponent(armor.getType(), ItemBehaviors.ARMOR);
-            if (armorComponent != null) {
-                resistance += armorComponent.knockbackResistance();
-            }
-        }
-
-        return Math.clamp(resistance, 0, 1);
-    }
-
-    @Override
-    public void setOnFire(int seconds) {
-        int level = 0;
-
-        ArmorView armorView = getArmor();
-        for (int armorSlot = 0; armorSlot < armorView.size(); armorSlot++) {
-            Enchantment fireProtection = armorView.getItem(armorSlot).getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of())
-                    .get(EnchantmentTypes.FIRE_PROTECTION);
-            if (fireProtection != null) {
-                level = Math.max(level, fireProtection.level());
-            }
-        }
-
-        seconds = (int) (seconds * (1 - level * 0.15));
-
-        super.setOnFire(seconds);
-    }
-
-    @Override
-    public ItemStack[] getDrops() {
-        List<ItemStack> drops = new ArrayList<>(this.container.size() + this.armor.size() + this.offhand.size());
-        addDrops(drops, this.container.getContents());
-        addDrops(drops, this.armor.getContents());
-        addDrops(drops, this.offhand.getContents());
-        return drops.toArray(ItemStack[]::new);
-    }
-
-    private static void addDrops(List<ItemStack> drops, ItemStack[] contents) {
-        for (ItemStack item : contents) {
-            if (!item.isEmpty()
-                    && item.get(ItemDataComponents.KEEP_ON_DEATH) != Boolean.TRUE
-                    && !item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).containsKey(EnchantmentTypes.VANISHING)) {
-                drops.add(item);
-            }
-        }
-    }
-
-    public boolean isSneaking() {
-        return this.sneaking;
-    }
-
-    public void setSneaking(boolean value) {
-        this.sneaking = value;
-        this.recalculateBoundingBox();
-    }
-
-    public void setSneaking() {
-        this.setSneaking(true);
-    }
-
-    public boolean isSwimming() {
-        return this.swimming;
-    }
-
-    public void setSwimming(boolean value) {
-        this.swimming = value;
-        this.recalculateBoundingBox();
-    }
-
-    public void setSwimming() {
-        this.setSwimming(true);
-    }
-
-    public boolean isSprinting() {
-        return this.data.getFlag(SPRINTING);
-    }
-
-    public void setSprinting(boolean value) {
-        this.data.setFlag(SPRINTING, value);
-    }
-
-    public void setSprinting() {
-        this.setSprinting(true);
-    }
-
-    public boolean isGliding() {
-        return this.gliding;
-    }
-
-    public void setGliding(boolean value) {
-        this.gliding = value;
-        this.recalculateBoundingBox();
-    }
-
-    public void setGliding() {
-        this.setGliding(true);
-    }
-
-    public boolean isCrawling() {
-        return this.crawling;
-    }
-
-    public void setCrawling(boolean value) {
-        this.crawling = value;
-        this.recalculateBoundingBox();
-    }
 }

@@ -79,6 +79,32 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         return protection;
     }
 
+    public float getExplosionKnockbackResistance(ItemStack item) {
+        Preconditions.checkNotNull(item, "item");
+        float resistance = 0;
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
+            float contribution = this.getBehavior(enchantment.type()).getExplosionKnockbackResistance(enchantment);
+            Preconditions.checkArgument(Float.isFinite(contribution) && contribution >= 0,
+                    "Explosion knockback resistance must be finite and non-negative");
+            resistance = Math.min(1, resistance + contribution);
+        }
+
+        return resistance;
+    }
+
+    public float getBurningTimeReduction(ItemStack item) {
+        Preconditions.checkNotNull(item, "item");
+        float reduction = 0;
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
+            float contribution = this.getBehavior(enchantment.type()).getBurningTimeReduction(enchantment);
+            Preconditions.checkArgument(Float.isFinite(contribution) && contribution >= 0,
+                    "Burning time reduction must be finite and non-negative");
+            reduction = Math.min(1, reduction + contribution);
+        }
+
+        return reduction;
+    }
+
     public float modifyDamage(@NonNull ItemStack item, @NonNull Entity target, float damage) {
         Preconditions.checkNotNull(item, "item");
         Preconditions.checkNotNull(target, "target");
@@ -101,6 +127,16 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         }
 
         return modifiedKnockback;
+    }
+
+    public float modifyArmorEffectiveness(ItemStack item, float effectiveness) {
+        Preconditions.checkNotNull(item, "item");
+        float result = effectiveness;
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
+            result = this.getBehavior(enchantment.type()).modifyArmorEffectiveness(enchantment, result);
+        }
+        Preconditions.checkArgument(Float.isFinite(result), "Armor effectiveness must be finite");
+        return Math.clamp(result, 0, 1);
     }
 
     public void applyPostAttackEffects(@NonNull ItemStack item, @NonNull Entity attacker, @NonNull Entity target) {
@@ -223,7 +259,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         this.registerVanilla((short) 37, EnchantmentTypes.SWIFT_SNEAK, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 38, EnchantmentTypes.WIND_BURST, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 39, EnchantmentTypes.DENSITY, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla((short) 40, EnchantmentTypes.BREACH, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla((short) 40, EnchantmentTypes.BREACH, new EnchantmentBreach());
         this.registerVanilla((short) 41, EnchantmentTypes.LUNGE, NoopEnchantmentBehavior.INSTANCE);
     }
 }

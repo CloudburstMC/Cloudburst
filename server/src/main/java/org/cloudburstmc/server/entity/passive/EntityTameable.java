@@ -48,7 +48,7 @@ public abstract class EntityTameable extends Animal implements Ownable {
 
     @Override
     public long getOwnerId() {
-        return this.data.get(OWNER_EID);
+        return this.data.require(OWNER_EID);
     }
 
     @Override

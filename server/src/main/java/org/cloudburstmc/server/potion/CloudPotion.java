@@ -2,8 +2,8 @@ package org.cloudburstmc.server.potion;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
@@ -22,7 +22,15 @@ public class CloudPotion {
     }
 
     public void apply(Entity entity, double intensity, float durationScale, DamageSource damageSource, @Nullable Entity source, PotionEffectCause cause) {
-        if (!(entity instanceof EntityLiving)) {
+        requireNonNull(entity, "entity");
+        requireNonNull(damageSource, "damageSource");
+        requireNonNull(cause, "cause");
+
+        if (!Double.isFinite(intensity) || intensity < 0 || !Float.isFinite(durationScale) || durationScale < 0) {
+            throw new IllegalArgumentException("Potion intensity and duration scale must be finite and non-negative");
+        }
+
+        if (!(entity instanceof EntityLiving) || intensity == 0) {
             return;
         }
 
@@ -36,10 +44,8 @@ public class CloudPotion {
             return;
         }
 
-        if (effect.getType() == EffectTypes.INSTANT_HEALTH) {
-            this.applyInstantHealth(entity, effect.getAmplifier(), intensity, damageSource);
-        } else if (effect.getType() == EffectTypes.INSTANT_DAMAGE) {
-            this.applyInstantDamage(entity, effect.getAmplifier(), intensity, damageSource);
+        if (effect.getType() == EffectTypes.INSTANT_HEALTH || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
+            this.applyInstantEffect(entity, effect, intensity, damageSource);
         } else if (effect.getType() == EffectTypes.SATURATION) {
             if (entity instanceof CloudPlayer player) {
                 int nutrition = effect.getAmplifier() + 1;
@@ -54,19 +60,17 @@ public class CloudPotion {
         }
     }
 
-    private void applyInstantHealth(Entity entity, int amplifier, double intensity, DamageSource damageSource) {
-        if (entity.isUndead()) {
-            entity.damage((float) (intensity * (6 << amplifier) + 0.5), damageSource);
-        } else {
-            entity.heal(new EntityRegainHealthEvent(entity, (float) (intensity * (4 << amplifier) + 0.5), EntityRegainHealthEvent.CAUSE_MAGIC));
+    private void applyInstantEffect(Entity entity, PotionEffect effect, double intensity, DamageSource damageSource) {
+        boolean heals = (effect.getType() == EffectTypes.INSTANT_HEALTH) != entity.isUndead();
+        int amount = (int) (Math.scalb(intensity * (heals ? 4 : 6), effect.getAmplifier()) + 0.5);
+        if (amount == 0) {
+            return;
         }
-    }
 
-    private void applyInstantDamage(Entity entity, int amplifier, double intensity, DamageSource damageSource) {
-        if (entity.isUndead()) {
-            entity.heal(new EntityRegainHealthEvent(entity, (float) (intensity * (4 << amplifier) + 0.5), EntityRegainHealthEvent.CAUSE_MAGIC));
+        if (heals) {
+            entity.heal(amount, RegainReason.MAGIC);
         } else {
-            entity.damage((float) (intensity * (6 << amplifier) + 0.5), damageSource);
+            entity.damage(amount, damageSource);
         }
     }
 }

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.entity.projectile.AbstractWindCharge;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Ability;
@@ -10,6 +11,8 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.level.Explosion;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -101,7 +104,7 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
     private void burst(Vector3f position) {
         float reach = this.burstRadius() * 2;
         for (Entity entity : this.getLevel().getNearbyEntities(new BoundingBox(position, position).inflate(reach, reach, reach))) {
-            if (entity == this) {
+            if (entity == this || entity.isClosed()) {
                 continue;
             }
 
@@ -112,17 +115,20 @@ public abstract class EntityAbstractWindCharge extends EntityProjectile implemen
                 continue;
             }
 
-            if (entity instanceof CloudPlayer flyingPlayer && flyingPlayer.getAbilities().get(Ability.FLYING)) {
+            if (entity instanceof CloudPlayer flyingPlayer && (flyingPlayer.isSpectator() || flyingPlayer.getAbilities().get(Ability.FLYING))) {
                 continue;
             }
 
             float strength = (float) ((1 - distance / reach) * Explosion.getSeenPercent(position, entity) * this.burstKnockbackMultiplier());
+            if (entity instanceof EntityLiving living) {
+                strength *= 1 - living.getExplosionKnockbackResistance();
+            }
+
             if (strength <= 0) {
                 continue;
             }
 
-            Vector3f movement = entity.getMotion();
-            entity.setMotion(movement.add(delta.normalize().mul(strength)));
+            ((CloudEntity) entity).applyKnockback(delta.normalize().mul(strength), KnockbackCause.EXPLOSION, this.getOwner());
         }
 
         this.getLevel().addChunkPacket(position, LevelEffectPacketFactory.event(position, this.burstParticle(), 0));

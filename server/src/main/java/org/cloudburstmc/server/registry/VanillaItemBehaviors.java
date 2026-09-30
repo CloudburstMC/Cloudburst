@@ -9,12 +9,10 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.component.ArmorComponent;
-import org.cloudburstmc.api.item.component.AttackBlockingComponent;
-import org.cloudburstmc.api.item.component.CanRepairWithHandler;
-import org.cloudburstmc.api.item.component.ConsumableComponent;
-import org.cloudburstmc.api.item.component.SpawnEggComponent;
+import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.item.ArmorMaterial;
@@ -317,6 +315,14 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.TNT_MINECART)
                 .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.TNT_MINECART));
         configureSpawnEgg(registry, ItemTypes.TRADER_LLAMA_SPAWN_EGG, EntityTypes.TRADER_LLAMA);
+        registry.configure(ItemTypes.TOTEM_OF_UNDYING)
+                .set(ItemBehaviors.ALLOW_OFFHAND, () -> true)
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.DEATH_PROTECTION, new DeathProtectionComponent(1, true, List.of(
+                        new PotionEffect(EffectTypes.REGENERATION, 900, 1),
+                        new PotionEffect(EffectTypes.ABSORPTION, 100, 1),
+                        new PotionEffect(EffectTypes.FIRE_RESISTANCE, 800, 0)
+                ), SoundTypes.RANDOM_TOTEM));
         configureDamageableEnchantableTool(
                 registry,
                 ItemTypes.TRIDENT,

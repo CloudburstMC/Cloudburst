@@ -93,13 +93,17 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent event) {
+        if (this.isDamageImmune(event.getDamageSource())) {
+            return false;
+        }
+
         Entity direct = event.getDamageSource().getDirectEntity();
         boolean burningProjectile = direct instanceof Projectile && direct.isOnFire();
         if (this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES) && (burningProjectile
                 || event.getDamageType().is(DamageTypeTags.IS_FIRE)
                 || event.getDamageType().is(DamageTypeTags.IS_EXPLOSION))) {
             this.getServer().getEventManager().fire(event);
-            if (event.isCancelled() || event.getDamage() <= 0) {
+            if (event.isCancelled() || event.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
                 return false;
             }
 

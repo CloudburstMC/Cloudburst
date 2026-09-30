@@ -5,6 +5,7 @@ import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
@@ -122,14 +123,13 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (invulnerable) {
+        if (invulnerable && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else {
-            source.setDamage(source.getDamage() * 2);
+            source.setDamage((float) Math.min((double) source.getDamage() * 2, Float.MAX_VALUE));
 
             boolean attack = super.applyDamage(source);
-
-            if (isAlive()) {
+            if (attack && isAlive()) {
                 performHurtAnimation();
             }
 
@@ -423,7 +423,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public boolean canCollideWith(Entity entity) {
-        return (entity.canBeCollidedWith(this) || entity.isPushable()) && !this.isPassengerOfSameVehicle(entity);
+        if (this.sharesRootVehicle(entity)) {
+            return false;
+        }
+        return entity.canBeCollidedWith(this) || entity.isPushable();
     }
 
     @Override
@@ -438,6 +441,10 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public void kill() {
+        if (this.isClosed() || !this.isAlive()) {
+            return;
+        }
+
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {

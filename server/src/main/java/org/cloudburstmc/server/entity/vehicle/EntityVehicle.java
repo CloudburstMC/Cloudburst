@@ -13,10 +13,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
-/**
- * author: MagicDroidX
- * Nukkit Project
- */
 public abstract class EntityVehicle extends CloudEntity implements Vehicle, Interactable {
 
     public EntityVehicle(EntityType<?> type, Location location) {
@@ -83,31 +79,35 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
     }
 
     @Override
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
+    protected boolean prepareDamage(CloudEntityDamageEvent source) {
         Entity attacker = source.getDamageSource().getCausingEntity();
-        VehicleDamageEvent event = new VehicleDamageEvent(this, attacker, source.getDamage());
+        VehicleDamageEvent event = new VehicleDamageEvent(this, source.getDamageSource(), source.getDamage());
         getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
+            source.setCancelled(true);
             return false;
         }
 
-        boolean instantKill = false;
+        source.setDamage(event.getDamage());
+        if (source.getDamage() <= 0) {
+            return false;
+        }
 
-        instantKill = attacker instanceof CloudPlayer player && player.isCreative();
+        boolean instantKill = attacker instanceof CloudPlayer player && player.isCreative();
+        if (instantKill) {
+            source.setDamage(Math.max(source.getDamage(), this.getHealth()));
+        }
 
-        if (instantKill || getHealth() - source.getDamage() < 1) {
-            VehicleDestroyEvent event2 = new VehicleDestroyEvent(this, attacker);
-            getServer().getEventManager().fire(event2);
+        if (getHealth() - source.getFinalDamage() <= 0) {
+            VehicleDestroyEvent destroyEvent = new VehicleDestroyEvent(this, source.getDamageSource());
+            getServer().getEventManager().fire(destroyEvent);
 
-            if (event2.isCancelled()) {
+            if (destroyEvent.isCancelled()) {
+                source.setCancelled(true);
                 return false;
             }
         }
 
-        if (instantKill) {
-            source.setDamage(1000);
-        }
-
-        return super.applyDamage(source);
+        return true;
     }
 }

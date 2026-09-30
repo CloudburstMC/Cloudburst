@@ -12,6 +12,7 @@ import org.cloudburstmc.api.item.Tool;
 import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.particle.ItemParticleOptions;
 import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
@@ -23,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @UtilityClass
 public class DefaultItemHandlers {
 
-    public static final DamageChanceHandler GET_DAMAGE_CHANCE = unbreakingLevel -> 100f / (unbreakingLevel + 1);
+    public static final DamageChanceHandler GET_DAMAGE_CHANCE = unbreakingLevel -> 100f / (unbreakingLevel + 1.0f);
 
     public static final MineBlockHandler MINE_BLOCK = (itemStack, block, owner) -> {
         if (block.getState().getHardness() != 0) {
@@ -31,14 +32,17 @@ public class DefaultItemHandlers {
             if (tool == null || tool.damagePerBlock() == 0) {
                 return itemStack;
             }
+
             return CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.ON_DAMAGE)
                     .execute(itemStack, tool.damagePerBlock(), owner);
         }
+
         return itemStack;
     };
 
     public static final DamageItemHandler ON_DAMAGE = (itemStack, damage, owner) -> {
-        if (damage <= 0 || itemStack.isEmpty() || !owner.isAlive() || itemStack.isUnbreakable()) {
+        if (damage <= 0 || itemStack.isEmpty() || !owner.isAlive() || itemStack.isUnbreakable()
+                || owner instanceof Player player && player.isCreative()) {
             return itemStack;
         }
 
@@ -55,32 +59,31 @@ public class DefaultItemHandlers {
         DamageChanceHandler getDamageChance = CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.GET_DAMAGE_CHANCE);
         float damageChance = getDamageChance.execute(enchantmentLevel);
 
-        damageChance = Math.clamp(damageChance, 0, 100);
-        int appliedDamage = 0;
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < damage; i++) {
-            if (random.nextFloat(100) < damageChance) {
-                appliedDamage++;
-            }
+        if (!Float.isFinite(damageChance)) {
+            throw new IllegalArgumentException("Durability damage chance must be finite");
         }
 
+        damageChance = Math.clamp(damageChance, 0, 100);
+        if (damageChance == 0) {
+            return itemStack;
+        }
+
+        int remainingDurability = Math.max(1, maxDamage - itemStack.getDamage());
+        int appliedDamage = sampleDurabilityDamage(damage, remainingDurability, damageChance / 100.0);
         if (appliedDamage == 0) {
             return itemStack;
         }
 
-        int damageValue = itemStack.getDamage() + appliedDamage;
-
+        long damageValue = (long) itemStack.getDamage() + appliedDamage;
         if (damageValue >= maxDamage) {
             CloudItemRegistry.get().requireComponent(itemStack.getType(), ItemBehaviors.ON_BREAK).execute(itemStack, owner);
             return ItemStack.EMPTY;
         }
 
-        return itemStack.withDamage(damageValue);
+        return itemStack.withDamage((int) damageValue);
     };
 
-    public static final UseOnHandler USE_ON = (itemStack, entity, blockPosition, face, clickPosition) -> {
-        return itemStack;
-    };
+    public static final UseOnHandler USE_ON = (itemStack, entity, blockPosition, face, clickPosition) -> itemStack;
 
     /**
      * Allows placement only on blocks explicitly listed in the item's {@code CAN_PLACE_ON} data.
@@ -109,5 +112,25 @@ public class DefaultItemHandlers {
                 }
             }
         };
+    }
+
+    private static int sampleDurabilityDamage(int attempts, int limit, double probability) {
+        if (probability >= 1) {
+            return Math.min(attempts, limit);
+        }
+
+        double logFailure = Math.log1p(-probability);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        int applied = 0;
+        while (attempts > 0 && applied < limit) {
+            double gap = Math.floor(Math.log1p(-random.nextDouble()) / logFailure) + 1;
+            if (gap > attempts) {
+                break;
+            }
+            attempts -= (int) gap;
+            applied++;
+        }
+
+        return applied;
     }
 }

@@ -6,6 +6,7 @@ import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -15,6 +16,7 @@ import org.cloudburstmc.api.entity.component.PickItemEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.entity.*;
@@ -76,16 +78,24 @@ public abstract class CloudEntity implements Entity {
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
+    @Getter
     protected final List<Entity> passengers = new ArrayList<>();
+    @Getter
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
+    @Getter
     protected final SyncedEntityData data = new SyncedEntityData();
+    @Getter
     private final EntityType<?> type;
+    @Getter
     public CloudChunk chunk;
+    @Getter
     public NbtMap tag;
     public float highestPosition;
     public boolean firstMove = true;
+    @Getter
     protected Vector3f position = Vector3f.ZERO;
     protected Vector3f lastPosition = Vector3f.ZERO;
+    @Getter
     protected Vector3f motion = Vector3f.ZERO;
     protected Vector3f lastMotion = Vector3f.ZERO;
     protected Vector3f stuckSpeedMultiplier = Vector3f.ZERO;
@@ -96,6 +106,7 @@ public abstract class CloudEntity implements Entity {
     protected float pitchDelta;
     protected float yawDelta;
     protected float entityCollisionReduction = 0; // Higher than 0.9 will result a fast collisions
+    @Getter
     public boolean onGround;
     public boolean inBlock = false;
     public boolean positionChanged;
@@ -110,7 +121,9 @@ public abstract class CloudEntity implements Entity {
     private int portalCooldown;
     public boolean pendingPortalTransfer = false;
     public Vector3i portalEntryBlock = null;
+    @Getter
     public float scale = 1;
+    @Getter
     protected BoundingBox boundingBox;
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
@@ -119,15 +132,19 @@ public abstract class CloudEntity implements Entity {
     protected Optional<Vector3i> supportingBlockPosition = Optional.empty();
     boolean onGroundNoBlocks = false;
     public int noDamageTicks;
-    public boolean justCreated;
+    public boolean justCreated = true;
     public boolean fireProof;
+    @Setter
+    @Getter
     public boolean invulnerable;
     protected boolean noPhysics;
     protected CloudLevel level;
     @Getter
     public boolean closed = false;
+    @Getter
     protected Entity vehicle;
     private @Nullable Entity owner;
+    @Setter
     protected EntityDamageEvent lastDamageCause = null;
     private final Set<String> tags = new LinkedHashSet<>();
     protected int age = 0;
@@ -140,6 +157,8 @@ public abstract class CloudEntity implements Entity {
     private int maxHealth = 20;
     private int freezeTicks;
     private boolean freezeTickingLocked;
+    @Setter
+    @Getter
     private boolean fromBucket;
     private volatile boolean spawned;
     private volatile boolean initialized;
@@ -156,215 +175,60 @@ public abstract class CloudEntity implements Entity {
     public CloudEntity(EntityType<?> type, Location location) {
         this.type = Objects.requireNonNull(type, "type");
         Objects.requireNonNull(location, "location");
-    }
 
-    @Override
-    public Pose getPose() {
-        return Pose.STANDING;
-    }
-
-    public float getHeight() {
-        return 0;
-    }
-
-    public float getEyeHeight() {
-        return this.getHeight() / 2 + 0.1f;
-    }
-
-    public float getWidth() {
-        return 0;
-    }
-
-    public float getLength() {
-        return 0;
-    }
-
-    protected float getStepHeight() {
-        return 0;
-    }
-
-    protected boolean hasMovementEntityCollisions() {
-        return true;
-    }
-
-    public boolean canCollide() {
-        return true;
-    }
-
-    public float getGravity() {
-        return 0;
-    }
-
-    public float getDrag() {
-        return 0;
-    }
-
-    public float getBaseOffset() {
-        return 0;
-    }
-
-    /**
-     * Returns the number of ticks this entity must wait after a portal transfer
-     * before it can use another portal.
-     */
-    public int getPortalCooldownTicks() {
-        return PORTAL_COOLDOWN_TICKS;
-    }
-
-    public final boolean isOnPortalCooldown() {
-        return this.portalCooldown > 0;
-    }
-
-    public final void setPortalCooldown() {
-        this.portalCooldown = this.getPortalCooldownTicks();
-    }
-
-    protected final void clearPortalCooldown() {
-        this.portalCooldown = 0;
-    }
-
-    /**
-     * Returns the number of ticks the entity must spend inside a portal before
-     * being transferred.
-     */
-    protected int getPortalTransitionTicks() {
-        return PORTAL_TRANSFER_TICKS;
-    }
-
-    protected void tickPortalCooldown() {
-        this.portalCooldown--;
-    }
-
-    protected void onInsidePortal() {
-        if (this.getVehicle() == null) {
-            if (this.isOnPortalCooldown()) {
-                this.setPortalCooldown();
-            } else {
-                this.inPortalTicks = PORTAL_TRANSFER_TICKS;
-            }
-        }
-    }
-
-    public boolean enterNetherPortal(Vector3i position) {
-        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.NETHER);
-        this.server.getEventManager().fire(event);
-        return !event.isCancelled();
-    }
-
-    public void enterEndPortal(Vector3i position) {
-        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
-            return;
-        }
-
-        if (this instanceof CloudPlayer player && player.isShowingEndCredits()) {
-            return;
-        }
-
-        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return;
-        }
-
-        this.setPortalCooldown();
-        if (!EndPortals.transfer(this)) {
-            this.clearPortalCooldown();
-        }
-    }
-
-    public boolean enterEndGateway(Vector3i position) {
-        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
-            return false;
-        }
-
-        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END_GATEWAY);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        this.setPortalCooldown();
-        if (!EndGateways.transfer(this, position)) {
-            this.clearPortalCooldown();
-            return false;
-        }
-
-        return true;
-    }
-
-    protected void initEntity() {
         this.data.setFlag(HAS_COLLISION, true);
         this.data.set(AIR_SUPPLY, (short) 400);
         this.data.set(AIR_SUPPLY_MAX, (short) 400);
+        this.data.set(NAMETAG_ALWAYS_SHOW, (byte) 0);
+        this.data.set(OWNER_EID, -1L);
         this.data.set(LEASH_HOLDER, -1L);
         this.data.set(SCALE, 1f);
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
+    }
+
+    /**
+     * Initializes the entity after its constructor and subclass fields are complete.
+     */
+    public final void initialize(Location location) {
+        Objects.requireNonNull(location, "location");
+        if (this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+
+        this.timing = Timings.getEntityTiming(this.getType());
+
+        this.isPlayer = this instanceof CloudPlayer;
+
+        this.chunk = (CloudChunk) location.getLevel().getLoadedChunk(location.getPosition());
+        this.level = (CloudLevel) location.getLevel();
+        this.server = (CloudServer) location.getLevel().getServer();
+
+        this.position = location.getPosition();
+        this.lastPosition = this.position;
+        this.yaw = location.getYaw();
+        this.pitch = location.getPitch();
+        this.lastYaw = this.yaw;
+        this.lastPitch = this.pitch;
+
+        this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
+
+        this.initEntity();
+        this.recalculateBoundingBox();
+
+        this.lastUpdate = this.server.getTick();
+
+        if (this.isPlayer) {
+            this.registerInLevel(location);
+        }
+    }
+
+    protected void initEntity() {
         this.updateNetworkBounds();
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
     }
 
-    public EntityType<?> getType() {
-        return type;
-    }
-
-    @Override
-    public ItemStack getPickItem(boolean includeData) {
-        PickItemEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.GET_PICK_ITEM);
-        ItemStack item = handler == null ? ItemStack.EMPTY : Objects.requireNonNull(handler.execute(this, includeData), "picked item");
-
-        if (!includeData || item.isEmpty() || item.has(ItemDataComponents.ENTITY_DATA)) {
-            return item;
-        }
-
-        return this.createSnapshot()
-                .map(snapshot -> item.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build())
-                .orElse(item);
-    }
-
-    @Override
-    public Optional<EntitySnapshot> createSnapshot() {
-        if (this instanceof CloudPlayer || this.type == EntityTypes.PLAYER || Player.class.isAssignableFrom(this.type.getEntityClass())) {
-            return Optional.empty();
-        }
-
-        return Optional.of(CloudEntitySnapshot.capture(this));
-    }
-
-    @Override
-    public CloudLevel getLevel() {
-        return level;
-    }
-
-    public CloudChunk getChunk() {
-        return chunk;
-    }
-
-    @Override
-    public float getX() {
-        return this.position.getX();
-    }
-
-    @Override
-    public float getY() {
-        return this.position.getY();
-    }
-
-    @Override
-    public float getZ() {
-        return this.position.getZ();
-    }
-
-    @Override
-    public float getPitch() {
-        return pitch;
-    }
-
-    @Override
-    public float getYaw() {
-        return yaw;
-    }
-
-    // @Override
     public void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
@@ -383,7 +247,7 @@ public abstract class CloudEntity implements Entity {
 
         tag.listenForShort("Fire", this::setOnFire);
 
-        tag.listenForShort("Air", this::setAir);
+        tag.listenForShort("Air", this::setAirTicks);
 
         tag.listenForBoolean("OnGround", this::setOnGround);
 
@@ -416,7 +280,6 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    // @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         if (this.tag != null && !this.tag.isEmpty()) {
             tag.putAll(this.tag);
@@ -453,7 +316,7 @@ public abstract class CloudEntity implements Entity {
 
         tag.putFloat("FallDistance", this.fallDistance);
         tag.putShort("Fire", (short) this.fireTicks);
-        tag.putShort("Air", this.data.get(AIR_SUPPLY));
+        tag.putShort("Air", this.data.require(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
         tag.putBoolean("Invulnerable", this.invulnerable);
 
@@ -477,8 +340,82 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public SyncedEntityData getData() {
-        return this.data;
+    @Override
+    public Optional<EntitySnapshot> createSnapshot() {
+        if (this instanceof CloudPlayer || this.type == EntityTypes.PLAYER || Player.class.isAssignableFrom(this.type.getEntityClass())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(CloudEntitySnapshot.capture(this));
+    }
+
+    @Override
+    public ItemStack getPickItem(boolean includeData) {
+        PickItemEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.GET_PICK_ITEM);
+        ItemStack item = handler == null ? ItemStack.EMPTY : Objects.requireNonNull(handler.execute(this, includeData), "picked item");
+
+        if (!includeData || item.isEmpty() || item.has(ItemDataComponents.ENTITY_DATA)) {
+            return item;
+        }
+
+        return this.createSnapshot()
+                .map(snapshot -> item.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build())
+                .orElse(item);
+    }
+
+    public long getUniqueId() {
+        return this.runtimeId;
+    }
+
+    @Override
+    public CloudServer getServer() {
+        return server;
+    }
+
+    @Override
+    public CloudLevel getLevel() {
+        return level;
+    }
+
+    @Nullable
+    @Override
+    public Entity getOwner() {
+        long ownerId = this.data.require(OWNER_EID);
+        if (ownerId == -1) {
+            this.owner = null;
+        } else if (this.owner == null || this.owner.getUniqueId() != ownerId) {
+            this.owner = this.level.getEntityByRuntimeId(ownerId);
+        }
+
+        return this.owner;
+    }
+
+    @Override
+    public void setOwner(@Nullable Entity entity) {
+        this.owner = entity;
+        this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
+    }
+
+    public String getName() {
+        if (this.hasNameTag()) {
+            return this.getNameTag();
+        }
+
+        String name = CloudEntityRegistry.get().getLegacyName(this.type.getId());
+        return name != null ? name : this.type.getId().toString();
+    }
+
+    @Override
+    public Component displayName() {
+        if (this.hasNameTag()) {
+            return Component.text(this.getNameTag());
+        }
+
+        if ("minecraft".equals(this.type.getId().getNamespace())) {
+            return Component.translatable("entity." + this.type.getId().getName() + ".name");
+        }
+
+        return Component.text(this.type.getId().toString());
     }
 
     public boolean hasNameTag() {
@@ -492,6 +429,39 @@ public abstract class CloudEntity implements Entity {
 
     public void setNameTag(String name) {
         this.data.set(NAME, name);
+    }
+
+    public boolean isNameTagVisible() {
+        return this.data.getFlag(CAN_SHOW_NAME);
+    }
+
+    public void setNameTagVisible(boolean value) {
+        this.data.setFlag(CAN_SHOW_NAME, value);
+    }
+
+    public void setNameTagVisible() {
+        this.setNameTagVisible(true);
+    }
+
+    public boolean isNameTagAlwaysVisible() {
+        return this.data.require(NAMETAG_ALWAYS_SHOW) == 1;
+    }
+
+    public void setNameTagAlwaysVisible(boolean value) {
+        this.data.set(NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
+    }
+
+    public void setNameTagAlwaysVisible() {
+        this.setNameTagAlwaysVisible(true);
+    }
+
+    public String getScoreTag() {
+        CharSequence value = this.data.get(SCORE);
+        return value != null ? value.toString() : "";
+    }
+
+    public void setScoreTag(String score) {
+        this.data.set(SCORE, score);
     }
 
     @Override
@@ -518,37 +488,173 @@ public abstract class CloudEntity implements Entity {
         return this.tags.remove(Objects.requireNonNull(tag, "tag"));
     }
 
-    public boolean isNameTagVisible() {
-        return this.data.getFlag(CAN_SHOW_NAME);
+    @Override
+    public Pose getPose() {
+        return Pose.STANDING;
     }
 
-    public void setNameTagVisible(boolean value) {
-        this.data.setFlag(CAN_SHOW_NAME, value);
+    public float getWidth() {
+        return 0;
     }
 
-    public void setNameTagVisible() {
-        this.setNameTagVisible(true);
+    public float getLength() {
+        return 0;
     }
 
-    public boolean isNameTagAlwaysVisible() {
-        return this.data.get(NAMETAG_ALWAYS_SHOW) == 1;
+    public float getHeight() {
+        return 0;
     }
 
-    public void setNameTagAlwaysVisible(boolean value) {
-        this.data.set(NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
+    public float getEyeHeight() {
+        return this.getHeight() / 2 + 0.1f;
     }
 
-    public void setNameTagAlwaysVisible() {
-        this.setNameTagAlwaysVisible(true);
+    public float getBaseOffset() {
+        return 0;
     }
 
-    public String getScoreTag() {
-        CharSequence value = this.data.get(SCORE);
-        return value != null ? value.toString() : "";
+
+    public void setScale(float scale) {
+        this.scale = scale;
+        this.data.set(SCALE, this.scale);
+        this.recalculateBoundingBox();
     }
 
-    public void setScoreTag(String score) {
-        this.data.set(SCORE, score);
+    public void recalculateBoundingBox() {
+        float height = this.getHeight() * this.scale;
+        float radius = (this.getWidth() * this.scale) / 2;
+        this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
+                this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
+
+        this.updateNetworkBounds();
+    }
+
+    private void updateNetworkBounds() {
+        this.data.set(WIDTH, this.getWidth());
+        this.data.set(HEIGHT, this.getHeight());
+        if (this.isPlayer) {
+            this.data.set(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    protected void putNetworkBounds(EntityDataMap metadata) {
+        metadata.put(WIDTH, this.getWidth());
+        metadata.put(HEIGHT, this.getHeight());
+        if (this.isPlayer) {
+            metadata.put(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    private Vector3f getNetworkCollisionBox() {
+        return Vector3f.from(this.getWidth(), this.getHeight(), this.getLength());
+    }
+
+    public boolean setPosition(Vector3f pos) {
+        checkNotNull(pos, "position");
+        if (this.closed) {
+            return false;
+        }
+
+        this.position = pos;
+        this.recalculateBoundingBox();
+        this.checkChunks();
+
+        return true;
+    }
+
+    public Location getLocation() {
+        return Location.from(this.position, this.yaw, this.pitch, this.level);
+    }
+
+    @Override
+    public float getX() {
+        return this.position.getX();
+    }
+
+    @Override
+    public float getY() {
+        return this.position.getY();
+    }
+
+    @Override
+    public float getZ() {
+        return this.position.getZ();
+    }
+
+    @Override
+    public float getYaw() {
+        return yaw;
+    }
+
+    @Override
+    public float getPitch() {
+        return pitch;
+    }
+
+    public void setRotation(float yaw, float pitch) {
+        this.yaw = yaw;
+        this.pitch = pitch;
+        this.scheduleUpdate();
+    }
+
+    public boolean setPositionAndRotation(Vector3f pos, float yaw, float pitch) {
+        if (this.setPosition(pos)) {
+            this.setRotation(yaw, pitch);
+            return true;
+        }
+
+        return false;
+    }
+
+    public Direction getDirection() {
+        double rotation = this.yaw % 360;
+        if (rotation < 0) {
+            rotation += 360.0;
+        }
+
+        if ((0 <= rotation && rotation < 45) || (315 <= rotation && rotation < 360)) {
+            return Direction.SOUTH;
+        } else if (45 <= rotation && rotation < 135) {
+            return Direction.WEST;
+        } else if (135 <= rotation && rotation < 225) {
+            return Direction.NORTH;
+        } else if (225 <= rotation && rotation < 315) {
+            return Direction.EAST;
+        } else {
+            return null;
+        }
+    }
+
+    public Direction getHorizontalDirection() {
+        return Direction.fromYaw(this.yaw);
+    }
+
+    public CardinalDirection getCardinalDirection() {
+        return CardinalDirection.values()[GenericMath.floor((((this.yaw + 180) % 360) / 22.5))];
+    }
+
+    public Vector3f getDirectionVector() {
+        double y = -Math.sin(Math.toRadians(this.getPitch()));
+        double xz = Math.cos(Math.toRadians(this.getPitch()));
+        double x = -xz * Math.sin(Math.toRadians(this.getYaw()));
+        double z = xz * Math.cos(Math.toRadians(this.getYaw()));
+        return GenericMath.normalizeSafe(Vector3f.from(x, y, z));
+    }
+
+    public Vector2f getDirectionPlane() {
+        return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
+    }
+
+    public float getGravity() {
+        return 0;
+    }
+
+    public float getDrag() {
+        return 0;
+    }
+
+    protected float getStepHeight() {
+        return 0;
     }
 
     public boolean isImmobile() {
@@ -587,658 +693,251 @@ public abstract class CloudEntity implements Entity {
         this.data.setFlag(WALL_CLIMBING, value);
     }
 
-    public float getScale() {
-        return this.scale;
-    }
-
-    public void setScale(float scale) {
-        this.scale = scale;
-        this.data.set(SCALE, this.scale);
-        this.recalculateBoundingBox();
-    }
-
-    public short getAir() {
-        return this.data.get(AIR_SUPPLY);
-    }
-
-    public void setAir(short air) {
-        this.data.set(AIR_SUPPLY, air);
-    }
-
-    public boolean isInvulnerable() {
-        return invulnerable;
-    }
-
-    public void setInvulnerable(boolean invulnerable) {
-        this.invulnerable = invulnerable;
-    }
-
-    public List<Entity> getPassengers() {
-        return passengers;
-    }
-
-    public Entity getPassenger() {
-        return Iterables.getFirst(this.passengers, null);
-    }
-
-    public boolean isPassenger(Entity entity) {
-        return this.passengers.contains(entity);
-    }
-
-    public boolean isControlling(Entity entity) {
-        return this.passengers.indexOf(entity) == 0;
-    }
-
-    public boolean hasControllingPassenger() {
-        return !this.passengers.isEmpty() && isControlling(this.passengers.getFirst());
-    }
-
-    public Entity getVehicle() {
-        return vehicle;
-    }
-
-    public Map<EffectType, PotionEffect> getActivePotionEffects() {
-        Map<EffectType, PotionEffect> snapshots = new LinkedHashMap<>(this.effects.size());
-        this.effects.forEach((type, effect) -> snapshots.put(type, effect.snapshot()));
-        return Map.copyOf(snapshots);
-    }
-
-    @Nullable
-    public PotionEffect getPotionEffect(EffectType type) {
-        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
-        return effect == null ? null : effect.snapshot();
-    }
-
-    public boolean hasPotionEffect(EffectType type) {
-        return this.effects.containsKey(checkNotNull(type, "type"));
-    }
-
-    public boolean addPotionEffect(PotionEffect effect) {
-        return this.addPotionEffect(effect, null, PotionEffectCause.PLUGIN);
-    }
-
-    public boolean addPotionEffect(PotionEffect effect, @Nullable Entity source, PotionEffectCause cause) {
-        checkNotNull(effect, "effect");
-        checkNotNull(cause, "cause");
-        checkState(this instanceof Living, "Potion effects can only be applied to living entities");
-
-        ActivePotionEffect oldEffect = this.effects.get(effect.getType());
-        PotionEffect oldEffectSnapshot = oldEffect == null ? null : oldEffect.snapshot();
-        PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;
-        boolean override = oldEffectSnapshot == null || shouldOverrideEffect(oldEffectSnapshot, effect);
-
-        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffectSnapshot, effect, source, cause, action, override);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled() || action == PotionEffectAction.CHANGED && !event.isOverride()) {
-            return false;
-        }
-
-        ActivePotionEffect newEffect = ActivePotionEffect.from(effect);
-        newEffect.onApplied(this, oldEffect);
-        this.effects.put(newEffect.getType(), newEffect);
-
-        this.recalculateEffectColor();
-
-        if (newEffect.getType() == EffectTypes.HEALTH_BOOST) {
-            this.setHealth(this.getHealth() + 4 * (newEffect.getAmplifier() + 1));
-        }
-
-        return true;
-    }
-
-    public boolean removePotionEffect(EffectType type) {
-        return this.removePotionEffect(type, PotionEffectCause.PLUGIN);
-    }
-
-    public boolean removePotionEffect(EffectType type, PotionEffectCause cause) {
-        checkState(this instanceof Living, "Potion effects can only be removed from living entities");
-        checkNotNull(cause, "cause");
-        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
-        if (effect == null) {
-            return false;
-        }
-
-        PotionEffect oldEffect = effect.snapshot();
-        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffect, null, null, cause, PotionEffectAction.REMOVED, false);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        this.effects.remove(type);
-        effect.onRemoved(this);
-        this.recalculateEffectColor();
-        return true;
-    }
-
-    public boolean clearActivePotionEffects() {
-        return this.clearActivePotionEffects(PotionEffectCause.PLUGIN);
-    }
-
-    public boolean clearActivePotionEffects(PotionEffectCause cause) {
-        checkNotNull(cause, "cause");
-        boolean changed = false;
-        for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
-            changed |= this.removePotionEffect(effect.getType(), cause);
-        }
-        return changed;
-    }
-
-    private void restorePotionEffect(PotionEffect effect) {
-        ActivePotionEffect activeEffect = ActivePotionEffect.from(effect);
-        activeEffect.onApplied(this, this.effects.get(effect.getType()));
-        this.effects.put(effect.getType(), activeEffect);
-        this.recalculateEffectColor();
-    }
-
-    private static boolean shouldOverrideEffect(PotionEffect oldEffect, PotionEffect newEffect) {
-        return newEffect.getAmplifier() > oldEffect.getAmplifier()
-                || (newEffect.getAmplifier() == oldEffect.getAmplifier()
-                    && oldEffect.isShorterThan(newEffect))
-                || oldEffect.isAmbient() && !newEffect.isAmbient()
-                || oldEffect.hasParticles() != newEffect.hasParticles();
-    }
-
-    public void recalculateBoundingBox() {
-        float height = this.getHeight() * this.scale;
-        float radius = (this.getWidth() * this.scale) / 2;
-        this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
-                this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
-
-        this.updateNetworkBounds();
-    }
-
-    private void updateNetworkBounds() {
-        this.data.set(WIDTH, this.getWidth());
-        this.data.set(HEIGHT, this.getHeight());
-        if (this.isPlayer) {
-            this.data.set(COLLISION_BOX, this.getNetworkCollisionBox());
-        }
-    }
-
-    protected void putNetworkBounds(EntityDataMap metadata) {
-        metadata.put(WIDTH, this.getWidth());
-        metadata.put(HEIGHT, this.getHeight());
-        if (this.isPlayer) {
-            metadata.put(COLLISION_BOX, this.getNetworkCollisionBox());
-        }
-    }
-
-    private Vector3f getNetworkCollisionBox() {
-        return Vector3f.from(this.getWidth(), this.getHeight(), this.getLength());
-    }
-
-    protected void recalculateEffectColor() {
-        int[] color = new int[3];
-        int count = 0;
-        for (ActivePotionEffect effect : this.effects.values()) {
-            if (effect.hasParticles()) {
-                Vector3i c = effect.getType().getColor();
-                color[0] += c.getX() * (effect.getAmplifier() + 1);
-                color[1] += c.getY() * (effect.getAmplifier() + 1);
-                color[2] += c.getZ() * (effect.getAmplifier() + 1);
-                count += effect.getAmplifier() + 1;
-            }
-        }
-
-        if (count > 0) {
-            int r = (color[0] / count) & 0xff;
-            int g = (color[1] / count) & 0xff;
-            int b = (color[2] / count) & 0xff;
-
-            this.data.set(EFFECT_COLOR, (r << 16) + (g << 8) + b);
-        } else {
-            this.data.set(EFFECT_COLOR, 0);
-        }
-    }
-
     /**
-     * Initializes the entity after its constructor and subclass fields are complete.
+     * Applies an attributed push after listeners can edit or cancel it.
      */
-    public final void initialize(Location location) {
-        Objects.requireNonNull(location, "location");
-        if (this.initialized) {
+    public void applyKnockback(Vector3f knockback, KnockbackCause cause, @Nullable Entity sourceEntity) {
+        EntityKnockbackEvent event = new EntityKnockbackEvent(this, cause, sourceEntity, knockback);
+        if (this.isClosed()) {
             return;
         }
 
-        this.initialized = true;
+        if (!this.justCreated) {
+            this.server.getEventManager().fire(event);
+        }
 
-        this.timing = Timings.getEntityTiming(this.getType());
+        if (!event.isCancelled() && !this.isClosed()) {
+            this.setMotion(this.getMotion().add(event.getKnockback()));
+        }
+    }
 
-        this.isPlayer = this instanceof CloudPlayer;
+    public boolean setMotion(Vector3f motion) {
+        checkNotNull(motion, "motion");
+        if (!Float.isFinite(motion.getX()) || !Float.isFinite(motion.getY()) || !Float.isFinite(motion.getZ())) {
+            throw new IllegalArgumentException("Motion must be finite");
+        }
 
-        this.justCreated = true;
+        if (!this.justCreated) {
+            EntityMotionEvent ev = new EntityMotionEvent(this, motion);
+            this.server.getEventManager().fire(ev);
+            if (ev.isCancelled()) {
+                return false;
+            }
+        }
 
-        this.chunk = (CloudChunk) location.getLevel().getLoadedChunk(location.getPosition());
-        this.level = (CloudLevel) location.getLevel();
-        this.server = (CloudServer) location.getLevel().getServer();
+        this.motion = motion;
+        this.onMotionChanged();
 
-        this.position = location.getPosition();
+        if (!this.justCreated) {
+            this.updateMovement();
+        }
+
+        return true;
+    }
+
+    /**
+     * Updates motion-dependent state before accepted motion is sent to viewers.
+     */
+    protected void onMotionChanged() {
+    }
+
+    @Override
+    public void setOnGround(boolean onGround) {
+        EntityMovementController.setOnGroundWithMovement(this, onGround, this.isCollidedHorizontally, null);
+    }
+
+    @Override
+    public Optional<Vector3i> getSupportingBlockPosition() {
+        return this.supportingBlockPosition;
+    }
+
+    public void move(Vector3f movement) {
+        this.move(MovementType.SELF, movement);
+    }
+
+    public void move(float dx, float dy, float dz) {
+        this.move(MovementType.SELF, dx, dy, dz);
+    }
+
+    public void move(MovementType type, Vector3f movement) {
+        this.move(type, movement.getX(), movement.getY(), movement.getZ());
+    }
+
+    public void move(MovementType type, float dx, float dy, float dz) {
+        EntityMovementController.move(this, type, dx, dy, dz);
+    }
+
+    public void displace(Vector3f displacement) {
+        checkNotNull(displacement, "displacement");
+        if (displacement.equals(Vector3f.ZERO)) {
+            return;
+        }
+
+        BoundingBox previousBox = this.boundingBox;
+        if (this.setPosition(this.position.add(displacement))) {
+            this.highestPosition += displacement.getY();
+            this.recordMovement(previousBox, this.boundingBox);
+            this.sendAuthoritativeDisplacement();
+        }
+    }
+
+    public void recordMovement(BoundingBox previousBox, BoundingBox currentBox) {
+        if (this.movementSegments.size() >= MAX_MOVEMENT_SEGMENTS) {
+            EntityMovementSegment first = this.movementSegments.removeFirst();
+            EntityMovementSegment second = this.movementSegments.removeFirst();
+            this.movementSegments.addFirst(new EntityMovementSegment(first.fromBox(), second.toBox()));
+        }
+
+        this.movementSegments.add(new EntityMovementSegment(previousBox, currentBox));
+    }
+
+    public List<EntityMovementSegment> drainMovementSegments() {
+        if (this.movementSegments.isEmpty()) {
+            BoundingBox boundingBox = this.getBoundingBox();
+            return List.of(new EntityMovementSegment(boundingBox, boundingBox));
+        }
+
+        List<EntityMovementSegment> movements = List.copyOf(this.movementSegments);
+        this.movementSegments.clear();
+        return movements;
+    }
+
+    @Override
+    public void makeStuckInBlock(BlockState state, Vector3f speedMultiplier) {
+        this.resetFallDistance();
+        this.stuckSpeedMultiplier = speedMultiplier;
+    }
+
+    public void updateMovement() {
+        float diffPosition = this.position.distanceSquared(this.lastPosition);
+        double diffRotation = (this.yaw - this.lastYaw) * (this.yaw - this.lastYaw) + (this.pitch - this.lastPitch) * (this.pitch - this.lastPitch);
+
+        float diffMotion = this.motion.distanceSquared(this.lastMotion);
+
+        if (diffPosition > 0.0001 || diffRotation > 1.0) { //0.2 ** 2, 1.5 ** 2
+            this.lastPosition = this.position;
+
+            this.lastYaw = this.yaw;
+            this.lastPitch = this.pitch;
+
+            this.addMovement(this.position.getX(), this.position.getY() + this.getBaseOffset(), this.position.getZ(),
+                    this.yaw, this.pitch, this.yaw);
+        }
+
+        if (diffMotion > 0.0025 || (diffMotion > 0.0001 && this.getMotion().lengthSquared() <= 0.0001)) { //0.05 ** 2
+            this.lastMotion = this.motion;
+
+            this.addMotion(this.motion);
+        }
+    }
+
+    public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
+        this.level.addEntityMovement(this, x, y, z, yaw, pitch, headYaw);
+    }
+
+    public void addMotion(Vector3f motion) {
+        SetEntityMotionPacket packet = new SetEntityMotionPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.setMotion(motion);
+        if (this.isPlayer) {
+            packet.setTick(((CloudPlayer) this).getClientTick());
+        }
+
+        CloudServer.broadcastPacket(this.hasSpawned, packet);
+    }
+
+    public void sendAuthoritativeDisplacement() {
         this.lastPosition = this.position;
-        this.yaw = location.getYaw();
-        this.pitch = location.getPitch();
         this.lastYaw = this.yaw;
         this.lastPitch = this.pitch;
-
-        this.boundingBox = new BoundingBox(0, 0, 0, 0, 0, 0);
-
-        this.initEntity();
-        this.recalculateBoundingBox();
-
-        this.lastUpdate = this.server.getTick();
-
-        if (this.isPlayer) {
-            this.registerInLevel(location);
-        }
+        CloudServer.broadcastPacket(this.hasSpawned, this.createAuthoritativeDisplacementPacket());
     }
 
-    //@Override
-    public NbtMap getTag() {
-        return tag;
+    protected MoveEntityAbsolutePacket createAuthoritativeDisplacementPacket() {
+        MoveEntityAbsolutePacket movement = new MoveEntityAbsolutePacket();
+        movement.setRuntimeEntityId(this.getRuntimeId());
+        movement.setPosition(this.getPosition().add(0, this.getBaseOffset(), 0));
+        movement.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
+        movement.setOnGround(this.onGround);
+        movement.setTeleported(true);
+        return movement;
     }
 
-    public String getName() {
-        if (this.hasNameTag()) {
-            return this.getNameTag();
-        }
-
-        String name = CloudEntityRegistry.get().getLegacyName(this.type.getId());
-        return name != null ? name : this.type.getId().toString();
-    }
-
-    @Override
-    public Component displayName() {
-        if (this.hasNameTag()) {
-            return Component.text(this.getNameTag());
-        }
-
-        if ("minecraft".equals(this.type.getId().getNamespace())) {
-            return Component.translatable("entity." + this.type.getId().getName() + ".name");
-        }
-
-        return Component.text(this.type.getId().toString());
-    }
-
-    @Override
-    public boolean spawn() {
-        EntitySpawnEvent event;
-        if (this instanceof org.cloudburstmc.api.entity.misc.DroppedItem droppedItem) {
-            event = new ItemSpawnEvent(droppedItem);
-        } else if (this instanceof Projectile projectile) {
-            event = new ProjectileLaunchEvent(projectile);
-        } else {
-            event = new EntitySpawnEvent(this);
-        }
-        return this.spawn(event);
-    }
-
-    public boolean spawn(EntitySpawnEvent event) {
-        if (this.closed || this.spawned) {
-            return false;
-        }
-
-        if (event.getEntity() != this) {
-            throw new IllegalArgumentException("Spawn event does not belong to this entity");
-        }
-
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            this.closed = true;
-            return false;
-        }
-
-        this.registerInLevel(this.getLocation());
+    public boolean canCollide() {
         return true;
-    }
-
-    public void restoreFromStorage() {
-        if (this.closed || this.spawned) {
-            throw new IllegalStateException("Cannot restore an entity that is closed or already spawned");
-        }
-
-        this.registerInLevel(this.getLocation());
-    }
-
-    private void registerInLevel(Location location) {
-        if (this.spawned) {
-            return;
-        }
-
-        this.spawned = true;
-        this.level.registerEntity(this);
-        this.scheduleUpdate();
-
-        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
-            if (throwable != null || this.closed || !this.spawned) {
-                return;
-            }
-
-            this.chunk = chunk;
-            chunk.registerEntity(this);
-            this.spawnToAll();
-        });
-    }
-
-    @Override
-    public void spawnTo(Player player) {
-        this.spawnTo(((CloudPlayer) player));
-    }
-
-    public void spawnTo(CloudPlayer player) {
-        if (!this.spawned || this.chunk == null || this.closed) {
-            return;
-        }
-
-        boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
-        boolean added = sent && this.hasSpawned.add(player);
-        if (!sent || !added) {
-            // chunk not yet received by client, or entity already spawned
-            return;
-        }
-
-        player.sendPacket(createAddEntityPacket());
-
-        if (this.vehicle != null) {
-            this.vehicle.spawnTo(player);
-
-            SetEntityLinkPacket packet = new SetEntityLinkPacket();
-            packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
-                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0));
-
-            player.sendPacket(packet);
-        }
-    }
-
-    protected BedrockPacket createAddEntityPacket() {
-        Vector3f pos = this.getPosition();
-        AddEntityPacket addEntity = new AddEntityPacket();
-        addEntity.setIdentifier(this.getType().getId().toString());
-        addEntity.setUniqueEntityId(this.getUniqueId());
-        addEntity.setRuntimeEntityId(this.getRuntimeId());
-        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
-        addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
-        addEntity.setHeadRotation(this.yaw);
-        addEntity.setMotion(this.getMotion());
-        addEntity.setBodyRotation(this.getYaw());
-        addEntity.getMetadata().putAll(this.data.snapshot());
-
-        for (int i = 0; i < this.passengers.size(); i++) {
-            addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
-                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false, 0));
-        }
-
-        this.addAdditionalSpawnData(addEntity);
-        return addEntity;
-    }
-
-    protected void addAdditionalSpawnData(AddEntityPacket packet) {
-    }
-
-    public Set<CloudPlayer> getViewers() {
-        return Set.copyOf(this.hasSpawned);
-    }
-
-    public void sendPotionEffects(CloudPlayer player) {
-        for (ActivePotionEffect effect : this.effects.values()) {
-            player.sendPacket(NetworkUtils.effectToNetwork(effect.snapshot(), this.getRuntimeId(), MobEffectPacket.Event.ADD,
-                    this.server.getTick()));
-        }
-    }
-
-    /**
-     * Sends pending metadata to viewers and, for a player, to the player itself.
-     */
-    public void flushEntityData() {
-        EntityDataMap changeSet = this.data.drainChanges();
-        if (changeSet.isEmpty()) {
-            return;
-        }
-
-        EntityDataMap metadata = this.withPlayerPoseMetadata(changeSet);
-        this.sendDataToViewers(metadata);
-
-        if (this.isPlayer) {
-            SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(this.getRuntimeId());
-            packet.getMetadata().putAll(metadata);
-            ((CloudPlayer) this).sendPacket(packet);
-        }
-    }
-
-    private EntityDataMap withPlayerPoseMetadata(EntityDataMap changeSet) {
-        if (!this.isPlayer || !changeSet.containsKey(FLAGS) || this.hasNetworkBounds(changeSet)) {
-            return changeSet;
-        }
-
-        EntityDataMap metadata = new EntityDataMap();
-        metadata.putAll(changeSet);
-        this.putNetworkBounds(metadata);
-        return metadata;
-    }
-
-    private boolean hasNetworkBounds(EntityDataMap metadata) {
-        return metadata.containsKey(HEIGHT) && metadata.containsKey(WIDTH) && metadata.containsKey(COLLISION_BOX);
-    }
-
-    public void sendData(CloudPlayer player) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.getMetadata().putAll(this.data.snapshot());
-        player.sendPacket(packet);
-    }
-
-    private void sendDataToViewers(EntityDataMap map) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.getMetadata().putAll(map);
-
-        CloudServer.broadcastPacket(this.getViewers(), packet);
-    }
-
-    public void sendData(CloudPlayer player, EntityDataType<?>... data) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.getMetadata().putAll(this.data.snapshot(data));
-
-        player.sendPacket(packet);
-    }
-
-    public void sendFlags(CloudPlayer player) {
-        SetEntityDataPacket packet = new SetEntityDataPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.getMetadata().putAll(this.data.snapshot(FLAGS));
-        if (this.isPlayer) {
-            this.putNetworkBounds(packet.getMetadata());
-        }
-
-        player.sendPacket(packet);
-    }
-
-    @Override
-    public void despawnFrom(Player player) {
-        this.despawnFrom((CloudPlayer) player);
-    }
-
-    public void despawnFrom(CloudPlayer player) {
-        if (this.hasSpawned.remove(player)) {
-            RemoveEntityPacket packet = new RemoveEntityPacket();
-            packet.setUniqueEntityId(this.getUniqueId());
-            player.sendPacket(packet);
-        }
-    }
-
-    @Override
-    public boolean damage(float amount, DamageSource source) {
-        return this.applyDamage(this.createDamageEvent(source, amount));
-    }
-
-    /**
-     * Captures the damage calculation exposed to listeners for this hit.
-     *
-     * @param source the damage source
-     * @param amount the incoming damage
-     * @return the damage event
-     */
-    protected CloudEntityDamageEvent createDamageEvent(DamageSource source, float amount) {
-        return new CloudEntityDamageEvent(this, source, amount, this.getAbsorption());
-    }
-
-    /**
-     * Applies a damage event after entity-specific preprocessing.
-     *
-     * @param source the damage event
-     * @return whether damage was applied
-     */
-    protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE)
-                && source.getDamageType().is(DamageTypeTags.IS_FIRE)
-                && !source.getDamageType().is(DamageTypeTags.BYPASSES_RESISTANCE)) {
-            return false;
-        }
-
-        getServer().getEventManager().fire(source);
-        if (source.isCancelled() || source.getDamage() <= 0) {
-            return false;
-        }
-
-        float damage = source.getFinalDamage();
-        float absorbed = source.getAbsorbedDamage();
-        if (damage <= 0 && absorbed <= 0) {
-            return true;
-        }
-
-        setLastDamageCause(source);
-        this.setAbsorption(Math.max(0, this.getAbsorption() - absorbed));
-        setHealth(getHealth() - damage);
-        return true;
-    }
-
-    @Override
-    public void heal(float amount) {
-        this.heal(new EntityRegainHealthEvent(this, amount, EntityRegainHealthEvent.CAUSE_REGEN));
-    }
-
-    @Override
-    public void heal(EntityRegainHealthEvent source) {
-        this.server.getEventManager().fire(source);
-        if (!source.isCancelled()) {
-            this.setHealth(this.getHealth() + source.getAmount());
-        }
-    }
-
-    @Override
-    public float getHealth() {
-        return health;
-    }
-
-    @Override
-    public void setHealth(float health) {
-        if (this.health == health) {
-            return;
-        }
-
-        if (health < 1) {
-            if (this.isAlive()) {
-                this.kill();
-            }
-        } else if (health <= this.getMaxHealth() || health < this.health) {
-            this.health = health;
-        } else {
-            this.health = this.getMaxHealth();
-        }
-
-        this.data.set(STRUCTURAL_INTEGRITY, (int) this.health);
-    }
-
-    @Override
-    public int getMaxHealth() {
-        ActivePotionEffect healthBoost = this.effects.get(EffectTypes.HEALTH_BOOST);
-        return this.maxHealth + (healthBoost == null ? 0 : 4 * (healthBoost.getAmplifier() + 1));
-    }
-
-    @Override
-    public void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth;
-    }
-
-    @Override
-    public boolean isAlive() {
-        return this.health > 0;
-    }
-
-    @Override
-    public EntityDamageEvent getLastDamageCause() {
-        return lastDamageCause;
-    }
-
-    public void setLastDamageCause(EntityDamageEvent type) {
-        this.lastDamageCause = type;
-    }
-
-    @Override
-    public float getAbsorption() {
-        return absorption;
-    }
-
-    @Override
-    public void setAbsorption(float absorption) {
-        if (absorption == this.absorption) {
-            return;
-        }
-
-        this.absorption = absorption;
-        if (this instanceof CloudPlayer player) {
-            player.setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(absorption));
-        }
-    }
-
-    @Override
-    public int getFreezeTicks() {
-        return this.freezeTicks;
-    }
-
-    @Override
-    public void setFreezeTicks(int ticks) {
-        int clampedTicks = Math.clamp(ticks, 0, this.getMaxFreezeTicks());
-        if (this.freezeTicks == clampedTicks) {
-            return;
-        }
-        this.freezeTicks = clampedTicks;
-        this.data.set(FREEZING_EFFECT_STRENGTH, this.freezeTicks / (float) this.getMaxFreezeTicks());
-    }
-
-    @Override
-    public int getMaxFreezeTicks() {
-        return DEFAULT_MAX_FREEZE_TICKS;
-    }
-
-    @Override
-    public boolean isFreezeTickingLocked() {
-        return this.freezeTickingLocked;
-    }
-
-    @Override
-    public void lockFreezeTicks(boolean locked) {
-        this.freezeTickingLocked = locked;
     }
 
     public boolean canCollideWith(Entity entity) {
+        if (entity == null || this.sharesRootVehicle(entity)) {
+            return false;
+        }
         return !this.justCreated
-                && entity != null
-                && entity.canBeCollidedWith(this)
-                && !this.isPassengerOfSameVehicle(entity);
+                && entity.canBeCollidedWith(this);
     }
 
     public boolean canBeCollidedWith(@Nullable Entity entity) {
         return false;
     }
 
+    protected boolean hasMovementEntityCollisions() {
+        return true;
+    }
+
     public boolean isPushable() {
         return false;
     }
 
-    protected boolean isPassengerOfSameVehicle(Entity entity) {
-        return this.getVehicle() != null && this.getVehicle() == entity.getVehicle();
+    protected boolean sharesRootVehicle(Entity entity) {
+        return rootVehicle(this) == rootVehicle(entity);
+    }
+
+    private static Entity rootVehicle(Entity entity) {
+        Entity vehicle = entity.getVehicle();
+        while (vehicle != null) {
+            entity = vehicle;
+            vehicle = entity.getVehicle();
+        }
+        return entity;
+    }
+
+    @Override
+    public void onEntityCollision(Entity entity) {
+        if (this.sharesRootVehicle(entity)) {
+            return;
+        }
+        if (entity.getVehicle() != this && !entity.getPassengers().contains(this)) {
+            double dx = entity.getX() - this.getX();
+            double dy = entity.getZ() - this.getZ();
+            double dz = Math.max(Math.abs(dx), Math.abs(dy));
+
+            if (dz >= 0.009999999776482582D) {
+                dz = MathHelper.sqrt((float) dz);
+                dx /= dz;
+                dy /= dz;
+                double d3 = 1.0D / dz;
+
+                if (d3 > 1.0D) {
+                    d3 = 1.0D;
+                }
+
+                dx *= d3;
+                dy *= d3;
+                dx *= 0.05000000074505806;
+                dy *= 0.05000000074505806;
+                dx *= 1F + entityCollisionReduction;
+
+                if (this.vehicle == null) {
+                    this.motion = this.motion.sub(dx, 0, dy);
+                }
+            }
+        }
+    }
+
+    public void onCollideWithPlayer(EntityHuman entityPlayer) {
+    }
+
+    protected void checkBlockCollision() {
+        EntityInsideBlockScanner.scan(this);
     }
 
     protected boolean moveTowardsClosestSpace(Vector3f pos) {
@@ -1289,6 +988,309 @@ public abstract class CloudEntity implements Entity {
 
         return true;
     }
+
+    public boolean canTriggerWalking() {
+        return true;
+    }
+
+    public boolean canTriggerPressurePlate() {
+        return true;
+    }
+
+    @Override
+    public float getHighestPosition() {
+        return highestPosition;
+    }
+
+    @Override
+    public void setHighestPosition(float highestPosition) {
+        this.highestPosition = highestPosition;
+    }
+
+    public void setFallDistance(float fallDistance) {
+        this.fallDistance = fallDistance;
+        this.highestPosition = this.position.getY() + fallDistance;
+    }
+
+    public void resetFallDistance() {
+        this.fallDistance = 0;
+        this.highestPosition = this.getY();
+    }
+
+    protected void updateFallState(boolean onGround) {
+        if (!onGround) {
+            this.highestPosition = Math.max(this.highestPosition, this.getY());
+            this.fallDistance = Math.max(0, this.highestPosition - this.getY());
+            return;
+        }
+
+        float distance = Math.max(0, this.highestPosition - this.getY());
+        this.resetFallDistance();
+        if (distance > 0 && this instanceof EntityLiving && !this.level.getLiquidState(this.position.toInt()).getType().isSameFamily(LiquidTypes.WATER)) {
+            this.fall(distance);
+        }
+    }
+
+    public void fall(float fallDistance) {
+        Block down = this.level.getBlock(this.getLandingBlockPosition());
+        down.requireComponent(BlockComponents.ON_FALL_ON).execute(down, this, fallDistance);
+    }
+
+    protected Vector3i getLandingBlockPosition() {
+        return this.supportingBlockPosition.orElseGet(() -> this.position.sub(0, 0.2f, 0).toInt());
+    }
+
+    public void applyFallDamage(float fallDistance) {
+        if (!Float.isFinite(fallDistance) || fallDistance < 0) {
+            throw new IllegalArgumentException("Fall distance must be finite and non-negative");
+        }
+
+        if (this.hasPotionEffect(EffectTypes.SLOW_FALLING)) {
+            return;
+        }
+
+        if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
+            return;
+        }
+
+        ActivePotionEffect jumpBoost = this.effects.get(EffectTypes.JUMP_BOOST);
+        long jumpReduction = jumpBoost == null ? 0 : jumpBoost.getAmplifier() + 1L;
+        float damage = (float) Math.floor((double) fallDistance + 1.0e-6 - 3 - jumpReduction);
+
+        if (damage > 0) {
+            this.damage(damage, DamageSource.of(DamageTypes.FALL));
+        }
+    }
+
+    public boolean isInsideOfSolid() {
+        if (this.noPhysics) {
+            return false;
+        }
+
+        float eyeY = this.getY() + this.getEyeHeight();
+        float width = Math.max(0.1f, (this.boundingBox.getMaxX() - this.boundingBox.getMinX()) * 0.8f);
+        float halfWidth = width / 2f;
+        BoundingBox eyeBox = new BoundingBox(
+                this.getX() - halfWidth,
+                eyeY - CloudVoxelShapes.EPSILON,
+                this.getZ() - halfWidth,
+                this.getX() + halfWidth,
+                eyeY + CloudVoxelShapes.EPSILON,
+                this.getZ() + halfWidth
+        );
+
+        return this.level.collidesWithSuffocatingBlock(this, eyeBox);
+    }
+
+    public boolean isInsideOfFire() {
+        return this.level.hasLoadedBlockIntersecting(this.getBoundingBox(), block -> block.getState().getType() == FIRE);
+    }
+
+    public boolean isInsideOfWater() {
+        float y = this.getY() + this.getEyeHeight();
+        Block block = this.level.getLoadedBlock(this.position.getFloorX(), GenericMath.floor(y), this.position.getFloorZ());
+        if (block == null) {
+            return false;
+        }
+
+        LiquidState state = block.getLiquid();
+        if (state.getType().isSameFamily(LiquidTypes.WATER)) {
+            float height = this.level.getLiquidHeight(block.getPosition());
+            return y < block.getY() + height;
+        } else {
+            return false;
+        }
+    }
+
+    protected boolean isTouchingWater() {
+        return this.scanLiquidContact(false).touchingWater();
+    }
+
+    /**
+     * Returns whether this entity can be moved by currents in liquids.
+     *
+     * @return boolean
+     */
+    public boolean canBeMovedByCurrents() {
+        return true;
+    }
+
+    private void applyLiquidCurrent() {
+        LiquidContact contact = this.scanLiquidContact(this.canBeMovedByCurrents());
+        if (contact.flow().lengthSquared() > 0) {
+            this.motion = this.motion.add(contact.flow().normalize().mul(0.014f));
+        }
+
+        if (contact.touchingWater() && this.fireTicks > 0) {
+            this.extinguish();
+        }
+    }
+
+    private LiquidContact scanLiquidContact(boolean includeFlow) {
+        BoundingBox box = this.getBoundingBox().deflate(0.001f, 0.001f, 0.001f);
+
+        int minX = GenericMath.floor(box.getMinX());
+        int maxX = GenericMath.floor(box.getMaxX());
+        int minY = GenericMath.floor(box.getMinY());
+        int maxY = GenericMath.floor(box.getMaxY());
+        int minZ = GenericMath.floor(box.getMinZ());
+        int maxZ = GenericMath.floor(box.getMaxZ());
+
+        Vector3f total = Vector3f.ZERO;
+        boolean touchingWater = false;
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = this.level.getLoadedBlock(x, y, z);
+                    if (block == null) {
+                        continue;
+                    }
+
+                    LiquidState liquid = block.getLiquid();
+                    if (liquid.isEmpty()) {
+                        continue;
+                    }
+
+                    float height = this.level.getLiquidHeight(block.getPosition());
+                    if (y + height <= box.getMinY()) {
+                        continue;
+                    }
+
+                    if (liquid.getType().isSameFamily(LiquidTypes.WATER)) {
+                        touchingWater = true;
+                    }
+
+                    if (includeFlow) {
+                        total = total.add(this.level.getLiquidFlow(block.getPosition()));
+                    }
+                }
+            }
+        }
+
+        return new LiquidContact(touchingWater, total);
+    }
+
+    public void handleLavaMovement() {
+        //todo
+    }
+
+    public int getAirTicks() {
+        return this.data.require(AIR_SUPPLY);
+    }
+
+    public void setAirTicks(int ticks) {
+        this.data.set(AIR_SUPPLY, (short) ticks);
+    }
+
+    @Override
+    public int getFireTicks() {
+        return fireTicks;
+    }
+
+    @Override
+    public void setOnFire(int seconds) {
+        if (seconds < 0) {
+            throw new IllegalArgumentException("Fire duration cannot be negative");
+        }
+
+        float reduction = this.getBurningTimeReduction();
+        if (!Float.isFinite(reduction) || reduction < 0 || reduction > 1) {
+            throw new IllegalArgumentException("Burning time reduction must be in [0, 1]");
+        }
+
+        int ticks = (int) Math.min(Integer.MAX_VALUE, Math.ceil(seconds * 20.0 * (1.0 - reduction)));
+        if (ticks > this.fireTicks) {
+            this.fireTicks = ticks;
+        }
+    }
+
+    protected float getBurningTimeReduction() {
+        return 0;
+    }
+
+    public void extinguish() {
+        this.fireTicks = 0;
+        this.data.setFlag(ON_FIRE, false);
+    }
+
+    public void onStruckByLightning(LightningBolt lightningBolt) {
+        DamageSource source = DamageSource.of(DamageTypes.LIGHTNING_BOLT);
+        if (this.damage(5, source)) {
+            if (this.fireTicks < 8 * 20) {
+                this.setOnFire(8);
+            }
+        }
+    }
+
+    @Override
+    public int getFreezeTicks() {
+        return this.freezeTicks;
+    }
+
+    @Override
+    public void setFreezeTicks(int ticks) {
+        int clampedTicks = Math.clamp(ticks, 0, this.getMaxFreezeTicks());
+        if (this.freezeTicks == clampedTicks) {
+            return;
+        }
+        this.freezeTicks = clampedTicks;
+        this.data.set(FREEZING_EFFECT_STRENGTH, this.freezeTicks / (float) this.getMaxFreezeTicks());
+    }
+
+    @Override
+    public int getMaxFreezeTicks() {
+        return DEFAULT_MAX_FREEZE_TICKS;
+    }
+
+    @Override
+    public boolean isFreezeTickingLocked() {
+        return this.freezeTickingLocked;
+    }
+
+    @Override
+    public void lockFreezeTicks(boolean locked) {
+        this.freezeTickingLocked = locked;
+    }
+
+    public final void scheduleUpdate() {
+        this.level.scheduleEntityUpdate(this);
+    }
+
+    public boolean onUpdate(int currentTick) {
+        if (this.closed) {
+            return false;
+        }
+
+        if (!this.isAlive()) {
+            ++this.deadTicks;
+            if (this.deadTicks >= 10) {
+                this.despawnFromAll();
+                if (!this.isPlayer) {
+                    this.close();
+                }
+            }
+
+            return this.deadTicks < 10;
+        }
+
+        int tickDiff = currentTick - this.lastUpdate;
+        if (tickDiff <= 0) {
+            return true;
+        }
+
+        this.lastUpdate = currentTick;
+
+        boolean hasUpdate = this.entityBaseTick(tickDiff);
+        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
+                .execute(this, currentTick);
+
+        this.updateMovement();
+        this.flushEntityData();
+
+        return hasUpdate;
+    }
+
 
     public boolean entityBaseTick() {
         return this.entityBaseTick(1);
@@ -1409,114 +1411,175 @@ public abstract class CloudEntity implements Entity {
         this.close();
     }
 
-    public void updateMovement() {
-        float diffPosition = this.position.distanceSquared(this.lastPosition);
-        double diffRotation = (this.yaw - this.lastYaw) * (this.yaw - this.lastYaw) + (this.pitch - this.lastPitch) * (this.pitch - this.lastPitch);
+    public boolean teleport(Vector3f pos) {
+        return this.teleport(pos, PlayerTeleportCause.PLUGIN);
+    }
 
-        float diffMotion = this.motion.distanceSquared(this.lastMotion);
+    public boolean teleport(Vector3f pos, PlayerTeleportCause cause) {
+        return this.teleport(Location.from(pos, this.yaw, this.pitch, this.level), cause);
+    }
 
-        if (diffPosition > 0.0001 || diffRotation > 1.0) { //0.2 ** 2, 1.5 ** 2
-            this.lastPosition = this.position;
+    public boolean teleport(Location location) {
+        return this.teleport(location, PlayerTeleportCause.PLUGIN);
+    }
 
-            this.lastYaw = this.yaw;
-            this.lastPitch = this.pitch;
-
-            this.addMovement(this.position.getX(), this.position.getY() + this.getBaseOffset(), this.position.getZ(),
-                    this.yaw, this.pitch, this.yaw);
+    public boolean teleport(Location location, PlayerTeleportCause cause) {
+        Objects.requireNonNull(cause, "cause");
+        Location from = this.getLocation();
+        EntityTeleportEvent event = new EntityTeleportEvent(this, from, location);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return false;
         }
 
-        if (diffMotion > 0.0025 || (diffMotion > 0.0001 && this.getMotion().lengthSquared() <= 0.0001)) { //0.05 ** 2
-            this.lastMotion = this.motion;
-
-            this.addMotion(this.motion);
-        }
+        return this.teleportWithoutEvent(event.getTo());
     }
 
-    public void addMovement(double x, double y, double z, double yaw, double pitch, double headYaw) {
-        this.level.addEntityMovement(this, x, y, z, yaw, pitch, headYaw);
-    }
+    public boolean teleportWithoutEvent(Location location) {
+        Objects.requireNonNull(location, "location");
+        Location from = this.getLocation();
+        if (from.getLevel() == location.getLevel() || this.switchLevel((CloudLevel) location.getLevel())) {
+            this.setMotion(Vector3f.ZERO);
 
-    public void sendAuthoritativeDisplacement() {
-        this.lastPosition = this.position;
-        this.lastYaw = this.yaw;
-        this.lastPitch = this.pitch;
-        CloudServer.broadcastPacket(this.hasSpawned, this.createAuthoritativeDisplacementPacket());
-    }
+            if (this.setPositionAndRotation(location.getPosition(), location.getYaw(), location.getPitch())) {
+                this.resetFallDistance();
+                this.onGround = true;
 
-    protected MoveEntityAbsolutePacket createAuthoritativeDisplacementPacket() {
-        MoveEntityAbsolutePacket movement = new MoveEntityAbsolutePacket();
-        movement.setRuntimeEntityId(this.getRuntimeId());
-        movement.setPosition(this.getPosition().add(0, this.getBaseOffset(), 0));
-        movement.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        movement.setOnGround(this.onGround);
-        movement.setTeleported(true);
-        return movement;
-    }
+                this.updateMovement();
 
-    public void addMotion(Vector3f motion) {
-        SetEntityMotionPacket packet = new SetEntityMotionPacket();
-        packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setMotion(motion);
-        if (this.isPlayer) {
-            packet.setTick(((CloudPlayer) this).getClientTick());
+                return true;
+            }
         }
 
-        CloudServer.broadcastPacket(this.hasSpawned, packet);
+        return false;
     }
 
-    public Vector3f getDirectionVector() {
-        double y = -Math.sin(Math.toRadians(this.getPitch()));
-        double xz = Math.cos(Math.toRadians(this.getPitch()));
-        double x = -xz * Math.sin(Math.toRadians(this.getYaw()));
-        double z = xz * Math.cos(Math.toRadians(this.getYaw()));
-        return GenericMath.normalizeSafe(Vector3f.from(x, y, z));
-    }
-
-    public Vector2f getDirectionPlane() {
-        return Vector2f.from(-Math.cos(Math.toRadians(this.yaw) - Math.PI / 2), -Math.sin(Math.toRadians(this.yaw) - Math.PI / 2)).normalize();
-    }
-
-    public Direction getHorizontalDirection() {
-        return Direction.fromYaw(this.yaw);
-    }
-
-    public CardinalDirection getCardinalDirection() {
-        return CardinalDirection.values()[GenericMath.floor((((this.yaw + 180) % 360) / 22.5))];
-    }
-
-    public boolean onUpdate(int currentTick) {
+    protected boolean switchLevel(CloudLevel targetLevel) {
+        checkNotNull(targetLevel, "targetLevel");
         if (this.closed) {
             return false;
         }
 
-        if (!this.isAlive()) {
-            ++this.deadTicks;
-            if (this.deadTicks >= 10) {
-                this.despawnFromAll();
-                if (!this.isPlayer) {
-                    this.close();
-                }
+        EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.level, targetLevel);
+        this.server.getEventManager().fire(ev);
+        if (ev.isCancelled() || this.closed) {
+            return false;
+        }
+
+        this.level.unregisterEntity(this);
+        if (this.chunk != null) {
+            this.chunk.unregisterEntity(this);
+        }
+        this.despawnFromAll();
+
+        this.level = targetLevel;
+        this.level.registerEntity(this);
+        this.scheduleUpdate();
+        this.chunk = null;
+
+        return true;
+    }
+
+    /**
+     * Returns the number of ticks this entity must wait after a portal transfer
+     * before it can use another portal.
+     */
+    public int getPortalCooldownTicks() {
+        return PORTAL_COOLDOWN_TICKS;
+    }
+
+    public final boolean isOnPortalCooldown() {
+        return this.portalCooldown > 0;
+    }
+
+    public final void setPortalCooldown() {
+        this.portalCooldown = this.getPortalCooldownTicks();
+    }
+
+    protected final void clearPortalCooldown() {
+        this.portalCooldown = 0;
+    }
+
+    protected void tickPortalCooldown() {
+        this.portalCooldown--;
+    }
+
+    /**
+     * Returns the number of ticks the entity must spend inside a portal before
+     * being transferred.
+     */
+    protected int getPortalTransitionTicks() {
+        return PORTAL_TRANSFER_TICKS;
+    }
+
+    protected void onInsidePortal() {
+        if (this.getVehicle() == null) {
+            if (this.isOnPortalCooldown()) {
+                this.setPortalCooldown();
+            } else {
+                this.inPortalTicks = PORTAL_TRANSFER_TICKS;
             }
-            return this.deadTicks < 10;
+        }
+    }
+
+    public boolean enterNetherPortal(Vector3i position) {
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.NETHER);
+        this.server.getEventManager().fire(event);
+        return !event.isCancelled();
+    }
+
+    public void enterEndPortal(Vector3i position) {
+        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
+            return;
         }
 
-        int tickDiff = currentTick - this.lastUpdate;
-
-        if (tickDiff <= 0) {
-            return true;
+        if (this instanceof CloudPlayer player && player.isShowingEndCredits()) {
+            return;
         }
 
-        this.lastUpdate = currentTick;
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
 
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
-        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
-                .execute(this, currentTick);
+        this.setPortalCooldown();
+        if (!EndPortals.transfer(this)) {
+            this.clearPortalCooldown();
+        }
+    }
 
-        this.updateMovement();
+    public void enterEndGateway(Vector3i position) {
+        if (!this.isAlive() || this.getVehicle() != null || this.isOnPortalCooldown()) {
+            return;
+        }
 
-        this.flushEntityData();
+        EntityPortalEnterEvent event = new EntityPortalEnterEvent(this, Location.from(position, this.level), PortalType.END_GATEWAY);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
 
-        return hasUpdate;
+        this.setPortalCooldown();
+        if (!EndGateways.transfer(this, position)) {
+            this.clearPortalCooldown();
+        }
+    }
+
+    public Entity getPassenger() {
+        return Iterables.getFirst(this.passengers, null);
+    }
+
+    public boolean isPassenger(Entity entity) {
+        return this.passengers.contains(entity);
+    }
+
+    public boolean isControlling(Entity entity) {
+        return this.passengers.indexOf(entity) == 0;
+    }
+
+    public boolean hasControllingPassenger() {
+        return !this.passengers.isEmpty() && isControlling(this.passengers.getFirst());
     }
 
     /**
@@ -1528,6 +1591,9 @@ public abstract class CloudEntity implements Entity {
     @Override
     public boolean mount(Entity vehicle, MountType mode) {
         checkNotNull(vehicle, "The target of the mounting entity can't be null");
+        if (this.wouldCreateVehicleCycle(vehicle)) {
+            return false;
+        }
 
         if (this.vehicle != null && !this.vehicle.dismount(this)) {
             return false;
@@ -1536,7 +1602,7 @@ public abstract class CloudEntity implements Entity {
         // Entity entering a vehicle
         EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(this, (Vehicle) vehicle);
         server.getEventManager().fire(ev);
-        if (ev.isCancelled()) {
+        if (ev.isCancelled() || this.wouldCreateVehicleCycle(vehicle)) {
             return false;
         }
 
@@ -1553,6 +1619,15 @@ public abstract class CloudEntity implements Entity {
     }
 
     protected void onMountComplete(Entity vehicle) {
+    }
+
+    private boolean wouldCreateVehicleCycle(Entity vehicle) {
+        for (Entity ancestor = vehicle; ancestor != null; ancestor = ancestor.getVehicle()) {
+            if (ancestor == this) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean dismount(Entity vehicle) {
@@ -1616,6 +1691,19 @@ public abstract class CloudEntity implements Entity {
         CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
     }
 
+    public Vector3f getSeatPosition() {
+        return this.data.get(SEAT_OFFSET);
+    }
+
+    public void setSeatPosition(Vector3f pos) {
+        this.data.set(SEAT_OFFSET, pos);
+    }
+
+    public Vector3f getMountedOffset(Entity passenger) {
+        float yOffset = getMountedHeightOffset() + passenger.getPassengerHeightOffset();
+        return Vector3f.from(0f, yOffset, 0f);
+    }
+
     public void updatePassengers() {
         if (this.passengers.isEmpty()) {
             return;
@@ -1635,21 +1723,71 @@ public abstract class CloudEntity implements Entity {
         passenger.setPosition(this.getPosition().add(this.getPassengerAttachmentPoint(passenger)));
     }
 
-    public Vector3f getSeatPosition() {
-        return this.data.get(SEAT_OFFSET);
+    @Override
+    public float getHealth() {
+        return health;
     }
 
-    public void setSeatPosition(Vector3f pos) {
-        this.data.set(SEAT_OFFSET, pos);
+    @Override
+    public void setHealth(float health) {
+        if (!Float.isFinite(health) || health < 0) {
+            throw new IllegalArgumentException("Health must be finite and non-negative");
+        }
+
+        if (this.health == health) {
+            return;
+        }
+
+        if (health == 0) {
+            if (this.isAlive()) {
+                this.kill();
+            }
+        } else if (health <= this.getMaxHealth() || health < this.health) {
+            this.health = health;
+        } else {
+            this.health = this.getMaxHealth();
+        }
+
+        this.data.set(STRUCTURAL_INTEGRITY, (int) this.health);
     }
 
-    public Vector3f getMountedOffset(Entity passenger) {
-        float yOffset = getMountedHeightOffset() + passenger.getPassengerHeightOffset();
-        return Vector3f.from(0f, yOffset, 0f);
+    @Override
+    public int getMaxHealth() {
+        ActivePotionEffect healthBoost = this.effects.get(EffectTypes.HEALTH_BOOST);
+        long bonus = healthBoost == null ? 0 : 4L * (healthBoost.getAmplifier() + 1L);
+        return (int) Math.min(Integer.MAX_VALUE, this.maxHealth + bonus);
     }
 
-    public final void scheduleUpdate() {
-        this.level.scheduleEntityUpdate(this);
+    @Override
+    public void setMaxHealth(int maxHealth) {
+        if (maxHealth <= 0) {
+            throw new IllegalArgumentException("Maximum health must be positive");
+        }
+
+        this.maxHealth = maxHealth;
+
+        if (this.health > this.getMaxHealth()) {
+            this.setHealth(this.getMaxHealth());
+        }
+    }
+
+    @Override
+    public boolean isAlive() {
+        return this.health > 0;
+    }
+
+    @Override
+    public float getAbsorption() {
+        return absorption;
+    }
+
+    @Override
+    public void setAbsorption(float absorption) {
+        if (!Float.isFinite(absorption) || absorption < 0) {
+            throw new IllegalArgumentException("Absorption must be finite and non-negative");
+        }
+
+        this.absorption = absorption;
     }
 
     @Override
@@ -1658,158 +1796,277 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void setNoDamageTicks(int noDamageTicks) {
+        if (noDamageTicks < 0) {
+            throw new IllegalArgumentException("Damage immunity ticks must be non-negative");
+        }
+
         this.noDamageTicks = noDamageTicks;
     }
 
     @Override
-    public int getFireTicks() {
-        return fireTicks;
+    public EntityDamageEvent getLastDamageCause() {
+        return lastDamageCause;
     }
 
     @Override
-    public void setOnFire(int seconds) {
-        int ticks = seconds * 20;
-        if (ticks > this.fireTicks) {
-            this.fireTicks = ticks;
-        }
+    public boolean damage(float amount, DamageSource source) {
+        return this.damageWithResult(amount, source).applied();
     }
 
-    public Direction getDirection() {
-        double rotation = this.yaw % 360;
-        if (rotation < 0) {
-            rotation += 360.0;
-        }
-        if ((0 <= rotation && rotation < 45) || (315 <= rotation && rotation < 360)) {
-            return Direction.SOUTH;
-        } else if (45 <= rotation && rotation < 135) {
-            return Direction.WEST;
-        } else if (135 <= rotation && rotation < 225) {
-            return Direction.NORTH;
-        } else if (225 <= rotation && rotation < 315) {
-            return Direction.EAST;
-        } else {
-            return null;
-        }
+    /**
+     * Applies one hit and retains its cancellation outcome for dependent effects.
+     */
+    public CloudDamageResult damageWithResult(float amount, DamageSource source) {
+        CloudEntityDamageEvent event = this.createDamageEvent(source, amount);
+        boolean applied = this.applyDamage(event);
+        return new CloudDamageResult(applied, event.isCancelled());
     }
 
-    public void extinguish() {
-        this.fireTicks = 0;
-        this.data.setFlag(ON_FIRE, false);
+    /**
+     * Captures the damage calculation exposed to listeners for this hit.
+     *
+     * @param source the damage source
+     * @param amount the incoming damage
+     * @return the damage event
+     */
+    protected CloudEntityDamageEvent createDamageEvent(DamageSource source, float amount) {
+        return new CloudEntityDamageEvent(this, source, amount, this.getAbsorption());
     }
 
-    public boolean canTriggerWalking() {
+    /**
+     * Applies immunity checks shared by health damage and special damage responses.
+     */
+    protected boolean isDamageImmune(DamageSource source) {
+        return this.isClosed() || !this.isAlive()
+                || ((this.isInvulnerable() || this.noDamageTicks > 0)
+                && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY))
+                || (this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && source.getDamageType().is(DamageTypeTags.IS_FIRE));
+    }
+
+    /**
+     * Applies a damage event after entity-specific preprocessing.
+     *
+     * @param source the damage event
+     * @return whether damage was applied
+     */
+    protected boolean applyDamage(CloudEntityDamageEvent source) {
+        if (this.isDamageImmune(source.getDamageSource())) {
+            return false;
+        }
+
+        getServer().getEventManager().fire(source);
+        if (source.isCancelled() || source.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
+            return false;
+        }
+
+        if (!this.prepareDamage(source) || source.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
+            return false;
+        }
+
+        float damage = source.getFinalDamage();
+        float absorbed = source.getAbsorbedDamage();
+        this.onDamageAccepted(source);
+        if (this.isClosed() || !this.isAlive()) {
+            return false;
+        }
+
+        if (damage <= 0 && absorbed <= 0) {
+            return true;
+        }
+
+        setLastDamageCause(source);
+        if (absorbed > 0) {
+            this.setAbsorption(Math.max(0, this.getAbsorption() - absorbed));
+        }
+
+        float remainingHealth = Math.max(0, getHealth() - damage);
+        if (remainingHealth > 0) {
+            this.setHealth(remainingHealth);
+        } else if (!this.tryPreventDeath(source.getDamageSource()) && !this.isClosed() && this.isAlive()) {
+            this.setHealth(0);
+        }
+
         return true;
     }
 
-    @Override
-    public float getHighestPosition() {
-        return highestPosition;
+    /**
+     * Checks entity-specific events before accepted-hit effects or health changes.
+     */
+    protected boolean prepareDamage(CloudEntityDamageEvent event) {
+        return true;
+    }
+
+    /**
+     * Applies accepted-hit effects before health changes can trigger death.
+     */
+    protected void onDamageAccepted(CloudEntityDamageEvent event) {
+    }
+
+    protected boolean tryPreventDeath(DamageSource source) {
+        return false;
     }
 
     @Override
-    public void setHighestPosition(float highestPosition) {
-        this.highestPosition = highestPosition;
-    }
-
-    public void setFallDistance(float fallDistance) {
-        this.fallDistance = fallDistance;
-        this.highestPosition = this.position.getY() + fallDistance;
-    }
-
-    public void resetFallDistance() {
-        this.fallDistance = 0;
-        this.highestPosition = this.getY();
-    }
-
-    protected void updateFallState(boolean onGround) {
-        if (!onGround) {
-            this.highestPosition = Math.max(this.highestPosition, this.getY());
-            this.fallDistance = Math.max(0, this.highestPosition - this.getY());
+    public void heal(float amount, RegainReason reason) {
+        EntityRegainHealthEvent source = new EntityRegainHealthEvent(this, amount, reason);
+        if (this.isClosed() || !this.isAlive()) {
             return;
         }
 
-        float distance = Math.max(0, this.highestPosition - this.getY());
-        this.resetFallDistance();
-        if (distance > 0 && this instanceof EntityLiving && !this.level.getLiquidState(this.position.toInt()).getType().isSameFamily(LiquidTypes.WATER)) {
-            this.fall(distance);
+        this.server.getEventManager().fire(source);
+        if (!source.isCancelled() && !this.isClosed() && this.isAlive()) {
+            this.setHealth((float) Math.min(this.getMaxHealth(), (double) this.getHealth() + source.getAmount()));
         }
     }
 
-    public BoundingBox getBoundingBox() {
-        return this.boundingBox;
+    public void kill() {
+        this.enterDeathState();
     }
 
-    public void fall(float fallDistance) {
-        Block down = this.level.getBlock(this.getLandingBlockPosition());
-        down.requireComponent(BlockComponents.ON_FALL_ON).execute(down, this, fallDistance);
-    }
+    protected final void enterDeathState() {
+        this.health = 0;
+        this.data.set(STRUCTURAL_INTEGRITY, 0);
+        this.scheduleUpdate();
 
-    protected Vector3i getLandingBlockPosition() {
-        return this.supportingBlockPosition.orElseGet(() -> this.position.sub(0, 0.2f, 0).toInt());
-    }
-
-    public void applyFallDamage(float fallDistance) {
-        if (this.hasPotionEffect(EffectTypes.SLOW_FALLING)) {
-            return;
-        }
-
-        if (this.isPlayer && !level.getGameRules().get(GameRules.FALL_DAMAGE)) {
-            return;
-        }
-
-        ActivePotionEffect jumpBoost = this.effects.get(EffectTypes.JUMP_BOOST);
-        int jumpReduction = jumpBoost == null ? 0 : jumpBoost.getAmplifier() + 1;
-        float damage = (float) Math.floor(fallDistance - 3 - jumpReduction);
-
-        if (damage > 0) {
-            this.damage(damage, DamageSource.of(DamageTypes.FALL));
+        for (Entity passenger : new ArrayList<>(this.passengers)) {
+            passenger.dismount(this);
         }
     }
 
-    public void handleLavaMovement() {
-        //todo
+    public Map<EffectType, PotionEffect> getActivePotionEffects() {
+        Map<EffectType, PotionEffect> snapshots = new LinkedHashMap<>(this.effects.size());
+        this.effects.forEach((type, effect) -> snapshots.put(type, effect.snapshot()));
+        return Map.copyOf(snapshots);
     }
 
-    public void onCollideWithPlayer(EntityHuman entityPlayer) {
-
+    @Nullable
+    public PotionEffect getPotionEffect(EffectType type) {
+        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
+        return effect == null ? null : effect.snapshot();
     }
 
-    @Override
-    public void onEntityCollision(Entity entity) {
-        if (entity.getVehicle() != this && !entity.getPassengers().contains(this)) {
-            double dx = entity.getX() - this.getX();
-            double dy = entity.getZ() - this.getZ();
-            double dz = Math.max(Math.abs(dx), Math.abs(dy));
+    public boolean hasPotionEffect(EffectType type) {
+        return this.effects.containsKey(checkNotNull(type, "type"));
+    }
 
-            if (dz >= 0.009999999776482582D) {
-                dz = MathHelper.sqrt((float) dz);
-                dx /= dz;
-                dy /= dz;
-                double d3 = 1.0D / dz;
+    public boolean addPotionEffect(PotionEffect effect) {
+        return this.addPotionEffect(effect, null, PotionEffectCause.PLUGIN);
+    }
 
-                if (d3 > 1.0D) {
-                    d3 = 1.0D;
-                }
+    public boolean addPotionEffect(PotionEffect effect, @Nullable Entity source, PotionEffectCause cause) {
+        checkNotNull(effect, "effect");
+        checkNotNull(cause, "cause");
+        checkState(this instanceof Living, "Potion effects can only be applied to living entities");
 
-                dx *= d3;
-                dy *= d3;
-                dx *= 0.05000000074505806;
-                dy *= 0.05000000074505806;
-                dx *= 1F + entityCollisionReduction;
+        ActivePotionEffect oldEffect = this.effects.get(effect.getType());
+        PotionEffect oldEffectSnapshot = oldEffect == null ? null : oldEffect.snapshot();
+        PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;
+        boolean override = oldEffectSnapshot == null || shouldOverrideEffect(oldEffectSnapshot, effect);
 
-                if (this.vehicle == null) {
-                    this.motion = this.motion.sub(dx, 0, dy);
-                }
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffectSnapshot, effect, source, cause, action, override);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || action == PotionEffectAction.CHANGED && !event.isOverride()) {
+            return false;
+        }
+
+        ActivePotionEffect newEffect = ActivePotionEffect.from(effect);
+        newEffect.onApplied(this, oldEffect);
+        this.effects.put(newEffect.getType(), newEffect);
+
+        this.recalculateEffectColor();
+
+        if (newEffect.getType() == EffectTypes.HEALTH_BOOST) {
+            this.setHealth(Math.min(this.getHealth(), this.getMaxHealth()));
+        }
+
+        return true;
+    }
+
+    private static boolean shouldOverrideEffect(PotionEffect oldEffect, PotionEffect newEffect) {
+        return newEffect.getAmplifier() > oldEffect.getAmplifier()
+                || (newEffect.getAmplifier() == oldEffect.getAmplifier()
+                    && oldEffect.isShorterThan(newEffect))
+                || oldEffect.isAmbient() && !newEffect.isAmbient()
+                || oldEffect.hasParticles() != newEffect.hasParticles();
+    }
+
+    public boolean removePotionEffect(EffectType type) {
+        return this.removePotionEffect(type, PotionEffectCause.PLUGIN);
+    }
+
+    public boolean removePotionEffect(EffectType type, PotionEffectCause cause) {
+        checkState(this instanceof Living, "Potion effects can only be removed from living entities");
+        checkNotNull(cause, "cause");
+        ActivePotionEffect effect = this.effects.get(checkNotNull(type, "type"));
+        if (effect == null) {
+            return false;
+        }
+
+        PotionEffect oldEffect = effect.snapshot();
+        EntityPotionEffectEvent event = new EntityPotionEffectEvent((Living) this, oldEffect, null, null, cause, PotionEffectAction.REMOVED, false);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.effects.remove(type);
+        effect.onRemoved(this);
+        if (type == EffectTypes.HEALTH_BOOST) {
+            this.setHealth(Math.min(this.getHealth(), this.getMaxHealth()));
+        }
+
+        this.recalculateEffectColor();
+        return true;
+    }
+
+    public boolean clearActivePotionEffects() {
+        return this.clearActivePotionEffects(PotionEffectCause.PLUGIN);
+    }
+
+    public boolean clearActivePotionEffects(PotionEffectCause cause) {
+        checkNotNull(cause, "cause");
+        boolean changed = false;
+        for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+            changed |= this.removePotionEffect(effect.getType(), cause);
+        }
+        return changed;
+    }
+
+    private void restorePotionEffect(PotionEffect effect) {
+        ActivePotionEffect activeEffect = ActivePotionEffect.from(effect);
+        activeEffect.onApplied(this, this.effects.get(effect.getType()));
+        this.effects.put(effect.getType(), activeEffect);
+        this.recalculateEffectColor();
+    }
+
+    protected void recalculateEffectColor() {
+        int[] color = new int[3];
+        int count = 0;
+        for (ActivePotionEffect effect : this.effects.values()) {
+            if (effect.hasParticles()) {
+                Vector3i c = effect.getType().getColor();
+                color[0] += c.getX() * (effect.getAmplifier() + 1);
+                color[1] += c.getY() * (effect.getAmplifier() + 1);
+                color[2] += c.getZ() * (effect.getAmplifier() + 1);
+                count += effect.getAmplifier() + 1;
             }
         }
+
+        if (count > 0) {
+            int r = (color[0] / count) & 0xff;
+            int g = (color[1] / count) & 0xff;
+            int b = (color[2] / count) & 0xff;
+
+            this.data.set(EFFECT_COLOR, (r << 16) + (g << 8) + b);
+        } else {
+            this.data.set(EFFECT_COLOR, 0);
+        }
     }
 
-    public void onStruckByLightning(LightningBolt lightningBolt) {
-        DamageSource source = DamageSource.of(DamageTypes.LIGHTNING_BOLT);
-        if (this.damage(5, source)) {
-            if (this.fireTicks < 8 * 20) {
-                this.setOnFire(8);
-            }
+    public void sendPotionEffects(CloudPlayer player) {
+        for (ActivePotionEffect effect : this.effects.values()) {
+            player.sendPacket(NetworkUtils.effectToNetwork(effect.snapshot(), this.getRuntimeId(), MobEffectPacket.Event.ADD,
+                    this.server.getTick()));
         }
     }
 
@@ -1825,235 +2082,158 @@ public abstract class CloudEntity implements Entity {
         return false;
     }
 
-    public boolean isFromBucket() {
-        return this.fromBucket;
+    @Override
+    public boolean spawn() {
+        EntitySpawnEvent event;
+        if (this instanceof DroppedItem droppedItem) {
+            event = new ItemSpawnEvent(droppedItem);
+        } else if (this instanceof Projectile projectile) {
+            event = new ProjectileLaunchEvent(projectile);
+        } else {
+            event = new EntitySpawnEvent(this);
+        }
+
+        return this.spawn(event);
     }
 
-    public void setFromBucket(boolean fromBucket) {
-        this.fromBucket = fromBucket;
-    }
-
-    protected boolean switchLevel(CloudLevel targetLevel) {
-        checkNotNull(targetLevel, "targetLevel");
-        if (this.closed) {
+    public boolean spawn(EntitySpawnEvent event) {
+        if (this.closed || this.spawned) {
             return false;
         }
 
-        EntityLevelChangeEvent ev = new EntityLevelChangeEvent(this, this.level, targetLevel);
-        this.server.getEventManager().fire(ev);
-        if (ev.isCancelled()) {
+        if (event.getEntity() != this) {
+            throw new IllegalArgumentException("Spawn event does not belong to this entity");
+        }
+
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled()) {
+            this.closed = true;
             return false;
         }
 
-        this.level.unregisterEntity(this);
-        if (this.chunk != null) {
-            this.chunk.unregisterEntity(this);
-        }
-        this.despawnFromAll();
-
-        this.level = targetLevel;
-        this.level.registerEntity(this);
-        this.scheduleUpdate();
-        this.chunk = null;
-
+        this.registerInLevel(this.getLocation());
         return true;
     }
 
-    public Vector3f getPosition() {
-        return this.position;
-    }
-
-    public Location getLocation() {
-        return Location.from(this.position, this.yaw, this.pitch, this.level);
-    }
-
-    public boolean isInsideOfWater() {
-        float y = this.getY() + this.getEyeHeight();
-        Block block = this.level.getLoadedBlock(this.position.getFloorX(), GenericMath.floor(y), this.position.getFloorZ());
-
-        if (block == null) {
-            return false;
+    public void restoreFromStorage() {
+        if (this.closed || this.spawned) {
+            throw new IllegalStateException("Cannot restore an entity that is closed or already spawned");
         }
 
-        LiquidState state = block.getLiquid();
-        if (state.getType().isSameFamily(LiquidTypes.WATER)) {
-            float height = this.level.getLiquidHeight(block.getPosition());
-            return y < block.getY() + height;
-        } else {
-            return false;
-        }
+        this.registerInLevel(this.getLocation());
     }
 
-    public boolean isInsideOfSolid() {
-        if (this.noPhysics) {
-            return false;
-        }
-
-        float eyeY = this.getY() + this.getEyeHeight();
-        float width = Math.max(0.1f, (this.boundingBox.getMaxX() - this.boundingBox.getMinX()) * 0.8f);
-        float halfWidth = width / 2f;
-        BoundingBox eyeBox = new BoundingBox(
-                this.getX() - halfWidth,
-                eyeY - CloudVoxelShapes.EPSILON,
-                this.getZ() - halfWidth,
-                this.getX() + halfWidth,
-                eyeY + CloudVoxelShapes.EPSILON,
-                this.getZ() + halfWidth
-        );
-        return this.level.collidesWithSuffocatingBlock(this, eyeBox);
-    }
-
-    public boolean isInsideOfFire() {
-        return this.level.hasLoadedBlockIntersecting(this.getBoundingBox(), block -> block.getState().getType() == FIRE);
-    }
-
-    public void move(Vector3f movement) {
-        this.move(MovementType.SELF, movement);
-    }
-
-    public void move(float dx, float dy, float dz) {
-        this.move(MovementType.SELF, dx, dy, dz);
-    }
-
-    public void move(MovementType type, Vector3f movement) {
-        this.move(type, movement.getX(), movement.getY(), movement.getZ());
-    }
-
-    public void move(MovementType type, float dx, float dy, float dz) {
-        EntityMovementController.move(this, type, dx, dy, dz);
-    }
-
-    public void displace(Vector3f displacement) {
-        checkNotNull(displacement, "displacement");
-        if (displacement.equals(Vector3f.ZERO)) {
+    private void registerInLevel(Location location) {
+        if (this.spawned) {
             return;
         }
 
-        BoundingBox previousBox = this.boundingBox;
-        if (this.setPosition(this.position.add(displacement))) {
-            this.highestPosition += displacement.getY();
-            this.recordMovement(previousBox, this.boundingBox);
-            this.sendAuthoritativeDisplacement();
+        this.spawned = true;
+        this.level.registerEntity(this);
+        this.scheduleUpdate();
+
+        this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
+            if (throwable != null || this.closed || !this.spawned) {
+                return;
+            }
+
+            this.chunk = chunk;
+            chunk.registerEntity(this);
+            this.spawnToAll();
+        });
+    }
+
+    @Override
+    public void spawnTo(Player player) {
+        this.spawnTo(((CloudPlayer) player));
+    }
+
+    public void spawnTo(CloudPlayer player) {
+        if (!this.spawned || this.chunk == null || this.closed) {
+            return;
+        }
+
+        boolean sent = player.isChunkSent(this.chunk.getX(), this.chunk.getZ());
+        boolean added = sent && this.hasSpawned.add(player);
+        if (!sent || !added) {
+            // chunk not yet received by client, or entity already spawned
+            return;
+        }
+
+        player.sendPacket(createAddEntityPacket());
+
+        if (this.vehicle != null) {
+            this.vehicle.spawnTo(player);
+
+            SetEntityLinkPacket packet = new SetEntityLinkPacket();
+            packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
+                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0));
+
+            player.sendPacket(packet);
         }
     }
 
-    public void recordMovement(BoundingBox previousBox, BoundingBox currentBox) {
-        if (this.movementSegments.size() >= MAX_MOVEMENT_SEGMENTS) {
-            EntityMovementSegment first = this.movementSegments.removeFirst();
-            EntityMovementSegment second = this.movementSegments.removeFirst();
-            this.movementSegments.addFirst(new EntityMovementSegment(first.fromBox(), second.toBox()));
+    public void spawnToAll() {
+        if (!this.spawned && !this.spawn()) {
+            return;
         }
-        this.movementSegments.add(new EntityMovementSegment(previousBox, currentBox));
-    }
-
-    public List<EntityMovementSegment> drainMovementSegments() {
-        if (this.movementSegments.isEmpty()) {
-            BoundingBox boundingBox = this.getBoundingBox();
-            return List.of(new EntityMovementSegment(boundingBox, boundingBox));
+        if (this.chunk == null || this.closed) {
+            return;
         }
 
-        List<EntityMovementSegment> movements = List.copyOf(this.movementSegments);
-        this.movementSegments.clear();
-        return movements;
-    }
-
-    protected void setOnGroundWithMovement(boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {
-        EntityMovementController.setOnGroundWithMovement(this, onGround, horizontalCollision, movement);
-    }
-
-    /**
-     * Returns whether this entity can be moved by currents in liquids.
-     *
-     * @return boolean
-     */
-    public boolean canBeMovedByCurrents() {
-        return true;
-    }
-
-    private void applyLiquidCurrent() {
-        LiquidContact contact = this.scanLiquidContact(this.canBeMovedByCurrents());
-        if (contact.flow().lengthSquared() > 0) {
-            this.motion = this.motion.add(contact.flow().normalize().mul(0.014f));
-        }
-
-        if (contact.touchingWater() && this.fireTicks > 0) {
-            this.extinguish();
-        }
-    }
-
-    protected boolean isTouchingWater() {
-        return this.scanLiquidContact(false).touchingWater();
-    }
-
-    private LiquidContact scanLiquidContact(boolean includeFlow) {
-        BoundingBox box = this.getBoundingBox().deflate(0.001f, 0.001f, 0.001f);
-
-        int minX = GenericMath.floor(box.getMinX());
-        int maxX = GenericMath.floor(box.getMaxX());
-        int minY = GenericMath.floor(box.getMinY());
-        int maxY = GenericMath.floor(box.getMaxY());
-        int minZ = GenericMath.floor(box.getMinZ());
-        int maxZ = GenericMath.floor(box.getMaxZ());
-
-        Vector3f total = Vector3f.ZERO;
-        boolean touchingWater = false;
-
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Block block = this.level.getLoadedBlock(x, y, z);
-                    if (block == null) {
-                        continue;
-                    }
-
-                    LiquidState liquid = block.getLiquid();
-                    if (liquid.isEmpty()) {
-                        continue;
-                    }
-
-                    float height = this.level.getLiquidHeight(block.getPosition());
-                    if (y + height <= box.getMinY()) {
-                        continue;
-                    }
-
-                    if (liquid.getType().isSameFamily(LiquidTypes.WATER)) {
-                        touchingWater = true;
-                    }
-
-                    if (includeFlow) {
-                        total = total.add(this.level.getLiquidFlow(block.getPosition()));
-                    }
-                }
+        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
+            if (player.isOnline()) {
+                this.spawnTo(player);
             }
         }
-
-        return new LiquidContact(touchingWater, total);
     }
 
-    private record LiquidContact(boolean touchingWater, Vector3f flow) {
-    }
+    protected BedrockPacket createAddEntityPacket() {
+        Vector3f pos = this.getPosition();
+        AddEntityPacket addEntity = new AddEntityPacket();
+        addEntity.setIdentifier(this.getType().getId().toString());
+        addEntity.setUniqueEntityId(this.getUniqueId());
+        addEntity.setRuntimeEntityId(this.getRuntimeId());
+        addEntity.setPosition(Vector3f.from(pos.getX(), pos.getY() + this.getBaseOffset(), pos.getZ()));
+        addEntity.setRotation(Vector2f.from(this.pitch, this.yaw));
+        addEntity.setHeadRotation(this.yaw);
+        addEntity.setMotion(this.getMotion());
+        addEntity.setBodyRotation(this.getYaw());
+        addEntity.getMetadata().putAll(this.data.snapshot());
 
-    protected void checkBlockCollision() {
-        EntityInsideBlockScanner.scan(this);
-    }
-
-    public boolean setPositionAndRotation(Vector3f pos, float yaw, float pitch) {
-        if (this.setPosition(pos)) {
-            this.setRotation(yaw, pitch);
-            return true;
+        for (int i = 0; i < this.passengers.size(); i++) {
+            addEntity.getEntityLinks().add(new EntityLinkData(this.getUniqueId(),
+                    this.passengers.get(i).getUniqueId(), i == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false, false, 0));
         }
 
-        return false;
+        this.addAdditionalSpawnData(addEntity);
+        return addEntity;
     }
 
-    public void setRotation(float yaw, float pitch) {
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.scheduleUpdate();
+    protected void addAdditionalSpawnData(AddEntityPacket packet) {
     }
 
-    public boolean canTriggerPressurePlate() {
-        return true;
+    @Override
+    public void despawnFrom(Player player) {
+        this.despawnFrom((CloudPlayer) player);
+    }
+
+    public void despawnFrom(CloudPlayer player) {
+        if (this.hasSpawned.remove(player)) {
+            RemoveEntityPacket packet = new RemoveEntityPacket();
+            packet.setUniqueEntityId(this.getUniqueId());
+            player.sendPacket(packet);
+        }
+    }
+
+    public void despawnFromAll() {
+        for (Player player : this.hasSpawned) {
+            this.despawnFrom(player);
+        }
+    }
+
+    public Set<CloudPlayer> getViewers() {
+        return Set.copyOf(this.hasSpawned);
     }
 
     protected void checkChunks() {
@@ -2091,149 +2271,73 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public boolean setPosition(Vector3f pos) {
-        checkNotNull(pos, "position");
-        if (this.closed) {
-            return false;
-        }
-
-        this.position = pos;
-
-        this.recalculateBoundingBox();
-
-        this.checkChunks();
-
-        return true;
-    }
-
-    public Vector3f getMotion() {
-        return this.motion;
-    }
-
-    public boolean setMotion(Vector3f motion) {
-        if (!this.justCreated) {
-            EntityMotionEvent ev = new EntityMotionEvent(this, motion);
-            this.server.getEventManager().fire(ev);
-            if (ev.isCancelled()) {
-                return false;
-            }
-        }
-
-        this.motion = motion;
-
-        if (!this.justCreated) {
-            this.updateMovement();
-        }
-
-        return true;
-    }
-
-    @Override
-    public void makeStuckInBlock(BlockState state, Vector3f speedMultiplier) {
-        this.resetFallDistance();
-        this.stuckSpeedMultiplier = speedMultiplier;
-    }
-
-    public boolean isOnGround() {
-        return onGround;
-    }
-
-    @Override
-    public void setOnGround(boolean onGround) {
-        this.setOnGroundWithMovement(onGround, this.isCollidedHorizontally, null);
-    }
-
-    @Override
-    public Optional<Vector3i> getSupportingBlockPosition() {
-        return this.supportingBlockPosition;
-    }
-
-    public void kill() {
-        this.enterDeathState();
-    }
-
-    protected final void enterDeathState() {
-        this.health = 0;
-        this.data.set(STRUCTURAL_INTEGRITY, 0);
-        this.scheduleUpdate();
-
-        for (Entity passenger : new ArrayList<>(this.passengers)) {
-            passenger.dismount(this);
-        }
-    }
-
-    public boolean teleport(Vector3f pos) {
-        return this.teleport(pos, PlayerTeleportCause.PLUGIN);
-    }
-
-    public boolean teleport(Vector3f pos, PlayerTeleportCause cause) {
-        return this.teleport(Location.from(pos, this.yaw, this.pitch, this.level), cause);
-    }
-
-    public boolean teleport(Location location) {
-        return this.teleport(location, PlayerTeleportCause.PLUGIN);
-    }
-
-    public boolean teleport(Location location, PlayerTeleportCause cause) {
-        Objects.requireNonNull(cause, "cause");
-        Location from = this.getLocation();
-        EntityTeleportEvent event = new EntityTeleportEvent(this, from, location);
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        return this.teleportWithoutEvent(event.getTo());
-    }
-
-    public boolean teleportWithoutEvent(Location location) {
-        Objects.requireNonNull(location, "location");
-        Location from = this.getLocation();
-        if (from.getLevel() != location.getLevel() && !this.switchLevel((CloudLevel) location.getLevel())) {
-            return false;
-        }
-
-        this.setMotion(Vector3f.ZERO);
-
-        if (this.setPositionAndRotation(location.getPosition(), location.getYaw(), location.getPitch())) {
-            this.resetFallDistance();
-            this.onGround = true;
-
-            this.updateMovement();
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public long getUniqueId() {
-        return this.runtimeId;
-    }
-
-    public long getRuntimeId() {
-        return this.runtimeId;
-    }
-
-    public void spawnToAll() {
-        if (!this.spawned && !this.spawn()) {
-            return;
-        }
-        if (this.chunk == null || this.closed) {
+    /**
+     * Sends pending metadata to viewers and, for a player, to the player itself.
+     */
+    public void flushEntityData() {
+        EntityDataMap changeSet = this.data.drainChanges();
+        if (changeSet.isEmpty()) {
             return;
         }
 
-        for (Player player : this.level.getChunkPlayers(this.chunk.getX(), this.chunk.getZ())) {
-            if (player.isOnline()) {
-                this.spawnTo(player);
-            }
+        EntityDataMap metadata = this.withPlayerPoseMetadata(changeSet);
+        this.sendDataToViewers(metadata);
+
+        if (this.isPlayer) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(this.getRuntimeId());
+            packet.getMetadata().putAll(metadata);
+            ((CloudPlayer) this).sendPacket(packet);
         }
     }
 
-    public void despawnFromAll() {
-        for (Player player : this.hasSpawned) {
-            this.despawnFrom(player);
+    private EntityDataMap withPlayerPoseMetadata(EntityDataMap changeSet) {
+        if (!this.isPlayer || !changeSet.containsKey(FLAGS) || this.hasNetworkBounds(changeSet)) {
+            return changeSet;
         }
+
+        EntityDataMap metadata = new EntityDataMap();
+        metadata.putAll(changeSet);
+        this.putNetworkBounds(metadata);
+        return metadata;
+    }
+
+    private boolean hasNetworkBounds(EntityDataMap metadata) {
+        return metadata.containsKey(HEIGHT) && metadata.containsKey(WIDTH) && metadata.containsKey(COLLISION_BOX);
+    }
+
+    public void sendData(CloudPlayer player) {
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getMetadata().putAll(this.data.snapshot());
+        player.sendPacket(packet);
+    }
+
+    public void sendData(CloudPlayer player, EntityDataType<?>... data) {
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getMetadata().putAll(this.data.snapshot(data));
+
+        player.sendPacket(packet);
+    }
+
+    public void sendFlags(CloudPlayer player) {
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getMetadata().putAll(this.data.snapshot(FLAGS));
+        if (this.isPlayer) {
+            this.putNetworkBounds(packet.getMetadata());
+        }
+
+        player.sendPacket(packet);
+    }
+
+    private void sendDataToViewers(EntityDataMap map) {
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getMetadata().putAll(map);
+
+        CloudServer.broadcastPacket(this.getViewers(), packet);
     }
 
     public void close() {
@@ -2254,32 +2358,11 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    @Nullable
-    @Override
-    public Entity getOwner() {
-        long ownerId = this.data.contains(OWNER_EID) ? this.data.get(OWNER_EID) : -1;
-        if (ownerId == -1) {
-            this.owner = null;
-        } else if (this.owner == null || this.owner.getUniqueId() != ownerId) {
-            this.owner = this.level.getEntityByRuntimeId(ownerId);
-        }
-
-        return this.owner;
-    }
-
-    @Override
-    public void setOwner(@Nullable Entity entity) {
-        this.owner = entity;
-        this.data.set(OWNER_EID, entity == null ? -1 : entity.getUniqueId());
-    }
-
-    @Override
-    public CloudServer getServer() {
-        return server;
-    }
-
     @Override
     public String toString() {
         return "Entity(type=" + type.getId() + ", id=" + getUniqueId() + ")";
+    }
+
+    private record LiquidContact(boolean touchingWater, Vector3f flow) {
     }
 }

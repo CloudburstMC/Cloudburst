@@ -1,37 +1,55 @@
 package org.cloudburstmc.api.event.entity;
 
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.event.Cancellable;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Fired before an entity regains health. Cancellation prevents the healing.
  */
-public final class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
+public class EntityRegainHealthEvent extends EntityEvent implements Cancellable {
 
-    public static final int CAUSE_REGEN = 0;
-    public static final int CAUSE_EATING = 1;
-    public static final int CAUSE_MAGIC = 2;
-    public static final int CAUSE_CUSTOM = 3;
-
+    private final RegainReason regainReason;
     private float amount;
-    private final int reason;
 
-    public EntityRegainHealthEvent(Entity entity, float amount, int regainReason) {
-        this.entity = entity;
-        this.amount = amount;
-        this.reason = regainReason;
+    /**
+     * @param entity       the entity being healed
+     * @param amount       the finite, non-negative health to restore
+     * @param regainReason the cause of healing
+     */
+    public EntityRegainHealthEvent(Entity entity, float amount, RegainReason regainReason) {
+        this.entity = requireNonNull(entity, "entity");
+        this.regainReason = requireNonNull(regainReason, "regainReason");
+        this.setAmount(amount);
     }
 
+    /**
+     * @return the cause of healing
+     */
+    public RegainReason getRegainReason() {
+        return this.regainReason;
+    }
+
+    /**
+     * @return the proposed health increase
+     */
     public float getAmount() {
-        return amount;
+        return this.amount;
     }
 
+    /**
+     * Changes the health increase. Zero prevents healing without cancelling the event.
+     *
+     * @param amount the finite, non-negative health to restore
+     * @throws IllegalArgumentException if the amount is negative or not finite
+     */
     public void setAmount(float amount) {
-        this.amount = amount;
-    }
+        if (!Float.isFinite(amount) || amount < 0) {
+            throw new IllegalArgumentException("Healing must be finite and non-negative");
+        }
 
-    public int getRegainReason() {
-        return reason;
+        this.amount = amount;
     }
 }

@@ -3,9 +3,9 @@ package org.cloudburstmc.server.player;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Attribute;
+import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.player.PlayerExhaustionEvent;
 import org.cloudburstmc.api.event.player.PlayerFoodLevelChangeEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -151,13 +151,13 @@ public class CloudPlayerFood {
             if (naturalRegen && hurt && this.level == MAX_LEVEL && this.saturation > 0.0f) {
                 if (++this.tickTimer >= 10) {
                     float spent = Math.min(this.saturation, 6.0f);
-                    this.player.heal(new EntityRegainHealthEvent(this.player, spent / 6.0f, EntityRegainHealthEvent.CAUSE_EATING));
+                    this.player.heal(spent / 6.0f, RegainReason.SATIATED);
                     this.addExhaustion(spent, ExhaustionReason.REGEN);
                     this.tickTimer = 0;
                 }
             } else if (naturalRegen && hurt && this.level >= 18) {
                 if (++this.tickTimer >= 80) {
-                    this.player.heal(new EntityRegainHealthEvent(this.player, 1.0f, EntityRegainHealthEvent.CAUSE_EATING));
+                    this.player.heal(1.0f, RegainReason.SATIATED);
                     this.addExhaustion(6.0f, ExhaustionReason.REGEN);
                     this.tickTimer = 0;
                 }

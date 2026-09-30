@@ -5,6 +5,7 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -284,14 +285,13 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (invulnerable) {
+        if (invulnerable && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else {
-            source.setDamage(source.getDamage() * 15);
+            source.setDamage((float) Math.min((double) source.getDamage() * 15, Float.MAX_VALUE));
 
             boolean attack = super.applyDamage(source);
-
-            if (isAlive()) {
+            if (attack && isAlive()) {
                 performHurtAnimation();
             }
 
@@ -305,6 +305,10 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     public void kill() {
+        if (this.isClosed() || !this.isAlive()) {
+            return;
+        }
+
         super.kill();
 
         if (this.getLevel().getGameRules().get(GameRules.DO_ENTITY_DROPS)) {

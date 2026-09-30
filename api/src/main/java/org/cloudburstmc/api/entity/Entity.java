@@ -24,8 +24,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * An entity in a level, with position, motion and a lifecycle independent of its viewers.
+ */
 public interface Entity extends Damageable, Emitter {
 
+    /**
+     * @return the registered entity type
+     */
     EntityType<?> getType();
 
     /**
@@ -258,6 +264,7 @@ public interface Entity extends Damageable, Emitter {
 
     /**
      * Sets the number of ticks this entity has been freezing.
+     * Values are clamped between zero and {@link #getMaxFreezeTicks()}.
      *
      * @param ticks the new freeze ticks
      */
@@ -307,25 +314,62 @@ public interface Entity extends Damageable, Emitter {
 
     boolean onUpdate(int currentTick);
 
+    /**
+     * @return whether any burning duration remains
+     */
     default boolean isOnFire() {
         return getFireTicks() > 0;
     }
 
+    /**
+     * Ignites the entity for the supplied duration, reduced by its fire protection.
+     * Does not shorten an existing longer duration.
+     *
+     * @param seconds the non-negative duration before protection
+     * @throws IllegalArgumentException if the duration is negative
+     */
     void setOnFire(@NonNegative int seconds);
 
+    /**
+     * @return the remaining burning duration in ticks
+     */
     @NonNegative
     int getFireTicks();
 
+    /**
+     * Removes fire and its visible burning effect.
+     */
     void extinguish();
 
+    /**
+     * @return remaining ticks of temporary damage immunity
+     */
     int getNoDamageTicks();
 
+    /**
+     * Sets temporary damage immunity, separate from the normal hurt cooldown.
+     * Damage tagged to bypass invulnerability still applies.
+     *
+     * @param noDamageTicks non-negative immunity duration
+     * @throws IllegalArgumentException if the duration is negative
+     */
     void setNoDamageTicks(int noDamageTicks);
 
+    /**
+     * @return the highest Y coordinate tracked for the current fall, in blocks
+     */
     float getHighestPosition();
 
+    /**
+     * Sets the reference height used to measure the current fall.
+     *
+     * @param highestPosition the reference Y coordinate in blocks
+     */
     void setHighestPosition(float highestPosition);
 
+    /**
+     * Clears accumulated fall distance at the entity's current height.
+     */
     void resetFallDistance();
 
     /**
@@ -357,8 +401,19 @@ public interface Entity extends Damageable, Emitter {
         return this.getLevel().hasCollision(this, boundingBox);
     }
 
+    /**
+     * Handles landing on the supporting block, including its response to a fall.
+     * The supporting block determines whether fall damage applies.
+     *
+     * @param fallDistance the distance fallen in blocks
+     */
     void fall(float fallDistance);
 
+    /**
+     * Handles a lightning strike, including damage and entity-specific reactions.
+     *
+     * @param lightningBolt the bolt that struck this entity
+     */
     void onStruckByLightning(LightningBolt lightningBolt);
 
     boolean onInteract(Player player, ItemStack item, Vector3f clickedPos);
@@ -375,8 +430,18 @@ public interface Entity extends Damageable, Emitter {
 
     Location getLocation();
 
+    /**
+     * @return the current motion in blocks per tick
+     */
     Vector3f getMotion();
 
+    /**
+     * Replaces motion unless a motion event cancels the change.
+     *
+     * @param motion the finite motion in blocks per tick
+     * @return whether the motion was applied
+     * @throws IllegalArgumentException if any component is not finite
+     */
     boolean setMotion(Vector3f motion);
 
     void makeStuckInBlock(BlockState state, Vector3f speedMultiplier);
@@ -410,10 +475,17 @@ public interface Entity extends Damageable, Emitter {
         return this.getSupportingBlockPosition().filter(position::equals).isPresent();
     }
 
+    /**
+     * @return whether this entity is undead and has reversed healing and harming potion responses
+     */
     default boolean isUndead() {
         return false;
     }
 
+    /**
+     * Requests death rather than immediate removal. A living entity's death event
+     * can cancel death and restore its configured revival health.
+     */
     void kill();
 
     /**
@@ -454,15 +526,26 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean teleport(Location location, PlayerTeleportCause cause);
 
+    /**
+     * @return the owning entity, or {@code null} when no owner is assigned
+     */
     @Nullable
     Entity getOwner();
 
+    /**
+     * @param entity the owning entity, or {@code null} to clear ownership
+     */
     void setOwner(@Nullable Entity entity);
 
-    //SyncedEntityData getData();
-
+    /**
+     * @return whether this entity has been removed and can no longer be updated
+     */
     boolean isClosed();
 
+    /**
+     * Removes this entity from its level and viewers without triggering death or death drops.
+     * Calling this again has no effect.
+     */
     void close();
 
 }

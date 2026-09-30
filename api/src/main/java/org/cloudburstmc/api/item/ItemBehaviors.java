@@ -85,6 +85,11 @@ public class ItemBehaviors {
     public static final ComponentType<ConsumableComponent> CONSUMABLE = ComponentType.of("consumable", ConsumableComponent.class);
 
     /**
+     * Defines recovery from lethal damage while this item is held.
+     */
+    public static final ComponentType<DeathProtectionComponent> DEATH_PROTECTION = ComponentType.of("death_protection", DeathProtectionComponent.class);
+
+    /**
      * Determines whether this item type has durability.
      */
     public static final ComponentType<BooleanTypeHandler> DAMAGEABLE = ComponentType.of("damageable", BooleanTypeHandler.class);

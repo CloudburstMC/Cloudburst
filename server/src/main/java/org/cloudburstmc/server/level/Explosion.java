@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -24,6 +25,8 @@ import org.cloudburstmc.api.util.MissReason;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.*;
@@ -169,6 +172,10 @@ public class Explosion {
 
         DamageSource damageSource = source.build();
         for (Entity entity : this.level.getNearbyEntities(this.settings.sourceEntity(), bounds)) {
+            if (entity.isClosed() || entity instanceof Player player && player.isSpectator()) {
+                continue;
+            }
+
             float distance = entity.getPosition().distance(this.center) / reach;
             if (distance > 1) {
                 continue;
@@ -178,10 +185,17 @@ public class Explosion {
             Vector3f offset = origin.sub(this.center);
 
             float impact = (1 - distance) * getSeenPercent(this.center, entity);
-            entity.damage((impact * impact + impact) / 2 * 7 * reach + 1, damageSource);
+            CloudEntity target = (CloudEntity) entity;
+            if (target.damageWithResult((impact * impact + impact) / 2 * 7 * reach + 1, damageSource).cancelled() || target.isClosed()) {
+                continue;
+            }
 
-            if (!(entity instanceof Player player && (player.isSpectator() || player.isCreative() && player.getAbilities().get(Ability.FLYING)))) {
-                entity.setMotion(entity.getMotion().add(offset.lengthSquared() == 0 ? Vector3f.ZERO : offset.normalize().mul(impact)));
+            if (!(entity instanceof Player player && player.isCreative() && player.getAbilities().get(Ability.FLYING))) {
+                float resistance = target instanceof EntityLiving living ? living.getExplosionKnockbackResistance() : 0;
+                float knockback = impact * (1 - resistance);
+                if (knockback > 0 && offset.lengthSquared() > 0) {
+                    target.applyKnockback(offset.normalize().mul(knockback), KnockbackCause.EXPLOSION, causing);
+                }
             }
         }
     }

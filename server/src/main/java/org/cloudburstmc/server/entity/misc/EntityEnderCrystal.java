@@ -66,13 +66,13 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (this.isClosed() || this.isInvulnerable() || source.getDamageType().is(DamageTypeTags.IS_FIRE)
+        if (this.isDamageImmune(source.getDamageSource()) || source.getDamageType().is(DamageTypeTags.IS_FIRE)
                 || source.getDamageSource().getCausingEntity() instanceof EnderDragon) {
             return false;
         }
 
         this.getServer().getEventManager().fire(source);
-        if (source.isCancelled() || source.getDamage() <= 0) {
+        if (source.isCancelled() || source.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
             return false;
         }
 

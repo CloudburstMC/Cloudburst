@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -104,7 +105,7 @@ public class SpearItemHandlers {
             }
 
             if (knockback && target instanceof EntityLiving living) {
-                living.knockBack(player, 0.4f, look.getX(), look.getZ());
+                living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
             }
 
             boolean affected = knockback || dismount && target.getVehicle() != null;
@@ -146,7 +147,7 @@ public class SpearItemHandlers {
             if (player.attack(target)) {
                 damaged = true;
                 if (target instanceof EntityLiving living) {
-                    living.knockBack(player, 0.4f, look.getX(), look.getZ());
+                    living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
                 }
             }
         }

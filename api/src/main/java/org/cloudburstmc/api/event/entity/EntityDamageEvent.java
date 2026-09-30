@@ -11,7 +11,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * Called before damage is applied. Cancellation prevents damage and its associated effects.
  * Defenses are captured for the hit. Changing the raw damage recalculates blocking
- * and damage reductions using those defenses.
+ * and damage reductions using those defenses. Fully blocked hits can still trigger
+ * blocking effects without damaging health.
  */
 public abstract class EntityDamageEvent extends EntityEvent implements Cancellable {
 
@@ -24,7 +25,7 @@ public abstract class EntityDamageEvent extends EntityEvent implements Cancellab
      *
      * @param entity       the damaged entity
      * @param damageSource the damage source
-     * @param damage       the non-negative incoming damage before reductions
+     * @param damage       the finite, non-negative incoming damage before reductions
      */
     protected EntityDamageEvent(Entity entity, DamageSource damageSource, float damage) {
         this.entity = requireNonNull(entity, "entity");
@@ -73,7 +74,8 @@ public abstract class EntityDamageEvent extends EntityEvent implements Cancellab
     /**
      * Sets the incoming damage before blocking and other reductions.
      *
-     * @param damage the new non-negative damage
+     * @param damage the new finite, non-negative damage
+     * @throws IllegalArgumentException if damage is negative or not finite
      */
     public void setDamage(float damage) {
         checkArgument(Float.isFinite(damage) && damage >= 0, "damage must be finite and non-negative");

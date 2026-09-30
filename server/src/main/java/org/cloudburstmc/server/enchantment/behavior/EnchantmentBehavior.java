@@ -14,12 +14,24 @@ public abstract class EnchantmentBehavior {
         return 0;
     }
 
+    public float getExplosionKnockbackResistance(Enchantment enchantment) {
+        return 0;
+    }
+
+    public float getBurningTimeReduction(Enchantment enchantment) {
+        return 0;
+    }
+
     public float modifyDamage(Enchantment enchantment, Entity target, float damage) {
         return damage;
     }
 
     public float modifyKnockback(Enchantment enchantment, Entity target, float knockback) {
         return knockback;
+    }
+
+    public float modifyArmorEffectiveness(Enchantment enchantment, float effectiveness) {
+        return effectiveness;
     }
 
     public void onPostAttack(Enchantment enchantment, Entity attacker, Entity target) {
