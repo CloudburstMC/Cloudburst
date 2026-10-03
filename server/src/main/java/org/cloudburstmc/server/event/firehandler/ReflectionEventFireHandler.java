@@ -34,9 +34,10 @@ public class ReflectionEventFireHandler implements EventFireHandler {
             try {
                 method.run(event);
             } catch (Throwable e) {
-                log.error("Exception occurred while executing method " + method + " for " + event, e);
+                log.error("Exception occurred while executing method {} for {}", method, event, e);
             }
         }
+
         long differenceTaken = System.nanoTime() - start;
         if (differenceTaken >= LONG_RUNNING_EVENT_TIME) {
             log.warn("Event {} took {} ms to fire", event, BigDecimal.valueOf(differenceTaken)
@@ -47,7 +48,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
     @Override
     public List<EventFireHandler.ListenerMethod> getMethods() {
-        return Collections.unmodifiableList(new ArrayList<>(methods));
+        return List.copyOf(methods);
     }
 
     @RequiredArgsConstructor
@@ -58,6 +59,11 @@ public class ReflectionEventFireHandler implements EventFireHandler {
         private final Timing timing;
 
         public void run(Event event) throws InvocationTargetException, IllegalAccessException {
+            if (event.isAsynchronous()) {
+                method.invoke(listener, event);
+                return;
+            }
+
             try (Timing t = this.timing.startTiming()) {
                 method.invoke(listener, event);
             }

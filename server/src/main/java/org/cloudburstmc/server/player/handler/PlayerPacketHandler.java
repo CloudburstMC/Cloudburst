@@ -1747,20 +1747,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(SetLocalPlayerAsInitializedPacket packet) {
-        if (player.isInitialized()) {
+        if (player.isInitialized() || !player.isSpawned() || packet.getRuntimeEntityId() != player.getRuntimeId()) {
             return PacketSignal.HANDLED;
         }
-
-        PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(player,
-                Component.translatable("multiplayer.player.joined", player.displayName()).color(NamedTextColor.YELLOW)
-        );
-
-        player.getServer().getEventManager().fire(playerJoinEvent);
-
-        if (playerJoinEvent.getJoinMessage() != null) {
-            player.getServer().broadcastMessage(playerJoinEvent.getJoinMessage());
-        }
-
         player.completeClientInitialization();
         return PacketSignal.HANDLED;
     }

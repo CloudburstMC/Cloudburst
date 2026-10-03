@@ -52,7 +52,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
             return null;
         }
 
-        log.warn("No block entity found at {} for lectern; auto-creating", block.getPosition());
+        log.warn("No block entity found at {} for lectern. Creating block entity", block.getPosition());
         return (LecternBlockEntity) CloudBlockEntityRegistry.get().newEntity(BlockEntityTypes.LECTERN, block);
     }
 

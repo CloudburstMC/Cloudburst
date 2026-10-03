@@ -14,17 +14,10 @@ import java.util.Optional;
 
 
 /**
- * Called when items are moved between slot groups without a player's direct involvement
- * (e.g. a hopper pulling/pushing items between block entities).
- *
- * <p>This event extends {@link Event} directly rather than
- * {@link org.cloudburstmc.api.event.inventory.InventoryEvent}, because no player screen is
- * involved in an automated item transfer; there is no open
- * {@link org.cloudburstmc.api.inventory.InventoryScreen}. Events that involve a player
- * interacting with an open screen (clicks, open/close) extend
- * {@link org.cloudburstmc.api.event.inventory.InventoryEvent} instead.</p>
+ * Called when items are transferred between slot groups without direct player interaction,
+ * such as a hopper transfer.
  */
-public final class InventoryMoveItemEvent extends Event implements Cancellable {
+public class InventoryMoveItemEvent extends Event implements Cancellable {
 
     @Nullable
     private final SlotGroup source;
@@ -255,4 +248,3 @@ public final class InventoryMoveItemEvent extends Event implements Cancellable {
         DISPENSE
     }
 }
-

@@ -6,9 +6,9 @@ import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
 /**
- * Fired before a player is kicked from the server. The event is cancellable; cancelling it
- * aborts the kick. The {@code quitMessage} is the disconnect screen text shown to the player
- * and, if non-null, broadcast to all online players.
+ * Fired before a player is kicked from the server. Cancelling aborts the kick.
+ * The quit message is passed to {@link PlayerQuitEvent} for the leave broadcast.
+ * It does not change the reason shown on the disconnect screen.
  */
 public final class PlayerKickEvent extends PlayerEvent implements Cancellable {
 
@@ -30,7 +30,7 @@ public final class PlayerKickEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Returns the internal reason string for this kick.
+     * Returns the reason string for this kick.
      *
      * @return the reason string
      */
@@ -48,8 +48,7 @@ public final class PlayerKickEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Returns the disconnect message shown to the player (and broadcast to others),
-     * or {@code null} if suppressed.
+     * Returns the quit message to pass to {@link PlayerQuitEvent}.
      *
      * @return the quit message component, or {@code null}
      */
@@ -59,7 +58,8 @@ public final class PlayerKickEvent extends PlayerEvent implements Cancellable {
     }
 
     /**
-     * Sets the quit/disconnect message. Pass {@code null} to suppress it.
+     * Sets the quit message to pass to {@link PlayerQuitEvent}.
+     * Pass {@code null} to omit the initial broadcast message.
      *
      * @param quitMessage the new quit message, or {@code null}
      */

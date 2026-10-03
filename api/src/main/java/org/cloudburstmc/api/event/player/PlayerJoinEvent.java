@@ -5,10 +5,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.player.Player;
 
 /**
- * Fired when a player joins the server. The join message is broadcast to all online players
- * after the event is processed; set it to {@code null} to suppress the broadcast entirely.
+ * Called on the server thread after the joining player has spawned.
+ * The join message is broadcast after listeners return if the player remains connected.
  */
-public final class PlayerJoinEvent extends PlayerEvent {
+public class PlayerJoinEvent extends PlayerEvent {
 
     @Nullable
     private Component joinMessage;

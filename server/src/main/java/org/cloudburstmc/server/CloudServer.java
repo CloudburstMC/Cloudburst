@@ -2,14 +2,12 @@ package org.cloudburstmc.server;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
-import com.dosse.upnp.UPnP;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.spotify.futures.CompletableFutures;
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import net.daporkchop.ldbjni.LevelDB;
@@ -57,13 +55,9 @@ import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.metrics.CloudMetrics;
-import org.cloudburstmc.server.network.BedrockInterface;
-import org.cloudburstmc.server.network.Network;
+import org.cloudburstmc.server.network.CloudNetwork;
 import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.network.SourceInterface;
-import org.cloudburstmc.server.network.query.QueryHandler;
-import org.cloudburstmc.server.pack.PackManager;
-import org.cloudburstmc.server.permission.BanEntry;
+import org.cloudburstmc.server.pack.CloudPackManager;
 import org.cloudburstmc.server.permission.BanList;
 import org.cloudburstmc.server.permission.DefaultPermissions;
 import org.cloudburstmc.server.player.CloudOfflinePlayer;
@@ -76,7 +70,6 @@ import org.cloudburstmc.server.scheduler.CloudAsyncScheduler;
 import org.cloudburstmc.server.scheduler.CloudGlobalScheduler;
 import org.cloudburstmc.server.utils.Config;
 import org.cloudburstmc.server.utils.DefaultPlayerDataSerializer;
-import org.cloudburstmc.server.utils.Utils;
 import org.cloudburstmc.server.utils.Watchdog;
 import org.cloudburstmc.server.utils.bugreport.ExceptionHandler;
 import org.iq80.leveldb.CompressionType;
@@ -84,10 +77,8 @@ import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -139,15 +130,10 @@ public class CloudServer implements Server {
     private AsyncScheduler asyncScheduler;
 
     private final CraftingManager craftingManager;
-    private final PackManager packManager;
+    private final CloudPackManager packManager;
 
-    private Network network;
-    private boolean networkCompressionAsync = true;
-    public int networkCompressionLevel = 7;
+    private CloudNetwork network;
     private final Set<String> ignoredPackets = new HashSet<>();
-
-    private QueryHandler queryHandler;
-    private QueryRegenerateEvent queryRegenerateEvent;
 
     private Watchdog watchdog;
 
@@ -170,7 +156,6 @@ public class CloudServer implements Server {
     private int autoSaveTicker;
     private int autoSaveTicks = 6000;
 
-    private boolean upnpEnabled;
     private Boolean getAllowFlight;
     private Difficulty difficulty;
     private GameMode defaultGamemode;
@@ -239,7 +224,7 @@ public class CloudServer implements Server {
         this.permissionManager = injector.getInstance(PermissionManager.class);
         this.levelManager = injector.getInstance(LevelManager.class);
         this.craftingManager = injector.getInstance(CraftingManager.class);
-        this.packManager = injector.getInstance(PackManager.class);
+        this.packManager = injector.getInstance(CloudPackManager.class);
         this.globalScheduler = injector.getInstance(CloudGlobalScheduler.class);
         this.asyncScheduler = injector.getInstance(CloudAsyncScheduler.class);
 
@@ -406,12 +391,6 @@ public class CloudServer implements Server {
         int parallelism = (int) poolSize;
         log.debug("Async pool parallelism: {}", parallelism == -1 ? "auto" : parallelism);
 
-//        this.networkZlibProvider = this.getConfig("network.zlib-provider", 2);
-//        Zlib.setProvider(this.networkZlibProvider);
-
-        this.networkCompressionLevel = getConfig().getNetwork().getCompressionLevel();
-        this.networkCompressionAsync = getConfig().getNetwork().isAsyncCompression();
-
         this.operators = new Config(this.dataPath.resolve("ops.txt").toFile(), Config.ENUM);
         this.whitelist = new Config(this.dataPath.resolve("white-list.txt").toFile(), Config.ENUM);
         this.banByName = new BanList(this.dataPath.resolve("banned-players.json").toString());
@@ -453,8 +432,6 @@ public class CloudServer implements Server {
 
         this.pluginManager.registerLoader(JavaPluginLoader.class, JavaPluginLoader.builder().build());
 
-        this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5);
-
         this.loadPlugins();
 
         this.eventManager.fire(ServerInitializationEvent.INSTANCE);
@@ -478,7 +455,7 @@ public class CloudServer implements Server {
             this.gameRuleRegistry.close();
             this.generatorRegistry.close();
             this.storageRegistry.close();
-            this.packManager.closeRegistration();
+            this.packManager.close();
             this.commandRegistry.close();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to close registries", e);
@@ -518,45 +495,27 @@ public class CloudServer implements Server {
         log.info(this.getLanguage().translate("cloudburst.server.networkStart", "§b" + (this.getIp().equals("") ? "*" : this.getIp()) + "§r", "§b" + this.getPort() + "§r"));
         this.serverID = UUID.randomUUID();
 
-        this.network = new Network(this);
-        this.network.setName(BedrockLegacyTextSerializer.getInstance().serialize(motd()));
-        this.network.setSubName(BedrockLegacyTextSerializer.getInstance().serialize(subMotd()));
+        this.network = new CloudNetwork(this);
 
         try {
-            this.network.registerInterface(new BedrockInterface(this));
+            this.network.bind();
         } catch (Exception e) {
-            log.fatal("**** FAILED TO BIND TO " + getIp() + ":" + getPort() + "!", e);
-            log.fatal("Perhaps a server is already running on that port?");
+            log.fatal("Unable to start NetherNet on {}:{}", getIp(), getPort(), e);
+            this.forceShutdown();
+            throw new IllegalStateException("Unable to start the network listener", e);
+        }
+
+        try {
+            if (Bootstrap.DEBUG < 2) {
+                this.watchdog = new Watchdog(this, 60000);
+                this.watchdog.start();
+            }
+
+            this.eventManager.fire(ServerStartEvent.INSTANCE);
+            this.start();
+        } finally {
             this.forceShutdown();
         }
-
-        if (Bootstrap.DEBUG < 2) {
-            this.watchdog = new Watchdog(this, 60000);
-            this.watchdog.start();
-        }
-
-        if (this.getConfig().getSettings().isUpnp()) {
-            if (UPnP.isUPnPAvailable()) {
-                log.debug(this.getLanguage().translate("cloudburst.server.upnp.enabled"));
-                if (UPnP.openPortUDP(getPort(), "Cloudburst")) {
-                    this.upnpEnabled = true; // Saved to disable the port-forwarding on shutdown
-                    log.info(this.getLanguage().translate("cloudburst.server.upnp.success", getPort()));
-                } else {
-                    this.upnpEnabled = false;
-                    log.warn(this.getLanguage().translate("cloudburst.server.upnp.fail"));
-                }
-            } else {
-                this.upnpEnabled = false;
-                log.warn(this.getLanguage().translate("cloudburst.server.upnp.unavailable"));
-            }
-        } else {
-            this.upnpEnabled = false;
-            log.debug(this.getLanguage().translate("cloudburst.server.upnp.disabled"));
-        }
-
-        this.eventManager.fire(ServerStartEvent.INSTANCE);
-
-        this.start();
     }
 
     public void batchPackets(Player[] players, BedrockPacket[] packets) {
@@ -617,6 +576,9 @@ public class CloudServer implements Server {
             isRunning.compareAndSet(true, false);
 
             this.hasStopped = true;
+            if (this.network != null) {
+                this.network.stopAcceptingConnections();
+            }
 
             for (CloudPlayer player : new ArrayList<>(this.players.values())) {
                 try {
@@ -640,19 +602,6 @@ public class CloudServer implements Server {
             log.debug("Closing console");
             this.consoleThread.interrupt();
 
-            if (this.upnpEnabled) {
-                log.debug("Closing UPnP port");
-                if (UPnP.closePortUDP(this.getPort())) {
-                    log.info(this.getLanguage().translate("cloudburst.server.upnp.closed"));
-                }
-            }
-
-            log.debug("Stopping network interfaces");
-            for (SourceInterface interfaz : this.network.getInterfaces()) {
-                interfaz.shutdown();
-                this.network.unregisterInterface(interfaz);
-            }
-
             if (nameLookup != null) {
                 nameLookup.close();
             }
@@ -665,21 +614,20 @@ public class CloudServer implements Server {
             //todo other things
         } catch (Exception e) {
             log.fatal("Exception happened while shutting down", e);
+        } finally {
+            try {
+                if (this.network != null) {
+                    this.network.close();
+                }
+            } finally {
+                this.packManager.shutdown();
+            }
         }
     }
 
-    public void start() {
-        if (this.serverProperties.isEnableQuery()) {
-            this.queryHandler = new QueryHandler();
-        }
-
-        for (BanEntry entry : this.getIPBans().getEntires().values()) {
-            try {
-                this.network.blockAddress(InetAddress.getByName(entry.getName()));
-            } catch (UnknownHostException e) {
-                // ignore
-            }
-        }
+    private void start() {
+        this.network.refreshStatus();
+        this.network.startAcceptingConnections();
 
         //todo send usage setting
         this.tickCounter = 0;
@@ -688,28 +636,6 @@ public class CloudServer implements Server {
         log.info(this.getLanguage().translate("cloudburst.server.startFinished", String.format("%.2f", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d)));
 
         this.tickProcessor();
-        this.forceShutdown();
-    }
-
-    public void handlePacket(InetSocketAddress address, ByteBuf payload) {
-        try {
-            if (!payload.isReadable(3)) {
-                return;
-            }
-            byte[] prefix = new byte[2];
-            payload.readBytes(prefix);
-
-            if (!Arrays.equals(prefix, new byte[]{(byte) 0xfe, (byte) 0xfd})) {
-                return;
-            }
-            if (this.queryHandler != null) {
-                this.queryHandler.handle(address, payload);
-            }
-        } catch (Exception e) {
-            log.error("Error whilst handling packet", e);
-
-            this.network.blockAddress(address.getAddress());
-        }
     }
 
     public void tickProcessor() {
@@ -894,10 +820,6 @@ public class CloudServer implements Server {
 
             ++this.tickCounter;
 
-            try (Timing ignored2 = Timings.connectionTimer.startTiming()) {
-                this.network.processInterfaces();
-            }
-
             try (Timing ignored2 = Timings.schedulerTimer.startTiming()) {
                 this.globalScheduler.tick(this.tickCounter);
             }
@@ -916,18 +838,11 @@ public class CloudServer implements Server {
                 this.maxTick = 20;
                 this.maxUse = 0;
 
-                if ((this.tickCounter & 0b111111111) == 0) {
-                    try {
-                        this.eventManager.fire(this.queryRegenerateEvent = new QueryRegenerateEvent(this, 5));
-                        if (this.queryHandler != null) {
-                            this.queryHandler.regenerateInfo();
-                        }
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
+                try {
+                    this.network.refreshStatus();
+                } catch (Exception e) {
+                    log.error("Unable to refresh server status", e);
                 }
-
-                this.getNetwork().updateName();
             }
 
             if (this.autoSave && ++this.autoSaveTicker >= this.autoSaveTicks) {
@@ -997,10 +912,6 @@ public class CloudServer implements Server {
                 + " | Load " + this.getTickUsage() + "%" + (char) 0x07;
 
         System.out.print(title);
-    }
-
-    public QueryRegenerateEvent getQueryInformation() {
-        return this.queryRegenerateEvent;
     }
 
     public String getName() {
@@ -1176,7 +1087,7 @@ public class CloudServer implements Server {
         return craftingManager;
     }
 
-    public PackManager getPackManager() {
+    public CloudPackManager getPackManager() {
         return packManager;
     }
 
@@ -1433,7 +1344,7 @@ public class CloudServer implements Server {
         return forceLanguage;
     }
 
-    public Network getNetwork() {
+    public CloudNetwork getNetwork() {
         return network;
     }
 
@@ -1456,7 +1367,10 @@ public class CloudServer implements Server {
 
     @Override
     public boolean isIPBanned(Player player) {
-        return this.banByIP.isBanned(player.getName().toLowerCase(Locale.ROOT));
+        return player instanceof CloudPlayer onlinePlayer
+                && onlinePlayer.getSocketAddress() instanceof InetSocketAddress address
+                && address.getAddress() != null
+                && this.banByIP.isBanned(address.getAddress().getHostAddress());
     }
 
     @Override

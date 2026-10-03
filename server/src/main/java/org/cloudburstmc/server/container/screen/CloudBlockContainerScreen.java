@@ -41,7 +41,7 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
     protected static <T extends ContainerBlockEntity> T getOrCreateBlockEntity(Block block, BlockEntityType<?> type) {
         BlockEntity existing = block.getLevel().getBlockEntity(block.getPosition());
         if (existing == null) {
-            log.warn("No block entity found at {} for block {}; auto-creating {}",
+            log.warn("No block entity found at {} for block {}. Creating {}",
                     block.getPosition(), block.getState().getType().getId(),
                     type.getId());
             return (T) CloudBlockEntityRegistry.get().newEntity((BlockEntityType) type, block);

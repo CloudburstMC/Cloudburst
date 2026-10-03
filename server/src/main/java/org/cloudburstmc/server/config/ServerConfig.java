@@ -111,10 +111,6 @@ public class ServerConfig {
         return properties.isAllowEnd();
     }
 
-    public boolean isEnableQuery() {
-        return properties.isEnableQuery();
-    }
-
     public boolean isAutoSave() {
         return properties.isAutoSave();
     }
@@ -219,13 +215,31 @@ public class ServerConfig {
     @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Network {
         @Builder.Default
-        private int compressionLevel = 7;
+        private String identityFile = "nethernet/identity.pem";
 
         @Builder.Default
-        private boolean asyncCompression = true;
+        private List<String> advertisedAddresses = List.of();
 
         @Builder.Default
-        private int batchThreshold = 256;
+        private String tlsCertificate = "";
+
+        @Builder.Default
+        private String tlsPrivateKey = "";
+
+        @Builder.Default
+        private int maxConnections = 128;
+
+        @Builder.Default
+        private int maxConnectionsPerAddress = 8;
+
+        @Builder.Default
+        private int maxPendingJoins = 64;
+
+        @Builder.Default
+        private int handshakeTimeoutSeconds = 30;
+
+        @Builder.Default
+        private int loginTimeoutSeconds = 120;
     }
 
     @Data
@@ -418,9 +432,6 @@ public class ServerConfig {
     @NoArgsConstructor
     @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
     public static class Settings {
-
-        @Builder.Default
-        private boolean queryPlugins = true;
 
         @Builder.Default
         private String shutdownMessage = "Server closed";

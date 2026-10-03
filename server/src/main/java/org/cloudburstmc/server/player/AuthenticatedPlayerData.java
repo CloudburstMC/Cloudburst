@@ -89,7 +89,7 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
             }
 
             ChainValidationResult result = EncryptionUtils.validatePayload(pk.getAuthPayload());
-            return new AuthenticatedPlayerData(result, pk.getClientJwt(), authType == AuthType.FULL);
+            return new AuthenticatedPlayerData(result, pk.getClientJwt(), result.signed());
         } catch (Exception e) {
             throw new RuntimeException("Failed to validate login chain", e);
         }

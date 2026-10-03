@@ -15,28 +15,11 @@ import java.util.Objects;
  * <p>For transfer and swap actions, {@link #getDestinationSlot()} and
  * {@link #getDestinationSlotGroup()} indicate where the item is going.
  * Override the resulting item placed in the destination slot via
- * {@link #setResultItem(ItemStack)}; the source slot reduction is unaffected.
+ * {@link #setResultItem(ItemStack)}. The source slot reduction is unaffected.
  * For non-transfer actions (DROP, DESTROY, CRAFT_CREATIVE) the destination
  * fields are {@code -1} / {@code null} and {@code resultItem} is ignored.</p>
- *
- * <h2>Construction</h2>
- * <p>Use {@link Builder} to construct instances:</p>
- * <pre>{@code
- * InventoryClickEvent event = new InventoryClickEvent.Builder()
- *     .screen(screen)
- *     .slot(srcViewSlot)
- *     .slotGroup(srcGroup)
- *     .sourceItem(sourceItem)
- *     .cursorItem(cursorItem)
- *     .actionType(ActionType.TAKE)
- *     .clickType(ClickType.TAKE_ALL)
- *     .destinationSlot(dstViewSlot)
- *     .destinationSlotGroup(dstGroup)
- *     .resultItem(newDest)
- *     .build();
- * }</pre>
  */
-public final class InventoryClickEvent extends InventoryEvent implements Cancellable {
+public class InventoryClickEvent extends InventoryEvent implements Cancellable {
 
     private final int slot;
     @NonNull

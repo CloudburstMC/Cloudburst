@@ -2,6 +2,7 @@ package org.cloudburstmc.server.player;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import io.netty.channel.ChannelPipeline;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.AccessLevel;
@@ -38,8 +39,8 @@ import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.player.*;
@@ -56,8 +57,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
-import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.adventure.BedrockComponent;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
@@ -103,6 +103,7 @@ import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
+import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -125,9 +126,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.DAMAGE_NEARBY_MOBS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
@@ -232,6 +231,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private boolean clientCacheEnabled = false;
     private boolean teleportAcknowledged;
     private boolean pendingTeleportEntityViewRefresh;
+    @Getter
     private boolean initialized;
     private boolean clientCommandsEnabledStateSent;
     private boolean clientCommandDataSent;
@@ -395,19 +395,31 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
     }
 
-    public boolean isInitialized() {
-        return initialized;
-    }
-
+    @SuppressWarnings("resource")
     public void completeClientInitialization() {
-        if (this.initialized) {
+        if (this.initialized || !this.spawned || !this.isConnected()) {
             return;
         }
 
         this.initialized = true;
-        if (this.spawned) {
-            this.syncClientAuthorityState(true);
+        this.session.getPeer().getChannel().eventLoop().execute(() -> {
+            ChannelPipeline pipeline = this.session.getPeer().getChannel().pipeline();
+            if (pipeline.get(CloudLoginTimeoutHandler.class) != null) {
+                pipeline.remove(CloudLoginTimeoutHandler.class);
+            }
+        });
+
+        PlayerJoinEvent event = new PlayerJoinEvent(this, Component.translatable("multiplayer.player.joined", this.displayName()).color(NamedTextColor.YELLOW));
+        this.server.getEventManager().fire(event);
+        if (!this.isConnected()) {
+            return;
         }
+
+        if (event.getJoinMessage() != null) {
+            this.server.broadcastMessage(event.getJoinMessage());
+        }
+
+        this.syncClientAuthorityState(true);
     }
 
     @Override
@@ -1170,14 +1182,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return 0;
         }
 
-        RakSessionCodec session = ((RakChildChannel) this.session.getPeer().getChannel())
-                .rakPipeline()
-                .get(RakSessionCodec.class);
-        if (session == null) {
-            return 0;
-        }
-
-        return (int) session.getPing();
+        long ping = ((NetherNetChannel) this.session.getPeer().getChannel()).getPing();
+        return Math.clamp(ping, 0, Integer.MAX_VALUE);
     }
 
     public boolean sleepOn(Vector3i pos) {
@@ -2319,13 +2325,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void completeLoginSequence() {
-        PlayerLoginEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerLoginEvent(this, "Plugin reason"));
-        if (ev.isCancelled()) {
-            this.close(ev.kickMessage(), "login");
-            return;
-        }
-
         Vector3f pos = this.getPosition();
 
         StartGamePacket startGamePacket = new StartGamePacket();
@@ -2349,7 +2348,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setBroadcastingToLan(true);
         NetworkUtils.gameRulesToNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
-        startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
+        startGamePacket.setLevelName(this.getLevel().getName());
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
@@ -2457,23 +2456,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void processLogin() {
-        if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
-            return;
-        } else if (!this.server.isWhitelisted(this)) {
-            this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
-            return;
-        } else if (this.isBanned()) {
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "You are banned");
-            return;
-        } else if (this.server.isIPBanned(this)) {
-            this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned");
-            return;
-        }
-
         CloudPlayer oldPlayer = null;
         for (CloudPlayer p : new ArrayList<>(this.getServer().getOnlinePlayers().values())) {
-            if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
-                    this.getServerId().equals(p.getServerId())) {
+            if (p != this && (p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
+                    this.getServerId().equals(p.getServerId()))) {
                 oldPlayer = p;
                 break;
             }
@@ -2883,20 +2869,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void close(@Nullable Component message, String reason, boolean notify) {
         if (this.connected && !this.closed) {
-            if (notify && reason.length() > 0) {
-                DisconnectPacket packet = new DisconnectPacket();
-                packet.setKickMessage(reason);
-                this.sendPacketImmediately(packet);
-            }
-
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
             PlayerQuitEvent ev = null;
-            if (this.getName() != null && this.getName().length() > 0) {
-                this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
-                if (this.loggedIn && ev.getAutoSave()) {
+
+            if (this.getName() != null && !this.getName().isEmpty()) {
+                if (this.initialized) {
+                    this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
+                }
+
+                if (this.loggedIn && (ev == null || ev.getAutoSave())) {
                     this.save();
                 }
+
                 if (this.fishingHook != null) {
                     this.stopFishing();
                 }
@@ -2935,11 +2920,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             this.loggedIn = false;
 
-            if (ev != null && !Objects.equals(this.username, "") && this.spawned && ev.getQuitMessage() != null) {
+            if (ev != null && !Objects.equals(this.username, "") && this.initialized && ev.getQuitMessage() != null) {
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
             this.spawned = false;
+            this.initialized = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getLoggableAddress(),

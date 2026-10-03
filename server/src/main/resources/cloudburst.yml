@@ -9,8 +9,6 @@ settings:
   force-language: false
   # %settings.shutdown-message
   shutdown-message: "Server closed"
-  # %settings.query-plugins
-  query-plugins: true
   # %settings.deprecated-verbose
   deprecated-verbose: true
   # %settings.async-workers.1
@@ -20,13 +18,23 @@ settings:
   upnp: false
 
 network:
-  # %network.batch-threshold.1
-  # %network.batch-threshold.2
-  batch-threshold: 256
-  # %network.compression-level
-  compression-level: 7
-  # %network.async-compression
-  async-compression: false
+  # Persistent private key. Keep it across restarts and do not share it.
+  identity-file: nethernet/identity.pem
+  # Public UDP endpoints when a port forward or tunnel changes the media address.
+  advertised-addresses: []
+  # PEM certificate chain and private key. Leave both empty to use HTTP signaling.
+  tls-certificate: ""
+  tls-private-key: ""
+  # Includes connections still negotiating or logging in.
+  max-connections: 128
+  # Caps both simultaneous signaling sockets and game connections from one IP.
+  max-connections-per-address: 8
+  # Caps pending signaling joins and queued login validations separately.
+  max-pending-joins: 64
+  # Deadline for signaling and WebRTC connection establishment.
+  handshake-timeout-seconds: 30
+  # Bounds authentication, resource pack negotiation and initial spawn readiness.
+  login-timeout-seconds: 120
 
 debug:
   # %debug.level
@@ -142,7 +150,7 @@ interaction:
   # When true, entity interaction packets are validated more strictly.
   strict-entity-interactions: false
   # Maximum angle difference (0 to 1) between look direction and attack
-  # direction. 0 allows up to 90 degrees of divergence; 1 requires an
+  # direction. 0 allows up to 90 degrees of divergence. 1 requires an
   # exact match.
   attack-direction-threshold: 0.85
   # Multiplier applied to the server-side block-breaking reach distance.
@@ -152,7 +160,7 @@ interaction:
 level:
   # Maximum number of scheduled block ticks executed per game tick.
   # Capping this prevents TPS spikes during heavy redstone while still ensuring
-  # all delayed ticks fire; excess ticks carry over to the next game tick.
+  # all delayed ticks fire. Excess ticks carry over to the next game tick.
   max-block-ticks: 65536
   # Maximum number of scheduled liquid ticks executed per game tick.
   # Excess ticks carry over to the next game tick.

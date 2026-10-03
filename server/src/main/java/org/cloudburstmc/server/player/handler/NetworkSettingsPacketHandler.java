@@ -1,5 +1,8 @@
 package org.cloudburstmc.server.player.handler;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.protocol.adventure.AdventureTextConverter;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
@@ -9,20 +12,13 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.network.BedrockInterface;
 import org.cloudburstmc.server.network.ProtocolInfo;
 
+@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
 public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
 
     private final BedrockServerSession session;
     private final CloudServer server;
-    private final BedrockInterface interfaz;
-
-    public NetworkSettingsPacketHandler(BedrockServerSession session, CloudServer server, BedrockInterface interfaz) {
-        this.session = session;
-        this.server = server;
-        this.interfaz = interfaz;
-    }
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
@@ -38,13 +34,14 @@ public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
         }
 
         this.session.setCodec(codec);
+        this.session.getPeer().getCodecHelper().setTextConverter(new AdventureTextConverter());
 
         NetworkSettingsPacket networkSettings = new NetworkSettingsPacket();
         networkSettings.setCompressionThreshold(1);
         networkSettings.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
         this.session.sendPacketImmediately(networkSettings);
         this.session.setCompression(PacketCompressionAlgorithm.ZLIB);
-        this.session.setPacketHandler(new LoginPacketHandler(this.session, this.server, this.interfaz));
+        this.session.setPacketHandler(new LoginPacketHandler(this.session, this.server));
         return PacketSignal.HANDLED;
     }
 }

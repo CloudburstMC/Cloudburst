@@ -1,27 +1,18 @@
 package org.cloudburstmc.api.event.server;
 
-import lombok.Getter;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.event.Cancellable;
 
 import java.util.Objects;
 
 /**
- * Fired before a command submitted by a non-player sender is dispatched.
+ * Called on the server thread before a command submitted by a non-player sender is dispatched.
  *
  * <p>Cancelling this event prevents execution. Command lines may include or omit a leading slash.</p>
  */
-public final class ServerCommandEvent extends ServerEvent implements Cancellable {
+public class ServerCommandEvent extends ServerEvent implements Cancellable {
 
-    /**
-     * Sender that submitted the command.
-     */
-    @Getter
     private final CommandSender sender;
-    /**
-     * Command line that will be dispatched.
-     */
-    @Getter
     private String command;
 
     /**
@@ -33,6 +24,24 @@ public final class ServerCommandEvent extends ServerEvent implements Cancellable
     public ServerCommandEvent(CommandSender sender, String command) {
         this.sender = Objects.requireNonNull(sender, "sender");
         this.setCommand(command);
+    }
+
+    /**
+     * Returns the sender that submitted the command.
+     *
+     * @return the command sender
+     */
+    public CommandSender getSender() {
+        return this.sender;
+    }
+
+    /**
+     * Returns the command line that will be dispatched.
+     *
+     * @return the command line
+     */
+    public String getCommand() {
+        return this.command;
     }
 
     /**

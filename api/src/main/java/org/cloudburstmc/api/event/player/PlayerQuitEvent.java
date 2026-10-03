@@ -5,10 +5,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.player.Player;
 
 /**
- * Fired when a player disconnects from the server. The quit message is broadcast to all online
- * players after the event is processed; set it to {@code null} to suppress the broadcast.
+ * Called on the server thread when a joined player disconnects.
+ * Connections that never joined do not produce this event.
+ * The quit message is broadcast after listeners return.
  */
-public final class PlayerQuitEvent extends PlayerEvent {
+public class PlayerQuitEvent extends PlayerEvent {
 
     private final String reason;
 

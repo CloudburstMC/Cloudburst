@@ -385,7 +385,7 @@ public class BlockUpdateScheduler {
         long key = chunkKey(entry.pos);
         LevelChunkTicks container = chunkTicks.get(key);
         if (container == null) {
-            log.warn("Tried to schedule block tick at {} in unloaded chunk (chunk key {}); dropping entry.", entry.pos, key);
+            log.warn("Tried to schedule block tick at {} in unloaded chunk (chunk key {}). Dropping entry.", entry.pos, key);
             return;
         }
 

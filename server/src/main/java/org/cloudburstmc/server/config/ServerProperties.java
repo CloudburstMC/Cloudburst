@@ -91,9 +91,6 @@ public class ServerProperties {
     private boolean allowEnd = true;
 
     @Builder.Default
-    private boolean enableQuery = true;
-
-    @Builder.Default
     private boolean autoSave = true;
 
     @Builder.Default
