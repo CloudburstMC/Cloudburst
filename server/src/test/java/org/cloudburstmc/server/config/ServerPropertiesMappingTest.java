@@ -19,7 +19,6 @@ public class ServerPropertiesMappingTest {
             .serverPort(19132)
             .gamemode(0)
             .allowNether(true)
-            .enableQuery(true)
             .forceResources(false)
             .autoSave(true)
             .motd("A Cloudburst Powered Server")

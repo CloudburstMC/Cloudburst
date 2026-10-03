@@ -9,7 +9,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 
 public class DoorPlaceHandler implements PlaceBlockHandler {
@@ -68,8 +67,7 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
         BlockState leftState = level.getBlockState(leftPosition);
         BlockState rightState = level.getBlockState(rightPosition);
 
-        return isDoorLowerHalf(leftState)
-                || BlockSupport.isSolid(rightState) && !BlockSupport.isSolid(leftState);
+        return isDoorLowerHalf(leftState) || rightState.isSolid() && !leftState.isSolid();
     }
 
     private boolean isDoorLowerHalf(BlockState state) {

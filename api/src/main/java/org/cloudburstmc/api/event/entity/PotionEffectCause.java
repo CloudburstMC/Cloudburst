@@ -53,6 +53,10 @@ public enum PotionEffectCause {
      */
     POTION_SPLASH,
     /**
+     * Changed by an item preventing lethal damage.
+     */
+    TOTEM,
+    /**
      * Applied by contact with a wither rose.
      */
     WITHER_ROSE,

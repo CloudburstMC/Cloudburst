@@ -24,6 +24,16 @@ public class BlockTags {
     public static final BlockTagKey BUTTON = tag("button");
 
     /**
+     * Blocks that allow gliding without entering a climbing state.
+     */
+    public static final BlockTagKey CAN_GLIDE_THROUGH = tag("can_glide_through");
+
+    /**
+     * Blocks that living entities can climb.
+     */
+    public static final BlockTagKey CLIMBABLE = tag("climbable");
+
+    /**
      * Blocks that are growable crop plants.
      */
     public static final BlockTagKey CROPS = tag("crops");
@@ -37,6 +47,11 @@ public class BlockTags {
      * Blocks that are double slabs.
      */
     public static final BlockTagKey DOUBLE_SLAB = tag("double_slab");
+
+    /**
+     * Blocks that reset accumulated fall distance while an entity occupies them.
+     */
+    public static final BlockTagKey FALL_DAMAGE_RESETTING = tag("fall_damage_resetting");
 
     /**
      * Blocks that are fences.

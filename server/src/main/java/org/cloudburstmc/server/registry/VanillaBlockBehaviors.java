@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.level.sound.SoundTypes;
@@ -14,6 +15,7 @@ import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.server.block.component.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.cloudburstmc.api.block.BlockTypes.*;
 
@@ -28,6 +30,26 @@ public class VanillaBlockBehaviors {
     );
 
     private static final int MAXIMUM_FALL_DAMAGE = 40;
+
+    private static final Map<ItemType, BlockType> CANDLE_CAKES = Map.ofEntries(
+            Map.entry(ItemTypes.CANDLE, CANDLE_CAKE),
+            Map.entry(ItemTypes.BLACK_CANDLE, BLACK_CANDLE_CAKE),
+            Map.entry(ItemTypes.BLUE_CANDLE, BLUE_CANDLE_CAKE),
+            Map.entry(ItemTypes.BROWN_CANDLE, BROWN_CANDLE_CAKE),
+            Map.entry(ItemTypes.CYAN_CANDLE, CYAN_CANDLE_CAKE),
+            Map.entry(ItemTypes.GRAY_CANDLE, GRAY_CANDLE_CAKE),
+            Map.entry(ItemTypes.GREEN_CANDLE, GREEN_CANDLE_CAKE),
+            Map.entry(ItemTypes.LIGHT_BLUE_CANDLE, LIGHT_BLUE_CANDLE_CAKE),
+            Map.entry(ItemTypes.LIGHT_GRAY_CANDLE, LIGHT_GRAY_CANDLE_CAKE),
+            Map.entry(ItemTypes.LIME_CANDLE, LIME_CANDLE_CAKE),
+            Map.entry(ItemTypes.MAGENTA_CANDLE, MAGENTA_CANDLE_CAKE),
+            Map.entry(ItemTypes.ORANGE_CANDLE, ORANGE_CANDLE_CAKE),
+            Map.entry(ItemTypes.PINK_CANDLE, PINK_CANDLE_CAKE),
+            Map.entry(ItemTypes.PURPLE_CANDLE, PURPLE_CANDLE_CAKE),
+            Map.entry(ItemTypes.RED_CANDLE, RED_CANDLE_CAKE),
+            Map.entry(ItemTypes.WHITE_CANDLE, WHITE_CANDLE_CAKE),
+            Map.entry(ItemTypes.YELLOW_CANDLE, YELLOW_CANDLE_CAKE)
+    );
 
     private static final List<BlockType> NO_LOOT_BLOCKS = List.of(
             AIR, BARRIER, BEDROCK, BUDDING_AMETHYST, CAKE, CHAIN_COMMAND_BLOCK,
@@ -104,6 +126,11 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_ENTITY_INSIDE, BubbleColumnBlockHandlers.ON_ENTITY_INSIDE);
         registry.configure(BUSH).set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOrSilkTouchOnly(BUSH));
         registry.configure(CACTUS).set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.CACTUS_ENTITY_INSIDE);
+        configureUsable(registry, CAKE, CakeBlockHandlers.cake(CANDLE_CAKES));
+        configureCakeSupport(registry, CAKE);
+        CANDLE_CAKES.forEach((candle, cake) -> configureCandleCake(registry, cake, candle));
+        registry.configure(CAMPFIRE).set(BlockComponents.GET_IGNITED_STATE,
+                BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false));
         configureUsable(registry, CARTOGRAPHY_TABLE, ContainerBlockHandlers.CARTOGRAPHY_TABLE);
         registry.configure(CARVED_PUMPKIN).set(BlockComponents.ON_PLACE, new CarvedPumpkinPlaceHandler());
         configureWoodenButton(registry, CHERRY_BUTTON);
@@ -200,15 +227,15 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, EXPOSED_CUT_COPPER_SLAB, EXPOSED_DOUBLE_CUT_COPPER_SLAB);
         registry.configure(FARMLAND).set(BlockComponents.ON_FALL_ON, FarmlandBlockHandlers.FALL_ON);
         registry.configure(FIRE)
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
+                .set(BlockComponents.CAN_SURVIVE, FireBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FireBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE);
         configureLiquid(registry, FLOWING_LAVA, LiquidTypes.FLOWING_LAVA)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
                 .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE);
         configureLiquid(registry, FLOWING_WATER, LiquidTypes.FLOWING_WATER)
                 .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
@@ -244,8 +271,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
                 .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE);
         configureUsable(registry, LECTERN, LecternBlockHandlers.USE);
         registry.configure(LEVER)
                 .set(BlockComponents.ON_PLACE, new LeverPlaceHandler())
@@ -330,7 +356,6 @@ public class VanillaBlockBehaviors {
         registry.configure(POWDER_SNOW)
                 .set(BlockComponents.BUCKET_PICKUP, PowderSnowBlockHandlers.BUCKET_PICKUP)
                 .set(BlockComponents.GET_COLLISION_SHAPE, PowderSnowBlockHandlers.COLLISION_SHAPE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.ON_FALL_ON, PowderSnowBlockHandlers.FALL_ON)
                 .set(BlockComponents.ON_ENTITY_INSIDE, PowderSnowBlockHandlers.ENTITY_INSIDE);
         configureSlab(registry, PRISMARINE_BRICK_SLAB, PRISMARINE_BRICK_DOUBLE_SLAB);
@@ -373,9 +398,12 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SnowLayerBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SnowLayerBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.ON_RANDOM_TICK, SnowLayerBlockHandlers.ON_RANDOM_TICK);
+        registry.configure(SOUL_CAMPFIRE).set(BlockComponents.GET_IGNITED_STATE,
+                BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false));
         registry.configure(SOUL_FIRE)
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
+                .set(BlockComponents.CAN_SURVIVE, FireBlockHandlers.SOUL_CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FireBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE);
         registry.configure(SOUL_SAND)
                 .set(BlockComponents.ON_PLACE, BubbleColumnBlockHandlers.supportPlacement())
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.FULL_BLOCK_SUPPORT_SHAPE)
@@ -406,7 +434,6 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, SULFUR_SLAB, SULFUR_DOUBLE_SLAB);
         registry.configure(SWEET_BERRY_BUSH)
                 .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.sweetBerryBush())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, VegetationBlockHandlers.SWEET_BERRY_BUSH_USE);
@@ -425,7 +452,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, TripwireBlockHandlers.GET_LOOT)
                 .set(BlockComponents.GET_PICK_BLOCK, TripwireBlockHandlers.GET_PICK_BLOCK)
                 .set(BlockComponents.ON_ENTITY_INSIDE, TripwireBlockHandlers.ON_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
+                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, (state, context) -> state.getOutlineShape())
                 .set(BlockComponents.ON_TICK, TripwireBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_DESTROY, TripwireBlockHandlers.ON_DESTROY);
@@ -464,13 +491,25 @@ public class VanillaBlockBehaviors {
         configureTrapdoor(registry, WEATHERED_COPPER_TRAPDOOR);
         configureSlab(registry, WEATHERED_CUT_COPPER_SLAB, WEATHERED_DOUBLE_CUT_COPPER_SLAB);
         registry.configure(WEB)
-                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.WEB_ENTITY_INSIDE)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE);
+                .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.WEB_ENTITY_INSIDE);
         configureConcretePowder(registry, WHITE_CONCRETE_POWDER, WHITE_CONCRETE);
         configureShulkerBox(registry, WHITE_SHULKER_BOX);
         configureConcretePowder(registry, YELLOW_CONCRETE_POWDER, YELLOW_CONCRETE);
         configureLeaves(registry, YELLOW_POPLAR_LEAVES, VanillaBlockLoot.leaves(YELLOW_POPLAR_LEAVES, POPLAR_SAPLING, false));
         configureShulkerBox(registry, YELLOW_SHULKER_BOX);
+
+        for (BlockType type : BlockTypes.values()) {
+            if (type.getTraits().contains(BlockTraits.CANDLES)) {
+                registry.configure(type)
+                        .set(BlockComponents.GET_IGNITED_STATE, BlockIgnitionHandlers.litState(BlockTraits.IS_LIT, true))
+                        .set(BlockComponents.CAN_BE_REPLACED, CandleBlockHandlers.CAN_BE_REPLACED)
+                        .set(BlockComponents.RESOLVE_PLACEMENT_STATE, CandleBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                        .set(BlockComponents.CAN_SURVIVE, CandleBlockHandlers.CAN_SURVIVE)
+                        .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(type.getDefaultState())
+                                .withCount(block.getState().ensureTrait(BlockTraits.CANDLES) + 1)));
+            }
+        }
+
         for (BlockType type : NO_LOOT_BLOCKS) {
             registry.configure(type).set(BlockComponents.GET_LOOT, DefaultBlockHandlers.NO_LOOT);
         }
@@ -670,13 +709,10 @@ public class VanillaBlockBehaviors {
         registry.configure(WITHER_ROSE)
                 .set(BlockComponents.CAN_SURVIVE, witherRoseSurvival)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(witherRoseSurvival))
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.WITHER_ROSE_ENTITY_INSIDE);
         registry.configure(OPEN_EYEBLOSSOM)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.EYEBLOSSOM_ENTITY_INSIDE);
         registry.configure(CLOSED_EYEBLOSSOM)
-                .set(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.FULL_ENTITY_INSIDE_COLLISION_SHAPE)
                 .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.EYEBLOSSOM_ENTITY_INSIDE);
         configureFlowerBed(registry, PINK_PETALS);
         configureFlowerBed(registry, WILDFLOWERS);
@@ -730,6 +766,21 @@ public class VanillaBlockBehaviors {
         registry.configure(type)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, handler);
+    }
+
+    private void configureCandleCake(CloudBlockRegistry registry, BlockType type, ItemType candle) {
+        configureUsable(registry, type, CakeBlockHandlers.candleCake(candle));
+        configureCakeSupport(registry, type);
+        registry.configure(type)
+                .set(BlockComponents.GET_IGNITED_STATE, BlockIgnitionHandlers.litState(BlockTraits.IS_LIT, true))
+                .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(candle)));
+    }
+
+    private void configureCakeSupport(CloudBlockRegistry registry, BlockType type) {
+        registry.configure(type)
+                .set(BlockComponents.IS_SOLID_SUPPORT, state -> true)
+                .set(BlockComponents.CAN_SURVIVE, CakeBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(CakeBlockHandlers.CAN_SURVIVE));
     }
 
     private void configureWoodenButton(CloudBlockRegistry registry, BlockType type) {

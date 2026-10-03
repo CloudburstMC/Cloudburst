@@ -1,96 +1,54 @@
 package org.cloudburstmc.api.pack;
 
-import lombok.ToString;
-import org.cloudburstmc.api.pack.loader.PackLoader;
 import org.cloudburstmc.api.util.SemVersion;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.security.MessageDigest;
 import java.util.UUID;
 
-@ToString(exclude = {"hash"})
-public abstract class Pack implements Closeable {
+/**
+ * Read-only metadata for a registered pack. The server owns its contents and lifetime.
+ */
+public interface Pack {
 
-    private final PackLoader loader;
-    private final PackManifest manifest;
-    private final PackManifest.Module module;
-    private byte[] hash;
+    /**
+     * Returns the UUID declared in the pack header.
+     *
+     * @return the pack UUID
+     */
+    UUID getId();
 
-    public Pack(PackLoader loader, PackManifest manifest, PackManifest.Module module) {
-        this.loader = loader;
-        this.manifest = manifest;
-        this.module = module;
-    }
+    /**
+     * Returns the display name declared in the pack header.
+     *
+     * @return the pack name
+     */
+    String getName();
 
-    protected PackLoader getLoader() {
-        return loader;
-    }
+    /**
+     * Returns the version declared in the pack header.
+     *
+     * @return the pack version
+     */
+    SemVersion getVersion();
 
-    public PackManifest getManifest() {
-        return manifest;
-    }
+    /**
+     * Returns the content category of the pack.
+     *
+     * @return the pack type
+     */
+    PackType getType();
 
-    public String getName() {
-        return manifest.getHeader().getName();
-    }
+    /**
+     * Returns the size of the archive sent to clients.
+     *
+     * @return the archive size in bytes
+     */
+    long getSize();
 
-    public SemVersion getVersion() {
-        return manifest.getHeader().getVersion();
-    }
-
-    public UUID getId() {
-        return manifest.getHeader().getUuid();
-    }
-
-    public long getSize() {
-        try {
-            return Files.size(this.loader.getNetworkPreparedFile().join());
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to get size of pack", e);
-        }
-    }
-
-    public byte[] getHash() {
-        if (hash == null) {
-            try {
-                this.hash = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(this.loader.getNetworkPreparedFile().join()));
-            } catch (Exception e) {
-                throw new IllegalStateException("Unable to get hash of pack", e);
-            }
-        }
-        return hash;
-    }
-
-    public byte[] getChunk(int off, int len) {
-        byte[] chunk;
-        if (this.getSize() - off > len) {
-            chunk = new byte[len];
-        } else {
-            chunk = new byte[(int) (this.getSize() - off)];
-        }
-
-        try (InputStream is = Files.newInputStream(this.loader.getNetworkPreparedFile().join())) {
-            is.skip(off);
-            is.read(chunk);
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to read pack chunk");
-        }
-
-        return chunk;
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.loader.close();
-    }
-
-    public abstract PackType getType();
-
-    @FunctionalInterface
-    public interface Factory {
-        Pack create(PackLoader loader, PackManifest manifest, PackManifest.Module module);
-    }
+    /**
+     * Returns the SHA-256 digest of the archive sent to clients.
+     * Changes to the returned array do not affect the pack.
+     *
+     * @return a copy of the archive digest
+     */
+    byte[] getHash();
 }

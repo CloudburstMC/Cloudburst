@@ -1,7 +1,7 @@
 package org.cloudburstmc.api.event.player;
 
 /**
- * The result of an asynchronous player login check.
+ * The result of a player admission check.
  */
 public enum PlayerLoginResult {
     /**

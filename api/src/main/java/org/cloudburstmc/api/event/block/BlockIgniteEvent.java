@@ -8,7 +8,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import java.util.Objects;
 
 /**
- * Fired before a block is ignited. Cancelling prevents the fire from being placed.
+ * Fired before fire is placed or an existing block is lit. Cancelling prevents the ignition.
  */
 public class BlockIgniteEvent extends BlockEvent implements Cancellable {
 
@@ -17,7 +17,7 @@ public class BlockIgniteEvent extends BlockEvent implements Cancellable {
     private final BlockIgniteCause cause;
 
     /**
-     * @param block          the block where fire would be placed
+     * @param block          the block being lit or replaced by fire
      * @param cause          the ignition cause
      * @param ignitingEntity the responsible entity, or {@code null}
      * @param ignitingBlock  the responsible block, or {@code null}

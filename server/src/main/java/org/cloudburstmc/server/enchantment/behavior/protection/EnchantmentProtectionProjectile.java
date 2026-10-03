@@ -15,6 +15,6 @@ public final class EnchantmentProtectionProjectile extends EnchantmentBehavior {
             return 0;
         }
 
-        return enchantment.level() * 2;
+        return enchantment.level() * 2.0f;
     }
 }

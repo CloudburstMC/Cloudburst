@@ -3,21 +3,23 @@ package org.cloudburstmc.server.command.defaults;
 import com.mojang.brigadier.context.CommandContext;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
-import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
-import org.cloudburstmc.server.network.ProtocolInfo;
-import org.cloudburstmc.server.utils.HastebinUtility;
-import org.cloudburstmc.server.utils.Utils;
+import org.cloudburstmc.server.diagnostics.DebugReport;
+import org.cloudburstmc.server.diagnostics.MclogsClient;
 
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
+import java.net.URI;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
 public class DebugPasteCommand extends AdvertisedCommand {
+    private final AtomicBoolean uploading = new AtomicBoolean();
+    private final MclogsClient client = new MclogsClient();
 
     public DebugPasteCommand() {
         super("debugpaste", "commands.debug.description", "cloudburst.command.debug.perform");
@@ -26,58 +28,43 @@ public class DebugPasteCommand extends AdvertisedCommand {
     @Override
     protected int execute(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
-        CloudServer server = CloudServer.getInstance();
-        server.getAsyncScheduler().runNow(null, t -> {
-            try {
-                server.getCommandRegistry().dispatch(sender, "status");
-                Path dataPath = server.getDataPath();
-                String cloudburstYML = HastebinUtility.upload(dataPath.resolve("cloudburst.yml").toFile());
-                String serverProperties = HastebinUtility.upload(dataPath.resolve("server.properties").toFile());
-                String latestLog = HastebinUtility.upload(dataPath.resolve("logs/server.log").toFile());
-                String threadDump = HastebinUtility.upload(Utils.getAllThreadDumps());
+        CloudServer server = (CloudServer) sender.getServer();
+        if (!this.uploading.compareAndSet(false, true)) {
+            return failure(context, Component.text("A debug report is already being uploaded."));
+        }
 
-                StringBuilder b = new StringBuilder();
-                b.append("# Files\n");
-                b.append("links.cloudburst_yml: ").append(cloudburstYML).append('\n');
-                b.append("links.server_properties: ").append(serverProperties).append('\n');
-                b.append("links.server_log: ").append(latestLog).append('\n');
-                b.append("links.thread_dump: ").append(threadDump).append('\n');
-                b.append("\n# Server Information\n");
-
-                b.append("version.api: ").append(server.getApiVersion()).append('\n');
-                b.append("version.cloudburst: ").append(server.getImplementationVersion()).append('\n');
-                b.append("version.minecraft: ").append(server.getVersion()).append('\n');
-                b.append("version.protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
-                b.append("plugins:");
-                for (PluginContainer plugin : server.getPluginManager().getAllPlugins()) {
-                    String name = plugin.getDescription().getName();
-                    b.append("\n  ")
-                            .append(name)
-                            .append(":\n    ")
-                            .append("version: '")
-                            .append(plugin.getDescription().getVersion())
-                            .append('\'');
+        try {
+            String snapshot = DebugReport.capture(server);
+            Path dataPath = server.getDataPath();
+            sender.sendMessage(Component.text("Uploading a public debug report to mclo.gs. Logs may contain sensitive information.", NamedTextColor.YELLOW));
+            server.getAsyncScheduler().runNow(null, task -> {
+                try {
+                    URI link = this.client.upload(DebugReport.collect(snapshot, dataPath));
+                    server.getGlobalScheduler().execute(null, () -> sender.sendMessage(
+                            Component.text("Debug report: ", NamedTextColor.GREEN)
+                                    .append(Component.text(link.toString(), NamedTextColor.AQUA)
+                                            .clickEvent(ClickEvent.openUrl(link.toString())))));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    reportFailure(server, sender, e);
+                } catch (Exception e) {
+                    reportFailure(server, sender, e);
+                } finally {
+                    this.uploading.set(false);
                 }
-                b.append("\n\n# Java Details\n");
-                Runtime runtime = Runtime.getRuntime();
-                b.append("memory.free: ").append(runtime.freeMemory()).append('\n');
-                b.append("memory.max: ").append(runtime.maxMemory()).append('\n');
-                b.append("cpu.runtime: ").append(ManagementFactory.getRuntimeMXBean().getUptime()).append('\n');
-                b.append("cpu.processors: ").append(runtime.availableProcessors()).append('\n');
-                b.append("java.specification.version: '").append(System.getProperty("java.specification.version")).append("'\n");
-                b.append("java.vendor: '").append(System.getProperty("java.vendor")).append("'\n");
-                b.append("java.version: '").append(System.getProperty("java.version")).append("'\n");
-                b.append("os.arch: '").append(System.getProperty("os.arch")).append("'\n");
-                b.append("os.name: '").append(System.getProperty("os.name")).append("'\n");
-                b.append("os.version: '").append(System.getProperty("os.version")).append("'\n\n");
-                b.append("\n# Create a ticket: https://github.com/CloudburstMC/Server/issues/new");
-                String link = HastebinUtility.upload(b.toString());
-                sender.sendMessage(Component.text(link));
-            } catch (IOException e) {
-                log.error("Error creating debug paste", e);
-            }
-        });
+            });
+        } catch (RuntimeException e) {
+            this.uploading.set(false);
+            log.error("Unable to start debug report upload", e);
+            return failure(context, Component.text("Unable to start the debug report upload. See the server log for details."));
+        }
 
         return success();
+    }
+
+    private static void reportFailure(CloudServer server, CommandSender sender, Exception error) {
+        log.error("Unable to upload debug report", error);
+        server.getGlobalScheduler().execute(null, () -> sender.sendMessage(
+                Component.text("Unable to upload the debug report. See the server log for details.", NamedTextColor.RED)));
     }
 }

@@ -32,6 +32,7 @@ public class SlotGroupTypes {
     public static final SlotGroupType<BlockDropperView> DROPPER = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_dropper"), BlockDropperView.class);
     public static final SlotGroupType<EnchantingView> ENCHANTING = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_enchanting"), EnchantingView.class);
     public static final SlotGroupType<EnderChestView> ENDER_CHEST = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_ender_chest"), EnderChestView.class);
+    public static final SlotGroupType<StorageView> ENTITY_STORAGE = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_entity_storage"), StorageView.class);
     public static final SlotGroupType<BlockFurnaceView> FURNACE = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_furnace"), BlockFurnaceView.class);
     public static final SlotGroupType<GrindstoneView> GRINDSTONE = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_grindstone"), GrindstoneView.class);
     public static final SlotGroupType<BlockHopperView> HOPPER = SlotGroupType.of(Identifier.parse("cloudburstmc:slot_group_hopper"), BlockHopperView.class);

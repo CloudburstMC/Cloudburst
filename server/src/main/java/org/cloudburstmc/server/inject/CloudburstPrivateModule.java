@@ -12,7 +12,7 @@ import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.event.CloudEventManager;
-import org.cloudburstmc.server.pack.PackManager;
+import org.cloudburstmc.server.pack.CloudPackManager;
 import org.cloudburstmc.server.permission.CloudPermissionManager;
 import org.cloudburstmc.server.plugin.CloudPluginManager;
 import org.cloudburstmc.server.registry.*;
@@ -52,12 +52,12 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(GeneratorRegistry.class).toInstance(GeneratorRegistry.get());
         this.bindAndExpose(GlobalScheduler.class).to(CloudGlobalScheduler.class);
         this.bindAndExpose(ItemRegistry.class).toInstance(CloudItemRegistry.get());
-        this.bindAndExpose(PackManager.class);
+        this.bindAndExpose(CloudPackManager.class);
         this.bindAndExpose(ParticleRegistry.class).toInstance(CloudParticleRegistry.get());
         this.bindAndExpose(PermissionManager.class).to(CloudPermissionManager.class);
         this.bindAndExpose(PluginManager.class).to(CloudPluginManager.class);
         this.bindAndExpose(RecipeRegistry.class).toInstance(CloudRecipeRegistry.get());
-        this.bindAndExpose(ResourcePackRegistry.class).to(PackManager.class);
+        this.bindAndExpose(ResourcePackRegistry.class).to(CloudPackManager.class);
         this.bindAndExpose(StorageRegistry.class).toInstance(StorageRegistry.get());
     }
 

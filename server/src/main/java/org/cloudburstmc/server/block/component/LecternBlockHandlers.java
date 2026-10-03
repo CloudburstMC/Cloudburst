@@ -22,7 +22,7 @@ public class LecternBlockHandlers {
         }
 
         if (lectern.hasBook()) {
-            if (!cloudPlayer.canOpenInventory()) {
+            if (cloudPlayer.hasOpenContainer()) {
                 return false;
             }
             cloudPlayer.getInventoryManager().openScreen(new CloudLecternContainerScreen(cloudPlayer, block));

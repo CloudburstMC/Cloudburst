@@ -5,6 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 
@@ -14,20 +15,22 @@ import static java.util.Objects.requireNonNull;
  * Identifies the type and origin of damage.
  */
 @EqualsAndHashCode
-public final class DamageSource {
+public class DamageSource {
 
     private final DamageType damageType;
     private final @Nullable Entity directEntity;
     private final @Nullable Entity causingEntity;
     private final @Nullable Block block;
     private final @Nullable Location damageLocation;
+    private final ItemStack weaponItem;
 
-    private DamageSource(DamageType damageType, @Nullable Entity directEntity, @Nullable Entity causingEntity, @Nullable Block block, @Nullable Location damageLocation) {
+    private DamageSource(DamageType damageType, @Nullable Entity directEntity, @Nullable Entity causingEntity, @Nullable Block block, @Nullable Location damageLocation, ItemStack weaponItem) {
         this.damageType = requireNonNull(damageType, "damageType");
         this.directEntity = directEntity;
         this.causingEntity = causingEntity;
         this.block = block;
         this.damageLocation = damageLocation;
+        this.weaponItem = requireNonNull(weaponItem, "weaponItem");
     }
 
     /**
@@ -94,6 +97,16 @@ public final class DamageSource {
      */
     public @Nullable Entity getCausingEntity() {
         return this.causingEntity;
+    }
+
+    /**
+     * Returns the weapon captured when this source was created. Later equipment changes
+     * do not affect the hit's weapon enchantments.
+     *
+     * @return the weapon, or {@link ItemStack#EMPTY} when none was supplied
+     */
+    public ItemStack getWeaponItem() {
+        return this.weaponItem;
     }
 
     /**
@@ -169,13 +182,14 @@ public final class DamageSource {
     /**
      * Builds an immutable damage source.
      */
-    public static final class Builder {
+    public static class Builder {
 
         private final DamageType damageType;
         private @Nullable Entity directEntity;
         private @Nullable Entity causingEntity;
         private @Nullable Block block;
         private @Nullable Location damageLocation;
+        private ItemStack weaponItem = ItemStack.EMPTY;
 
         private Builder(DamageType damageType) {
             this.damageType = requireNonNull(damageType, "damageType");
@@ -226,12 +240,24 @@ public final class DamageSource {
         }
 
         /**
+         * Captures the weapon used for this hit. Attribution alone does not assign
+         * a weapon to indirect damage.
+         *
+         * @param weaponItem the weapon, or {@link ItemStack#EMPTY} for an unarmed hit
+         * @return this builder
+         */
+        public Builder weaponItem(ItemStack weaponItem) {
+            this.weaponItem = requireNonNull(weaponItem, "weaponItem");
+            return this;
+        }
+
+        /**
          * Creates the damage source.
          *
          * @return the damage source
          */
         public DamageSource build() {
-            return new DamageSource(this.damageType, this.directEntity, this.causingEntity, this.block, this.damageLocation);
+            return new DamageSource(this.damageType, this.directEntity, this.causingEntity, this.block, this.damageLocation, this.weaponItem);
         }
     }
 }

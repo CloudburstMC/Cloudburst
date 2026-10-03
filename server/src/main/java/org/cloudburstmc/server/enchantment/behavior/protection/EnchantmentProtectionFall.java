@@ -15,6 +15,6 @@ public final class EnchantmentProtectionFall extends EnchantmentBehavior {
             return 0;
         }
 
-        return enchantment.level() * 3;
+        return enchantment.level() * 3.0f;
     }
 }

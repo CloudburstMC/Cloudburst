@@ -6,6 +6,7 @@ services:
     image: cloudburstmc/server:latest
     container_name: cloudburst
     ports:
+      - "19132:19132/tcp"
       - "19132:19132/udp"
     volumes:
       - cloudburst-data:/data

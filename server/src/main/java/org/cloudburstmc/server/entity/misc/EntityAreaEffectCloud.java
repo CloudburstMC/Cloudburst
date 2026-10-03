@@ -3,11 +3,11 @@ package org.cloudburstmc.server.entity.misc;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Living;
+import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.event.entity.AreaEffectCloudApplyEvent;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.particle.ParticleType;
@@ -420,19 +420,15 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                         }
 
                                         DamageSource source = sourceBuilder.build();
-                                        affectedEntity.damage(
-                                                (float) (0.5 * (double) (6 << effect.getAmplifier())), source);
+                                        affectedEntity.damage((float) (0.5 * (double) (6 << effect.getAmplifier())), source);
                                     } else {
-                                        affectedEntity.heal(new EntityRegainHealthEvent(affectedEntity,
-                                                (float) (0.5 * (double) (4 << effect.getAmplifier())),
-                                                EntityRegainHealthEvent.CAUSE_MAGIC));
+                                        affectedEntity.heal((float) (0.5 * (double) (4 << effect.getAmplifier())), RegainReason.MAGIC);
                                     }
 
                                     continue;
                                 }
 
-                                ((CloudEntity) affectedEntity).addPotionEffect(
-                                        effect, this, PotionEffectCause.AREA_EFFECT_CLOUD);
+                                ((CloudEntity) affectedEntity).addPotionEffect(effect, this, PotionEffectCause.AREA_EFFECT_CLOUD);
                             }
 
                             if (this.radiusOnUse != 0) {
@@ -444,6 +440,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                     return true;
                                 }
                             }
+
                             if (this.durationOnUse != 0 && this.getDuration() != PotionEffect.INFINITE_DURATION) {
                                 int duration = this.getDuration() + this.durationOnUse;
                                 if (duration <= 0) {

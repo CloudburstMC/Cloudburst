@@ -10,9 +10,12 @@ import org.cloudburstmc.api.item.ItemStack;
 public interface DamageItemHandler {
 
     /**
+     * Applies gameplay durability damage, including the item's durability protection.
+     * The default behavior leaves creative players' items unchanged.
+     *
      * @param itemStack the item to damage
-     * @param damage the durability damage
-     * @param owner the entity holding the item
+     * @param damage    the requested durability damage, with non-positive amounts leaving the item unchanged
+     * @param owner     the entity holding the item
      * @return the resulting item, or {@link ItemStack#EMPTY} if the item broke
      */
     ItemStack execute(ItemStack itemStack, int damage, Entity owner);

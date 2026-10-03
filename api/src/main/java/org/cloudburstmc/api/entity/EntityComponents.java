@@ -5,7 +5,7 @@ import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.entity.component.*;
 
 /**
- * Standard {@link ComponentType} constants for entity behavioral components.
+ * Standard configuration and behavior components for entity types.
  * <p>
  * These components allow per-{@link EntityType} customisation of entity behavior
  * without subclassing. Handlers are registered in {@code EntityRegistry} and can
@@ -13,6 +13,12 @@ import org.cloudburstmc.api.entity.component.*;
  */
 @UtilityClass
 public class EntityComponents {
+
+    /**
+     * Defines the liquids an entity floats in and its flotation settings.
+     * Absent on entity types without buoyancy.
+     */
+    public static final ComponentType<Buoyancy> BUOYANCY = ComponentType.of("buoyancy", Buoyancy.class);
 
     /**
      * Returns the base melee attack damage this entity deals.

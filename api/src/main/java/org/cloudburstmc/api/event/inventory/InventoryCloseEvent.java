@@ -5,15 +5,9 @@ import org.cloudburstmc.api.inventory.InventoryScreen;
 /**
  * Called when a player closes an inventory screen.
  *
- * <p>This event is <strong>not {@link org.cloudburstmc.api.event.Cancellable}</strong>.
- * The client initiates inventory closes unilaterally; it has already dismissed the UI before
- * the server receives the notification.
- * Cancelling the close server-side would cause a permanent desync: the client would show the
- * game world while the server still considered the screen open, breaking all subsequent
- * inventory interaction. If you need to prevent a player from leaving an inventory, you must
- * reopen it in a listener for this event instead of trying to cancel the close.</p>
+ * <p>The screen has already closed. This event cannot be canceled.</p>
  */
-public final class InventoryCloseEvent extends InventoryEvent {
+public class InventoryCloseEvent extends InventoryEvent {
 
     private final Reason reason;
 

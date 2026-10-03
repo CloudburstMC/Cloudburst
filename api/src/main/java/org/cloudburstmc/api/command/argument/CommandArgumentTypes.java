@@ -40,16 +40,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Factory methods for command argument types with command UI metadata.
  */
 @UtilityClass
 public class CommandArgumentTypes {
-    private static final Pattern RELATIVE_COORDINATE_PATTERN =
-            Pattern.compile("(~)?([+\\-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+))?");
+    private static final SimpleCommandExceptionType INCOMPLETE_POSITION =
+            new SimpleCommandExceptionType(new LiteralMessage("Expected three coordinates"));
     private static final DynamicCommandExceptionType INVALID_ENUM_VALUE =
             new DynamicCommandExceptionType(value -> new LiteralMessage("Invalid command argument value: " + value));
     private static final SimpleCommandExceptionType ERROR_NOT_SINGLE_ENTITY =
@@ -348,6 +346,9 @@ public class CommandArgumentTypes {
     /**
      * Creates an argument that resolves three coordinates to a precise position.
      *
+     * <p>Coordinates may be absolute numbers or offsets prefixed with {@code ~}.
+     * A bare {@code ~} uses the corresponding coordinate of the execution location.</p>
+     *
      * @param displayName the command UI argument name, or {@code null} to use the node name
      * @return a position resolver argument
      */
@@ -366,6 +367,9 @@ public class CommandArgumentTypes {
 
     /**
      * Creates an argument that resolves three coordinates to a block position.
+     *
+     * <p>Absolute coordinates must be integers. Relative offsets prefixed with {@code ~}
+     * may be fractional and are resolved against the execution location before flooring.</p>
      *
      * @param displayName the command UI argument name, or {@code null} to use the node name
      * @return a block position resolver argument
@@ -1118,11 +1122,12 @@ public class CommandArgumentTypes {
             }
 
             if (this.kind == CommandArgumentKind.POSITION || this.kind == CommandArgumentKind.BLOCK_POSITION) {
-                Coordinate x = readCoordinate(reader);
-                reader.skipWhitespace();
-                Coordinate y = readCoordinate(reader);
-                reader.skipWhitespace();
-                Coordinate z = readCoordinate(reader);
+                boolean blockPosition = this.kind == CommandArgumentKind.BLOCK_POSITION;
+                Coordinate x = readCoordinate(reader, blockPosition);
+                readCoordinateSeparator(reader, start);
+                Coordinate y = readCoordinate(reader, blockPosition);
+                readCoordinateSeparator(reader, start);
+                Coordinate z = readCoordinate(reader, blockPosition);
                 return this.kind == CommandArgumentKind.BLOCK_POSITION
                         ? cast((BlockPositionResolver) source -> resolveBlockPosition(source, x, y, z))
                         : cast((PositionResolver) source -> resolvePosition(source, x, y, z));
@@ -1304,44 +1309,42 @@ public class CommandArgumentTypes {
         }
     }
 
-    private static Coordinate readCoordinate(StringReader reader) throws CommandSyntaxException {
-        if (!reader.canRead()) {
-            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerExpectedSymbol().createWithContext(reader, "value");
+    private static Coordinate readCoordinate(StringReader reader, boolean blockPosition) throws CommandSyntaxException {
+        int start = reader.getCursor();
+        boolean relative = reader.canRead() && reader.peek() == '~';
+        if (relative) {
+            reader.skip();
+            if (!reader.canRead() || reader.peek() == ' ') {
+                return new Coordinate(true, 0);
+            }
         }
 
-        int start = reader.getCursor();
-        String value = reader.readUnquotedString();
-        try {
-            return parseCoordinate(value);
-        } catch (IllegalArgumentException e) {
+        float value = blockPosition && !relative ? reader.readInt() : (float) reader.readDouble();
+        if (!Float.isFinite(value)) {
+            String number = reader.getString().substring(start, reader.getCursor());
             reader.setCursor(start);
-            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().createWithContext(reader, value);
+            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().createWithContext(reader, number);
         }
+
+        return new Coordinate(relative, value);
+    }
+
+    private static void readCoordinateSeparator(StringReader reader, int start) throws CommandSyntaxException {
+        if (!reader.canRead() || reader.peek() != ' ') {
+            reader.setCursor(start);
+            throw INCOMPLETE_POSITION.createWithContext(reader);
+        }
+
+        reader.skip();
     }
 
     private static RotationResolver parseRotation(String value) throws CommandSyntaxException {
-        Coordinate coordinate;
-        try {
-            coordinate = parseCoordinate(value);
-        } catch (IllegalArgumentException e) {
-            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.readerInvalidDouble().create(value);
+        StringReader reader = new StringReader(value);
+        Coordinate coordinate = readCoordinate(reader, false);
+        if (reader.canRead()) {
+            throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherExpectedArgumentSeparator().createWithContext(reader);
         }
-
         return coordinate::resolve;
-    }
-
-    private static Coordinate parseCoordinate(String value) {
-        Matcher matcher = RELATIVE_COORDINATE_PATTERN.matcher(value);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid coordinate");
-        }
-
-        float angle = matcher.group(2) == null ? 0 : Float.parseFloat(matcher.group(2));
-        if (!Float.isFinite(angle)) {
-            throw new IllegalArgumentException("Coordinate must be finite");
-        }
-
-        return new Coordinate(matcher.group(1) != null, angle);
     }
 
     private static String readCommandToken(StringReader reader) throws CommandSyntaxException {

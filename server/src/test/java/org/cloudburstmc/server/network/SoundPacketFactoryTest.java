@@ -19,7 +19,7 @@ class SoundPacketFactoryTest {
         assertEquals("random.break", vanilla.getSound());
         assertEquals(0.8f, vanilla.getVolume());
         assertEquals(1.2f, vanilla.getPitch());
-        assertEquals(-1, vanilla.getLoopCount());
+        assertEquals(0, vanilla.getLoopCount());
         assertFalse(vanilla.isBypassListenerRangeCheck());
 
         SoundType custom = SoundType.of(Identifier.parse("plugin:machine.start"));
@@ -57,5 +57,13 @@ class SoundPacketFactoryTest {
         assertEquals(Float.valueOf(2.5f), packet.getPlaybackPositionSeconds());
         assertThrows(IllegalArgumentException.class, () -> new SoundPlayback(SoundTypes.RANDOM_BREAK, 1, 1, -1, false, 0));
         assertThrows(IllegalArgumentException.class, () -> new SoundPlayback(SoundTypes.RANDOM_BREAK, 1, 1, 0, false, Float.NaN));
+    }
+
+    @Test
+    void completionAndPlacementSoundsDoNotLoop() {
+        for (SoundType sound : new SoundType[]{SoundTypes.RANDOM_BURP, SoundTypes.CAKE_ADD_CANDLE}) {
+            PlaySoundPacket packet = SoundPacketFactory.play(new SoundPlayback(sound, 1, 1), Vector3f.ZERO);
+            assertEquals(0, packet.getLoopCount());
+        }
     }
 }

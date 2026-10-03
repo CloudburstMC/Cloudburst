@@ -27,15 +27,18 @@ public class CloudConsole extends SimpleTerminalConsole {
     @Override
     protected void runCommand(String command) {
         if (executingCommands.get()) {
-            try (Timing ignored = Timings.serverCommandTimer.startTiming()) {
-                ServerCommandEvent event = new ServerCommandEvent(server.getConsoleSender(), command);
-                if (server.getPluginManager() != null) {
-                    server.getEventManager().fire(event);
+            this.server.getGlobalScheduler().execute(null, () -> {
+                try (Timing ignored = Timings.serverCommandTimer.startTiming()) {
+                    ServerCommandEvent event = new ServerCommandEvent(server.getConsoleSender(), command);
+                    if (server.getPluginManager() != null) {
+                        server.getEventManager().fire(event);
+                    }
+
+                    if (!event.isCancelled()) {
+                        server.dispatchCommand(event.getSender(), event.getCommand());
+                    }
                 }
-                if (!event.isCancelled()) {
-                    CloudServer.getInstance().getGlobalScheduler().execute(null, () -> server.dispatchCommand(event.getSender(), event.getCommand()));
-                }
-            }
+            });
         } else {
             consoleQueue.add(command);
         }

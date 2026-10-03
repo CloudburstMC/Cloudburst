@@ -53,7 +53,7 @@ public class ThrowableItemHandlers {
                 (random.nextFloat() - random.nextFloat()) * spread
         ).mul(speed);
 
-        Vector3f movement = player.getMotion();
+        Vector3f movement = player.getVehicle() == null ? player.getMotion() : player.getVehicle().getMotion();
         return motion.add(movement.getX(), player.isOnGround() ? 0 : movement.getY(), movement.getZ());
     }
 }

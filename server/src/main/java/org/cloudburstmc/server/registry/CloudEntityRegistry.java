@@ -15,6 +15,8 @@ import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityFactory;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
+import org.cloudburstmc.api.entity.component.Buoyancy;
+import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
@@ -101,6 +103,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private CloudEntityRegistry() {
         this.registerVanillaEntityComponents();
         this.registerVanillaEntities();
+        this.registerBuoyancyComponents();
         this.registerPickItemComponents();
         this.registerProjectileDamageComponents();
         this.registerBucketableEntities();
@@ -199,12 +202,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkNotNull(type, "type");
         checkNotNull(location, "location");
         EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue();
-        T entity = factory.create(type, location);
-        if (!(entity instanceof CloudEntity cloudEntity)) {
-            throw new RegistryException("Entity factory must create a CloudEntity for " + type.getId());
-        }
-        cloudEntity.initialize(location);
-        return entity;
+        return this.create(factory, type, location);
     }
 
     public <T extends Entity> T newEntity(EntityType<T> type, Location location) {
@@ -224,11 +222,23 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkNotNull(type, "type");
         checkNotNull(plugin, "plugin");
         checkNotNull(location, "location");
+
         RegistryProvider<EntityFactory<T>> provider = getServiceProvider(type).getProvider(plugin);
         if (provider == null) {
             throw new RegistryException("Plugin has no registered provider for " + type.getId());
         }
-        return provider.getValue().create(type, location);
+
+        return this.create(provider.getValue(), type, location);
+    }
+
+    private <T extends Entity> T create(EntityFactory<T> factory, EntityType<T> type, Location location) {
+        T entity = factory.create(type, location);
+        if (!(entity instanceof CloudEntity cloudEntity)) {
+            throw new RegistryException("Entity factory must create a CloudEntity for " + type.getId());
+        }
+
+        cloudEntity.initialize(location);
+        return entity;
     }
 
     /**
@@ -313,6 +323,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     private void registerVanillaEntityComponents() {
+        this.registerComponent(EntityComponents.BUOYANCY);
         this.registerComponent(EntityComponents.GET_ATTACK_DAMAGE, entity -> 2f);
         this.registerComponent(EntityComponents.GET_PROJECTILE_DAMAGE_TYPE, entity -> DamageTypes.MOB_PROJECTILE);
         this.registerComponent(EntityComponents.GET_PICK_ITEM, (entity, includeData) -> ItemStack.EMPTY);
@@ -322,6 +333,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         this.registerComponent(EntityComponents.CAN_FREEZE, entity -> true);
         this.registerComponent(EntityComponents.CAN_WALK_ON_POWDER_SNOW, entity -> false);
         this.registerComponent(EntityComponents.GET_FREEZING_DAMAGE_MULTIPLIER, entity -> 1f);
+    }
+
+    private void registerBuoyancyComponents() {
+        Buoyancy boat = new Buoyancy(true, 1, 0.03f, 10, 0, true, false, List.of(LiquidTypes.WATER, LiquidTypes.FLOWING_WATER));
+        this.configure(BOAT).set(EntityComponents.BUOYANCY, boat);
+        this.configure(CHEST_BOAT).set(EntityComponents.BUOYANCY, boat);
     }
 
     private void registerPickItemComponents() {
@@ -342,7 +359,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         this.registerPickItem(TNT_MINECART, ItemTypes.TNT_MINECART);
         this.registerPickItem(COMMAND_BLOCK_MINECART, ItemTypes.COMMAND_BLOCK_MINECART);
         this.configure(BOAT).set(EntityComponents.GET_PICK_ITEM, PickItemEntityHandlers.BOAT);
-        this.configure(CHEST_BOAT).set(EntityComponents.GET_PICK_ITEM, PickItemEntityHandlers.CHEST_BOAT);
+        this.configure(CHEST_BOAT).set(EntityComponents.GET_PICK_ITEM, PickItemEntityHandlers.BOAT);
     }
 
     private void registerPickItem(EntityType<?> type, ItemType item) {

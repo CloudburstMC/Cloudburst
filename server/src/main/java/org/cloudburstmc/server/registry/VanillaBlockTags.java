@@ -39,6 +39,7 @@ class VanillaBlockTags {
         initButton();
         initPressurePlate();
         initRail();
+        initClimbing();
         initGround();
         initShulkerBox();
         initFence();
@@ -1392,6 +1393,21 @@ class VanillaBlockTags {
                 GOLDEN_RAIL,
                 BlockTypes.RAIL
         );
+    }
+
+    private static void initClimbing() {
+        tag(CAN_GLIDE_THROUGH,
+                CAVE_VINES,
+                CAVE_VINES_BODY_WITH_BERRIES,
+                CAVE_VINES_HEAD_WITH_BERRIES,
+                TWISTING_VINES,
+                VINE,
+                WEEPING_VINES
+        );
+        inherit(CLIMBABLE, CAN_GLIDE_THROUGH);
+        tag(CLIMBABLE, LADDER, SCAFFOLDING);
+        inherit(FALL_DAMAGE_RESETTING, CLIMBABLE);
+        tag(FALL_DAMAGE_RESETTING, SWEET_BERRY_BUSH, WEB);
     }
 
     private static void initGround() {

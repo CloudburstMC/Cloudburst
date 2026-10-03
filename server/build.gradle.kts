@@ -13,12 +13,12 @@ dependencies {
         exclude("com.nukkitx.fastutil")
     }
     api(libs.bedrock.adventure)
+    implementation(libs.netty.transport.nethernet)
+    runtimeOnly(libs.libdatachannel.natives) {
+        exclude(group = "dev.opencollab", module = "libdatachannel-java")
+    }
     implementation(libs.adventure.text.logger.slf4j)
     implementation(libs.adventure.text.serializer.plain)
-    compileOnly(libs.netty.transport.native.epoll)
-    compileOnly(libs.netty.transport.native.kqueue)
-    runtimeOnly(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
-    runtimeOnly(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
     api(libs.block.state.updater)
     api(libs.bundles.fastutil)
     api(libs.leveldb.mcpe.jni)
@@ -62,6 +62,8 @@ extraJavaModuleInfo {
     }
     automaticModule(libs.noise, "net.daporkchop.lib.noise")
     automaticModule(libs.upnp, "org.cloudburstmc.upnp")
+    automaticModule("dev.opencollab:libdatachannel-java", "tel.schich.libdatachannel")
+    automaticModule(libs.libdatachannel.natives, "tel.schich.libdatachannel.natives")
     automaticModule("net.daporkchop.lib:math", "net.daporkchop.lib.math")
     automaticModule("net.daporkchop.lib:common", "net.daporkchop.lib.common")
     automaticModule("net.daporkchop.lib:unsafe", "net.daporkchop.lib.unsafe")
@@ -114,10 +116,21 @@ tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
 
-    // Shadow 9.x defaults to DuplicatesStrategy.EXCLUDE which prevents
-    // Log4j2PluginsCacheFileTransformer from merging all Log4j2Plugins.dat files.
-    // INCLUDE is required so the transformer sees .dat files from every dependency.
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    failOnDuplicateEntries = true
+
+    // Resource mergers need every input before producing a single entry.
+    filesMatching(
+        listOf(
+            "META-INF/services/**",
+            "META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat",
+            "META-INF/io.netty.versions.properties",
+            "META-INF/LICENSE.md",
+            "META-INF/proguard/gson.pro"
+        )
+    ) {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 
     manifest {
         attributes["Main-Class"] = "org.cloudburstmc.server.Bootstrap"
@@ -126,7 +139,11 @@ tasks.shadowJar {
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
     append("META-INF/io.netty.versions.properties")
+    append("META-INF/LICENSE.md")
+    append("META-INF/proguard/gson.pro")
     exclude(
+        "META-INF/maven/com.google.code.gson/gson/**",
+        "META-INF/versions/**/OSGI-INF/MANIFEST.MF",
         "META-INF/DEPENDENCIES",
         "META-INF/LICENSE",
         "META-INF/LICENSE.txt",

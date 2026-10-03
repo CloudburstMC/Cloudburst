@@ -46,6 +46,7 @@ public class ScreenTypes {
     public static final ScreenType<DropperScreen> DROPPER = ScreenType.of(Identifier.parse("cloudburstmc:screen_dropper"), DropperScreen.class);
     public static final ScreenType<EnchantingScreen> ENCHANTING = ScreenType.of(Identifier.parse("cloudburstmc:screen_enchanting"), EnchantingScreen.class);
     public static final ScreenType<EnderChestScreen> ENDER_CHEST = ScreenType.of(Identifier.parse("cloudburstmc:screen_ender_chest"), EnderChestScreen.class);
+    public static final ScreenType<EntityStorageScreen> ENTITY_STORAGE = ScreenType.of(Identifier.parse("cloudburstmc:screen_entity_storage"), EntityStorageScreen.class);
     public static final ScreenType<FurnaceScreen> BLAST_FURNACE = ScreenType.of(Identifier.parse("cloudburstmc:screen_blast_furnace"), FurnaceScreen.class);
     public static final ScreenType<FurnaceScreen> FURNACE = ScreenType.of(Identifier.parse("cloudburstmc:screen_furnace"), FurnaceScreen.class);
     public static final ScreenType<FurnaceScreen> SMOKER = ScreenType.of(Identifier.parse("cloudburstmc:screen_smoker"), FurnaceScreen.class);

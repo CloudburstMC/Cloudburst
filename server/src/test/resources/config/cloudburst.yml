@@ -9,8 +9,6 @@ settings:
   force-language: false
   # Disconnect message sent to players when the server is shutdown
   shutdown-message: "Server closed"
-  # Allow listing plugins via Query
-  query-plugins: true
   # Show a console message when a plugin uses deprecated API methods
   deprecated-verbose: true
   # Number of asynchronous workers
@@ -18,13 +16,17 @@ settings:
   async-workers: auto
 
 network:
-  # Threshold for batching packets, in bytes. Only these packets will be compressed
-  # Set to 0 to compress everything, -1 to disable
-  batch-threshold: 256
-  # Compression level used of Zlib when sending batched packets. Higher = more CPU, less bandwidth usage
-  compression-level: 7
-  # Use AsyncTasks for compression. Adds half/one tick delay, less CPU load on main thread
-  async-compression: false
+  identity-file: keys/host.pem
+  advertised-addresses:
+    - "203.0.113.10:19132"
+    - "[2001:db8::1]:19132"
+  tls-certificate: tls/fullchain.pem
+  tls-private-key: tls/private.pem
+  max-connections: 64
+  max-connections-per-address: 4
+  max-pending-joins: 16
+  handshake-timeout-seconds: 20
+  login-timeout-seconds: 90
 
 debug:
   # If > 1, it will show debug messages in the console

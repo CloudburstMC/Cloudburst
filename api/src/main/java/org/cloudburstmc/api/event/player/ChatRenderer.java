@@ -7,8 +7,8 @@ import org.cloudburstmc.api.player.Player;
 /**
  * Renders a chat message for a specific audience member.
  *
- * <p>A renderer is called once per viewer when a {@link PlayerChatEvent} is dispatched; it
- * receives the sending player, the player's display name, the (possibly modified) message
+ * <p>A renderer is called once per viewer when a {@link PlayerChatEvent} is dispatched. It
+ * receives the sending player, the player's display name, the possibly modified message
  * component, and the target audience, and must return the final component shown to that
  * viewer.</p>
  *

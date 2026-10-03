@@ -40,6 +40,19 @@ public class SyncedEntityData {
     }
 
     /**
+     * Returns an initialized field.
+     *
+     * @throws IllegalStateException if the field has not been initialized
+     */
+    public <T> T require(EntityDataType<T> type) {
+        T value = this.get(type);
+        if (value == null) {
+            throw new IllegalStateException("Entity metadata has not been initialized: " + type);
+        }
+        return value;
+    }
+
+    /**
      * Stores a value and marks changed fields dirty. Text is stored as an immutable string.
      */
     public <T> void set(EntityDataType<T> type, T value) {

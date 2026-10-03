@@ -9,13 +9,13 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.component.ArmorComponent;
-import org.cloudburstmc.api.item.component.AttackBlockingComponent;
-import org.cloudburstmc.api.item.component.CanRepairWithHandler;
-import org.cloudburstmc.api.item.component.SpawnEggComponent;
+import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.item.ArmorMaterial;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
 import org.cloudburstmc.server.item.VanillaTools;
@@ -23,6 +23,7 @@ import org.cloudburstmc.server.item.component.*;
 import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.cloudburstmc.api.item.ItemTypes.*;
@@ -35,6 +36,7 @@ import static org.cloudburstmc.server.registry.CloudItemRegistry.repairWith;
 public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
+        configureBoats(registry);
         configureSpawnEgg(registry, ItemTypes.AGENT_SPAWN_EGG, EntityTypes.AGENT);
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);
         configureSpawnEgg(registry, ItemTypes.ARMADILLO_SPAWN_EGG, EntityTypes.ARMADILLO);
@@ -74,10 +76,6 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.CHEST_MINECART)
                 .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.CHEST_MINECART));
         configureSpawnEgg(registry, ItemTypes.CHICKEN_SPAWN_EGG, EntityTypes.CHICKEN);
-        registry.configure(ItemTypes.CHORUS_FRUIT)
-                .set(ItemBehaviors.FINISH_USE, ChorusFruitItemHandlers.FINISH_USE)
-                .set(ItemBehaviors.USE, ChorusFruitItemHandlers.USE)
-                .set(ItemBehaviors.USE_DURATION_TICKS, 32);
         registry.configure(ItemTypes.COD_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.COD));
         configureSpawnEgg(registry, ItemTypes.COD_SPAWN_EGG, EntityTypes.COD);
@@ -141,7 +139,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOCATION_ILLAGER);
         registry.configure(ItemTypes.EXPERIENCE_BOTTLE).set(ItemBehaviors.USE,
                 ThrowableItemHandlers.throwProjectile(EntityTypes.XP_BOTTLE, 0.7f, -20));
-        registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, FireChargeItemHandlers.USE_ON);
+        registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, IgnitionItemHandlers.FIRE_CHARGE_USE_ON);
         registry.configure(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
                 .set(ItemBehaviors.USE, FireworkRocketItemHandlers.USE)
                 .set(ItemBehaviors.USE_ON, FireworkRocketItemHandlers.USE_ON);
@@ -156,7 +154,7 @@ public final class VanillaItemBehaviors {
                         EnchantmentTarget.VANISHABLE
         )
                 .set(ItemBehaviors.USE, FishingRodItemHandlers.USE);
-        registry.configure(ItemTypes.FLINT_AND_STEEL).set(ItemBehaviors.USE_ON, FlintAndSteelItemHandlers.USE_ON);
+        registry.configure(ItemTypes.FLINT_AND_STEEL).set(ItemBehaviors.USE_ON, IgnitionItemHandlers.FLINT_AND_STEEL_USE_ON);
         configureSpawnEgg(registry, ItemTypes.FOX_SPAWN_EGG, EntityTypes.FOX);
         configureSpawnEgg(registry, ItemTypes.FROG_SPAWN_EGG, EntityTypes.FROG);
         configureSpawnEgg(registry, ItemTypes.GHAST_SPAWN_EGG, EntityTypes.GHAST);
@@ -221,6 +219,12 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.MAGMA_CUBE_SPAWN_EGG, EntityTypes.MAGMA_CUBE);
         registry.configure(ItemTypes.MINECART)
                 .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.MINECART));
+        registry.configure(ItemTypes.MILK_BUCKET)
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.CONSUMABLE, new ConsumableComponent(ItemTypes.BUCKET, SoundTypes.RANDOM_DRINK, List.of()))
+                .set(ItemBehaviors.USE_DURATION_TICKS, 32)
+                .set(ItemBehaviors.USE, MilkBucketItemHandlers.USE)
+                .set(ItemBehaviors.FINISH_USE, MilkBucketItemHandlers.FINISH_USE);
         configureSpawnEgg(registry, ItemTypes.MOOSHROOM_SPAWN_EGG, EntityTypes.MOOSHROOM);
         configureSpawnEgg(registry, ItemTypes.MULE_SPAWN_EGG, EntityTypes.MULE);
         configureSpawnEgg(registry, ItemTypes.NAUTILUS_SPAWN_EGG, EntityTypes.NAUTILUS);
@@ -239,6 +243,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.NPC_SPAWN_EGG, EntityTypes.NPC);
         configureSpawnEgg(registry, ItemTypes.OCELOT_SPAWN_EGG, EntityTypes.OCELOT);
         registry.configure(ItemTypes.OMINOUS_BOTTLE, new OminousBottleItemSerializer())
+                .set(ItemBehaviors.CONSUMABLE, new ConsumableComponent(null, SoundTypes.OMINOUS_BOTTLE_END_USE, List.of()))
                 .set(ItemBehaviors.USE_DURATION_TICKS, 32)
                 .set(ItemBehaviors.USE, OminousBottleItemHandlers.DRINK)
                 .set(ItemBehaviors.FINISH_USE, OminousBottleItemHandlers.FINISH_DRINK);
@@ -252,6 +257,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.PILLAGER_SPAWN_EGG, EntityTypes.PILLAGER);
         registry.configure(ItemTypes.POTION, new PotionItemSerializer())
                 .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.CONSUMABLE, new ConsumableComponent(ItemTypes.GLASS_BOTTLE, SoundTypes.RANDOM_DRINK, List.of()))
                 .set(ItemBehaviors.USE_DURATION_TICKS, 32)
                 .set(ItemBehaviors.USE, PotionItemHandlers.DRINK)
                 .set(ItemBehaviors.FINISH_USE, PotionItemHandlers.FINISH_DRINK);
@@ -311,6 +317,14 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.TNT_MINECART)
                 .set(ItemBehaviors.USE_ON, MinecartItemHandlers.useOn(EntityTypes.TNT_MINECART));
         configureSpawnEgg(registry, ItemTypes.TRADER_LLAMA_SPAWN_EGG, EntityTypes.TRADER_LLAMA);
+        registry.configure(ItemTypes.TOTEM_OF_UNDYING)
+                .set(ItemBehaviors.ALLOW_OFFHAND, () -> true)
+                .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1)
+                .set(ItemBehaviors.DEATH_PROTECTION, new DeathProtectionComponent(1, true, List.of(
+                        new PotionEffect(EffectTypes.REGENERATION, 900, 1),
+                        new PotionEffect(EffectTypes.ABSORPTION, 100, 1),
+                        new PotionEffect(EffectTypes.FIRE_RESISTANCE, 800, 0)
+                ), SoundTypes.RANDOM_TOTEM));
         configureDamageableEnchantableTool(
                 registry,
                 ItemTypes.TRIDENT,
@@ -365,6 +379,20 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_PIGMAN_SPAWN_EGG, EntityTypes.ZOMBIE_PIGMAN);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_SPAWN_EGG, EntityTypes.ZOMBIE);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_VILLAGER_SPAWN_EGG, EntityTypes.ZOMBIE_VILLAGER);
+        VanillaFoodBehaviors.configure(registry);
+    }
+
+    private static void configureBoats(CloudItemRegistry registry) {
+        for (VanillaBoats.Definition definition : VanillaBoats.DEFINITIONS) {
+            registry.configure(definition.boatItem())
+                    .set(ItemBehaviors.USE, BoatItemHandlers.use(definition, false))
+                    .set(ItemBehaviors.USE_ON, BoatItemHandlers.useOn(definition, false))
+                    .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1);
+            registry.configure(definition.chestItem())
+                    .set(ItemBehaviors.USE, BoatItemHandlers.use(definition, true))
+                    .set(ItemBehaviors.USE_ON, BoatItemHandlers.useOn(definition, true))
+                    .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1);
+        }
     }
 
     private void configureSpawnEgg(CloudItemRegistry registry, ItemType itemType, EntityType<?> entityType) {

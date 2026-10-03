@@ -9,10 +9,11 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.api.util.data.TreeSpecies;
+import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.server.entity.component.PickItemEntityHandlers;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
+import org.cloudburstmc.server.entity.vehicle.EntityChestBoat;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -52,28 +53,16 @@ class EntityPickItemTest {
 
     @Test
     void picksTheBoatVariantRatherThanAlwaysPickingOak() {
-        PickBoat boat = new PickBoat(TreeSpecies.SPRUCE.ordinal());
+        EntityBoat boat = new EntityBoat(EntityTypes.BOAT, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+        boat.setBoatType(BoatType.SPRUCE);
+        EntityChestBoat chestBoat = new EntityChestBoat(EntityTypes.CHEST_BOAT, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+        chestBoat.setBoatType(BoatType.SPRUCE);
 
         assertEquals(ItemTypes.SPRUCE_BOAT, PickItemEntityHandlers.BOAT.execute(boat, false).getType());
-        assertEquals(ItemTypes.SPRUCE_CHEST_BOAT, PickItemEntityHandlers.CHEST_BOAT.execute(boat, false).getType());
-        assertSame(ItemStack.EMPTY, PickItemEntityHandlers.BOAT.execute(new PickBoat(-1), false));
+        assertEquals(ItemTypes.SPRUCE_CHEST_BOAT, PickItemEntityHandlers.BOAT.execute(chestBoat, false).getType());
     }
 
     private static CloudEntity entity(EntityType<?> type) {
         return new CloudEntity(type, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class))) {};
-    }
-
-    private static class PickBoat extends EntityBoat {
-        private final int woodType;
-
-        private PickBoat(int woodType) {
-            super(EntityTypes.BOAT, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-            this.woodType = woodType;
-        }
-
-        @Override
-        public int getWoodType() {
-            return this.woodType;
-        }
     }
 }

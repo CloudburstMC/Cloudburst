@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +26,6 @@ public class CloudburstYamlMappingTest {
                         .language("en_US")
                         .forceLanguage(false)
                         .shutdownMessage("Server closed")
-                        .queryPlugins(true)
                         .asyncWorkers("auto")
                         .deprecatedVerbose(true)
                         .build(),
@@ -34,9 +34,15 @@ public class CloudburstYamlMappingTest {
 
         assertEquals(
                 ServerConfig.Network.builder()
-                        .batchThreshold(256)
-                        .compressionLevel(7)
-                        .asyncCompression(false)
+                        .identityFile("keys/host.pem")
+                        .advertisedAddresses(List.of("203.0.113.10:19132", "[2001:db8::1]:19132"))
+                        .tlsCertificate("tls/fullchain.pem")
+                        .tlsPrivateKey("tls/private.pem")
+                        .maxConnections(64)
+                        .maxConnectionsPerAddress(4)
+                        .maxPendingJoins(16)
+                        .handshakeTimeoutSeconds(20)
+                        .loginTimeoutSeconds(90)
                         .build(),
                 yml.getNetwork()
         );

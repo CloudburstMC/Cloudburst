@@ -15,7 +15,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -24,8 +23,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * An entity in a level, with position, motion and a lifecycle independent of its viewers.
+ */
 public interface Entity extends Damageable, Emitter {
 
+    /**
+     * @return the registered entity type
+     */
     EntityType<?> getType();
 
     /**
@@ -84,6 +89,13 @@ public interface Entity extends Damageable, Emitter {
         return 0f;
     }
 
+    /**
+     * Returns a passenger's offset from this entity's position, in world axes.
+     * Adding this offset to {@link #getPosition()} gives the passenger's position.
+     *
+     * @param passenger the passenger to position
+     * @return the attachment offset, including this entity's rotation
+     */
     default Vector3f getPassengerAttachmentPoint(Entity passenger) {
         return Vector3f.from(0f, getHeight(), 0f);
     }
@@ -128,6 +140,18 @@ public interface Entity extends Damageable, Emitter {
     float getGravity();
 
     float getDrag();
+
+    /**
+     * @return the speed used for entity movement
+     */
+    float getMovementSpeed();
+
+    /**
+     * Sets the speed used for entity movement.
+     *
+     * @param speed the movement speed
+     */
+    void setMovementSpeed(float speed);
 
     boolean hasNameTag();
 
@@ -184,38 +208,63 @@ public interface Entity extends Damageable, Emitter {
      */
     void setScale(float scale);
 
+    /**
+     * @return an immutable snapshot of direct passengers in seat order
+     */
     List<? extends Entity> getPassengers();
 
+    /**
+     * @param entity the entity to check
+     * @return whether the entity is a direct passenger
+     */
     boolean isPassenger(Entity entity);
 
+    /**
+     * @param entity the entity to check
+     * @return whether the entity controls this vehicle
+     */
     boolean isControlling(Entity entity);
 
-    boolean hasControllingPassenger();
-
-    Vector3f getSeatPosition();
-
-    void setSeatPosition(Vector3f position);
-
-    Entity getVehicle();
-
-    default boolean mount(Entity entity) {
-        return this.mount(entity, MountType.RIDER);
-    }
+    /**
+     * @return the direct passenger controlling this entity, or {@code null} when no passenger controls it
+     */
+    @Nullable
+    Entity getControllingPassenger();
 
     /**
-     * Mounts this entity onto another entity.
+     * @return this entity's seat offset relative to its vehicle
+     */
+    Vector3f getSeatPosition();
+
+    /**
+     * @param position this entity's seat offset relative to its vehicle
+     */
+    void setSeatPosition(Vector3f position);
+
+    /**
+     * @return the vehicle this entity rides, or {@code null} when not mounted
+     */
+    @Nullable
+    Entity getVehicle();
+
+    /**
+     * Mounts this entity onto another entity in the same level.
+     * Vehicle entry and exit events may prevent changing vehicles.
+     * This explicit request bypasses sneaking and the normal delay after dismounting,
+     * but still respects passenger capacity and prevents circular vehicle relationships.
      *
      * @param vehicle the vehicle to mount
-     * @param mode    the mount mode
-     * @return {@code true} if the entity was mounted
+     * @return {@code true} if the entity was mounted, or {@code false} if mounting was rejected
      */
-    boolean mount(Entity vehicle, MountType mode);
+    boolean mount(Entity vehicle);
 
+    /**
+     * Leaves the current vehicle, subject to exit-event cancellation.
+     *
+     * @param vehicle the vehicle this entity is riding
+     * @return whether the entity left that vehicle
+     */
     boolean dismount(Entity vehicle);
-
-    void onMount(Entity passenger);
-
-    void onDismount(Entity passenger);
 
     /**
      * Returns the plain name used to identify this entity.
@@ -262,6 +311,7 @@ public interface Entity extends Damageable, Emitter {
 
     /**
      * Sets the number of ticks this entity has been freezing.
+     * Values are clamped between zero and {@link #getMaxFreezeTicks()}.
      *
      * @param ticks the new freeze ticks
      */
@@ -311,25 +361,62 @@ public interface Entity extends Damageable, Emitter {
 
     boolean onUpdate(int currentTick);
 
+    /**
+     * @return whether any burning duration remains
+     */
     default boolean isOnFire() {
         return getFireTicks() > 0;
     }
 
+    /**
+     * Ignites the entity for the supplied duration, reduced by its fire protection.
+     * Does not shorten an existing longer duration.
+     *
+     * @param seconds the non-negative duration before protection
+     * @throws IllegalArgumentException if the duration is negative
+     */
     void setOnFire(@NonNegative int seconds);
 
+    /**
+     * @return the remaining burning duration in ticks
+     */
     @NonNegative
     int getFireTicks();
 
+    /**
+     * Removes fire and its visible burning effect.
+     */
     void extinguish();
 
+    /**
+     * @return remaining ticks of temporary damage immunity
+     */
     int getNoDamageTicks();
 
+    /**
+     * Sets temporary damage immunity, separate from the normal hurt cooldown.
+     * Damage tagged to bypass invulnerability still applies.
+     *
+     * @param noDamageTicks non-negative immunity duration
+     * @throws IllegalArgumentException if the duration is negative
+     */
     void setNoDamageTicks(int noDamageTicks);
 
+    /**
+     * @return the highest Y coordinate tracked for the current fall, in blocks
+     */
     float getHighestPosition();
 
+    /**
+     * Sets the reference height used to measure the current fall.
+     *
+     * @param highestPosition the reference Y coordinate in blocks
+     */
     void setHighestPosition(float highestPosition);
 
+    /**
+     * Clears accumulated fall distance at the entity's current height.
+     */
     void resetFallDistance();
 
     /**
@@ -361,8 +448,19 @@ public interface Entity extends Damageable, Emitter {
         return this.getLevel().hasCollision(this, boundingBox);
     }
 
+    /**
+     * Handles landing on the supporting block, including its response to a fall.
+     * The supporting block determines whether fall damage applies.
+     *
+     * @param fallDistance the distance fallen in blocks
+     */
     void fall(float fallDistance);
 
+    /**
+     * Handles a lightning strike, including damage and entity-specific reactions.
+     *
+     * @param lightningBolt the bolt that struck this entity
+     */
     void onStruckByLightning(LightningBolt lightningBolt);
 
     boolean onInteract(Player player, ItemStack item, Vector3f clickedPos);
@@ -379,8 +477,18 @@ public interface Entity extends Damageable, Emitter {
 
     Location getLocation();
 
+    /**
+     * @return the current motion in blocks per tick
+     */
     Vector3f getMotion();
 
+    /**
+     * Replaces motion unless a motion event cancels the change.
+     *
+     * @param motion the finite motion in blocks per tick
+     * @return whether the motion was applied
+     * @throws IllegalArgumentException if any component is not finite
+     */
     boolean setMotion(Vector3f motion);
 
     void makeStuckInBlock(BlockState state, Vector3f speedMultiplier);
@@ -414,10 +522,17 @@ public interface Entity extends Damageable, Emitter {
         return this.getSupportingBlockPosition().filter(position::equals).isPresent();
     }
 
+    /**
+     * @return whether this entity is undead and has reversed healing and harming potion responses
+     */
     default boolean isUndead() {
         return false;
     }
 
+    /**
+     * Requests death rather than immediate removal. A living entity's death event
+     * can cancel death and restore its configured revival health.
+     */
     void kill();
 
     /**
@@ -458,19 +573,26 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean teleport(Location location, PlayerTeleportCause cause);
 
+    /**
+     * @return the owning entity, or {@code null} when no owner is assigned
+     */
     @Nullable
     Entity getOwner();
 
+    /**
+     * @param entity the owning entity, or {@code null} to clear ownership
+     */
     void setOwner(@Nullable Entity entity);
 
-    void setMovementSpeed(float speed);
-
-    float getMovementSpeed();
-
-    //SyncedEntityData getData();
-
+    /**
+     * @return whether this entity has been removed and can no longer be updated
+     */
     boolean isClosed();
 
+    /**
+     * Removes this entity from its level and viewers without triggering death or death drops.
+     * Calling this again has no effect.
+     */
     void close();
 
 }

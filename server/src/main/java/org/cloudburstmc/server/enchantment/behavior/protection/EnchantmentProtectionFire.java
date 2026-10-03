@@ -15,6 +15,11 @@ public final class EnchantmentProtectionFire extends EnchantmentBehavior {
             return 0;
         }
 
-        return enchantment.level() * 2;
+        return enchantment.level() * 2.0f;
+    }
+
+    @Override
+    public float getBurningTimeReduction(Enchantment enchantment) {
+        return enchantment.level() * 0.15f;
     }
 }

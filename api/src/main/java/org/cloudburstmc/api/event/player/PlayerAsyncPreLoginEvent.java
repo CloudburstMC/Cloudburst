@@ -8,22 +8,19 @@ import org.cloudburstmc.api.player.PlayerProfile;
 import org.cloudburstmc.api.player.skin.Skin;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * Called asynchronously after a player's login data has been validated.
  * A {@link Player} does not exist while this event is being handled. Use
- * {@link #scheduleSyncAction(Consumer)} for work that requires the joined player.
+ * {@link PlayerJoinEvent} for work that requires the joined player.
+ * Listeners must not access mutable gameplay state and must complete changes before returning.
  */
 public class PlayerAsyncPreLoginEvent extends Event {
 
     private final PlayerProfile profile;
     private final PlayerClientInfo clientInfo;
     private final InetSocketAddress address;
-    private final List<Consumer<Player>> scheduledActions = new ArrayList<>();
 
     private Skin skin;
     private PlayerLoginResult loginResult = PlayerLoginResult.ALLOWED;
@@ -32,12 +29,13 @@ public class PlayerAsyncPreLoginEvent extends Event {
     /**
      * Creates a pre-login event for a validated connection.
      *
-     * @param profile the player profile
+     * @param profile    the player profile
      * @param clientInfo the reported client settings
-     * @param address the remote network address
-     * @param skin the skin to use when login succeeds
+     * @param address    the remote network address
+     * @param skin       the skin to use when login succeeds
      */
     public PlayerAsyncPreLoginEvent(PlayerProfile profile, PlayerClientInfo clientInfo, InetSocketAddress address, Skin skin) {
+        super(true);
         this.profile = Objects.requireNonNull(profile, "profile");
         this.clientInfo = Objects.requireNonNull(clientInfo, "clientInfo");
         this.address = Objects.requireNonNull(address, "address");
@@ -99,30 +97,12 @@ public class PlayerAsyncPreLoginEvent extends Event {
     }
 
     /**
-     * Sets the login result.
-     *
-     * @param loginResult the new login result
-     */
-    public void setLoginResult(PlayerLoginResult loginResult) {
-        this.loginResult = Objects.requireNonNull(loginResult, "loginResult");
-    }
-
-    /**
      * Returns the message shown when login is denied.
      *
      * @return the kick message
      */
     public Component kickMessage() {
         return kickMessage;
-    }
-
-    /**
-     * Sets the message shown when login is denied.
-     *
-     * @param kickMessage the kick message
-     */
-    public void kickMessage(Component kickMessage) {
-        this.kickMessage = Objects.requireNonNull(kickMessage, "kickMessage");
     }
 
     /**
@@ -136,7 +116,7 @@ public class PlayerAsyncPreLoginEvent extends Event {
     /**
      * Denies the connection with the supplied message.
      *
-     * @param result the reason login was denied
+     * @param result  the reason login was denied
      * @param message the message shown to the client
      */
     public void disallow(PlayerLoginResult result, Component message) {
@@ -146,23 +126,5 @@ public class PlayerAsyncPreLoginEvent extends Event {
 
         this.loginResult = Objects.requireNonNull(result, "result");
         this.kickMessage = Objects.requireNonNull(message, "message");
-    }
-
-    /**
-     * Schedules work that requires the fully constructed player on the server thread.
-     *
-     * @param action the action to run after login
-     */
-    public void scheduleSyncAction(Consumer<Player> action) {
-        this.scheduledActions.add(Objects.requireNonNull(action, "action"));
-    }
-
-    /**
-     * Returns the actions scheduled to run after login.
-     *
-     * @return an immutable snapshot of the scheduled actions
-     */
-    public List<Consumer<Player>> getScheduledActions() {
-        return List.copyOf(scheduledActions);
     }
 }

@@ -38,34 +38,12 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: cloudburst-version
-    attributes:
-      label: Cloudburst Version
-      description: Run `/version` in the Cloudburst console. Do not write "latest".
-      placeholder: 'This server is running Cloudburst git-caa5dcb implementing API version 2.0.0 for Minecraft: Bedrock Edition 1.26.0 (protocol version 924)'
-    validations:
-      required: true
-
   - type: textarea
-    id: java-version
-    attributes:
-      label: Java Version
-      description: Run `java -version` in your terminal and paste the full output here.
-      placeholder: |
-        java version "21.0.10" 2026-01-20 LTS
-        Java(TM) SE Runtime Environment (build 21.0.10+8-LTS-217)
-        Java HotSpot(TM) 64-Bit Server VM (build 21.0.10+8-LTS-217, mixed mode, sharing)
-      render: shell
-    validations:
-      required: true
-
-  - type: input
     id: debug-paste
     attributes:
-      label: Debug Paste
-      description: Run `/debugpaste` in the Cloudburst console and paste the link here.
-      placeholder: 'https://hastebin.com/aBcDeFgHiJ'
+      label: Debug Report
+      description: Run `debugpaste` in the console after reproducing the issue and paste the link here. Review the public report for sensitive information before sharing.
+      placeholder: 'https://mclo.gs/aBcDeFg'
     validations:
       required: true
 

@@ -9,6 +9,7 @@ import org.cloudburstmc.api.entity.EntitySnapshot;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.item.data.*;
 import org.cloudburstmc.api.item.data.Record;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -78,6 +79,11 @@ public class ItemDataComponents {
      * Potion contained in a drinkable potion, thrown potion, or tipped arrow.
      */
     public static final ItemDataComponentType<PotionType> POTION_TYPE = value("potion_type", PotionType.class);
+
+    /**
+     * Effects applied when suspicious stew is consumed. An empty list produces no effects.
+     */
+    public static final ItemDataComponentType<List<PotionEffect>> SUSPICIOUS_STEW_EFFECTS = list("suspicious_stew_effects", PotionEffect.class);
 
     /**
      * Zero-based Bad Omen level stored by an ominous bottle.

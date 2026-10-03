@@ -38,7 +38,8 @@ public interface Living extends Entity, ProjectileSource {
     boolean hasPotionEffect(EffectType type);
 
     /**
-     * Adds a potion effect or replaces a weaker active effect of the same type.
+     * Requests adding a potion effect or replacing an active effect of the same type.
+     * The potion-effect change event can cancel the change or control replacement.
      *
      * @param effect effect to add
      * @return {@code true} when the active effects changed
@@ -46,7 +47,7 @@ public interface Living extends Entity, ProjectileSource {
     boolean addPotionEffect(PotionEffect effect);
 
     /**
-     * Removes an active potion effect.
+     * Removes an active potion effect unless its change event is cancelled.
      *
      * @param type effect type
      * @return {@code true} when an effect was removed
@@ -54,7 +55,8 @@ public interface Living extends Entity, ProjectileSource {
     boolean removePotionEffect(EffectType type);
 
     /**
-     * Removes every active potion effect from this entity.
+     * Requests removal of every active potion effect. Effects whose change events
+     * are cancelled remain active.
      *
      * @return {@code true} when at least one effect was removed
      */
@@ -73,6 +75,13 @@ public interface Living extends Entity, ProjectileSource {
      * @return whether item blocking is active
      */
     boolean isBlocking();
+
+    /**
+     * Returns whether this entity is in a climbing state on a climbable surface.
+     *
+     * @return whether the entity is climbing
+     */
+    boolean isClimbing();
 
     /**
      * Performs this entity's standard attack against a target.

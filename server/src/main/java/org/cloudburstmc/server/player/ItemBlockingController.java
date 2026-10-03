@@ -13,6 +13,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Objects;
@@ -92,17 +93,22 @@ public class ItemBlockingController {
         SlotGroup blockingSlots = Objects.requireNonNull(this.slots, "blocking slots");
         int blockingSlot = this.slot;
         this.player.getLevel().addLevelSoundEvent(this.player.getPosition(), SoundEvent.SHIELD_BLOCK);
+
         int durability = blocking.durabilityDamage(event.getBlockedDamage());
         if (durability > 0 && !this.player.isCreative()) {
-            ItemStack damaged = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE)
-                    .execute(item, durability, this.player);
+            ItemStack damaged = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.ON_DAMAGE).execute(item, durability, this.player);
+            if (!blockingSlots.getItem(blockingSlot).equals(item)) {
+                this.update();
+                return;
+            }
+
             blockingSlots.setItem(blockingSlot, damaged);
             this.raisedItem = damaged;
         }
 
         Entity attacker = event.getDamageSource().getDirectEntity();
-        if (attacker instanceof CloudPlayer attackingPlayer && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)) {
-            ItemStack weapon = attackingPlayer.getInventory().getSelectedItem();
+        if (attacker instanceof EntityLiving && !event.getDamageType().is(DamageTypeTags.IS_PROJECTILE)) {
+            ItemStack weapon = event.getDamageSource().getWeaponItem();
             float seconds = CloudItemRegistry.get().requireComponent(weapon.getType(), ItemBehaviors.GET_BLOCKING_DISABLE_SECONDS).execute(weapon);
             int cooldown = Math.round(seconds * blocking.disableCooldownScale() * 20);
             if (cooldown > 0 && !this.raisedItem.isEmpty()) {

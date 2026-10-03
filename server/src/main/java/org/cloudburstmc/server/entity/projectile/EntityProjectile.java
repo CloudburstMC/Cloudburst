@@ -38,12 +38,12 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
-    public boolean setMotion(Vector3f motion) {
+    protected void onMotionChanged() {
+        super.onMotionChanged();
+        Vector3f motion = this.getMotion();
         if (motion.lengthSquared() > 0) {
             this.orientToMotion(motion);
         }
-
-        return super.setMotion(motion);
     }
 
     @Override

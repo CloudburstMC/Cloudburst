@@ -2,6 +2,7 @@ package org.cloudburstmc.server.player;
 
 import co.aikar.timings.Timing;
 import co.aikar.timings.Timings;
+import io.netty.channel.ChannelPipeline;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.AccessLevel;
@@ -38,8 +39,8 @@ import org.cloudburstmc.api.item.*;
 import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.*;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.permission.EffectivePermission;
 import org.cloudburstmc.api.permission.PermissionAttachment;
 import org.cloudburstmc.api.player.*;
@@ -56,8 +57,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
-import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.adventure.BedrockComponent;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
@@ -85,7 +85,6 @@ import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
-import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -96,12 +95,14 @@ import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.level.VanillaLevelTime;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
+import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -124,9 +125,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongConsumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BED_POSITION;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FLAGS;
-import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.INTERACT_TEXT;
+import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.DAMAGE_NEARBY_MOBS;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.USING_ITEM;
 
@@ -150,7 +149,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     protected final BedrockServerSession session;
     protected final PlayerData playerData = new PlayerData();
-    protected final PlayerFood foodData = new PlayerFood(this, 20, 20);
+    protected final CloudPlayerFood foodData = new CloudPlayerFood(this);
     protected final Map<UUID, CloudPlayer> hiddenPlayers = new HashMap<>();
     protected final int chunksPerTick;
     protected final int spawnThreshold;
@@ -231,6 +230,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private boolean clientCacheEnabled = false;
     private boolean teleportAcknowledged;
     private boolean pendingTeleportEntityViewRefresh;
+    @Getter
     private boolean initialized;
     private boolean clientCommandsEnabledStateSent;
     private boolean clientCommandDataSent;
@@ -340,7 +340,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void openEnderChest(EnderChest chest) {
         Objects.requireNonNull(chest, "Ender chest can't be null");
-        if (!this.canOpenInventory()) return;
+        if (this.hasOpenContainer()) return;
 
         CloudEnderChestScreen screen = new CloudEnderChestScreen(this, chest.getBlock());
         this.invManager.openScreen(screen);
@@ -394,19 +394,31 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
     }
 
-    public boolean isInitialized() {
-        return initialized;
-    }
-
+    @SuppressWarnings("resource")
     public void completeClientInitialization() {
-        if (this.initialized) {
+        if (this.initialized || !this.spawned || !this.isConnected()) {
             return;
         }
 
         this.initialized = true;
-        if (this.spawned) {
-            this.syncClientAuthorityState(true);
+        this.session.getPeer().getChannel().eventLoop().execute(() -> {
+            ChannelPipeline pipeline = this.session.getPeer().getChannel().pipeline();
+            if (pipeline.get(CloudLoginTimeoutHandler.class) != null) {
+                pipeline.remove(CloudLoginTimeoutHandler.class);
+            }
+        });
+
+        PlayerJoinEvent event = new PlayerJoinEvent(this, Component.translatable("multiplayer.player.joined", this.displayName()).color(NamedTextColor.YELLOW));
+        this.server.getEventManager().fire(event);
+        if (!this.isConnected()) {
+            return;
         }
+
+        if (event.getJoinMessage() != null) {
+            this.server.broadcastMessage(event.getJoinMessage());
+        }
+
+        this.syncClientAuthorityState(true);
     }
 
     @Override
@@ -497,7 +509,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
 
             player.sendPacket(buildArmorEquipmentPacket());
-            player.sendPacket(this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
+            player.sendPacket(this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 0));
         }
     }
 
@@ -518,7 +530,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setItem(ItemUtils.toNetwork(item));
         packet.setContainerId(containerId);
         packet.setInventorySlot(slot);
-        packet.setHotbarSlot(slot);
+        packet.setHotbarSlot(containerId == ContainerId.OFFHAND ? -1 : slot);
         return packet;
     }
 
@@ -527,7 +539,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     private void sendOffhandEquipmentToViewers() {
-        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 1));
+        CloudServer.broadcastPacket(this.getViewers(), this.createEquipmentPacket(this.getOffhand().getOffhandItem(), ContainerId.OFFHAND, 0));
     }
 
     @Override
@@ -1155,16 +1167,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         //todo Updater
 
-        //Weather
         if (this.getLevel().isRaining() || this.getLevel().isThundering()) {
             this.getLevel().sendWeather(this);
         }
 
-        //FoodLevel
-        PlayerFood food = this.getFoodData();
-        if (food.getLevel() != food.getMaxLevel()) {
-            food.sendFoodLevel();
-        }
+        CloudPlayerFood food = this.getFoodData();
+        food.sendAttributes();
     }
 
     @Override
@@ -1173,14 +1181,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return 0;
         }
 
-        RakSessionCodec session = ((RakChildChannel) this.session.getPeer().getChannel())
-                .rakPipeline()
-                .get(RakSessionCodec.class);
-        if (session == null) {
-            return 0;
-        }
-
-        return (int) session.getPing();
+        long ping = ((NetherNetChannel) this.session.getPeer().getChannel()).getPing();
+        return Math.clamp(ping, 0, Integer.MAX_VALUE);
     }
 
     public boolean sleepOn(Vector3i pos) {
@@ -1590,7 +1592,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         if (gamemode == GameMode.CREATIVE || gamemode == GameMode.SPECTATOR) {
             this.foodData.reset();
-            this.setAir((short) 400);
+            this.setAirTicks(400);
         }
 
         this.noPhysics = this.isSpectator();
@@ -1638,8 +1640,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return abilities;
     }
 
-    public boolean canOpenInventory() {
-        return this.invManager.getOpenContainer() == null;
+    public boolean hasOpenContainer() {
+        return this.invManager.getOpenContainer() != null;
     }
 
     @Override
@@ -1648,33 +1650,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void closeInventory(InventoryCloseEvent.Reason reason) {
-        CloudInventoryScreen screen = this.invManager.getOpenContainer();
-        if (screen == null) {
-            return;
-        }
-
         this.invManager.closeScreen(reason);
-
-        for (SlotGroup view : screen.getAllSlotGroups()) {
-            if (!(view instanceof CloudSlotGroupBase)) continue;
-            Container container = ((CloudSlotGroupBase) view).getContainer();
-            Byte windowId = this.containerToWindowId.get(container);
-            if (windowId != null) {
-                unregisterContainerId(container);
-                ContainerClosePacket close = new ContainerClosePacket();
-                close.setId(windowId);
-                close.setServerInitiated(true);
-                close.setType(ContainerType.CONTAINER);
-                this.sendPacket(close);
-                return;
-            }
-        }
-
-        ContainerClosePacket close = new ContainerClosePacket();
-        close.setId((byte) ContainerId.INVENTORY);
-        close.setServerInitiated(true);
-        close.setType(ContainerType.INVENTORY);
-        this.sendPacket(close);
     }
 
     @Override
@@ -1712,7 +1688,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void openContainer(Block block) {
-        if (!canOpenInventory()) return;
+        if (hasOpenContainer()) return;
         if (!block.requireComponent(BlockComponents.CAN_BE_USED).execute(block, this)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
@@ -1721,7 +1697,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void openContainer(BlockEntity blockEntity) {
-        if (!canOpenInventory()) return;
+        if (hasOpenContainer()) return;
         openContainer(blockEntity.getBlock());
     }
 
@@ -1741,16 +1717,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void handleClientContainerClose(ContainerClosePacket packet) {
-        byte windowId = packet.getId();
-        unregisterContainerById(windowId);
-
-        this.invManager.closeScreen(InventoryCloseEvent.Reason.PLAYER);
-
-        ContainerClosePacket echo = new ContainerClosePacket();
-        echo.setId(windowId);
-        echo.setServerInitiated(false);
-        echo.setType(packet.getType() != null ? packet.getType() : ContainerType.CONTAINER);
-        this.sendPacket(echo);
+        this.invManager.handleWindowClose(packet);
     }
 
     @Override
@@ -1793,8 +1760,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.setRuntimeEntityId(this.getRuntimeId());
         List<AttributeData> attributes = pk.getAttributes();
-        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0)));
+        attributes.add(this.createHealthAttribute());
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.ABSORPTION).setValue(this.getAbsorption())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.SATURATION).setValue(this.foodData.getSaturation())));
+        attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXHAUSTION).setValue(Math.min(this.foodData.getExhaustion(), 5.0f))));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel())));
         attributes.add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))));
@@ -1808,7 +1778,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void applyInputMovement() {
-        if (!this.isAlive() || !this.spawned || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
+        if (!this.isAlive() || !this.spawned || this.vehicle != null || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
         }
 
@@ -1836,10 +1806,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             authoritativePosition = currentPos;
         }
 
-        float tdx = newPosition.getX() - currentPos.getX();
-        float tdz = newPosition.getZ() - currentPos.getZ();
-        double distance = Math.sqrt(tdx * tdx + tdz * tdz);
-
         if (!revert && distanceSquared != 0) {
             float dx = newPosition.getX() - currentPos.getX();
             float dy = newPosition.getY() - currentPos.getY();
@@ -1859,6 +1825,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         Location from = Location.from(this.lastPosition, this.lastYaw, this.lastPitch, this.getLevel());
         Location to = this.getLocation();
 
+        boolean firstMovement = this.firstMove;
+        boolean redirectedMovement = false;
+
         double delta = Math.pow(this.lastPosition.getX() - to.getX(), 2) + Math.pow(this.lastPosition.getY() - to.getY(), 2) + Math.pow(this.lastPosition.getZ() - to.getZ(), 2);
         double deltaAngle = Math.abs(this.lastYaw - to.getYaw()) + Math.abs(this.lastPitch - to.getPitch());
 
@@ -1873,11 +1842,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             if (!isFirst) {
                 PlayerMoveEvent ev = new PlayerMoveEvent(this, from, to);
-
                 this.server.getEventManager().fire(ev);
 
-                if (!(revert = ev.isCancelled())) { //Yes, this is intended
-                    if (!to.equals(ev.getTo())) { //If plugins modify the destination
+                if (!(revert = ev.isCancelled())) {
+                    if (!to.equals(ev.getTo())) {
+                        redirectedMovement = true;
                         this.teleportWithoutEvent(ev.getTo());
                     } else {
                         this.addMovement(this.getX(), this.getY() + getBaseOffset(), this.getZ(), this.getYaw(), this.getPitch(), this.getYaw());
@@ -1888,27 +1857,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
         }
 
-        if (!revert && (this.isFoodEnabled() || this.getServer().getDifficulty() == Difficulty.PEACEFUL)) {
-            if ((this.isSurvival() || this.isAdventure())/* && !this.getRiddingOn() instanceof Entity*/) {
-
-                //UpdateFoodExpLevel
-                if (distance >= 0.05) {
-                    double jump = 0;
-                    double swimming = this.isInsideOfWater() ? 0.015 * distance : 0;
-                    if (swimming != 0) distance = 0;
-                    if (this.isSprinting()) {  //Running
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.7;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.06 * distance + jump + swimming);
-                    } else {
-                        if (this.inAirTicks == 3 && swimming == 0) {
-                            jump = 0.2;
-                        }
-                        this.getFoodData().updateFoodExpLevel(0.01 * distance + jump + swimming);
-                    }
-                }
-            }
+        if (!revert && !firstMovement && !redirectedMovement && this.getVehicle() == null) {
+            this.addMovementExhaustion(currentPos, this.getPosition());
         }
 
         if (revert) {
@@ -1943,6 +1893,36 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.newPosition = null;
     }
 
+    private void addMovementExhaustion(Vector3f from, Vector3f to) {
+        float dx = to.getX() - from.getX();
+        float dy = to.getY() - from.getY();
+        float dz = to.getZ() - from.getZ();
+
+        float horizontalDistance = (float) Math.sqrt(dx * dx + dz * dz);
+        boolean swimming = this.isSwimming();
+
+        if (swimming || this.isInsideOfWater()) {
+            float distance = Math.round((float) Math.sqrt(dx * dx + dy * dy + dz * dz) * 100.0f) / 100.0f;
+            if (distance > 0) {
+                this.addExhaustion(distance * 0.01f, swimming ? ExhaustionReason.SWIM : ExhaustionReason.WALK_UNDERWATER);
+            }
+        } else if (this.isTouchingWater()) {
+            float distance = Math.round(horizontalDistance * 100.0f) / 100.0f;
+            if (distance > 0) {
+                this.addExhaustion(distance * 0.01f, ExhaustionReason.WALK_ON_WATER);
+            }
+        } else if (this.isOnGround()) {
+            float distance = Math.round(horizontalDistance * 100.0f) / 100.0f;
+            if (distance > 0) {
+                if (this.isSprinting()) {
+                    this.addExhaustion(distance * 0.1f, ExhaustionReason.SPRINT);
+                } else {
+                    this.addExhaustion(0, this.isSneaking() ? ExhaustionReason.CROUCH : ExhaustionReason.WALK);
+                }
+            }
+        }
+    }
+
     public void acceptInputMotion(Vector3f motion) {
         this.motion = motion;
     }
@@ -1962,6 +1942,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected void onMountComplete(Entity vehicle) {
+        this.newPosition = null;
+        this.forceMovement = null;
     }
 
     public void sendMovementCorrection(Vector3f authoritativePos, long tick) {
@@ -2048,13 +2030,16 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
                 if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
                     if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
-                        this.heal(1);
+                        this.heal(1, RegainReason.REGEN);
                     }
 
-                    PlayerFood foodData = this.getFoodData();
+                    CloudPlayerFood foodData = this.getFoodData();
+                    if (foodData.getSaturation() < CloudPlayerFood.MAX_LEVEL && this.ticksLived % 20 == 0) {
+                        foodData.setSaturation(foodData.getSaturation() + 1.0f);
+                    }
 
                     if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
-                        foodData.addFoodLevel(1, 0);
+                        foodData.setLevel(foodData.getLevel() + 1);
                     }
                 }
 
@@ -2082,7 +2067,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                     }
 
                     if (this.isSurvival() || this.isAdventure()) {
-                        if (this.getFoodData() != null) this.getFoodData().update(tickDiff);
+                        this.foodData.update(tickDiff);
                     }
                 }
             }
@@ -2146,8 +2131,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         int slot = this.activeUseSlot;
         ItemStack item = this.getInventory().getItem(slot);
         this.setUsingItem(false);
+        this.flushEntityData();
         FinishUseHandler handler = CloudItemRegistry.get().requireComponent(item.getType(), ItemBehaviors.FINISH_USE);
-        this.getInventory().setItem(slot, handler.execute(item, this));
+        ItemStack result = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.CONSUMABLE) != null
+                ? ConsumableItemHandlers.finishConsumption(item, this) : handler.execute(item, this);
+        this.getInventory().setItem(slot, result);
     }
 
     private void updateUnderwaterSound() {
@@ -2303,13 +2291,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void completeLoginSequence() {
-        PlayerLoginEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerLoginEvent(this, "Plugin reason"));
-        if (ev.isCancelled()) {
-            this.close(ev.kickMessage(), "login");
-            return;
-        }
-
         Vector3f pos = this.getPosition();
 
         StartGamePacket startGamePacket = new StartGamePacket();
@@ -2333,7 +2314,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setBroadcastingToLan(true);
         NetworkUtils.gameRulesToNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
-        startGamePacket.setLevelName(this.getServer().getNetwork().getName()); // We might as well use the MOTD instead of the default level name
+        startGamePacket.setLevelName(this.getLevel().getName());
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
@@ -2441,23 +2422,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void processLogin() {
-        if (this.server.getOnlinePlayers().size() >= this.server.getMaxPlayers() && this.kick(PlayerKickEvent.Reason.SERVER_FULL, "disconnectionScreen.serverFull", false)) {
-            return;
-        } else if (!this.server.isWhitelisted(this)) {
-            this.kick(PlayerKickEvent.Reason.NOT_WHITELISTED, "Server is white-listed");
-            return;
-        } else if (this.isBanned()) {
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "You are banned");
-            return;
-        } else if (this.server.isIPBanned(this)) {
-            this.kick(PlayerKickEvent.Reason.IP_BANNED, "You are banned");
-            return;
-        }
-
         CloudPlayer oldPlayer = null;
         for (CloudPlayer p : new ArrayList<>(this.getServer().getOnlinePlayers().values())) {
-            if (p != this && p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
-                    this.getServerId().equals(p.getServerId())) {
+            if (p != this && (p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
+                    this.getServerId().equals(p.getServerId()))) {
                 oldPlayer = p;
                 break;
             }
@@ -2867,20 +2835,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void close(@Nullable Component message, String reason, boolean notify) {
         if (this.connected && !this.closed) {
-            if (notify && reason.length() > 0) {
-                DisconnectPacket packet = new DisconnectPacket();
-                packet.setKickMessage(reason);
-                this.sendPacketImmediately(packet);
-            }
-
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
             PlayerQuitEvent ev = null;
-            if (this.getName() != null && this.getName().length() > 0) {
-                this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
-                if (this.loggedIn && ev.getAutoSave()) {
+
+            if (this.getName() != null && !this.getName().isEmpty()) {
+                if (this.initialized) {
+                    this.server.getEventManager().fire(ev = new PlayerQuitEvent(this, message, true, reason));
+                }
+
+                if (this.loggedIn && (ev == null || ev.getAutoSave())) {
                     this.save();
                 }
+
                 if (this.fishingHook != null) {
                     this.stopFishing();
                 }
@@ -2919,11 +2886,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             this.loggedIn = false;
 
-            if (ev != null && !Objects.equals(this.username, "") && this.spawned && ev.getQuitMessage() != null) {
+            if (ev != null && !Objects.equals(this.username, "") && this.initialized && ev.getQuitMessage() != null) {
                 this.server.broadcastMessage(ev.getQuitMessage());
             }
 
             this.spawned = false;
+            this.initialized = false;
             log.info(this.getServer().getLanguage().translate("cloudburst.player.logOut",
                     "§b" + (this.getName() == null ? "" : this.getName()) + "§r",
                     this.getLoggableAddress(),
@@ -2954,10 +2922,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void setHealth(float health) {
-        if (health < 1) {
-            health = 0;
-        }
-
         super.setHealth(health);
         this.sendHealthAttribute();
     }
@@ -2968,18 +2932,30 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendHealthAttribute();
     }
 
-    private void sendHealthAttribute() {
-        float health = this.getHealth();
-        Attribute attr = Attribute.getAttribute(Attribute.MAX_HEALTH)
-                .setMaxValue(this.getAbsorption() % 2 != 0 ? this.getMaxHealth() + 1 : this.getMaxHealth())
-                .setValue(Math.clamp(health, 0, this.getMaxHealth()));
+    @Override
+    public void setAbsorption(float absorption) {
+        super.setAbsorption(absorption);
+        if (this.spawned) {
+            this.setAttribute(Attribute.getAttribute(Attribute.ABSORPTION).setValue(this.getAbsorption()));
+        }
+    }
 
+    private void sendHealthAttribute() {
         if (this.spawned) {
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
-            packet.getAttributes().add(NetworkUtils.attributeToNetwork(attr));
+            packet.getAttributes().add(this.createHealthAttribute());
             packet.setRuntimeEntityId(this.getRuntimeId());
             this.sendPacket(packet);
         }
+    }
+
+    private AttributeData createHealthAttribute() {
+        int maximumHealth = this.getMaxHealth();
+        Attribute attribute = Attribute.getAttribute(Attribute.MAX_HEALTH)
+                .setMaxValue(maximumHealth)
+                .setDefaultValue(maximumHealth)
+                .setValue(Math.clamp(this.getHealth(), 0, maximumHealth));
+        return NetworkUtils.attributeToNetwork(attribute);
     }
 
     public int getExperience() {
@@ -3048,6 +3024,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendPacket(packet);
     }
 
+    public void sendFoodAttributes() {
+        if (!this.spawned) {
+            return;
+        }
+
+        UpdateAttributesPacket packet = new UpdateAttributesPacket();
+        packet.setRuntimeEntityId(this.getRuntimeId());
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.foodData.getLevel())));
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.SATURATION).setValue(this.foodData.getSaturation())));
+        packet.getAttributes().add(NetworkUtils.attributeToNetwork(Attribute.getAttribute(Attribute.EXHAUSTION).setValue(Math.min(this.foodData.getExhaustion(), 5.0f))));
+        this.sendPacket(packet);
+    }
+
     @Override
     public void setMovementSpeed(float speed) {
         setMovementSpeed(speed, true);
@@ -3080,7 +3069,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.interruptBlocking();
 
-        ItemStack heldItem = this.getInventory().getSelectedItem();
+        int attackSlot = this.selectedHotbarSlot;
+        ItemStack heldItem = this.getInventory().getItem(attackSlot);
         float baseDamage = 1;
         if (!heldItem.isEmpty()) {
             FloatItemHandler attackDamage = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.GET_ATTACK_DAMAGE);
@@ -3095,7 +3085,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         DamageType damageType = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ATTACK_DAMAGE_TYPE);
-        DamageSource source = DamageSource.of(damageType, this);
+        DamageSource source = DamageSource.builder(damageType)
+                .directEntity(this)
+                .causingEntity(this)
+                .weaponItem(heldItem)
+                .build();
         boolean piercingWeapon = !heldItem.isEmpty() && CloudItemRegistry.get().getComponent(heldItem.getType(), ItemBehaviors.STAB) != null;
 
         boolean damaged = target.damage(damage, source);
@@ -3109,8 +3103,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_STRONG, -1, EntityTypes.PLAYER, false, false);
             }
 
-            this.getFoodData().updateFoodExpLevel(0.1);
-            this.damageHeldItemAfterAttack(heldItem);
+            this.addExhaustion(0.1f, ExhaustionReason.ATTACK);
+            this.damageHeldItemAfterAttack(attackSlot, heldItem);
         } else if (!piercingWeapon) {
             this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_NODAMAGE, -1, EntityTypes.PLAYER, false, false);
         }
@@ -3144,7 +3138,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return target instanceof Living
                 && this.fallDistance > 0
                 && !this.isOnGround()
+                && !this.isClimbing()
                 && !this.isInsideOfWater()
+                && !this.hasPotionEffect(EffectTypes.BLINDNESS)
                 && !this.isImmobile()
                 && this.getVehicle() == null
                 && !this.isSprinting();
@@ -3162,7 +3158,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         Vector2f direction = target.getPosition().sub(this.getPosition()).toVector2(true);
-        livingTarget.knockBack(this, extraKnockback, direction.getX(), direction.getY());
+        livingTarget.knockBack(extraKnockback, direction.getX(), direction.getY(), KnockbackCause.ENTITY_ATTACK, this);
         Vector3f motion = this.getMotion();
         this.setMotion(Vector3f.from(motion.getX() * 0.6f, motion.getY(), motion.getZ() * 0.6f));
         this.setSprinting(false);
@@ -3184,8 +3180,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.getLevel().addLevelSoundEvent(target.getPosition(), SoundEvent.ATTACK_CRITICAL);
     }
 
-    private void damageHeldItemAfterAttack(ItemStack heldItem) {
-        if (heldItem.isEmpty() || !this.getInventory().getSelectedItem().equals(heldItem)) {
+    private void damageHeldItemAfterAttack(int slot, ItemStack heldItem) {
+        if (heldItem.isEmpty() || !this.getInventory().getItem(slot).equals(heldItem)) {
             return;
         }
 
@@ -3198,9 +3194,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         DamageItemHandler damageItem = CloudItemRegistry.get().requireComponent(heldItem.getType(), ItemBehaviors.ON_DAMAGE);
         ItemStack damagedItem = damageItem.execute(heldItem, durabilityDamage, this);
-        if (!damagedItem.equals(heldItem)) {
-            boolean activeUseOfHeldItem = this.activeUseMatchesCurrentSlot();
-            this.getInventory().setSelectedItem(damagedItem);
+        if (!damagedItem.equals(heldItem) && this.getInventory().getItem(slot).equals(heldItem)) {
+            boolean activeUseOfHeldItem = this.selectedHotbarSlot == slot && this.activeUseMatchesCurrentSlot();
+            this.getInventory().setItem(slot, damagedItem);
             if (activeUseOfHeldItem) {
                 if (damagedItem.isEmpty()) {
                     this.setUsingItem(false);
@@ -3218,6 +3214,23 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
+    protected @Nullable DeathProtectionUse findDeathProtection() {
+        int slot = this.selectedHotbarSlot;
+        ItemStack mainHand = this.getInventory().getItem(slot);
+        DeathProtectionComponent protection = mainHand.isEmpty() ? null
+                : CloudItemRegistry.get().getComponent(mainHand.getType(), ItemBehaviors.DEATH_PROTECTION);
+        if (protection != null) {
+            return new DeathProtectionUse(EquipmentSlot.MAIN_HAND, mainHand, protection, replacement -> {
+                if (this.getInventory().getItem(slot).equals(mainHand)) {
+                    this.getInventory().setItem(slot, replacement);
+                }
+            });
+        }
+
+        return super.findDeathProtection();
+    }
+
+    @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
         if (!this.isAlive()) {
             return false;
@@ -3229,7 +3242,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return false;
         }
 
-        if (this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
+        if (source.getDamageType() == DamageTypes.FALL && this.getLevel().getBlockState(this.getPosition().add(0, -1, 0).toInt()).getType() == BlockTypes.SLIME) {
             if (!this.isSneaking()) {
                 this.resetFallDistance();
                 return false;
@@ -3243,13 +3256,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             }
         }
 
-        float healthBeforeDamage = this.getHealth();
         if (!super.applyDamage(source)) {
             return false;
         }
 
-        if (this.getHealth() < healthBeforeDamage) {
-            this.getFoodData().updateFoodExpLevel(source.getDamageSource().getFoodExhaustion());
+        if (source.getFinalDamage() > 0) {
+            this.addExhaustion(source.getDamageSource().getFoodExhaustion(), ExhaustionReason.DAMAGED);
         }
 
         return true;
@@ -3268,7 +3280,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             case PEACEFUL -> 0;
             case EASY -> Math.min(damage / 2 + 1, damage);
             case NORMAL -> damage;
-            case HARD -> damage * 1.5f;
+            case HARD -> (float) Math.min((double) damage * 1.5, Float.MAX_VALUE);
         };
     }
 
@@ -3350,8 +3362,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         int expLevel = tag.getInt("expLevel");
         this.setExperience(exp, expLevel);
 
-        tag.listenForInt("foodLevel", this.foodData::setLevel);
-        tag.listenForFloat("FoodSaturationLevel", this.foodData::setFoodSaturationLevel);
+        this.foodData.load(tag.getInt("foodLevel", 20), tag.getFloat("foodSaturationLevel", 5.0f),
+                tag.getFloat("foodExhaustionLevel", 0.0f), tag.getInt("foodTickTimer", 0));
         tag.listenForBoolean("seenCredits", value -> this.seenCredits = value);
         tag.listenForList("EnderChestInventory", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
@@ -3394,7 +3406,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         tag.putInt("expLevel", this.getExperienceLevel());
 
         tag.putInt("foodLevel", this.getFoodData().getLevel());
-        tag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
+        tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());
+        tag.putFloat("foodExhaustionLevel", this.foodData.getExhaustion());
+        tag.putInt("foodTickTimer", this.foodData.getTickTimer());
         tag.putBoolean("seenCredits", this.seenCredits);
 
         tag.putList("Inventory", NbtType.COMPOUND, this.getContainer().toNbt());
@@ -3424,11 +3438,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         boolean showMessages = this.getLevel().getGameRules().get(GameRules.SHOW_DEATH_MESSAGES);
         DeathMessageResolver.Resolution death = DeathMessageResolver.resolve(this, this.getLastDamageCause());
-        PlayerDeathEvent event = new PlayerDeathEvent(this, this.getDrops(), showMessages ? death.message() : null, this.getExperienceLevel());
+        int droppedExperience = (int) Math.min((long) this.getExperienceLevel() * 7, 100);
+        PlayerDeathEvent event = new PlayerDeathEvent(this, this.getDeathDamageSource(), Arrays.asList(this.getDrops()), showMessages ? death.message() : null, droppedExperience);
         event.setKeepExperience(this.getLevel().getGameRules().get(GameRules.KEEP_INVENTORY) || this.isSpectator());
         event.setKeepInventory(event.getKeepExperience());
-        this.server.getEventManager().fire(event);
-        if (event.isCancelled()) {
+        if (!this.prepareDeath(event)) {
             return;
         }
 
@@ -3460,7 +3474,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (!event.getKeepExperience()) {
-            int exp = Math.min(event.getExperience() * 7, 100);
+            int exp = event.getDroppedExperience();
             if (exp > 0) {
                 this.getLevel().dropExpOrb(this.getPosition(), exp);
             }
@@ -3792,8 +3806,38 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.foodEnabled = foodEnabled;
     }
 
-    public PlayerFood getFoodData() {
+    public CloudPlayerFood getFoodData() {
         return this.foodData;
+    }
+
+    @Override
+    public int getFoodLevel() {
+        return this.foodData.getLevel();
+    }
+
+    @Override
+    public void setFoodLevel(int level) {
+        this.foodData.setLevel(level);
+    }
+
+    @Override
+    public float getSaturation() {
+        return this.foodData.getSaturation();
+    }
+
+    @Override
+    public void setSaturation(float saturation) {
+        this.foodData.setSaturation(saturation);
+    }
+
+    @Override
+    public float getExhaustion() {
+        return this.foodData.getExhaustion();
+    }
+
+    @Override
+    public void addExhaustion(float amount, ExhaustionReason reason) {
+        this.foodData.addExhaustion(amount, reason);
     }
 
     //todo a lot on dimension
@@ -3956,24 +4000,24 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    public boolean switchLevel(CloudLevel level) {
+    protected boolean switchLevel(CloudLevel level) {
         CloudLevel oldLevel = this.getLevel();
         int newDimension = level.getDimension();
         boolean dimensionChanged = newDimension != oldLevel.getDimension();
 
-        if (dimensionChanged) {
-            this.changingDimension = true;
-            ChangeDimensionPacket changeDim = new ChangeDimensionPacket();
-            changeDim.setDimension(newDimension);
-            Vector3f targetPosition = this.respawnTarget == null
-                    ? this.getPosition().add(0, this.getBaseOffset(), 0)
-                    : this.respawnTarget.getPosition();
-            changeDim.setPosition(targetPosition);
-            changeDim.setRespawn(this.respawnTarget != null);
-            this.sendPacketImmediately(changeDim);
-        }
-
         if (super.switchLevel(level)) {
+            if (dimensionChanged) {
+                this.changingDimension = true;
+                ChangeDimensionPacket changeDim = new ChangeDimensionPacket();
+                changeDim.setDimension(newDimension);
+                Vector3f targetPosition = this.respawnTarget == null
+                        ? this.getPosition().add(0, this.getBaseOffset(), 0)
+                        : this.respawnTarget.getPosition();
+                changeDim.setPosition(targetPosition);
+                changeDim.setRespawn(this.respawnTarget != null);
+                this.sendPacketImmediately(changeDim);
+            }
+
             SetSpawnPositionPacket spawnPosition = new SetSpawnPositionPacket();
             spawnPosition.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
             Vector3f spawn = level.getSpawnLocation();
@@ -4003,9 +4047,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return true;
         }
 
-        if (dimensionChanged) {
-            this.changingDimension = false;
-        }
         return false;
     }
 
@@ -4205,6 +4246,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
+        if (inventory == this.offhand.getContainer()) {
+            this.onInventoryContentsChange(inventory);
+            return;
+        }
+
         int containerId = getContainerId(inventory);
         if (containerId == ContainerId.NONE) {
             return;
@@ -4219,8 +4265,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         if (inventory == this.armor.getContainer()) {
             this.sendArmorEquipmentToViewers();
-        } else if (inventory == this.offhand.getContainer()) {
-            this.sendOffhandEquipmentToViewers();
         } else if (inventory == this.container && slot == this.selectedHotbarSlot) {
             this.sendHandEquipmentToViewers();
         }
@@ -4312,14 +4356,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.uiContainerSlotOffset = 0;
     }
 
-    private void unregisterContainerId(Container inventory) {
-        Byte id = this.containerToWindowId.remove(inventory);
-        if (id != null) {
-            this.windowIdToContainer.remove(id);
-        }
-    }
-
-    void unregisterContainerById(byte windowId) {
+    public void unregisterContainerById(byte windowId) {
         Container c = this.windowIdToContainer.remove(windowId);
         if (c != null) {
             this.containerToWindowId.remove(c);

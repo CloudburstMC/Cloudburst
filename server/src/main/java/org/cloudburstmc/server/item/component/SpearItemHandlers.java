@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.KnockbackCause;
 import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -12,6 +13,7 @@ import org.cloudburstmc.api.item.component.*;
 import org.cloudburstmc.api.level.BlockShapeMode;
 import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.RayTraceContext;
+import org.cloudburstmc.api.player.ExhaustionReason;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -103,7 +105,7 @@ public class SpearItemHandlers {
             }
 
             if (knockback && target instanceof EntityLiving living) {
-                living.knockBack(player, 0.4f, look.getX(), look.getZ());
+                living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
             }
 
             boolean affected = knockback || dismount && target.getVehicle() != null;
@@ -145,7 +147,7 @@ public class SpearItemHandlers {
             if (player.attack(target)) {
                 damaged = true;
                 if (target instanceof EntityLiving living) {
-                    living.knockBack(player, 0.4f, look.getX(), look.getZ());
+                    living.knockBack(0.4f, look.getX(), look.getZ(), KnockbackCause.ENTITY_ATTACK, player);
                 }
             }
         }
@@ -170,7 +172,7 @@ public class SpearItemHandlers {
 
         Vector3f motion = player.getMotion().add(horizontal.normalize().mul(0.458f * lungeLevel));
         player.setMotion(motion);
-        player.getFoodData().updateFoodExpLevel(4.0f * lungeLevel);
+        player.addExhaustion(4.0f * lungeLevel, ExhaustionReason.ENCHANTMENT_EFFECT);
         player.getLevel().addLevelSoundEvent(player.getPosition(), switch (Math.min(lungeLevel, 3)) {
             case 1 -> SoundEvent.LUNGE_1;
             case 2 -> SoundEvent.LUNGE_2;

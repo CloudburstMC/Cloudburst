@@ -32,14 +32,15 @@ LABEL org.opencontainers.image.title="Cloudburst" \
       org.opencontainers.image.licenses="LGPL-3.0" \
       org.opencontainers.image.version="${VERSION}"
 
-RUN mkdir /app \
+RUN apk add --no-cache libssl3 libstdc++ \
+    && mkdir /app \
     && addgroup -S cloudburst && adduser -S -G cloudburst \
         -h /data -s /sbin/nologin cloudburst \
     && chown cloudburst:cloudburst /app
 
 COPY --from=build /src/server/build/libs/Cloudburst.jar /app/cloudburst.jar
 
-EXPOSE 19132/udp
+EXPOSE 19132/tcp 19132/udp
 
 USER cloudburst:cloudburst
 

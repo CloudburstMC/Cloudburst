@@ -3,9 +3,10 @@ package org.cloudburstmc.server.potion;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.event.entity.EntityRegainHealthEvent;
+import org.cloudburstmc.api.player.ExhaustionReason;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
@@ -64,6 +65,14 @@ public class ActivePotionEffect {
     }
 
     public boolean shouldApplyTick(int currentTick) {
+        if (!this.isInfinite() && this.duration == 0) {
+            return false;
+        }
+
+        if (this.type == EffectTypes.SATURATION || this.type == EffectTypes.HUNGER) {
+            return true;
+        }
+
         int timingValue = this.isInfinite() ? currentTick : this.duration;
         int interval;
 
@@ -88,7 +97,12 @@ public class ActivePotionEffect {
         } else if (this.type == EffectTypes.WITHER) {
             entity.damage(1, DamageSource.of(DamageTypes.WITHER));
         } else if (this.type == EffectTypes.REGENERATION && entity.getHealth() < entity.getMaxHealth()) {
-            entity.heal(new EntityRegainHealthEvent(entity, 1, EntityRegainHealthEvent.CAUSE_MAGIC));
+            entity.heal(1, RegainReason.MAGIC_REGEN);
+        } else if (this.type == EffectTypes.SATURATION && entity instanceof CloudPlayer player) {
+            int nutrition = this.amplifier + 1;
+            player.getFoodData().eat(nutrition, nutrition * 2.0f);
+        } else if (this.type == EffectTypes.HUNGER && entity instanceof CloudPlayer player) {
+            player.addExhaustion(0.005f * (this.amplifier + 1), ExhaustionReason.HUNGER_EFFECT);
         }
     }
 
@@ -116,10 +130,8 @@ public class ActivePotionEffect {
             ((CloudEntity) entity).getData().setFlag(INVISIBLE, true);
             entity.setNameTagVisible(false);
         } else if (this.type == EffectTypes.ABSORPTION) {
-            int absorption = (this.amplifier + 1) * 4;
-            if (absorption > entity.getAbsorption()) {
-                entity.setAbsorption(absorption);
-            }
+            float absorption = (this.amplifier + 1.0f) * 4;
+            entity.setAbsorption(Math.max(entity.getAbsorption(), absorption));
         }
     }
 

@@ -15,7 +15,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
-import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -32,11 +31,6 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     public EntityTntMinecart(EntityType<TntMinecart> type, Location location) {
         super(type, location);
-    }
-
-    @Override
-    public boolean isRideable() {
-        return false;
     }
 
     @Override
@@ -57,6 +51,31 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
         tag.putInt("Fuse", this.fuse);
+    }
+
+    @Override
+    public MinecartType getMinecartType() {
+        return MinecartType.valueOf(3);
+    }
+
+    @Override
+    public boolean isRideable() {
+        return false;
+    }
+
+    @Override
+    public int getFuse() {
+        return this.fuse;
+    }
+
+    @Override
+    public void setFuse(int fuse) {
+        if (fuse < -1) {
+            throw new IllegalArgumentException("Fuse must be -1 or non-negative");
+        }
+
+        this.fuse = fuse;
+        this.data.set(FUSE_TIME, fuse);
     }
 
     @Override
@@ -91,15 +110,49 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         }
     }
 
+    private boolean primeFuse() {
+        if (this.fuse >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
+            return false;
+        }
+
+        this.setFuse(DEFAULT_FUSE);
+        this.getLevel().addLevelEvent(this.getPosition(), LevelEvent.SOUND_FUSE, 0);
+        return true;
+    }
+
+    @Override
+    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
+        if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIRE_CHARGE) {
+            boolean primed = this.primeFuse();
+            if (primed && !player.isCreative()) {
+                player.getInventory().setSelectedItem(item.getType() == ItemTypes.FLINT_AND_STEEL
+                        ? DefaultItemHandlers.ON_DAMAGE.execute(item, 1, player) : item.decreaseCount());
+            }
+
+            return primed;
+        }
+
+        return super.onInteract(player, item, clickedPos);
+    }
+
+    @Override
+    public boolean mount(Entity entity) {
+        return false;
+    }
+
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent event) {
+        if (this.isDamageImmune(event.getDamageSource())) {
+            return false;
+        }
+
         Entity direct = event.getDamageSource().getDirectEntity();
         boolean burningProjectile = direct instanceof Projectile && direct.isOnFire();
         if (this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES) && (burningProjectile
                 || event.getDamageType().is(DamageTypeTags.IS_FIRE)
                 || event.getDamageType().is(DamageTypeTags.IS_EXPLOSION))) {
             this.getServer().getEventManager().fire(event);
-            if (event.isCancelled() || event.getDamage() <= 0) {
+            if (event.isCancelled() || event.getDamage() <= 0 || this.isClosed() || !this.isAlive()) {
                 return false;
             }
 
@@ -138,57 +191,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
-    public int getFuse() {
-        return this.fuse;
-    }
-
-    @Override
-    public void setFuse(int fuse) {
-        if (fuse < -1) {
-            throw new IllegalArgumentException("Fuse must be -1 or non-negative");
-        }
-
-        this.fuse = fuse;
-        this.data.set(FUSE_TIME, fuse);
-    }
-
-    @Override
     public void dropItem() {
         this.getLevel().dropItem(this.getPosition(), ItemStack.builder().itemType(ItemTypes.TNT_MINECART).build());
-    }
-
-    @Override
-    public MinecartType getMinecartType() {
-        return MinecartType.valueOf(3);
-    }
-
-    @Override
-    public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
-        if (item.getType() == ItemTypes.FLINT_AND_STEEL || item.getType() == ItemTypes.FIRE_CHARGE) {
-            boolean primed = this.primeFuse();
-            if (primed && !player.isCreative()) {
-                player.getInventory().setSelectedItem(item.getType() == ItemTypes.FLINT_AND_STEEL
-                        ? DefaultItemHandlers.ON_DAMAGE.execute(item, 1, player) : item.decreaseCount());
-            }
-
-            return primed;
-        }
-
-        return super.onInteract(player, item, clickedPos);
-    }
-
-    @Override
-    public boolean mount(Entity entity, MountType mode) {
-        return false;
-    }
-
-    private boolean primeFuse() {
-        if (this.fuse >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
-            return false;
-        }
-
-        this.setFuse(DEFAULT_FUSE);
-        this.getLevel().addLevelEvent(this.getPosition(), LevelEvent.SOUND_FUSE, 0);
-        return true;
     }
 }

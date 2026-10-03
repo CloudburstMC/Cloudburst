@@ -7,6 +7,7 @@ import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
+import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.particle.ParticleEmitter;
@@ -26,6 +27,7 @@ import org.cloudburstmc.server.boss.CloudStandaloneBossBar;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.NetworkUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,7 +37,10 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.STRU
 public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     private static final String TAG_DRAGON_DEATH_TIME = "DragonDeathTime";
+    private static final String TAG_DRAGON_DEATH_EXPERIENCE = "DragonDeathExperience";
+
     private static final float BOSS_BAR_RANGE = 192;
+
     private static final int DEATH_DURATION = 200;
     private static final int EXPERIENCE_START_TICK = 150;
     private static final int EXPERIENCE_INTERVAL = 5;
@@ -46,6 +51,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     private BossBar bossBar;
     private boolean dying;
     private int dragonDeathTime;
+    private int deathExperience;
     private int ambientSoundDelay;
 
     public EntityEnderDragon(EntityType<EnderDragon> type, Location location) {
@@ -86,7 +92,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     @Override
     public void setHealth(float health) {
-        if (health < 1 && this.isAlive() && !this.dying) {
+        if (health == 0 && this.isAlive() && !this.dying) {
             this.beginDeath();
             return;
         }
@@ -121,12 +127,14 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
             this.dragonDeathTime = dragonDeathTime;
             this.dying = dragonDeathTime > 0;
         });
+        this.deathExperience = tag.getInt(TAG_DRAGON_DEATH_EXPERIENCE, this.getExperienceReward());
     }
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
         tag.putInt(TAG_DRAGON_DEATH_TIME, this.dragonDeathTime);
+        tag.putInt(TAG_DRAGON_DEATH_EXPERIENCE, this.deathExperience);
     }
 
     @Override
@@ -175,11 +183,32 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
         this.beginDeath();
     }
 
+    @Override
+    protected EntityDeathEvent createDeathEvent() {
+        return new EntityDeathEvent(this, this.getDeathDamageSource(), Arrays.asList(this.getDrops()), this.getExperienceReward());
+    }
+
+    @Override
+    protected void dropDeathExperience(int experience) {
+        this.deathExperience = experience;
+    }
+
+    private int getExperienceReward() {
+        return this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END
+                ? this.getLevel().getEndFight().getDragonExperienceReward() : 500;
+    }
+
     private void beginDeath() {
+        EntityDeathEvent event = this.createDeathEvent();
+        if (!this.prepareDeath(event)) {
+            return;
+        }
+
+        this.deathExperience = event.getDroppedExperience();
         this.dying = true;
         this.health = 0;
         this.data.set(STRUCTURAL_INTEGRITY, 1);
-        this.processDeath();
+        this.processDeath(event);
         this.broadcastHealth();
         this.bossBar.setProgress(0);
     }
@@ -193,17 +222,11 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
         if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT)
                 && this.dragonDeathTime > EXPERIENCE_START_TICK
                 && this.dragonDeathTime % EXPERIENCE_INTERVAL == 0) {
-            int experience = this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END
-                    ? this.getLevel().getEndFight().getDragonExperienceReward()
-                    : 500;
-            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(experience * 0.08));
+            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(this.deathExperience * 0.08));
         }
 
         if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT) && this.dragonDeathTime == DEATH_DURATION) {
-            int experience = this.getLevel().getDimension() == CloudLevel.DIMENSION_THE_END
-                    ? this.getLevel().getEndFight().getDragonExperienceReward()
-                    : 500;
-            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(experience * 0.2));
+            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(this.deathExperience * 0.2));
         }
 
         if (this.dragonDeathTime < DEATH_DURATION) {

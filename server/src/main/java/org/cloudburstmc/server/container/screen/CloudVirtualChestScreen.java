@@ -120,7 +120,7 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
         openPkt.setId(windowId);
         openPkt.setType(ContainerType.CONTAINER);
         openPkt.setBlockPosition(fakePos);
-        player.sendPacket(openPkt);
+        this.openWindow(openPkt);
 
         player.getInventoryManager().sendAllInventories();
     }

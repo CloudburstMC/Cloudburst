@@ -1,6 +1,5 @@
 package org.cloudburstmc.api.event.player;
 
-import lombok.Getter;
 import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.player.Player;
 
@@ -11,12 +10,8 @@ import java.util.Objects;
  *
  * <p>Cancelling this event prevents execution. Command lines may include or omit a leading slash.</p>
  */
-public final class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancellable {
+public class PlayerCommandPreprocessEvent extends PlayerEvent implements Cancellable {
 
-    /**
-     * Command line that will be dispatched.
-     */
-    @Getter
     private String message;
 
     /**
@@ -28,6 +23,15 @@ public final class PlayerCommandPreprocessEvent extends PlayerEvent implements C
     public PlayerCommandPreprocessEvent(Player player, String message) {
         super(player);
         this.setMessage(message);
+    }
+
+    /**
+     * Returns the command line that will be dispatched.
+     *
+     * @return the command line
+     */
+    public String getMessage() {
+        return this.message;
     }
 
     /**

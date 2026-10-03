@@ -5,14 +5,11 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.vehicle.Minecart;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.entity.passive.EntityWaterAnimal;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-/**
- * Created by Snake1999 on 2016/1/30.
- * Package cn.nukkit.entity.item in project Nukkit.
- */
 public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
 
     public EntityMinecart(EntityType<Minecart> type, Location location) {
@@ -30,19 +27,11 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
     }
 
     @Override
-    protected void activate(int x, int y, int z, boolean flag) {
-        if (flag) {
-            if (this.vehicle != null) {
-                mount(vehicle);
-            }
-            // looks like MCPE and MCPC not same XD
-            // removed rolling feature from here because of MCPE logic?
-        }
-    }
-
-    @Override
     public boolean onUpdate(int currentTick) {
         boolean update = super.onUpdate(currentTick);
+        if (this.closed || !this.isAlive()) {
+            return false;
+        }
 
         if (this.passengers.isEmpty()) {
             for (Entity entity : this.getLevel().getCollidingEntities(this, this.boundingBox.inflate(0.2f, 0, 0.2f))) {
@@ -50,12 +39,26 @@ public class EntityMinecart extends EntityAbstractMinecart implements Minecart {
                     continue;
                 }
 
-                entity.mount(this);
-                update = true;
-                break;
+                if (((CloudEntity) entity).tryMount(this)) {
+                    update = true;
+                    break;
+                }
             }
         }
 
         return update;
+    }
+
+    @Override
+    protected void activate(int x, int y, int z, boolean powered) {
+        if (!powered) {
+            return;
+        }
+
+        this.ejectPassengers();
+        if (this.getRollingAmplitude() == 0) {
+            this.performHurtAnimation();
+            this.setDamage(50);
+        }
     }
 }

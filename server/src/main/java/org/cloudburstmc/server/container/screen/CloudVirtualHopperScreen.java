@@ -119,7 +119,7 @@ public class CloudVirtualHopperScreen extends CloudContainerScreen implements Vi
         openPkt.setId(windowId);
         openPkt.setType(ContainerType.HOPPER);
         openPkt.setBlockPosition(fakePos);
-        player.sendPacket(openPkt);
+        this.openWindow(openPkt);
 
         player.getInventoryManager().sendAllInventories();
     }

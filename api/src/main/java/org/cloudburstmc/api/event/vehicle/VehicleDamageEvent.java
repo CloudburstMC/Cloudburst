@@ -1,30 +1,65 @@
 package org.cloudburstmc.api.event.vehicle;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.Cancellable;
 
-public final class VehicleDamageEvent extends VehicleEvent implements Cancellable {
+import static java.util.Objects.requireNonNull;
 
-    private final Entity attacker;
-    private double damage;
+/**
+ * Called before accepted damage changes a vehicle's health or destroys it.
+ * Cancellation prevents the hit from damaging or destroying the vehicle.
+ */
+public class VehicleDamageEvent extends VehicleEvent implements Cancellable {
 
-    public VehicleDamageEvent(Vehicle vehicle, Entity attacker, double damage) {
+    private final DamageSource damageSource;
+    private float damage;
+
+    /**
+     * @param vehicle      the damaged vehicle
+     * @param damageSource the type and origin of damage
+     * @param damage       the finite, non-negative damage before reductions
+     */
+    public VehicleDamageEvent(Vehicle vehicle, DamageSource damageSource, float damage) {
         super(vehicle);
-        this.attacker = attacker;
+        this.damageSource = requireNonNull(damageSource, "damageSource");
+        this.setDamage(damage);
+    }
+
+    /**
+     * @return the type and origin of damage
+     */
+    public DamageSource getDamageSource() {
+        return this.damageSource;
+    }
+
+    /**
+     * Returns the direct attacker, such as the projectile rather than its shooter.
+     *
+     * @return the attacking entity, or {@code null} for environmental damage
+     */
+    public @Nullable Entity getAttacker() {
+        return this.damageSource.getDirectEntity();
+    }
+
+    /**
+     * @return the damage before reductions
+     */
+    public float getDamage() {
+        return this.damage;
+    }
+
+    /**
+     * @param damage the finite, non-negative damage before reductions
+     * @throws IllegalArgumentException if the damage is negative or not finite
+     */
+    public void setDamage(float damage) {
+        if (!Float.isFinite(damage) || damage < 0) {
+            throw new IllegalArgumentException("Vehicle damage must be finite and non-negative");
+        }
+
         this.damage = damage;
     }
-
-    public Entity getAttacker() {
-        return attacker;
-    }
-
-    public double getDamage() {
-        return damage;
-    }
-
-    public void setDamage(double damage) {
-        this.damage = damage;
-    }
-
 }

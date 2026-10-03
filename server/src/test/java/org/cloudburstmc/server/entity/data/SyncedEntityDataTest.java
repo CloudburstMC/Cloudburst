@@ -16,6 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class SyncedEntityDataTest {
 
     @Test
+    void requiredFieldsMustBeInitialized() {
+        SyncedEntityData data = new SyncedEntityData();
+
+        assertNull(data.get(AIR_SUPPLY));
+        assertThrows(IllegalStateException.class, () -> data.require(AIR_SUPPLY));
+        data.set(AIR_SUPPLY, (short) 400);
+        assertEquals(400, data.require(AIR_SUPPLY).intValue());
+        assertThrows(IllegalArgumentException.class, () -> data.require(FLAGS));
+    }
+
+    @Test
     void queuedFlagsRemainStableAfterLaterChanges() {
         SyncedEntityData data = new SyncedEntityData();
         data.setFlag(EntityFlag.BLOCKING, true);

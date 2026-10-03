@@ -118,17 +118,16 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
         player.sendPacket(buildChestNbtPacket(fakePosB, customName, fakePosA));
 
         final Vector3i anchorPos = fakePosA;
-        final byte windowId = player.assignContainerId(backingContainer);
 
         player.getServer().getGlobalScheduler().runDelayed(null, t -> {
-            if (!player.isConnected()) {
+            if (!player.isConnected() || player.getOpenInventory() != this) {
                 return;
             }
             ContainerOpenPacket openPkt = new ContainerOpenPacket();
-            openPkt.setId(windowId);
+            openPkt.setId(player.assignContainerId(backingContainer));
             openPkt.setType(ContainerType.CONTAINER);
             openPkt.setBlockPosition(anchorPos);
-            player.sendPacket(openPkt);
+            this.openWindow(openPkt);
             player.getInventoryManager().sendAllInventories();
         }, OPEN_DELAY_TICKS);
     }
