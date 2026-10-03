@@ -60,11 +60,16 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     public EntityAreaEffectCloud(EntityType<?> type, Location location) {
         super(type, location);
+        this.data.set(AREA_EFFECT_CLOUD_RADIUS, 3.0F);
+        this.data.set(AREA_EFFECT_CLOUD_WAITING, 10);
+        this.data.set(AREA_EFFECT_CLOUD_PARTICLE, NetworkUtils.particleToNetwork(ParticleTypes.MOB_SPELL_AMBIENT));
+        this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(this.potionType));
+        this.recalculatePotionColor();
     }
 
     @Override
     public int getWaitTime() {
-        return this.data.get(AREA_EFFECT_CLOUD_WAITING);
+        return this.data.require(AREA_EFFECT_CLOUD_WAITING);
     }
 
     @Override
@@ -86,32 +91,13 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     private void recalculatePotionColor() {
-        int a;
-        int r;
-        int g;
-        int b;
-
-        int color;
-        if (this.particleColorSet) {
-            color = this.particleColor;
-            a = (color & 0xFF000000) >> 24;
-            r = (color & 0x00FF0000) >> 16;
-            g = (color & 0x0000FF00) >> 8;
-            b = color & 0x000000FF;
-        } else {
-            a = 255;
-            color = CloudPotionColor.calculateEffects(this.getApplicationEffects()).orElse(0x2828ff);
-            r = color >> 16 & 0xff;
-            g = color >> 8 & 0xff;
-            b = color & 0xff;
-        }
-
-        this.updatePotionColor(((a & 0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff));
+        int color = this.particleColorSet ? this.particleColor : 0xff000000 | CloudPotionColor.calculateEffects(this.getApplicationEffects()).orElse(0x2828ff);
+        this.updatePotionColor(color);
     }
 
     @Override
     public int getPotionColor() {
-        return this.data.get(EFFECT_COLOR);
+        return this.data.require(EFFECT_COLOR);
     }
 
     @Override
@@ -197,7 +183,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public float getRadius() {
-        return this.data.get(AREA_EFFECT_CLOUD_RADIUS);
+        return this.data.require(AREA_EFFECT_CLOUD_RADIUS);
     }
 
     @Override
@@ -211,7 +197,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public ParticleType getParticle() {
-        return NetworkUtils.particleFromNetwork(this.data.get(AREA_EFFECT_CLOUD_PARTICLE));
+        return NetworkUtils.particleFromNetwork(this.data.require(AREA_EFFECT_CLOUD_PARTICLE));
     }
 
     @Override
@@ -279,7 +265,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     protected void initEntity() {
-        this.data.set(AREA_EFFECT_CLOUD_RADIUS, 3.0F);
         super.initEntity();
         this.invulnerable = true;
         this.data.setFlag(FIRE_IMMUNE, true);
@@ -287,15 +272,12 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         this.data.set(AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
         this.data.set(AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         this.data.set(AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
-        this.setParticle(ParticleTypes.MOB_SPELL_AMBIENT);
         this.data.set(AREA_EFFECT_CLOUD_PICKUP_COUNT, 0);
-        this.setPotionType(PotionTypes.WATER);
         this.setDuration(600);
         this.setReapplicationDelay(20);
         this.setDurationOnUse(0);
         this.setRadiusOnUse(-0.5F);
         this.setRadiusPerTick(-0.005F);
-        this.setWaitTime(10);
         this.setMaxHealth(1);
         this.setHealth(1);
     }

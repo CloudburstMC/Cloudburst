@@ -25,6 +25,7 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
 
     public EntityVillager(EntityType<Villager> type, Location location) {
         super(type, location);
+        this.data.set(VARIANT, PROFESSION_GENERIC);
     }
 
     @Override
@@ -52,8 +53,6 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     public void initEntity() {
         super.initEntity();
         this.setMaxHealth(20);
-
-        this.setProfession(PROFESSION_GENERIC);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     public int getProfession() {
-        return this.data.get(VARIANT);
+        return this.data.require(VARIANT);
     }
 
     public void setProfession(int profession) {

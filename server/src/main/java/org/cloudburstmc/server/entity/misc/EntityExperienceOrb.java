@@ -28,6 +28,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     public EntityExperienceOrb(EntityType<ExperienceOrb> type, Location location) {
         super(type, location);
+        this.data.set(VALUE, 1);
     }
 
     @Override
@@ -66,8 +67,6 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
         setMaxHealth(5);
         setHealth(5);
-
-        this.data.set(VALUE, 1);
 
         //call event item spawn event
     }
@@ -250,7 +249,7 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     public int getExperience() {
-        return this.data.get(VALUE);
+        return this.data.require(VALUE);
     }
 
     public void setExperience(int experience) {

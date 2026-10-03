@@ -142,7 +142,7 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     public DyeColor getColor() {
-        return DyeColor.getByWoolData(this.data.get(COLOR));
+        return DyeColor.getByWoolData(this.data.require(COLOR));
     }
 
     public void setColor(DyeColor color) {
