@@ -100,6 +100,7 @@ public class BlockComponents {
 
     /**
      * Resolves the shape used to test entity overlap before invoking {@link #ON_ENTITY_INSIDE}.
+     * Defaults to a full block, independently of the shape that blocks movement.
      */
     public static final ComponentType<VoxelShapeBlockHandler> GET_ENTITY_INSIDE_COLLISION_SHAPE = ComponentType.of("get_entity_inside_collision_shape", VoxelShapeBlockHandler.class);
 

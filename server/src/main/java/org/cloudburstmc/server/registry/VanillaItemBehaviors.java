@@ -15,6 +15,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.item.ArmorMaterial;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
 import org.cloudburstmc.server.item.VanillaTools;
@@ -35,6 +36,7 @@ import static org.cloudburstmc.server.registry.CloudItemRegistry.repairWith;
 public final class VanillaItemBehaviors {
 
     public static void configure(CloudItemRegistry registry) {
+        configureBoats(registry);
         configureSpawnEgg(registry, ItemTypes.AGENT_SPAWN_EGG, EntityTypes.AGENT);
         configureSpawnEgg(registry, ItemTypes.ALLAY_SPAWN_EGG, EntityTypes.ALLAY);
         configureSpawnEgg(registry, ItemTypes.ARMADILLO_SPAWN_EGG, EntityTypes.ARMADILLO);
@@ -378,6 +380,19 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_SPAWN_EGG, EntityTypes.ZOMBIE);
         configureSpawnEgg(registry, ItemTypes.ZOMBIE_VILLAGER_SPAWN_EGG, EntityTypes.ZOMBIE_VILLAGER);
         VanillaFoodBehaviors.configure(registry);
+    }
+
+    private static void configureBoats(CloudItemRegistry registry) {
+        for (VanillaBoats.Definition definition : VanillaBoats.DEFINITIONS) {
+            registry.configure(definition.boatItem())
+                    .set(ItemBehaviors.USE, BoatItemHandlers.use(definition, false))
+                    .set(ItemBehaviors.USE_ON, BoatItemHandlers.useOn(definition, false))
+                    .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1);
+            registry.configure(definition.chestItem())
+                    .set(ItemBehaviors.USE, BoatItemHandlers.use(definition, true))
+                    .set(ItemBehaviors.USE_ON, BoatItemHandlers.useOn(definition, true))
+                    .set(ItemBehaviors.GET_MAX_STACK_SIZE, item -> 1);
+        }
     }
 
     private void configureSpawnEgg(CloudItemRegistry registry, ItemType itemType, EntityType<?> entityType) {

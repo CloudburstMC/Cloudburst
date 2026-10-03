@@ -211,6 +211,17 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
+    public boolean entityBaseTick(int tickDiff) {
+        this.refreshPose(false);
+        return super.entityBaseTick(tickDiff);
+    }
+
+    @Override
+    public Pose getPose() {
+        return this.pose;
+    }
+
+    @Override
     public float getWidth() {
         return HumanPoses.dimensions(this.pose).width();
     }
@@ -233,11 +244,6 @@ public class EntityHuman extends EntityCreature implements Human {
     @Override
     public float getBaseOffset() {
         return STANDING_EYE_HEIGHT;
-    }
-
-    @Override
-    public Pose getPose() {
-        return this.pose;
     }
 
     public void setSneaking(boolean value) {
@@ -343,12 +349,6 @@ public class EntityHuman extends EntityCreature implements Human {
         return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.scale).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
     }
 
-    @Override
-    public boolean entityBaseTick(int tickDiff) {
-        this.refreshPose(false);
-        return super.entityBaseTick(tickDiff);
-    }
-
 
     @Override
     protected void hurtHelmet(float damage) {
@@ -442,10 +442,11 @@ public class EntityHuman extends EntityCreature implements Human {
 //            this.getContainer().sendArmorContents(player); TODO: Fix this
 
         if (this.vehicle != null) {
+            this.vehicle.spawnTo(player);
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
             EntityLinkData link = new EntityLinkData(this.vehicle.getUniqueId(),
                     this.getUniqueId(),
-                    EntityLinkData.Type.RIDER,
+                    this.vehicle.getPassengers().indexOf(this) == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER,
                     true,
                     false,
                     0

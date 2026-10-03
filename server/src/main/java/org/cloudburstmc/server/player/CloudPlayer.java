@@ -85,7 +85,6 @@ import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.container.view.CloudEnderChestView;
 import org.cloudburstmc.server.container.view.CloudHotbarView;
 import org.cloudburstmc.server.container.view.CloudPlayerInventory;
-import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -341,7 +340,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void openEnderChest(EnderChest chest) {
         Objects.requireNonNull(chest, "Ender chest can't be null");
-        if (!this.canOpenInventory()) return;
+        if (this.hasOpenContainer()) return;
 
         CloudEnderChestScreen screen = new CloudEnderChestScreen(this, chest.getBlock());
         this.invManager.openScreen(screen);
@@ -1641,8 +1640,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return abilities;
     }
 
-    public boolean canOpenInventory() {
-        return this.invManager.getOpenContainer() == null;
+    public boolean hasOpenContainer() {
+        return this.invManager.getOpenContainer() != null;
     }
 
     @Override
@@ -1651,33 +1650,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void closeInventory(InventoryCloseEvent.Reason reason) {
-        CloudInventoryScreen screen = this.invManager.getOpenContainer();
-        if (screen == null) {
-            return;
-        }
-
         this.invManager.closeScreen(reason);
-
-        for (SlotGroup view : screen.getAllSlotGroups()) {
-            if (!(view instanceof CloudSlotGroupBase)) continue;
-            Container container = ((CloudSlotGroupBase) view).getContainer();
-            Byte windowId = this.containerToWindowId.get(container);
-            if (windowId != null) {
-                unregisterContainerId(container);
-                ContainerClosePacket close = new ContainerClosePacket();
-                close.setId(windowId);
-                close.setServerInitiated(true);
-                close.setType(ContainerType.CONTAINER);
-                this.sendPacket(close);
-                return;
-            }
-        }
-
-        ContainerClosePacket close = new ContainerClosePacket();
-        close.setId((byte) ContainerId.INVENTORY);
-        close.setServerInitiated(true);
-        close.setType(ContainerType.INVENTORY);
-        this.sendPacket(close);
     }
 
     @Override
@@ -1715,7 +1688,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void openContainer(Block block) {
-        if (!canOpenInventory()) return;
+        if (hasOpenContainer()) return;
         if (!block.requireComponent(BlockComponents.CAN_BE_USED).execute(block, this)) {
             throw new IllegalArgumentException("Block is not a container: " + block.getState().getType().getId());
         }
@@ -1724,7 +1697,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void openContainer(BlockEntity blockEntity) {
-        if (!canOpenInventory()) return;
+        if (hasOpenContainer()) return;
         openContainer(blockEntity.getBlock());
     }
 
@@ -1744,16 +1717,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void handleClientContainerClose(ContainerClosePacket packet) {
-        byte windowId = packet.getId();
-        unregisterContainerById(windowId);
-
-        this.invManager.closeScreen(InventoryCloseEvent.Reason.PLAYER);
-
-        ContainerClosePacket echo = new ContainerClosePacket();
-        echo.setId(windowId);
-        echo.setServerInitiated(false);
-        echo.setType(packet.getType() != null ? packet.getType() : ContainerType.CONTAINER);
-        this.sendPacket(echo);
+        this.invManager.handleWindowClose(packet);
     }
 
     @Override
@@ -1814,7 +1778,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void applyInputMovement() {
-        if (!this.isAlive() || !this.spawned || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
+        if (!this.isAlive() || !this.spawned || this.vehicle != null || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
         }
 
@@ -1978,6 +1942,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected void onMountComplete(Entity vehicle) {
+        this.newPosition = null;
+        this.forceMovement = null;
     }
 
     public void sendMovementCorrection(Vector3f authoritativePos, long tick) {
@@ -4390,14 +4356,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.uiContainerSlotOffset = 0;
     }
 
-    private void unregisterContainerId(Container inventory) {
-        Byte id = this.containerToWindowId.remove(inventory);
-        if (id != null) {
-            this.windowIdToContainer.remove(id);
-        }
-    }
-
-    void unregisterContainerById(byte windowId) {
+    public void unregisterContainerById(byte windowId) {
         Container c = this.windowIdToContainer.remove(windowId);
         if (c != null) {
             this.containerToWindowId.remove(c);

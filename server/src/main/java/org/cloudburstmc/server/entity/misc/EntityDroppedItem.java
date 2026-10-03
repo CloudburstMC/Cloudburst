@@ -146,9 +146,11 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                         if (closeItem == null || !closeItem.isStackableWith(getItem())) {
                             continue;
                         }
+
                         if (!entity.isOnGround()) {
                             continue;
                         }
+
                         int newAmount = this.getItem().getCount() + closeItem.getCount();
                         if (newAmount > CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                             continue;

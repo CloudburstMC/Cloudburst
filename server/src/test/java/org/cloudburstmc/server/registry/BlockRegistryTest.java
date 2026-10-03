@@ -4,7 +4,9 @@ import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.ComponentType;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -14,6 +16,7 @@ import org.cloudburstmc.server.block.BlockLayers;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.util.BlockSupport;
+import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -82,6 +85,29 @@ class BlockRegistryTest {
                         () -> assertSame(TntBlockHandlers.ON_PROJECTILE_HIT, component(type, BlockComponents.ON_PROJECTILE_HIT)));
             }
         }
+    }
+
+    @Test
+    void bubbleColumnContactDoesNotDependOnPhysicalCollision() {
+        BlockState state = BlockTypes.BUBBLE_COLUMN.getDefaultState();
+        VoxelShape inside = component(BlockTypes.BUBBLE_COLUMN, BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE)
+                .execute(state, CollisionContext.empty());
+
+        assertTrue(state.getCollisionShape().isEmpty());
+        assertTrue(inside.covers(CloudVoxelShapes.block()));
+        assertSame(BubbleColumnBlockHandlers.ON_ENTITY_INSIDE,
+                component(BlockTypes.BUBBLE_COLUMN, BlockComponents.ON_ENTITY_INSIDE));
+    }
+
+    @Test
+    void tripwireContactUsesItsOutlineRatherThanTheWholeBlock() {
+        BlockState state = BlockTypes.TRIP_WIRE.getDefaultState();
+        VoxelShape inside = component(BlockTypes.TRIP_WIRE, BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE)
+                .execute(state, CollisionContext.empty());
+
+        assertTrue(inside.covers(state.getOutlineShape()));
+        assertTrue(state.getOutlineShape().covers(inside));
+        assertFalse(inside.covers(CloudVoxelShapes.block()));
     }
 
     @Test

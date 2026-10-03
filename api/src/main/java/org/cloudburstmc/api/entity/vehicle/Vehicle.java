@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.entity.vehicle;
 
-import org.cloudburstmc.api.entity.Rideable;
+import org.cloudburstmc.api.entity.Entity;
 
-public interface Vehicle extends Rideable {
+/**
+ * A transport entity with vehicle lifecycle and damage events.
+ */
+public interface Vehicle extends Entity {
 }

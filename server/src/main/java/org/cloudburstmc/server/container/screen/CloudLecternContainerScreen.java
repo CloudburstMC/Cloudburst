@@ -71,7 +71,7 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
         pkt.setId(windowId);
         pkt.setType(containerType);
         pkt.setBlockPosition(block.getPosition());
-        player.sendPacket(pkt);
+        this.openWindow(pkt);
 
         player.getInventoryManager().sendAllInventories();
     }

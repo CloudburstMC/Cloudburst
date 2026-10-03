@@ -24,7 +24,7 @@ public class DefaultBlockHandlers {
 
     private static final float PIXEL = 1f / 16f;
 
-    public static final VoxelShapeBlockHandler GET_ENTITY_INSIDE_COLLISION_SHAPE = (state, context) -> state.getCollisionShape();
+    public static final VoxelShapeBlockHandler GET_ENTITY_INSIDE_COLLISION_SHAPE = (state, context) -> CloudVoxelShapes.block();
 
     public static final BlockSupportShapeHandler GET_BLOCK_SUPPORT_SHAPE = (state, context) -> state.getCollisionShape();
 
@@ -140,8 +140,6 @@ public class DefaultBlockHandlers {
 
     public static final EntityInsideBlockHandler WEB_ENTITY_INSIDE = (block, entity, precise) ->
             entity.makeStuckInBlock(block.getState(), Vector3f.from(0.25f, 0.05f, 0.25f));
-
-    public static final VoxelShapeBlockHandler FULL_ENTITY_INSIDE_COLLISION_SHAPE = (state, context) -> CloudVoxelShapes.block();
 
     public static final FallOnBlockHandler ON_FALL_ON = (block, entity, fallDistance) ->
             ((CloudEntity) entity).applyFallDamage(fallDistance);

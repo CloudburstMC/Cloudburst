@@ -9,7 +9,8 @@ import org.cloudburstmc.api.event.Cancellable;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Called before lethal damage destroys a vehicle. Cancellation prevents that hit.
+ * Called before lethal damage destroys a vehicle. Cancellation prevents destruction
+ * without cancelling the accepted hit or its hurt animation.
  */
 public class VehicleDestroyEvent extends VehicleEvent implements Cancellable {
 
@@ -32,9 +33,11 @@ public class VehicleDestroyEvent extends VehicleEvent implements Cancellable {
     }
 
     /**
-     * @return the entity responsible for damage, or {@code null} for environmental damage
+     * Returns the direct attacker, such as the projectile rather than its shooter.
+     *
+     * @return the attacking entity, or {@code null} for environmental damage
      */
     public @Nullable Entity getAttacker() {
-        return this.damageSource.getCausingEntity();
+        return this.damageSource.getDirectEntity();
     }
 }

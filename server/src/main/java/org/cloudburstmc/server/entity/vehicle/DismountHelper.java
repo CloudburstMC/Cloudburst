@@ -19,6 +19,7 @@ public class DismountHelper {
         if (!isPassable(level, feetBlock) || !isPassable(level, headBlock) || isPassable(level, floorBlock)) {
             return null;
         }
+
         if (avoidDanger && (isDangerous(feetBlock) || isDangerous(floorBlock))) {
             return null;
         }

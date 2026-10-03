@@ -15,7 +15,6 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -86,6 +85,13 @@ public interface Entity extends Damageable, Emitter {
         return 0f;
     }
 
+    /**
+     * Returns a passenger's offset from this entity's position, in world axes.
+     * Adding this offset to {@link #getPosition()} gives the passenger's position.
+     *
+     * @param passenger the passenger to position
+     * @return the attachment offset, including this entity's rotation
+     */
     default Vector3f getPassengerAttachmentPoint(Entity passenger) {
         return Vector3f.from(0f, getHeight(), 0f);
     }
@@ -186,38 +192,63 @@ public interface Entity extends Damageable, Emitter {
      */
     void setScale(float scale);
 
+    /**
+     * @return an immutable snapshot of direct passengers in seat order
+     */
     List<? extends Entity> getPassengers();
 
+    /**
+     * @param entity the entity to check
+     * @return whether the entity is a direct passenger
+     */
     boolean isPassenger(Entity entity);
 
+    /**
+     * @param entity the entity to check
+     * @return whether the entity controls this vehicle
+     */
     boolean isControlling(Entity entity);
 
-    boolean hasControllingPassenger();
-
-    Vector3f getSeatPosition();
-
-    void setSeatPosition(Vector3f position);
-
-    Entity getVehicle();
-
-    default boolean mount(Entity entity) {
-        return this.mount(entity, MountType.RIDER);
-    }
+    /**
+     * @return the direct passenger controlling this entity, or {@code null} when no passenger controls it
+     */
+    @Nullable
+    Entity getControllingPassenger();
 
     /**
-     * Mounts this entity onto another entity.
+     * @return this entity's seat offset relative to its vehicle
+     */
+    Vector3f getSeatPosition();
+
+    /**
+     * @param position this entity's seat offset relative to its vehicle
+     */
+    void setSeatPosition(Vector3f position);
+
+    /**
+     * @return the vehicle this entity rides, or {@code null} when not mounted
+     */
+    @Nullable
+    Entity getVehicle();
+
+    /**
+     * Mounts this entity onto another entity in the same level.
+     * Vehicle entry and exit events may prevent changing vehicles.
+     * This explicit request bypasses sneaking and the normal delay after dismounting,
+     * but still respects passenger capacity and prevents circular vehicle relationships.
      *
      * @param vehicle the vehicle to mount
-     * @param mode    the mount mode
-     * @return {@code true} if the entity was mounted
+     * @return {@code true} if the entity was mounted, or {@code false} if mounting was rejected
      */
-    boolean mount(Entity vehicle, MountType mode);
+    boolean mount(Entity vehicle);
 
+    /**
+     * Leaves the current vehicle, subject to exit-event cancellation.
+     *
+     * @param vehicle the vehicle this entity is riding
+     * @return whether the entity left that vehicle
+     */
     boolean dismount(Entity vehicle);
-
-    void onMount(Entity passenger);
-
-    void onDismount(Entity passenger);
 
     /**
      * Returns the plain name used to identify this entity.

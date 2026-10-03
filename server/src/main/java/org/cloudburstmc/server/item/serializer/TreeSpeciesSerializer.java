@@ -16,10 +16,6 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
 
     public static final TreeSpeciesSerializer DOOR = new TreeSpeciesSerializer(ItemTypes.WOODEN_DOOR.getId(), ItemTypes.SPRUCE_DOOR.getId(), ItemTypes.BIRCH_DOOR.getId(), ItemTypes.JUNGLE_DOOR.getId(), ItemTypes.ACACIA_DOOR.getId(), ItemTypes.DARK_OAK_DOOR.getId(), ItemTypes.CRIMSON_DOOR.getId(), ItemTypes.WARPED_DOOR.getId(), ItemTypes.MANGROVE_DOOR.getId());
     public static final TreeSpeciesSerializer SIGN = new TreeSpeciesSerializer(ItemTypes.OAK_SIGN.getId(), ItemTypes.SPRUCE_SIGN.getId(), ItemTypes.BIRCH_SIGN.getId(), ItemTypes.JUNGLE_SIGN.getId(), ItemTypes.ACACIA_SIGN.getId(), ItemTypes.DARK_OAK_SIGN.getId(), ItemTypes.CRIMSON_SIGN.getId(), ItemTypes.WARPED_SIGN.getId(), ItemTypes.MANGROVE_SIGN.getId());
-    public static final TreeSpeciesSerializer BOAT = new TreeSpeciesSerializer(ItemTypes.OAK_BOAT.getId(), ItemTypes.SPRUCE_BOAT.getId(), ItemTypes.BIRCH_BOAT.getId(), ItemTypes.JUNGLE_BOAT.getId(), ItemTypes.ACACIA_BOAT.getId(), ItemTypes.DARK_OAK_BOAT.getId(), ItemTypes.OAK_BOAT.getId(), ItemTypes.OAK_BOAT.getId(), ItemTypes.MANGROVE_BOAT.getId());
-
-    public static final TreeSpeciesSerializer CHEST_BOAT = new TreeSpeciesSerializer(ItemTypes.OAK_CHEST_BOAT.getId(), ItemTypes.SPRUCE_CHEST_BOAT.getId(), ItemTypes.BIRCH_CHEST_BOAT.getId(), ItemTypes.JUNGLE_CHEST_BOAT.getId(), ItemTypes.ACACIA_CHEST_BOAT.getId(), ItemTypes.DARK_OAK_CHEST_BOAT.getId(), ItemTypes.OAK_CHEST_BOAT.getId(), ItemTypes.OAK_CHEST_BOAT.getId(), ItemTypes.MANGROVE_CHEST_BOAT.getId());
-
     private final Identifier[] identifiers;
     private final Reference2ObjectMap<Identifier, TreeSpecies> dataMap = new Reference2ObjectOpenHashMap<>();
 

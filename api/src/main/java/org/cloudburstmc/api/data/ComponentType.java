@@ -7,16 +7,16 @@ import org.cloudburstmc.api.util.Identifier;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A typed slot identifier for a behavioral component in a {@link org.cloudburstmc.api.util.component.ComponentMap}.
+ * A typed slot identifier in a {@link org.cloudburstmc.api.util.component.ComponentMap}.
  * <p>
- * The type parameter {@code H} is the handler (callable) interface stored in the slot.
- * Component types with the same identifier and handler type are equal.
+ * A slot can store configuration data or a behavior handler.
+ * Component types with the same identifier and value type are equal.
  *
- * @param <H> the handler interface type
+ * @param <H> the component value type
  */
 @Getter
 @EqualsAndHashCode
-public final class ComponentType<H> {
+public class ComponentType<H> {
 
     private final Identifier id;
     private final Class<H> type;

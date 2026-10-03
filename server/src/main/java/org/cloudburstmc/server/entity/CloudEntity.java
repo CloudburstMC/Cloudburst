@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.entity.component.PickItemEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
@@ -21,6 +22,8 @@ import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.entity.vehicle.Vehicle;
 import org.cloudburstmc.api.event.entity.*;
 import org.cloudburstmc.api.event.player.PlayerTeleportCause;
+import org.cloudburstmc.api.event.vehicle.VehicleEnterEvent;
+import org.cloudburstmc.api.event.vehicle.VehicleExitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -33,7 +36,6 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.api.util.data.CardinalDirection;
-import org.cloudburstmc.api.util.data.MountType;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -46,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.entity.data.BuoyancyDataSerializer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
@@ -78,7 +81,6 @@ public abstract class CloudEntity implements Entity {
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
-    @Getter
     protected final List<Entity> passengers = new ArrayList<>();
     @Getter
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
@@ -141,8 +143,11 @@ public abstract class CloudEntity implements Entity {
     protected CloudLevel level;
     @Getter
     public boolean closed = false;
+    private boolean mounting;
+    private boolean dismounting;
+    private int boardingCooldown;
     @Getter
-    protected Entity vehicle;
+    protected @Nullable Entity vehicle;
     private @Nullable Entity owner;
     @Setter
     protected EntityDamageEvent lastDamageCause = null;
@@ -184,6 +189,7 @@ public abstract class CloudEntity implements Entity {
         this.data.set(LEASH_HOLDER, -1L);
         this.data.set(SCALE, 1f);
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
+        this.data.set(SEAT_OFFSET, Vector3f.ZERO);
     }
 
     /**
@@ -227,6 +233,12 @@ public abstract class CloudEntity implements Entity {
     protected void initEntity() {
         this.updateNetworkBounds();
         this.data.set(STRUCTURAL_INTEGRITY, (int) this.getHealth());
+
+        Buoyancy buoyancy = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.BUOYANCY);
+        if (buoyancy != null) {
+            this.data.set(IS_BUOYANT, true);
+            this.data.set(BUOYANCY_DATA, BuoyancyDataSerializer.serialize(buoyancy));
+        }
     }
 
     public void loadAdditionalData(NbtMap tag) {
@@ -235,22 +247,21 @@ public abstract class CloudEntity implements Entity {
         tag.listenForList("Pos", NbtType.FLOAT, list -> {
             this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
+
         tag.listenForList("Rotation", NbtType.FLOAT, list -> {
             this.setRotation(list.get(0), list.get(1));
         });
+
         tag.listenForList("Motion", NbtType.FLOAT, list -> {
             this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
         });
 
         this.highestPosition = this.getY();
+
         tag.listenForFloat("FallDistance", this::setFallDistance);
-
         tag.listenForShort("Fire", this::setOnFire);
-
         tag.listenForShort("Air", this::setAirTicks);
-
         tag.listenForBoolean("OnGround", this::setOnGround);
-
         tag.listenForBoolean("Invulnerable", this::setInvulnerable);
         tag.listenForInt("TicksFrozen", this::setFreezeTicks);
 
@@ -347,20 +358,6 @@ public abstract class CloudEntity implements Entity {
         }
 
         return Optional.of(CloudEntitySnapshot.capture(this));
-    }
-
-    @Override
-    public ItemStack getPickItem(boolean includeData) {
-        PickItemEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.GET_PICK_ITEM);
-        ItemStack item = handler == null ? ItemStack.EMPTY : Objects.requireNonNull(handler.execute(this, includeData), "picked item");
-
-        if (!includeData || item.isEmpty() || item.has(ItemDataComponents.ENTITY_DATA)) {
-            return item;
-        }
-
-        return this.createSnapshot()
-                .map(snapshot -> item.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build())
-                .orElse(item);
     }
 
     public long getUniqueId() {
@@ -529,39 +526,6 @@ public abstract class CloudEntity implements Entity {
         this.updateNetworkBounds();
     }
 
-    private void updateNetworkBounds() {
-        this.data.set(WIDTH, this.getWidth());
-        this.data.set(HEIGHT, this.getHeight());
-        if (this.isPlayer) {
-            this.data.set(COLLISION_BOX, this.getNetworkCollisionBox());
-        }
-    }
-
-    protected void putNetworkBounds(EntityDataMap metadata) {
-        metadata.put(WIDTH, this.getWidth());
-        metadata.put(HEIGHT, this.getHeight());
-        if (this.isPlayer) {
-            metadata.put(COLLISION_BOX, this.getNetworkCollisionBox());
-        }
-    }
-
-    private Vector3f getNetworkCollisionBox() {
-        return Vector3f.from(this.getWidth(), this.getHeight(), this.getLength());
-    }
-
-    public boolean setPosition(Vector3f pos) {
-        checkNotNull(pos, "position");
-        if (this.closed) {
-            return false;
-        }
-
-        this.position = pos;
-        this.recalculateBoundingBox();
-        this.checkChunks();
-
-        return true;
-    }
-
     public Location getLocation() {
         return Location.from(this.position, this.yaw, this.pitch, this.level);
     }
@@ -589,6 +553,19 @@ public abstract class CloudEntity implements Entity {
     @Override
     public float getPitch() {
         return pitch;
+    }
+
+    public boolean setPosition(Vector3f pos) {
+        checkNotNull(pos, "position");
+        if (this.closed) {
+            return false;
+        }
+
+        this.position = pos;
+        this.recalculateBoundingBox();
+        this.checkChunks();
+
+        return true;
     }
 
     public void setRotation(float yaw, float pitch) {
@@ -693,24 +670,6 @@ public abstract class CloudEntity implements Entity {
         this.data.setFlag(WALL_CLIMBING, value);
     }
 
-    /**
-     * Applies an attributed push after listeners can edit or cancel it.
-     */
-    public void applyKnockback(Vector3f knockback, KnockbackCause cause, @Nullable Entity sourceEntity) {
-        EntityKnockbackEvent event = new EntityKnockbackEvent(this, cause, sourceEntity, knockback);
-        if (this.isClosed()) {
-            return;
-        }
-
-        if (!this.justCreated) {
-            this.server.getEventManager().fire(event);
-        }
-
-        if (!event.isCancelled() && !this.isClosed()) {
-            this.setMotion(this.getMotion().add(event.getKnockback()));
-        }
-    }
-
     public boolean setMotion(Vector3f motion) {
         checkNotNull(motion, "motion");
         if (!Float.isFinite(motion.getX()) || !Float.isFinite(motion.getY()) || !Float.isFinite(motion.getZ())) {
@@ -739,6 +698,24 @@ public abstract class CloudEntity implements Entity {
      * Updates motion-dependent state before accepted motion is sent to viewers.
      */
     protected void onMotionChanged() {
+    }
+
+    /**
+     * Applies an attributed push after listeners can edit or cancel it.
+     */
+    public void applyKnockback(Vector3f knockback, KnockbackCause cause, @Nullable Entity sourceEntity) {
+        EntityKnockbackEvent event = new EntityKnockbackEvent(this, cause, sourceEntity, knockback);
+        if (this.isClosed()) {
+            return;
+        }
+
+        if (!this.justCreated) {
+            this.server.getEventManager().fire(event);
+        }
+
+        if (!event.isCancelled() && !this.isClosed()) {
+            this.setMotion(this.getMotion().add(event.getKnockback()));
+        }
     }
 
     @Override
@@ -905,6 +882,7 @@ public abstract class CloudEntity implements Entity {
         if (this.sharesRootVehicle(entity)) {
             return;
         }
+
         if (entity.getVehicle() != this && !entity.getPassengers().contains(this)) {
             double dx = entity.getX() - this.getX();
             double dy = entity.getZ() - this.getZ();
@@ -995,6 +973,169 @@ public abstract class CloudEntity implements Entity {
 
     public boolean canTriggerPressurePlate() {
         return true;
+    }
+
+    public final void scheduleUpdate() {
+        this.level.scheduleEntityUpdate(this);
+    }
+
+    public boolean onUpdate(int currentTick) {
+        if (this.closed) {
+            return false;
+        }
+
+        if (!this.isAlive()) {
+            ++this.deadTicks;
+            if (this.deadTicks >= 10) {
+                this.despawnFromAll();
+                if (!this.isPlayer) {
+                    this.close();
+                }
+            }
+
+            return this.deadTicks < 10;
+        }
+
+        int tickDiff = currentTick - this.lastUpdate;
+        if (tickDiff <= 0) {
+            return true;
+        }
+
+        this.lastUpdate = currentTick;
+
+        boolean hasUpdate = this.entityBaseTick(tickDiff);
+        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK).execute(this, currentTick);
+
+        this.updateMovement();
+        this.flushEntityData();
+
+        return hasUpdate;
+    }
+
+
+    public boolean entityBaseTick() {
+        return this.entityBaseTick(1);
+    }
+
+    public boolean entityBaseTick(int tickDiff) {
+        try (Timing ignored = Timings.entityBaseTickTimer.startTiming()) {
+
+            this.justCreated = false;
+            this.boardingCooldown = Math.max(0, this.boardingCooldown - tickDiff);
+
+            if (!this.isAlive()) {
+                this.clearActivePotionEffects(PotionEffectCause.DEATH);
+                this.despawnFromAll();
+
+                if (!this.isPlayer) {
+                    this.close();
+                }
+
+                return false;
+            }
+
+            if (this.vehicle != null && (!this.vehicle.isAlive() || this.vehicle.isClosed())) {
+                this.dismount(this.vehicle, false);
+            }
+
+            updatePassengers();
+
+            if (!this.effects.isEmpty()) {
+                for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+                    for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
+                        if (effect.shouldApplyTick(this.age + elapsed)) {
+                            effect.applyTick(this);
+                        }
+
+                        if (this.effects.get(effect.getType()) != effect) {
+                            break;
+                        }
+
+                        effect.decreaseDuration(1);
+                        if (!effect.isInfinite() && effect.getDuration() == 0) {
+                            this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            boolean hasUpdate = false;
+
+            this.checkBlockCollision();
+            this.applyLiquidCurrent();
+
+            if (this.position.getY() < this.level.getMinHeight() - 64) {
+                this.onBelowLevel();
+                if (this.closed) {
+                    return false;
+                }
+
+                hasUpdate = true;
+            }
+
+            if (this.fireTicks > 0) {
+                if (this.fireProof) {
+                    this.fireTicks -= 4 * tickDiff;
+                    if (this.fireTicks < 0) {
+                        this.fireTicks = 0;
+                    }
+                } else {
+                    if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
+                        this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
+                    }
+
+                    this.fireTicks -= tickDiff;
+                }
+
+                if (this.fireTicks <= 0) {
+                    this.extinguish();
+                } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
+                    this.data.setFlag(ON_FIRE, true);
+                    hasUpdate = true;
+                }
+            }
+
+            if (this.noDamageTicks > 0) {
+                this.noDamageTicks -= tickDiff;
+                if (this.noDamageTicks < 0) {
+                    this.noDamageTicks = 0;
+                }
+            }
+
+            if (this.isOnPortalCooldown()) {
+                tickPortalCooldown();
+            } else {
+                int portalThreshold = getPortalTransitionTicks();
+                if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
+                    this.setPortalCooldown();
+                    this.inPortalTicks = 0;
+
+                    Location newLoc = EnumLevel.moveToNether(
+                            this.getX(),
+                            this.getY(),
+                            this.getZ(),
+                            this.getYaw(),
+                            this.getPitch(),
+                            this.getLevel()
+                    );
+
+                    if (newLoc != null) {
+                        NetherPortals.handlePortalTransfer(this, newLoc);
+                    }
+                }
+            }
+
+            this.age += tickDiff;
+            this.ticksLived += tickDiff;
+            TimingsHistory.activatedEntityTicks++;
+
+            return hasUpdate;
+        }
+    }
+
+    protected void onBelowLevel() {
+        this.close();
     }
 
     @Override
@@ -1107,9 +1248,7 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
-     * Returns whether this entity can be moved by currents in liquids.
-     *
-     * @return boolean
+     * @return whether liquid currents may move this entity
      */
     public boolean canBeMovedByCurrents() {
         return true;
@@ -1251,164 +1390,6 @@ public abstract class CloudEntity implements Entity {
     @Override
     public void lockFreezeTicks(boolean locked) {
         this.freezeTickingLocked = locked;
-    }
-
-    public final void scheduleUpdate() {
-        this.level.scheduleEntityUpdate(this);
-    }
-
-    public boolean onUpdate(int currentTick) {
-        if (this.closed) {
-            return false;
-        }
-
-        if (!this.isAlive()) {
-            ++this.deadTicks;
-            if (this.deadTicks >= 10) {
-                this.despawnFromAll();
-                if (!this.isPlayer) {
-                    this.close();
-                }
-            }
-
-            return this.deadTicks < 10;
-        }
-
-        int tickDiff = currentTick - this.lastUpdate;
-        if (tickDiff <= 0) {
-            return true;
-        }
-
-        this.lastUpdate = currentTick;
-
-        boolean hasUpdate = this.entityBaseTick(tickDiff);
-        hasUpdate |= CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_TICK)
-                .execute(this, currentTick);
-
-        this.updateMovement();
-        this.flushEntityData();
-
-        return hasUpdate;
-    }
-
-
-    public boolean entityBaseTick() {
-        return this.entityBaseTick(1);
-    }
-
-    public boolean entityBaseTick(int tickDiff) {
-        try (Timing ignored = Timings.entityBaseTickTimer.startTiming()) {
-
-            this.justCreated = false;
-
-            if (!this.isAlive()) {
-                this.clearActivePotionEffects(PotionEffectCause.DEATH);
-                this.despawnFromAll();
-                if (!this.isPlayer) {
-                    this.close();
-                }
-                return false;
-            }
-
-            if (vehicle != null && !vehicle.isAlive() && vehicle instanceof Rideable) {
-                this.mount(vehicle);
-            }
-
-            updatePassengers();
-
-            if (!this.effects.isEmpty()) {
-                for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
-                    for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
-                        if (effect.shouldApplyTick(this.age + elapsed)) {
-                            effect.applyTick(this);
-                        }
-
-                        if (this.effects.get(effect.getType()) != effect) {
-                            break;
-                        }
-
-                        effect.decreaseDuration(1);
-                        if (!effect.isInfinite() && effect.getDuration() == 0) {
-                            this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            boolean hasUpdate = false;
-
-            this.checkBlockCollision();
-            this.applyLiquidCurrent();
-
-            if (this.position.getY() < this.level.getMinHeight() - 64) {
-                this.onBelowLevel();
-                if (this.closed) {
-                    return false;
-                }
-                hasUpdate = true;
-            }
-
-            if (this.fireTicks > 0) {
-                if (this.fireProof) {
-                    this.fireTicks -= 4 * tickDiff;
-                    if (this.fireTicks < 0) {
-                        this.fireTicks = 0;
-                    }
-                } else {
-                    if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                        this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
-                    }
-                    this.fireTicks -= tickDiff;
-                }
-                if (this.fireTicks <= 0) {
-                    this.extinguish();
-                } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
-                    this.data.setFlag(ON_FIRE, true);
-                    hasUpdate = true;
-                }
-            }
-
-            if (this.noDamageTicks > 0) {
-                this.noDamageTicks -= tickDiff;
-                if (this.noDamageTicks < 0) {
-                    this.noDamageTicks = 0;
-                }
-            }
-
-            if (this.isOnPortalCooldown()) {
-                tickPortalCooldown();
-            } else {
-                int portalThreshold = getPortalTransitionTicks();
-                if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
-                    this.setPortalCooldown();
-                    this.inPortalTicks = 0;
-
-                    Location newLoc = EnumLevel.moveToNether(
-                            this.getX(),
-                            this.getY(),
-                            this.getZ(),
-                            this.getYaw(),
-                            this.getPitch(),
-                            this.getLevel()
-                    );
-
-                    if (newLoc != null) {
-                        NetherPortals.handlePortalTransfer(this, newLoc);
-                    }
-                }
-            }
-
-            this.age += tickDiff;
-            this.ticksLived += tickDiff;
-            TimingsHistory.activatedEntityTicks++;
-
-            return hasUpdate;
-        }
-    }
-
-    protected void onBelowLevel() {
-        this.close();
     }
 
     public boolean teleport(Vector3f pos) {
@@ -1570,129 +1551,27 @@ public abstract class CloudEntity implements Entity {
         return Iterables.getFirst(this.passengers, null);
     }
 
+    @Override
+    public List<Entity> getPassengers() {
+        return List.copyOf(this.passengers);
+    }
+
     public boolean isPassenger(Entity entity) {
         return this.passengers.contains(entity);
     }
 
+    @Override
     public boolean isControlling(Entity entity) {
-        return this.passengers.indexOf(entity) == 0;
-    }
-
-    public boolean hasControllingPassenger() {
-        return !this.passengers.isEmpty() && isControlling(this.passengers.getFirst());
-    }
-
-    /**
-     * Mount or dismounts an Entity from a/into vehicle
-     *
-     * @param vehicle The target Entity
-     * @return {@code true} if the mounting successful
-     */
-    @Override
-    public boolean mount(Entity vehicle, MountType mode) {
-        checkNotNull(vehicle, "The target of the mounting entity can't be null");
-        if (this.wouldCreateVehicleCycle(vehicle)) {
-            return false;
-        }
-
-        if (this.vehicle != null && !this.vehicle.dismount(this)) {
-            return false;
-        }
-
-        // Entity entering a vehicle
-        EntityVehicleEnterEvent ev = new EntityVehicleEnterEvent(this, (Vehicle) vehicle);
-        server.getEventManager().fire(ev);
-        if (ev.isCancelled() || this.wouldCreateVehicleCycle(vehicle)) {
-            return false;
-        }
-
-        // Add variables to entity
-        this.vehicle = vehicle;
-
-        vehicle.onMount(this); // Flags have to be set before
-//        this.data.setFlag(RIDING, true);
-        this.flushEntityData();
-        broadcastLinkPacket(vehicle, EntityLinkData.Type.byId(mode.ordinal()));
-        onMountComplete(vehicle);
-
-        return true;
-    }
-
-    protected void onMountComplete(Entity vehicle) {
-    }
-
-    private boolean wouldCreateVehicleCycle(Entity vehicle) {
-        for (Entity ancestor = vehicle; ancestor != null; ancestor = ancestor.getVehicle()) {
-            if (ancestor == this) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean dismount(Entity vehicle) {
-        if (this.vehicle == null) {
-            // Not in a vehicle
-            return false;
-        }
-
-        // Run the events
-        EntityVehicleExitEvent event = new EntityVehicleExitEvent(this, (Vehicle) vehicle);
-        server.getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        broadcastLinkPacket(vehicle, EntityLinkData.Type.REMOVE);
-
-        // Refurbish the entity
-        this.vehicle = null;
-//        vehicle.setFlag(RIDING, false);
-        vehicle.onDismount(this);
-
-        this.setSeatPosition(Vector3f.ZERO);
-        this.data.setFlag(MOVING, true);
-
-        return true;
+        return entity != null && this.getControllingPassenger() == entity;
     }
 
     @Override
-    public void onMount(Entity passenger) {
-        checkArgument(passenger.getVehicle() == this, "passenger is not in this vehicle");
-        checkArgument(this.passengers.add(passenger), "passenger is already mounted to this vehicle");
-
-        if (passenger instanceof CloudPlayer ridingPlayer) {
-            this.hasSpawned.add(ridingPlayer);
-        }
-
-        Vector3f seatOffset = this.getMountedOffset(passenger);
-        passenger.setSeatPosition(seatOffset);
-        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 181.0f);
-        this.updatePassengerPosition(passenger);
-    }
-
-    @Override
-    public void onDismount(Entity passenger) {
-        checkArgument(passenger.getVehicle() != this, "passenger is still mounted");
-        checkArgument(this.passengers.remove(passenger), "passenger is not in this vehicle");
-
-        if (passenger instanceof CloudPlayer ridingPlayer) {
-            this.hasSpawned.remove(ridingPlayer);
-        }
-
-        passenger.setSeatPosition(Vector3f.ZERO);
-        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 0.0f);
-    }
-
-    protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type) {
-        SetEntityLinkPacket packet = new SetEntityLinkPacket();
-        boolean riderInitiated = type == EntityLinkData.Type.RIDER || type == EntityLinkData.Type.PASSENGER;
-        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, false, riderInitiated, 0));
-        CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
+    public @Nullable Entity getControllingPassenger() {
+        return this.passengers.isEmpty() ? null : this.passengers.getFirst();
     }
 
     public Vector3f getSeatPosition() {
-        return this.data.get(SEAT_OFFSET);
+        return this.data.require(SEAT_OFFSET);
     }
 
     public void setSeatPosition(Vector3f pos) {
@@ -1704,14 +1583,179 @@ public abstract class CloudEntity implements Entity {
         return Vector3f.from(0f, yOffset, 0f);
     }
 
+    @Override
+    public boolean mount(Entity vehicle) {
+        checkNotNull(vehicle, "The target of the mounting entity can't be null");
+        if (this.mounting || this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive() || this.level != vehicle.getLevel()
+                || this.wouldCreateVehicleCycle(vehicle) || !((CloudEntity) vehicle).canAddPassenger(this)) {
+            return false;
+        }
+
+        if (this.vehicle != null && !this.dismount(this.vehicle)) {
+            return false;
+        }
+
+        if (vehicle instanceof Vehicle target) {
+            VehicleEnterEvent event = new VehicleEnterEvent(target, this);
+            this.mounting = true;
+
+            try {
+                this.server.getEventManager().fire(event);
+            } finally {
+                this.mounting = false;
+            }
+
+            if (event.isCancelled()) {
+                return false;
+            }
+        }
+
+        if (this.vehicle != null || this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive() || this.level != vehicle.getLevel()
+                || this.wouldCreateVehicleCycle(vehicle) || !((CloudEntity) vehicle).canAddPassenger(this)) {
+            return false;
+        }
+
+        this.vehicle = vehicle;
+        this.onGround = false;
+        this.resetFallDistance();
+
+        ((CloudEntity) vehicle).onMount(this);
+        this.data.setFlag(RIDING, true);
+        this.flushEntityData();
+        broadcastLinkPacket(vehicle, vehicle.getPassengers().indexOf(this) == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, this instanceof Player);
+        onMountComplete(vehicle);
+
+        return true;
+    }
+
+    /**
+     * Attempts gameplay boarding, respecting sneaking and the delay after dismounting.
+     */
+    public boolean tryMount(Entity vehicle) {
+        return !this.data.getFlag(SNEAKING) && this.boardingCooldown == 0 && this.mount(vehicle);
+    }
+
+    protected boolean canAddPassenger(Entity passenger) {
+        return !this.passengers.contains(passenger);
+    }
+
+    private boolean wouldCreateVehicleCycle(Entity vehicle) {
+        for (Entity ancestor = vehicle; ancestor != null; ancestor = ancestor.getVehicle()) {
+            if (ancestor == this) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected void onMount(Entity passenger) {
+        checkArgument(passenger.getVehicle() == this, "passenger is not in this vehicle");
+        checkArgument(!this.passengers.contains(passenger), "passenger is already mounted to this vehicle");
+        this.passengers.add(passenger);
+
+        if (passenger instanceof CloudPlayer ridingPlayer) {
+            this.spawnTo(ridingPlayer);
+        }
+
+        Vector3f seatOffset = this.getMountedOffset(passenger);
+        passenger.setSeatPosition(seatOffset);
+        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 181.0f);
+        this.updatePassengerPosition(passenger);
+    }
+
+    protected void onMountComplete(Entity vehicle) {
+    }
+
+    public boolean dismount(Entity vehicle) {
+        return this.dismount(vehicle, true);
+    }
+
+    public boolean dismount(Entity vehicle, boolean cancellable) {
+        return this.dismount(vehicle, cancellable, null);
+    }
+
+    /**
+     * Attempts dismounting with an optional preferred feet position. The vehicle validates
+     * the position before using it. A canceled exit leaves the passenger mounted.
+     */
+    public boolean dismount(Entity vehicle, boolean cancellable, @Nullable Vector3f preferredPosition) {
+        if (this.vehicle != vehicle || vehicle == null) {
+            return false;
+        }
+
+        if (this.dismounting) {
+            if (cancellable) {
+                return false;
+            }
+
+            this.detachFromVehicle(vehicle, false, null);
+            return true;
+        }
+
+        this.dismounting = true;
+
+        try {
+            if (vehicle instanceof Vehicle target) {
+                VehicleExitEvent event = new VehicleExitEvent(target, this, cancellable);
+                this.server.getEventManager().fire(event);
+                if (event.isCancelled() && this.vehicle == vehicle) {
+                    return false;
+                }
+            }
+
+            if (this.vehicle != vehicle) {
+                return this.vehicle == null;
+            }
+
+            this.detachFromVehicle(vehicle, cancellable && this instanceof Player, preferredPosition);
+            return true;
+        } finally {
+            this.dismounting = false;
+        }
+    }
+
+    private void detachFromVehicle(Entity vehicle, boolean riderInitiated, @Nullable Vector3f preferredPosition) {
+        broadcastLinkPacket(vehicle, EntityLinkData.Type.REMOVE, riderInitiated);
+        this.vehicle = null;
+        this.boardingCooldown = 60;
+        this.data.setFlag(RIDING, false);
+        ((CloudEntity) vehicle).onDismount(this, preferredPosition);
+        this.setSeatPosition(Vector3f.ZERO);
+        this.data.setFlag(MOVING, true);
+        this.flushEntityData();
+    }
+
+    protected void ejectPassengers() {
+        for (Entity passenger : this.getPassengers()) {
+            ((CloudEntity) passenger).dismount(this, false);
+        }
+    }
+
+    protected void onDismount(Entity passenger, @Nullable Vector3f preferredPosition) {
+        checkArgument(passenger.getVehicle() != this, "passenger is still mounted");
+        checkArgument(this.passengers.remove(passenger), "passenger is not in this vehicle");
+
+        passenger.setSeatPosition(Vector3f.ZERO);
+        ((CloudEntity) passenger).data.set(SEAT_LOCK_RIDER_ROTATION_DEGREES, 0.0f);
+        for (int index = 0; index < this.passengers.size(); index++) {
+            ((CloudEntity) this.passengers.get(index)).broadcastLinkPacket(this,
+                    index == 0 ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, false);
+        }
+    }
+
     public void updatePassengers() {
         if (this.passengers.isEmpty()) {
             return;
         }
 
         for (Entity passenger : new ArrayList<>(this.passengers)) {
+            if (passenger.getVehicle() != this) {
+                continue;
+            }
+
             if (!passenger.isAlive()) {
-                dismount(passenger);
+                ((CloudEntity) passenger).dismount(this, false);
                 continue;
             }
 
@@ -1721,6 +1765,13 @@ public abstract class CloudEntity implements Entity {
 
     protected void updatePassengerPosition(Entity passenger) {
         passenger.setPosition(this.getPosition().add(this.getPassengerAttachmentPoint(passenger)));
+    }
+
+    protected void broadcastLinkPacket(Entity vehicle, EntityLinkData.Type type, boolean riderInitiated) {
+        SetEntityLinkPacket packet = new SetEntityLinkPacket();
+        boolean immediate = type == EntityLinkData.Type.REMOVE && (this.closed || !this.isAlive() || vehicle.isClosed() || !vehicle.isAlive());
+        packet.setEntityLink(new EntityLinkData(vehicle.getUniqueId(), getUniqueId(), type, immediate, riderInitiated, 0));
+        CloudServer.broadcastPacket(((CloudEntity) vehicle).getViewers(), packet);
     }
 
     @Override
@@ -1928,9 +1979,7 @@ public abstract class CloudEntity implements Entity {
         this.data.set(STRUCTURAL_INTEGRITY, 0);
         this.scheduleUpdate();
 
-        for (Entity passenger : new ArrayList<>(this.passengers)) {
-            passenger.dismount(this);
-        }
+        this.ejectPassengers();
     }
 
     public Map<EffectType, PotionEffect> getActivePotionEffects() {
@@ -2070,6 +2119,20 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
+    @Override
+    public ItemStack getPickItem(boolean includeData) {
+        PickItemEntityHandler handler = CloudEntityRegistry.get().getComponent(this.type, EntityComponents.GET_PICK_ITEM);
+        ItemStack item = handler == null ? ItemStack.EMPTY : Objects.requireNonNull(handler.execute(this, includeData), "picked item");
+
+        if (!includeData || item.isEmpty() || item.has(ItemDataComponents.ENTITY_DATA)) {
+            return item;
+        }
+
+        return this.createSnapshot()
+                .map(snapshot -> item.toBuilder().setData(ItemDataComponents.ENTITY_DATA, snapshot).build())
+                .orElse(item);
+    }
+
     public boolean onInteract(Player player, ItemStack item, Vector3f clickedPos) {
         if (CloudEntityRegistry.get().requireComponent(this.type, EntityComponents.ON_INTERACT)
                 .execute(this, player, item, clickedPos)) {
@@ -2167,7 +2230,8 @@ public abstract class CloudEntity implements Entity {
 
             SetEntityLinkPacket packet = new SetEntityLinkPacket();
             packet.setEntityLink(new EntityLinkData(this.vehicle.getUniqueId(),
-                    this.getUniqueId(), EntityLinkData.Type.RIDER, true, false, 0));
+                    this.getUniqueId(), this.vehicle.getPassengers().indexOf(this) == 0
+                    ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER, true, false, 0));
 
             player.sendPacket(packet);
         }
@@ -2177,6 +2241,7 @@ public abstract class CloudEntity implements Entity {
         if (!this.spawned && !this.spawn()) {
             return;
         }
+
         if (this.chunk == null || this.closed) {
             return;
         }
@@ -2271,6 +2336,28 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
+    private void updateNetworkBounds() {
+        this.data.set(WIDTH, this.getWidth());
+        this.data.set(HEIGHT, this.getHeight());
+
+        if (this.isPlayer) {
+            this.data.set(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    protected void putNetworkBounds(EntityDataMap metadata) {
+        metadata.put(WIDTH, this.getWidth());
+        metadata.put(HEIGHT, this.getHeight());
+
+        if (this.isPlayer) {
+            metadata.put(COLLISION_BOX, this.getNetworkCollisionBox());
+        }
+    }
+
+    private Vector3f getNetworkCollisionBox() {
+        return Vector3f.from(this.getWidth(), this.getHeight(), this.getLength());
+    }
+
     /**
      * Sends pending metadata to viewers and, for a player, to the player itself.
      */
@@ -2332,7 +2419,7 @@ public abstract class CloudEntity implements Entity {
         player.sendPacket(packet);
     }
 
-    private void sendDataToViewers(EntityDataMap map) {
+    protected void sendDataToViewers(EntityDataMap map) {
         SetEntityDataPacket packet = new SetEntityDataPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
         packet.getMetadata().putAll(map);
@@ -2343,6 +2430,12 @@ public abstract class CloudEntity implements Entity {
     public void close() {
         if (!this.closed) {
             this.closed = true;
+            if (this.vehicle != null) {
+                this.dismount(this.vehicle, false);
+            }
+
+            this.ejectPassengers();
+
             if (this.spawned) {
                 this.server.getEventManager().fire(new EntityDespawnEvent(this));
             }

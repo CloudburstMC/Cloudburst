@@ -32,6 +32,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.StabHandler;
 import org.cloudburstmc.api.item.data.MapItem;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.ExhaustionReason;
@@ -65,6 +66,7 @@ import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.entity.vehicle.EntityAbstractMinecart;
 import org.cloudburstmc.server.entity.vehicle.EntityBoat;
+import org.cloudburstmc.server.entity.vehicle.EntityChestBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
@@ -170,7 +172,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         processInputFlags(inputData);
         processContinuousInputState(inputData);
-        processVehicleInput(inputData);
 
         processMovement(packet);
         player.applyInputMovement();
@@ -278,15 +279,53 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.setNewPosition(newPos);
         player.setForceMovement(null);
 
-        if (player.getVehicle() instanceof EntityBoat) {
-            player.getVehicle().setPositionAndRotation(newPos.sub(0, 1, 0), (yaw + 90) % 360, 0);
-        }
     }
 
     private void processVehicleInput(PlayerAuthInputPacket packet) {
+        if (!Float.isFinite(packet.getRotation().getX()) || !Float.isFinite(packet.getRotation().getY())) {
+            return;
+        }
+
         player.setRotation(packet.getRotation().getY() % 360, packet.getRotation().getX() % 360);
         if (player.getVehicle() instanceof EntityAbstractMinecart minecart) {
             minecart.setInputMotionY(readForwardInput(packet));
+        } else if (player.getVehicle() instanceof EntityBoat boat && boat.isControlling(player)) {
+            Set<PlayerAuthInputData> input = packet.getInputData();
+            Vector2f rotation = packet.getVehicleRotation();
+
+            if (!input.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)
+                    || packet.getPredictedVehicle() != boat.getUniqueId() || rotation == null
+                    || !Float.isFinite(rotation.getX()) || !Float.isFinite(rotation.getY())) {
+                return;
+            }
+
+            boolean left;
+            boolean right;
+            boolean forward;
+
+            if (packet.getInputMode() == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC) {
+                boolean paddleLeft = input.contains(PlayerAuthInputData.PADDLE_LEFT);
+                boolean paddleRight = input.contains(PlayerAuthInputData.PADDLE_RIGHT);
+
+                left = paddleRight && !paddleLeft;
+                right = paddleLeft && !paddleRight;
+                forward = paddleLeft && paddleRight;
+            } else if (packet.getInputMode() == InputMode.MOUSE) {
+                left = input.contains(PlayerAuthInputData.LEFT) || input.contains(PlayerAuthInputData.UP_LEFT);
+                right = input.contains(PlayerAuthInputData.RIGHT) || input.contains(PlayerAuthInputData.UP_RIGHT);
+                forward = input.contains(PlayerAuthInputData.UP) || input.contains(PlayerAuthInputData.UP_LEFT) || input.contains(PlayerAuthInputData.UP_RIGHT);
+            } else {
+                Vector2f motion = packet.getMotion();
+                if (!Float.isFinite(motion.getX()) || !Float.isFinite(motion.getY())) {
+                    return;
+                }
+
+                left = motion.getX() > 0.35f;
+                right = motion.getX() < -0.35f;
+                forward = motion.getY() > 0.35f;
+            }
+
+            boat.handleInput(player, new EntityBoat.Input(packet.getTick(), packet.getPosition(), rotation.getY() - 90, left, right, forward));
         }
     }
 
@@ -300,8 +339,10 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             } else if (inputData.contains(PlayerAuthInputData.DOWN)) {
                 return -1.0f;
             }
+
             return 0.0f;
         }
+
         return packet.getAnalogMoveVector().getY();
     }
 
@@ -920,15 +961,6 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         player.flushEntityData();
     }
 
-    private void processVehicleInput(Set<PlayerAuthInputData> inputData) {
-        if (player.getVehicle() instanceof EntityBoat boat && boat.isControlling(player)) {
-            boat.setPaddling(
-                    inputData.contains(PlayerAuthInputData.PADDLE_LEFT),
-                    inputData.contains(PlayerAuthInputData.PADDLE_RIGHT)
-            );
-        }
-    }
-
     private void processGlidingInput(Set<PlayerAuthInputData> inputData) {
         Set<PlayerAuthInputData> remainingInput = new HashSet<>(inputData);
         for (PlayerAuthInputData input : inputData) {
@@ -1239,24 +1271,32 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 player.getServer().getEventManager().fire(new PlayerMouseOverEntityEvent(player, targetEntity));
                 break;
             case LEAVE_VEHICLE:
-                if (player.getVehicle() == null) {
+                if (player.getVehicle() == null || player.getVehicle() != targetEntity) {
                     break;
                 }
-                player.dismount(player.getVehicle());
+                Vector3f exitPosition = packet.getMousePosition() == null ? null
+                        : packet.getMousePosition().sub(0, player.getBaseOffset(), 0);
+                player.dismount(player.getVehicle(), true, exitPosition);
                 break;
             case OPEN_INVENTORY:
-                if (((CloudEntity) targetEntity).getRuntimeId() != player.getRuntimeId()) break;
-                if (player.canOpenInventory()) {
-                    player.getInventoryManager().openScreen(new CloudPlayerInventoryScreen(player));
-
-                    ContainerOpenPacket containerOpen = new ContainerOpenPacket();
-                    containerOpen.setId((byte) ContainerId.INVENTORY);
-                    containerOpen.setType(ContainerType.INVENTORY);
-                    containerOpen.setUniqueEntityId(-1);
-                    containerOpen.setBlockPosition(player.getPosition().toInt());
-                    player.sendPacket(containerOpen);
-                    player.getInventoryManager().sendAllInventories();
+                if (targetEntity instanceof EntityChestBoat chestBoat) {
+                    chestBoat.openInventory(player);
+                    break;
                 }
+
+                if (targetEntity == player && player.getVehicle() instanceof EntityChestBoat chestBoat) {
+                    chestBoat.openInventory(player);
+                    break;
+                }
+
+                if (((CloudEntity) targetEntity).getRuntimeId() != player.getRuntimeId()) {
+                    break;
+                }
+
+                if (!(player.getOpenInventory() instanceof CloudPlayerInventoryScreen)) {
+                    player.getInventoryManager().openScreen(new CloudPlayerInventoryScreen(player));
+                }
+
                 break;
         }
         return PacketSignal.HANDLED;

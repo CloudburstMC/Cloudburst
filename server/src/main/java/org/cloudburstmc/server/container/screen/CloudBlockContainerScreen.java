@@ -19,13 +19,7 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 /**
- * Base class for container screens that are backed by a block in the world
- * (chest, furnace, anvil, etc.).
- *
- * <p>On {@link #open()} it sends a {@code ContainerOpenPacket} to the client
- * using the correct {@link ContainerType} for this screen type and the
- * block's world position.  The window ID is assigned and tracked on
- * {@link CloudPlayer} so {@link #close()} can clean it up.</p>
+ * Opens a storage window at its backing block's position and resolves the block's custom title.
  */
 @Log4j2
 public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
@@ -56,7 +50,7 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
     }
 
     public void open() {
-        ContainerType containerType = ContainerTypeRegistry.get(getType());
+        ContainerType containerType = ContainerTypeRegistry.get(this.getType());
         Vector3i pos = block.getPosition();
 
         byte windowId = player.assignContainerId(getStorageContainer());
@@ -65,7 +59,7 @@ public abstract class CloudBlockContainerScreen extends CloudContainerScreen {
         pkt.setId(windowId);
         pkt.setType(containerType);
         pkt.setBlockPosition(pos);
-        player.sendPacket(pkt);
+        this.openWindow(pkt);
 
         player.getInventoryManager().sendAllInventories();
     }

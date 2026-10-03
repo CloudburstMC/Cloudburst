@@ -43,7 +43,7 @@ public class ContainerBlockHandlers {
     }
 
     private static boolean openScreen(CloudPlayer player, Block block, ScreenFactory factory) {
-        if (!player.canOpenInventory()) {
+        if (player.hasOpenContainer()) {
             return false;
         }
 

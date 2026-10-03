@@ -9,6 +9,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.entity.vehicle.EntityBoat;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BubbleColumnBlockHandlers {
@@ -19,8 +20,13 @@ public class BubbleColumnBlockHandlers {
         }
 
         boolean dragDown = block.getState().ensureTrait(BlockTraits.HAS_DRAG_DOWN);
-        Block above = block.up();
-        boolean atSurface = above.getState().getCollisionShape().isEmpty() && above.getLiquid().isEmpty();
+        boolean atSurface = block.up().getState().getCollisionShape().isEmpty() && block.up().getLiquid().isEmpty();
+
+        if (atSurface && entity instanceof EntityBoat boat) {
+            boat.onAboveBubbleColumn(dragDown);
+            return;
+        }
+
         Vector3f motion = entity.getMotion();
         float y = dragDown
                 ? Math.max(atSurface ? -0.9f : -0.3f, motion.getY() - 0.03f)

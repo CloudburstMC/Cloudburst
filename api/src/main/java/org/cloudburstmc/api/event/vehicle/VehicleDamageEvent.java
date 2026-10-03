@@ -36,10 +36,12 @@ public class VehicleDamageEvent extends VehicleEvent implements Cancellable {
     }
 
     /**
-     * @return the entity responsible for damage, or {@code null} for environmental damage
+     * Returns the direct attacker, such as the projectile rather than its shooter.
+     *
+     * @return the attacking entity, or {@code null} for environmental damage
      */
     public @Nullable Entity getAttacker() {
-        return this.damageSource.getCausingEntity();
+        return this.damageSource.getDirectEntity();
     }
 
     /**
