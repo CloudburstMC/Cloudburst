@@ -11,11 +11,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.server.ServerListPingEvent;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChildChannel;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelMetrics;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
+import org.cloudburstmc.netty.channel.nethernet.signaling.ClientInfo;
 import org.cloudburstmc.netty.channel.nethernet.signaling.JoinRefusal;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
@@ -78,6 +80,11 @@ public class CloudNetwork implements AutoCloseable {
             throw new IllegalArgumentException("Both the TLS certificate and private key must be configured");
         }
 
+        InetSocketAddress address = new InetSocketAddress(this.server.getIp(), this.server.getPort());
+        if (address.getAddress() != null && address.getAddress().isLoopbackAddress()) {
+            throw new IllegalArgumentException("NetherNet requires a local network address or a wildcard bind address instead of loopback");
+        }
+
         try {
             this.connectionLimiter = new CloudConnectionLimiter(config.getMaxConnections(), config.getMaxConnectionsPerAddress());
             int loginThreads = Math.clamp(Runtime.getRuntime().availableProcessors(), 1, 8);
@@ -121,7 +128,6 @@ public class CloudNetwork implements AutoCloseable {
                 }
             };
 
-            InetSocketAddress address = new InetSocketAddress(this.server.getIp(), this.server.getPort());
             this.listener = new ServerBootstrap()
                     .group(this.eventLoopGroup)
                     .channelFactory(NetherNetChannelFactory.server(this.signaling))
@@ -218,7 +224,7 @@ public class CloudNetwork implements AutoCloseable {
                 this.server.getConfig().isHardcore(), this.server.getConfig().isXboxAuth());
     }
 
-    private PongData queryStatus(String hostname, InetSocketAddress address) {
+    private PongData queryStatus(String hostname, InetSocketAddress address, @Nullable ClientInfo clientInfo) {
         CloudServerStatus snapshot = this.status;
         ServerListPingEvent event = new ServerListPingEvent(Objects.requireNonNullElse(hostname, ""), address, snapshot.motd(), snapshot.levelName(),
                 snapshot.gameMode(), snapshot.playerCount(), snapshot.maxPlayerCount(), snapshot.hardcore());

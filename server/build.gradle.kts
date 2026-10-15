@@ -43,6 +43,15 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
+
+    constraints {
+        implementation(libs.libdatachannel.java) {
+            version {
+                strictly(libs.versions.libdatachannel.get())
+            }
+            because("The Java wrapper and native libraries must use the same build")
+        }
+    }
 }
 
 extraJavaModuleInfo {

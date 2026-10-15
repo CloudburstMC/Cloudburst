@@ -2304,7 +2304,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setTrustingPlayers(false);
         startGamePacket.setLevelGameType(GameModeNetworkMapping.forStartGame(this.server.getGameMode()));
         startGamePacket.setDifficulty(this.server.getDifficulty().getId());
-        startGamePacket.setDefaultSpawn(this.getSpawn().getPosition().toInt());
+        startGamePacket.setDefaultSpawn(this.getLevel().getSpawnLocation().toInt());
         startGamePacket.setAchievementsDisabled(true);
         startGamePacket.setDayCycleStopTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
         startGamePacket.setRainLevel(0);
@@ -2421,7 +2421,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
     }
 
-    public void processLogin() {
+    public void loadLoginData() {
         CloudPlayer oldPlayer = null;
         for (CloudPlayer p : new ArrayList<>(this.getServer().getOnlinePlayers().values())) {
             if (p != this && (p.getName() != null && p.getName().equalsIgnoreCase(this.getName()) ||
@@ -2479,7 +2479,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         this.server.onPlayerLogin(this);
+    }
 
+    public void initializeForLogin() {
         super.initialize(this.getLocation());
 
         this.noPhysics = this.isSpectator();
@@ -3535,14 +3537,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             if (this.chunk != null) {
                 this.chunk.unregisterEntity(this);
             }
-            this.chunk = this.getLevel().getChunk(pos);
-
-            if (!this.justCreated) {
-                this.updateViewers(this.getChunk().getViewers());
-            }
+            this.chunk = this.getLevel().getLoadedChunk(pos);
 
             if (this.chunk == null) {
                 return;
+            }
+
+            if (!this.justCreated) {
+                this.updateViewers(this.getChunk().getViewers());
             }
 
             this.chunk.registerEntity(this);

@@ -563,7 +563,9 @@ public abstract class CloudEntity implements Entity {
 
         this.position = pos;
         this.recalculateBoundingBox();
-        this.checkChunks();
+        if (this.initialized) {
+            this.checkChunks();
+        }
 
         return true;
     }
@@ -976,7 +978,9 @@ public abstract class CloudEntity implements Entity {
     }
 
     public final void scheduleUpdate() {
-        this.level.scheduleEntityUpdate(this);
+        if (this.initialized && !this.closed) {
+            this.level.scheduleEntityUpdate(this);
+        }
     }
 
     public boolean onUpdate(int currentTick) {

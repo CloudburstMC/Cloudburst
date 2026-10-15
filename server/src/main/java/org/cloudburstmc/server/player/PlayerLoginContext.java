@@ -1,19 +1,23 @@
 package org.cloudburstmc.server.player;
 
+import io.netty.channel.ChannelFutureListener;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.player.PlayerConnectionValidateLoginEvent;
 import org.cloudburstmc.api.event.player.PlayerLoginResult;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.DisconnectFailReason;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,7 +40,7 @@ public class PlayerLoginContext {
 
     private boolean preLoginComplete;
     private boolean resourcePacksComplete;
-    private boolean playerInitialized;
+    private boolean initializationStarted;
 
     public PlayerLoginContext(BedrockServerSession session, CloudServer server) {
         this.session = session;
@@ -72,37 +76,77 @@ public class PlayerLoginContext {
     }
 
     private void initializePlayerIfReady() {
-        if (!this.preLoginComplete || !this.resourcePacksComplete || this.playerInitialized || !this.isActive()) {
+        if (!this.preLoginComplete || !this.resourcePacksComplete || this.initializationStarted || !this.isActive()) {
             return;
         }
 
-        this.playerInitialized = true;
+        this.initializationStarted = true;
         CloudPlayer player = null;
         try {
             if (!this.validateAdmission()) {
                 return;
             }
+
             player = this.createPlayer();
-            player.processLogin();
+            player.loadLoginData();
             if (!player.isConnected() || !this.isActive()) {
                 return;
             }
 
+            this.prepareSpawn(player);
+        } catch (RuntimeException failure) {
+            this.failInitialization(player, failure);
+        }
+    }
+
+    private void prepareSpawn(CloudPlayer player) {
+        CompletableFuture<CloudChunk> chunkFuture = player.getLevel().getChunkFuture(
+                player.getPosition().getFloorX() >> 4, player.getPosition().getFloorZ() >> 4);
+        ChannelFutureListener cancelLoad = ignored -> chunkFuture.cancel(false);
+        this.session.getPeer().getChannel().closeFuture().addListener(cancelLoad);
+        chunkFuture.whenComplete((chunk, failure) -> {
+            this.session.getPeer().getChannel().closeFuture().removeListener(cancelLoad);
+            this.completeInitialization(player, failure);
+        });
+    }
+
+    private void completeInitialization(CloudPlayer player, @Nullable Throwable failure) {
+        if (!this.server.isPrimaryThread()) {
+            this.server.getGlobalScheduler().execute(null, () -> this.completeInitialization(player, failure));
+            return;
+        }
+
+        if (!this.isActive() || !player.isConnected()) {
+            player.close();
+            return;
+        }
+
+        if (failure != null) {
+            this.failInitialization(player, failure);
+            return;
+        }
+
+        try {
+            player.initializeForLogin();
             player.setClientCacheEnabled(this.clientCacheEnabled);
             player.completeLoginSequence();
-        } catch (RuntimeException failure) {
-            log.error("Failed to initialize player", failure);
-            try {
-                if (player != null) {
-                    player.close();
-                }
-            } finally {
-                if (player != null) {
-                    this.server.removePlayer(player);
-                }
+        } catch (RuntimeException exception) {
+            this.failInitialization(player, exception);
+        }
+    }
 
-                this.session.getPeer().getChannel().close();
+    private void failInitialization(@Nullable CloudPlayer player, Throwable failure) {
+        log.error("Failed to initialize player", failure);
+        try {
+            if (player != null) {
+                player.close();
             }
+        } finally {
+            if (player != null) {
+                this.server.removePlayer(player);
+            }
+
+            this.session.getPeer().getChannel().close();
         }
     }
 

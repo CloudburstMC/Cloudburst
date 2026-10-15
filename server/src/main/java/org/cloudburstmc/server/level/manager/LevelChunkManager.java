@@ -409,6 +409,7 @@ public final class LevelChunkManager {
 
         try {
             this.level.registerTickContainers(chunk.getKey());
+            chunk.initialize();
             chunk.replayRestoredTicks();
             if (loadingChunk.isNewChunk()) {
                 EndDimension.onChunkGenerated(this.level, chunk);
@@ -507,7 +508,6 @@ public final class LevelChunkManager {
             }
         }
 
-        chunk.initialize();
         return chunk;
     }
 
