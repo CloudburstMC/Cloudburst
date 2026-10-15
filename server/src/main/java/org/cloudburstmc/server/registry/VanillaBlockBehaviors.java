@@ -239,8 +239,10 @@ public class VanillaBlockBehaviors {
         configureLiquid(registry, FLOWING_WATER, LiquidTypes.FLOWING_WATER)
                 .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
+        configureItemFrame(registry, FRAME);
         configureUsable(registry, FURNACE, ContainerBlockHandlers.FURNACE);
         registry.configure(GLASS).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(GLASS));
+        configureItemFrame(registry, GLOW_FRAME);
         registry.configure(GLOWSTONE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.glowstone(GLOWSTONE));
         configureOre(registry, GOLD_ORE, OreLoot.gold(GOLD_ORE.getDefaultState()));
         configurePoweredRail(registry, GOLDEN_RAIL);
@@ -766,6 +768,22 @@ public class VanillaBlockBehaviors {
         registry.configure(type)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, handler);
+    }
+
+    private void configureItemFrame(CloudBlockRegistry registry, BlockType type) {
+        registry.configure(type)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ItemFrameBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, ItemFrameBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_PLACE, ItemFrameBlockHandlers.ON_PLACE)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, ItemFrameBlockHandlers.USE)
+                .set(BlockComponents.ATTACK, ItemFrameBlockHandlers.ATTACK)
+                .set(BlockComponents.ON_PROJECTILE_HIT, ItemFrameBlockHandlers.ON_PROJECTILE_HIT)
+                .set(BlockComponents.ON_EXPLOSION_HIT, ItemFrameBlockHandlers.ON_EXPLOSION_HIT)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ItemFrameBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.GET_LOOT, ItemFrameBlockHandlers.GET_LOOT)
+                .set(BlockComponents.ON_REMOVE, ItemFrameBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.ON_DESTROY, ItemFrameBlockHandlers.ON_DESTROY);
     }
 
     private void configureCandleCake(CloudBlockRegistry registry, BlockType type, ItemType candle) {

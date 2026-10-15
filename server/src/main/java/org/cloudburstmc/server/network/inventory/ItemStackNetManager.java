@@ -30,14 +30,18 @@ public class ItemStackNetManager {
     private static final long TEXT_FILTER_TIMEOUT_TICKS = 100;
 
     private final CloudPlayer player;
+    private final ItemStackRequestActionHandler handler;
+
     private final Queue<ItemStackRequest> requests = new ArrayDeque<>();
     private final Deque<CloudInventoryScreen> screenStack = new ArrayDeque<>();
-    private final ItemStackRequestActionHandler handler;
     private final Deque<ServerAuthoritativeInventoryUpdate> serverAuthoritativeUpdates = new ArrayDeque<>();
+    private final Set<InventorySlotUpdate> slotsToResend = new LinkedHashSet<>();
+
+    private boolean processingRequests;
+    private boolean currentRequestIsCrafting;
     private TextFilterState textFilterState;
     private long textFilterRequestTick;
     private long textFilterRequestTimeout;
-    private boolean currentRequestIsCrafting;
 
     public ItemStackNetManager(CloudPlayer player) {
         this.player = player;
@@ -56,6 +60,34 @@ public class ItemStackNetManager {
         processQueue();
     }
 
+    public void resendSlotAfterResponse(CloudInventoryScreen screen, ContainerSlotType container, int slot) {
+        if (screen.resolveSlotGroup(container) instanceof CloudSlotGroupBase group) {
+            int inventorySlot = screen.resolveInventorySlot(container, slot);
+            this.slotsToResend.add(new InventorySlotUpdate(group.getContainer(), group.getContainerSlot(inventorySlot)));
+        }
+    }
+
+    public boolean deferInventorySlotUpdate(Container inventory, int slot) {
+        if (!this.processingRequests) {
+            return false;
+        }
+
+        this.slotsToResend.add(new InventorySlotUpdate(inventory, slot));
+        return true;
+    }
+
+    public boolean deferInventoryContentsUpdate(Container inventory) {
+        if (!this.processingRequests) {
+            return false;
+        }
+
+        for (int slot = 0; slot < inventory.size(); slot++) {
+            this.slotsToResend.add(new InventorySlotUpdate(inventory, slot));
+        }
+
+        return true;
+    }
+
     public void acknowledgeLegacyTransaction(int requestId, List<LegacySetItemSlotData> legacySlots) {
         if (requestId == 0 || legacySlots.isEmpty()) {
             return;
@@ -68,22 +100,37 @@ public class ItemStackNetManager {
     }
 
     private void processQueue() {
-        List<ItemStackResponse> responses = new ArrayList<>();
-        if (!this.requests.isEmpty()) {
-            ItemStackRequest request;
-            while (this.textFilterState != TextFilterState.WAITING && (request = this.requests.poll()) != null) {
-                if (tryFilterText(request)) {
-                    break;
-                }
-
-                handleRequest(request, responses);
-            }
+        if (this.processingRequests) {
+            return;
         }
 
-        if (!responses.isEmpty()) {
-            ItemStackResponsePacket packet = new ItemStackResponsePacket();
-            packet.getEntries().addAll(responses);
-            this.player.sendPacket(packet);
+        List<ItemStackResponse> responses = new ArrayList<>();
+        this.processingRequests = true;
+        try {
+            if (!this.requests.isEmpty()) {
+                ItemStackRequest request;
+                while (this.textFilterState != TextFilterState.WAITING && (request = this.requests.poll()) != null) {
+                    if (tryFilterText(request)) {
+                        break;
+                    }
+
+                    handleRequest(request, responses);
+                }
+            }
+
+            if (!responses.isEmpty()) {
+                ItemStackResponsePacket packet = new ItemStackResponsePacket();
+                packet.getEntries().addAll(responses);
+                this.player.sendPacket(packet);
+            }
+        } finally {
+            this.processingRequests = false;
+        }
+
+        List<InventorySlotUpdate> updates = List.copyOf(this.slotsToResend);
+        this.slotsToResend.clear();
+        for (InventorySlotUpdate update : updates) {
+            this.player.onInventorySlotChange(update.container(), update.slot());
         }
 
         if (this.requests.isEmpty()) {
@@ -247,6 +294,9 @@ public class ItemStackNetManager {
                 }
                 break;
         }
+    }
+
+    private record InventorySlotUpdate(Container container, int slot) {
     }
 
     private record ServerAuthoritativeInventoryUpdate(Set<SlotRef> triggerSlots, long deadline) {

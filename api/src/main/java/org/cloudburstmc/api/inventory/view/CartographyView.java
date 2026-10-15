@@ -4,33 +4,33 @@ import org.cloudburstmc.api.item.ItemStack;
 
 /**
  * Represents the item slots of a cartography table container.
- * Exposes the map input, the additional item (paper or another map), and the result slots.
+ * Recipes accept ingredients in either input slot.
  */
 public interface CartographyView extends SlotGroup {
 
     /**
-     * Returns the item in the map input slot.
+     * Returns the item in the upper input slot.
      *
-     * @return the map input item
+     * @return the input item, or an empty stack
      */
     ItemStack getInput();
 
     /**
-     * Sets the item in the map input slot.
+     * Sets the item in the upper input slot.
      *
      * @param item the item to place
      */
     void setInput(ItemStack item);
 
     /**
-     * Returns the item in the additional slot (e.g. paper to extend, or another map to clone).
+     * Returns the item in the lower input slot.
      *
-     * @return the additional item
+     * @return the input item, or an empty stack
      */
     ItemStack getAdditional();
 
     /**
-     * Sets the item in the additional slot.
+     * Sets the item in the lower input slot.
      *
      * @param item the item to place
      */
@@ -39,15 +39,17 @@ public interface CartographyView extends SlotGroup {
     /**
      * Returns the item in the result slot.
      *
-     * <p>This slot is computed by the client from the map and additional inputs.
-     * The server can read or override the result by setting this slot directly.</p>
+     * <p>The result is calculated from the current inputs. Use
+     * {@link org.cloudburstmc.api.event.inventory.PrepareResultEvent} to customize it.</p>
      *
-     * @return the result item
+     * @return the result item, or an empty stack when no result is available
      */
     ItemStack getResult();
 
     /**
      * Sets the item in the result slot.
+     * Input changes can replace this value. Use
+     * {@link org.cloudburstmc.api.event.inventory.PrepareResultEvent} to customize a takeable result.
      *
      * @param item the result item to place
      */

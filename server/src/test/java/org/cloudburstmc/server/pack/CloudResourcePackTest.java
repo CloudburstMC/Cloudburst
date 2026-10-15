@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -119,12 +120,14 @@ class CloudResourcePackTest {
         try (CloudResourcePack pack = CloudPackLoader.load(source);
              ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(pack.readChunk(0, (int) pack.getSize())))) {
             boolean found = false;
-            for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+
+            for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
                 if (entry.getName().equals("textures/blocks/example.bin")) {
                     assertArrayEquals(new byte[]{1, 2, 3, 4, 5}, zip.readAllBytes());
                     found = true;
                 }
             }
+
             assertTrue(found);
         }
     }

@@ -4,20 +4,16 @@ import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 
 /**
- * A {@link ContainerMapping} whose size and offset are derived from the UI absolute
- * slot layout for fixed UI-only slot types (anvil inputs, enchanting slots, cursor, etc.).
- *
- * <p><strong>Note:</strong> {@link ContainerSlotType#CREATED_OUTPUT} is intentionally
- * excluded here. The client sends {@code CREATED_OUTPUT} using an absolute slot
- * index of 50, so the normalization offset must be {@code -50} (not {@code +50}). That
- * mapping is handled directly in
- * {@link org.cloudburstmc.server.container.screen.CloudContainerScreen#setupMappings()}
- * using a plain {@link ContainerMapping}.</p>
+ * Maps inventory sections to fixed UI slots for requests and item updates.
  */
 public class UIContainerMapping extends ContainerMapping {
 
     public UIContainerMapping(ContainerSlotType slotType, SlotGroup view) {
-        super(slotType, view, getContainerSize(slotType), getContainerOffset(slotType));
+        this(slotType, view, 0);
+    }
+
+    public UIContainerMapping(ContainerSlotType slotType, SlotGroup view, int firstInventorySlot) {
+        super(slotType, view, firstInventorySlot, getContainerSize(slotType), firstInventorySlot + getContainerOffset(slotType));
     }
 
     private static int getContainerSize(ContainerSlotType type) {
@@ -26,7 +22,7 @@ public class UIContainerMapping extends ContainerMapping {
                  ENCHANTING_INPUT, ENCHANTING_MATERIAL, TRADE_INGREDIENT_1, TRADE_INGREDIENT_2,
                  MATERIAL_REDUCER_INPUT, LOOM_INPUT, LOOM_DYE, LOOM_MATERIAL, TRADE2_INGREDIENT_1,
                  TRADE2_INGREDIENT_2, GRINDSTONE_INPUT, GRINDSTONE_ADDITIONAL, STONECUTTER_INPUT, CARTOGRAPHY_INPUT,
-                 CARTOGRAPHY_ADDITIONAL, CURSOR -> 1;
+                 CARTOGRAPHY_ADDITIONAL, CARTOGRAPHY_RESULT, ANVIL_RESULT, CREATED_OUTPUT, CURSOR -> 1;
             case COMPOUND_CREATOR_INPUT, MATERIAL_REDUCER_OUTPUT -> 9;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };
@@ -56,6 +52,7 @@ public class UIContainerMapping extends ContainerMapping {
             case STONECUTTER_INPUT -> -3;
             case CARTOGRAPHY_INPUT -> -12;
             case CARTOGRAPHY_ADDITIONAL -> -13;
+            case CARTOGRAPHY_RESULT, ANVIL_RESULT, CREATED_OUTPUT -> -50;
             case CURSOR -> 0;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };

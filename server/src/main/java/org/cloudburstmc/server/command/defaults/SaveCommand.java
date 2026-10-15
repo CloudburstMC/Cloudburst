@@ -30,6 +30,7 @@ public class SaveCommand extends AdvertisedCommand {
             level.save(true);
         }
 
+        ((CloudServer) sender.getServer()).maps().save();
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.save.success"));
         return success();
     }

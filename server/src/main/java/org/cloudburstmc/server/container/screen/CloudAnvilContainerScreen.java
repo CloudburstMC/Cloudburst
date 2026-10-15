@@ -12,13 +12,14 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.anvil.AnvilResultCalculator;
-import org.cloudburstmc.server.container.mapping.ContainerMapping;
+import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudAnvilView;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiConsumer;
 
-public class CloudAnvilContainerScreen extends CloudBlockContainerScreen implements AnvilScreen {
+public class CloudAnvilContainerScreen extends CloudBlockContainerScreen implements AnvilScreen, ResultContainerScreen {
 
     private static final int ANVIL_INPUT_PROTOCOL_SLOT = 1;
     private static final int ANVIL_MATERIAL_PROTOCOL_SLOT = 2;
@@ -75,10 +76,10 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
     @Override
     protected void setupMappings() {
         super.setupMappings();
-        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_INPUT, anvilSection, 1, -1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_MATERIAL, anvilSection, 1, 1, -1));
-        this.addMapping(new ContainerMapping(ContainerSlotType.ANVIL_RESULT, anvilSection, 2, 1, -48));
-        this.addMapping(new ContainerMapping(ContainerSlotType.CREATED_OUTPUT, anvilSection, 2, 1, -48));
+        this.addMapping(new UIContainerMapping(ContainerSlotType.ANVIL_INPUT, anvilSection, 0));
+        this.addMapping(new UIContainerMapping(ContainerSlotType.ANVIL_MATERIAL, anvilSection, 1));
+        this.addMapping(new UIContainerMapping(ContainerSlotType.ANVIL_RESULT, anvilSection, 2));
+        this.addMapping(new UIContainerMapping(ContainerSlotType.CREATED_OUTPUT, anvilSection, 2));
     }
 
     public void updateRenameText(String text) {
@@ -91,11 +92,11 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
                 && slot == ANVIL_RESULT_PROTOCOL_SLOT;
     }
 
-    public ItemStack takeResult() {
+    public ItemStack takeResult(ItemStack expected, int count) {
         recomputeResult();
         ItemStack result = anvilSection.getResult();
         int repairCost = anvilSection.getRepairCost();
-        if (result.isEmpty() || repairCost <= 0 || !canTakeResult()) {
+        if (result.isEmpty() || !result.equals(expected) || isInvalidResultCount(result, count) || repairCost <= 0 || !canTakeResult()) {
             return ItemStack.EMPTY;
         }
 
@@ -111,11 +112,16 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
         return result;
     }
 
-    public void trackAnvilSlots(ItemStackRequestSlotTracker tracker) {
-        tracker.track(ContainerSlotType.ANVIL_INPUT, ANVIL_INPUT_PROTOCOL_SLOT);
-        tracker.track(ContainerSlotType.ANVIL_MATERIAL, ANVIL_MATERIAL_PROTOCOL_SLOT);
-        tracker.track(ContainerSlotType.ANVIL_RESULT, ANVIL_RESULT_PROTOCOL_SLOT);
-        tracker.track(ContainerSlotType.CREATED_OUTPUT, ANVIL_RESULT_PROTOCOL_SLOT);
+    @Override
+    public boolean isInputSlot(ContainerSlotType type) {
+        return type == ContainerSlotType.ANVIL_INPUT || type == ContainerSlotType.ANVIL_MATERIAL;
+    }
+
+    @Override
+    public void trackResultSlots(BiConsumer<ContainerSlotType, Integer> tracker) {
+        tracker.accept(ContainerSlotType.ANVIL_INPUT, ANVIL_INPUT_PROTOCOL_SLOT);
+        tracker.accept(ContainerSlotType.ANVIL_MATERIAL, ANVIL_MATERIAL_PROTOCOL_SLOT);
+        tracker.accept(ContainerSlotType.ANVIL_RESULT, ANVIL_RESULT_PROTOCOL_SLOT);
     }
 
     private void recomputeResult() {
@@ -196,8 +202,4 @@ public class CloudAnvilContainerScreen extends CloudBlockContainerScreen impleme
         }
     }
 
-    @FunctionalInterface
-    public interface ItemStackRequestSlotTracker {
-        void track(ContainerSlotType type, int slot);
-    }
 }

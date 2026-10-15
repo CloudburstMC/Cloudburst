@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 @UtilityClass
-class BlockPropertyData {
+public class BlockPropertyData {
 
     private static final TypeReference<List<Map<String, Object>>> BLOCKS = new TypeReference<>() {};
     private static final Long2ObjectOpenHashMap<StateData> BY_STATE_HASH = load();
 
-    static StateData get(long stateHash) {
+    public static StateData get(long stateHash) {
         return BY_STATE_HASH.get(stateHash);
     }
 
@@ -63,6 +63,7 @@ class BlockPropertyData {
                 requiredBoolean(entry, "requiresCorrectToolForDrops", name),
                 requiredNumber(entry, "translucency", name).floatValue(),
                 requiredString(entry, "mapColor", name),
+                requiredString(entry, "tintMethod", name),
                 requiredNumber(entry, "lightEmission", name).intValue(),
                 requiredNumber(entry, "lightDampening", name).intValue(),
                 requiredNumber(entry, "burnOdds", name).intValue(),
@@ -167,7 +168,7 @@ class BlockPropertyData {
         }
     }
 
-    record StateData(
+    public static record StateData(
             String translationKey,
             boolean solid,
             float hardness,
@@ -177,6 +178,7 @@ class BlockPropertyData {
             boolean requiresCorrectToolForDrops,
             float translucency,
             String mapColor,
+            String tintMethod,
             int lightEmission,
             int lightDampening,
             int burnOdds,

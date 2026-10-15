@@ -4241,8 +4241,16 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
+        if (this.itemStackNetManager.deferInventorySlotUpdate(inventory, slot)) {
+            return;
+        }
+
         if (inventory == this.uiContainer) {
             sendUISlot(slot, inventory.getItem(slot));
+            return;
+        }
+
+        if (this.invManager.getScreen().sendUIContainerSlot(inventory, slot)) {
             return;
         }
 
@@ -4276,10 +4284,18 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
+        if (this.itemStackNetManager.deferInventoryContentsUpdate(inventory)) {
+            return;
+        }
+
         if (inventory == this.uiContainer) {
             for (int i = 0; i < inventory.size(); i++) {
                 sendUISlot(i, inventory.getItem(i));
             }
+            return;
+        }
+
+        if (this.invManager.getScreen().sendUIContainerContents(inventory)) {
             return;
         }
 

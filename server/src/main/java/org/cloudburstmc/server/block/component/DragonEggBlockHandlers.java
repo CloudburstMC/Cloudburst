@@ -23,6 +23,10 @@ public class DragonEggBlockHandlers {
     private static final int VERTICAL_RANGE = 8;
 
     public static final AttackBlockHandler ATTACK = (block, player, direction) -> {
+        if (player.isCreative()) {
+            return false;
+        }
+
         teleport(block);
         return true;
     };

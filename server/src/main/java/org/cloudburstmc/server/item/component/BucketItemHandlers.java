@@ -13,11 +13,18 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.item.component.UseOnHandler;
 import org.cloudburstmc.api.item.data.BucketEntityData;
+import org.cloudburstmc.api.level.BlockShapeMode;
+import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -30,50 +37,9 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BucketItemHandlers {
 
-    public static final UseOnHandler PICK_UP = (item, entity, position, face, click) -> {
-        if (!(entity instanceof CloudPlayer player)) {
-            return item;
-        }
+    public static final UseHandler PICK_UP = BucketItemHandlers::pickUp;
 
-        CloudLevel level = player.getLevel();
-        Block clicked = level.getBlock(position);
-        ItemStack blockBucket = clicked.requireComponent(BlockComponents.BUCKET_PICKUP).execute(clicked, player);
-        if (!blockBucket.isEmpty()) {
-            ItemStack result = player.isCreative() ? item : blockBucket;
-            PlayerBucketFillEvent event = new PlayerBucketFillEvent(player, clicked, clicked, face, item, result);
-            level.getServer().getEventManager().fire(event);
-            if (event.isCancelled()) {
-                return item;
-            }
-
-            clicked.set(BlockStates.AIR);
-            addCreativeFilledBucket(player, blockBucket);
-            level.playSound(position, SoundTypes.BUCKET_FILL_POWDER_SNOW);
-            return event.getItemStack();
-        }
-
-        LiquidState liquid = clicked.getLiquid();
-        if (!liquid.isSource()) {
-            return item;
-        }
-
-        ItemType filled = isWater(liquid) ? ItemTypes.WATER_BUCKET : ItemTypes.LAVA_BUCKET;
-        ItemStack filledBucket = ItemStack.from(filled);
-        ItemStack result = player.isCreative() ? item : filledBucket;
-        PlayerBucketFillEvent event = new PlayerBucketFillEvent(player, clicked, clicked, face, item, result);
-        level.getServer().getEventManager().fire(event);
-        if (event.isCancelled()) {
-            return item;
-        }
-
-        if (!level.removeLiquid(position)) {
-            return item;
-        }
-
-        addCreativeFilledBucket(player, filledBucket);
-        level.playSound(position, isWater(liquid) ? SoundTypes.BUCKET_FILL_WATER : SoundTypes.BUCKET_FILL_LAVA);
-        return event.getItemStack();
-    };
+    public static final UseOnHandler PICK_UP_ON_BLOCK = (item, entity, position, face, click) -> pickUp(item, entity);
 
     public static UseOnHandler place(BlockState state) {
         return place(state, null);
@@ -139,6 +105,65 @@ public final class BucketItemHandlers {
             level.playSound(target.getPosition(), SoundTypes.BUCKET_EMPTY_POWDER_SNOW);
             return event.getItemStack();
         };
+    }
+
+    private static ItemStack pickUp(ItemStack item, Entity entity) {
+        if (!(entity instanceof CloudPlayer player) || player.isSpectator()) {
+            return item;
+        }
+
+        CloudLevel level = player.getLevel();
+        Vector3f eye = player.getPosition().add(0, player.getEyeHeight(), 0);
+        Vector3f end = eye.add(player.getDirectionVector().mul(5));
+        if (!(level.rayTraceBlocks(new RayTraceContext(eye, end, BlockShapeMode.OUTLINE,
+                FluidCollisionMode.SOURCE_ONLY, CollisionContext.of(player))) instanceof BlockHitResult hit)
+                || !player.canInteractWithBlock(hit.block().getPosition())) {
+            return item;
+        }
+
+        Block clicked = hit.block();
+        Vector3i position = clicked.getPosition();
+        Direction face = hit.face() == null ? Direction.UP : hit.face();
+        if (!player.isOp() && level.isInSpawnRadius(position)) {
+            return item;
+        }
+
+        ItemStack blockBucket = clicked.requireComponent(BlockComponents.BUCKET_PICKUP).execute(clicked, player);
+        if (!blockBucket.isEmpty()) {
+            ItemStack result = player.isCreative() ? item : blockBucket;
+            PlayerBucketFillEvent event = new PlayerBucketFillEvent(player, clicked, clicked, face, item, result);
+            level.getServer().getEventManager().fire(event);
+            if (event.isCancelled()) {
+                return item;
+            }
+
+            clicked.set(BlockStates.AIR);
+            addCreativeFilledBucket(player, blockBucket);
+            level.playSound(position, SoundTypes.BUCKET_FILL_POWDER_SNOW);
+            return event.getItemStack();
+        }
+
+        LiquidState liquid = clicked.getLiquid();
+        if (!liquid.isSource()) {
+            return item;
+        }
+
+        ItemType filled = isWater(liquid) ? ItemTypes.WATER_BUCKET : ItemTypes.LAVA_BUCKET;
+        ItemStack filledBucket = ItemStack.from(filled);
+        ItemStack result = player.isCreative() ? item : filledBucket;
+        PlayerBucketFillEvent event = new PlayerBucketFillEvent(player, clicked, clicked, face, item, result);
+        level.getServer().getEventManager().fire(event);
+        if (event.isCancelled()) {
+            return item;
+        }
+
+        if (!level.removeLiquid(position)) {
+            return item;
+        }
+
+        addCreativeFilledBucket(player, filledBucket);
+        level.playSound(position, isWater(liquid) ? SoundTypes.BUCKET_FILL_WATER : SoundTypes.BUCKET_FILL_LAVA);
+        return event.getItemStack();
     }
 
     private static UseOnHandler place(BlockState state, EntityType<?> entityType) {

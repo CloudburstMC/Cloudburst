@@ -5,6 +5,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -34,7 +35,7 @@ class BlockRayTraceTest {
 
     @Test
     void zeroLengthRayVisitsOnlyItsStartingCell() {
-        var iterator = BlockRayTrace.of(Vector3f.from(1.5f, 2.5f, 3.5f),
+        Iterator<Vector3i> iterator = BlockRayTrace.of(Vector3f.from(1.5f, 2.5f, 3.5f),
                 Vector3f.from(1.5f, 2.5f, 3.5f)).iterator();
 
         assertEquals(Vector3i.from(1, 2, 3), iterator.next());

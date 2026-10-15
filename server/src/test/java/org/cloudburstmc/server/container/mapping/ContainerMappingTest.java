@@ -32,6 +32,25 @@ class ContainerMappingTest {
     }
 
     @Test
+    void mapsSharedCartographyViewsToFixedUISlotsInBothDirections() {
+        SlotGroup view = InterfaceProxy.create(SlotGroup.class);
+        ContainerSlotType[] types = {
+                ContainerSlotType.CARTOGRAPHY_INPUT, ContainerSlotType.CARTOGRAPHY_ADDITIONAL,
+                ContainerSlotType.CARTOGRAPHY_RESULT, ContainerSlotType.CREATED_OUTPUT
+        };
+
+        int[] localSlots = {0, 1, 2, 2};
+        int[] protocolSlots = {12, 13, 50, 50};
+
+        for (int i = 0; i < types.length; i++) {
+            UIContainerMapping mapping = new UIContainerMapping(types[i], view, localSlots[i]);
+            assertEquals(localSlots[i], mapping.getInventorySlot(protocolSlots[i]));
+            assertEquals(protocolSlots[i], mapping.getProtocolSlot(localSlots[i]));
+            assertThrows(IllegalArgumentException.class, () -> mapping.getProtocolSlot(-1));
+        }
+    }
+
+    @Test
     void mapsAbsoluteProtocolSlotsToTheirSharedViewSlots() {
         SlotGroup view = InterfaceProxy.create(SlotGroup.class);
         ContainerMapping mapping = new ContainerMapping(ContainerSlotType.ANVIL_RESULT, view, 2, 1, -48);

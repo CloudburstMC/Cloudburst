@@ -5,6 +5,8 @@ import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
+import java.util.Objects;
+
 /**
  * Root abstract base class for all server-side slot group implementations. Stores the
  * {@link SlotGroupType}, backing {@link org.cloudburstmc.server.container.CloudContainer},
@@ -48,14 +50,21 @@ public abstract class CloudSlotGroupBase implements SlotGroup {
         return container;
     }
 
+    /**
+     * Translates a slot in this group to its backing container's slot.
+     */
+    public int getContainerSlot(int slot) {
+        return Objects.checkIndex(slot, this.size) + this.offset;
+    }
+
     @Override
     public ItemStack getItem(int slot) {
-        return container.getItem(slot + offset);
+        return container.getItem(this.getContainerSlot(slot));
     }
 
     @Override
     public void setItem(int slot, ItemStack itemStack) {
-        container.setItem(slot + offset, itemStack);
+        container.setItem(this.getContainerSlot(slot), itemStack);
     }
 
     @Override

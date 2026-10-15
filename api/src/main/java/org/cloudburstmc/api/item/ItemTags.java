@@ -9,6 +9,11 @@ import lombok.experimental.UtilityClass;
 public class ItemTags {
 
     /**
+     * Head equipment that conceals a player from locator maps unless they carry a copy.
+     */
+    public static final ItemTagKey MAP_INVISIBILITY_EQUIPMENT = tag("map_invisibility_equipment");
+
+    /**
      * Items that repair wooden-tier tools.
      */
     public static final ItemTagKey WOODEN_TOOL_MATERIALS = tag("wooden_tool_materials");

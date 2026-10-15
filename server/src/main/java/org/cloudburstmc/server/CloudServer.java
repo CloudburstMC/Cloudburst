@@ -54,6 +54,7 @@ import org.cloudburstmc.server.inject.CloudburstPrivateModule;
 import org.cloudburstmc.server.level.*;
 import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
+import org.cloudburstmc.server.map.CloudMapManager;
 import org.cloudburstmc.server.metrics.CloudMetrics;
 import org.cloudburstmc.server.network.CloudNetwork;
 import org.cloudburstmc.server.network.ProtocolInfo;
@@ -140,6 +141,7 @@ public class CloudServer implements Server {
     private DB nameLookup;
 
     private final LevelManager levelManager;
+    private final CloudMapManager mapManager;
     private final CloudLevelDefaults levelDefaults = new CloudLevelDefaults();
 
     private volatile Identifier defaultStorageId;
@@ -223,6 +225,7 @@ public class CloudServer implements Server {
         this.eventManager = injector.getInstance(CloudEventManager.class);
         this.permissionManager = injector.getInstance(PermissionManager.class);
         this.levelManager = injector.getInstance(LevelManager.class);
+        this.mapManager = new CloudMapManager(this);
         this.craftingManager = injector.getInstance(CraftingManager.class);
         this.packManager = injector.getInstance(CloudPackManager.class);
         this.globalScheduler = injector.getInstance(CloudGlobalScheduler.class);
@@ -597,6 +600,7 @@ public class CloudServer implements Server {
             this.asyncScheduler.cancelAllTasks();
 
             log.debug("Unloading all levels");
+            this.mapManager.save();
             this.levelManager.close();
 
             log.debug("Closing console");
@@ -794,6 +798,7 @@ public class CloudServer implements Server {
                 }
 
                 this.levelManager.save();
+                this.mapManager.save();
             }
         }
     }
@@ -827,6 +832,7 @@ public class CloudServer implements Server {
             this.checkTickUpdates(this.tickCounter, tickTime);
 
             this.levelManager.tick(this.tickCounter);
+            this.mapManager.tick();
 
             for (Player player : new ArrayList<>(this.players.values())) {
                 ((CloudPlayer) player).checkNetwork();
@@ -1134,6 +1140,11 @@ public class CloudServer implements Server {
     @Override
     public Commands commands() {
         return this.commandRegistry;
+    }
+
+    @Override
+    public CloudMapManager maps() {
+        return this.mapManager;
     }
 
     public CloudCommandRegistry getCommandRegistry() {

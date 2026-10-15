@@ -5,6 +5,9 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.Furnace;
 import org.cloudburstmc.api.crafting.CraftingRecipe;
 import org.cloudburstmc.api.crafting.Recipe;
+import org.cloudburstmc.api.event.inventory.ActionType;
+import org.cloudburstmc.api.event.inventory.CartographyItemEvent;
+import org.cloudburstmc.api.event.inventory.ClickType;
 import org.cloudburstmc.api.event.inventory.FurnaceExtractEvent;
 import org.cloudburstmc.api.event.inventory.InventoryClickEvent;
 import org.cloudburstmc.api.inventory.ScreenTypes;
@@ -23,12 +26,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData;
-import org.cloudburstmc.server.container.screen.CloudAnvilContainerScreen;
-import org.cloudburstmc.server.container.screen.CloudBlockContainerScreen;
-import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
+import org.cloudburstmc.server.container.screen.*;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -51,6 +53,8 @@ public class ItemStackRequestActionHandler {
     private CloudInventoryScreen screen;
     private ItemStackRequest currentRequest;
     private boolean requestFailed;
+    private boolean requestPrepared;
+    private boolean requiresFullSlotUpdate;
 
     public ItemStackRequestActionHandler(CloudPlayer player) {
         this.player = player;
@@ -70,11 +74,47 @@ public class ItemStackRequestActionHandler {
         }
 
         try {
+            if (!this.requestPrepared) {
+                this.prepareRequest();
+                this.requestPrepared = true;
+            }
             dispatchAction(action);
         } catch (Exception e) {
             log.warn("Failed to handle inventory action {} for {}", action.getType(), player.getName(), e);
             requestFailed = true;
         }
+    }
+
+    private void prepareRequest() {
+        if (!(this.screen instanceof CloudCartographyContainerScreen cartography)) {
+            return;
+        }
+
+        String name = renameText(this.currentRequest);
+        if (name != null) {
+            cartography.updateRenameText(name);
+        }
+    }
+
+    public static @Nullable String renameText(ItemStackRequest request) {
+        String[] strings = request.getFilterStrings();
+        if (strings == null || strings.length == 0) {
+            return null;
+        }
+
+        int index = strings.length == 1 ? 0 : -1;
+        for (ItemStackRequestAction action : request.getActions()) {
+            if (action instanceof CraftRecipeOptionalAction optional) {
+                index = optional.getFilteredStringIndex();
+                break;
+            }
+        }
+
+        if (index < 0 || index >= strings.length) {
+            throw new IllegalArgumentException("Invalid rename string index");
+        }
+
+        return Objects.requireNonNull(strings[index], "rename text");
     }
 
     private void dispatchAction(ItemStackRequestAction action) {
@@ -119,13 +159,13 @@ public class ItemStackRequestActionHandler {
         ContainerSlotType srcContainer = container(srcSlot);
         ContainerSlotType dstContainer = container(dstSlot);
 
-        if (screen instanceof CloudAnvilContainerScreen anvilScreen && anvilScreen.isResultSlot(srcContainer, srcSlot.getSlot())) {
-            handleAnvilResultTransfer(anvilScreen, action);
+        if (screen instanceof ResultContainerScreen resultScreen && resultScreen.isResultSlot(srcContainer, srcSlot.getSlot())) {
+            handleResultTransfer(resultScreen, action);
             return;
         }
 
-        if (screen instanceof CloudAnvilContainerScreen anvilScreen && anvilScreen.isResultSlot(dstContainer, dstSlot.getSlot())) {
-            throw new IllegalArgumentException("Cannot place into anvil result slot");
+        if (screen instanceof ResultContainerScreen resultScreen && resultScreen.isResultSlot(dstContainer, dstSlot.getSlot())) {
+            throw new IllegalArgumentException("Cannot place into a result slot");
         }
 
         ItemStack sourceItem = getSlot(srcSlot);
@@ -161,8 +201,8 @@ public class ItemStackRequestActionHandler {
         ResolvedRequestSlot srcResolvedSlot = resolveSlot(srcSlot);
         ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
 
-        InventoryClickEvent.ActionType actionType = actionType(action);
-        InventoryClickEvent.ClickType clickType = clickType(action, sourceItem, count);
+        ActionType actionType = actionType(action);
+        ClickType clickType = clickType(action, sourceItem, count);
 
         InventoryClickEvent event = new InventoryClickEvent.Builder()
                 .screen(screen)
@@ -200,105 +240,133 @@ public class ItemStackRequestActionHandler {
         }
     }
 
-    private void handleAnvilResultTransfer(CloudAnvilContainerScreen anvilScreen, TransferItemStackRequestAction action) {
+    private void handleResultTransfer(ResultContainerScreen resultScreen, TransferItemStackRequestAction action) {
         if (action.getType() != ItemStackRequestActionType.TAKE && action.getType() != ItemStackRequestActionType.PLACE) {
-            throw new IllegalArgumentException("Unsupported anvil result transfer action " + action.getType());
+            throw new IllegalArgumentException("Unsupported result transfer action " + action.getType());
         }
 
         ItemStackRequestSlotData dstSlot = action.getDestination();
+        rejectResultMutation(dstSlot);
         ItemStack sourceItem = getSlot(action.getSource());
         ItemStack destItem = getSlot(dstSlot);
         int count = action.getCount();
 
-        if (sourceItem.isEmpty() || sourceItem.getCount() != count) {
-            throw new IllegalArgumentException("Anvil result request did not match the server result");
+        if (sourceItem.isEmpty() || resultScreen.isInvalidResultCount(sourceItem, count)) {
+            resultScreen.trackResultSlots(this::trackAffectedSlot);
+            trackAffectedSlot(container(dstSlot), dstSlot.getSlot());
+            this.requiresFullSlotUpdate = true;
+            this.requestFailed = true;
+            return;
         }
 
         ItemStack newDest;
         if (destItem.isEmpty()) {
-            newDest = sourceItem;
+            newDest = sourceItem.withCount(count);
         } else {
-            if (!destItem.isStackableWith(sourceItem)) {
-                throw new IllegalArgumentException("Cannot merge incompatible anvil result");
+            if (!resultScreen.canMergeResult() || !destItem.isStackableWith(sourceItem)) {
+                throw new IllegalArgumentException("Cannot merge incompatible result");
             }
+
             newDest = destItem.withCount(destItem.getCount() + count);
         }
 
         ResolvedRequestSlot srcResolvedSlot = resolveSlot(action.getSource());
         ResolvedRequestSlot dstResolvedSlot = resolveSlot(dstSlot);
 
-        InventoryClickEvent event = new InventoryClickEvent.Builder()
-                .screen(screen)
-                .slot(srcResolvedSlot.inventorySlot())
-                .slotGroup(srcResolvedSlot.slotGroup())
-                .sourceItem(sourceItem)
-                .cursorItem(destItem)
-                .actionType(InventoryClickEvent.ActionType.TAKE)
-                .clickType(takeClickType(sourceItem, count))
-                .destinationSlot(dstResolvedSlot.inventorySlot())
-                .destinationSlotGroup(dstResolvedSlot.slotGroup())
-                .resultItem(newDest)
-                .build();
+        if (newDest.getCount() > dstResolvedSlot.slotGroup().getMaxStackSize(dstResolvedSlot.inventorySlot())) {
+            throw new IllegalArgumentException("Result exceeds destination stack limit");
+        }
+
+        InventoryClickEvent event;
+        if (screen instanceof CloudCartographyContainerScreen cartography) {
+            event = new CartographyItemEvent(cartography, sourceItem, destItem, takeClickType(sourceItem, count),
+                    dstResolvedSlot.inventorySlot(), dstResolvedSlot.slotGroup(), newDest);
+        } else {
+            event = new InventoryClickEvent.Builder()
+                    .screen(screen)
+                    .slot(srcResolvedSlot.inventorySlot())
+                    .slotGroup(srcResolvedSlot.slotGroup())
+                    .sourceItem(sourceItem)
+                    .cursorItem(destItem)
+                    .actionType(ActionType.TAKE)
+                    .clickType(takeClickType(sourceItem, count))
+                    .destinationSlot(dstResolvedSlot.inventorySlot())
+                    .destinationSlotGroup(dstResolvedSlot.slotGroup())
+                    .resultItem(newDest)
+                    .build();
+        }
+
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
             requestFailed = true;
             return;
         }
 
-        ItemStack taken = anvilScreen.takeResult();
+        if (!getSlot(action.getSource()).equals(sourceItem) || !getSlot(dstSlot).equals(destItem)) {
+            requestFailed = true;
+            return;
+        }
+        ItemStack taken = resultScreen.takeResult(sourceItem, count);
         if (taken.isEmpty()) {
             requestFailed = true;
             return;
         }
 
-        ItemStack resolvedDest = event.getResultItem() != null ? event.getResultItem() : newDest;
+        ItemStack proposed = event.getResultItem();
+        ItemStack resolvedDest = proposed != null && !proposed.equals(newDest) ? proposed
+                : destItem.isEmpty() ? taken : taken.withCount(destItem.getCount() + taken.getCount());
         setSlot(dstSlot, resolvedDest);
-        anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
+        resultScreen.trackResultSlots(this::trackAffectedSlot);
+        if (!resolvedDest.equals(newDest)) {
+            this.requiresFullSlotUpdate = true;
+        }
     }
 
-    private InventoryClickEvent.ActionType actionType(TransferItemStackRequestAction action) {
+    private ActionType actionType(TransferItemStackRequestAction action) {
         return switch (action.getType()) {
-            case TAKE -> InventoryClickEvent.ActionType.TAKE;
-            case PLACE -> InventoryClickEvent.ActionType.PLACE;
-            default -> InventoryClickEvent.ActionType.UNKNOWN;
+            case TAKE -> ActionType.TAKE;
+            case PLACE -> ActionType.PLACE;
+            default -> ActionType.UNKNOWN;
         };
     }
 
-    private InventoryClickEvent.ClickType clickType(TransferItemStackRequestAction action, ItemStack sourceItem, int count) {
+    private ClickType clickType(TransferItemStackRequestAction action, ItemStack sourceItem, int count) {
         return switch (action.getType()) {
             case TAKE -> takeClickType(sourceItem, count);
             case PLACE -> placeClickType(sourceItem, count);
-            default -> InventoryClickEvent.ClickType.UNKNOWN;
+            default -> ClickType.UNKNOWN;
         };
     }
 
-    private InventoryClickEvent.ClickType takeClickType(ItemStack sourceItem, int count) {
+    private ClickType takeClickType(ItemStack sourceItem, int count) {
         if (count == sourceItem.getCount()) {
-            return InventoryClickEvent.ClickType.TAKE_ALL;
+            return ClickType.TAKE_ALL;
         }
 
         if (count == sourceItem.getCount() / 2) {
-            return InventoryClickEvent.ClickType.TAKE_HALF;
+            return ClickType.TAKE_HALF;
         }
 
-        return InventoryClickEvent.ClickType.TAKE_SOME;
+        return ClickType.TAKE_SOME;
     }
 
-    private InventoryClickEvent.ClickType placeClickType(ItemStack sourceItem, int count) {
+    private ClickType placeClickType(ItemStack sourceItem, int count) {
         if (count == sourceItem.getCount()) {
-            return InventoryClickEvent.ClickType.PLACE_ALL;
+            return ClickType.PLACE_ALL;
         }
 
         if (count == 1) {
-            return InventoryClickEvent.ClickType.PLACE_ONE;
+            return ClickType.PLACE_ONE;
         }
 
-        return InventoryClickEvent.ClickType.PLACE_SOME;
+        return ClickType.PLACE_SOME;
     }
 
     private void handleSwap(SwapAction action) {
         ItemStackRequestSlotData srcSlot = action.getSource();
         ItemStackRequestSlotData dstSlot = action.getDestination();
+        rejectResultMutation(srcSlot);
+        rejectResultMutation(dstSlot);
 
         ItemStack sourceItem = getSlot(srcSlot);
         ItemStack destItem = getSlot(dstSlot);
@@ -320,8 +388,8 @@ public class ItemStackRequestActionHandler {
                 .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(destItem)
-                .actionType(InventoryClickEvent.ActionType.SWAP)
-                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .actionType(ActionType.SWAP)
+                .clickType(ClickType.UNKNOWN)
                 .destinationSlot(dstResolvedSlot.inventorySlot())
                 .destinationSlotGroup(dstResolvedSlot.slotGroup())
                 .resultItem(sourceItem)
@@ -340,6 +408,7 @@ public class ItemStackRequestActionHandler {
 
     private void handleDrop(DropAction action) {
         ItemStackRequestSlotData srcSlot = action.getSource();
+        rejectResultMutation(srcSlot);
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
@@ -369,8 +438,8 @@ public class ItemStackRequestActionHandler {
                 .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(ItemStack.EMPTY)
-                .actionType(InventoryClickEvent.ActionType.DROP)
-                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .actionType(ActionType.DROP)
+                .clickType(ClickType.UNKNOWN)
                 .build();
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
@@ -384,6 +453,7 @@ public class ItemStackRequestActionHandler {
 
     private void handleDestroy(DestroyAction action) {
         ItemStackRequestSlotData srcSlot = action.getSource();
+        rejectResultMutation(srcSlot);
         ItemStack sourceItem = getSlot(srcSlot);
         int count = action.getCount();
 
@@ -404,8 +474,8 @@ public class ItemStackRequestActionHandler {
                 .slotGroup(srcResolvedSlot.slotGroup())
                 .sourceItem(sourceItem)
                 .cursorItem(ItemStack.EMPTY)
-                .actionType(InventoryClickEvent.ActionType.DESTROY)
-                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .actionType(ActionType.DESTROY)
+                .clickType(ClickType.UNKNOWN)
                 .build();
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
@@ -421,6 +491,12 @@ public class ItemStackRequestActionHandler {
         }
 
         setSlot(srcSlot, newSource);
+    }
+
+    private void rejectResultMutation(ItemStackRequestSlotData slot) {
+        if (screen instanceof ResultContainerScreen result && result.isResultSlot(container(slot), slot.getSlot())) {
+            throw new IllegalArgumentException("A prepared result must be taken with its inputs");
+        }
     }
 
     private void handleCraftCreative(CraftCreativeAction action) {
@@ -441,8 +517,8 @@ public class ItemStackRequestActionHandler {
                 .slotGroup(createdOutputSlot.slotGroup())
                 .sourceItem(ItemStack.EMPTY)
                 .cursorItem(creativeItem)
-                .actionType(InventoryClickEvent.ActionType.CRAFT_CREATIVE)
-                .clickType(InventoryClickEvent.ClickType.UNKNOWN)
+                .actionType(ActionType.CRAFT_CREATIVE)
+                .clickType(ClickType.UNKNOWN)
                 .build();
         player.getServer().getEventManager().fire(event);
         if (event.isCancelled()) {
@@ -455,6 +531,12 @@ public class ItemStackRequestActionHandler {
     }
 
     private void handleCraftRecipe(RecipeItemStackRequestAction action) {
+        if (screen instanceof CloudCartographyContainerScreen cartography) {
+            cartography.recomputeResult();
+            cartography.trackResultSlots(this::trackAffectedSlot);
+            return;
+        }
+
         CraftingRecipe recipe = resolveCraftingRecipe(action.getRecipeNetworkId());
         if (recipe == null) {
             return;
@@ -465,7 +547,7 @@ public class ItemStackRequestActionHandler {
     }
 
     private void handleCraftRecipeOptional(CraftRecipeOptionalAction action) {
-        if (!(screen instanceof CloudAnvilContainerScreen anvilScreen)) {
+        if (!(screen instanceof CloudAnvilContainerScreen) && !(screen instanceof CloudCartographyContainerScreen)) {
             log.debug("Optional craft request from {} targeted unsupported screen type {}", player.getName(), screen.getType().getIdentifier());
             requestFailed = true;
             return;
@@ -475,22 +557,23 @@ public class ItemStackRequestActionHandler {
         if (filterStrings != null && filterStrings.length != 0) {
             int index = action.getFilteredStringIndex();
             if (index < 0 || index >= filterStrings.length) {
-                log.debug("Anvil rename request from {} used invalid filter string index {}", player.getName(), index);
+                log.debug("Rename request from {} used invalid filter string index {}", player.getName(), index);
                 requestFailed = true;
                 return;
             }
 
-            anvilScreen.updateRenameText(filterStrings[index]);
+            if (screen instanceof CloudAnvilContainerScreen anvilScreen) {
+                anvilScreen.updateRenameText(filterStrings[index]);
+            }
         }
 
-        anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
+        ((ResultContainerScreen) screen).trackResultSlots(this::trackAffectedSlot);
     }
 
     private void handleConsume(ConsumeAction action) {
         ContainerSlotType sourceContainer = container(action.getSource());
-        if (screen instanceof CloudAnvilContainerScreen anvilScreen
-                && (sourceContainer == ContainerSlotType.ANVIL_INPUT || sourceContainer == ContainerSlotType.ANVIL_MATERIAL)) {
-            anvilScreen.trackAnvilSlots(this::trackAffectedSlot);
+        if (screen instanceof ResultContainerScreen resultScreen && resultScreen.isInputSlot(sourceContainer)) {
+            resultScreen.trackResultSlots(this::trackAffectedSlot);
             return;
         }
 
@@ -593,6 +676,10 @@ public class ItemStackRequestActionHandler {
         ContainerSlotType containerType = container(slotData);
         this.screen.setSlot(containerType, slotData.getSlot(), item);
         trackAffectedSlot(containerType, slotData.getSlot());
+        if (this.screen instanceof ResultContainerScreen resultScreen && resultScreen.isInputSlot(containerType)) {
+            resultScreen.trackResultSlots(this::trackAffectedSlot);
+            this.requiresFullSlotUpdate = true;
+        }
     }
 
     private void trackAffectedSlot(ContainerSlotType containerType, int slot) {
@@ -603,11 +690,21 @@ public class ItemStackRequestActionHandler {
         this.screen = screen;
         this.currentRequest = request;
         this.requestFailed = false;
+        this.requestPrepared = false;
+        this.requiresFullSlotUpdate = false;
         this.affectedSlots.clear();
     }
 
     public ItemStackResponse endRequest() {
         int requestId = currentRequest.getRequestId();
+
+        if (this.requiresFullSlotUpdate) {
+            for (Map.Entry<ContainerSlotType, Set<Integer>> entry : this.affectedSlots.entrySet()) {
+                for (int slot : entry.getValue()) {
+                    this.player.getItemStackNetManager().resendSlotAfterResponse(this.screen, entry.getKey(), slot);
+                }
+            }
+        }
 
         if (requestFailed) {
             this.screen = null;
@@ -655,8 +752,8 @@ public class ItemStackRequestActionHandler {
             case DropAction drop -> trackCurrentStateSlot(slots, screen, drop.getSource());
             case DestroyAction destroy -> trackCurrentStateSlot(slots, screen, destroy.getSource());
             case ConsumeAction consume -> trackCurrentStateSlot(slots, screen, consume.getSource());
-            case CraftRecipeOptionalAction ignored when screen instanceof CloudAnvilContainerScreen anvilScreen ->
-                    anvilScreen.trackAnvilSlots((type, slot) -> putCurrentStateSlot(slots, type, slot, screen.getSlot(type, slot)));
+            case CraftRecipeOptionalAction ignored when screen instanceof ResultContainerScreen resultScreen ->
+                    resultScreen.trackResultSlots((type, slot) -> putCurrentStateSlot(slots, type, slot, screen.getSlot(type, slot)));
             default -> {
             }
         }

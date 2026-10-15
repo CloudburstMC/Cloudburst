@@ -1,9 +1,14 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -14,8 +19,9 @@ import java.util.Objects;
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     private ItemStack item = ItemStack.EMPTY;
-    private float itemRotation;
+    private int itemRotation;
     private float itemDropChance = 1.0f;
+    private boolean fixed;
 
     public ItemFrameBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -28,30 +34,74 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         tag.listenForCompound("Item", itemTag -> {
             this.item = ItemUtils.deserializeItem(itemTag);
         });
-        tag.listenForFloat("ItemRotation", value -> this.itemRotation = value);
-        tag.listenForFloat("ItemDropChance", value -> this.itemDropChance = value);
+
+        tag.listenForFloat("ItemRotation", value -> {
+            if (!Float.isFinite(value) || value % 45 != 0 || value < 0 || value >= 360) {
+                throw new IllegalArgumentException("Invalid frame rotation");
+            }
+            this.itemRotation = (int) (value / 45);
+        });
+
+        tag.listenForFloat("ItemDropChance", value -> {
+            if (!Float.isFinite(value) || value < 0 || value > 1) {
+                throw new IllegalArgumentException("Invalid frame item drop chance");
+            }
+            this.itemDropChance = value;
+        });
+
+        tag.listenForBoolean("Fixed", value -> this.fixed = value);
+
+        if (!this.item.isEmpty()) {
+            this.item = this.item.withCount(1);
+        } else {
+            this.itemRotation = 0;
+        }
+
+        this.updateMapState();
     }
 
     @Override
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
 
+        tag.remove("Item");
+        tag.putFloat("ItemRotation", this.itemRotation * 45);
+        tag.putFloat("ItemDropChance", this.itemDropChance);
         if (!this.item.isEmpty()) {
             tag.putCompound("Item", ItemUtils.serializeItem(this.item));
-            tag.putFloat("ItemRotation", this.itemRotation);
-            tag.putFloat("ItemDropChance", this.itemDropChance);
         }
     }
 
     @Override
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        super.saveAdditionalData(tag);
+        tag.putBoolean("Fixed", this.fixed);
+    }
+
+    @Override
+    public void onBreak() {
+        this.item = ItemStack.EMPTY;
+        this.itemRotation = 0;
+    }
+
+    @Override
+    public Direction getFacing() {
+        return this.getLevel().getBlockState(this.getPosition()).ensureTrait(BlockTraits.FACING_DIRECTION);
+    }
+
+    @Override
     public int getItemRotation() {
-        return (int) this.itemRotation;
+        return this.itemRotation;
     }
 
     @Override
     public void setItemRotation(int itemRotation) {
+        if (itemRotation < 0 || itemRotation > 7) {
+            throw new IllegalArgumentException("Frame rotation must be between zero and seven");
+        }
+
         if (this.itemRotation != itemRotation) {
-            this.itemRotation = (byte) itemRotation;
+            this.itemRotation = itemRotation;
             this.setDirty();
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
@@ -64,8 +114,16 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public void setItem(ItemStack item) {
-        if (!Objects.equals(this.item, item)) {
-            this.item = item == null ? ItemStack.EMPTY : item;
+        Objects.requireNonNull(item, "item");
+        ItemStack displayed = item.isEmpty() ? ItemStack.EMPTY : item.withCount(1);
+
+        if (!this.item.equals(displayed)) {
+            this.item = displayed;
+            if (displayed.isEmpty()) {
+                this.itemRotation = 0;
+            }
+
+            this.updateMapState();
             this.setDirty();
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
@@ -78,9 +136,34 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public void setItemDropChance(float itemDropChance) {
+        if (!Float.isFinite(itemDropChance) || itemDropChance < 0 || itemDropChance > 1) {
+            throw new IllegalArgumentException("Item drop chance must be between zero and one");
+        }
+
         if (this.itemDropChance != itemDropChance) {
             this.itemDropChance = itemDropChance;
             this.setDirty();
+        }
+    }
+
+    @Override
+    public boolean isFixed() {
+        return this.fixed;
+    }
+
+    @Override
+    public void setFixed(boolean fixed) {
+        if (this.fixed != fixed) {
+            this.fixed = fixed;
+            super.setDirty();
+        }
+    }
+
+    private void updateMapState() {
+        BlockState state = this.getLevel().getBlockState(this.getPosition());
+        if (state.getType() == BlockTypes.FRAME || state.getType() == BlockTypes.GLOW_FRAME) {
+            this.getLevel().setBlockState(this.getPosition(), state.withTrait(BlockTraits.HAS_MAP,
+                    this.item.getType() == ItemTypes.FILLED_MAP), false, true);
         }
     }
 

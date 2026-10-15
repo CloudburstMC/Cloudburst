@@ -7,5 +7,8 @@ import org.cloudburstmc.api.inventory.view.CartographyView;
  */
 public interface CartographyScreen extends ContainerScreen {
 
+    /**
+     * @return the two input slots and the result slot
+     */
     CartographyView getCartography();
 }

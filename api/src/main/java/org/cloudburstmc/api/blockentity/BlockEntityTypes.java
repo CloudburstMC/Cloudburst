@@ -30,6 +30,7 @@ public class BlockEntityTypes {
     public static final BlockEntityType<EnderChest> ENDER_CHEST = type("ender_chest", EnderChest.class);
     public static final BlockEntityType<FlowerPot> FLOWER_POT = type("flower_pot", FlowerPot.class);
     public static final BlockEntityType<Furnace> FURNACE = type("furnace", Furnace.class);
+    public static final BlockEntityType<ItemFrame> GLOW_ITEM_FRAME = type("glow_item_frame", ItemFrame.class);
     public static final BlockEntityType<Hopper> HOPPER = type("hopper", Hopper.class);
     public static final BlockEntityType<ItemFrame> ITEM_FRAME = type("item_frame", ItemFrame.class);
     public static final BlockEntityType<Jigsaw> JIGSAW = type("jigsaw", Jigsaw.class);

@@ -3,6 +3,7 @@ package org.cloudburstmc.server.command.defaults;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.ItemLockMode;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class ItemCommandComponentsTest {
 
     @Test
     void resolvesBlockRestrictions() {
-        var builder = ItemStack.builder(ItemTypes.DIAMOND);
+        ItemStackBuilder builder = ItemStack.builder(ItemTypes.DIAMOND);
         ItemCommandComponents.parse("""
                 {"minecraft:can_destroy": {"blocks": ["minecraft:stone"]}}
                 """, identifier -> Optional.of(BlockTypes.STONE)).applyTo(builder);
@@ -49,7 +50,7 @@ class ItemCommandComponentsTest {
     }
 
     private static ItemStack apply(String json) {
-        var builder = ItemStack.builder(ItemTypes.DIAMOND);
+        ItemStackBuilder builder = ItemStack.builder(ItemTypes.DIAMOND);
         ItemCommandComponents.parse(json, identifier -> Optional.empty()).applyTo(builder);
         return builder.build();
     }

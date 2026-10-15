@@ -190,6 +190,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
         registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");
         registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
+        registerVanilla(BlockEntityTypes.GLOW_ITEM_FRAME, ItemFrameBlockEntity::new, "GlowItemFrame");
         registerVanilla(BlockEntityTypes.HOPPER, HopperBlockEntity::new, "Hopper");
         registerVanilla(BlockEntityTypes.ITEM_FRAME, ItemFrameBlockEntity::new, "ItemFrame");
         registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox");

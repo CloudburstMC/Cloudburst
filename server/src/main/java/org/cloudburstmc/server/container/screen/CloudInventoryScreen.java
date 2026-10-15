@@ -9,11 +9,19 @@ import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
+import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
+import org.cloudburstmc.server.container.CloudContainer;
+import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
+import org.cloudburstmc.server.container.mapping.UIContainerMapping;
+import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
@@ -29,6 +37,7 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     protected final CloudPlayer player;
     private final Map<ContainerSlotType, ContainerMapping> mappings = new HashMap<>();
     private final Map<SlotGroupType<?>, SlotGroup> sections = new HashMap<>();
+    private final Set<CloudContainer> observedUIContainers = new HashSet<>();
     private final ScreenType<?> type;
 
     @Nullable
@@ -63,6 +72,16 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
 
         this.networkWindow = new NetworkWindow(packet.getId(), requireNonNull(packet.getType(), "container type"));
         this.player.sendPacket(packet);
+
+        for (ContainerMapping mapping : this.mappings.values()) {
+            if (mapping instanceof UIContainerMapping && mapping.getView() instanceof CloudSlotGroupBase group) {
+                CloudContainer container = group.getContainer();
+                if (!container.getListeners().contains(this.player)) {
+                    this.observedUIContainers.add(container);
+                    container.addContainerListener(this.player);
+                }
+            }
+        }
     }
 
     public final boolean hasWindow(byte id) {
@@ -70,6 +89,11 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     }
 
     public final void closeWindow(@Nullable ContainerClosePacket request) {
+        for (CloudContainer container : this.observedUIContainers) {
+            container.removeContainerListener(this.player);
+        }
+
+        this.observedUIContainers.clear();
         NetworkWindow window = this.networkWindow;
         this.networkWindow = null;
         if (window == null) {
@@ -112,6 +136,47 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
 
         int realSlot = mapping.getInventorySlot(slot);
         mapping.getView().setItem(realSlot, item);
+    }
+
+    public void sendSlot(ContainerSlotType type, int slot) {
+        ContainerMapping mapping = requireNonNull(this.mappings.get(type), "mapping");
+        if (mapping instanceof UIContainerMapping) {
+            InventorySlotPacket packet = new InventorySlotPacket();
+            packet.setContainerId(ContainerId.UI);
+            packet.setContainerNameData(new FullContainerName(type, null));
+            packet.setSlot(slot);
+            packet.setItem(ItemUtils.toNetworkNetId(this.getSlot(type, slot)));
+            this.player.sendPacket(packet);
+        } else if (this.resolveSlotGroup(type) instanceof CloudSlotGroupBase group) {
+            int inventorySlot = this.resolveInventorySlot(type, slot);
+            this.player.onInventorySlotChange(group.getContainer(), group.getContainerSlot(inventorySlot));
+        }
+    }
+
+    public boolean sendUIContainerSlot(Container container, int containerSlot) {
+        Map<Integer, ContainerMapping> slotMappings = new TreeMap<>();
+        for (ContainerMapping mapping : this.mappings.values()) {
+            if (!(mapping instanceof UIContainerMapping) || !(mapping.getView() instanceof CloudSlotGroupBase group) || group.getContainer() != container) {
+                continue;
+            }
+
+            int inventorySlot = containerSlot - group.getContainerSlot(0);
+            if (mapping.containsInventorySlot(inventorySlot)) {
+                int protocolSlot = mapping.getProtocolSlot(inventorySlot);
+                slotMappings.merge(protocolSlot, mapping, (existing, candidate) -> existing.getSlotType() == ContainerSlotType.CREATED_OUTPUT ? candidate : existing);
+            }
+        }
+
+        slotMappings.forEach((slot, mapping) -> this.sendSlot(mapping.getSlotType(), slot));
+        return !slotMappings.isEmpty();
+    }
+
+    public boolean sendUIContainerContents(Container container) {
+        boolean sent = false;
+        for (int slot = 0; slot < container.size(); slot++) {
+            sent |= this.sendUIContainerSlot(container, slot);
+        }
+        return sent;
     }
 
     @Nullable

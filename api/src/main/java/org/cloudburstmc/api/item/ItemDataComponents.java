@@ -146,9 +146,14 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<WrittenBook> BOOK_DATA = value("book_data", WrittenBook.class);
 
     /**
-     * Map identifier and display data.
+     * Identifier of a map stored by the server.
      */
-    public static final ItemDataComponentType<MapItem> MAP_DATA = value("map_data", MapItem.class);
+    public static final ItemDataComponentType<Long> MAP_ID = value("map_id", Long.class);
+
+    /**
+     * Whether a map displays player positions. On an empty map, enables tracking when used.
+     */
+    public static final ItemDataComponentType<Boolean> MAP_TRACKING_POSITION = booleanValue("map_tracking_position");
 
     /**
      * Banner base color and patterns.

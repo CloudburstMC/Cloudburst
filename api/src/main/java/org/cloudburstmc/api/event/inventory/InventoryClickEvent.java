@@ -10,14 +10,13 @@ import org.cloudburstmc.api.item.ItemStack;
 import java.util.Objects;
 
 /**
- * Called when a player clicks a slot in an open inventory screen.
+ * Fired before a player's inventory action is applied. Cancelling prevents the action.
  *
- * <p>For transfer and swap actions, {@link #getDestinationSlot()} and
- * {@link #getDestinationSlotGroup()} indicate where the item is going.
- * Override the resulting item placed in the destination slot via
- * {@link #setResultItem(ItemStack)}. The source slot reduction is unaffected.
- * For non-transfer actions (DROP, DESTROY, CRAFT_CREATIVE) the destination
- * fields are {@code -1} / {@code null} and {@code resultItem} is ignored.</p>
+ * <p>Slot indices are relative to their {@link SlotGroup}. Transfers and swaps have
+ * a source and destination. Other actions have no destination.</p>
+ *
+ * <p>{@link #setResultItem(ItemStack)} replaces the destination item without altering
+ * source-slot updates or ingredient costs. Cancel the event to prevent those changes.</p>
  */
 public class InventoryClickEvent extends InventoryEvent implements Cancellable {
 
@@ -35,11 +34,23 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     @Nullable
     private ItemStack resultItem;
 
-    private InventoryClickEvent(InventoryScreen screen, int slot, @NonNull SlotGroup slotGroup,
-                                ItemStack sourceItem, ItemStack cursorItem, ActionType actionType,
-                                ClickType clickType,
-                                int destinationSlot, @Nullable SlotGroup destinationSlotGroup,
-                                @Nullable ItemStack resultItem) {
+    /**
+     * @param screen               the inventory screen receiving the click
+     * @param slot                 the source slot index within its group
+     * @param slotGroup            the source slot group
+     * @param sourceItem           the item in the source slot before the action
+     * @param cursorItem           the destination item for a transfer, the selected creative item, or an empty stack
+     * @param actionType           the inventory action
+     * @param clickType            the kind of stack transfer
+     * @param destinationSlot      the index within the destination group, or -1 when absent
+     * @param destinationSlotGroup the destination group, or null when there is no destination
+     * @param resultItem           the proposed destination item, or null to use the default result
+     */
+    protected InventoryClickEvent(InventoryScreen screen, int slot, @NonNull SlotGroup slotGroup,
+                                  ItemStack sourceItem, ItemStack cursorItem, ActionType actionType,
+                                  ClickType clickType,
+                                  int destinationSlot, @Nullable SlotGroup destinationSlotGroup,
+                                  @Nullable ItemStack resultItem) {
         super(screen);
         this.slot = slot;
         this.slotGroup = Objects.requireNonNull(slotGroup, "slotGroup");
@@ -53,40 +64,39 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     }
 
     /**
-     * Returns the slot index that was clicked within the slot group.
+     * Returns the source slot index within {@link #getSlotGroup()}.
      *
-     * @return the clicked slot index
+     * @return the source slot index
      */
     public int getSlot() {
         return slot;
     }
 
     /**
-     * Returns the slot group of the inventory that was clicked.
+     * Returns the group containing the source slot.
      *
-     * @return the clicked slot group
+     * @return the source slot group
      */
     public SlotGroup getSlotGroup() {
         return slotGroup;
     }
 
     /**
-     * Returns the item that was in the clicked slot at the time of the click.
+     * Returns the source item before the action.
      *
-     * @return the item in the clicked slot
+     * @return the source item, which may be empty
      */
     public ItemStack getSourceItem() {
         return sourceItem;
     }
 
     /**
-     * Returns the item the player was holding on their cursor at the time of the click.
+     * Returns the destination item before a transfer or swap.
+     * <p>
+     * For creative selection, returns the item being selected. Drop and destroy actions
+     * return {@link ItemStack#EMPTY}. This is not the player's held item.
      *
-     * <p>This is the item attached to the mouse pointer during inventory interaction,
-     * <em>not</em> the item in the player's hand/hotbar slot. For actions that do not
-     * involve a cursor item (such as DROP or DESTROY), this may be {@link ItemStack#EMPTY}.</p>
-     *
-     * @return the item on the player's cursor
+     * @return the item associated with the destination or creative selection
      */
     public ItemStack getCursorItem() {
         return cursorItem;
@@ -102,39 +112,27 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     }
 
     /**
-     * Returns the click sub-type for this action.
+     * Returns the kind of stack transfer, such as taking an entire stack or placing one item.
      *
-     * <p>While {@link #getActionType()} describes the broad category (TAKE, PLACE, SWAP, …),
-     * this value describes the precise gesture (for example whether the player took
-     * all items or only half, or placed the full stack, a single item, or a split amount.
-     * The client sends the exact count with each {@code ItemStackRequest}, so the server
-     * always knows whether it was a "take half" or "take all" click.</p>
-     *
-     * @return the click sub-type, never {@code null}
+     * @return the transfer kind, or {@link ClickType#UNKNOWN} when not applicable
      */
     public ClickType getClickType() {
         return clickType;
     }
 
     /**
-     * Returns the destination slot index for TAKE, PLACE, and SWAP actions,
-     * or {@code -1} for actions that have no destination slot (DROP, DESTROY, CRAFT_CREATIVE).
+     * Returns the slot index within {@link #getDestinationSlotGroup()}.
      *
-     * @return the destination slot index, or {@code -1}
+     * @return the destination slot index, or -1 when there is no destination
      */
     public int getDestinationSlot() {
         return destinationSlot;
     }
 
     /**
-     * Returns the destination {@link SlotGroup} for TAKE, PLACE, and SWAP actions,
-     * or {@code null} for actions that have no destination (DROP, DESTROY, CRAFT_CREATIVE).
+     * Returns the group receiving items during a transfer or swap.
      *
-     * <p>For {@link ActionType#TAKE} actions the item is being moved <em>to</em> the player's
-     * cursor, so the destination is always the cursor slot group
-     * ({@link org.cloudburstmc.api.inventory.view.SlotGroupTypes#CURSOR}).</p>
-     *
-     * @return the destination slot group, or {@code null}
+     * @return the destination slot group, or null when there is no destination
      */
     @Nullable
     public SlotGroup getDestinationSlotGroup() {
@@ -142,14 +140,11 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     }
 
     /**
-     * Returns the item that will be placed into the destination slot after this action.
+     * Returns the proposed destination item, including any items already in that slot.
+     * <p>
+     * For swaps, this is the source item rather than a merged stack.
      *
-     * <p>For TAKE/PLACE, this is the merged or moved item. For SWAP, this is the item
-     * that will land in the destination slot. Call {@link #setResultItem(ItemStack)}
-     * to override what ends up in the destination.
-     * Returns {@code null} for actions with no destination (DROP, DESTROY, CRAFT_CREATIVE).</p>
-     *
-     * @return the result item, or {@code null}
+     * @return the proposed item, or null to use the default result or when there is no destination
      */
     @Nullable
     public ItemStack getResultItem() {
@@ -159,7 +154,9 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     /**
      * Overrides the item that will be placed into the destination slot.
      *
-     * <p>Has no effect for DROP, DESTROY, or CRAFT_CREATIVE actions.</p>
+     * <p>An empty stack clears the destination but does not cancel source-slot changes
+     * or ingredient costs. A null value restores the default result.
+     * Has no effect for actions without a destination.</p>
      *
      * @param resultItem the item to place in the destination slot, or {@code null} to use the default result
      */
@@ -168,84 +165,7 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
     }
 
     /**
-     * Describes the type of inventory interaction that triggered {@link InventoryClickEvent}.
-     * <p>
-     * These map directly to {@code ItemStackRequest} action types.
-     */
-    public enum ActionType {
-        /**
-         * Player moves some or all of a stack from one slot to another
-         * (a pick-up or partial pick-up in Java terms).
-         */
-        TAKE,
-        /**
-         * Player places some or all of a held stack into a slot.
-         */
-        PLACE,
-        /**
-         * Player swaps the contents of two slots, including swapping with the
-         * off-hand slot via the dedicated off-hand button.
-         */
-        SWAP,
-        /**
-         * Player drops an item out of a slot into the world.
-         */
-        DROP,
-        /**
-         * Player destroys an item (only possible in creative mode).
-         */
-        DESTROY,
-        /**
-         * Player picks a creative item from the creative inventory.
-         */
-        CRAFT_CREATIVE,
-        /**
-         * Any other or unrecognised action type.
-         */
-        UNKNOWN
-    }
-
-    /**
-     * Sub-type of an inventory click, derived from the count sent.
-     */
-    public enum ClickType {
-        /**
-         * Player took the entire stack from a slot (count == source stack count).
-         * Corresponds to a left-click on a slot when the cursor is empty.
-         */
-        TAKE_ALL,
-        /**
-         * Player took half the stack (count == source stack count / 2, rounded down).
-         * This is the "pick up half" gesture.
-         */
-        TAKE_HALF,
-        /**
-         * Player took a specific count that is neither all nor half (1 &lt; count &lt; stack size).
-         */
-        TAKE_SOME,
-        /**
-         * Player placed the entire held stack into a slot (count == held item count).
-         * Corresponds to a left-click on a slot when the cursor is non-empty.
-         */
-        PLACE_ALL,
-        /**
-         * Player placed a single item from the held stack into a slot (count == 1).
-         * Corresponds to a right-click on a slot when the cursor is non-empty.
-         */
-        PLACE_ONE,
-        /**
-         * Player placed a specific count greater than one but less than the full held stack.
-         */
-        PLACE_SOME,
-        /**
-         * The click type could not be determined, or it does not fit any of the above
-         * categories (e.g. SWAP, DROP, DESTROY, CRAFT_CREATIVE actions).
-         */
-        UNKNOWN
-    }
-
-    /**
-     * Builder for {@link InventoryClickEvent}.
+     * Builds an event without applying an inventory action or notifying listeners.
      *
      * <p>Required fields: {@code screen}, {@code slot}, {@code slotGroup}, {@code sourceItem},
      * {@code cursorItem}, {@code actionType}, {@code clickType}.
@@ -266,56 +186,102 @@ public class InventoryClickEvent extends InventoryEvent implements Cancellable {
         @Nullable
         private ItemStack resultItem;
 
+        /**
+         * @param screen the screen receiving the action
+         * @return this builder
+         */
         public Builder screen(@NonNull InventoryScreen screen) {
             this.screen = Objects.requireNonNull(screen, "screen");
             return this;
         }
 
+        /**
+         * @param slot the source slot index within its group
+         * @return this builder
+         */
         public Builder slot(int slot) {
             this.slot = slot;
             return this;
         }
 
+        /**
+         * @param slotGroup the source slot group
+         * @return this builder
+         */
         public Builder slotGroup(@NonNull SlotGroup slotGroup) {
             this.slotGroup = Objects.requireNonNull(slotGroup, "slotGroup");
             return this;
         }
 
+        /**
+         * @param sourceItem the source item before the action, which may be empty
+         * @return this builder
+         */
         public Builder sourceItem(@NonNull ItemStack sourceItem) {
             this.sourceItem = Objects.requireNonNull(sourceItem, "sourceItem");
             return this;
         }
 
+        /**
+         * @param cursorItem the destination item before the action, the selected creative item, or an empty stack
+         * @return this builder
+         * @see InventoryClickEvent#getCursorItem()
+         */
         public Builder cursorItem(@NonNull ItemStack cursorItem) {
             this.cursorItem = Objects.requireNonNull(cursorItem, "cursorItem");
             return this;
         }
 
+        /**
+         * @param actionType the inventory action
+         * @return this builder
+         */
         public Builder actionType(@NonNull ActionType actionType) {
             this.actionType = Objects.requireNonNull(actionType, "actionType");
             return this;
         }
 
+        /**
+         * @param clickType the transfer kind, or {@link ClickType#UNKNOWN} when not applicable
+         * @return this builder
+         */
         public Builder clickType(@NonNull ClickType clickType) {
             this.clickType = Objects.requireNonNull(clickType, "clickType");
             return this;
         }
 
+        /**
+         * @param destinationSlot the index within the destination group, or -1 when absent
+         * @return this builder
+         */
         public Builder destinationSlot(int destinationSlot) {
             this.destinationSlot = destinationSlot;
             return this;
         }
 
+        /**
+         * @param destinationSlotGroup the destination group, or null when absent
+         * @return this builder
+         */
         public Builder destinationSlotGroup(@Nullable SlotGroup destinationSlotGroup) {
             this.destinationSlotGroup = destinationSlotGroup;
             return this;
         }
 
+        /**
+         * @param resultItem the proposed destination item, or null to use the default result
+         * @return this builder
+         * @see InventoryClickEvent#setResultItem(ItemStack)
+         */
         public Builder resultItem(@Nullable ItemStack resultItem) {
             this.resultItem = resultItem;
             return this;
         }
 
+        /**
+         * @return a new event containing the supplied values
+         * @throws NullPointerException if a required field has not been supplied
+         */
         public InventoryClickEvent build() {
             Objects.requireNonNull(screen, "screen is required");
             Objects.requireNonNull(slotGroup, "slotGroup is required");

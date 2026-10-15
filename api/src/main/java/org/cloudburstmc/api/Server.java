@@ -10,6 +10,7 @@ import org.cloudburstmc.api.event.EventManager;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.LevelBuilder;
+import org.cloudburstmc.api.map.Maps;
 import org.cloudburstmc.api.permission.PermissionManager;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.OfflinePlayer;
@@ -100,6 +101,13 @@ public interface Server {
      * @return the command service
      */
     Commands commands();
+
+    /**
+     * Returns the service for creating and finding persistent maps.
+     *
+     * @return the map service
+     */
+    Maps maps();
 
     /**
      * Returns the server's MOTD (message of the day) as shown in the server list.

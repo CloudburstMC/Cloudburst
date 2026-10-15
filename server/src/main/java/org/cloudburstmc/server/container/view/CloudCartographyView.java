@@ -5,16 +5,21 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.server.container.CloudContainer;
 
-/**
- * Server-side implementation of {@link CartographyView}.
- * Wraps a 3-slot ephemeral container:
- * slot 0 = map input, slot 1 = paper (additional), slot 2 = result.
- * This is an ephemeral section with no block entity backing.
- */
 public class CloudCartographyView extends CloudSlotGroupBase implements CartographyView {
 
-    public CloudCartographyView(CloudContainer container) {
+    private final Runnable inputChanged;
+
+    public CloudCartographyView(CloudContainer container, Runnable inputChanged) {
         super(SlotGroupTypes.CARTOGRAPHY, container);
+        this.inputChanged = inputChanged;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack item) {
+        super.setItem(slot, item);
+        if (slot < 2) {
+            this.inputChanged.run();
+        }
     }
 
     @Override

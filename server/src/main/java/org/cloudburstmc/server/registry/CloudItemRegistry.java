@@ -389,7 +389,8 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.KEEP_ON_DEATH, new PrimitiveSerializer<>("minecraft:keep_on_death", Boolean.class));
         this.registerDataComponentSerializer(ItemDataComponents.REPAIR_COST, new PrimitiveSerializer<>("RepairCost", Integer.class));
         this.registerDataComponentSerializer(ItemDataComponents.UNBREAKABLE, new PrimitiveSerializer<>("Unbreakable", Boolean.class));
-        this.registerDataComponentSerializer(ItemDataComponents.MAP_DATA, new MapSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.MAP_ID, new MapSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.MAP_TRACKING_POSITION, new PrimitiveSerializer<>("map_display_players", Boolean.class));
         this.registerDataComponentSerializer(ItemDataComponents.BOOK_DATA, new WrittenBookSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.CHARGED_PROJECTILE, new ChargedProjectileSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.SPAWN_EGG_TYPE, new EntityTypeSerializer());

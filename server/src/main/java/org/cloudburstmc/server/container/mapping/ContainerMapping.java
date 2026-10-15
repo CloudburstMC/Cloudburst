@@ -33,10 +33,22 @@ public class ContainerMapping {
 
     public int getInventorySlot(int screenSlot) {
         int inventorySlot = screenSlot + this.offset;
-        if (inventorySlot < this.firstInventorySlot || inventorySlot >= this.firstInventorySlot + this.size) {
+        if (!this.containsInventorySlot(inventorySlot)) {
             throw new IllegalArgumentException("Invalid slot " + screenSlot + " for " + this.slotType);
         }
 
         return inventorySlot;
+    }
+
+    public boolean containsInventorySlot(int inventorySlot) {
+        return inventorySlot >= this.firstInventorySlot && inventorySlot < this.firstInventorySlot + this.size;
+    }
+
+    public int getProtocolSlot(int inventorySlot) {
+        if (!this.containsInventorySlot(inventorySlot)) {
+            throw new IllegalArgumentException("Invalid inventory slot " + inventorySlot + " for " + this.slotType);
+        }
+
+        return inventorySlot - this.offset;
     }
 }

@@ -28,7 +28,6 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 import org.jspecify.annotations.NonNull;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -316,7 +315,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                 collision, outline, stateData.hardness(), stateData.explosionResistance(),
                 stateData.friction(), stateData.translucency(), stateData.thickness(), stateData.burnOdds(),
                 stateData.flameOdds(), stateData.lightDampening(), stateData.lightEmission(), stateData.solid(),
-                stateData.requiresCorrectToolForDrops(), parseMapColor(stateData.mapColor()),
+                stateData.requiresCorrectToolForDrops(), BlockMapColors.resolve(stateData.mapColor(), stateData.tintMethod(), state.getType()),
                 stateData.canContainLiquidSource(), stateData.liquidReactionOnTouch()));
 
         this.runtimeDefinitionMap.put(registration.runtimeId(), definition);
@@ -339,14 +338,6 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
                         + " block type(s) are missing. Update the data export. Examples: " + examples);
     }
 
-    private static Color parseMapColor(String value) {
-        Preconditions.checkArgument(value.length() == 9 && value.charAt(0) == '#',
-                "Invalid map colour: %s", value);
-        return new Color(Integer.parseInt(value.substring(1, 3), 16),
-                Integer.parseInt(value.substring(3, 5), 16),
-                Integer.parseInt(value.substring(5, 7), 16),
-                Integer.parseInt(value.substring(7, 9), 16));
-    }
 
     private record MissingBlockProperty(BlockState state, long blockStateHash) {
 

@@ -15,45 +15,44 @@ import static org.cloudburstmc.api.block.BlockTypes.*;
  * Vanilla block families accepted by each block entity type.
  */
 @UtilityClass
-class VanillaBlockEntityBlocks {
-    static final Set<BlockType> BANNERS = Set.of(WALL_BANNER, STANDING_BANNER);
-    static final Set<BlockType> BARRELS = Set.of(BARREL);
-    static final Set<BlockType> BEACONS = Set.of(BEACON);
-    static final Set<BlockType> BEDS = Set.of(BED, STRAW_BED);
-    static final Set<BlockType> BELLS = Set.of(BELL);
-    static final Set<BlockType> BLAST_FURNACES = Set.of(BLAST_FURNACE, LIT_BLAST_FURNACE);
-    static final Set<BlockType> BREWING_STANDS = Set.of(BREWING_STAND);
-    static final Set<BlockType> CAMPFIRES = Set.of(CAMPFIRE, SOUL_CAMPFIRE);
-    static final Set<BlockType> CAULDRONS = Set.of(CAULDRON);
-    static final Set<BlockType> CHESTS = Set.of(CHEST, TRAPPED_CHEST);
-    static final Set<BlockType> COMMAND_BLOCKS = Set.of(COMMAND_BLOCK, CHAIN_COMMAND_BLOCK, REPEATING_COMMAND_BLOCK);
-    static final Set<BlockType> COMPARATORS = Set.of(UNPOWERED_COMPARATOR, POWERED_COMPARATOR);
-    static final Set<BlockType> CRAFTERS = Set.of(CRAFTER);
-    static final Set<BlockType> DAYLIGHT_DETECTORS = Set.of(DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED);
-    static final Set<BlockType> DISPENSERS = Set.of(DISPENSER);
-    static final Set<BlockType> DROPPERS = Set.of(DROPPER);
-    static final Set<BlockType> ENCHANTING_TABLES = Set.of(ENCHANTING_TABLE);
-    static final Set<BlockType> END_GATEWAYS = Set.of(END_GATEWAY);
-    static final Set<BlockType> END_PORTALS = Set.of(END_PORTAL);
-    static final Set<BlockType> ENDER_CHESTS = Set.of(ENDER_CHEST);
-    static final Set<BlockType> FLOWER_POTS = Set.of(FLOWER_POT);
-    static final Set<BlockType> FURNACES = Set.of(FURNACE, LIT_FURNACE);
-    static final Set<BlockType> HOPPERS = Set.of(HOPPER);
-    static final Set<BlockType> ITEM_FRAMES = Set.of(FRAME, GLOW_FRAME);
-    static final Set<BlockType> JIGSAWS = Set.of(JIGSAW);
-    static final Set<BlockType> JUKEBOXES = Set.of(JUKEBOX);
-    static final Set<BlockType> LECTERNS = Set.of(LECTERN);
-    static final Set<BlockType> MOB_SPAWNERS = Set.of(MOB_SPAWNER);
-    static final Set<BlockType> MOVING_BLOCKS = Set.of(MOVING_BLOCK);
-    static final Set<BlockType> NETHER_REACTORS = Set.of(NETHERREACTOR);
-    static final Set<BlockType> NOTE_BLOCKS = Set.of(NOTE_BLOCK);
-    static final Set<BlockType> PISTONS = Set.of(PISTON, STICKY_PISTON);
-    static final Set<BlockType> SHULKER_BOXES = Set.of(
+public class VanillaBlockEntityBlocks {
+    private static final Set<BlockType> BANNERS = Set.of(WALL_BANNER, STANDING_BANNER);
+    private static final Set<BlockType> BARRELS = Set.of(BARREL);
+    private static final Set<BlockType> BEACONS = Set.of(BEACON);
+    private static final Set<BlockType> BEDS = Set.of(BED, STRAW_BED);
+    private static final Set<BlockType> BELLS = Set.of(BELL);
+    private static final Set<BlockType> BLAST_FURNACES = Set.of(BLAST_FURNACE, LIT_BLAST_FURNACE);
+    private static final Set<BlockType> BREWING_STANDS = Set.of(BREWING_STAND);
+    private static final Set<BlockType> CAMPFIRES = Set.of(CAMPFIRE, SOUL_CAMPFIRE);
+    private static final Set<BlockType> CAULDRONS = Set.of(CAULDRON);
+    private static final Set<BlockType> CHESTS = Set.of(CHEST, TRAPPED_CHEST);
+    private static final Set<BlockType> COMMAND_BLOCKS = Set.of(COMMAND_BLOCK, CHAIN_COMMAND_BLOCK, REPEATING_COMMAND_BLOCK);
+    private static final Set<BlockType> COMPARATORS = Set.of(UNPOWERED_COMPARATOR, POWERED_COMPARATOR);
+    private static final Set<BlockType> CRAFTERS = Set.of(CRAFTER);
+    private static final Set<BlockType> DAYLIGHT_DETECTORS = Set.of(DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED);
+    private static final Set<BlockType> DISPENSERS = Set.of(DISPENSER);
+    private static final Set<BlockType> DROPPERS = Set.of(DROPPER);
+    private static final Set<BlockType> ENCHANTING_TABLES = Set.of(ENCHANTING_TABLE);
+    private static final Set<BlockType> END_GATEWAYS = Set.of(END_GATEWAY);
+    private static final Set<BlockType> END_PORTALS = Set.of(END_PORTAL);
+    private static final Set<BlockType> ENDER_CHESTS = Set.of(ENDER_CHEST);
+    private static final Set<BlockType> FLOWER_POTS = Set.of(FLOWER_POT);
+    private static final Set<BlockType> FURNACES = Set.of(FURNACE, LIT_FURNACE);
+    private static final Set<BlockType> HOPPERS = Set.of(HOPPER);
+    private static final Set<BlockType> JIGSAWS = Set.of(JIGSAW);
+    private static final Set<BlockType> JUKEBOXES = Set.of(JUKEBOX);
+    private static final Set<BlockType> LECTERNS = Set.of(LECTERN);
+    private static final Set<BlockType> MOB_SPAWNERS = Set.of(MOB_SPAWNER);
+    private static final Set<BlockType> MOVING_BLOCKS = Set.of(MOVING_BLOCK);
+    private static final Set<BlockType> NETHER_REACTORS = Set.of(NETHERREACTOR);
+    private static final Set<BlockType> NOTE_BLOCKS = Set.of(NOTE_BLOCK);
+    private static final Set<BlockType> PISTONS = Set.of(PISTON, STICKY_PISTON);
+    private static final Set<BlockType> SHULKER_BOXES = Set.of(
             UNDYED_SHULKER_BOX, WHITE_SHULKER_BOX, ORANGE_SHULKER_BOX, MAGENTA_SHULKER_BOX,
             LIGHT_BLUE_SHULKER_BOX, YELLOW_SHULKER_BOX, LIME_SHULKER_BOX, PINK_SHULKER_BOX,
             GRAY_SHULKER_BOX, LIGHT_GRAY_SHULKER_BOX, CYAN_SHULKER_BOX, PURPLE_SHULKER_BOX,
             BLUE_SHULKER_BOX, BROWN_SHULKER_BOX, GREEN_SHULKER_BOX, RED_SHULKER_BOX, BLACK_SHULKER_BOX);
-    static final Set<BlockType> SIGNS = Set.of(
+    private static final Set<BlockType> SIGNS = Set.of(
             ACACIA_HANGING_SIGN, ACACIA_STANDING_SIGN, ACACIA_WALL_SIGN,
             BAMBOO_HANGING_SIGN, BAMBOO_STANDING_SIGN, BAMBOO_WALL_SIGN,
             BIRCH_HANGING_SIGN, BIRCH_STANDING_SIGN, BIRCH_WALL_SIGN,
@@ -67,14 +66,14 @@ class VanillaBlockEntityBlocks {
             POPLAR_HANGING_SIGN, POPLAR_STANDING_SIGN, POPLAR_WALL_SIGN,
             SPRUCE_HANGING_SIGN, SPRUCE_STANDING_SIGN, SPRUCE_WALL_SIGN,
             WARPED_HANGING_SIGN, WARPED_STANDING_SIGN, WARPED_WALL_SIGN);
-    static final Set<BlockType> SKULLS = Set.of(
+    private static final Set<BlockType> SKULLS = Set.of(
             SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD, PLAYER_HEAD,
             CREEPER_HEAD, DRAGON_HEAD, PIGLIN_HEAD);
-    static final Set<BlockType> SMOKERS = Set.of(SMOKER, LIT_SMOKER);
-    static final Set<BlockType> STRUCTURE_BLOCKS = Set.of(STRUCTURE_BLOCK);
+    private static final Set<BlockType> SMOKERS = Set.of(SMOKER, LIT_SMOKER);
+    private static final Set<BlockType> STRUCTURE_BLOCKS = Set.of(STRUCTURE_BLOCK);
     private static final Map<BlockEntityType<?>, Set<BlockType>> BY_TYPE = createIndex();
 
-    static Set<BlockType> get(BlockEntityType<?> type) {
+    public static Set<BlockType> get(BlockEntityType<?> type) {
         Set<BlockType> blocks = BY_TYPE.get(type);
         if (blocks == null) {
             throw new IllegalArgumentException("No vanilla block family for " + type.getId());
@@ -107,7 +106,8 @@ class VanillaBlockEntityBlocks {
         index.put(BlockEntityTypes.FLOWER_POT, FLOWER_POTS);
         index.put(BlockEntityTypes.FURNACE, FURNACES);
         index.put(BlockEntityTypes.HOPPER, HOPPERS);
-        index.put(BlockEntityTypes.ITEM_FRAME, ITEM_FRAMES);
+        index.put(BlockEntityTypes.ITEM_FRAME, Set.of(FRAME));
+        index.put(BlockEntityTypes.GLOW_ITEM_FRAME, Set.of(GLOW_FRAME));
         index.put(BlockEntityTypes.JIGSAW, JIGSAWS);
         index.put(BlockEntityTypes.JUKEBOX, JUKEBOXES);
         index.put(BlockEntityTypes.LECTERN, LECTERNS);

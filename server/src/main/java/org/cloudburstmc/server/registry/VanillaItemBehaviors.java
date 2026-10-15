@@ -63,7 +63,9 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.RELEASE_USE, BowItemHandlers.RELEASE);
         configureSpawnEgg(registry, ItemTypes.BREEZE_SPAWN_EGG, EntityTypes.BREEZE);
         configureDamageableEnchantable(registry, ItemTypes.BRUSH, 64, repairWith(), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
-        registry.configure(ItemTypes.BUCKET).set(ItemBehaviors.USE_ON, BucketItemHandlers.PICK_UP);
+        registry.configure(ItemTypes.BUCKET)
+                .set(ItemBehaviors.USE, BucketItemHandlers.PICK_UP)
+                .set(ItemBehaviors.USE_ON, BucketItemHandlers.PICK_UP_ON_BLOCK);
         configureSpawnEgg(registry, ItemTypes.CAMEL_HUSK_SPAWN_EGG, EntityTypes.CAMEL_HUSK);
         configureSpawnEgg(registry, ItemTypes.CAMEL_SPAWN_EGG, EntityTypes.CAMEL);
         configureDamageableEnchantable(registry, ItemTypes.CARROT_ON_A_STICK, 25, repairWith(), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
@@ -132,6 +134,8 @@ public final class VanillaItemBehaviors {
         registry.configure(ItemTypes.ENCHANTED_BOOK).set(ItemBehaviors.CAN_ENCHANT_WITH, (item, enchantment) -> true);
         registry.configure(ItemTypes.END_CRYSTAL).set(ItemBehaviors.USE_ON, EndCrystalItemHandlers.USE_ON);
         configureSpawnEgg(registry, ItemTypes.ENDER_DRAGON_SPAWN_EGG, EntityTypes.ENDER_DRAGON);
+        registry.configure(ItemTypes.EMPTY_MAP, new EmptyMapItemSerializer())
+                .set(ItemBehaviors.USE, MapItemHandlers.USE);
         registry.configure(ItemTypes.ENDER_EYE).set(ItemBehaviors.USE_ON, EnderEyeItemHandlers.USE_ON);
         registry.configure(ItemTypes.ENDER_PEARL).set(ItemBehaviors.USE, EnderPearlItemHandlers.USE);
         configureSpawnEgg(registry, ItemTypes.ENDERMAN_SPAWN_EGG, EntityTypes.ENDERMAN);
@@ -139,6 +143,7 @@ public final class VanillaItemBehaviors {
         configureSpawnEgg(registry, ItemTypes.EVOKER_SPAWN_EGG, EntityTypes.EVOCATION_ILLAGER);
         registry.configure(ItemTypes.EXPERIENCE_BOTTLE).set(ItemBehaviors.USE,
                 ThrowableItemHandlers.throwProjectile(EntityTypes.XP_BOTTLE, 0.7f, -20));
+        registry.configure(ItemTypes.FILLED_MAP, new FilledMapItemSerializer());
         registry.configure(ItemTypes.FIRE_CHARGE).set(ItemBehaviors.USE_ON, IgnitionItemHandlers.FIRE_CHARGE_USE_ON);
         registry.configure(ItemTypes.FIREWORK_ROCKET, new FireworkRocketSerializer())
                 .set(ItemBehaviors.USE, FireworkRocketItemHandlers.USE)

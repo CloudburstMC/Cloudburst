@@ -2116,7 +2116,7 @@ public class CloudLevel implements Level, BlockStateRegion {
      *
      * @return whether item use may proceed, the block consumed the interaction, or the interaction was denied
      */
-    public BlockInteractionResult interactWithBlock(Block target, Direction face, ItemStack item, Player player) {
+    public BlockInteractionResult interactWithBlock(Block target, Direction face, Vector3f clickPosition, ItemStack item, Player player) {
         ComponentMap targetBehaviors = target.getComponents();
         if (player != null) {
             PlayerInteractEvent ev = new PlayerInteractEvent(player, item, target, face, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK);
@@ -2137,6 +2137,10 @@ public class CloudLevel implements Level, BlockStateRegion {
                 return BlockInteractionResult.PASS;
             }
 
+            if (!isWithinBlockOutline(target.getOutlineShape(), clickPosition)) {
+                return BlockInteractionResult.PASS;
+            }
+
             boolean canUse = targetBehaviors.require(BlockComponents.CAN_BE_USED).execute(target, player);
             return canUse && targetBehaviors.require(BlockComponents.USE).execute(target, player, face, item)
                     ? BlockInteractionResult.CONSUMED : BlockInteractionResult.PASS;
@@ -2145,6 +2149,16 @@ public class CloudLevel implements Level, BlockStateRegion {
                     && targetBehaviors.require(BlockComponents.USE).execute(target, null, face, ItemStack.EMPTY)
                     ? BlockInteractionResult.CONSUMED : BlockInteractionResult.PASS;
         }
+    }
+
+    private static boolean isWithinBlockOutline(VoxelShape outline, Vector3f clickPosition) {
+        for (BoundingBox box : outline.getBoundingBoxes()) {
+            if (box.inflate(0.0001f, 0.0001f, 0.0001f).contains(clickPosition)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

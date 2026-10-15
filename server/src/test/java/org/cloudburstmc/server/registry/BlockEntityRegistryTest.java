@@ -6,8 +6,7 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BlockEntityRegistryTest {
 
@@ -26,6 +25,18 @@ class BlockEntityRegistryTest {
         assertFalse(this.registry.isValid(BlockEntityTypes.SHULKER_BOX, BlockTypes.CHEST.getDefaultState()));
     }
 
+    @Test
+    void keepsRegularAndGlowingFramesDistinct() {
+        assertFalse(this.registry.isValid(BlockEntityTypes.ITEM_FRAME, BlockTypes.GLOW_FRAME.getDefaultState()));
+        assertFalse(this.registry.isValid(BlockEntityTypes.GLOW_ITEM_FRAME, BlockTypes.FRAME.getDefaultState()));
+
+        assertEquals("ItemFrame", this.registry.getPersistentId(BlockEntityTypes.ITEM_FRAME));
+        assertEquals("GlowItemFrame", this.registry.getPersistentId(BlockEntityTypes.GLOW_ITEM_FRAME));
+
+        assertSame(BlockEntityTypes.ITEM_FRAME, this.registry.getBlockEntityType("ItemFrame"));
+        assertSame(BlockEntityTypes.GLOW_ITEM_FRAME, this.registry.getBlockEntityType("GlowItemFrame"));
+    }
+
     private record ValidBlockFamily(BlockEntityType<?> type, BlockType block) {
     }
 
@@ -35,7 +46,8 @@ class BlockEntityRegistryTest {
                 new ValidBlockFamily(BlockEntityTypes.SHULKER_BOX, BlockTypes.RED_SHULKER_BOX),
                 new ValidBlockFamily(BlockEntityTypes.SIGN, BlockTypes.PALE_OAK_HANGING_SIGN),
                 new ValidBlockFamily(BlockEntityTypes.CAMPFIRE, BlockTypes.SOUL_CAMPFIRE),
-                new ValidBlockFamily(BlockEntityTypes.ITEM_FRAME, BlockTypes.GLOW_FRAME)
+                new ValidBlockFamily(BlockEntityTypes.ITEM_FRAME, BlockTypes.FRAME),
+                new ValidBlockFamily(BlockEntityTypes.GLOW_ITEM_FRAME, BlockTypes.GLOW_FRAME)
         };
     }
 }

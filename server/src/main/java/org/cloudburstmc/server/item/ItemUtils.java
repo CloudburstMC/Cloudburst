@@ -119,15 +119,21 @@ public class ItemUtils {
     }
 
     private static NbtMap getSerializedTag(ItemStack item) {
+        if (!registry.getSerializer(item.getType()).isCacheable()) {
+            return serializeTag(item);
+        }
+
         try {
-            return ITEM_CACHE.get(item, () -> {
-                NbtMapBuilder tagBuilder = NbtMap.builder();
-                registry.getSerializer(item.getType()).serialize(item, tagBuilder);
-                return tagBuilder.build();
-            });
+            return ITEM_CACHE.get(item, () -> serializeTag(item));
         } catch (ExecutionException e) {
             throw new IllegalStateException("Invalid state while serializing item " + item, e);
         }
+    }
+
+    private static NbtMap serializeTag(ItemStack item) {
+        NbtMapBuilder tag = NbtMap.builder();
+        registry.getSerializer(item.getType()).serialize(item, tag);
+        return tag.build();
     }
 
     public static NbtMap serializeItem(ItemStack item, int slot) {

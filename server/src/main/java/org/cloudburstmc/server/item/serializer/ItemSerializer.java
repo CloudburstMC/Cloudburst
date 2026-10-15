@@ -13,6 +13,13 @@ public interface ItemSerializer {
 
     int getAuxValue(ItemStack item);
 
+    /**
+     * Returns whether serialized tags depend only on the immutable item stack.
+     */
+    default boolean isCacheable() {
+        return true;
+    }
+
     void serialize(ItemStack item, NbtMapBuilder tag);
 
     void deserialize(Identifier id, short meta, ItemStackBuilder builder, NbtMap tag);

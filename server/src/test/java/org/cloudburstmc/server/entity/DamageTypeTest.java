@@ -1,9 +1,6 @@
 package org.cloudburstmc.server.entity;
 
-import org.cloudburstmc.api.entity.damage.DamageEffect;
-import org.cloudburstmc.api.entity.damage.DamageScaling;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
-import org.cloudburstmc.api.entity.damage.DeathMessageType;
+import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.network.VanillaTranslationKeys;
 import org.junit.jupiter.api.Test;
@@ -26,8 +23,8 @@ class DamageTypeTest {
     }
 
     @Test
-    public void usesAvailableVanillaDeathMessageTranslations() {
-        for (var damageType : DamageTypes.values()) {
+    void usesAvailableVanillaDeathMessageTranslations() {
+        for (DamageType damageType : DamageTypes.values()) {
             assertTrue(VanillaTranslationKeys.contains(damageType.getTranslationKey()), damageType::toString);
         }
     }

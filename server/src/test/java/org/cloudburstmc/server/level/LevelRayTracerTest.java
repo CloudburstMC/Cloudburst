@@ -142,6 +142,30 @@ class LevelRayTracerTest {
     }
 
     @Test
+    void sourceTraceFindsWaterAroundAPartialOutline() {
+        BlockType type = BlockType.of(Identifier.parse("test:waterlogged_outline"), BlockTraits.LIQUID_DEPTH);
+        BlockRegistrationAccess.bindLiquidType(type, LiquidTypes.WATER);
+
+        LiquidState liquid = LiquidState.of(type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0));
+        Block waterlogged = block(CloudVoxelShapes.empty(), CloudVoxelShapes.box(0.9375f, 0.125f, 0.125f, 1, 0.875f, 0.875f), liquid);
+        Block empty = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.empty());
+        Level level = level(waterlogged, empty, Set.of());
+
+        Vector3f start = Vector3f.from(0.5f, 0.5f, 0.05f);
+        Vector3f end = Vector3f.from(3.5f, 0.5f, 0.05f);
+
+        BlockHitResult hit = assertInstanceOf(BlockHitResult.class, LevelRayTracer.rayTraceBlocks(level,
+                new RayTraceContext(start, end, BlockShapeMode.OUTLINE, FluidCollisionMode.SOURCE_ONLY, CollisionContext.empty())));
+
+        assertSame(waterlogged, hit.block());
+        assertTrue(hit.liquid());
+        assertEquals(Vector3f.from(2, 0.5f, 0.05f), hit.position());
+
+        assertInstanceOf(MissHitResult.class, LevelRayTracer.rayTraceBlocks(level,
+                new RayTraceContext(start, end, BlockShapeMode.OUTLINE, FluidCollisionMode.NONE, CollisionContext.empty())));
+    }
+
+    @Test
     void unloadedCellsOccludeEntitiesBehindThem() {
         Block empty = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.empty());
         Entity entity = InterfaceProxy.create(Entity.class, Map.of("getBoundingBox",

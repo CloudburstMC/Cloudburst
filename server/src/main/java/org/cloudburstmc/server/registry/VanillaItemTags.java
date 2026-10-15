@@ -20,6 +20,8 @@ public class VanillaItemTags {
     private static final Map<ItemTagKey, ItemTag> RESOLVED = new IdentityHashMap<>();
 
     static {
+        tag(MAP_INVISIBILITY_EQUIPMENT, CARVED_PUMPKIN, CREEPER_HEAD, DRAGON_HEAD, PIGLIN_HEAD,
+                PLAYER_HEAD, SKELETON_SKULL, WITHER_SKELETON_SKULL, ZOMBIE_HEAD);
         initWoodenToolMaterials();
         initStoneToolMaterials();
         initCopperToolMaterials();
