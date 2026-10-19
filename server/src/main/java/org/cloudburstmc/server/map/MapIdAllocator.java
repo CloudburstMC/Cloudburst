@@ -1,15 +1,12 @@
 package org.cloudburstmc.server.map;
 
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
+import org.cloudburstmc.server.persistence.AtomicFiles;
+import org.cloudburstmc.server.persistence.NbtFiles;
 
 import java.io.IOException;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 public class MapIdAllocator {
 
@@ -25,13 +22,12 @@ public class MapIdAllocator {
         this.nextId = minimumNextId;
 
         if (Files.exists(this.counterFile)) {
-            try (NBTInputStream input = NbtUtils.createGZIPReader(Files.newInputStream(this.counterFile))) {
-                if (!(input.readTag() instanceof NbtMap data) || !(data.get("nextId") instanceof Long next) || next < 0) {
-                    throw new IOException("Invalid map ID counter");
-                }
-
-                this.nextId = Math.max(this.nextId, next);
+            NbtMap data = NbtFiles.readCompressed(this.counterFile);
+            if (!(data.get("nextId") instanceof Long next) || next < 0) {
+                throw new IOException("Invalid map ID counter");
             }
+
+            this.nextId = Math.max(this.nextId, next);
         }
     }
 
@@ -54,17 +50,8 @@ public class MapIdAllocator {
             return ids;
         }
 
-        Path temporary = this.counterFile.resolveSibling("idcounts.tmp");
         try {
-            try (NBTOutputStream output = NbtUtils.createGZIPWriter(Files.newOutputStream(temporary))) {
-                output.writeTag(NbtMap.builder().putLong("nextId", end).build());
-            }
-
-            try {
-                Files.move(temporary, this.counterFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temporary, this.counterFile, StandardCopyOption.REPLACE_EXISTING);
-            }
+            AtomicFiles.write(this.counterFile, NbtFiles.encodeCompressed(NbtMap.builder().putLong("nextId", end).build()));
         } catch (IOException e) {
             throw new IllegalStateException("Could not reserve map IDs", e);
         }

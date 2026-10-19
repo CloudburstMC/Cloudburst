@@ -7,114 +7,67 @@ import org.cloudburstmc.api.event.server.PlayerDataSerializeEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.PlayerDataKey;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
-import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.CloudServer;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Log4j2
 @RequiredArgsConstructor
-public final class CloudPlayerDataStore {
-    private static final Pattern UUID_DATA_FILE = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.dat$", Pattern.CASE_INSENSITIVE);
+public class CloudPlayerDataStore implements AutoCloseable {
 
     private final CloudServer server;
+    private final ThreadLocal<Boolean> saving = ThreadLocal.withInitial(() -> false);
+    private final ExecutorService writer = Executors.newSingleThreadExecutor(Thread.ofVirtual().name("Cloudburst Player Data Writer").factory());
 
     public @Nullable NbtMap read(UUID uuid, boolean create) {
-        return this.read(PlayerDataKey.of(uuid), create, true);
+        return this.read(PlayerDataKey.of(uuid), create);
     }
 
     public @Nullable NbtMap read(String name, boolean create) {
-        PlayerDataKey key = this.server.lookupName(name)
-                .map(uuid -> PlayerDataKey.of(uuid, name))
-                .orElseGet(() -> PlayerDataKey.named(name));
-        return this.read(key, create, true);
+        Optional<UUID> uuid = this.server.lookupName(name);
+        if (uuid.isEmpty()) {
+            if (create) {
+                throw new IllegalStateException("Player identity is unknown: " + name);
+            }
+            return null;
+        }
+
+        return this.read(PlayerDataKey.of(uuid.get(), name), create);
     }
 
     public void save(UUID uuid, NbtMap tag, boolean async) {
-        this.save(PlayerDataKey.of(uuid), tag, async, true);
+        this.save(PlayerDataKey.of(uuid), tag, async);
     }
 
     public void save(String name, NbtMap tag, boolean async) {
         PlayerDataKey key = this.server.lookupName(name)
                 .map(uuid -> PlayerDataKey.of(uuid, name))
-                .orElseGet(() -> PlayerDataKey.named(name));
-        this.save(key, tag, async, true);
+                .orElseThrow(() -> new IllegalStateException("Player identity is unknown: " + name));
+        this.save(key, tag, async);
     }
 
-    public void convertLegacyData() {
-        File dataDirectory = this.server.getDataPath().resolve("players").toFile();
-        File[] files = dataDirectory.listFiles(file -> {
-            String fileName = file.getName();
-            Matcher matcher = UUID_DATA_FILE.matcher(fileName);
-            return !matcher.matches() && fileName.endsWith(".dat");
-        });
-
-        if (files == null) {
-            return;
-        }
-
-        for (File legacyData : files) {
-            String name = legacyData.getName();
-            name = name.substring(0, name.length() - 4);
-
-            log.debug("Attempting legacy player data conversion for {}", name);
-
-            NbtMap tag = this.read(PlayerDataKey.named(name), false, false);
-            if (tag == null || !tag.containsKey("UUIDLeast") || !tag.containsKey("UUIDMost")) {
-                continue;
-            }
-
-            UUID uuid = new UUID(tag.getLong("UUIDMost"), tag.getLong("UUIDLeast"));
-            if (!tag.containsKey("NameTag")) {
-                tag = tag.toBuilder().putString("NameTag", name).build();
-            }
-
-            if (this.server.getDataPath().resolve("players").resolve(uuid + ".dat").toFile().exists()) {
-                continue;
-            }
-
-            this.save(PlayerDataKey.of(uuid, name), tag, false, false);
-            this.server.updateName(uuid, name);
-
-            if (!legacyData.delete()) {
-                log.warn("Unable to delete legacy data for {}", name);
-            }
-        }
-    }
-
-    private @Nullable NbtMap read(PlayerDataKey key, boolean create, boolean fireEvent) {
+    private @Nullable NbtMap read(PlayerDataKey key, boolean create) {
+        requireExternalCaller();
+        CompletableFuture.runAsync(() -> {}, writer).join();
         PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(key, this.server.getPlayerDataSerializer());
-        if (fireEvent) {
-            this.server.getEventManager().fire(event);
-        }
+        this.server.getEventManager().fire(event);
 
-        Optional<InputStream> dataStream = Optional.empty();
         try {
-            dataStream = event.getSerializer().read(event.getKey());
-            if (dataStream.isPresent()) {
-                try (NBTInputStream stream = NbtUtils.createGZIPReader(dataStream.get())) {
-                    return (NbtMap) stream.readTag();
-                }
+            Optional<NbtMap> data = event.getSerializer().read(event.getKey());
+            if (data.isPresent()) {
+                return data.get();
             }
         } catch (IOException e) {
-            log.warn(this.server.getLanguage().translate("cloudburst.data.playerCorrupted", key.getStorageId()));
-            log.throwing(e);
-        } finally {
-            dataStream.ifPresent(stream -> {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    log.throwing(e);
-                }
-            });
+            throw new UncheckedIOException("Unable to load player data for " + key.uniqueId(), e);
         }
 
         if (!create) {
@@ -123,35 +76,47 @@ public final class CloudPlayerDataStore {
 
         log.info(this.server.getLanguage().translate("cloudburst.data.playerNotFound", key.getStorageId()));
         NbtMap tag = this.createDefaultData();
-        this.save(key, tag, true, fireEvent);
+        this.save(key, tag, true);
         return tag;
     }
 
-    private void save(PlayerDataKey key, NbtMap tag, boolean async, boolean fireEvent) {
+    private void save(PlayerDataKey key, NbtMap tag, boolean async) {
+        requireExternalCaller();
         if (!this.server.shouldSavePlayerData()) {
             return;
         }
 
         PlayerDataSerializeEvent event = new PlayerDataSerializeEvent(key, this.server.getPlayerDataSerializer());
-        if (fireEvent) {
-            this.server.getEventManager().fire(event);
-        }
+        this.server.getEventManager().fire(event);
 
-        Runnable task = () -> this.write(event.getSerializer(), event.getKey(), tag);
-        if (async) {
-            this.server.getAsyncScheduler().runNow(null, ignored -> task.run());
-        } else {
-            task.run();
+        CompletableFuture<Void> save = CompletableFuture.runAsync(() -> this.write(event.getSerializer(), event.getKey(), tag), writer);
+        if (!async) {
+            save.join();
         }
     }
 
     private void write(PlayerDataSerializer serializer, PlayerDataKey key, NbtMap tag) {
-        try (OutputStream dataStream = serializer.write(key);
-             NBTOutputStream stream = NbtUtils.createGZIPWriter(dataStream)) {
-            stream.writeTag(tag);
+        saving.set(true);
+        try {
+            serializer.write(key, tag);
         } catch (Exception e) {
-            log.error(this.server.getLanguage().translate("cloudburst.data.saveError", key.getStorageId(), e));
+            log.error("Unable to save player data for {}", key.uniqueId(), e);
+            throw new IllegalStateException("Unable to save player data for " + key.uniqueId(), e);
+        } finally {
+            saving.remove();
         }
+    }
+
+    private void requireExternalCaller() {
+        if (saving.get()) {
+            throw new IllegalStateException("Player-data storage callbacks must not re-enter player-data operations");
+        }
+    }
+
+    @Override
+    public void close() {
+        requireExternalCaller();
+        writer.close();
     }
 
     private NbtMap createDefaultData() {

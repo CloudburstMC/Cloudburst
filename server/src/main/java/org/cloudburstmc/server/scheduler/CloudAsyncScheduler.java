@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.ScheduledTask;
+import org.cloudburstmc.server.diagnostics.ServerExceptionHandler;
 
 import java.util.Objects;
 import java.util.Set;
@@ -32,16 +33,14 @@ public final class CloudAsyncScheduler implements AsyncScheduler {
     private final Executor executor = Executors.newThreadPerTaskExecutor(
             Thread.ofVirtual()
                     .name("Cloudburst Async Scheduler #", 0)
-                    .uncaughtExceptionHandler((thread, t) ->
-                            log.error("Uncaught exception on {}", thread.getName(), t))
+                    .uncaughtExceptionHandler(ServerExceptionHandler::dispatch)
                     .factory()
     );
 
     private final ScheduledExecutorService timerThread = Executors.newSingleThreadScheduledExecutor(r -> {
         Thread t = new Thread(r, "Cloudburst Async Scheduler Timer");
         t.setPriority(Thread.NORM_PRIORITY + 1);
-        t.setUncaughtExceptionHandler((thread, ex) ->
-                log.error("Uncaught exception on {}", thread.getName(), ex));
+        t.setUncaughtExceptionHandler(ServerExceptionHandler::dispatch);
         t.setDaemon(true);
         return t;
     });

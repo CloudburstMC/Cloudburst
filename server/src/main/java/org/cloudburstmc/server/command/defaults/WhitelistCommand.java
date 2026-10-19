@@ -8,6 +8,7 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
 import org.cloudburstmc.api.command.argument.CommandArguments;
+import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.CommandUtils;
@@ -57,14 +58,14 @@ public class WhitelistCommand extends AdvertisedCommand {
 
     private int enable(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
-        server(context).getConfig().setWhitelist(true);
+        server(context).setWhitelist(true);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.enabled"));
         return success();
     }
 
     private int disable(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
-        server(context).getConfig().setWhitelist(false);
+        server(context).setWhitelist(false);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.disabled"));
         return success();
     }
@@ -73,8 +74,8 @@ public class WhitelistCommand extends AdvertisedCommand {
         CommandSender sender = sender(context);
         StringJoiner result = new StringJoiner(", ");
         int count = 0;
-        for (String player : server(context).getWhitelist().getAll().keySet()) {
-            result.add(player);
+        for (OfflinePlayer player : server(context).getWhitelistedPlayers()) {
+            result.add(player.getName() == null ? player.getUniqueId().toString() : player.getName());
             count++;
         }
         sender.sendMessage(Component.translatable("commands.whitelist.list", Component.text(count), Component.text(count)));
@@ -92,7 +93,12 @@ public class WhitelistCommand extends AdvertisedCommand {
     private int add(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
         String player = argumentValue(context, "player");
-        server(context).getOfflinePlayer(player).setWhitelisted(true);
+        OfflinePlayer target = server(context).getOfflinePlayer(player);
+        if (target.getUniqueId() == null) {
+            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        }
+
+        target.setWhitelisted(true);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.add.success", Component.text(player)));
         return success();
     }
@@ -100,7 +106,12 @@ public class WhitelistCommand extends AdvertisedCommand {
     private int remove(CommandContext<CommandSourceStack> context) {
         CommandSender sender = sender(context);
         String player = argumentValue(context, "player");
-        server(context).getOfflinePlayer(player).setWhitelisted(false);
+        OfflinePlayer target = server(context).getOfflinePlayer(player);
+        if (target.getUniqueId() == null) {
+            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        }
+
+        target.setWhitelisted(false);
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.whitelist.remove.success", Component.text(player)));
         return success();
     }

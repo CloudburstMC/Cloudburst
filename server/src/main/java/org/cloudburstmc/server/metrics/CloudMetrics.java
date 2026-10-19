@@ -1,12 +1,12 @@
 package org.cloudburstmc.server.metrics;
 
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.api.configuration.Configuration;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.utils.Config;
+import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
+import org.cloudburstmc.server.persistence.AtomicFiles;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -128,11 +128,11 @@ public class CloudMetrics {
                     "# This has nearly no effect on the server performance!",
                     "# Check out https://bStats.org/ to learn more :)",
                     "enabled: true",
-                    "serverUuid: \"" + UUID.randomUUID().toString() + "\"",
+                    "serverUuid: \"" + UUID.randomUUID() + "\"",
                     "logFailedRequests: false");
         }
 
-        Config config = new Config(configFile, Config.YAML);
+        Configuration config = new YamlConfigurationLoader().load(configFile.toPath());
 
         // Load configuration
         this.enabled = config.getBoolean("enabled", true);
@@ -141,12 +141,6 @@ public class CloudMetrics {
     }
 
     private void writeFile(File file, String... lines) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (String line : lines) {
-                writer.write(line);
-                writer.newLine();
-            }
-        }
+        AtomicFiles.write(file.toPath(), String.join("\n", lines) + "\n");
     }
-
 }

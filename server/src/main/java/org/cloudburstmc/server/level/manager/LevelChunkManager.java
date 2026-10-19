@@ -11,11 +11,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.event.level.ChunkLoadEvent;
 import org.cloudburstmc.api.event.level.ChunkPopulateEvent;
 import org.cloudburstmc.api.event.level.ChunkUnloadEvent;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndDimension;
-import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public final class LevelChunkManager {
 
     public LevelChunkManager(CloudLevel level, LevelProvider provider) {
         this.level = level;
-        ServerConfig.ChunkGeneration chunkGeneration = level.getServer().getConfig().getChunkGeneration();
+        GlobalConfiguration.ChunkGeneration chunkGeneration = level.getServer().getConfig().getChunkGeneration();
         this.scheduler = new ChunkTaskScheduler(level, chunkGeneration);
         this.maxActiveSaves = Math.max(1, chunkGeneration.getSaveConcurrency());
         this.provider = provider;

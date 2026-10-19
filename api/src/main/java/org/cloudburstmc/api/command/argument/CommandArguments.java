@@ -10,7 +10,7 @@ import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.potion.EffectType;
 
 /**
- * Creates command arguments backed by the server's live registries and entity selector implementation.
+ * Creates command arguments for registered types, players, and entities.
  *
  * <p>Obtain this service from {@link org.cloudburstmc.api.command.Commands#arguments()}.</p>
  */

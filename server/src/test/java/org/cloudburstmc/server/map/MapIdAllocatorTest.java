@@ -4,7 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -12,6 +15,17 @@ class MapIdAllocatorTest {
 
     @TempDir
     private Path directory;
+
+    @Test
+    void counterReplacementDoesNotLeaveTemporaryFilesOrUnrequestedBackups() throws IOException {
+        MapIdAllocator ids = new MapIdAllocator(directory, 0);
+        ids.allocate(1);
+        ids.allocate(1);
+
+        try (Stream<Path> files = Files.list(directory)) {
+            assertEquals(List.of(directory.resolve("idcounts.dat")), files.toList());
+        }
+    }
 
     @Test
     void preservesUncraftedScaleReservationsAcrossRestarts() throws IOException {

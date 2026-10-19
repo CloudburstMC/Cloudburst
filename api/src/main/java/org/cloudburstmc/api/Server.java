@@ -2,6 +2,7 @@ package org.cloudburstmc.api;
 
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.ban.BanList;
 import org.cloudburstmc.api.boss.BossBar;
 import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
@@ -21,32 +22,68 @@ import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.net.InetAddress;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Access to connected players, loaded levels, registries, and server services.
+ */
 public interface Server {
 
     JsonMapper JSON_MAPPER = new JsonMapper();
     String BROADCAST_CHANNEL_ADMINISTRATIVE = "cloudburst.broadcast.admin";
     String BROADCAST_CHANNEL_USERS = "cloudburst.broadcast.user";
 
+    /**
+     * Returns the server software's name.
+     */
     String getName();
 
+    /**
+     * Returns the supported Minecraft version.
+     */
     String getVersion();
 
+    /**
+     * Returns the server implementation's build version.
+     */
     String getImplementationVersion();
 
+    /**
+     * Returns the version of the plugin API.
+     */
+    String getApiVersion();
+
+    /**
+     * Requests an orderly server shutdown.
+     */
     void shutdown();
 
+    /**
+     * Returns whether the server is running.
+     */
     boolean isRunning();
 
+    /**
+     * Returns the plugin manager.
+     */
     PluginManager getPluginManager();
 
+    /**
+     * Returns the registry of block-entity types and factories.
+     */
     BlockEntityRegistry getBlockEntityRegistry();
 
+    /**
+     * Returns the registry of block types and their components.
+     */
     BlockRegistry getBlockRegistry();
 
+    /**
+     * Returns the biome registry.
+     */
     BiomeRegistry getBiomeRegistry();
 
     /**
@@ -56,20 +93,44 @@ public interface Server {
      */
     DamageTypeRegistry getDamageTypeRegistry();
 
+    /**
+     * Returns the status-effect registry.
+     */
     EffectRegistry getEffectRegistry();
 
+    /**
+     * Returns the enchantment registry.
+     */
     EnchantmentRegistry getEnchantmentRegistry();
 
+    /**
+     * Returns the registry of entity types, factories, and components.
+     */
     EntityRegistry getEntityRegistry();
 
+    /**
+     * Returns the game-rule registry.
+     */
     GameRuleRegistry getGameRuleRegistry();
 
+    /**
+     * Returns the registry of item types and their components.
+     */
     ItemRegistry getItemRegistry();
 
+    /**
+     * Returns the particle registry.
+     */
     ParticleRegistry getParticleRegistry();
 
+    /**
+     * Returns the crafting recipe registry.
+     */
     RecipeRegistry getRecipeRegistry();
 
+    /**
+     * Returns the resource-pack registry.
+     */
     ResourcePackRegistry getResourcePackRegistry();
 
     /**
@@ -82,10 +143,19 @@ public interface Server {
      */
     BossBar createBossBar(Component title, BossBarColor color, BossBarStyle style);
 
+    /**
+     * Returns the current server tick count.
+     */
     int getTick();
 
+    /**
+     * Returns the event manager for registering listeners and calling events.
+     */
     EventManager getEventManager();
 
+    /**
+     * Returns whether flight is allowed by the server's configuration.
+     */
     boolean getAllowFlight();
 
     /**
@@ -137,10 +207,19 @@ public interface Server {
      */
     void subMotd(Component subMotd);
 
+    /**
+     * Returns an immutable snapshot of online players keyed by UUID.
+     */
     Map<UUID, ? extends Player> getOnlinePlayers();
 
+    /**
+     * Returns the default game mode for players.
+     */
     GameMode getGameMode();
 
+    /**
+     * Returns the primary level.
+     */
     Level getDefaultLevel();
 
     /**
@@ -166,48 +245,62 @@ public interface Server {
      */
     boolean unloadLevel(Level level);
 
+    /**
+     * Returns the configured player limit.
+     */
     int getMaxPlayers();
 
+    /**
+     * Returns whether the whitelist is enabled. Operators may join without being listed.
+     */
     boolean hasWhitelist();
 
-    void addWhitelist(Player who);
+    /**
+     * Enables or disables whitelist admission checks and persists the setting.
+     * Does not disconnect players already online.
+     */
+    void setWhitelist(boolean enabled);
 
-    void removeWhitelist(Player who);
+    /**
+     * Returns a snapshot of explicitly whitelisted players, whether or not the whitelist is enabled.
+     * Change membership through {@link OfflinePlayer#setWhitelisted(boolean)}.
+     */
+    Set<OfflinePlayer> getWhitelistedPlayers();
 
-    boolean isWhitelisted(Player who);
+    /**
+     * Reloads whitelist membership from disk. Invalid data preserves the active list.
+     */
+    void reloadWhitelist();
 
-    boolean isBanned(Player who);
+    /**
+     * Returns a snapshot of server operators. Change status through
+     * {@link OfflinePlayer#setOp(boolean)} or {@link Player#setOp(boolean)}.
+     */
+    Set<OfflinePlayer> getOperators();
 
-    boolean isIPBanned(Player who);
+    /**
+     * Returns bans keyed by player UUID. Adding a ban does not automatically disconnect players.
+     */
+    BanList<UUID> getPlayerBanList();
 
-    void setBanned(Player who, boolean banned, boolean byIP);
+    /**
+     * Returns IP bans. Addresses are compared directly without DNS lookups.
+     */
+    BanList<InetAddress> getIpBanList();
 
-    default void ban(Player who) {
-        setBanned(who, true, false);
-    }
-
-    default void banIP(Player who) {
-        setBanned(who, true, true);
-    }
-
-    default void unban(Player who) {
-        setBanned(who, false, false);
-    }
-
-    void addOp(Player who);
-
-    void addOp(String name);
-
-    void removeOp(Player who);
-
-    void removeOp(String name);
-
-    boolean isOp(Player who);
-
+    /**
+     * Returns the configured network port.
+     */
     int getPort();
 
+    /**
+     * Returns the configured bind address, or an empty string to bind to all interfaces.
+     */
     String getIp();
 
+    /**
+     * Returns the server's default difficulty.
+     */
     Difficulty getDifficulty();
 
     /**
@@ -220,20 +313,44 @@ public interface Server {
      */
     boolean isEndAllowed();
 
-    void addOnlinePlayer(Player who);
-
-    void onPlayerCompleteLoginSequence(Player who);
-
+    /**
+     * Finds the online player with the shortest case-insensitive name prefix match.
+     * Prefer UUID-based identity when storing a reference to a player.
+     *
+     * @param name the full name or prefix to match
+     * @return a matching player, or null when none matches
+     */
     @Nullable
     Player getPlayer(String name);
 
+    /**
+     * Returns a reference to a player by UUID, whether or not they have joined before.
+     * The reference's name may be unknown.
+     */
     OfflinePlayer getOfflinePlayer(UUID uuid);
 
+    /**
+     * Returns a player reference using locally known name information.
+     * This does not contact an authentication service. The UUID may be unknown.
+     */
     OfflinePlayer getOfflinePlayer(String name);
 
+    /**
+     * Enables or disables automatic saving for the server and its loaded levels.
+     */
     void setAutoSave(boolean autoSave);
 
-    String getApiVersion();
+    /**
+     * Reloads server YAML settings and level overrides on the server thread.
+     * Every file is validated before settings become active. Changes to startup-only
+     * settings, including server.properties, are rejected and require a restart.
+     * Plugin configurations and plugin lifecycles are not reloaded.
+     *
+     * @throws IllegalStateException        if called off the server thread
+     * @throws IllegalArgumentException     if settings are invalid or require a restart
+     * @throws java.io.UncheckedIOException if settings cannot be read
+     */
+    void reloadConfiguration();
 
     /**
      * Returns the main-thread, tick-bound global scheduler.
@@ -244,4 +361,20 @@ public interface Server {
      * Returns the off-thread, real-time async scheduler.
      */
     AsyncScheduler getAsyncScheduler();
+
+    /**
+     * Registers a player as online and updates the player list.
+     * This is a server lifecycle hook, not a way for plugins to create players.
+     *
+     * @param who the player completing login
+     */
+    void addOnlinePlayer(Player who);
+
+    /**
+     * Sends the initial player list after login has completed.
+     * This is a server lifecycle hook and should not be called by plugins.
+     *
+     * @param who the player completing login
+     */
+    void onPlayerCompleteLoginSequence(Player who);
 }

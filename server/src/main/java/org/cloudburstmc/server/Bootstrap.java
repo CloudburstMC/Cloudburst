@@ -8,9 +8,9 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import joptsimple.util.PathConverter;
-import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
@@ -18,16 +18,12 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.server.block.BlockDefinitionDeserializer;
 import org.cloudburstmc.server.block.BlockStateDeserializer;
+import org.cloudburstmc.server.diagnostics.CrashReports;
 import org.cloudburstmc.server.utils.ColorDeserializer;
 import org.cloudburstmc.server.utils.ServerKiller;
 import tools.jackson.core.Version;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.dataformat.javaprop.JavaPropsMapper;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 
 import java.awt.*;
 import java.io.*;
@@ -50,7 +46,6 @@ import java.util.Properties;
 /**
  * The entry point of Cloudburst CloudServer.
  */
-@Log4j2
 public class Bootstrap {
     public final static Properties GIT_INFO = getGitInfo();
     public final static String VERSION = getVersion();
@@ -58,16 +53,6 @@ public class Bootstrap {
     public final static Path PATH = Paths.get(System.getProperty("user.dir"));
     public static final JsonMapper JSON_MAPPER = JsonMapper.builder()
             .addModule(createCloudburstModule())
-            .build();
-    public static final YAMLMapper YAML_MAPPER = YAMLMapper.builder()
-            .addModule(createCloudburstModule())
-            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
-            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-            .build();
-    public static final JavaPropsMapper JAVA_PROPS_MAPPER = JavaPropsMapper.builder()
-            .addModule(createCloudburstModule())
-            .propertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
             .build();
     public static final long START_TIME = System.currentTimeMillis();
     public static boolean ANSI = true;
@@ -104,10 +89,6 @@ public class Bootstrap {
 
         System.getProperties().putIfAbsent("io.netty.allocator.type", "unpooled");
 
-        // Netty logger for debug info
-        InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
-        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
-
         // Define args
         OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();
@@ -119,7 +100,7 @@ public class Bootstrap {
                 "Set verbosity of logging").withRequiredArg().ofType(String.class);
         OptionSpec<String> languageSpec = parser.accepts("language",
                 "Set a predefined language").withOptionalArg().ofType(String.class);
-        OptionSpec<Path> dataPathSpec = parser.accepts("data-path", "path of main server data e.g. plexus.yml")
+        OptionSpec<Path> dataPathSpec = parser.accepts("data-path", "Main server data directory")
                 .withRequiredArg()
                 .withValuesConvertedBy(new PathConverter())
                 .defaultsTo(PATH);
@@ -143,7 +124,14 @@ public class Bootstrap {
             return;
         }
 
-        Path dataPath = options.valueOf(dataPathSpec);
+        Path dataPath = options.valueOf(dataPathSpec).toAbsolutePath().normalize();
+        System.setProperty("cloudburst.log-directory", dataPath.resolve("logs").toString());
+        LoggerContext logging = (LoggerContext) LogManager.getContext(false);
+        logging.reconfigure();
+        Logger log = LogManager.getLogger(Bootstrap.class);
+
+        InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
 
         Path pluginPath;
         if (options.has(pluginPathSpec)) {
@@ -173,28 +161,36 @@ public class Bootstrap {
         }
 
         String language = options.valueOf(languageSpec);
-
-        CloudServer server = new CloudServer(dataPath, pluginPath, levelPath, language);
+        ServerFileLayout files = new ServerFileLayout(dataPath, levelPath);
 
         try {
+            CloudServer server = new CloudServer(dataPath, pluginPath, levelPath, language);
             if (TITLE) {
                 System.out.print((char) 0x1b + "]0;Cloudburst is starting up..." + (char) 0x07);
             }
             server.boot();
         } catch (Throwable t) {
             log.fatal("Cloudburst crashed", t);
+            try {
+                log.fatal("Crash report saved to {}", CrashReports.write(files.crashReports(), Thread.currentThread(), t));
+            } catch (Exception reportFailure) {
+                log.error("Unable to write crash report", reportFailure);
+            }
         }
 
         if (TITLE) {
             System.out.print((char) 0x1b + "]0;Stopping CloudServer..." + (char) 0x07);
         }
+
         log.info("Stopping other threads");
 
-        for (Thread thread : java.lang.Thread.getAllStackTraces().keySet()) {
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
             if (!(thread instanceof InterruptibleThread)) {
                 continue;
             }
+
             log.debug("Stopping {} thread", thread.getClass().getSimpleName());
+
             if (thread.isAlive()) {
                 thread.interrupt();
             }

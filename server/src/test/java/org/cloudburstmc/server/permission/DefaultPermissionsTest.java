@@ -12,6 +12,11 @@ class DefaultPermissionsTest {
         DefaultPermissions.registerCorePermissions(manager);
 
         assertTrue(manager.getPermission("cloudburst.command").isPresent());
+        assertTrue(manager.getPermission("cloudburst.command.ban").isPresent());
+        assertTrue(manager.getPermission("cloudburst.command.ban-ip").isPresent());
+        assertTrue(manager.getPermission("cloudburst.command.banlist").isPresent());
+        assertTrue(manager.getPermission("cloudburst.command.pardon").isPresent());
+        assertTrue(manager.getPermission("cloudburst.command.pardon-ip").isPresent());
         assertTrue(manager.getPermission("cloudburst.command.gamemode.other").isPresent());
         assertTrue(manager.getPermission("cloudburst.command.kill.self").isPresent());
         assertTrue(manager.getPermission("cloudburst.command.setblock").isPresent());

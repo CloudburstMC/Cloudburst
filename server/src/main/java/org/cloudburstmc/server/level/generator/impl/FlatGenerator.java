@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.generator.impl;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.Generator;
+import org.cloudburstmc.server.level.generator.GeneratorConfigurationMapper;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector;
 import org.cloudburstmc.server.level.generator.standard.misc.selector.BlockSelector.Entry;
 import tools.jackson.core.JacksonException;
@@ -28,7 +28,7 @@ public final class FlatGenerator implements Generator {
         }
 
         try {
-            this.layers = Bootstrap.YAML_MAPPER.readValue(options, BlockSelector.class).entries().toArray(Entry[]::new);
+            this.layers = GeneratorConfigurationMapper.MAPPER.readValue(options, BlockSelector.class).entries().toArray(Entry[]::new);
         } catch (JacksonException e) {
             throw new IllegalArgumentException(options, e);
         }

@@ -8,12 +8,12 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.ServerFileLayout;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.diagnostics.DebugReport;
 import org.cloudburstmc.server.diagnostics.MclogsClient;
 
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
@@ -35,11 +35,11 @@ public class DebugPasteCommand extends AdvertisedCommand {
 
         try {
             String snapshot = DebugReport.capture(server);
-            Path dataPath = server.getDataPath();
+            ServerFileLayout files = server.getFiles();
             sender.sendMessage(Component.text("Uploading a public debug report to mclo.gs. Logs may contain sensitive information.", NamedTextColor.YELLOW));
             server.getAsyncScheduler().runNow(null, task -> {
                 try {
-                    URI link = this.client.upload(DebugReport.collect(snapshot, dataPath));
+                    URI link = this.client.upload(DebugReport.collect(snapshot, files));
                     server.getGlobalScheduler().execute(null, () -> sender.sendMessage(
                             Component.text("Debug report: ", NamedTextColor.GREEN)
                                     .append(Component.text(link.toString(), NamedTextColor.AQUA)

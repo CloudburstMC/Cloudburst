@@ -3,8 +3,8 @@ package org.cloudburstmc.plugins.vanilla;
 import com.google.inject.Inject;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.event.Listener;
+import org.cloudburstmc.api.event.server.ServerLoadEvent;
 import org.cloudburstmc.api.event.server.ServerShutdownEvent;
-import org.cloudburstmc.api.event.server.ServerStartEvent;
 import org.cloudburstmc.api.plugin.Plugin;
 
 @Plugin(
@@ -24,7 +24,7 @@ public class VanillaPlugin {
     }
 
     @Listener
-    public void onServerStart(ServerStartEvent event) {
+    public void onServerLoad(ServerLoadEvent event) {
 
     }
 

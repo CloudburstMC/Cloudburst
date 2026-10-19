@@ -8,7 +8,7 @@ public interface GlobalRegistry {
     /**
      * Gets a registry by its API type.
      *
-     * @param registryClass the registry interface or implementation class
+     * @param registryClass the registry's API interface
      * @return the matching registry
      */
     Registry getRegistry(Class<? extends Registry> registryClass);

@@ -17,9 +17,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Identifies a typed value stored on an {@link ItemStack}.
  *
  * <p>A component type also defines how values are copied before they enter an immutable item stack.
- * Factory methods register canonical custom component types and reject identifiers in the reserved
- * {@code minecraft} namespace. Whether a component is persisted is determined by the server's item
- * serialization configuration.</p>
+ * Factory methods register custom component types and reject identifiers in the reserved
+ * {@code minecraft} namespace. Registering a type alone does not make its values persist across
+ * server restarts.</p>
+ *
+ * <p>Register each identifier once. Repeating a factory call with the same identifier and
+ * value types returns the existing type, retaining its original copy operation and empty value.
+ * A conflicting value type is rejected.</p>
  *
  * @param <T> component value type
  */
@@ -81,6 +85,7 @@ public class ItemDataComponentType<T> {
 
     /**
      * Creates a list-valued component type. Stored lists are immutable snapshots.
+     * Elements are not copied and must be immutable.
      *
      * @param id          component identifier
      * @param elementType list element class
@@ -94,6 +99,7 @@ public class ItemDataComponentType<T> {
 
     /**
      * Creates a map-valued component type. Stored maps are immutable snapshots.
+     * Keys and values are not copied and must be immutable.
      *
      * @param id        component identifier
      * @param keyType   map key class
@@ -118,7 +124,7 @@ public class ItemDataComponentType<T> {
     }
 
     /**
-     * Returns all registered component types.
+     * Returns an immutable snapshot of all registered component types.
      *
      * @return component types in registration order
      */
@@ -133,6 +139,15 @@ public class ItemDataComponentType<T> {
      */
     public Identifier getId() {
         return id;
+    }
+
+    /**
+     * Returns the declared class of values stored by this component.
+     *
+     * @return component value class
+     */
+    public Class<?> getValueType() {
+        return valueType;
     }
 
     /**
@@ -171,15 +186,15 @@ public class ItemDataComponentType<T> {
         return list0(id, elementType);
     }
 
-    private static <E> ItemDataComponentType<List<E>> list0(Identifier id, Class<E> elementType) {
-        checkNotNull(elementType, "elementType");
-        return register(id, List.class, List.of(elementType), ImmutableList::copyOf, ImmutableList.of());
-    }
-
     static <K, V> ItemDataComponentType<Map<K, V>> registerMap(Identifier id, Class<K> keyType, Class<V> valueType) {
         checkNotNull(keyType, "keyType");
         checkNotNull(valueType, "valueType");
         return register(id, Map.class, List.of(keyType, valueType), ImmutableMap::copyOf, ImmutableMap.of());
+    }
+
+    private static <E> ItemDataComponentType<List<E>> list0(Identifier id, Class<E> elementType) {
+        checkNotNull(elementType, "elementType");
+        return register(id, List.class, List.of(elementType), ImmutableList::copyOf, ImmutableList.of());
     }
 
     private static <T> ItemDataComponentType<T> copied0(Identifier id, Class<? super T> valueType, UnaryOperator<T> immutableCopy) {

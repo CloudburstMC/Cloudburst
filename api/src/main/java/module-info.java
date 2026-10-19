@@ -1,5 +1,6 @@
 open module org.cloudburstmc.api {
     requires static lombok;
+    requires static transitive org.jetbrains.annotations;
     requires static transitive org.checkerframework.checker.qual;
 
     requires transitive com.google.common;
@@ -9,6 +10,7 @@ open module org.cloudburstmc.api {
     requires transitive net.kyori.adventure;
     requires transitive net.kyori.examination.api;
     requires transitive org.cloudburstmc.math.immutable;
+    requires transitive org.cloudburstmc.nbt;
     requires transitive org.slf4j;
 
     requires com.fasterxml.jackson.annotation;
@@ -19,6 +21,7 @@ open module org.cloudburstmc.api {
     requires tools.jackson.dataformat.yaml;
 
     exports org.cloudburstmc.api;
+    exports org.cloudburstmc.api.ban;
     exports org.cloudburstmc.api.block;
     exports org.cloudburstmc.api.block.component;
     exports org.cloudburstmc.api.block.material;
@@ -28,6 +31,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.command;
     exports org.cloudburstmc.api.command.argument;
     exports org.cloudburstmc.api.command.argument.resolver;
+    exports org.cloudburstmc.api.configuration;
     exports org.cloudburstmc.api.crafting;
     exports org.cloudburstmc.api.data;
     exports org.cloudburstmc.api.enchantment;

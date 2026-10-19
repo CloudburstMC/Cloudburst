@@ -3,21 +3,24 @@ package org.cloudburstmc.server.player;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.player.OfflinePlayer;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.CloudServer;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
 
 public final class CloudOfflinePlayer implements OfflinePlayer {
+
     @Getter
     private final CloudServer server;
     private final @Nullable UUID uniqueId;
     private final @Nullable String name;
-    private final NbtMap namedTag;
+    private @Nullable NbtMap namedTag;
 
     public CloudOfflinePlayer(Server server, UUID uuid) {
         this(server, uuid, null);
@@ -30,30 +33,11 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
     public CloudOfflinePlayer(Server server, @Nullable UUID uuid, @Nullable String name) {
         this.server = (CloudServer) server;
         this.uniqueId = uuid;
+        this.name = name;
 
-        NbtMap loadedTag;
-        if (uuid != null) {
-            loadedTag = this.server.getOfflinePlayerData(uuid, false);
-        } else if (name != null) {
-            loadedTag = this.server.getOfflinePlayerData(name, false);
-        } else {
+        if (uuid == null && name == null) {
             throw new IllegalArgumentException("Name and UUID cannot both be null");
         }
-
-        NbtMap tag = loadedTag == null ? NbtMap.EMPTY : loadedTag;
-        if (uuid != null) {
-            tag = tag.toBuilder()
-                    .putLong("UUIDMost", uuid.getMostSignificantBits())
-                    .putLong("UUIDLeast", uuid.getLeastSignificantBits())
-                    .build();
-        }
-
-        if (name != null && !tag.containsKey("NameTag")) {
-            tag = tag.toBuilder().putString("NameTag", name).build();
-        }
-
-        this.namedTag = tag;
-        this.name = tag.containsKey("NameTag") ? tag.getString("NameTag") : name;
     }
 
     @Override
@@ -63,7 +47,12 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
             return player.get().getName();
         }
 
-        return this.name;
+        if (this.name != null) {
+            return this.name;
+        }
+
+        NbtMap data = this.data();
+        return data.containsKey("NameTag") ? data.getString("NameTag") : null;
     }
 
     @Override
@@ -72,12 +61,25 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
             return this.uniqueId;
         }
 
-        if (!this.namedTag.containsKey("UUIDMost") || !this.namedTag.containsKey("UUIDLeast")) {
+        if (this.name != null) {
+            CloudPlayer online = this.server.getPlayerExact(this.name);
+            if (online != null) {
+                return online.getServerId();
+            }
+
+            Optional<UUID> known = this.server.lookupName(this.name);
+            if (known.isPresent()) {
+                return known.get();
+            }
+        }
+
+        NbtMap data = this.data();
+        if (!data.containsKey("UUIDMost") || !data.containsKey("UUIDLeast")) {
             return null;
         }
 
-        long most = this.namedTag.getLong("UUIDMost");
-        long least = this.namedTag.getLong("UUIDLeast");
+        long most = data.getLong("UUIDMost");
+        long least = data.getLong("UUIDLeast");
         return most != 0 || least != 0 ? new UUID(most, least) : null;
     }
 
@@ -103,78 +105,75 @@ public final class CloudOfflinePlayer implements OfflinePlayer {
 
     @Override
     public boolean isBanned() {
-        String name = this.requireName();
-        return this.server.getNameBans().isBanned(name);
+        UUID uuid = this.getUniqueId();
+        return uuid != null && this.server.getPlayerBanList().isBanned(uuid);
     }
 
     @Override
-    public void setBanned(boolean value) {
-        String name = this.requireName();
-        if (value) {
-            this.server.getNameBans().addBan(name, null, null, null);
-        } else {
-            this.server.getNameBans().remove(name);
-        }
+    public BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source) {
+        return this.server.getPlayerBanList().addBan(this.requireUniqueId(), reason, expiration, source);
     }
 
     @Override
     public boolean isWhitelisted() {
-        return this.server.isWhitelisted(this.requireName());
+        UUID uuid = this.getUniqueId();
+        return uuid != null && this.server.isWhitelisted(uuid);
     }
 
     @Override
     public void setWhitelisted(boolean value) {
-        if (value) {
-            this.server.addWhitelist(this.requireName());
-        } else {
-            this.server.removeWhitelist(this.requireName());
-        }
+        this.server.setWhitelisted(this.requireUniqueId(), this.getName(), value);
     }
 
     @Override
     public OptionalLong getFirstPlayed() {
-        return this.namedTag.containsKey("firstPlayed")
-                ? OptionalLong.of(this.namedTag.getLong("firstPlayed"))
+        NbtMap data = this.data();
+        return data.containsKey("firstPlayed")
+                ? OptionalLong.of(data.getLong("firstPlayed"))
                 : OptionalLong.empty();
     }
 
     @Override
     public OptionalLong getLastPlayed() {
-        return this.namedTag.containsKey("lastPlayed")
-                ? OptionalLong.of(this.namedTag.getLong("lastPlayed"))
+        NbtMap data = this.data();
+        return data.containsKey("lastPlayed")
+                ? OptionalLong.of(data.getLong("lastPlayed"))
                 : OptionalLong.empty();
     }
 
     @Override
     public boolean hasPlayedBefore() {
-        return this.namedTag != NbtMap.EMPTY;
+        return !this.data().isEmpty();
     }
 
     @Override
     public boolean isOp() {
-        return this.server.isOp(this.requireName());
+        UUID uuid = this.getUniqueId();
+        return uuid != null && this.server.isOperator(uuid);
     }
 
     @Override
     public void setOp(boolean value) {
-        String name = this.requireName();
-        if (value == this.server.isOp(name)) {
-            return;
-        }
-
-        if (value) {
-            this.server.addOp(name);
-        } else {
-            this.server.removeOp(name);
-        }
+        this.server.setOperator(this.requireUniqueId(), this.getName(), value);
     }
 
-    private String requireName() {
-        String name = this.getName();
-        if (name == null || name.isBlank()) {
-            throw new IllegalStateException("Offline player has no known name");
+    private synchronized NbtMap data() {
+        if (this.namedTag == null) {
+            NbtMap loaded = this.uniqueId != null
+                    ? this.server.getOfflinePlayerData(this.uniqueId, false)
+                    : this.server.getOfflinePlayerData(this.name, false);
+            this.namedTag = loaded == null ? NbtMap.EMPTY : loaded;
         }
 
-        return name;
+        return this.namedTag;
+    }
+
+    private UUID requireUniqueId() {
+        UUID uuid = this.getUniqueId();
+        if (uuid == null) {
+            throw new IllegalStateException("Player identity is unknown: " + this.getName());
+        }
+
+        return uuid;
     }
 }

@@ -71,7 +71,7 @@ import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.LevelConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
@@ -134,9 +134,6 @@ public class CloudLevel implements Level, BlockStateRegion {
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
 
     private final CloudServer server;
-    private final int maxLiquidTicks;
-    @Getter
-    private final int waterOverLavaFlowSpeed;
     public final LevelTimings timings;
 
     private LevelProvider provider;
@@ -176,10 +173,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     public int sleepTicks = 0;
 
-    private final int chunkTickRadius;
     private final Long2IntMap chunkTickList = new Long2IntOpenHashMap();
-    private final int chunksPerTicks;
-    private final boolean clearChunksOnTick;
 
     private final RandomGenerator random = RandomGenerator.getDefault();
     private @Nullable List<DroppedItem> capturedBlockDrops;
@@ -219,48 +213,11 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.id = id;
         //this.blockMetadata = new BlockMetadataStore(this);
         this.server = server;
-        ServerConfig.World levelConfig = server.getConfig().getWorlds().get(id);
-        ServerConfig.Level defaults = server.getConfig().getLevel();
-        this.maxLiquidTicks = levelConfig != null && levelConfig.getMaxLiquidTicks() != null
-                ? levelConfig.getMaxLiquidTicks() : defaults.getMaxLiquidTicks();
-        this.waterOverLavaFlowSpeed = levelConfig != null && levelConfig.getWaterOverLavaFlowSpeed() != null
-                ? levelConfig.getWaterOverLavaFlowSpeed() : defaults.getWaterOverLavaFlowSpeed();
-        checkArgument(this.maxLiquidTicks > 0, "max-liquid-ticks must be greater than zero for level %s", id);
-        checkArgument(this.waterOverLavaFlowSpeed > 0,
-                "water-over-lava-flow-speed must be greater than zero for level %s", id);
+        this.server.getConfig().initializeLevelConfiguration(id);
         this.autoSave = server.getAutoSave();
         this.provider = levelProvider;
         this.levelData = levelData;
         this.timings = new LevelTimings(this);
-
-//        try {
-//            if (fullConvert) {
-//                String newPath = new File(path).getParent() + "/" + name + ".old/";
-//                new File(path).renameTo(new File(newPath));
-//                this.chunkProvider = chunkProvider.getConstructor(Level.class, String.class).newInstance(this, newPath);
-//            } else {
-//                this.chunkProvider = chunkProvider.getConstructor(Level.class, String.class).newInstance(this, path);
-//            }
-//        } catch (Exception e) {
-//            throw new LevelException("Caused by " + Utils.getExceptionMessage(e));
-//        }
-//
-//        this.timings = new LevelTimings(this);
-//
-//        if (fullConvert) {
-//            this.server.getLogger().info(this.server.getLanguage().translate("cloudburst.level.updating",
-//                    TextFormat.GREEN + this.chunkProvider.getName() + TextFormat.WHITE));
-//            LevelChunkProvider old = this.chunkProvider;
-//            try {
-//                this.chunkProvider = new LevelProviderConverter(this, path)
-//                        .from(old)
-//                        .to(AnvilChunkProvider.class)
-//                        .perform();
-//                old.close();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
 
         this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
@@ -272,11 +229,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             setThunderTime(this.random.nextInt(168000) + 12000);
         }
 
-        this.chunkTickRadius = Math.min(this.server.getViewDistance(),
-                Math.max(1, this.server.getConfig().getChunkTicking().getTickRadius()));
-        this.chunksPerTicks = this.server.getConfig().getChunkTicking().getPerTick();
         this.chunkTickList.clear();
-        this.clearChunksOnTick = this.server.getConfig().getChunkTicking().isClearTickList();
         this.chunkManager = new LevelChunkManager(this);
         this.collisionEngine = new CollisionEngine(this);
         this.endFight = this.getDimension() == DIMENSION_THE_END
@@ -320,6 +273,14 @@ public class CloudLevel implements Level, BlockStateRegion {
     }*/
 
     public void init() {
+    }
+
+    public LevelConfiguration getConfiguration() {
+        return this.server.getConfig().getLevelConfiguration(this.id);
+    }
+
+    public int getWaterOverLavaFlowSpeed() {
+        return this.getConfiguration().getLevel().getWaterOverLavaFlowSpeed();
     }
 
     public CloudServer getServer() {
@@ -588,8 +549,8 @@ public class CloudLevel implements Level, BlockStateRegion {
                 this.endFight.tick();
             }
 
-            int maxBlockTicks = this.server.getConfig().getLevel().getMaxBlockTicks();
-            int maxLiquidTicks = this.maxLiquidTicks;
+            int maxBlockTicks = this.getConfiguration().getLevel().getMaxBlockTicks();
+            int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
             this.chunkManager.promoteReadyChunks();
             try (Timing ignored2 = timings.scheduledBlockTicks.startTiming()) {
                 this.blockUpdateQueue.tick(this.getCurrentTick(), maxBlockTicks);
@@ -836,14 +797,18 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     private void tickChunks() {
-        if (this.chunksPerTicks <= 0 || this.players.isEmpty()) {
+        LevelConfiguration.ChunkTicking settings = this.getConfiguration().getChunkTicking();
+        int chunksPerTick = settings.getPerTick();
+        int tickRadius = Math.min(this.server.getViewDistance(), Math.max(1, settings.getTickRadius()));
+
+        if (chunksPerTick <= 0 || this.players.isEmpty()) {
             this.chunkTickList.clear();
             return;
         }
 
-        int chunksPerLoader = Math.clamp((int) (((double) (this.chunksPerTicks - this.players.size()) / this.players.size() + 0.5)), 1, 200);
+        int chunksPerLoader = Math.clamp((int) (((double) (chunksPerTick - this.players.size()) / this.players.size() + 0.5)), 1, 200);
         int randRange = 3 + chunksPerLoader / 30;
-        randRange = Math.min(randRange, this.chunkTickRadius);
+        randRange = Math.min(randRange, tickRadius);
 
         RandomGenerator random = this.random;
         if (!this.players.isEmpty()) {
@@ -952,7 +917,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             }
         }
 
-        if (this.clearChunksOnTick) {
+        if (settings.isClearTickList()) {
             this.chunkTickList.clear();
         }
     }
@@ -994,7 +959,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     public void updateAround(int posX, int posY, int posZ) {
         NeighborUpdateContext context = NEIGHBOR_UPDATES.get();
         Vector3i centre = Vector3i.from(posX, posY, posZ);
-        int cap = this.server.getConfig().getLevel().getMaxChainedNeighborUpdates();
+        int cap = this.getConfiguration().getLevel().getMaxChainedNeighborUpdates();
         if (cap >= 0 && context.count >= cap) {
             if (context.count == cap) {
                 log.error("Neighbor-update chain exceeded {} updates near {}. Skipping remaining updates.", cap, centre);

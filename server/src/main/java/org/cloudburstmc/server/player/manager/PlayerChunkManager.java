@@ -99,6 +99,7 @@ public final class PlayerChunkManager {
     private final AtomicLong chunksSentCounter = new AtomicLong();
 
     private volatile int chunkRadius;
+    private int requestedChunkRadius;
 
     private int lastQueuedChunkX = Integer.MIN_VALUE;
     private int lastQueuedChunkZ = Integer.MIN_VALUE;
@@ -118,7 +119,7 @@ public final class PlayerChunkManager {
      */
     public synchronized void sendQueued() {
         long revision = this.viewRevision;
-        int chunksPerTick = this.player.getServer().getConfig().getChunkSending().getPerTick();
+        int chunksPerTick = this.player.getLevel().getConfiguration().getChunkSending().getPerTick();
 
         LongList keysToDiscard = new LongArrayList();
         for (Long2ObjectMap.Entry<ChunkSend> entry : this.sendQueue.long2ObjectEntrySet()) {
@@ -313,7 +314,14 @@ public final class PlayerChunkManager {
     }
 
     public synchronized void queueNewChunks(int chunkX, int chunkZ) {
-        int radius = this.chunkRadius;
+        int radius = GenericMath.clamp(this.requestedChunkRadius, 8, this.getMaxChunkRadius());
+        if (this.chunkRadius != radius) {
+            this.chunkRadius = radius;
+            ChunkRadiusUpdatedPacket packet = new ChunkRadiusUpdatedPacket();
+            packet.setRadius(radius);
+            this.player.sendPacket(packet);
+        }
+
         if (chunkX == this.lastQueuedChunkX && chunkZ == this.lastQueuedChunkZ && radius == this.lastQueuedChunkRadius) {
             return;
         }
@@ -383,7 +391,7 @@ public final class PlayerChunkManager {
             }
         }
 
-        this.scheduleQueuedChunkLoads(this.player.getServer().getConfig().getChunkSending().getPerTick());
+        this.scheduleQueuedChunkLoads(this.player.getLevel().getConfiguration().getChunkSending().getPerTick());
     }
 
     private void scheduleQueuedChunkLoads(int chunksPerTick) {
@@ -497,20 +505,9 @@ public final class PlayerChunkManager {
         return this.chunkRadius;
     }
 
-    public void setChunkRadius(int chunkRadius) {
-        chunkRadius = GenericMath.clamp(
-                chunkRadius,
-                8,
-                this.getMaxChunkRadius()
-        );
-
-        if (this.chunkRadius != chunkRadius) {
-            this.chunkRadius = chunkRadius;
-            ChunkRadiusUpdatedPacket packet = new ChunkRadiusUpdatedPacket();
-            packet.setRadius(chunkRadius);
-            this.player.sendPacket(packet);
-            this.queueNewChunks();
-        }
+    public synchronized void setChunkRadius(int chunkRadius) {
+        this.requestedChunkRadius = Math.max(8, chunkRadius);
+        this.queueNewChunks();
     }
 
     public int getLoadedChunkRadius() {
@@ -519,8 +516,8 @@ public final class PlayerChunkManager {
 
     private int getMaxChunkRadius() {
         return Math.max(8, Math.min(
-                this.player.getServer().getConfig().getChunkSending().getMaxChunkRadius(),
-                this.player.getServer().getConfig().getChunkSending().getMaxLoadedChunkRadius()
+                this.player.getLevel().getConfiguration().getChunkSending().getMaxChunkRadius(),
+                this.player.getLevel().getConfiguration().getChunkSending().getMaxLoadedChunkRadius()
         ));
     }
 

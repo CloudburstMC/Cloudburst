@@ -137,7 +137,7 @@ public class TimingsExport extends Thread {
         //Information on the users Config
         ObjectNode config = Bootstrap.JSON_MAPPER.createObjectNode();
         if (!Timings.getIgnoredConfigSections().contains("all")) {
-            final ObjectNode rootNode = CloudServer.getInstance().getConfig().getCloudburstYaml().getRootNode();
+            final ObjectNode rootNode = CloudServer.getInstance().getConfig().diagnosticSettings();
             Timings.getIgnoredConfigSections().forEach(rootNode::remove);
             config.set("cloudburst", rootNode);
         } else {

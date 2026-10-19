@@ -3,6 +3,7 @@ package org.cloudburstmc.server.diagnostics;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.ServerFileLayout;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.ProtocolInfo;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -10,19 +11,12 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @UtilityClass
@@ -60,30 +54,20 @@ public class DebugReport {
                     .append(plugin.getDescription().getVersion()).append('\n');
         }
 
-        Runtime runtime = Runtime.getRuntime();
-        report.append("\n# Runtime\n");
-        report.append("Uptime ms: ").append(ManagementFactory.getRuntimeMXBean().getUptime()).append('\n');
-        report.append("Memory used: ").append(runtime.totalMemory() - runtime.freeMemory()).append('\n');
-        report.append("Memory total: ").append(runtime.totalMemory()).append('\n');
-        report.append("Memory max: ").append(runtime.maxMemory()).append('\n');
-        report.append("Processors: ").append(runtime.availableProcessors()).append('\n');
-        report.append("Platform threads: ").append(ManagementFactory.getThreadMXBean().getThreadCount()).append('\n');
-
-        for (String property : List.of("java.vendor", "java.version", "os.arch", "os.name", "os.version")) {
-            report.append(property).append(": ").append(System.getProperty(property)).append('\n');
-        }
+        RuntimeDiagnostics.append(report);
 
         return report.toString();
     }
 
-    public static String collect(String snapshot, Path directory) {
+    public static String collect(String snapshot, ServerFileLayout files) {
         StringBuilder report = new StringBuilder(snapshot);
-        appendConfiguration(report, directory.resolve("cloudburst.yml"), false);
-        appendConfiguration(report, directory.resolve("server.properties"), true);
+        appendConfiguration(report, files.global(), false);
+        appendConfiguration(report, files.levelDefaults(), false);
+        appendConfiguration(report, files.properties(), true);
         report.append("\n# Recent server log\n");
 
         try {
-            report.append(readLogTail(directory.resolve("logs/server.log")));
+            report.append(readLogTail(files.latestLog()));
         } catch (IOException e) {
             report.append("[Log unavailable]\n");
         }

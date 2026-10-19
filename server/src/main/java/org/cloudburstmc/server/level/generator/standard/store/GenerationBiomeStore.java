@@ -2,19 +2,18 @@ package org.cloudburstmc.server.level.generator.standard.store;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.standard.StandardGeneratorUtils;
 import org.cloudburstmc.server.level.generator.standard.biome.BiomeElevation;
 import org.cloudburstmc.server.level.generator.standard.biome.GenerationBiome;
 import org.cloudburstmc.server.level.generator.standard.finish.Finisher;
 import org.cloudburstmc.server.level.generator.standard.generation.decorator.Decorator;
 import org.cloudburstmc.server.level.generator.standard.population.Populator;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +24,6 @@ import java.util.Objects;
 /**
  * Store for {@link GenerationBiome}.
  *
- * @author DaPorkchop_
  * @see StandardGeneratorStores#generationBiome()
  */
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -43,7 +41,7 @@ public final class GenerationBiomeStore extends AbstractGeneratorStore<Generatio
     @Override
     protected GenerationBiome compute(@NonNull Identifier id) throws IOException {
         try (InputStream in = StandardGeneratorUtils.read("biome", id)) {
-            return Bootstrap.YAML_MAPPER.readValue(in, TempBiome.class).build(id, this.idToValues.size());
+            return StandardGeneratorUtils.decode(in, TempBiome.class).build(id, this.idToValues.size());
         } catch (Exception e) {
             throw new RuntimeException("While decoding biome " + id, e);
         }

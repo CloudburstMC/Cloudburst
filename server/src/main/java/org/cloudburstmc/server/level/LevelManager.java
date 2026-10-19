@@ -11,16 +11,20 @@ import org.cloudburstmc.api.event.level.LevelLoadEvent;
 import org.cloudburstmc.api.event.level.LevelUnloadEvent;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
+import org.cloudburstmc.server.diagnostics.ServerExceptionHandler;
 import org.cloudburstmc.server.inject.LevelModule;
 import org.cloudburstmc.server.inject.qualifier.LevelDirectory;
 import org.cloudburstmc.server.level.provider.CloudLevelProviderContext;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
+import org.cloudburstmc.server.level.provider.anvil.AnvilLevelImportSource;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.StorageRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
@@ -30,24 +34,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Singleton
 public class LevelManager implements Closeable {
 
-    /**
-     * Virtual-thread executor for LevelDB reads and writes.
-     */
-    @Getter
-    private final ExecutorService ioExecutor = Executors.newVirtualThreadPerTaskExecutor();
-
-    /**
-     * Bounded pool for CPU-bound chunk generation, population, and finishing.
-     */
-    @Getter
-    private final ForkJoinPool generationExecutor = new ForkJoinPool(
-            Runtime.getRuntime().availableProcessors(),
-            new GenerationThreadFactory(),
-            (thread, ex) -> log.error("Uncaught exception on generation thread {}", thread.getName(), ex),
-            false
-    );
+    private final ExecutorService loadExecutor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("Cloudburst Level Load #", 0).factory());
+    private volatile ExecutorService ioExecutor;
+    private volatile ForkJoinPool generationExecutor;
 
     private final CloudServer server;
+    @Getter
     private final Path levelsPath;
     private final Set<CloudLevel> levels = new HashSet<>();
     private final Map<String, CloudLevel> levelIds = new HashMap<>();
@@ -63,6 +55,34 @@ public class LevelManager implements Closeable {
     }
 
     /**
+     * Creates shared chunk executors before any level can be loaded.
+     */
+    public synchronized void initializeExecutors(GlobalConfiguration.ChunkSystem settings) {
+        Preconditions.checkState(!this.closed, "Level manager is closed");
+        Preconditions.checkState(this.ioExecutor == null, "Chunk executors are already initialized");
+
+        int ioThreads = settings.resolveIoThreads();
+        int workerThreads = settings.resolveWorkerThreads(Runtime.getRuntime().availableProcessors());
+
+        this.generationExecutor = new ForkJoinPool(workerThreads, new GenerationThreadFactory(), ServerExceptionHandler::dispatch, false);
+        this.ioExecutor = Executors.newFixedThreadPool(ioThreads, Thread.ofPlatform()
+                .name("Cloudburst Chunk I/O #", 0)
+                .daemon(true)
+                .uncaughtExceptionHandler(ServerExceptionHandler::dispatch)
+                .factory());
+
+        log.info("Chunk system is using {} worker threads and {} I/O threads", workerThreads, ioThreads);
+    }
+
+    public ExecutorService getIoExecutor() {
+        return Objects.requireNonNull(this.ioExecutor, "Chunk executors have not been initialized");
+    }
+
+    public ForkJoinPool getGenerationExecutor() {
+        return Objects.requireNonNull(this.generationExecutor, "Chunk executors have not been initialized");
+    }
+
+    /**
      * Loads or creates a level. Concurrent requests for the same level share one operation.
      *
      * @param request immutable load configuration
@@ -71,6 +91,7 @@ public class LevelManager implements Closeable {
     public synchronized CompletableFuture<CloudLevel> load(CloudLevelLoadRequest request) {
         Objects.requireNonNull(request, "request");
         Preconditions.checkState(!this.closed, "Level manager is closed");
+        Preconditions.checkState(this.ioExecutor != null, "Chunk executors have not been initialized");
 
         CloudLevel loadedLevel = this.levelIds.get(request.id());
         if (loadedLevel != null) {
@@ -82,24 +103,34 @@ public class LevelManager implements Closeable {
             return currentLoad;
         }
 
-        CompletableFuture<CloudLevel> load = CompletableFuture.supplyAsync(() -> this.loadNewLevel(request), this.ioExecutor);
+        CompletableFuture<CloudLevel> load = CompletableFuture.supplyAsync(() -> this.loadNewLevel(request), this.loadExecutor);
         this.loadingLevels.put(request.id(), load);
         load.whenComplete((level, throwable) -> {
             synchronized (this) {
                 this.loadingLevels.remove(request.id(), load);
             }
         });
+
         return load;
     }
 
     private CloudLevel loadNewLevel(CloudLevelLoadRequest request) {
         long startTime = System.nanoTime();
+        try {
+            if (AnvilLevelImportSource.isImportSource(this.levelsPath.resolve(request.id()))) {
+                throw new IllegalStateException("Level '" + request.id() + "' contains Anvil import data. Import it into a separate destination before loading.");
+            }
+        } catch (IOException failure) {
+            throw new CompletionException("Unable to inspect level storage for " + request.id(), failure);
+        }
+
         CloudLevelData initialData = request.createInitialData(this.server.getLevelDefaults());
         StorageRegistry storageRegistry = this.server.getStorageRegistry();
         Identifier storage = request.storage();
         if (storage == null) {
             storage = storageRegistry.detectStorage(request.id(), this.levelsPath);
         }
+
         if (storage == null) {
             storage = this.server.getDefaultStorageId();
         }
@@ -109,6 +140,7 @@ public class LevelManager implements Closeable {
                 storageRegistry.getLevelProviderFactory(selectedStorage),
                 () -> "Unknown storage provider: " + selectedStorage
         );
+
         CloudLevelProviderContext context = new CloudLevelProviderContext(
                 this.server,
                 request,
@@ -270,27 +302,9 @@ public class LevelManager implements Closeable {
             }
         }
 
-        this.ioExecutor.shutdown();
-        try {
-            if (!this.ioExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                log.warn("I/O executor did not terminate in time, forcing shutdown");
-                this.ioExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            this.ioExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-
-        this.generationExecutor.shutdown();
-        try {
-            if (!this.generationExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-                log.warn("Generation executor did not terminate in time, forcing shutdown");
-                this.generationExecutor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            this.generationExecutor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        shutdownExecutor(this.loadExecutor, "Level load");
+        shutdownExecutor(this.generationExecutor, "Generation");
+        shutdownExecutor(this.ioExecutor, "I/O");
     }
 
     public void tick(int currentTick) {
@@ -306,6 +320,23 @@ public class LevelManager implements Closeable {
             } catch (Exception e) {
                 log.error(server.getLanguage().translate("cloudburst.level.tickError", level.getId(), Utils.getExceptionMessage(e)));
             }
+        }
+    }
+
+    private static void shutdownExecutor(@Nullable ExecutorService executor, String name) {
+        if (executor == null) {
+            return;
+        }
+
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                log.warn("{} executor did not terminate in time, forcing shutdown", name);
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -32,6 +32,10 @@ public class OpCommand extends AdvertisedCommand {
         CommandSender sender = sender(context);
         String name = argumentValue(context, "player");
         OfflinePlayer player = sender.getServer().getOfflinePlayer(name);
+        if (player.getUniqueId() == null) {
+            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        }
+
         player.setOp(true);
 
         CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.op.success",

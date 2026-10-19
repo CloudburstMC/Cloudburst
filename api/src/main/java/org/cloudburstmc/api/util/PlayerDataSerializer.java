@@ -1,25 +1,33 @@
 package org.cloudburstmc.api.util;
 
+import org.cloudburstmc.nbt.NbtMap;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Optional;
 
+/**
+ * Stores complete player records. Implementations may be called from background save threads.
+ * Storage callbacks must not recursively invoke player-data reads or saves.
+ */
 public interface PlayerDataSerializer {
 
     /**
-     * Opens player data if it exists.
+     * Reads an existing player record, recovering from a backup when supported.
+     * An empty result means no record exists, not that an existing record is unreadable.
      *
      * @param key player data key
-     * @return stream for existing player data
+     * @return the record, or empty when no stored data exists
+     * @throws IOException if existing data cannot be read or recovered
      */
-    Optional<InputStream> read(PlayerDataKey key) throws IOException;
+    Optional<NbtMap> read(PlayerDataKey key) throws IOException;
 
     /**
-     * Opens a stream for writing player data.
+     * Saves a complete player record. A failed write must not replace the previous record
+     * with incomplete data.
      *
      * @param key player data key
-     * @return stream for writing player data
+     * @param data the complete player record
+     * @throws IOException if the record cannot be saved
      */
-    OutputStream write(PlayerDataKey key) throws IOException;
+    void write(PlayerDataKey key, NbtMap data) throws IOException;
 }

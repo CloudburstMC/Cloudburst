@@ -361,6 +361,9 @@ public class CloudCommandRegistry implements Commands {
     }
 
     private void registerGameplayCommands() {
+        this.registerInternal(new BanCommand());
+        this.registerInternal(new BanIpCommand());
+        this.registerInternal(new BanListCommand());
         this.registerInternal(new DefaultGamemodeCommand());
         this.registerInternal(new DeopCommand());
         this.registerInternal(new DifficultyCommand());
@@ -374,6 +377,8 @@ public class CloudCommandRegistry implements Commands {
         this.registerInternal(new ListCommand());
         this.registerInternal(new MeCommand());
         this.registerInternal(new OpCommand());
+        this.registerInternal(new PardonCommand());
+        this.registerInternal(new PardonIpCommand());
         this.registerInternal(new ParticleCommand());
         this.registerInternal(new SayCommand());
         this.registerInternal(new SeedCommand());

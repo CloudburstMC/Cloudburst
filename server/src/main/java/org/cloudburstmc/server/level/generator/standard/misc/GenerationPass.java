@@ -5,14 +5,13 @@ import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 
 /**
  * Implemented by every interface representing a single pass during world generation or population.
- *
- * @author DaPorkchop_
  */
 public interface GenerationPass {
+
     /**
      * Prepares this instance for actual generation.
      *
-     * @param levelSeed the level seed, as defined in cloudburst.yml
+     * @param levelSeed the level seed
      * @param localSeed a seed defined specifically for this generation pass
      * @param generator the instance of {@link StandardGenerator} that this generation pass will be used by
      */

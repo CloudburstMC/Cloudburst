@@ -6,7 +6,6 @@ import org.cloudburstmc.api.registry.Registry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
-import org.cloudburstmc.server.level.provider.anvil.AnvilProviderFactory;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBProviderFactory;
 import org.cloudburstmc.server.level.storage.StorageIds;
 
@@ -66,7 +65,6 @@ public class StorageRegistry implements Registry {
     }
 
     private void registerVanillaStorage() throws RegistryException {
-        this.register(StorageIds.ANVIL, AnvilProviderFactory.INSTANCE, Integer.MIN_VALUE);
         this.register(StorageIds.LEVELDB, LevelDBProviderFactory.INSTANCE, 100);
     }
 

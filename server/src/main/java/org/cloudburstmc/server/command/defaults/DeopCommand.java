@@ -31,6 +31,10 @@ public class DeopCommand extends AdvertisedCommand {
         CommandSender sender = sender(context);
         String playerName = argumentValue(context, "player");
         OfflinePlayer player = sender.getServer().getOfflinePlayer(playerName);
+        if (player.getUniqueId() == null) {
+            return failure(context, Component.translatable("commands.generic.player.notFound"));
+        }
+
         player.setOp(false);
 
         player.getPlayer().ifPresent(onlinePlayer -> onlinePlayer.sendMessage(

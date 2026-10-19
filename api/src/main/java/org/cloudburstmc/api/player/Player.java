@@ -3,13 +3,13 @@ package org.cloudburstmc.api.player;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.command.CommandSender;
 import org.cloudburstmc.api.entity.Creature;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.projectile.FishingHook;
-import org.cloudburstmc.api.event.player.PlayerKickEvent;
 import org.cloudburstmc.api.event.player.PlayerSetSpawnEvent;
 import org.cloudburstmc.api.inventory.*;
 import org.cloudburstmc.api.inventory.view.*;
@@ -24,6 +24,8 @@ import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 
+import java.net.InetSocketAddress;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -40,6 +42,14 @@ public interface Player extends Creature, CommandSender {
      * @return true if they are online
      */
     boolean isOnline();
+
+    /**
+     * Returns the remote address of this connection, or null when unavailable.
+     *
+     * @return the remote IP address and port, or null
+     */
+    @Nullable
+    InetSocketAddress getAddress();
 
     /**
      * Returns the identifier used for this player's current server connection.
@@ -63,21 +73,41 @@ public interface Player extends Creature, CommandSender {
     PlayerClientInfo getClientInfo();
 
     /**
-     * Checks if this player is banned.
+     * Returns the authenticated Xbox user identifier, or an empty string when unauthenticated.
+     */
+    String getXuid();
+
+    /**
+     * Returns whether the player's network connection is active.
+     */
+    boolean isConnected();
+
+    /**
+     * Returns whether the player has completed their initial spawn.
+     */
+    boolean isSpawned();
+
+    /**
+     * Checks whether this player's UUID has an active ban.
      *
      * @return true if banned
      */
     boolean isBanned();
 
     /**
-     * Sets this player to be banned or to be pardoned.
+     * Adds or replaces this player's UUID ban and optionally disconnects them.
      *
-     * @param value true if banned
+     * @param reason the reason, or null for the default
+     * @param expiration the expiration, or null for a permanent ban
+     * @param source the issuer, or null for the default
+     * @param kick whether to disconnect the player when the saved ban is active
+     * @return the saved ban
      */
-    void setBanned(boolean value);
+    BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source, boolean kick);
 
     /**
-     * Checks if this player is whitelisted.
+     * Checks whether this player's UUID is explicitly whitelisted.
+     * Operators and players admitted while the whitelist is disabled are not implicitly listed.
      *
      * @return true if whitelisted
      */
@@ -91,20 +121,16 @@ public interface Player extends Creature, CommandSender {
     void setWhitelisted(boolean value);
 
     /**
-     * Returns the time this player first played on this server.
-     * <p>
-     * If the player has never played before, this will return 0.
+     * Returns when this player first played on this server.
      *
-     * @return An optional with the time this player first played on this server
+     * @return milliseconds since the Unix epoch, or an empty optional if unknown
      */
     OptionalLong getFirstPlayed();
 
     /**
-     * Returns the time this player last joined in this server.
-     * <p>
-     * If the player has never played before, this will return 0.
+     * Returns when this player last joined this server.
      *
-     * @return An optional with the time this player last played on this server
+     * @return milliseconds since the Unix epoch, or an empty optional if unknown
      */
     OptionalLong getLastPlayed();
 
@@ -115,6 +141,9 @@ public interface Player extends Creature, CommandSender {
      */
     boolean hasPlayedBefore();
 
+    /**
+     * Returns whether the player's eyes are below the surface of water.
+     */
     boolean isInsideOfWater();
 
     /**
@@ -124,36 +153,70 @@ public interface Player extends Creature, CommandSender {
      */
     boolean isSneaking();
 
+    /**
+     * Returns whether the player is sleeping in a bed.
+     */
     boolean isSleeping();
 
+    /**
+     * Attempts to sleep in the bed at the supplied position in the player's level.
+     *
+     * @param position the bed position
+     * @return whether the player started sleeping
+     */
     boolean sleepOn(Vector3i position);
 
+    /**
+     * Wakes the player if they are sleeping.
+     */
     void stopSleep();
 
+    /**
+     * Returns whether the player is supported by the ground.
+     */
     boolean isOnGround();
 
     /**
      * Returns the player's main 36-slot inventory.
      *
-     * <p><strong>This does NOT include:</strong></p>
-     * <ul>
-     *   <li>Armor slots: use {@link #getArmor()}</li>
-     *   <li>Offhand slot: use {@link #getOffhand()}</li>
-     *   <li>Crafting grid (when the player's inventory screen is open): use
-     *       {@link #getInventoryScreen()} and access its crafting slot group</li>
-     * </ul>
-     *
-     * <p>This method always returns the same object regardless of whether the player currently
-     * has any screen open. For the full player-inventory screen (including crafting grid, armor,
-     * and offhand), use {@link #getInventoryScreen()}.</p>
-     *
-     * <p><strong>Identity guarantee:</strong> the returned object is the same instance as
-     * {@link org.cloudburstmc.api.inventory.ContainerScreen#getPlayerInventory()} for any
-     * container screen the player currently has open.</p>
+     * <p>Armor, offhand, and crafting slots are separate. The same inventory is available
+     * regardless of the open screen and through {@link ContainerScreen#getPlayerInventory()}.</p>
      *
      * @return the player's 36-slot main inventory
      */
     PlayerInventoryView getInventory();
+
+    /**
+     * Returns the player's hotbar, a 9-slot section view (slots 0-8) that mirrors the
+     * first 9 slots of {@link #getInventory()}.
+     *
+     * <p>Use this when you need hotbar-specific semantics (selected slot, selected item)
+     * without operating on the full 36-slot inventory.</p>
+     *
+     * @return the hotbar section
+     */
+    HotbarView getHotbar();
+
+    /**
+     * Returns the player's armor equipment slots (helmet, chestplate, leggings, boots).
+     *
+     * @return the armor slot group
+     */
+    ArmorView getArmor();
+
+    /**
+     * Returns the player's offhand slot.
+     *
+     * @return the offhand slot group
+     */
+    OffhandView getOffhand();
+
+    /**
+     * Returns the player's ender chest storage (27 slots).
+     *
+     * @return the ender chest slot group
+     */
+    EnderChestView getEnderChest();
 
     /**
      * Returns the remaining cooldown for an item type.
@@ -190,39 +253,15 @@ public interface Player extends Creature, CommandSender {
     FishingHook getFishingHook();
 
     /**
-     * Returns the player's hotbar, a 9-slot section view (slots 0-8) that mirrors the
-     * first 9 slots of {@link #getInventory()}.
-     *
-     * <p>Use this when you need hotbar-specific semantics (selected slot, selected item)
-     * without operating on the full 36-slot inventory.</p>
-     *
-     * @return the hotbar section
+     * Returns the player's movement-speed attribute.
      */
-    HotbarView getHotbar();
-
-    /**
-     * Returns the player's armor equipment slots (helmet, chestplate, leggings, boots).
-     *
-     * @return the armor slot group
-     */
-    ArmorView getArmor();
-
-    /**
-     * Returns the player's offhand slot.
-     *
-     * @return the offhand slot group
-     */
-    OffhandView getOffhand();
-
-    /**
-     * Returns the player's ender chest storage (27 slots).
-     *
-     * @return the ender chest slot group
-     */
-    EnderChestView getEnderChest();
-
     float getMovementSpeed();
 
+    /**
+     * Sets the player's movement-speed attribute and updates their movement abilities.
+     *
+     * @param speed the new movement speed
+     */
     void setMovementSpeed(float speed);
 
     /**
@@ -231,11 +270,15 @@ public interface Player extends Creature, CommandSender {
      */
     PlayerAbilities getAbilities();
 
+    /**
+     * Returns the level the player is currently in.
+     */
     Level getLevel();
 
+    /**
+     * Resets the elapsed time used to check how long the player has been airborne.
+     */
     void resetInAirTicks();
-
-    boolean isSpawned();
 
     /**
      * Returns the player's current game mode.
@@ -358,10 +401,6 @@ public interface Player extends Creature, CommandSender {
      */
     void displayName(Component displayName);
 
-    String getXuid();
-
-    boolean isConnected();
-
     /**
      * Kicks this player with the given reason displayed on their screen.
      *
@@ -375,7 +414,7 @@ public interface Player extends Creature, CommandSender {
      * @param reason the disconnect message shown to the player
      * @param cause  the kick cause reported to {@link org.cloudburstmc.api.event.player.PlayerKickEvent}
      */
-    void kick(Component reason, PlayerKickEvent.Reason cause);
+    void kick(Component reason, KickReason cause);
 
     /**
      * Returns the current round-trip latency of this player's connection in milliseconds.
@@ -610,38 +649,67 @@ public interface Player extends Creature, CommandSender {
     @Override
     void resetTitle();
 
+    /**
+     * Saves the player's current state, waiting for the write to complete.
+     */
     default void save() {
         save(false);
     }
 
+    /**
+     * Saves the player's current state when player-data saving is enabled.
+     *
+     * @param async whether to return before the storage write completes
+     * @throws IllegalStateException if the player is closed
+     */
     void save(boolean async);
 
+    /**
+     * Returns the cardinal direction the player is facing.
+     */
     CardinalDirection getCardinalDirection();
 
+    /**
+     * Returns the player's respawn location, falling back to the primary level's safe spawn
+     * when no valid personal spawn is set.
+     */
     Location getSpawn();
 
     /**
      * Sets the player's personal spawn point.
+     * Fires {@link PlayerSetSpawnEvent}, which may cancel the change.
+     * Use {@link #clearSpawn()} to clear the personal spawn.
      *
-     * @param spawn the new spawn location, or {@code null} to clear
+     * @param spawn the new spawn location
      */
     void setSpawn(Location spawn);
 
     /**
      * Sets the player's personal spawn point with an explicit cause.
+     * Fires {@link PlayerSetSpawnEvent}, which may cancel the change.
+     * Use {@link #clearSpawn()} to clear the personal spawn.
      *
-     * @param spawn the new spawn location, or {@code null} to clear
+     * @param spawn the new spawn location
      * @param cause the reason for the change (used as the event cause)
      */
-    void setSpawn(@Nullable Location spawn, PlayerSetSpawnEvent.Cause cause);
+    void setSpawn(Location spawn, PlayerSetSpawnEvent.Cause cause);
 
     /**
-     * Clears the player's personal spawn point so they will respawn at the world spawn.
+     * Clears the player's personal spawn point so they will respawn at the primary level's spawn.
+     * Fires {@link PlayerSetSpawnEvent}, which may cancel the change.
      */
     void clearSpawn();
 
+    /**
+     * Returns the player's current skin.
+     */
     Skin getSkin();
 
+    /**
+     * Changes the player's skin and updates its appearance for viewers.
+     *
+     * @param newSkin the replacement skin
+     */
     void setSkin(Skin newSkin);
 
     /**
@@ -656,18 +724,9 @@ public interface Player extends Creature, CommandSender {
     HudScreen getHudScreen();
 
     /**
-     * Returns the inventory screen currently open for this player,
-     * or {@code null} if the player has no container open beyond the default HUD.
-     *
-     * <p>This method returns {@code null} whenever the player is looking at the normal
-     * game view (i.e. only the HUD / hotbar is visible). It returns a non-{@code null}
-     * value only while an explicit container screen is open (for example a chest, furnace,
-     * crafting table, or a virtual inventory opened by a plugin.  The persistent
-     * player-inventory screen ({@link ScreenTypes#INVENTORY}) and HUD screen
-     * ({@link ScreenTypes#HUD}) are <em>not</em> returned by this method.</p>
-     *
-     * <p>To obtain the currently visible screen without null-checking, use
-     * {@link #getCurrentScreen()} instead.</p>
+     * Returns the explicitly open inventory screen, including the player's own inventory,
+     * or {@code null} when only the HUD is visible.
+     * Use {@link #getCurrentScreen()} to include the HUD.
      *
      * @return the currently open {@link InventoryScreen}, or {@code null}
      */
@@ -693,10 +752,6 @@ public interface Player extends Creature, CommandSender {
     /**
      * Returns the player's own inventory screen if the player currently has it open, or {@code null} otherwise.
      *
-     * <p>This returns a non-null value only while the player is viewing their own inventory
-     * (the 2×2 crafting grid, armor, offhand, and main inventory). While any other screen
-     * ({@link ContainerScreen}, HUD, etc.) is active, this method returns {@code null}.</p>
-     *
      * @return the {@link PlayerInventoryScreen} if the player's own inventory is open, or {@code null}
      */
     @Nullable
@@ -704,13 +759,6 @@ public interface Player extends Creature, CommandSender {
 
     /**
      * Returns the currently open inventory screen if it matches the given type, or {@code null} otherwise.
-     *
-     * <p>Equivalent to calling {@link #getOpenInventory()} and casting to {@code T} after a type check,
-     * but without requiring the caller to perform the cast explicitly:</p>
-     * <pre>{@code
-     * StorageScreen chest = player.getOpenInventory(ScreenTypes.CHEST);
-     * if (chest != null) { ... }
-     * }</pre>
      *
      * @param type the screen type token to match
      * @param <T>  the screen interface type
@@ -744,7 +792,7 @@ public interface Player extends Creature, CommandSender {
     /**
      * Opens the container associated with the given block for this player.
      * The block must be a container block (e.g. a chest, furnace, or hopper).
-     * If the player already has a screen open it will be closed first.
+     * Does nothing when the player already has an inventory screen open.
      *
      * @param block the container block to open
      * @throws IllegalArgumentException if the block is not a container
@@ -754,7 +802,7 @@ public interface Player extends Creature, CommandSender {
     /**
      * Opens the container associated with the given block entity for this player.
      * The block entity must be a container (e.g. a chest, furnace, or hopper block entity).
-     * If the player already has a screen open it will be closed first.
+     * Does nothing when the player already has an inventory screen open.
      *
      * @param blockEntity the container block entity to open
      * @throws IllegalArgumentException if the block entity is not a container
@@ -764,9 +812,8 @@ public interface Player extends Creature, CommandSender {
     /**
      * Creates a new virtual single-chest (27-slot) view for this player.
      *
-     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
-     * it. A virtual inventory has no backing block in the world; the server temporarily injects a
-     * phantom chest block above the player for the duration the screen is open.</p>
+     * <p>The screen has no backing block in the level and is not opened automatically.
+     * Call {@link #openInventory(InventoryScreen)} to show it.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualChestScreen} bound to this player
@@ -776,9 +823,8 @@ public interface Player extends Creature, CommandSender {
     /**
      * Creates a new virtual double-chest (54-slot) screen for this player.
      *
-     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
-     * it. A virtual inventory has no backing block in the world; the server temporarily injects two
-     * adjacent phantom chest blocks above the player.</p>
+     * <p>The screen has no backing block in the level and is not opened automatically.
+     * Call {@link #openInventory(InventoryScreen)} to show it.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualDoubleChestScreen} bound to this player
@@ -788,9 +834,8 @@ public interface Player extends Creature, CommandSender {
     /**
      * Creates a new virtual hopper (5-slot) screen for this player.
      *
-     * <p>The screen is not opened automatically; call {@link #openInventory(InventoryScreen)} to show
-     * it. A virtual inventory has no backing block in the world; the server temporarily injects a
-     * phantom hopper block above the player for the duration the screen is open.</p>
+     * <p>The screen has no backing block in the level and is not opened automatically.
+     * Call {@link #openInventory(InventoryScreen)} to show it.</p>
      *
      * @param title the title displayed in the GUI title bar
      * @return a new {@link VirtualHopperScreen} bound to this player

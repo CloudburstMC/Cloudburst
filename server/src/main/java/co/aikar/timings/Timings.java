@@ -31,7 +31,7 @@ import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.command.ServerCommand;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -118,7 +118,7 @@ public final class Timings {
         permissionDefaultTimer = TimingsManager.getTiming("Default Permission Calculation");
     }
 
-    public static void init(ServerConfig.Timings config) {
+    public static void init(GlobalConfiguration.Timings config) {
         setTimingsEnabled(config.isEnabled());
         setVerboseEnabled(config.isVerbose());
         setHistoryInterval(config.getHistoryInterval());

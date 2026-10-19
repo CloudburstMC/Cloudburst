@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.level.manager;
 
 import com.google.common.collect.ImmutableList;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
@@ -18,7 +18,7 @@ public final class ChunkTaskScheduler {
     private final TaskQueue storageQueue;
     private final TaskQueue generationQueue;
 
-    public ChunkTaskScheduler(CloudLevel level, ServerConfig.ChunkGeneration config) {
+    public ChunkTaskScheduler(CloudLevel level, GlobalConfiguration.ChunkGeneration config) {
         this.storageQueue = new TaskQueue(
                 level.getServer().getLevelManager().getIoExecutor(),
                 config.getLoadConcurrency()

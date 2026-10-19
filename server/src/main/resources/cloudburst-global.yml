@@ -1,0 +1,154 @@
+# %header.1
+# %header.2
+# %header.3
+
+config-version: 1
+
+# Global server settings. Level overrides belong in each level's cloudburst-level.yml.
+
+settings:
+  # %settings.language
+  language: "%language"
+  # %settings.force-language
+  force-language: false
+  # %settings.shutdown-message
+  shutdown-message: "Server closed"
+  # %settings.deprecated-verbose
+  deprecated-verbose: true
+  # %settings.upnp
+  upnp: false
+
+network:
+  # Persistent private key. Keep it across restarts and do not share it.
+  identity-file: nethernet/identity.pem
+  # Public UDP endpoints when a port forward or tunnel changes the media address.
+  advertised-addresses: []
+  # PEM certificate chain and private key. Leave both empty to use HTTP signaling.
+  tls-certificate: ""
+  tls-private-key: ""
+  # Includes connections still negotiating or logging in.
+  max-connections: 128
+  # Caps both simultaneous signaling sockets and game connections from one IP.
+  max-connections-per-address: 8
+  # Caps pending signaling joins and queued login validations separately.
+  max-pending-joins: 64
+  # Deadline for signaling and WebRTC connection establishment.
+  handshake-timeout-seconds: 30
+  # Bounds authentication, resource pack negotiation and initial spawn readiness.
+  login-timeout-seconds: 120
+
+debug:
+  # Save local crash reports for uncaught thread errors.
+  uncaught-exception-reports: true
+  # %debug.level
+  level: 1
+  # %debug.commands
+  commands: false
+  ignored-packets:
+    - "LevelChunkPacket"
+
+timings:
+  # %timings.enabled
+  enabled: false
+  # %timings.verbose
+  verbose: false
+  # %timings.history-interval.1
+  # %timings.history-interval.2
+  history-interval: 6000
+  # %timings.history-length.1
+  # %timings.history-length.2
+  # %timings.history-length.3
+  history-length: 72000
+  # %timings.bypass-max.1
+  # %timings.bypass-max.2
+  # %timings.bypass-max.3
+  bypass-max: false
+  # %timings.privacy
+  privacy: false
+  # %timings.ignore.1
+  # %timings.ignore.2
+  ignore: []
+
+level-storage:
+  # %level-settings.default-format
+  default-format: leveldb
+
+chunk-system:
+  # Threads shared by all levels for chunk storage reads and writes. Restart required.
+  # Zero or a negative value selects one I/O thread.
+  io-threads: -1
+  # Threads shared by all levels for chunk generation, population, and finishing. Restart required.
+  # Zero or a negative value selects a count based on available processors.
+  worker-threads: -1
+
+chunk-generation:
+  load-concurrency: 4
+  generation-concurrency: 0
+  save-concurrency: 8
+
+ticks-per:
+  animal-spawns: 400
+  monster-spawns: 1
+  autosave: 6000
+  cache-cleanup: 900
+
+player:
+  # Maximum number of recently used profiles saved to usercache.json. Zero saves none.
+  user-cache-size: 1000
+  # Save profiles only during shutdown instead of asynchronously after identity updates.
+  save-user-cache-on-stop-only: false
+  # %player.save-player-data.1
+  # %player.save-player-data.2
+  save-player-data: true
+  # %player.skin-change-cooldown
+  skin-change-cooldown: 30
+  # %player.log-player-addresses
+  log-player-addresses: true
+
+movement:
+  # How many ticks of movement history to retain for server-side rewind
+  # corrections. 40 ticks covers a 2-second round trip at 20 tps.
+  rewind-history-size: 40
+  # Maximum distance (blocks) a player may claim to have moved in a single
+  # input packet before the position is rejected outright.
+  max-position-delta: 50.0
+  # Speed cap in blocks squared per tick squared. Moves exceeding this
+  # rate are reverted. Gliding and active flight are exempt.
+  max-speed-threshold: 20.0
+  # When true, the speed cap is halved and corrections are sent more
+  # frequently. Useful for stricter anti-cheat at the cost of more
+  # corrections on high-latency connections.
+  strict-movement: false
+  # Distance (blocks) the player position may differ from the authoritative
+  # position before a correction is sent. Values above 1.0 increase the
+  # risk of accepting invalid positions.
+  position-acceptance-threshold: 0.5
+  # When true, the player dismount position is strictly corrected on
+  # high-latency connections.
+  strict-dismount: false
+
+interaction:
+  # When true, entity interaction packets are validated more strictly.
+  strict-entity-interactions: false
+  # Maximum angle difference (0 to 1) between look direction and attack
+  # direction. 0 allows up to 90 degrees of divergence. 1 requires an
+  # exact match.
+  attack-direction-threshold: 0.85
+  # Multiplier applied to the server-side block-breaking reach distance.
+  # Values above 1.0 give players extra reach tolerance.
+  block-break-reach-scalar: 1.5
+
+# Level definitions loaded at startup.
+levels:
+  world:
+    dimension: overworld
+    generator: cloudburst:standard
+    options: overworld
+  nether:
+    dimension: nether
+    generator: cloudburst:standard
+    options: nether
+  the_end:
+    dimension: the_end
+    generator: cloudburst:standard
+    options: the_end

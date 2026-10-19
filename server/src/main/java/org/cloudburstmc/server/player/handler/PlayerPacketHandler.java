@@ -10,8 +10,6 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import lombok.extern.log4j.Log4j2;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.AttackBlockHandler;
@@ -30,17 +28,16 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.StabHandler;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.math.vector.Vector2f;
-import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.player.ExhaustionReason;
+import org.cloudburstmc.api.player.KickReason;
 import org.cloudburstmc.api.registry.GlobalRegistry;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandOriginData;
@@ -48,7 +45,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandOriginType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource;
@@ -74,8 +70,9 @@ import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.network.LevelEffectPacketFactory;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
+import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
@@ -935,7 +932,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                     break;
                 case START_FLYING:
                     if (!player.getServer().getAllowFlight() && !player.getAbilities().get(org.cloudburstmc.api.player.Ability.MAY_FLY)) {
-                        player.kick(PlayerKickEvent.Reason.FLYING_DISABLED, "Flying is not enabled on player server");
+                        player.kick(KickReason.FLYING_DISABLED, "Flying is not enabled on player server");
                     } else {
                         PlayerToggleFlightEvent flightEvent = new PlayerToggleFlightEvent(player, true);
                         player.getServer().getEventManager().fire(flightEvent);
@@ -1083,7 +1080,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (player.getServer().isHardcore()) {
-            player.setBanned(true);
+            player.ban("Died in hardcore mode", null, "Server", true);
             return null;
         }
 
@@ -1261,7 +1258,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (targetEntity instanceof DroppedItem || targetEntity instanceof EntityArrow || targetEntity instanceof ExperienceOrb) {
-            player.kick(PlayerKickEvent.Reason.INVALID_PVE, "Attempting to interact with an invalid entity");
+            player.kick(KickReason.INVALID_PVE, "Attempting to interact with an invalid entity");
             log.warn(player.getServer().getLanguage().translate("cloudburst.player.invalidEntity", player.getName()));
             return PacketSignal.HANDLED;
         }

@@ -8,47 +8,30 @@ import org.cloudburstmc.api.level.gamerule.GameRule;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.CloudEndFightData;
 import org.cloudburstmc.server.level.CloudLevelData;
 import org.cloudburstmc.server.level.EndDragonRespawnStage;
+import org.cloudburstmc.server.persistence.NbtFiles;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnvilDataSerializer {
     public static final AnvilDataSerializer INSTANCE = new AnvilDataSerializer();
 
-    public Optional<CloudLevelData> load(CloudLevelData initialData, Path levelPath) throws IOException {
-        Path levelDatPath = levelPath.resolve("level.dat");
-        Path levelDatOldPath = levelPath.resolve("level.dat_old");
-
-        if (Files.notExists(levelDatPath) && Files.notExists(levelDatOldPath)) {
-            return Optional.empty();
-        }
-
-        try {
-            CloudLevelData data = initialData.copy();
-            loadData(data, levelDatPath);
-            return Optional.of(data);
-        } catch (IOException e) {
-            CloudLevelData backupData = initialData.copy();
-            loadData(backupData, levelDatOldPath);
-            return Optional.of(backupData);
-        }
+    public CloudLevelData load(CloudLevelData initialData, Path levelPath) throws IOException {
+        CloudLevelData data = initialData.copy();
+        loadData(data, levelPath.resolve("level.dat"));
+        return data;
     }
 
     private void loadData(CloudLevelData data, Path levelDatPath) throws IOException {
-        NbtMap tag;
-        try (NBTInputStream stream = NbtUtils.createReader(Files.newInputStream(levelDatPath))) {
-            NbtMap root = (NbtMap) stream.readTag();
-            tag = root.getCompound("Data");
+        NbtMap root = NbtFiles.readCompressed(levelDatPath);
+        if (!(root.get("Data") instanceof NbtMap tag)) {
+            throw new IOException("Anvil level.dat must contain a Data compound");
         }
 
         data.setAdditionalData(tag);

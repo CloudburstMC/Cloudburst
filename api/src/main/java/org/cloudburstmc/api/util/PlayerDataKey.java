@@ -1,43 +1,39 @@
 package org.cloudburstmc.api.util;
 
-import lombok.Value;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
-@Value
-public class PlayerDataKey {
-    @Nullable
-    UUID uniqueId;
-    @Nullable
-    String name;
-
-    private PlayerDataKey(@Nullable UUID uniqueId, @Nullable String name) {
-        if (uniqueId == null && (name == null || name.isBlank())) {
-            throw new IllegalArgumentException("Unique id and name cannot both be empty");
-        }
-        this.uniqueId = uniqueId;
-        this.name = name;
+/**
+ * Identifies stored player data by UUID. A display name never substitutes for identity.
+ *
+ * @param uniqueId the player's UUID
+ * @param name the last known name, or null when unknown
+ */
+public record PlayerDataKey(UUID uniqueId, @Nullable String name) {
+    public PlayerDataKey {
+        Objects.requireNonNull(uniqueId, "uniqueId");
     }
 
+    /**
+     * Creates a key when no name is known.
+     */
     public static PlayerDataKey of(UUID uniqueId) {
-        return new PlayerDataKey(Objects.requireNonNull(uniqueId, "uniqueId"), null);
+        return new PlayerDataKey(uniqueId, null);
     }
 
+    /**
+     * Creates a UUID key with optional display metadata.
+     */
     public static PlayerDataKey of(UUID uniqueId, @Nullable String name) {
-        return new PlayerDataKey(Objects.requireNonNull(uniqueId, "uniqueId"), name);
+        return new PlayerDataKey(uniqueId, name);
     }
 
-    public static PlayerDataKey named(String name) {
-        return new PlayerDataKey(null, Objects.requireNonNull(name, "name"));
-    }
-
+    /**
+     * Returns the UUID as a stable string identifier.
+     */
     public String getStorageId() {
-        if (this.uniqueId != null) {
-            return this.uniqueId.toString();
-        }
-        return Objects.requireNonNull(this.name, "name").toLowerCase(Locale.ROOT);
+        return uniqueId.toString();
     }
 }

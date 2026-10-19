@@ -156,14 +156,15 @@ public class PlayerLoginContext {
         PlayerLoginResult result = PlayerLoginResult.ALLOWED;
         Component message = Component.empty();
 
-        if (this.server.getNameBans().isBanned(this.playerData.getName().toLowerCase(Locale.ROOT))
-                || address.getAddress() != null && this.server.getIPBans().isBanned(address.getAddress().getHostAddress())) {
+        if (this.server.getPlayerBanList().isBanned(this.playerData.getUniqueId())
+                || address.getAddress() != null && this.server.getIpBanList().isBanned(address.getAddress())) {
             result = PlayerLoginResult.KICK_BANNED;
             message = Component.text("You are banned");
-        } else if (!this.server.isWhitelisted(this.playerData.getName())) {
+        } else if (!this.server.mayJoin(this.playerData.getUniqueId())) {
             result = PlayerLoginResult.KICK_WHITELIST;
             message = Component.text("Server is white-listed");
         } else if (onlinePlayers.size() >= this.server.getMaxPlayers()
+                && !this.server.canBypassPlayerLimit(this.playerData.getUniqueId())
                 && onlinePlayers.stream().noneMatch(player ->
                         player.getServerId().equals(this.playerData.getUniqueId())
                         || player.getName().equalsIgnoreCase(this.playerData.getName()))) {

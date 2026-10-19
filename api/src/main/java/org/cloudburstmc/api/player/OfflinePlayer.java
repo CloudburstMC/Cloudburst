@@ -2,8 +2,10 @@ package org.cloudburstmc.api.player;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.permission.ServerOperator;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
@@ -58,44 +60,59 @@ public interface OfflinePlayer extends ServerOperator {
     Optional<Player> getPlayer();
 
     /**
-     * Returns whether this player is banned by name.
+     * Returns whether this player's UUID has an active ban.
      *
      * @return true if banned
      */
     boolean isBanned();
 
     /**
-     * Sets whether this player is banned by name.
+     * Adds or replaces this player's UUID ban without disconnecting an online player.
      *
-     * @param value true to ban, false to pardon
+     * @param reason the reason, or null for the default
+     * @param expiration the expiration, or null for a permanent ban
+     * @param source the issuer, or null for the default
+     * @return the saved ban
+     * @throws IllegalStateException if this player's UUID is unknown
      */
-    void setBanned(boolean value);
+    BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source);
 
     /**
-     * Returns whether this player is whitelisted.
+     * Returns whether this player's UUID is explicitly whitelisted.
+     * This does not depend on whether the whitelist is enabled or the player is an operator.
      *
      * @return true if whitelisted
      */
     boolean isWhitelisted();
 
     /**
-     * Sets whether this player is whitelisted.
+     * Sets whether this player's UUID is explicitly whitelisted.
      *
      * @param value true to add to the whitelist, false to remove
+     * @throws IllegalStateException if this player's UUID is unknown
      */
     void setWhitelisted(boolean value);
 
     /**
+     * Changes this player's operator status by UUID.
+     *
+     * @param value whether to grant operator status
+     * @throws IllegalStateException if this player's UUID is unknown
+     */
+    @Override
+    void setOp(boolean value);
+
+    /**
      * Returns when this player first joined.
      *
-     * @return the first join time, or an empty optional if unknown
+     * @return milliseconds since the Unix epoch, or an empty optional if unknown
      */
     OptionalLong getFirstPlayed();
 
     /**
      * Returns when this player last joined.
      *
-     * @return the last join time, or an empty optional if unknown
+     * @return milliseconds since the Unix epoch, or an empty optional if unknown
      */
     OptionalLong getLastPlayed();
 

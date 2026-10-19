@@ -16,7 +16,6 @@ import net.daporkchop.lib.random.impl.FastPRandom;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.GeneratorFactory;
@@ -56,7 +55,7 @@ public final class StandardGenerator implements Generator {
         Identifier presetId = Identifier.parse(Strings.isNullOrEmpty(options) ? DEFAULT_PRESET : options);
         try (InputStream in = StandardGeneratorUtils.read("preset", presetId)) {
             synchronized (StandardGenerator.class) {
-                return Bootstrap.YAML_MAPPER.readValue(in, StandardGenerator.class).init(seed);
+                return StandardGeneratorUtils.decode(in, StandardGenerator.class).init(seed);
             }
         } catch (IOException e) {
             throw new RuntimeException("While decoding preset " + presetId, e);
@@ -289,7 +288,7 @@ public final class StandardGenerator implements Generator {
     @JsonSetter("copyFrom")
     private void copyFrom(@NonNull Identifier presetId) {
         try (InputStream in = StandardGeneratorUtils.read("preset", presetId)) {
-            StandardGenerator from = Bootstrap.YAML_MAPPER.readValue(in, StandardGenerator.class);
+            StandardGenerator from = StandardGeneratorUtils.decode(in, StandardGenerator.class);
             this.biomes = from.biomes;
             this.density = from.density;
             this.decorators = from.decorators;

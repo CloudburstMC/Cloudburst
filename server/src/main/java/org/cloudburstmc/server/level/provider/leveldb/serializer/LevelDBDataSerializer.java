@@ -2,7 +2,6 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.Difficulty;
 import org.cloudburstmc.api.level.gamerule.GameRule;
@@ -12,23 +11,23 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.nbt.util.stream.LittleEndianDataInputStream;
-import org.cloudburstmc.nbt.util.stream.LittleEndianDataOutputStream;
 import org.cloudburstmc.server.level.CloudEndFightData;
 import org.cloudburstmc.server.level.CloudLevelData;
 import org.cloudburstmc.server.level.EndDragonRespawnStage;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.provider.CloudLevelDataSerializer;
+import org.cloudburstmc.server.persistence.RecoverableFiles;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Optional;
 
-@Log4j2
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LevelDBDataSerializer implements CloudLevelDataSerializer {
     public static final CloudLevelDataSerializer INSTANCE = new LevelDBDataSerializer();
@@ -38,38 +37,23 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
 
     @Override
     public Optional<CloudLevelData> load(CloudLevelData initialData, Path levelPath) throws IOException {
-        Path levelDatPath = levelPath.resolve("level.dat");
-        Path levelDatOldPath = levelPath.resolve("level.dat_old");
-
-        if (Files.notExists(levelDatPath) && Files.notExists(levelDatOldPath)) {
-            return Optional.empty();
-        }
-
-        try {
+        return RecoverableFiles.read(levelPath.resolve("level.dat"), path -> {
             CloudLevelData data = initialData.copy();
-            loadData(data, levelDatPath);
-            return Optional.of(data);
-        } catch (IOException e) {
-            log.warn("Unable to load level.dat file, attempting to load backup.");
-            CloudLevelData backupData = initialData.copy();
-            loadData(backupData, levelDatOldPath);
-            return Optional.of(backupData);
-        }
+            loadData(data, path);
+            return data;
+        });
     }
 
     @Override
     public void save(CloudLevelData data, Path levelPath) throws IOException {
-        Path levelDatPath = levelPath.resolve("level.dat");
-        Path levelDatOldPath = levelPath.resolve("level.dat_old");
-
-        if (Files.exists(levelDatPath)) {
-            Files.copy(levelDatPath, levelDatOldPath, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        saveData(data, levelDatPath);
+        RecoverableFiles.write(levelPath.resolve("level.dat"), serialize(data), path -> {
+            CloudLevelData previous = data.copy();
+            loadData(previous, path);
+            return previous;
+        });
     }
 
-    private void saveData(CloudLevelData data, Path levelDatPath) throws IOException {
+    private byte[] serialize(CloudLevelData data) throws IOException {
         NbtMapBuilder tag = NbtMap.builder();
         tag.putAll(data.getAdditionalData());
         tag.putString("LevelName", data.getName())
@@ -102,17 +86,15 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         }
 
         byte[] tagBytes;
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
-             NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            nbtOutputStream.writeTag(tag.build());
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            try (NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
+                nbtOutputStream.writeTag(tag.build());
+            }
             tagBytes = stream.toByteArray();
         }
 
-        try (LittleEndianDataOutputStream stream = new LittleEndianDataOutputStream(Files.newOutputStream(levelDatPath))) {
-            stream.writeInt(STORAGE_VERSION);
-            stream.writeInt(tagBytes.length);
-            stream.write(tagBytes);
-        }
+        return ByteBuffer.allocate(8 + tagBytes.length).order(ByteOrder.LITTLE_ENDIAN)
+                .putInt(STORAGE_VERSION).putInt(tagBytes.length).put(tagBytes).array();
     }
 
     private void loadData(CloudLevelData data, Path levelDatPath) throws IOException {
@@ -124,8 +106,17 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
             if (version < STORAGE_VERSION_MIN || version > STORAGE_VERSION + 2) {
                 throw new IOException("Incompatible level.dat version: " + version);
             }
-            stream.readInt(); // Size
-            tag = (NbtMap) nbtInputStream.readTag();
+
+            int length = stream.readInt();
+            if (length < 0 || length != Files.size(levelDatPath) - 8) {
+                throw new IOException("Invalid level.dat payload length: " + length);
+            }
+
+            if (!(nbtInputStream.readTag() instanceof NbtMap compound)) {
+                throw new IOException("level.dat must contain an NBT compound");
+            }
+
+            tag = compound;
         }
 
         data.setAdditionalData(tag);

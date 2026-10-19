@@ -1,3 +1,5 @@
+config-version: 1
+
 # Advanced configuration file for Cloudburst
 # Some of these settings are safe, others can break your server if modified incorrectly
 # New settings/defaults won't appear automatically on this file when upgrading
@@ -11,9 +13,6 @@ settings:
   shutdown-message: "Server closed"
   # Show a console message when a plugin uses deprecated API methods
   deprecated-verbose: true
-  # Number of asynchronous workers
-  # If set to auto, it'll try to detect the number of cores (and at least 4)
-  async-workers: auto
 
 network:
   identity-file: keys/host.pem
@@ -35,7 +34,7 @@ debug:
   commands: false
   ignored-packets:
     - "LevelChunkPacket"
-  bug-report: false
+  uncaught-exception-reports: false
 
 timings:
   # Enable core and plugin timings by default
@@ -59,37 +58,17 @@ timings:
   # Example formats:
   ignore: []
 
-level-settings:
+level-storage:
   # The default format that levels will use when created
   default-format: leveldb
 
-chunk-sending:
-  # Amount of chunks sent to players per tick
-  per-tick: 4
-  # %chunk-sending.max-chunk-radius
-  max-chunk-radius: 10
-  # Maximum radius the server will keep fully loaded around each player
-  max-loaded-chunk-radius: 10
-  # Amount of chunks that need to be sent before spawning the player
-  spawn-threshold: 56
-  # Save a serialized copy of the chunk in memory for faster sending
-  # Useful in mostly-static worlds where lots of players join at the same time
-  cache-chunks: false
-
-chunk-ticking:
-  # Max amount of chunks processed each tick
-  per-tick: 40
-  # Radius of chunks around a player to tick
-  tick-radius: 3
-  light-updates: false
-  clear-tick-list: false
+chunk-system:
+  io-threads: 2
+  worker-threads: 3
 
 chunk-generation:
-  # Max. amount of chunk storage reads running at once
   load-concurrency: 4
-  # Max. amount of generation work running at once. 0 uses the generation executor size
   generation-concurrency: 0
-  # Max. amount of chunk saves running at once
   save-concurrency: 8
 
 ticks-per:
@@ -98,13 +77,6 @@ ticks-per:
   autosave: 6000
   cache-cleanup: 900
 
-# Max amount of these entities
-spawn-limits:
-  monsters: 70
-  animals: 15
-  water-animals: 5
-  ambient: 15
-
 player:
   # If true, player data will be saved as players/playername.dat
   # If false, cloudburst won't save player data as "dat" files, in order that plugins can do something on it.
@@ -112,21 +84,13 @@ player:
   # The time between skin change action in seconds. Set 0 to disable the cooldown
   skin-change-cooldown: 30
 
-level:
-  max-block-ticks: 12345
-  max-liquid-ticks: 23456
-  water-over-lava-flow-speed: 7
-  max-chained-neighbor-updates: 34567
-
 # These settings will override the generator set in server.properties and allows loading multiple levels
-worlds:
+levels:
   world:
     dimension: overworld
     seed: test
     generator: cloudburst:standard
     options: overworld
-    max-liquid-ticks: 45678
-    water-over-lava-flow-speed: 9
   nether:
     dimension: nether
     generator: cloudburst:standard

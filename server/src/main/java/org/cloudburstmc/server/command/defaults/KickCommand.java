@@ -9,7 +9,7 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
-import org.cloudburstmc.api.event.player.PlayerKickEvent;
+import org.cloudburstmc.api.player.KickReason;
 import org.cloudburstmc.server.command.CommandUtils;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
@@ -43,7 +43,7 @@ public class KickCommand extends AdvertisedCommand {
         }
 
         for (CloudPlayer player : players) {
-            player.kick(PlayerKickEvent.Reason.KICKED_BY_ADMIN, reason);
+            player.kick(KickReason.KICKED_BY_ADMIN, reason);
             if (!reason.isBlank()) {
                 CommandUtils.broadcastCommandMessage(sender, Component.translatable("commands.kick.success.reason",
                         Component.text(player.getName()), Component.text(reason)));

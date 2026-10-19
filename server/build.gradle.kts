@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+import java.nio.file.Files
 
 plugins {
     alias(libs.plugins.extra.java.module.info)
@@ -8,6 +9,7 @@ plugins {
 
 dependencies {
     implementation(project(":api"))
+    implementation(libs.snakeyaml)
     implementation(libs.bedrock.codec)
     api(libs.bedrock.connection) {
         exclude("com.nukkitx.fastutil")
@@ -161,12 +163,17 @@ tasks.shadowJar {
 }
 
 tasks.register<JavaExec>("run") {
+    val runDirectory = layout.projectDirectory.dir("run").asFile
+
     mainClass.set("org.cloudburstmc.server.Bootstrap")
-    workingDir = projectDir.resolve("run")
-    workingDir.mkdir()
+    workingDir = runDirectory
     classpath = sourceSets["main"].runtimeClasspath
     standardInput = System.`in`
     jvmArgs("--enable-native-access=ALL-UNNAMED")
     systemProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true")
     systemProperty("guice_bytecode_gen_option", "DISABLED")
+
+    doFirst {
+        Files.createDirectories(runDirectory.toPath())
+    }
 }

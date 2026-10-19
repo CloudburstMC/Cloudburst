@@ -5,9 +5,11 @@ import org.cloudburstmc.api.util.PlayerDataKey;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
 
 /**
- * Called when the serializer for a player's stored data is selected.
+ * Called before a player-data read or save to select the serializer for that operation.
+ * Replacing the serializer does not change the server's default for later operations.
+ * The selected serializer must support the threading requirements of {@link PlayerDataSerializer}.
  */
-public final class PlayerDataSerializeEvent extends ServerEvent {
+public class PlayerDataSerializeEvent extends ServerEvent {
 
     private final PlayerDataKey key;
     private PlayerDataSerializer serializer;

@@ -19,6 +19,7 @@ import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.ban.BanEntry;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
@@ -65,7 +66,10 @@ import org.cloudburstmc.protocol.bedrock.data.*;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.inventory.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
@@ -113,10 +117,10 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
@@ -148,107 +152,123 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private static final float TELEPORT_ACK_DISTANCE_TOLERANCE_SQUARED = TELEPORT_ACK_DISTANCE_TOLERANCE * TELEPORT_ACK_DISTANCE_TOLERANCE;
 
     protected final BedrockServerSession session;
+    private final AuthenticatedPlayerData connectionData;
+    private final PlayerPacketHandler packetHandler;
+
     protected final PlayerData playerData = new PlayerData();
     protected final CloudPlayerFood foodData = new CloudPlayerFood(this);
     protected final Map<UUID, CloudPlayer> hiddenPlayers = new HashMap<>();
-    protected final int chunksPerTick;
-    protected final int spawnThreshold;
 
     @Getter
     private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
+
     @Getter(AccessLevel.NONE)
     private final CloudPlayerInventory inventory = new CloudPlayerInventory(this, this.container);
+
     @Getter
     private final CloudHotbarView hotbar = new CloudHotbarView(this);
+
     @Getter
     private final CloudContainer enderChestContainer = new CloudContainer(27);
-    private final PlayerPacketHandler packetHandler;
+
     private final Map<Container, Byte> containerToWindowId = new HashMap<>();
     private final Map<Byte, Container> windowIdToContainer = new HashMap<>();
-    private final LongOpenHashSet attachedFireworkRockets = new LongOpenHashSet();
+
     private Container uiContainer;
     private ContainerSlotType uiContainerSlotType;
     private int uiContainerSlotOffset;
+
     private final CloudEnderChestView enderChest = new CloudEnderChestView(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
+
     private final Queue<BedrockPacket> inboundQueue = new ConcurrentLinkedQueue<>();
     private final AtomicReference<Locale> locale = new AtomicReference<>(null);
+
     @Getter
     private final PlayerChunkManager chunkManager = new PlayerChunkManager(this);
 
     public boolean spawned = false;
     public boolean loggedIn = false;
     public int packetsRecieved;
-    public int pickedXPOrb = 0;
     public long creationTime = 0;
-    public long lastBreak;
-    public long lastSkinChange;
-    public Block breakingBlock = null;
-    private @Nullable FishingHook fishingHook;
 
     protected boolean connected = true;
-    protected boolean enableClientCommand = true;
-    protected boolean removeFormat = true;
-    protected int inAirTicks = 0;
-    protected int messageCounter = 2;
-    protected int serverSettingsId = -1;
-    protected int startAction = -1;
-    protected int startAirTicks = 5;
-    protected int viewDistance;
-    protected float stepHeight = 0.6f;
     protected long randomClientId;
     protected Component displayName;
     protected String iusername;
     protected String username;
-    protected AtomicInteger formWindowCount = new AtomicInteger(0);
+    private CloudPermissible perm = null;
+    private String clientSecret;
+
+    @Getter
+    private boolean initialized;
+
+    @Getter
+    @Setter
+    private boolean clientCacheEnabled = false;
+
+    protected boolean enableClientCommand = true;
+    protected boolean removeFormat = true;
+    protected int messageCounter = 2;
+    private boolean clientCommandsEnabledStateSent;
+    private boolean clientCommandDataSent;
+    private boolean lastSentClientCommandsEnabled;
+    private boolean lastSentOperatorAbilities;
+
     protected CloudPlayerAbilities abilities;
-    //TODO: better handling server settings?
-    protected CustomForm serverSettings = null;
+    private final LongOpenHashSet attachedFireworkRockets = new LongOpenHashSet();
+    protected int inAirTicks = 0;
+    protected int startAirTicks = 5;
+    protected int viewDistance;
+    protected float stepHeight = 0.6f;
+    protected Vector3f forceMovement = null;
+    protected Vector3f newPosition = null;
+    protected Vector3f teleportPosition = null;
+    protected long clientTick = 0;
+    private boolean teleportAcknowledged;
+    private boolean pendingTeleportEntityViewRefresh;
+    private boolean changingDimension = false;
+    private GameMode previousGameMode = null;
+
     protected Location spawnLocation = null;
     protected RespawnConfig respawnConfig = null;
-    protected Map<Integer, Form<?>> formWindows = new Int2ObjectOpenHashMap<>();
-    private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
+    protected Vector3i sleeping = null;
+    private @Nullable Location respawnTarget;
+    private boolean seenCredits;
+    private boolean showingCredits;
+
+    public int pickedXPOrb = 0;
+    private int exp = 0;
+    private int expLevel = 0;
+    private Entity killer = null;
+    private boolean foodEnabled = true;
+    private boolean wasUnderwater;
+
+    public long lastBreak;
+    public Block breakingBlock = null;
+    private @Nullable FishingHook fishingHook;
+
+    public long lastSkinChange;
     private final Set<CloudBossBar> bossBars = new LinkedHashSet<>();
+
+    protected AtomicInteger formWindowCount = new AtomicInteger(0);
+    protected int serverSettingsId = -1;
+    protected CustomForm serverSettings = null;
+    protected Map<Integer, Form<?>> formWindows = new Int2ObjectOpenHashMap<>();
+    private String buttonText = "Button";
+
+    @Getter
+    private int selectedHotbarSlot = 0;
+
+    private byte containerIdCounter = 1;
+    private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
+    protected int startAction = -1;
     private @Nullable ItemStack activeUseStack;
     private int activeUseSlot = -1;
     private int itemUseCompleteTick;
     private final ItemBlockingController itemBlocking = new ItemBlockingController(this);
     private int lastCompletedItemUseTick = Integer.MIN_VALUE;
     private int spinAttackEndTick = -1;
-    protected Vector3f forceMovement = null;
-    protected Vector3f newPosition = null;
-    protected Vector3f teleportPosition = null;
-    protected Vector3i sleeping = null;
-    protected long clientTick = 0;
-
-    @Getter
-    private int selectedHotbarSlot = 0;
-    private boolean foodEnabled = true;
-    private GameMode previousGameMode = null;
-    @Getter
-    @Setter
-    private boolean clientCacheEnabled = false;
-    private boolean teleportAcknowledged;
-    private boolean pendingTeleportEntityViewRefresh;
-    @Getter
-    private boolean initialized;
-    private boolean clientCommandsEnabledStateSent;
-    private boolean clientCommandDataSent;
-    private boolean lastSentClientCommandsEnabled;
-    private boolean lastSentOperatorAbilities;
-    private boolean changingDimension = false;
-    private @Nullable Location respawnTarget;
-    private boolean seenCredits;
-    private boolean showingCredits;
-    private boolean wasUnderwater;
-    private byte containerIdCounter = 1;
-    private int exp = 0;
-    private int expLevel = 0;
-    private Entity killer = null;
-    private final AuthenticatedPlayerData connectionData;
-    private CloudPermissible perm = null;
-    private String buttonText = "Button";
-    private String clientSecret;
 
     public CloudPlayer(BedrockServerSession session, AuthenticatedPlayerData connectionData) {
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
@@ -257,8 +277,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         session.setPacketHandler(new Handler());
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
-        this.chunksPerTick = this.server.getConfig().getChunkSending().getPerTick();
-        this.spawnThreshold = this.server.getConfig().getChunkSending().getSpawnThreshold();
         this.spawnLocation = null;
         this.playerData.setGamemode(this.server.getGameMode());
         this.viewDistance = this.server.getViewDistance();
@@ -367,31 +385,27 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public boolean isBanned() {
-        return this.server.isBanned(this);
+        return this.server.getPlayerBanList().isBanned(this.getServerId());
     }
 
     @Override
-    public void setBanned(boolean value) {
-        if (value) {
-            this.server.ban(this);
-            this.kick(PlayerKickEvent.Reason.NAME_BANNED, "Banned by admin");
-        } else {
-            this.server.unban(this);
+    public BanEntry<UUID> ban(@Nullable String reason, @Nullable Instant expiration, @Nullable String source, boolean kick) {
+        BanEntry<UUID> entry = this.server.getPlayerBanList().addBan(this.getServerId(), reason, expiration, source);
+        if (kick && !entry.isExpired()) {
+            this.kick(KickReason.PLAYER_BANNED, entry.reason());
         }
+
+        return entry;
     }
 
     @Override
     public boolean isWhitelisted() {
-        return this.server.isWhitelisted(this.getName().toLowerCase());
+        return this.server.isWhitelisted(this.getServerId());
     }
 
     @Override
     public void setWhitelisted(boolean value) {
-        if (value) {
-            this.server.addWhitelist(this);
-        } else {
-            this.server.removeWhitelist(this);
-        }
+        this.server.setWhitelisted(this.getServerId(), this.getName(), value);
     }
 
     @SuppressWarnings("resource")
@@ -433,7 +447,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     /**
      * Sets a boolean ability flag on this player and fires {@link PlayerAbilityChangeEvent}.
-     * If the event is cancelled the ability is not changed. If a plugin redirects the value
+     * If the event is canceled the ability is not changed. If a plugin redirects the value
      * via {@link PlayerAbilityChangeEvent#setNewValue}, that redirected value is applied instead.
      *
      * @param ability the ability flag to change
@@ -570,20 +584,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public boolean isOp() {
-        return this.server.isOp(this);
+        return this.server.isOperator(this.getServerId());
     }
 
     @Override
     public void setOp(boolean value) {
-        if (value == this.isOp()) {
-            return;
-        }
-
-        if (value) {
-            this.server.addOp(this);
-        } else {
-            this.server.removeOp(this);
-        }
+        this.server.setOperator(this.getServerId(), this.getName(), value);
     }
 
     @Override
@@ -812,6 +818,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public SocketAddress getSocketAddress() {
         return this.session.getSocketAddress();
+    }
+
+    @Override
+    public @Nullable InetSocketAddress getAddress() {
+        return this.getSocketAddress() instanceof InetSocketAddress address ? address : null;
     }
 
     private String getLoggableAddress() {
@@ -2416,7 +2427,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.getChunkManager().sendQueued();
 
-        if (this.getChunkManager().getChunksSent() >= this.spawnThreshold && !this.spawned) {
+        if (this.getChunkManager().getChunksSent() >= this.getLevel().getConfiguration().getChunkSending().getSpawnThreshold() && !this.spawned) {
             this.doFirstSpawn();
         }
     }
@@ -2437,17 +2448,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             nbt = tag.build();
             oldPlayer.close("", "disconnectionScreen.loggedinOtherLocation");
         } else {
-            File legacyDataFile = new File(server.getDataPath() + "players/" + this.username.toLowerCase(Locale.ROOT) + ".dat");
-            File dataFile = new File(server.getDataPath() + "players/" + this.identity.toString() + ".dat");
-            if (legacyDataFile.exists() && !dataFile.exists()) {
-                nbt = this.server.getOfflinePlayerData(this.username, false);
-
-                if (!legacyDataFile.delete()) {
-                    log.warn("Could not delete legacy player data for {}", this.username);
-                }
-            } else {
-                nbt = this.server.getOfflinePlayerData(this.identity, true);
-            }
+            nbt = this.server.getOfflinePlayerData(this.identity, true);
         }
 
         if (nbt == null) {
@@ -2529,28 +2530,28 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public boolean kick(String reason, boolean isAdmin) {
-        return this.kick(PlayerKickEvent.Reason.UNKNOWN, reason, isAdmin);
+        return this.kick(KickReason.UNKNOWN, reason, isAdmin);
     }
 
     public boolean kick(String reason) {
-        return kick(PlayerKickEvent.Reason.UNKNOWN, reason);
+        return kick(KickReason.UNKNOWN, reason);
     }
 
-    public boolean kick(PlayerKickEvent.Reason reason) {
+    public boolean kick(KickReason reason) {
         return this.kick(reason, true);
     }
 
-    public boolean kick(PlayerKickEvent.Reason reason, String reasonString) {
+    public boolean kick(KickReason reason, String reasonString) {
         return this.kick(reason, reasonString, true);
     }
 
-    public boolean kick(PlayerKickEvent.Reason reason, boolean isAdmin) {
+    public boolean kick(KickReason reason, boolean isAdmin) {
         return this.kick(reason, reason.toString(), isAdmin);
     }
 
-    public boolean kick(PlayerKickEvent.Reason reason, String reasonString, boolean isAdmin) {
+    public boolean kick(KickReason reason, String reasonString, boolean isAdmin) {
         PlayerKickEvent ev;
-        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, this.leaveMessage()));
+        this.server.getEventManager().fire(ev = new PlayerKickEvent(this, reason, reasonString, this.leaveMessage()));
         if (!ev.isCancelled()) {
             String message;
             if (isAdmin) {
@@ -2577,11 +2578,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public void kick(Component reason) {
-        this.kick(reason, PlayerKickEvent.Reason.UNKNOWN);
+        this.kick(reason, KickReason.UNKNOWN);
     }
 
     @Override
-    public void kick(Component reason, PlayerKickEvent.Reason cause) {
+    public void kick(Component reason, KickReason cause) {
         String reasonString = PlainTextComponentSerializer.plainText().serialize(reason);
         this.kick(cause, reasonString, true);
     }

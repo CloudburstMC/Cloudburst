@@ -3,9 +3,12 @@ package org.cloudburstmc.server.level.generator.standard;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.file.PFiles;
+import org.cloudburstmc.api.configuration.Configuration;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
+import org.cloudburstmc.server.level.generator.GeneratorConfigurationMapper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -13,16 +16,23 @@ import java.util.UUID;
 
 /**
  * Various helper methods used by the Cloudburst standard generator.
- *
- * @author DaPorkchop_
  */
 @UtilityClass
 public class StandardGeneratorUtils {
 
+    public static <T> T decode(InputStream stream, Class<T> type) throws IOException {
+        Configuration configuration = new YamlConfigurationLoader().load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        try {
+            return GeneratorConfigurationMapper.MAPPER.convertValue(configuration.getValues(false), type);
+        } catch (RuntimeException e) {
+            throw new IOException("Invalid generator configuration for " + type.getSimpleName(), e);
+        }
+    }
+
     public static InputStream read(@NonNull String category, @NonNull Identifier id) throws IOException {
         String name = String.format("generator/%s/%s/%s.yml", category, id.getNamespace(), id.getName());
 
-        File file = new File(name);
+        File file = CloudServer.getInstance().getDataPath().resolve(name).toFile();
         if (PFiles.checkFileExists(file)) {
             return new BufferedInputStream(new FileInputStream(file));
         }

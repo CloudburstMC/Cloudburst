@@ -2,10 +2,8 @@ package org.cloudburstmc.server.utils;
 
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.CloudServer;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.MonitorInfo;
-import java.lang.management.ThreadInfo;
+import org.cloudburstmc.server.diagnostics.CrashReports;
+import org.cloudburstmc.server.diagnostics.ThreadDump;
 
 @Log4j2
 public class Watchdog extends Thread {
@@ -30,23 +28,6 @@ public class Watchdog extends Thread {
         }
     }
 
-    private static void dumpThread(ThreadInfo thread) {
-        log.fatal("Current Thread: " + thread.getThreadName());
-        log.fatal("\tPID: " + thread.getThreadId() + " | Suspended: " + thread.isSuspended() + " | Native: " + thread.isInNative() + " | State: " + thread.getThreadState());
-        // Monitors
-        if (thread.getLockedMonitors().length != 0) {
-            log.fatal("\tThread is waiting on monitor(s):");
-            for (MonitorInfo monitor : thread.getLockedMonitors()) {
-                log.fatal("\t\tLocked on:" + monitor.getLockedStackFrame());
-            }
-        }
-
-        log.fatal("\tStack:");
-        for (StackTraceElement stack : thread.getStackTrace()) {
-            log.fatal("\t\t" + stack);
-        }
-    }
-
     @Override
     public void run() {
         while (this.running) {
@@ -56,23 +37,23 @@ public class Watchdog extends Thread {
                 if (!responding && diff > time * 2) {
                     System.exit(1); // Kill the server if it gets stuck on shutdown
                 }
+
                 if (server.isRunning() && diff > time) {
                     if (responding) {
 
                         log.fatal("--------- Server stopped responding --------- (" + Math.round(diff / 1000d) + "s)");
                         log.fatal("Please report this to Cloudburst:");
                         log.fatal(" - https://github.com/CloudburstMC/Server/issues/new");
-                        log.fatal("---------------- Main thread ----------------");
+                        log.fatal(ThreadDump.capture());
 
-                        dumpThread(ManagementFactory.getThreadMXBean().getThreadInfo(this.server.getPrimaryThread().threadId(), Integer.MAX_VALUE));
-
-                        log.fatal("---------------- All threads ----------------");
-                        ThreadInfo[] threads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
-                        for (int i = 0; i < threads.length; i++) {
-                            if (i != 0) log.fatal("------------------------------");
-                            dumpThread(threads[i]);
+                        try {
+                            log.fatal("Crash report saved to {}", CrashReports.write(
+                                    server.getFiles().crashReports(), this,
+                                    new IllegalStateException("Server stopped responding for " + diff + "ms")));
+                        } catch (Exception failure) {
+                            log.error("Unable to write watchdog crash report", failure);
                         }
-                        log.fatal("---------------------------------------------");
+
                         responding = false;
                         this.server.forceShutdown();
                     }
@@ -80,6 +61,7 @@ public class Watchdog extends Thread {
                     responding = true;
                 }
             }
+
             try {
                 synchronized (this) {
                     this.wait(Math.max(time / 4, 1000));

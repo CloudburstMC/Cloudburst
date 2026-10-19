@@ -11,10 +11,7 @@ import org.cloudburstmc.api.map.MapScale;
 import org.cloudburstmc.api.map.MapView;
 import org.cloudburstmc.api.map.Maps;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.screen.CloudCartographyContainerScreen;
@@ -37,9 +34,9 @@ public class CloudMapManager implements Maps {
     private final Map<CloudPlayer, Set<Long>> pendingRequests = new WeakHashMap<>();
     private final MapIdAllocator ids;
 
-    public CloudMapManager(CloudServer server) {
+    public CloudMapManager(CloudServer server, Path directory) {
         this.server = server;
-        this.directory = server.getDataPath().resolve("maps");
+        this.directory = Objects.requireNonNull(directory, "directory");
 
         try {
             Files.createDirectories(this.directory);
@@ -50,7 +47,9 @@ public class CloudMapManager implements Maps {
                     try {
                         long id = Long.parseLong(name.substring(4, name.length() - 4));
                         if (id >= 0) {
-                            minimumNextId = Math.max(minimumNextId, Math.addExact(id, 1));
+                            NbtMap stored = MapDataFiles.read(file, id);
+                            long maximumReservedId = Arrays.stream(stored.getLongArray("mapIds")).max().orElseThrow();
+                            minimumNextId = Math.max(minimumNextId, Math.addExact(maximumReservedId, 1));
                         }
                     } catch (NumberFormatException ignored) {
                         log.warn("Ignoring map file with an invalid identifier: {}", file);
@@ -102,24 +101,11 @@ public class CloudMapManager implements Maps {
             return Optional.empty();
         }
 
-        try (NBTInputStream input = NbtUtils.createGZIPReader(Files.newInputStream(path))) {
-            if (!(input.readTag() instanceof NbtMap data) || data.getInt("version") != 1) {
-                throw new IOException("Unsupported map data format");
-            }
-
+        try {
+            NbtMap data = MapDataFiles.read(path, id);
             int[] pixels = data.getIntArray("pixels");
             int scale = data.getInt("scale");
-            if (pixels.length != 128 * 128 || scale < 0 || scale >= MapScale.values().length) {
-                throw new IOException("Invalid map dimensions or scale");
-            }
-
-            boolean hasHierarchy = data.containsKey("mapIds");
-            long[] mapIds = hasHierarchy ? data.getLongArray("mapIds") : this.allocateMapIds(id, MapScale.values()[scale]);
-            if (mapIds.length != MapScale.values().length - scale || mapIds[0] != id
-                    || Arrays.stream(mapIds).anyMatch(value -> value < 0)
-                    || Arrays.stream(mapIds).distinct().count() != mapIds.length) {
-                throw new IOException("Invalid map scale hierarchy");
-            }
+            long[] mapIds = data.getLongArray("mapIds");
 
             CloudMapView map = new CloudMapView(this, mapIds, data.getString("level"), data.getInt("dimension"),
                     data.getInt("centerX"), data.getInt("centerZ"), MapScale.values()[scale], pixels);
@@ -127,10 +113,6 @@ public class CloudMapManager implements Maps {
             map.setTrackingPosition(data.getBoolean("tracking"));
             map.setUnlimitedTracking(data.getBoolean("unlimitedTracking"));
             map.saved();
-
-            if (!hasHierarchy) {
-                map.changed();
-            }
 
             this.maps.put(id, map);
             this.server.getEventManager().fire(new MapInitializeEvent(map));
@@ -253,7 +235,6 @@ public class CloudMapManager implements Maps {
 
     private void save(CloudMapView map) {
         NbtMap data = NbtMap.builder()
-                .putInt("version", 1)
                 .putString("level", map.levelName())
                 .putInt("dimension", map.dimension())
                 .putInt("centerX", map.getCenterX())
@@ -266,18 +247,8 @@ public class CloudMapManager implements Maps {
                 .putIntArray("pixels", map.terrain())
                 .build();
 
-        Path temporary = this.directory.resolve("map_" + map.getId() + ".tmp");
         try {
-            try (NBTOutputStream output = NbtUtils.createGZIPWriter(Files.newOutputStream(temporary))) {
-                output.writeTag(data);
-            }
-
-            try {
-                Files.move(temporary, this.path(map.getId()), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temporary, this.path(map.getId()), StandardCopyOption.REPLACE_EXISTING);
-            }
-
+            MapDataFiles.write(this.path(map.getId()), map.getId(), data);
             map.saved();
         } catch (IOException e) {
             throw new IllegalStateException("Could not save map " + map.getId(), e);

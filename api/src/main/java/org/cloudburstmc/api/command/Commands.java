@@ -16,28 +16,17 @@ import java.util.function.Predicate;
 /**
  * Registers, discovers, and dispatches Brigadier command trees.
  *
- * <p>Command registration is available during the command registration phase. Registered trees are immutable from
- * the service's perspective; build the complete tree before passing it to
+ * <p>Register commands during {@link org.cloudburstmc.api.event.server.CommandRegistrationEvent}.
+ * Build the complete tree before passing it to
  * {@link #register(PluginDescription, LiteralCommandNode, String, Collection)}.</p>
  *
- * <pre>{@code
- * @Listener
- * public void registerCommands(CommandRegistrationEvent event) {
- *     LiteralCommandNode<CommandSourceStack> command = Commands.literal("greet")
- *             .executes(context -> {
- *                 context.getSource().sendSuccess(Component.text("Hello"));
- *                 return Command.SINGLE_SUCCESS;
- *             })
- *             .build();
- *
- *     event.getCommands().register(this.pluginDescription, command, "Sends a greeting");
- * }
- * }</pre>
+ * <p>Use {@link #literal(String)} and {@link #argument(String, CommandArgumentType)} to build
+ * nodes with the correct source type. Attach permission requirements before registering the tree.</p>
  */
 public interface Commands {
 
     /**
-     * Returns the runtime-backed command argument factory.
+     * Returns parsers for command arguments such as players, entities, and registered types.
      *
      * @return the command argument factory
      */

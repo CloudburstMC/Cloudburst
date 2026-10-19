@@ -44,6 +44,12 @@ public class DefaultPermissions {
         definitions.add(new Permission(ROOT + ".command.whitelist.disable", "Allows the user to disable the server whitelist", PermissionDefault.OPERATORS), whitelist);
         definitions.add(new Permission(ROOT + ".command.whitelist.list", "Allows the user to list all players on the server whitelist", PermissionDefault.OPERATORS), whitelist);
 
+        definitions.add(new Permission(ROOT + ".command.ban", "Allows the user to ban players", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.ban-ip", "Allows the user to ban IP addresses", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.banlist", "Allows the user to list active bans", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.pardon", "Allows the user to pardon players", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.pardon-ip", "Allows the user to pardon IP addresses", PermissionDefault.OPERATORS), commands);
+
         Permission op = definitions.add(new Permission(ROOT + ".command.op", "Allows the user to change operators", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.op.give", "Allows the user to give a player operator status", PermissionDefault.OPERATORS), op);
         definitions.add(new Permission(ROOT + ".command.op.take", "Allows the user to take a player's operator status", PermissionDefault.OPERATORS), op);

@@ -12,6 +12,7 @@ publishing {
 }
 
 dependencies {
+    compileOnlyApi(libs.jetbrains.annotations)
     api(libs.adventure.api)
     api(libs.brigadier)
     api(libs.adventure.text.minimessage)
@@ -24,6 +25,7 @@ dependencies {
     api(libs.jackson.dataformat.properties)
     api(libs.completable.futures)
     api(libs.math.immutable)
+    api(libs.nbt)
     api(libs.guice)
     api(libs.guava)
     api(libs.asm)
@@ -45,6 +47,11 @@ extraJavaModuleInfo {
     }
     module(libs.guice, "com.google.guice")
     knownModule(libs.guava, "com.google.common")
+    module(libs.nbt, "org.cloudburstmc.nbt") {
+        overrideModuleName()
+        exportAllPackages()
+        requireAllDefinedDependencies()
+    }
     knownModule(libs.jakarta.inject, "jakarta.inject")
     module(libs.math.immutable, "org.cloudburstmc.math.immutable") {
         overrideModuleName()

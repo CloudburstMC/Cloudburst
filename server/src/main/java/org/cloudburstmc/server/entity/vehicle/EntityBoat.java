@@ -31,7 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
@@ -283,7 +283,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
         Vector3f target = input.position().sub(0, this.getBaseOffset(), 0);
         Vector3f requested = target.sub(this.position);
 
-        ServerConfig.Movement movementConfig = this.server.getConfig().getMovement();
+        GlobalConfiguration.Movement movementConfig = this.server.getConfig().getMovement();
         float speedLimit = movementConfig.getMaxSpeedThreshold();
         if (movementConfig.isStrictMovement()) {
             speedLimit *= 0.5f;

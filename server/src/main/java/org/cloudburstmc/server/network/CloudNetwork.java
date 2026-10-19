@@ -26,7 +26,7 @@ import org.cloudburstmc.netty.util.nethernet.PlayerInfo;
 import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.config.ServerConfig;
+import org.cloudburstmc.server.configuration.GlobalConfiguration;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
 import org.cloudburstmc.server.network.nethernet.CloudNetherNetServerInitializer;
 import org.cloudburstmc.server.player.handler.NetworkSettingsPacketHandler;
@@ -64,7 +64,7 @@ public class CloudNetwork implements AutoCloseable {
     }
 
     public void bind() throws Exception {
-        ServerConfig.Network config = this.server.getConfig().getNetwork();
+        GlobalConfiguration.Network config = this.server.getConfig().getNetwork();
         if (this.listener != null || this.closed.get()) {
             throw new IllegalStateException("The network listener cannot be bound again");
         }
