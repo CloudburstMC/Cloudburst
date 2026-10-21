@@ -1,76 +1,50 @@
 package org.cloudburstmc.server.level.chunk.bitarray;
 
-import org.cloudburstmc.server.math.MathHelper;
+import java.util.Objects;
 
-import java.util.Arrays;
-
+/**
+ * Packs power-of-two-width entries using shift-based word addressing.
+ */
 public class Pow2BitArray implements BitArray {
 
-    /**
-     * Array used to store data
-     */
     private final int[] words;
-
-    /**
-     * Palette version information
-     */
     private final BitArrayVersion version;
-
-    /**
-     * Number of entries in this palette (<b>not</b> the length of the words array that internally backs this palette)
-     */
     private final int size;
+    private final int indexShift;
 
     Pow2BitArray(BitArrayVersion version, int size, int[] words) {
-        this.size = size;
         this.version = version;
+        this.size = size;
         this.words = words;
-        int expectedWordsLength = MathHelper.ceil((float) size / version.entriesPerWord);
-        if (words.length != expectedWordsLength) {
-            throw new IllegalArgumentException("Invalid length given for storage, got: " + words.length +
-                    " but expected: " + expectedWordsLength);
-        }
+        this.indexShift = Integer.numberOfTrailingZeros(version.getEntriesPerWord());
     }
 
-    /**
-     * Sets the entry at the given location to the given value.
-     * Bounds checks are omitted intentionally. All callers are trusted to pass
-     * valid indices (0 ≤ index < size) and values (0 ≤ value ≤ maxEntryValue).
-     */
-    @Override
-    public void set(int index, int value) {
-        int bitIndex = index * this.version.bits;
-        int arrayIndex = bitIndex >> 5;
-        int offset = bitIndex & 31;
-        this.words[arrayIndex] = this.words[arrayIndex] & ~(this.version.maxEntryValue << offset) | (value & this.version.maxEntryValue) << offset;
-    }
-
-    /**
-     * Gets the entry at the given index.
-     * Bounds checks are omitted intentionally. Callers are trusted to pass
-     * valid indices (0 ≤ index < size).
-     */
     @Override
     public int get(int index) {
-        int bitIndex = index * this.version.bits;
-        int arrayIndex = bitIndex >> 5;
-        int wordOffset = bitIndex & 31;
-        return this.words[arrayIndex] >>> wordOffset & this.version.maxEntryValue;
+        Objects.checkIndex(index, this.size);
+        int wordIndex = index >>> this.indexShift;
+        int offset = (index & (this.version.getEntriesPerWord() - 1)) * this.version.getBits();
+        return (this.words[wordIndex] >>> offset) & this.version.getMaxValue();
     }
 
-    /**
-     * Returns the number of entries in this bit array.
-     */
+    @Override
+    public void set(int index, int value) {
+        Objects.checkIndex(index, this.size);
+        if (value < 0 || value > this.version.getMaxValue()) {
+            throw new IllegalArgumentException("Value " + value + " does not fit " + this.version.getBits() + " bits");
+        }
+
+        int wordIndex = index >>> this.indexShift;
+        int offset = (index & (this.version.getEntriesPerWord() - 1)) * this.version.getBits();
+        int mask = this.version.getMaxValue() << offset;
+        this.words[wordIndex] = (this.words[wordIndex] & ~mask) | (value << offset);
+    }
+
     @Override
     public int size() {
         return this.size;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @return {@inheritDoc}
-     */
     @Override
     public int[] getWords() {
         return this.words;
@@ -78,11 +52,11 @@ public class Pow2BitArray implements BitArray {
 
     @Override
     public BitArrayVersion getVersion() {
-        return version;
+        return this.version;
     }
 
     @Override
     public BitArray copy() {
-        return new Pow2BitArray(this.version, this.size, Arrays.copyOf(this.words, this.words.length));
+        return new Pow2BitArray(this.version, this.size, this.words.clone());
     }
 }

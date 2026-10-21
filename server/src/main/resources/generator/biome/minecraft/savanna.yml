@@ -28,7 +28,7 @@ populators:
     on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "2*dandelion,poppy"
+    block: ["2*dandelion", "poppy"]
 
     # Tall grass
   - id: "cloudburst:shrub"

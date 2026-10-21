@@ -3,8 +3,8 @@ package org.cloudburstmc.server.level.provider;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -33,6 +33,14 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
      * @return future completed after the chunk is persisted
      */
     CompletableFuture<Void> saveChunk(Chunk chunk);
+
+    /**
+     * Atomically persists converted terrain and entity records without loading entities.
+     *
+     * @param imported converted chunk whose destination must not already contain a chunk
+     * @return future completed after all chunk records are persisted
+     */
+    CompletableFuture<Void> saveImportedChunk(ImportedChunk imported);
 
     /**
      * Persists a chunk's pending ticks without performing a complete chunk save.

@@ -1,31 +1,47 @@
 package org.cloudburstmc.api.util.data;
 
-import lombok.RequiredArgsConstructor;
+import lombok.EqualsAndHashCode;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-@RequiredArgsConstructor
+/**
+ * A colored pattern layer on a banner.
+ */
+@EqualsAndHashCode
 public class BannerPattern {
 
     private final Type type;
     private final DyeColor color;
 
-/* //Todo: make this from JSON?
-    public static BannerPattern fromNbtMap(NbtMap nbt) {
-        return new BannerPattern(Type.getByName(nbt.containsKey("Pattern") ? nbt.getString("Pattern") : ""),
-                nbt.containsKey("Color") ? DyeColor.getByDyeData(nbt.getInt("Color")) : DyeColor.BLACK);
+    /**
+     * @param type  the pattern shape
+     * @param color the pattern color
+     */
+    public BannerPattern(Type type, DyeColor color) {
+        this.type = Objects.requireNonNull(type, "type");
+        this.color = Objects.requireNonNull(color, "color");
     }
-*/
 
+    /**
+     * @return the pattern color
+     */
     public DyeColor getColor() {
         return this.color;
     }
 
+    /**
+     * @return the pattern shape
+     */
     public Type getType() {
         return this.type;
     }
 
+    /**
+     * Built-in banner pattern shapes.
+     */
     public enum Type {
 
         PATTERN_BOTTOM_STRIPE("bs"),
@@ -65,9 +81,13 @@ public class BannerPattern {
         PATTERN_CREEPER("cre"),
         PATTERN_SKULL("sku"),
         PATTERN_FLOWER("flo"),
-        PATTERN_MOJANG("moj");
+        PATTERN_MOJANG("moj"),
+        PATTERN_GLOBE("glb"),
+        PATTERN_PIGLIN("pig"),
+        PATTERN_FLOW("flw"),
+        PATTERN_GUSTER("gus");
 
-        private final static Map<String, Type> BY_NAME = new HashMap<>();
+        private static final Map<String, Type> BY_NAME = new HashMap<>();
 
         static {
             for (Type type : values()) {
@@ -77,14 +97,21 @@ public class BannerPattern {
 
         private final String name;
 
-        Type(String name) {
+        private Type(String name) {
             this.name = name;
         }
 
-        public static Type getByName(String name) {
+        /**
+         * @param name the pattern name
+         * @return the matching shape, or null when unknown
+         */
+        public static @Nullable Type getByName(String name) {
             return BY_NAME.get(name);
         }
 
+        /**
+         * @return the pattern name
+         */
         public String getName() {
             return this.name;
         }

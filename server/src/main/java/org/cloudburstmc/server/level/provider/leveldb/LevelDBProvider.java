@@ -13,6 +13,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.level.provider.LevelProvider;
+import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
@@ -106,12 +107,25 @@ public class LevelDBProvider implements LevelProvider {
 
     @Override
     public CompletableFuture<Void> saveChunk(Chunk chunk) {
+        return saveChunk(chunk, null);
+    }
+
+    @Override
+    public CompletableFuture<Void> saveImportedChunk(ImportedChunk imported) {
+        return saveChunk(imported.chunk(), imported);
+    }
+
+    private CompletableFuture<Void> saveChunk(Chunk chunk, @Nullable ImportedChunk imported) {
         checkForClosed();
         int x = chunk.getX();
         int z = chunk.getZ();
 
         return CompletableFuture.runAsync(() -> {
-            if (!chunk.isGenerated()) {
+            if (imported != null && (this.db.get(LevelDBKey.VERSION.getKey(x, z)) != null || this.db.get(LevelDBKey.VERSION_OLD.getKey(x, z)) != null)) {
+                throw new CompletionException(new IOException("Import destination already contains chunk " + x + "," + z));
+            }
+
+            if (imported == null && !chunk.isGenerated()) {
                 return;
             }
 
@@ -132,9 +146,14 @@ public class LevelDBProvider implements LevelProvider {
                             (byte) (stateValue >>> 24)
                     });
 
-                    BlockEntitySerializer.saveBlockEntities(batch, (CloudChunk) chunk);
-                    EntitySerializer.saveEntities(batch, (CloudChunk) chunk);
-                    onSuccess = PendingTickSerializer.savePendingTicks(batch, (CloudChunk) chunk);
+                    if (imported == null) {
+                        BlockEntitySerializer.saveBlockEntities(batch, cloudChunk);
+                        EntitySerializer.saveEntities(batch, cloudChunk);
+                        onSuccess = PendingTickSerializer.savePendingTicks(batch, cloudChunk);
+                    } else {
+                        ImportedChunkSerializer.serialize(batch, x, z, imported);
+                        onSuccess = null;
+                    }
                     saveRevision = cloudChunk.captureSaveRevision();
                 }
 

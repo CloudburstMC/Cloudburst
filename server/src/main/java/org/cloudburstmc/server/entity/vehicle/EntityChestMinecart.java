@@ -10,7 +10,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * Created by Snake1999 on 2016/1/30.
@@ -26,7 +25,7 @@ public class EntityChestMinecart extends EntityAbstractMinecart implements Chest
     public void initEntity() {
         super.initEntity();
 
-        this.setDisplayBlock(CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST));
+        this.setDisplayBlock(BlockTypes.CHEST.getDefaultState());
         this.setDisplay(true);
     }
 

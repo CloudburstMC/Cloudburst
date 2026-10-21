@@ -25,6 +25,11 @@ public abstract class EntityVehicle extends CloudEntity implements Vehicle, Inte
     }
 
     @Override
+    public boolean blocksBuilding() {
+        return true;
+    }
+
+    @Override
     public boolean spawn(EntitySpawnEvent event) {
         if (!super.spawn(event)) {
             return false;

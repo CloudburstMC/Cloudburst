@@ -64,13 +64,15 @@ public final class ToolUtils {
             }
         }
 
-        if (player.hasPotionEffect(EffectTypes.HASTE)) {
-            PotionEffect haste = player.getPotionEffect(EffectTypes.HASTE);
-            speed *= 1 + (haste.getAmplifier() + 1) * 0.2f;
+        PotionEffect haste = player.getPotionEffect(EffectTypes.HASTE);
+        PotionEffect conduit = player.getPotionEffect(EffectTypes.CONDUIT_POWER);
+        if (haste != null || conduit != null) {
+            int amplifier = Math.max(haste == null ? 0 : haste.getAmplifier(), conduit == null ? 0 : conduit.getAmplifier());
+            speed *= 1 + (amplifier + 1L) * 0.2f;
         }
 
-        if (player.hasPotionEffect(EffectTypes.MINING_FATIGUE)) {
-            PotionEffect miningFatigue = player.getPotionEffect(EffectTypes.MINING_FATIGUE);
+        PotionEffect miningFatigue = player.getPotionEffect(EffectTypes.MINING_FATIGUE);
+        if (miningFatigue != null) {
             speed *= switch (miningFatigue.getAmplifier()) {
                 case 0 -> 0.3f;
                 case 1 -> 0.09f;

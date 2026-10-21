@@ -70,6 +70,25 @@ class CreatureDamageTest {
     }
 
     @Test
+    void frostWalkerPreventsSteppingBurnsOnlyWhileEquippedOnTheFeet() {
+        ArmoredMob mob = new ArmoredMob();
+        ItemStack boots = ItemStack.builder().itemType(ItemTypes.DIAMOND_BOOTS)
+                .setData(ItemDataComponents.ENCHANTMENTS,
+                        Map.of(EnchantmentTypes.FROST_WALKER, new Enchantment(EnchantmentTypes.FROST_WALKER, 1)))
+                .build();
+        mob.getArmor().setBoots(boots);
+
+        assertTrue(mob.isDamageImmune(DamageSource.of(DamageTypes.HOT_FLOOR)));
+        assertTrue(mob.isDamageImmune(DamageSource.of(DamageTypes.CAMPFIRE)));
+        assertFalse(mob.isDamageImmune(DamageSource.of(DamageTypes.LAVA)));
+
+        mob.getArmor().setBoots(ItemStack.EMPTY);
+        mob.getArmor().setHelmet(boots);
+
+        assertFalse(mob.isDamageImmune(DamageSource.of(DamageTypes.HOT_FLOOR)));
+    }
+
+    @Test
     void equippedMobsCanUseOffhandDeathProtection() {
         ArmoredMob mob = new ArmoredMob();
         mob.getOffhand().setOffhandItem(ItemStack.builder().itemType(ItemTypes.TOTEM_OF_UNDYING).build());

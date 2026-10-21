@@ -12,8 +12,8 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class FenceGateBlockHandlers {
@@ -46,7 +46,7 @@ public class FenceGateBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         level.setBlockState(block.getPosition(), state, false, true);
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(state);
+        int soundData = BlockPalette.INSTANCE.getDefinition(state).getRuntimeId();
         level.addLevelSoundEvent(block.getPosition(), nowOpen ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE, soundData);
 
         return true;

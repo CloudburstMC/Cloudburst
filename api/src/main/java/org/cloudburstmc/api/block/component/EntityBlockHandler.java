@@ -10,7 +10,7 @@ import org.cloudburstmc.api.entity.Entity;
 public interface EntityBlockHandler {
 
     /**
-     * @param block the participating block
+     * @param block  the participating block
      * @param entity the participating entity
      */
     void execute(Block block, Entity entity);

@@ -5,20 +5,28 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.RedstoneSignalHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class ButtonBlockHandlers {
 
     public static final int WOODEN_PRESS_TICKS = 30;
     public static final int STONE_PRESS_TICKS = 20;
+
+    public static final RedstoneSignalHandler GET_REDSTONE_SIGNAL = (block, face) ->
+            block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED) ? 15 : 0;
+
+    public static final RedstoneSignalHandler GET_DIRECT_REDSTONE_SIGNAL = (block, face) ->
+            block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED)
+                    && face == block.getState().ensureTrait(BlockTraits.FACING_DIRECTION).getOpposite() ? 15 : 0;
 
     public static final TickBlockHandler ON_TICK = (block, random) -> {
         BlockState state = block.getState();
@@ -31,8 +39,9 @@ public class ButtonBlockHandlers {
 
         BlockState released = state.withTrait(BlockTraits.IS_BUTTON_PRESSED, false);
         level.setBlockState(pos, released, false, true);
+        level.updateAround(PlacementSupport.supportPosition(pos, state.ensureTrait(BlockTraits.FACING_DIRECTION)));
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(released);
+        int soundData = BlockPalette.INSTANCE.getDefinition(released).getRuntimeId();
         level.addLevelSoundEvent(pos, SoundEvent.BUTTON_CLICK_OFF, soundData);
     };
 
@@ -65,8 +74,9 @@ public class ButtonBlockHandlers {
 
         BlockState pressed = state.withTrait(BlockTraits.IS_BUTTON_PRESSED, true);
         level.setBlockState(pos, pressed, false, true);
+        level.updateAround(PlacementSupport.supportPosition(pos, state.ensureTrait(BlockTraits.FACING_DIRECTION)));
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(pressed);
+        int soundData = BlockPalette.INSTANCE.getDefinition(pressed).getRuntimeId();
         level.addLevelSoundEvent(pos, SoundEvent.BUTTON_CLICK_ON, soundData);
 
         int pressDurationTicks = block.requireComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS);

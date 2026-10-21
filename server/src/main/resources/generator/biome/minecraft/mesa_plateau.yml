@@ -51,11 +51,11 @@ populators:
     # Trees
   - id: "cloudburst:tree"
     chance: 0.01953125 # about 5 per chunk
-    on: "grass_block,coarse_dirt"
+    on: ["grass_block", "coarse_dirt"]
     type: "oak"
 
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.00390625 # about 1 per chunk
-    on: "grass_block,coarse_dirt"
+    on: ["grass_block", "coarse_dirt"]
     block: "short_grass"

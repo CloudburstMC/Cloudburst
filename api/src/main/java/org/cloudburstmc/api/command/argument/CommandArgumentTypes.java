@@ -25,6 +25,7 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.DayCycle;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.player.Player;
@@ -46,6 +47,7 @@ import java.util.function.Supplier;
  */
 @UtilityClass
 public class CommandArgumentTypes {
+
     private static final SimpleCommandExceptionType INCOMPLETE_POSITION =
             new SimpleCommandExceptionType(new LiteralMessage("Expected three coordinates"));
     private static final DynamicCommandExceptionType INVALID_ENUM_VALUE =
@@ -192,6 +194,36 @@ public class CommandArgumentTypes {
      */
     public static CommandArgumentType<Integer> integer(@Nullable String displayName, int minimum, int maximum) {
         return new NumericCommandArgumentType<>(CommandArgumentKind.INTEGER, displayName, IntegerArgumentType.integer(minimum, maximum));
+    }
+
+    /**
+     * Parses a duration in ticks, seconds ({@code s}) or days ({@code d}).
+     * An omitted unit or {@code t} selects ticks. Fractional durations are rounded to whole ticks.
+     *
+     * @param minimum the minimum accepted tick count
+     * @return an integer tick-duration argument
+     */
+    public static CommandArgumentType<Integer> duration(int minimum) {
+        return new SimpleCommandArgumentType<>(CommandArgumentKind.STRING, null, null, List.of(), null, value -> {
+            StringReader reader = new StringReader(value);
+            float amount = reader.readFloat();
+            String unit = reader.readUnquotedString();
+            int factor = switch (unit) {
+                case "", "t" -> 1;
+                case "s" -> 20;
+                case "d" -> DayCycle.TICKS_PER_DAY;
+                default -> 0;
+            };
+
+            double scaled = (double) amount * factor;
+            long ticks = Math.round(scaled);
+
+            if (factor == 0 || reader.canRead() || !Float.isFinite(amount) || ticks < minimum || ticks > Integer.MAX_VALUE) {
+                throw new SimpleCommandExceptionType(new LiteralMessage("Invalid tick duration: " + value)).create();
+            }
+
+            return (int) ticks;
+        });
     }
 
     /**
@@ -1014,6 +1046,7 @@ public class CommandArgumentTypes {
     }
 
     private static final class SimpleCommandArgumentType<T> implements CommandArgumentType<T> {
+
         private final CommandArgumentKind kind;
         private final @Nullable String displayName;
         private final @Nullable String enumName;

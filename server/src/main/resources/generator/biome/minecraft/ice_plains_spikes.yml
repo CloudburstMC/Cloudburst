@@ -16,7 +16,7 @@ populators:
     height: "7-11"
     tallHeight: "10-39"
     on: "snow"
-    replace: "air,dirt,snow,snow_layer"
+    replace: ["air", "dirt", "snow", "snow_layer"]
     block: "packed_ice"
     tallChance: 0.0166666666666
 
@@ -25,5 +25,5 @@ populators:
     chance: 0.0078125 # about 2 per chunk
     radius: "2-3"
     block: "packed_ice"
-    replace: "dirt,snow"
+    replace: ["dirt", "snow"]
     start: "air"

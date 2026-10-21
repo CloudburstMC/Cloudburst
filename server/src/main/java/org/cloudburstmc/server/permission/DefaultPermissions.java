@@ -60,10 +60,8 @@ public class DefaultPermissions {
         definitions.add(new Permission(ROOT + ".command.save.perform", "Allows the user to perform a manual save", PermissionDefault.OPERATORS), save);
 
         Permission time = definitions.add(new Permission(ROOT + ".command.time", "Allows the user to alter the time", PermissionDefault.OPERATORS), commands);
-        definitions.add(new Permission(ROOT + ".command.time.add", "Allows the user to fast-forward time", PermissionDefault.OPERATORS), time);
+        definitions.add(new Permission(ROOT + ".command.time.add", "Allows the user to add or subtract daylight time", PermissionDefault.OPERATORS), time);
         definitions.add(new Permission(ROOT + ".command.time.set", "Allows the user to change the time", PermissionDefault.OPERATORS), time);
-        definitions.add(new Permission(ROOT + ".command.time.start", "Allows the user to restart the time", PermissionDefault.OPERATORS), time);
-        definitions.add(new Permission(ROOT + ".command.time.stop", "Allows the user to stop the time", PermissionDefault.OPERATORS), time);
         definitions.add(new Permission(ROOT + ".command.time.query", "Allows the user to query the time", PermissionDefault.OPERATORS), time);
 
         Permission kill = definitions.add(new Permission(ROOT + ".command.kill", "Allows the user to kill players", PermissionDefault.OPERATORS), commands);

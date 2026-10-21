@@ -8,7 +8,7 @@ import org.cloudburstmc.api.player.Player;
 import java.util.random.RandomGenerator;
 
 /**
- * Produces the block changes caused by fertilizing a block.
+ * Proposes block changes and item drops from fertilization without applying them.
  */
 @FunctionalInterface
 public interface FertilizeBlockHandler {
@@ -19,7 +19,7 @@ public interface FertilizeBlockHandler {
      * @param block  the block being fertilized
      * @param player the player using fertilizer, or {@code null} for a non-player cause
      * @param random the random source for the attempt
-     * @return the proposed result, or an empty result when the block cannot be fertilized
+     * @return the proposed result, or {@link FertilizationResult#none()} when fertilization is unsupported
      */
     FertilizationResult execute(Block block, @Nullable Player player, RandomGenerator random);
 }

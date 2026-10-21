@@ -18,9 +18,6 @@ class ChunkSectionSerializerV1 implements ChunkSectionSerializer {
 
     @Override
     public BlockStorage[] deserialize(ByteBuf buf, CloudChunkBuilder builder) {
-        BlockStorage[] storage = new BlockStorage[2];
-        storage[0] = new BlockStorage();
-        storage[0].readFromStorage(buf);
-        return storage;
+        return new BlockStorage[]{BlockStorage.readFromStorage(buf), new BlockStorage()};
     }
 }

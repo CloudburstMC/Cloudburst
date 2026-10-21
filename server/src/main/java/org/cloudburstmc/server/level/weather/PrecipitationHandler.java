@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFormEvent;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.component.CauldronBlockHandlers;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.biome.CloudBiome;
@@ -36,6 +37,8 @@ public final class PrecipitationHandler {
         if (!level.isRaining() || !biome.hasPrecipitation()) {
             return;
         }
+
+        CauldronBlockHandlers.collectPrecipitation(surface, isColdEnough(level, biome, x, surfaceY, z), level.getRandom());
 
         int targetY = surface.getState().getType() == BlockTypes.SNOW_LAYER ? surfaceY : surfaceY + 1;
         if (level.isOutsideBuildHeight(targetY) || !isColdEnough(level, biome, x, targetY, z) || level.getBlockLightAt(x, targetY, z) > MAX_FORMATION_LIGHT) {

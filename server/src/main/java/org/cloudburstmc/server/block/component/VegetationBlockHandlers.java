@@ -22,9 +22,9 @@ import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.util.BlockDestruction;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.network.LevelEffectPacketFactory;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,12 +54,8 @@ public class VegetationBlockHandlers {
         Block partner = block.getRelative(0, upper ? -1 : 1, 0);
         BlockState partnerState = partner.getState();
 
-        block.set(BlockStates.AIR, false, false);
-        if (partnerState.getType() == state.getType() && isUpperHalf(partnerState) != upper) {
-            partner.set(BlockStates.AIR, false, true);
-            Vector3f position = partner.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
-            ((CloudLevel) block.getLevel()).addChunkPacket(position, LevelEffectPacketFactory.blockDestruction(position, partnerState, true));
-        }
+        boolean matchingPartner = partnerState.getType() == state.getType() && isUpperHalf(partnerState) != upper;
+        BlockDestruction.removePair(block, matchingPartner ? partner : null);
     };
 
     public static final NeighborBlockHandler DOUBLE_PLANT_NEIGHBOUR_CHANGED = (block, neighbor) -> {

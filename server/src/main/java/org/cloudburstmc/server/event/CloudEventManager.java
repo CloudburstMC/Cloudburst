@@ -160,12 +160,12 @@ public class CloudEventManager implements EventManager {
         Map<Class<? extends Event>, List<ReflectionEventFireHandler.ListenerMethod>> listenerMap = new HashMap<>();
 
         for (Entry<PluginContainer, Set<Object>> entry : listenersByPlugin.entrySet()) {
-            var container = entry.getKey();
+            PluginContainer container = entry.getKey();
 
             for (Object listener : entry.getValue()) {
                 for (Method method : listener.getClass().getDeclaredMethods()) {
                     if (method.isAnnotationPresent(Listener.class)) {
-                        var event = (Class<? extends Event>) method.getParameterTypes()[0];
+                        Class<? extends Event> event = (Class<? extends Event>) method.getParameterTypes()[0];
                         listenerMap.computeIfAbsent(event, (k) -> new ArrayList<>())
                                 .add(new ReflectionEventFireHandler.ListenerMethod(listener, method, Timings.getPluginEventTiming(event, listener, method, container)));
                     }

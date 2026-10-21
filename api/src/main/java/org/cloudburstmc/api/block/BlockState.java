@@ -30,18 +30,36 @@ public final class BlockState {
         this.traits = traits;
     }
 
+    /**
+     * @return the block type represented by this state
+     */
     public BlockType getType() {
         return type;
     }
 
+    /**
+     * @return the immutable trait values of this state
+     */
     public Map<BlockTrait<?>, Comparable<?>> getTraits() {
         return traits;
     }
 
+    /**
+     * @param tag the block tag to test
+     * @return whether this state's type belongs to the tag
+     */
     public boolean is(BlockTagKey tag) {
         return this.type.is(tag);
     }
 
+    /**
+     * Returns a required trait value.
+     *
+     * @param trait the trait to read
+     * @param <T>   the trait value type
+     * @return the current value
+     * @throws NullPointerException if the trait is null or absent from this state
+     */
     @SuppressWarnings("unchecked")
     public <T extends Comparable<T>> T ensureTrait(BlockTrait<T> trait) {
         checkNotNull(trait, "trait");
@@ -50,16 +68,37 @@ public final class BlockState {
         return val;
     }
 
+    /**
+     * Returns a state with one trait changed, leaving this state unchanged.
+     *
+     * @param trait the trait to change
+     * @param value the replacement value
+     * @param <T>   the trait value type
+     * @return the resulting state
+     * @throws IllegalArgumentException if the trait or value is not supported
+     */
     public <T extends Comparable<T>> BlockState withTrait(BlockTrait<T> trait, T value) {
         checkNotNull(trait, "trait");
         return stateForTrait(trait, trait.getIndex(value), value);
     }
 
+    /**
+     * @param trait the integer trait to change
+     * @param value the replacement value
+     * @return a state with the replacement value, leaving this state unchanged
+     * @throws IllegalArgumentException if the trait or value is not supported
+     */
     public BlockState withTrait(IntegerBlockTrait trait, int value) {
         checkNotNull(trait, "trait");
         return stateForTrait(trait, trait.getIndex(value), value);
     }
 
+    /**
+     * @param trait the boolean trait to change
+     * @param value the replacement value
+     * @return a state with the replacement value, leaving this state unchanged
+     * @throws IllegalArgumentException if the trait or value is not supported
+     */
     public BlockState withTrait(BooleanBlockTrait trait, boolean value) {
         checkNotNull(trait, "trait");
         return stateForTrait(trait, trait.getIndex(value), value);
@@ -86,16 +125,32 @@ public final class BlockState {
         return result;
     }
 
+    /**
+     * Increases a trait by one without exceeding its declared maximum.
+     *
+     * @param trait the integer trait to change
+     * @return the resulting state, leaving this state unchanged
+     */
     public BlockState incrementTrait(IntegerBlockTrait trait) {
         checkNotNull(trait, "trait");
         return withTrait(trait, Math.min(trait.getRange().getEnd(), ensureTrait(trait) + 1));
     }
 
+    /**
+     * Decreases a trait by one without going below its declared minimum.
+     *
+     * @param trait the integer trait to change
+     * @return the resulting state, leaving this state unchanged
+     */
     public BlockState decrementTrait(IntegerBlockTrait trait) {
         checkNotNull(trait, "trait");
         return withTrait(trait, Math.max(trait.getRange().getStart(), ensureTrait(trait) - 1));
     }
 
+    /**
+     * @param trait the boolean trait to invert
+     * @return a state with the inverted value, leaving this state unchanged
+     */
     public BlockState toggleTrait(BooleanBlockTrait trait) {
         checkNotNull(trait, "trait");
         boolean value = !ensureTrait(trait);
@@ -103,7 +158,9 @@ public final class BlockState {
     }
 
     /**
-     * Returns entity and placement collision geometry in block-local coordinates.
+     * Returns state-only collision geometry in block-local coordinates.
+     * Use {@link Block#getCollisionShape(org.cloudburstmc.api.util.CollisionContext)}
+     * for position-dependent or entity-dependent geometry.
      *
      * @return collision shape
      */
@@ -112,7 +169,8 @@ public final class BlockState {
     }
 
     /**
-     * Returns selection geometry in block-local coordinates.
+     * Returns state-only selection geometry in block-local coordinates.
+     * Use {@link Block#getOutlineShape()} for the outline at a level position.
      *
      * @return outline shape
      */
@@ -120,62 +178,86 @@ public final class BlockState {
         return data().outlineShape();
     }
 
-    /** @return this state's hardness */
+    /**
+     * @return this state's hardness
+     */
     public float getHardness() {
         return data().hardness();
     }
 
-    /** @return this state's explosion resistance */
+    /**
+     * @return this state's explosion resistance
+     */
     public float getExplosionResistance() {
         return data().explosionResistance();
     }
 
-    /** @return this state's surface friction */
+    /**
+     * @return this state's surface friction
+     */
     public float getFriction() {
         return data().friction();
     }
 
-    /** @return this state's translucency */
+    /**
+     * @return this state's translucency
+     */
     public float getTranslucency() {
         return data().translucency();
     }
 
-    /** @return this state's thickness */
+    /**
+     * @return this state's thickness
+     */
     public float getThickness() {
         return data().thickness();
     }
 
-    /** @return this state's chance of catching fire */
+    /**
+     * @return this state's chance of catching fire
+     */
     public int getBurnOdds() {
         return data().burnOdds();
     }
 
-    /** @return this state's chance of spreading fire */
+    /**
+     * @return this state's chance of spreading fire
+     */
     public int getFlameOdds() {
         return data().flameOdds();
     }
 
-    /** @return the light removed while passing through this state */
+    /**
+     * @return the light removed while passing through this state
+     */
     public int getLightDampening() {
         return data().lightDampening();
     }
 
-    /** @return the light emitted by this state */
+    /**
+     * @return the light emitted by this state
+     */
     public int getLightEmission() {
         return data().lightEmission();
     }
 
-    /** @return whether this state is solid */
+    /**
+     * @return whether this state is solid
+     */
     public boolean isSolid() {
         return data().solid();
     }
 
-    /** @return whether this state's drops require the correct tool */
+    /**
+     * @return whether this state's drops require the correct tool
+     */
     public boolean requiresCorrectToolForDrops() {
         return data().requiresCorrectToolForDrops();
     }
 
-    /** @return this state's map color */
+    /**
+     * @return this state's map color
+     */
     public Color getMapColor() {
         return data().mapColor();
     }
@@ -278,7 +360,8 @@ public final class BlockState {
 
         BlockState[] states = this.blockStates.get(trait);
         checkArgument(states != null, "Trait '%s' does not exist for type '%s'", trait, this.type);
-        checkArgument(index >= 0 && index < states.length, "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
+        checkArgument(index >= 0 && index < states.length,
+                "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
 
         BlockState state = states[index];
         checkArgument(state != null, "Trait value '%s' is not valid for trait '%s' on type '%s'", value, trait, this.type);
@@ -311,10 +394,10 @@ public final class BlockState {
             LiquidReaction liquidReaction
     ) {
         private Data {
-            collisionShape = checkNotNull(collisionShape, "collisionShape");
+            checkNotNull(collisionShape, "collisionShape");
             outlineShape = outlineShape == null ? collisionShape : outlineShape;
-            mapColor = checkNotNull(mapColor, "mapColor");
-            liquidReaction = checkNotNull(liquidReaction, "liquidReaction");
+            checkNotNull(mapColor, "mapColor");
+            checkNotNull(liquidReaction, "liquidReaction");
         }
     }
 }

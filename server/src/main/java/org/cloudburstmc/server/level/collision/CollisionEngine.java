@@ -7,19 +7,21 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 @RequiredArgsConstructor
-public final class CollisionEngine {
+public class CollisionEngine {
     private static final float COLLISION_EPSILON = 1.0E-7f;
 
     private final CloudLevel level;
@@ -36,8 +38,7 @@ public final class CollisionEngine {
         VoxelShape collisionShape = this.level.getServer().getBlockRegistry()
                 .requireComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
                 .execute(state, BlockShapeContext.at(this.level, position), CollisionContext.of(entity));
-        return !collisionShape.isEmpty()
-                && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ());
+        return !collisionShape.isEmpty() && collisionShape.overlaps(boundingBox, position.getX(), position.getY(), position.getZ());
     }
 
     public boolean collidesWithSuffocatingBlock(@Nullable Entity entity, BoundingBox boundingBox) {
@@ -86,6 +87,23 @@ public final class CollisionEngine {
     public boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position) {
         return shape.anyBox(position.getX(), position.getY(), position.getZ(), (minX, minY, minZ, maxX, maxY, maxZ) ->
                 this.hasEntityCollision(entity, new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ)));
+    }
+
+    public boolean hasPlacementObstruction(VoxelShape shape, Vector3i position) {
+        if (shape.isEmpty()) {
+            return false;
+        }
+
+        BoundingBox bounds = shape.bounds().move(position.toFloat());
+        for (Entity entity : this.level.getNearbyEntities(bounds)) {
+            if (entity instanceof CloudEntity cloudEntity && !cloudEntity.isClosed() && cloudEntity.blocksBuilding()
+                    && !(entity instanceof Player player && player.isSpectator())
+                    && shape.overlaps(entity.getBoundingBox(), position.getX(), position.getY(), position.getZ())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public Optional<Vector3i> findSupportingBlock(Entity entity, BoundingBox boundingBox) {

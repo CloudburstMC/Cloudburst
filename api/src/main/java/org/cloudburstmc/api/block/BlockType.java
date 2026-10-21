@@ -47,10 +47,25 @@ public final class BlockType {
         }
     }
 
+    /**
+     * Creates a block type without traits. This does not register the type.
+     *
+     * @param id the block identifier
+     * @return the new block type
+     */
     public static BlockType of(Identifier id) {
         return of(id, EMPTY);
     }
 
+    /**
+     * Creates a block type with all combinations of the supplied trait values.
+     * This does not register the type.
+     *
+     * @param id     the block identifier
+     * @param traits the supported traits
+     * @return the new block type
+     * @throws IllegalArgumentException if a trait is repeated
+     */
     public static BlockType of(Identifier id, BlockTrait<?>... traits) {
         checkNotNull(id, "id");
         checkNotNull(traits, "traits");
@@ -63,67 +78,98 @@ public final class BlockType {
         return new BlockType(id, checkedTraits);
     }
 
+    /**
+     * @return the block identifier
+     */
     public Identifier getId() {
         return id;
     }
 
+    /**
+     * @param tag the block tag to test
+     * @return whether this type belongs to the tag
+     */
     public boolean is(BlockTagKey tag) {
         Set<BlockTagKey> boundTags = this.tags;
         checkState(boundTags != null, "Block type tags have not been bound: %s", this.id);
         return boundTags.contains(checkNotNull(tag, "tag"));
     }
 
+    /**
+     * @return the immutable tags assigned to this type
+     */
     public Set<BlockTagKey> getTags() {
         Set<BlockTagKey> boundTags = this.tags;
         checkState(boundTags != null, "Block type tags have not been bound: %s", this.id);
         return boundTags;
     }
 
+    /**
+     * @return the immutable set of traits supported by this type
+     */
     public Set<BlockTrait<?>> getTraits() {
         return traits;
     }
 
-    /** @return the hardness shared by states of this type */
+    /**
+     * @return the hardness of this type's default state
+     */
     public float getHardness() {
         return this.defaultState.getHardness();
     }
 
-    /** @return the explosion resistance shared by states of this type */
+    /**
+     * @return the explosion resistance of this type's default state
+     */
     public float getExplosionResistance() {
         return this.defaultState.getExplosionResistance();
     }
 
-    /** @return the friction shared by states of this type */
+    /**
+     * @return the friction of this type's default state
+     */
     public float getFriction() {
         return this.defaultState.getFriction();
     }
 
-    /** @return the translucency shared by states of this type */
+    /**
+     * @return the translucency of this type's default state
+     */
     public float getTranslucency() {
         return this.defaultState.getTranslucency();
     }
 
-    /** @return the thickness shared by states of this type */
+    /**
+     * @return the thickness of this type's default state
+     */
     public float getThickness() {
         return this.defaultState.getThickness();
     }
 
-    /** @return whether states of this type are solid */
+    /**
+     * @return whether this type's default state is solid
+     */
     public boolean isSolid() {
         return this.defaultState.isSolid();
     }
 
-    /** @return the burn odds shared by states of this type */
+    /**
+     * @return the burn odds of this type's default state
+     */
     public int getBurnOdds() {
         return this.defaultState.getBurnOdds();
     }
 
-    /** @return the flame odds shared by states of this type */
+    /**
+     * @return the flame odds of this type's default state
+     */
     public int getFlameOdds() {
         return this.defaultState.getFlameOdds();
     }
 
-    /** @return whether states of this type require the correct tool for drops */
+    /**
+     * @return whether this type's default state requires the correct tool for drops
+     */
     public boolean requiresCorrectToolForDrops() {
         return this.defaultState.requiresCorrectToolForDrops();
     }
@@ -135,14 +181,26 @@ public final class BlockType {
         return this.traits.contains(BlockTraits.LIQUID_DEPTH);
     }
 
+    /**
+     * @return the immutable list of possible states for this type
+     */
     public List<BlockState> getStates() {
         return states;
     }
 
+    /**
+     * @return the state using each trait's default value
+     */
     public BlockState getDefaultState() {
         return defaultState;
     }
 
+    /**
+     * Returns the item associated with this block, if it has an item representation.
+     * Several block types may share one item, and their identifiers need not match.
+     *
+     * @return the associated item, or empty when this block has no item representation
+     */
     public Optional<ItemType> asItem() {
         return Optional.ofNullable(itemType);
     }

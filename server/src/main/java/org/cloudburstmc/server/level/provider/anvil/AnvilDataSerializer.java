@@ -44,10 +44,10 @@ public class AnvilDataSerializer {
         tag.listenForInt("GameType", id -> data.setGameMode(GameMode.from(id)));
         tag.listenForInt("serverChunkTickRange", data::setServerChunkTickRange);
         tag.listenForInt("NetherScale", data::setNetherScale);
-        tag.listenForLong("currentTick", data::setCurrentTick);
+        tag.listenForLong("Time", data::setGameTime);
         tag.listenForLong("LastPlayed", data::setLastPlayed);
         tag.listenForLong("RandomSeed", data::setSeed);
-        tag.listenForLong("Time", data::setTime);
+        tag.listenForLong("DayTime", data.getClock()::setTotalTicks);
         if (tag.containsKey("SpawnX") && tag.containsKey("SpawnY") && tag.containsKey("SpawnZ")) {
             int x = tag.getInt("SpawnX");
             int y = tag.getInt("SpawnY");

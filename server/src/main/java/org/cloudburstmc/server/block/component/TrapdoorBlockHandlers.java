@@ -9,8 +9,8 @@ import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.block.component.UseCheckHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class TrapdoorBlockHandlers {
@@ -30,7 +30,7 @@ public class TrapdoorBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         level.setBlockState(block.getPosition(), state.withTrait(BlockTraits.IS_OPEN, nowOpen), false, true);
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(state);
+        int soundData = BlockPalette.INSTANCE.getDefinition(state).getRuntimeId();
         level.addLevelSoundEvent(block.getPosition(), nowOpen ? SoundEvent.TRAPDOOR_OPEN : SoundEvent.TRAPDOOR_CLOSE, soundData);
 
         return true;

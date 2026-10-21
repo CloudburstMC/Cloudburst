@@ -36,7 +36,7 @@ public class PowderSnowBlockHandlers {
         @Override
         public VoxelShape execute(BlockState state, BlockShapeContext blockContext, CollisionContext collisionContext) {
             Entity entity = collisionContext.getEntity();
-            if (entity == null || !blockContext.hasLevel()) {
+            if (entity == null || blockContext.isEmpty()) {
                 return CloudVoxelShapes.empty();
             }
 

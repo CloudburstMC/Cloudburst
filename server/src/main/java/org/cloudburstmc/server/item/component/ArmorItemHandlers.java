@@ -1,17 +1,37 @@
 package org.cloudburstmc.server.item.component;
 
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.inventory.view.ArmorView;
 import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.component.UseHandler;
 import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 @UtilityClass
 public class ArmorItemHandlers {
+
+    private static final PotionEffect TURTLE_HELMET_EFFECT = new PotionEffect(EffectTypes.WATER_BREATHING, 200, 0, false, false);
+
+    public static @Nullable PotionEffect getTurtleHelmetEffect(Player player, boolean eyesInWater) {
+        if (eyesInWater || !player.isAlive() || player.getArmor().getHelmet().getType() != ItemTypes.TURTLE_HELMET) {
+            return null;
+        }
+
+        PotionEffect current = player.getPotionEffect(EffectTypes.WATER_BREATHING);
+        if (current != null && (current.getAmplifier() > 0 || !current.isShorterThan(TURTLE_HELMET_EFFECT))) {
+            return null;
+        }
+
+        return TURTLE_HELMET_EFFECT;
+    }
 
     public static UseHandler equip(EquipmentSlot slot, SoundType equipSound) {
         if (!slot.isArmor()) {

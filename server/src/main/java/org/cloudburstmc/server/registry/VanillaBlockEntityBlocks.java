@@ -28,6 +28,7 @@ public class VanillaBlockEntityBlocks {
     private static final Set<BlockType> CHESTS = Set.of(CHEST, TRAPPED_CHEST);
     private static final Set<BlockType> COMMAND_BLOCKS = Set.of(COMMAND_BLOCK, CHAIN_COMMAND_BLOCK, REPEATING_COMMAND_BLOCK);
     private static final Set<BlockType> COMPARATORS = Set.of(UNPOWERED_COMPARATOR, POWERED_COMPARATOR);
+    private static final Set<BlockType> CONDUITS = Set.of(CONDUIT);
     private static final Set<BlockType> CRAFTERS = Set.of(CRAFTER);
     private static final Set<BlockType> DAYLIGHT_DETECTORS = Set.of(DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED);
     private static final Set<BlockType> DISPENSERS = Set.of(DISPENSER);
@@ -95,6 +96,7 @@ public class VanillaBlockEntityBlocks {
         index.put(BlockEntityTypes.CHEST, CHESTS);
         index.put(BlockEntityTypes.COMMAND_BLOCK, COMMAND_BLOCKS);
         index.put(BlockEntityTypes.COMPARATOR, COMPARATORS);
+        index.put(BlockEntityTypes.CONDUIT, CONDUITS);
         index.put(BlockEntityTypes.CRAFTER, CRAFTERS);
         index.put(BlockEntityTypes.DAYLIGHT_DETECTOR, DAYLIGHT_DETECTORS);
         index.put(BlockEntityTypes.DISPENSER, DISPENSERS);

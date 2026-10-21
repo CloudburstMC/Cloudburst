@@ -43,6 +43,20 @@ final class DirectionSerializerTest {
     }
 
     @Test
+    void serializesWallCoralDirectionsWithoutChangingTheirStoredValues() {
+        for (BlockType type : BlockTypes.values()) {
+            if (!type.getTraits().contains(BlockTraits.CORAL_DIRECTION)) {
+                continue;
+            }
+
+            assertDirection(type, BlockTraits.CORAL_DIRECTION, Direction.WEST, 0);
+            assertDirection(type, BlockTraits.CORAL_DIRECTION, Direction.EAST, 1);
+            assertDirection(type, BlockTraits.CORAL_DIRECTION, Direction.NORTH, 2);
+            assertDirection(type, BlockTraits.CORAL_DIRECTION, Direction.SOUTH, 3);
+        }
+    }
+
+    @Test
     void serializesCocoaDirections() {
         assertAll(
                 () -> assertDirection(BlockTypes.COCOA, BlockTraits.DIRECTION, Direction.NORTH, 0),

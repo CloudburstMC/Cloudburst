@@ -14,7 +14,6 @@ import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
@@ -67,7 +66,7 @@ public class IceSnowFinisher implements Finisher {
             return;
         }
 
-        if (BlockSupport.isFaceSturdy(CloudBlockRegistry.REGISTRY, surfaceState, Direction.UP, SupportType.FULL)) {
+        if (BlockSupport.isFaceSturdy(chunk.getLevel().getServer().getBlockRegistry(), surfaceState, Direction.UP, SupportType.FULL)) {
             level.setBlockState(blockX, snowY, blockZ, BlockStates.SNOW_LAYER);
         }
     }

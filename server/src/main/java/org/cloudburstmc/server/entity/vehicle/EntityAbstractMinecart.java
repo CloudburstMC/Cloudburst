@@ -21,8 +21,9 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -30,7 +31,6 @@ import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Map;
 import java.util.Objects;
@@ -74,22 +74,14 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         super.loadAdditionalData(tag);
         this.setDisplayBlockOffset(tag.getInt("DisplayOffset", DEFAULT_DISPLAY_OFFSET));
 
+        if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
+            throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
+        }
+
         if (tag.getBoolean("CustomDisplayTile")) {
             this.setDisplay(true);
 
-            int id;
-            int meta;
-            CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
-            if (tag.containsKey("DisplayTile") && tag.containsKey("DisplayData")) {
-                id = tag.getInt("DisplayTile");
-                meta = tag.getInt("DisplayData");
-            } else {
-                NbtMap plantTag = tag.getCompound("DisplayBlock");
-                id = registry.getLegacyId(plantTag.getString("name"));
-                meta = plantTag.getShort("val");
-            }
-
-            this.setDisplayBlock(registry.getBlock(id, meta));
+            this.setDisplayBlock(BlockStateCodec.read(tag.getCompound("DisplayBlock")));
         }
     }
 
@@ -100,11 +92,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         if (this.hasDisplay()) {
             tag.putBoolean("CustomDisplayTile", true);
 
-            BlockState blockState = this.getDisplayBlock();
-            tag.putCompound("DisplayBlock", NbtMap.builder()
-                    .putString("name", blockState.getType().toString())
-                    .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(blockState)) //TODO: check
-                    .build());
+            tag.putCompound("DisplayBlock", BlockStateCodec.write(this.getDisplayBlock()));
         }
 
         tag.remove("DisplayOffset");
@@ -190,7 +178,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     public void setDisplayBlock(BlockState blockState) {
-        CloudBlockDefinition definition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+        CloudBlockDefinition definition = BlockPalette.INSTANCE.getDefinition(blockState);
         this.data.set(DISPLAY_BLOCK_STATE, definition);
     }
 

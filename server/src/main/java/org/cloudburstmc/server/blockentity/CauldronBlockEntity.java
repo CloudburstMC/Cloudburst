@@ -2,18 +2,23 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Cauldron;
+import org.cloudburstmc.api.blockentity.CauldronContents;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.data.BlockColor;
+import org.cloudburstmc.api.potion.PotionForm;
+import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.potion.CloudPotionColor;
+
+import java.util.List;
+import java.util.Objects;
 
 public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
-    private short potionType;
-    private short potionId;
-    private boolean splash;
-    private BlockColor customColor = BlockColor.WHITE_BLOCK_COLOR;
+    private CauldronContents contents = CauldronContents.PLAIN;
 
     public CauldronBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -23,74 +28,64 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        // TODO: "Items" tag 0-10 slots
-        tag.listenForShort("PotionType", this::setPotionType);
-        tag.listenForShort("PotionId", this::setPotionId);
-        tag.listenForBoolean("IsSplash", this::setSplash);
-        tag.listenForInt("CustomColor", this::setCustomColor);
+        short potionId = tag.getShort("PotionId", (short) -1);
+        PotionType potion = potionId < 0 ? null : NetworkUtils.potionFromNetwork(potionId);
+        PotionForm form = potion == null ? PotionForm.DRINKABLE : switch (tag.getShort("PotionType", (short) -1)) {
+            case 1 -> PotionForm.SPLASH;
+            case 2 -> PotionForm.LINGERING;
+            default -> PotionForm.DRINKABLE;
+        };
+
+        Integer color = potion == null && tag.containsKey("CustomColor") ? tag.getInt("CustomColor") & 0xFFFFFF : null;
+        this.contents = new CauldronContents(potion, form, color);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void saveClientData(NbtMapBuilder tag) {
+        super.saveClientData(tag);
 
-        tag.putShort("PotionType", this.getPotionType());
-        tag.putShort("PotionId", this.getPotionId());
-        tag.putBoolean("IsSplash", this.isSplash());
-        if (this.customColor != null) {
-            tag.putInt("CustomColor", this.customColor.getRGB());
+        PotionType potion = this.contents.potion();
+        short potionId = potion == null ? (short) -1 : NetworkUtils.potionToNetwork(potion);
+        short formId = -1;
+        if (potion != null) {
+            formId = (short) switch (this.contents.form()) {
+                case DRINKABLE -> 0;
+                case SPLASH -> 1;
+                case LINGERING -> 2;
+            };
+        }
+
+        tag.putShort("PotionId", potionId);
+        tag.putShort("PotionType", formId);
+        tag.putList("Items", NbtType.END, List.of());
+        tag.remove("IsSplash");
+
+        Integer color = this.contents.color();
+        if (potion != null) {
+            color = CloudPotionColor.calculateEffects(potion.getEffects()).orElse(0x2828FF);
+        }
+
+        if (color == null) {
+            tag.remove("CustomColor");
+        } else {
+            tag.putInt("CustomColor", 0xFF000000 | color);
         }
     }
 
     @Override
-    public short getPotionId() {
-        return potionId;
+    public CauldronContents getContents() {
+        return this.contents;
     }
 
     @Override
-    public void setPotionId(int potionId) {
-        this.potionId = (short) potionId;
-    }
+    public void setContents(CauldronContents contents) {
+        Objects.requireNonNull(contents, "contents");
 
-    @Override
-    public short getPotionType() {
-        return potionType;
-    }
-
-    @Override
-    public void setPotionType(int potionType) {
-        this.potionType = (short) potionType;
-    }
-
-    @Override
-    public boolean isSplash() {
-        return splash;
-    }
-
-    @Override
-    public void setSplash(boolean splash) {
-        this.splash = splash;
-    }
-
-    @Override
-    public BlockColor getCustomColor() {
-        return this.customColor;
-    }
-
-    @Override
-    public void setCustomColor(BlockColor customColor) {
-        this.customColor = customColor;
-    }
-
-    private void setCustomColor(int customColor) {
-       // this.customColor = new BlockColor(customColor);
-        //TODO - need to convert BlockColer back to class instead of enum? or just store/return an RGB int?
-
-    }
-
-    @Override
-    public boolean hasCustomColor() {
-        return this.customColor != null;
+        if (!this.contents.equals(contents)) {
+            this.contents = contents;
+            this.setDirty();
+            this.spawnToAll();
+        }
     }
 
     @Override

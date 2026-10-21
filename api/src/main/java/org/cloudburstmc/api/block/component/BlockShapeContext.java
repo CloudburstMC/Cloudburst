@@ -7,9 +7,9 @@ import org.cloudburstmc.math.vector.Vector3i;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Optional level and position available to a level-dependent shape calculation.
+ * Level and position for a shape calculation, or an empty context for state-only queries.
  */
-public final class BlockShapeContext {
+public class BlockShapeContext {
 
     private static final BlockShapeContext EMPTY = new BlockShapeContext(null, null);
 
@@ -29,9 +29,9 @@ public final class BlockShapeContext {
     }
 
     /**
-     * Creates a context for a block at a loaded level position.
+     * Creates a context for a block position without loading or querying it.
      *
-     * @param level owning level
+     * @param level    owning level
      * @param position block position
      * @return level-aware context
      */
@@ -39,8 +39,11 @@ public final class BlockShapeContext {
         return new BlockShapeContext(requireNonNull(level, "level"), requireNonNull(position, "position"));
     }
 
-    public boolean hasLevel() {
-        return this.level != null;
+    /**
+     * @return whether neither a level nor a position is available
+     */
+    public boolean isEmpty() {
+        return this.level == null;
     }
 
     /**

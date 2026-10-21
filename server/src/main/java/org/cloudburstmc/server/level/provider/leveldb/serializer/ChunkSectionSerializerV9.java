@@ -33,9 +33,8 @@ class ChunkSectionSerializerV9 implements ChunkSectionSerializer {
         buf.readByte();
 
         BlockStorage[] storage = new BlockStorage[Math.max(storageCount, 2)];
-        for (int i = 0; i < storageCount; i++) {
-            storage[i] = new BlockStorage();
-            storage[i].readFromStorage(buf);
+        for (int i = 0; i < storage.length; i++) {
+            storage[i] = i < storageCount ? BlockStorage.readFromStorage(buf) : new BlockStorage();
         }
         return storage;
     }

@@ -7,8 +7,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.item.ItemUtils;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public class ParticlePacketFactory {
         org.cloudburstmc.protocol.bedrock.data.ParticleType type = NetworkUtils.particleToNetwork(options.getType());
         int data = switch (options) {
             case BlockParticleOptions block -> switch (type) {
-                case TERRAIN, FALLING_DUST -> CloudBlockRegistry.REGISTRY.getRuntimeId(block.state());
+                case TERRAIN, FALLING_DUST -> BlockPalette.INSTANCE.getDefinition(block.state()).getRuntimeId();
                 default -> throw unsupported(options);
             };
             case ItemParticleOptions item -> {

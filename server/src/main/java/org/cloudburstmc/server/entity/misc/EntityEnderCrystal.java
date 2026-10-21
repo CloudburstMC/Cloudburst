@@ -47,6 +47,11 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
+    public boolean blocksBuilding() {
+        return true;
+    }
+
+    @Override
     public float getWidth() {
         return 0.98f;
     }

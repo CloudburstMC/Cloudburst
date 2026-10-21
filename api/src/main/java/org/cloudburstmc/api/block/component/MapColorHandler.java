@@ -2,7 +2,7 @@ package org.cloudburstmc.api.block.component;
 
 import org.cloudburstmc.api.block.Block;
 
-import java.awt.Color;
+import java.awt.*;
 
 /**
  * Determines the map color of a block.

@@ -26,6 +26,11 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
+    public boolean blocksBuilding() {
+        return true;
+    }
+
+    @Override
     public float getWidth() {
         return 0.98f;
     }

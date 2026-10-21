@@ -1,29 +1,25 @@
 package org.cloudburstmc.server.registry;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.enchantment.EnchantmentTarget;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.*;
-import org.cloudburstmc.api.item.component.CanEnchantWithHandler;
-import org.cloudburstmc.api.item.component.CanRepairWithHandler;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.registry.ItemRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.api.util.component.ComponentBuilder;
-import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -34,28 +30,37 @@ import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry, DefinitionRegistry<ItemDefinition> {
+/**
+ * Owns item types, behavior components, serializers and creative inventory entries.
+ */
+public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implements ItemRegistry {
+
     private static final String ITEM_ALIAS_PREFIX = "item.";
     private static final CloudItemRegistry INSTANCE = new CloudItemRegistry();
 
     private final Object2ReferenceMap<Identifier, ItemType> typeMap = new Object2ReferenceOpenHashMap<>();
     private final Reference2ObjectMap<ItemType, ItemSerializer> serializers = new Reference2ObjectOpenHashMap<>();
     private final Map<ItemDataComponentType<?>, ItemDataComponentSerializer<?>> dataComponentSerializers = new LinkedHashMap<>();
-    private final ItemPalette itemPalette = new ItemPalette(this);
-    private int hardcodedBlockingId;
+    private final List<ItemType> types;
+    @Getter
+    private final List<ItemDataComponentType<?>> serializedDataComponents;
+    private final List<ItemStack> pendingCreativeItems = new ArrayList<>();
+    private final ItemPalette itemPalette = new ItemPalette();
+
     private volatile boolean closed;
 
     private CloudItemRegistry() {
+        this.types = List.copyOf(ItemTypes.values());
         try {
-            this.registerVanillaBehaviors();
-            ItemTypes.values().forEach(this::registerVanilla);
+            this.registerDefaultComponents();
+            this.types.forEach(this::registerVanilla);
             VanillaItemBehaviors.configure(this);
             VanillaItemTags.freeze();
             this.registerVanillaDataComponentSerializers();
+            this.serializedDataComponents = List.copyOf(this.dataComponentSerializers.keySet());
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to register vanilla items", e);
         }
@@ -65,180 +70,89 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         return INSTANCE;
     }
 
-    private synchronized <T> void registerDataComponentSerializer(ItemDataComponentType<T> dataType, ItemDataComponentSerializer<T> serializer) throws RegistryException {
-        Preconditions.checkNotNull(dataType, "dataType");
-        Preconditions.checkNotNull(serializer, "serializer");
-        checkClosed();
-        if (this.dataComponentSerializers.containsKey(dataType)) {
-            throw new RegistryException("A serializer is already registered for item data component " + dataType.getId());
-        }
-        this.dataComponentSerializers.put(dataType, serializer);
-    }
-
-    public List<ItemDataComponentType<?>> getSerializedDataComponents() {
-        return List.copyOf(this.dataComponentSerializers.keySet());
-    }
-
     @Override
-    public ComponentMap getComponents(ItemType type) {
-        return super.getComponents(type);
-    }
-
-    public int getHardcodedBlockingId() {
-        return this.hardcodedBlockingId;
-    }
-
-    protected synchronized CloudComponentMap registerVanilla(ItemType type) throws RegistryException {
-        return registerVanilla(type, null);
-    }
-
-    @Override
-    public ComponentBuilder configure(ItemType type) {
-        checkClosed();
-        CloudComponentMap components = getComponentMap(checkNotNull(type, "type"));
+    public @NonNull CloudComponentMap getComponents(ItemType type) {
+        CloudComponentMap components = this.getComponentMap(checkNotNull(type, "type"));
         if (components == null) {
-            throw new RegistryException(type.getId() + " is not registered");
+            throw new RegistryException("Item type is not registered: " + type.getId());
         }
         return components;
     }
 
-    protected static CanEnchantWithHandler enchantableWith(EnchantmentTarget... targets) {
-        Preconditions.checkNotNull(targets, "targets");
-        for (EnchantmentTarget target : targets) {
-            Preconditions.checkNotNull(target, "target");
-        }
-
-        Set<EnchantmentTarget> supportedTargets = targets.length == 0 ? Set.of() : EnumSet.copyOf(List.of(targets));
-        return (item, enchantment) -> enchantment != null && supportedTargets.contains(enchantment.target());
+    @Override
+    public synchronized CloudComponentMap configure(ItemType type) {
+        this.requireOpen();
+        return this.getComponents(type);
     }
 
-    protected static CanEnchantWithHandler toolEnchantableWith(EnchantmentTarget... additionalTargets) {
-        Preconditions.checkNotNull(additionalTargets, "additionalTargets");
-        for (EnchantmentTarget target : additionalTargets) {
-            Preconditions.checkNotNull(target, "additionalTarget");
-        }
-
-        EnumSet<EnchantmentTarget> targets =
-                EnumSet.of(EnchantmentTarget.TOOL, EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
-        targets.addAll(List.of(additionalTargets));
-        return enchantableWith(targets.toArray(EnchantmentTarget[]::new));
-    }
-
-    protected static CanRepairWithHandler repairWith(Identifier... materials) {
-        Preconditions.checkNotNull(materials, "materials");
-        for (Identifier repairMaterial : materials) {
-            Preconditions.checkNotNull(repairMaterial, "repairMaterial");
-        }
-
-        return (item, material) -> {
-            if (item.isEmpty() || material.isEmpty()) {
-                return false;
-            }
-
-            Identifier materialId = material.getType().getId();
-            for (Identifier repairMaterial : materials) {
-                if (repairMaterial.equals(materialId)) {
-                    return true;
-                }
-            }
-
-            return false;
-        };
-    }
-
-    protected static CanRepairWithHandler repairWith(ItemTagKey tag) {
-        Preconditions.checkNotNull(tag, "tag");
-        return (item, material) -> !item.isEmpty()
-                && !material.isEmpty()
-                && VanillaItemTags.resolve(tag).isTagged(material.getType());
-    }
-
-    protected ComponentBuilder configure(ItemType type, ItemSerializer serializer) {
-        Objects.requireNonNull(type, "type");
-        checkClosed();
-
-        CloudComponentMap components = getComponentMap(type);
-        if (components == null) {
-            throw new RegistryException(type.getId() + " is not registered");
-        }
-
-        if (serializer != null) {
-            this.serializers.put(type, serializer);
-        }
-
+    public synchronized CloudComponentMap configure(ItemType type, ItemSerializer serializer) {
+        this.requireOpen();
+        Objects.requireNonNull(serializer, "serializer");
+        CloudComponentMap components = this.getComponents(type);
+        this.serializers.put(type, serializer);
         return components;
     }
 
-    private synchronized CloudComponentMap registerVanilla(ItemType type, ItemSerializer serializer)
-            throws RegistryException {
-        Objects.requireNonNull(type, "type");
-        checkClosed();
+    public synchronized void registerBlockItem(ItemType itemType, BlockType placement, List<BlockType> forms) {
+        this.requireOpen();
+        CloudComponentMap components = this.getComponents(itemType);
+        Objects.requireNonNull(placement, "placement");
+        Objects.requireNonNull(forms, "forms");
 
-        if (getComponentMap(type) != null) {
-            throw new RegistryException(type.getId() + " is already registered");
+        Set<BlockType> blockTypes = new HashSet<>(forms);
+        blockTypes.add(placement);
+        Set<BlockType> blocks = Set.copyOf(blockTypes);
+        for (BlockType block : blocks) {
+            BlockRegistrationAccess.linkItem(block, itemType);
+            this.typeMap.putIfAbsent(block.getId(), itemType);
         }
 
-        CloudComponentMap collection = new CloudComponentMap(this);
-        //        collection.apply(DefaultBlockBehaviours.BLOCK_BEHAVIOR_BASE);
-
-        putComponents(type, collection);
-
-        if (serializer != null) {
-            this.serializers.put(type, serializer);
-        }
-
-        this.registerItemType(type, type.getId());
-        return collection;
-    }
-
-    protected synchronized void registerBlock(BlockType type) {
-        ItemType itemType = this.typeMap.get(type.getId());
-        if (itemType == null) {
-            itemType = ItemTypes.get(type.getId()).orElseGet(() -> ItemType.of(type.getId()));
-            this.registerItemType(itemType, type.getId());
-        }
-
-        BlockRegistrationAccess.linkItem(type, itemType);
-
-        CloudComponentMap components = getComponentMap(itemType);
-
-        if (components == null) {
-            components = new CloudComponentMap(this);
-            putComponents(itemType, components);
-        }
-
-        BlockState defaultState = type.getDefaultState();
+        BlockState defaultState = placement.getDefaultState();
         components.set(ItemBehaviors.GET_BLOCK, item -> {
             BlockState state = item.get(ItemDataComponents.BLOCK_STATE);
-            return Optional.of(state != null ? state : defaultState);
+            if (state == null) {
+                return Optional.of(defaultState);
+            }
+
+            if (!blocks.contains(state.getType())) {
+                return Optional.empty();
+            }
+
+            return Optional.of(state.getType() == placement ? state : defaultState.copyTraits(state));
         });
     }
 
     public ItemSerializer getSerializer(ItemType type) {
-        return serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
+        this.getComponents(type);
+        return this.serializers.getOrDefault(type, DefaultItemSerializer.INSTANCE);
     }
 
-    public ItemDataComponentSerializer<?> getDataComponentSerializer(ItemDataComponentType<?> dataType) {
-        return dataComponentSerializers.get(dataType);
+    public @Nullable ItemDataComponentSerializer<?> getDataComponentSerializer(ItemDataComponentType<?> dataType) {
+        return this.dataComponentSerializers.get(checkNotNull(dataType, "dataType"));
     }
 
     @Override
     public Optional<ItemType> get(Identifier id) {
-        return Optional.ofNullable(this.typeMap.get(id));
+        return Optional.ofNullable(this.typeMap.get(checkNotNull(id, "id")));
     }
 
     @Override
-    public Collection<ItemType> values() {
-        LinkedHashSet<ItemType> values = new LinkedHashSet<>();
-        for (Identifier id : this.getItems()) {
-            this.get(id).ifPresent(values::add);
+    public Identifier getId(ItemType type) {
+        checkNotNull(type, "type");
+        if (this.getComponentMap(type) == null) {
+            throw new IllegalArgumentException("Item type is not registered: " + type.getId());
         }
-        return ImmutableList.copyOf(values);
+        return type.getId();
+    }
+
+    @Override
+    public List<ItemType> values() {
+        return this.types;
     }
 
     @Override
     public ItemTag getTag(ItemTagKey key) {
-        return VanillaItemTags.resolve(key);
+        return VanillaItemTags.resolve(checkNotNull(key, "key"));
     }
 
     @Override
@@ -247,42 +161,23 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     }
 
     public Identifier fromLegacy(int legacyId, int meta) throws RegistryException {
-        return itemPalette.fromLegacy(legacyId, meta);
+        return this.itemPalette.fromLegacy(legacyId, meta);
     }
 
-    @Override
-    public CloudItemDefinition getDefinition(int runtimeId) {
-        return itemPalette.getDefinition(runtimeId);
-    }
-
-    @Nullable
-    @Override
-    public CloudItemDefinition getDefinition(String identifier) {
-        return itemPalette.getDefinition(Identifier.parse(identifier));
-    }
-
-    @Override
-    public boolean isRegistered(ItemDefinition definition) {
-        return definition instanceof CloudItemDefinition cloudDefinition
-                && itemPalette.getDefinition(cloudDefinition.getRuntimeId()) == cloudDefinition;
+    public ItemPalette getPalette() {
+        return this.itemPalette;
     }
 
     public CloudItemDefinition getDefinition(Identifier identifier) throws RegistryException {
-        return getDefinition(identifier, 0);
+        return this.getDefinition(identifier, 0);
     }
 
     public CloudItemDefinition getDefinition(Identifier identifier, int meta) throws RegistryException {
-        CloudItemDefinition definition = itemPalette.getDefinition(identifier, meta);
+        CloudItemDefinition definition = this.itemPalette.getDefinition(checkNotNull(identifier, "identifier"), meta);
         if (definition == null) {
             throw new RegistryException(identifier + " is not a registered item");
         }
         return definition;
-    }
-
-    public ImmutableList<Identifier> getItems() {
-        return ImmutableList.copyOf(itemPalette.getItemDefinitions().stream()
-                .map(itemDefinition -> Identifier.parse(itemDefinition.getIdentifier()))
-                .collect(Collectors.toList()));
     }
 
     public boolean isVanillaDefinition(Identifier id) {
@@ -294,38 +189,83 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     }
 
     @Override
-    public synchronized void close() throws RegistryException {
-        checkClosed();
-        reconcileVanillaDefinitions();
-        VanillaRegistryDiagnostics.flush();
-        this.freezeComponentMaps();
-        this.closed = true;
+    public synchronized void registerCreativeItem(ItemStack item) {
+        this.requireOpen();
+        checkNotNull(item, "item");
+        if (item.isEmpty()) {
+            throw new RegistryException("Creative inventory entries must not be empty");
+        }
 
-        itemPalette.registerVanillaCreativeItems();
+        this.getComponents(item.getType());
+        this.pendingCreativeItems.add(item);
     }
 
-    private void checkClosed() throws RegistryException {
+    public CreativeContentPacket getCreativeContent() {
+        this.requireClosed();
+        return this.itemPalette.getCreativeContentPacket();
+    }
+
+    public @Nullable ItemStack getCreativeItem(int creativeNetId) {
+        this.requireClosed();
+        CreativeItemData entry = this.itemPalette.getCreativeItem(creativeNetId);
+        return entry == null ? null : ItemUtils.fromNetwork(entry.getItem());
+    }
+
+    @Override
+    public synchronized void close() {
         if (this.closed) {
-            throw new RegistryException("Registration is closed");
+            return;
+        }
+
+        this.reconcileVanillaDefinitions();
+        VanillaRegistryDiagnostics.flush();
+        this.itemPalette.registerVanillaCreativeItems();
+        this.pendingCreativeItems.forEach(this.itemPalette::addCreativeItem);
+
+        this.freezeComponentMaps();
+        this.itemPalette.freeze();
+        this.pendingCreativeItems.clear();
+        this.closed = true;
+    }
+
+    private void requireClosed() {
+        if (!this.closed) {
+            throw new RegistryException("Item registration has not closed");
         }
     }
 
-    public List<ItemDefinition> getItemEntries() {
-        return itemPalette.getItemPalette();
+    private void requireOpen() throws RegistryException {
+        if (this.closed) {
+            throw new RegistryException("Item registration is closed");
+        }
     }
 
-    private void registerItemType(ItemType type, Identifier id) {
+    private void registerVanilla(ItemType type) {
+        Identifier id = type.getId();
+        if (this.typeMap.containsKey(id)) {
+            throw new RegistryException("Item identifier is already registered: " + id);
+        }
+
+        this.itemPalette.registerItem(id);
+        this.putComponents(type, new CloudComponentMap(this));
         this.typeMap.put(id, type);
-        int runtime = itemPalette.addItem(id);
-        if (type == ItemTypes.SHIELD) {
-            this.hardcodedBlockingId = runtime;
+    }
+
+    private <T> void registerDataComponentSerializer(ItemDataComponentType<T> dataType, ItemDataComponentSerializer<T> serializer) {
+        Preconditions.checkNotNull(dataType, "dataType");
+        Preconditions.checkNotNull(serializer, "serializer");
+        this.requireOpen();
+        if (this.dataComponentSerializers.containsKey(dataType)) {
+            throw new RegistryException("A serializer is already registered for item data component " + dataType.getId());
         }
+
+        this.dataComponentSerializers.put(dataType, serializer);
     }
 
     private void reconcileVanillaDefinitions() {
-        for (ItemDefinition definition : this.itemPalette.getItemDefinitions()) {
+        for (ItemDefinition definition : this.itemPalette.getDefinitions()) {
             Identifier id = Identifier.parse(definition.getIdentifier());
-            if (isRegisteredOrAliased(id)) {
+            if (this.isRegisteredOrAliased(id)) {
                 continue;
             }
 
@@ -339,11 +279,11 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
             return true;
         }
 
-        if (registerItemPrefixAlias(id)) {
+        if (this.registerItemPrefixAlias(id)) {
             return true;
         }
 
-        return registerMappedAlias(id);
+        return this.registerMappedAlias(id);
     }
 
     private boolean registerItemPrefixAlias(Identifier id) {
@@ -384,6 +324,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
 
     private void registerVanillaDataComponentSerializers() throws RegistryException {
         this.registerDataComponentSerializer(ItemDataComponents.BANNER_DATA, new BannerDataSerializer());
+        this.registerDataComponentSerializer(ItemDataComponents.DYED_COLOR, new DyedColorSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.DAMAGE, new PrimitiveSerializer<>("Damage", Integer.class));
         this.registerDataComponentSerializer(ItemDataComponents.ITEM_LOCK, new ItemLockModeSerializer());
         this.registerDataComponentSerializer(ItemDataComponents.KEEP_ON_DEATH, new PrimitiveSerializer<>("minecraft:keep_on_death", Boolean.class));
@@ -397,7 +338,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerDataComponentSerializer(ItemDataComponents.ENTITY_DATA, new EntitySnapshotSerializer());
     }
 
-    private void registerVanillaBehaviors() {
+    private void registerDefaultComponents() {
         this.registerComponent(ItemBehaviors.ALLOW_OFFHAND, () -> false);
         this.registerComponent(ItemBehaviors.ARMOR);
         this.registerComponent(ItemBehaviors.ATTACK_DAMAGE_TYPE, DamageTypes.PLAYER_ATTACK);
@@ -438,43 +379,5 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         this.registerComponent(ItemBehaviors.USE_TICK);
     }
 
-    public void registerCreativeItem(ItemStack item) {
-        Preconditions.checkNotNull(item, "item");
-        itemPalette.addCreativeItem(item);
-    }
 
-    public ItemStack getCreativeItemByIndex(int index) {
-        return ItemUtils.fromNetwork(itemPalette.getCreativeItems().get(index).getItem());
-    }
-
-    public CreativeContentPacket getCreativeContent() {
-        return itemPalette.getCreativeContentPacket();
-    }
-
-    public int getCreativeItemIndex(ItemStack item) {
-        int rid = itemPalette.getDefinition(item.getType().getId()).getRuntimeId();
-
-        for (int i = 0; i < itemPalette.getCreativeItems().size(); i++) {
-            if (rid
-                    == itemPalette
-                            .getCreativeItems()
-                            .get(i)
-                            .getItem()
-                            .getDefinition()
-                            .getRuntimeId()) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    public ItemStack getCreativeItem(int creativeNetId) {
-        for (var creativeItem : itemPalette.getCreativeItems()) {
-            if (creativeItem.getNetId() == creativeNetId) {
-                return ItemUtils.fromNetwork(creativeItem.getItem());
-            }
-        }
-        return null;
-    }
 }

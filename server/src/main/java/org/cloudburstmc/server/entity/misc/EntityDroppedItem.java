@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.misc;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
@@ -218,7 +219,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             double friction = 1 - this.getDrag();
 
             if (this.onGround && (Math.abs(this.motion.getX()) > 0.00001 || Math.abs(this.motion.getZ()) > 0.00001)) {
-                var block = this.getLevel().getBlockState(pos.add(0, -1, 0).toInt());
+                BlockState block = this.getLevel().getBlockState(pos.add(0, -1, 0).toInt());
                 friction *= block.getFriction();
             }
 

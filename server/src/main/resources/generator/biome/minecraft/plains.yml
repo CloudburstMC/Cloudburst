@@ -32,7 +32,7 @@ populators:
       - id: "cloudburst:shrub"
         chance: 0.015625 # about 4 per chunk
         on: "grass_block"
-        replace: "air,short_grass"
+        replace: ["air", "short_grass"]
         roundDown: false
         block:
           - "red_tulip"
@@ -47,7 +47,7 @@ populators:
       - id: "cloudburst:shrub"
         chance: 0.05859375 # about 15 per chunk
         on: "grass_block"
-        replace: "air,short_grass"
+        replace: ["air", "short_grass"]
         roundDown: false
         block:
           - "red_tulip"
@@ -62,5 +62,5 @@ populators:
   - id: "cloudburst:tree"
     chance: 0.0001953125 # about 1 per 20 chunks
     on: "grass_block"
-    replace: "air,short_grass"
+    replace: ["air", "short_grass"]
     type: "oak"

@@ -68,7 +68,6 @@ import org.cloudburstmc.server.block.BlockLayers;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
-import org.cloudburstmc.server.block.util.BlockUtils;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.configuration.LevelConfiguration;
@@ -83,12 +82,16 @@ import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
+import org.cloudburstmc.server.level.light.BlockLightEngine;
+import org.cloudburstmc.server.level.light.LevelLightEngine;
+import org.cloudburstmc.server.level.light.LightOcclusion;
+import org.cloudburstmc.server.level.light.SkyLightEngine;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
-import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.network.LevelTimePacketFactory;
 import org.cloudburstmc.server.network.ParticlePacketFactory;
 import org.cloudburstmc.server.network.SoundPacketFactory;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -99,7 +102,6 @@ import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
-import org.cloudburstmc.server.utils.Hash;
 
 import java.awt.*;
 import java.io.IOException;
@@ -144,7 +146,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private final Set<Vector3i> batchedNeighbourUpdates = new LinkedHashSet<>();
     private int blockUpdateBatchDepth;
 
-    public float skyLightSubtracted;
+    private int skyDarkness;
     // Avoid OOM, gc'd references result in whole chunk being sent (possibly higher cpu)
     private final Cache<Long, IntSet> changedBlocks = CacheBuilder.newBuilder().softValues().build();
     //    private final Long2ObjectOpenHashMap<SoftReference<Map<Character, Object>>> changedBlocks = new Long2ObjectOpenHashMap<>();
@@ -171,7 +173,6 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     //private BlockMetadataStore blockMetadata;
 
-    public int sleepTicks = 0;
 
     private final Long2IntMap chunkTickList = new Long2IntOpenHashMap();
 
@@ -237,10 +238,10 @@ public class CloudLevel implements Level, BlockStateRegion {
                 : null;
 
         LongPredicate loadedChunk = chunkKey -> this.chunkManager.isChunkLoaded(chunkKey);
-        this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getCurrentTick(), loadedChunk, this::tickBlock);
-        this.liquidUpdateQueue = new BlockUpdateScheduler(this.levelData.getCurrentTick(), loadedChunk, this::tickLiquid);
+        this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickBlock);
+        this.liquidUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickLiquid);
 
-        this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
+        this.updateSkyBrightness();
     }
 
     public void reloadGenerator() {
@@ -455,24 +456,12 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.addChunkPacket(position, packet);
     }
 
-    public void checkTime() {
-        this.levelData.tickTime();
-    }
-
-    private boolean doDaylightCycle() {
-        return this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE);
-    }
-
     private boolean doWeatherCycle() {
         return this.getGameRules().get(GameRules.DO_WEATHER_CYCLE);
     }
 
-    @Override
     public void sendTime(Player... players) {
-        SetTimePacket pk = new SetTimePacket();
-        pk.setTime(VanillaLevelTime.toNetworkTime(this.getTime()));
-
-        CloudServer.broadcastPacket(players, pk);
+        CloudServer.broadcastPacket(players, LevelTimePacketFactory.time(this));
     }
 
     public void sendTime() {
@@ -503,11 +492,12 @@ public class CloudLevel implements Level, BlockStateRegion {
     public void doTick(int currentTick) {
         try (Timing ignored = this.timings.doTick.startTiming()) {
             synchronized (lightQueue) {
-                updateBlockLight(lightQueue);
+                this.updateQueuedLight();
             }
-            this.checkTime();
 
-            if (currentTick % 600 == 0 && doDaylightCycle()) {
+            this.levelData.tick();
+
+            if (this.getGameTime() % 20 == 0 || this.hasDaylightCycle() && !this.isTimePaused() && this.getTimeRate() != 1 && this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
                 this.sendTime();
             }
 
@@ -542,9 +532,8 @@ public class CloudLevel implements Level, BlockStateRegion {
                 }
             }
 
-            this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
-
-            this.levelData.tick();
+            this.checkSleep();
+            this.updateSkyBrightness();
             if (this.endFight != null) {
                 this.endFight.tick();
             }
@@ -553,11 +542,11 @@ public class CloudLevel implements Level, BlockStateRegion {
             int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
             this.chunkManager.promoteReadyChunks();
             try (Timing ignored2 = timings.scheduledBlockTicks.startTiming()) {
-                this.blockUpdateQueue.tick(this.getCurrentTick(), maxBlockTicks);
+                this.blockUpdateQueue.tick(this.getGameTime(), maxBlockTicks);
             }
 
             try (Timing ignored2 = timings.scheduledLiquidTicks.startTiming()) {
-                this.liquidUpdateQueue.tick(this.getCurrentTick(), maxLiquidTicks);
+                this.liquidUpdateQueue.tick(this.getGameTime(), maxLiquidTicks);
             }
 
             TimingsHistory.entityTicks += this.updateEntities.size();
@@ -616,10 +605,6 @@ public class CloudLevel implements Level, BlockStateRegion {
 
                 //this.processChunkRequest();
 
-                if (this.sleepTicks > 0 && --this.sleepTicks <= 0) {
-                    this.checkSleep();
-                }
-
                 synchronized (chunkPackets) {
                     for (long index : this.chunkPackets.keySet()) {
                         CloudChunk chunk = this.getLoadedChunk(index);
@@ -638,9 +623,9 @@ public class CloudLevel implements Level, BlockStateRegion {
                 }
 
                 if (this.levelData.getGameRules().isDirty()) {
-                    GameRulesChangedPacket packet = new GameRulesChangedPacket();
-                    NetworkUtils.gameRulesToNetwork(this.levelData.getGameRules(), packet.getGameRules());
+                    GameRulesChangedPacket packet = LevelTimePacketFactory.gameRules(this);
                     CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
+                    this.sendTime();
                     this.levelData.getGameRules().markClean();
                 }
             }
@@ -665,25 +650,48 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void checkSleep() {
-        if (this.players.isEmpty()) {
+        if (!this.hasDaylightCycle() || this.players.isEmpty()) {
             return;
         }
 
-        boolean resetTime = true;
-        for (Player p : this.getPlayers().values()) {
-            if (!p.isSleeping()) {
-                resetTime = false;
-                break;
+        int active = 0;
+        int deepSleepers = 0;
+        for (CloudPlayer player : this.players.values()) {
+            if (!player.isSpectator()) {
+                active++;
+                if (player.isSleepingLongEnough()) {
+                    deepSleepers++;
+                }
             }
         }
 
-        if (resetTime) {
-            if (VanillaLevelTime.isNight(this.getTime())) {
-                this.setTime(VanillaLevelTime.startOfNextDay(this.getTime()));
+        int percentage = this.getGameRules().get(GameRules.PLAYERS_SLEEPING_PERCENTAGE);
+        int required = Math.max(1, (int) Math.ceil(active * (double) percentage / 100));
+        if (deepSleepers < required) {
+            return;
+        }
 
-                for (Player p : this.getPlayers().values()) {
-                    p.stopSleep();
+        boolean wakePlayers = true;
+        if (this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
+            long morning = DayCycle.atOrAfter(this.getFullTime(), 0);
+            wakePlayers = this.skipTime(morning - this.getFullTime(), TimeSkipReason.NIGHT_SKIP);
+        }
+
+        if (wakePlayers) {
+            for (CloudPlayer player : this.players.values()) {
+                if (player.isSleeping()) {
+                    player.stopSleep();
                 }
+            }
+        }
+
+        if (this.doWeatherCycle()) {
+            if (this.isRaining()) {
+                this.setRaining(false);
+            }
+
+            if (this.levelData.getLightningLevel() > 0) {
+                this.setThundering(false);
             }
         }
     }
@@ -1066,7 +1074,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        BlockUpdateEntry entry = BlockUpdateEntry.of(pos, block.getState().getType(), (long) delay + getCurrentTick());
+        BlockUpdateEntry entry = BlockUpdateEntry.of(pos, block.getState().getType(), (long) delay + this.getGameTime());
         this.blockUpdateQueue.add(entry);
     }
 
@@ -1246,43 +1254,21 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.collisionEngine.hasEntityCollision(entity, shape, position);
     }
 
-    public int calculateSkylightSubtracted(float tickDiff) {
-        float angle = this.calculateCelestialAngle(getTime(), tickDiff);
-        float light = 1 - (MathHelper.cos(angle * ((float) Math.PI * 2F)) * 2 + 0.5f);
-        light = light < 0 ? 0 : light > 1 ? 1 : light;
-        light = 1 - light;
-        light = (float) ((double) light * ((isRaining() ? 1 : 0) - (double) 5f / 16d));
-        light = (float) ((double) light * ((isThundering() ? 1 : 0) - (double) 5f / 16d));
-        light = 1 - light;
-        return (int) (light * 11f);
+    @Override
+    public boolean hasPlacementObstruction(VoxelShape shape, Vector3i position) {
+        return this.collisionEngine.hasPlacementObstruction(shape, position);
     }
 
-    private float calculateCelestialAngle(long time, float tickDiff) {
-        float angle = ((float) Math.floorMod(time, VanillaLevelTime.TICKS_PER_DAY) + tickDiff) / VanillaLevelTime.TICKS_PER_DAY - 0.25f;
-        if (angle < 0) {
-            ++angle;
-        }
-
-        if (angle > 1) {
-            --angle;
-        }
-
-        float i = 1 - (float) ((Math.cos((double) angle * Math.PI) + 1) / 2d);
-        angle = angle + (i - angle) / 3;
-        return angle;
+    private void updateSkyBrightness() {
+        this.skyDarkness = SkyLightEngine.skyDarkness(this.getFullTime(), this.levelData.getRainLevel(), this.levelData.getLightningLevel());
     }
 
     public int getFullLight(Vector3i pos) {
         Chunk chunk = this.getChunk(pos);
-
-        int level = chunk.getSkyLight(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f);
-        level -= this.skyLightSubtracted;
-
-        if (level < 15) {
-            level = Math.max(chunk.getBlockLight(pos.getX() & 0x0f, pos.getY(), pos.getZ() & 0x0f), level);
-        }
-
-        return level;
+        int x = pos.getX() & 15;
+        int z = pos.getZ() & 15;
+        int sky = this.getDimension() == DIMENSION_OVERWORLD ? chunk.getSkyLight(x, pos.getY(), z) - this.skyDarkness : 0;
+        return Math.max(chunk.getBlockLight(x, pos.getY(), z), Math.clamp(sky, 0, 15));
     }
 
     @Nullable
@@ -1325,135 +1311,30 @@ public class CloudLevel implements Level, BlockStateRegion {
         });
     }
 
-    public void updateBlockSkyLight(int x, int y, int z) {
-        // todo
+    public void initializeChunkLight(CloudChunk chunk) {
+        LevelLightEngine.initialize(this, chunk);
     }
 
-    public void updateAllLight(Vector3f pos) {
-        this.updateBlockSkyLight(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
-        this.addLightUpdate(pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
+    public void updateChunkLightBoundary(CloudChunk chunk) {
+        LevelLightEngine.updateBoundary(this, chunk.getX(), chunk.getZ());
     }
 
-    public void updateBlockLight(Long2ObjectMap<IntSet> map) {
-        if (map.isEmpty()) {
+    private void updateQueuedLight() {
+        if (this.lightQueue.isEmpty()) {
             return;
         }
-        LongPriorityQueue lightPropagationQueue = new LongArrayFIFOQueue();
-        Long2ByteMap lightRemovalQueue = new Long2ByteOpenHashMap();
-        LongSet visited = new LongOpenHashSet();
-        LongSet removalVisited = new LongOpenHashSet();
 
-        for (Long2ObjectMap.Entry<IntSet> entry : map.long2ObjectEntrySet()) {
-            long chunkKey = entry.getLongKey();
-            IntSet blocks = entry.getValue();
-            int chunkX = CloudChunk.fromKeyX(chunkKey);
-            int chunkZ = CloudChunk.fromKeyZ(chunkKey);
-            for (int blockKey : blocks) {
-                Vector3i position = CloudChunk.fromKeyLight(chunkKey, blockKey, this.getMinHeight());
-                Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
-                if (chunk != null) {
-                    int lcx = position.getX() & 0xF;
-                    int lcz = position.getZ() & 0xF;
-                    int oldLevel = chunk.getBlockLight(lcx, position.getY(), lcz);
-                    Block block = new CloudBlock(this, Vector3i.from(lcx, position.getY(), lcz), new BlockState[]{
-                            chunk.getBlockState(lcx, position.getY(), lcz, BlockLayer.PRIMARY),
-                            chunk.getBlockState(lcx, position.getY(), lcz, BlockLayer.SECONDARY)
-                    });
-                    int newLevel = block.getState().getLightEmission();
-                    if (oldLevel != newLevel) {
-                        this.setBlockLightAt(position.getX(), position.getY(), position.getZ(), newLevel);
-                        if (newLevel < oldLevel) {
-                            removalVisited.add(BlockUtils.key(position));
-                            lightRemovalQueue.put(BlockUtils.key(position), (byte) oldLevel);
-                        } else {
-                            visited.add(BlockUtils.key(position));
-                            lightPropagationQueue.enqueue(BlockUtils.key(position));
-                        }
-                    }
-                }
+        List<Vector3i> changed = new ArrayList<>();
+        for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
+            for (int blockKey : entry.getValue()) {
+                changed.add(CloudChunk.fromKeyLight(entry.getLongKey(), blockKey, this.getMinHeight()));
             }
         }
-        map.clear();
 
-        for (Long2ByteMap.Entry entry : lightRemovalQueue.long2ByteEntrySet()) {
-            long node = entry.getLongKey();
-            int x = Hash.hashBlockX(node);
-            int y = Hash.hashBlockY(node);
-            int z = Hash.hashBlockZ(node);
-
-            int lightLevel = entry.getByteValue();
-
-            this.computeRemoveBlockLight(x - 1, y, z, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-            this.computeRemoveBlockLight(x + 1, y, z, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-            this.computeRemoveBlockLight(x, y - 1, z, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-            this.computeRemoveBlockLight(x, y + 1, z, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-            this.computeRemoveBlockLight(x, y, z - 1, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-            this.computeRemoveBlockLight(x, y, z + 1, lightLevel, lightRemovalQueue, lightPropagationQueue,
-                    removalVisited, visited);
-        }
-
-        while (!lightPropagationQueue.isEmpty()) {
-            long node = lightPropagationQueue.dequeueLong();
-
-            int x = Hash.hashBlockX(node);
-            int y = Hash.hashBlockY(node);
-            int z = Hash.hashBlockZ(node);
-
-            if (this.isOutsideBuildHeight(y)) continue;
-
-            Block block = this.getBlock(x, y, z);
-            BlockState state = block.getState();
-
-            int lightLevel = this.getBlockLightAt(x, y, z) - state.getLightDampening();
-
-            if (lightLevel >= 1) {
-                this.computeSpreadBlockLight(x - 1, y, z, lightLevel, lightPropagationQueue, visited);
-                this.computeSpreadBlockLight(x + 1, y, z, lightLevel, lightPropagationQueue, visited);
-                this.computeSpreadBlockLight(x, y - 1, z, lightLevel, lightPropagationQueue, visited);
-                this.computeSpreadBlockLight(x, y + 1, z, lightLevel, lightPropagationQueue, visited);
-                this.computeSpreadBlockLight(x, y, z - 1, lightLevel, lightPropagationQueue, visited);
-                this.computeSpreadBlockLight(x, y, z + 1, lightLevel, lightPropagationQueue, visited);
-            }
-        }
-    }
-
-    private void computeRemoveBlockLight(int x, int y, int z, int currentLight, Long2ByteMap queue,
-                                         LongPriorityQueue spreadQueue, LongSet visited, LongSet spreadVisited) {
-        if (this.isOutsideBuildHeight(y)) return;
-        int current = this.getBlockLightAt(x, y, z);
-        long index = Hash.hashBlock(x, y, z);
-        if (current != 0 && current < currentLight) {
-            this.setBlockLightAt(x, y, z, 0);
-            if (current > 1) {
-                if (visited.add(index)) {
-                    queue.put(Hash.hashBlock(x, y, z), (byte) current);
-                }
-            }
-        } else if (current >= currentLight) {
-            if (spreadVisited.add(index)) {
-                spreadQueue.enqueue(Hash.hashBlock(x, y, z));
-            }
-        }
-    }
-
-    private void computeSpreadBlockLight(int x, int y, int z, int currentLight, LongPriorityQueue queue, LongSet visited) {
-        if (this.isOutsideBuildHeight(y)) return;
-        int current = this.getBlockLightAt(x, y, z);
-        long index = Hash.hashBlock(x, y, z);
-
-        if (current < currentLight - 1) {
-            this.setBlockLightAt(x, y, z, currentLight);
-
-            if (visited.add(index)) {
-                if (currentLight > 1) {
-                    queue.enqueue(Hash.hashBlock(x, y, z));
-                }
-            }
+        this.lightQueue.clear();
+        BlockLightEngine.update(this, changed);
+        if (this.getDimension() == DIMENSION_OVERWORLD) {
+            SkyLightEngine.update(this, changed);
         }
     }
 
@@ -1553,11 +1434,27 @@ public class CloudLevel implements Level, BlockStateRegion {
             addBlockChange(index, x, y, z);
         }
 
-        if (update) {
-            if (affectsLight(oldLayers, newLayers)) {
-                addLightUpdate(x, y, z);
-            }
+        if (oldLayers.primary().getType() != newLayers.primary().getType() && this.getBlockState(position) == newLayers.primary()) {
+            this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_ADDED).execute(newBlock);
+        }
 
+        if (this.getBlockState(position) == newLayers.primary()) {
+            this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_STATE_CHANGED).execute(newBlock);
+        }
+
+        if (this.getBlockState(position) == newLayers.primary() && this.getBlockState(x, y, z, BlockLayer.SECONDARY) == newLayers.secondary()) {
+            BlockState previousLiquidState = oldLayers.primary().getType().isLiquid() ? oldLayers.primary() : oldLayers.secondary();
+            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? LiquidState.of(previousLiquidState) : LiquidState.empty();
+            if (!previousLiquid.equals(newBlock.getLiquid())) {
+                this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_LIQUID_CHANGED).execute(newBlock, previousLiquid);
+            }
+        }
+
+        if (affectsLight(oldLayers, newLayers)) {
+            addLightUpdate(x, y, z);
+        }
+
+        if (update) {
             for (Entity entity : this.getNearbyEntities(new BoundingBox(x - 1, y - 1, z - 1, x + 1, y + 1, z + 1))) {
                 this.scheduleEntityUpdate(entity);
             }
@@ -1577,13 +1474,12 @@ public class CloudLevel implements Level, BlockStateRegion {
         return true;
     }
 
-    private static boolean affectsLight(BlockLayers oldLayers, BlockLayers newLayers) {
-        return oldLayers.primary().getTranslucency() != newLayers.primary().getTranslucency()
-                || oldLayers.primary().getLightEmission() != newLayers.primary().getLightEmission()
-                || oldLayers.secondary().getTranslucency() != newLayers.secondary().getTranslucency()
-                || oldLayers.secondary().getLightEmission() != newLayers.secondary().getLightEmission();
+    private boolean affectsLight(BlockLayers oldLayers, BlockLayers newLayers) {
+        return LightOcclusion.affectsLight(this.blockRegistry, oldLayers.primary(), newLayers.primary())
+                || LightOcclusion.affectsLight(this.blockRegistry, oldLayers.secondary(), newLayers.secondary());
     }
 
+    @Override
     public void batchBlockUpdates(Runnable action) {
         Objects.requireNonNull(action, "action");
         this.blockUpdateBatchDepth++;
@@ -1659,7 +1555,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private boolean applyLiquidState(Vector3i position, LiquidState liquid) {
         BlockState primary = this.getBlockState(position);
         LiquidReaction reaction = primary.getLiquidReaction();
-        if (reaction.removesBlock()) {
+        if (BlockLayerRules.requiresBlockRemoval(primary, liquid)) {
             if (reaction == LiquidReaction.POPPED) {
                 this.breakBlock(position, ItemStack.EMPTY, null, false);
             } else {
@@ -1727,7 +1623,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, LiquidStateAccess.blockState(liquid).getType(),
-                (long) delay + getCurrentTick()));
+                (long) delay + this.getGameTime()));
     }
 
     private boolean isLiquidUpdateScheduled(Vector3i position, LiquidState liquid) {
@@ -1750,7 +1646,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        this.blockRegistry.requireComponent(scheduledType, BlockComponents.ON_TICK).execute(block, null);
+        this.blockRegistry.requireComponent(scheduledType, BlockComponents.ON_LIQUID_TICK).execute(block);
     }
 
     private void addBlockChange(int x, int y, int z) {
@@ -1841,7 +1737,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles) {
-        return breakBlock(pos, item, player, createParticles, false);
+        return breakBlock(pos, item, player, createParticles, false, null);
     }
 
     @Override
@@ -1860,12 +1756,12 @@ public class CloudLevel implements Level, BlockStateRegion {
         return new Explosion(this, position, settings).explode();
     }
 
-    public ItemStack breakBlockPredicted(Vector3i pos, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride) {
+    public ItemStack breakBlockPredicted(Vector3i pos, ItemStack item, Player player, boolean createParticles, @Nullable Boolean fastBreakOverride, Consumer<Block> beforeDestruction) {
         boolean fastBreak = fastBreakOverride != null ? fastBreakOverride : isBreakingTooFast(pos, item, player);
-        return breakBlock(pos, item, player, createParticles, fastBreak);
+        return breakBlock(pos, item, player, createParticles, fastBreak, Objects.requireNonNull(beforeDestruction, "beforeDestruction"));
     }
 
-    private ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles, boolean fastBreak) {
+    private ItemStack breakBlock(Vector3i pos, ItemStack item, Player player, boolean createParticles, boolean fastBreak, @Nullable Consumer<Block> beforeDestruction) {
         if (player != null && player.getGameMode() == GameMode.SPECTATOR) {
             return null;
         }
@@ -1954,6 +1850,10 @@ public class CloudLevel implements Level, BlockStateRegion {
                 }
             }
 
+            if (beforeDestruction != null) {
+                beforeDestruction.accept(target);
+            }
+
             if (createParticles) {
                 this.addBlockDestroyParticle(target, player);
             }
@@ -1979,6 +1879,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             }
 
             targetBehaviors.require(BlockComponents.ON_DESTROY).execute(target, player);
+            targetBehaviors.require(BlockComponents.AFTER_BREAK).execute(target, lootContext);
         } finally {
             if (player != null) {
                 this.capturedBlockDrops = null;
@@ -2025,6 +1926,12 @@ public class CloudLevel implements Level, BlockStateRegion {
         long breakTimeMillis = Math.round(ToolUtils.getBreakTicks(player, tool, state)
                 * 50L * MINIMUM_PREDICTED_BREAK_PROGRESS);
         return ((CloudPlayer) player).lastBreak + breakTimeMillis > System.currentTimeMillis();
+    }
+
+    @Override
+    public void playBlockBreakEffect(Vector3i position, BlockState state) {
+        Vector3f center = position.toFloat().add(0.5f, 0.5f, 0.5f);
+        this.addChunkPacket(center, LevelEffectPacketFactory.blockDestruction(center, state, true));
     }
 
     private void addBlockDestroyParticle(Block target, @Nullable Player player) {
@@ -2191,6 +2098,11 @@ public class CloudLevel implements Level, BlockStateRegion {
         Direction placementFace = block == target && targetReplaceable ? Direction.UP : face;
         ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE).execute(hand, block, player, placementFace, clickPos);
+        if (hand == null) {
+            return null;
+        }
+
+        handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         Vector3i blockPos = block.getPosition();
 
         BlockLayers placement = BlockLayerRules.resolveReplacement(new BlockLayers(block.getState(), block.getSecondaryState()), BlockLayer.PRIMARY, hand);
@@ -2200,7 +2112,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         placement = BlockLayerRules.normalizeSnowCover(placement, this.getBlockState(blockPos.getX(), blockPos.getY() - 1, blockPos.getZ()));
         Block prospectiveBlock = new CloudBlock(this, blockPos, new BlockState[]{placement.primary(), placement.secondary()});
-        if (!handBehaviors.require(BlockComponents.CAN_SURVIVE).execute(prospectiveBlock)) {
+        if (!handBehaviors.require(BlockComponents.CAN_BE_PLACED).execute(prospectiveBlock)) {
             return null;
         }
 
@@ -2263,7 +2175,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         if (playSound) {
-            this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, CloudBlockRegistry.REGISTRY.getRuntimeId(hand));
+            this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, BlockPalette.INSTANCE.getDefinition(hand).getRuntimeId());
         }
 
         return item.getCount() <= 0 ? ItemStack.EMPTY : item;
@@ -2863,36 +2775,99 @@ public class CloudLevel implements Level, BlockStateRegion {
                 && !this.hasBlockCollision(null, state, position, BoundingBox.unit(position));
     }
 
+    @Override
     public long getTime() {
-        return this.levelData.getTime();
+        return DayCycle.timeOfDay(this.getFullTime());
     }
 
+    @Override
     public void setTime(long time) {
-        this.levelData.setTime(time);
+        this.setFullTime(DayCycle.atOrAfter(this.getFullTime(), time));
+    }
+
+    @Override
+    public long getFullTime() {
+        return this.hasDaylightCycle() ? this.levelData.getClock().getTotalTicks() : 0;
+    }
+
+    @Override
+    public void setFullTime(long time) {
+        this.skipTime(Math.subtractExact(time, this.getFullTime()), TimeSkipReason.CUSTOM);
+    }
+
+    public boolean skipTime(long amount, TimeSkipReason reason) {
+        this.requireDaylightCycle();
+        long previous = this.getFullTime();
+        TimeSkipEvent event = new TimeSkipEvent(this, reason, amount);
+        this.server.getEventManager().fire(event);
+        if (event.isCancelled() || this.getFullTime() != previous) {
+            return false;
+        }
+
+        this.levelData.getClock().setTotalTicks(Math.addExact(previous, event.getSkipAmount()));
+        this.updateSkyBrightness();
         this.sendTime();
+        return true;
     }
 
-    public boolean isDaytime() {
-        return this.skyLightSubtracted < 4;
+    @Override
+    public long getGameTime() {
+        return this.levelData.getGameTime();
     }
 
-    public long getCurrentTick() {
-        return this.levelData.getCurrentTick();
+    @Override
+    public boolean hasDaylightCycle() {
+        return this.getDimension() == DIMENSION_OVERWORLD;
+    }
+
+    @Override
+    public boolean isDayTime() {
+        return this.hasDaylightCycle() && this.skyDarkness < 4;
+    }
+
+    @Override
+    public boolean isNightTime() {
+        return this.hasDaylightCycle() && this.skyDarkness >= 4;
+    }
+
+    @Override
+    public boolean isTimePaused() {
+        return !this.hasDaylightCycle() || this.levelData.getClock().isPaused();
+    }
+
+    @Override
+    public void setTimePaused(boolean paused) {
+        this.requireDaylightCycle();
+        this.levelData.getClock().setPaused(paused);
+        this.synchronizeClock();
+    }
+
+    @Override
+    public float getTimeRate() {
+        return this.hasDaylightCycle() ? this.levelData.getClock().getRate() : 0;
+    }
+
+    @Override
+    public void setTimeRate(float rate) {
+        this.requireDaylightCycle();
+        this.levelData.getClock().setRate(rate);
+        this.synchronizeClock();
+    }
+
+    private void requireDaylightCycle() {
+        if (!this.hasDaylightCycle()) {
+            throw new IllegalStateException("This level has no daylight cycle");
+        }
+    }
+
+    private void synchronizeClock() {
+        CloudServer.broadcastPacket(this.players.values().toArray(new Player[0]), LevelTimePacketFactory.gameRules(this));
+        this.sendTime();
     }
 
     @Override
     public String getName() {
         return this.levelData.getName();
-    }
-
-    public void stopTime() {
-        this.getGameRules().set(GameRules.DO_DAYLIGHT_CYCLE, false);
-        this.sendTime();
-    }
-
-    public void startTime() {
-        this.getGameRules().set(GameRules.DO_DAYLIGHT_CYCLE, true);
-        this.sendTime();
     }
 
     public long getSeed() {
@@ -2949,6 +2924,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         this.levelData.setRainLevel(raining ? 1 : 0);
+        this.updateSkyBrightness();
 
         LevelEventPacket packet = new LevelEventPacket();
         // These numbers are from Minecraft
@@ -3001,6 +2977,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         this.levelData.setLightningLevel(thundering ? 1 : 0);
+        this.updateSkyBrightness();
 
         LevelEventPacket packet = new LevelEventPacket();
         // These numbers are from Minecraft

@@ -13,9 +13,9 @@ import java.util.random.RandomGenerator;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Input used to resolve the item drops and experience produced by a block.
+ * Input used to resolve a block break, its item drops and experience.
  *
- * @param tool the tool used to break the block
+ * @param tool   the tool used to break the block
  * @param entity the entity that caused the break, or {@code null} for no entity
  * @param random the random source for loot operations
  */

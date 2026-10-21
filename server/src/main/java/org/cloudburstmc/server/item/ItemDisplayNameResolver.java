@@ -7,7 +7,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.component.SpawnEggComponent;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import static java.util.Objects.requireNonNull;
@@ -33,7 +33,7 @@ public class ItemDisplayNameResolver {
         }
 
         if (item.isBlock()) {
-            String translationKey = CloudBlockRegistry.REGISTRY
+            String translationKey = BlockPalette.INSTANCE
                     .getDefinition(item.requireBlockState())
                     .getTranslationKey();
             return Component.translatable(translationKey);

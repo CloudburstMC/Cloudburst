@@ -21,6 +21,7 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.plugin.PluginDescription;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
@@ -44,12 +45,16 @@ import java.util.regex.Pattern;
 public class CloudCommandRegistry implements Commands {
     private static final Pattern ROOT_LABEL_PATTERN = Pattern.compile("^[a-z0-9_\\-/.]+$");
     private static final Pattern ALIAS_LABEL_PATTERN = Pattern.compile("^[a-z0-9_\\-/.?]+$");
-    private final CommandArguments arguments = new CloudCommandArguments();
+    private final CommandArguments arguments;
     private final CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
     private final Set<String> referencedPermissions = new LinkedHashSet<>();
     private Map<String, RegisteredCommand> registeredCommands = new LinkedHashMap<>();
 
     private volatile boolean closed;
+
+    public CloudCommandRegistry(BlockRegistry blocks) {
+        this.arguments = new CloudCommandArguments(blocks);
+    }
 
     @Override
     public CommandArguments arguments() {

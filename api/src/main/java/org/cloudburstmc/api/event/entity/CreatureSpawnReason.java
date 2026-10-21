@@ -53,6 +53,10 @@ public enum CreatureSpawnReason {
      */
     BREEDING,
     /**
+     * Spawned by rehydrating a dried ghast.
+     */
+    REHYDRATION,
+    /**
      * Spawned when a slime divides.
      */
     SLIME_SPLIT,

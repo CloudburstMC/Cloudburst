@@ -115,7 +115,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.saveClientData(tag);
 
-//        var nbt = tag.build();
+//        NbtMap nbt = tag.build();
 //        checkNbt(this.tag, nbt);
 
 //        log.info("saving: " + this.type);
@@ -125,8 +125,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //                return;
 //            }
 //
-//            var type = NbtType.byClass(value.getClass());
-//            var vanillaType = NbtType.byClass(this.tag.get(key).getClass());
+//            NbtType<?> type = NbtType.byClass(value.getClass());
+//            NbtType<?> vanillaType = NbtType.byClass(this.tag.get(key).getClass());
 //
 //            if (type != vanillaType) {
 //                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType.getTypeName() + "  local: " + type.getTypeName());
@@ -223,8 +223,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
             }
 
             for (int i = 0; i < localList.size(); i++) {
-                var localItem = localList.get(i);
-                var vanillaItem = vanillaList.get(i);
+                Object localItem = localList.get(i);
+                Object vanillaItem = vanillaList.get(i);
 
                 if (!nbtEquals(vanillaItem, localItem)) {
                     return false;
@@ -239,18 +239,18 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     private boolean checkNbt(NbtMap tag, NbtMap local) {
         for (Entry<String, Object> entry : local.entrySet()) {
-            var key = entry.getKey();
-            var value = entry.getValue();
+            String key = entry.getKey();
+            Object value = entry.getValue();
 
             if (!tag.containsKey(key)) {
                 log.info("redundant key: " + key);
                 continue;
             }
 
-            var vanilla = tag.get(key);
+            Object vanilla = tag.get(key);
 
-            var localType = NbtType.byClass(value.getClass());
-            var vanillaType = NbtType.byClass(vanilla.getClass());
+            NbtType<?> localType = NbtType.byClass(value.getClass());
+            NbtType<?> vanillaType = NbtType.byClass(vanilla.getClass());
 
             if (vanillaType != localType) {
                 log.info("wrong tag types, local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());
@@ -285,8 +285,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
             Object value = local.get(i);
             Object vanilla = tag.get(i);
 
-            var localType = NbtType.byClass(value.getClass());
-            var vanillaType = NbtType.byClass(vanilla.getClass());
+            NbtType<?> localType = NbtType.byClass(value.getClass());
+            NbtType<?> vanillaType = NbtType.byClass(vanilla.getClass());
 
             if (vanillaType != localType) {
                 log.info("wrong tag types at index '" + i + "', local: " + localType.getTypeName() + ", vanilla: " + vanillaType.getTypeName());

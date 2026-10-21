@@ -12,9 +12,9 @@ import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.ArrayList;
@@ -110,8 +110,13 @@ public class BlockTransformationItemHandlers {
 
     private static void playEffects(CloudLevel level, BlockTransformation rule, List<BlockChange> changes) {
         BlockChange clicked = changes.getFirst();
-        int soundData = rule.sound() == SoundEvent.ITEM_USE_ON ? CloudBlockRegistry.REGISTRY.getRuntimeId(clicked.newState()) : -1;
-        level.addLevelSoundEvent(clicked.block().getPosition(), rule.sound(), soundData);
+        if (rule.soundOverride() != null) {
+            level.playSound(clicked.block().getPosition(), rule.soundOverride());
+        } else {
+            int soundData = rule.sound() == SoundEvent.ITEM_USE_ON ? BlockPalette.INSTANCE.getDefinition(clicked.newState()).getRuntimeId() : -1;
+            level.addLevelSoundEvent(clicked.block().getPosition(), rule.sound(), soundData);
+        }
+
         for (BlockChange change : changes) {
             Vector3f center = change.block().getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
             if (rule.particle() != null) {

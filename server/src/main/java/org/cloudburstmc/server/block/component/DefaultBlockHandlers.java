@@ -55,7 +55,7 @@ public class DefaultBlockHandlers {
     public static final BlockSupportShapeHandler SHULKER_BOX_BLOCK_SUPPORT_SHAPE = new BlockSupportShapeHandler() {
         @Override
         public VoxelShape execute(BlockState state, BlockShapeContext context) {
-            if (!context.hasLevel()
+            if (context.isEmpty()
                     || !(context.level().getBlockEntity(context.position()) instanceof ShulkerBox shulkerBox)
                     || shulkerBox.getAnimationState() == ShulkerBoxAnimationState.CLOSED) {
                 return CloudVoxelShapes.block();
@@ -95,8 +95,7 @@ public class DefaultBlockHandlers {
     };
 
     private static VoxelShape shulkerBoxShape(BlockShapeContext context, VoxelShape fallback) {
-        if (!context.hasLevel()
-                || !(context.level().getBlockEntity(context.position()) instanceof ShulkerBox shulkerBox)) {
+        if (context.isEmpty() || !(context.level().getBlockEntity(context.position()) instanceof ShulkerBox shulkerBox)) {
             return fallback;
         }
 
@@ -129,11 +128,20 @@ public class DefaultBlockHandlers {
             entity.damage(1, blockDamageSource(DamageTypes.CACTUS, block));
 
     public static final EntityInsideBlockHandler FIRE_ENTITY_INSIDE = (block, entity, precise) -> {
+        if (entity instanceof CloudEntity cloudEntity && cloudEntity.fireProof) {
+            return;
+        }
+
         entity.setOnFire(8);
         entity.damage(1, blockDamageSource(DamageTypes.IN_FIRE, block));
     };
 
     public static final EntityInsideBlockHandler LAVA_ENTITY_INSIDE = (block, entity, precise) -> {
+        entity.setFreezeTicks(0);
+        if (entity instanceof CloudEntity cloudEntity && cloudEntity.fireProof) {
+            return;
+        }
+
         entity.setOnFire(15);
         entity.damage(4, blockDamageSource(DamageTypes.LAVA, block));
     };

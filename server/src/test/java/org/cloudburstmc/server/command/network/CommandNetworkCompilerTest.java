@@ -21,6 +21,8 @@ import org.cloudburstmc.server.command.defaults.GameruleCommand;
 import org.cloudburstmc.server.command.defaults.GiveCommand;
 import org.cloudburstmc.server.registry.CloudCommandRegistry;
 import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
+import org.cloudburstmc.server.testutil.BlockTestRegistry;
+import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +42,7 @@ class CommandNetworkCompilerTest {
                                 .executes(context -> 1)))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(1, overloads.size());
         assertEquals(2, overloads.getFirst().getOverloads().length);
@@ -52,11 +54,11 @@ class CommandNetworkCompilerTest {
     void representsAnExecutableRootWithOneOptionalArgumentAsOneOverload() {
         LiteralCommandNode<CommandSourceStack> root = Commands.literal("test")
                 .executes(context -> 1)
-                .then(Commands.argument("target", new CloudCommandRegistry().arguments().entity())
+                .then(Commands.argument("target", new CloudCommandRegistry(BlockTestRegistry.get()).arguments().entity())
                         .executes(context -> 1))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(1, overloads.size());
         assertEquals(1, overloads.getFirst().getOverloads().length);
@@ -77,7 +79,7 @@ class CommandNetworkCompilerTest {
                                 .executes(context -> 1)))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(2, overloads.size());
         assertEquals(0, overloads.get(1).getOverloads().length);
@@ -90,12 +92,12 @@ class CommandNetworkCompilerTest {
 
     @Test
     void groupsGameRulesByValueType() {
-        CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
+        CloudCommandRegistry commandRegistry = new CloudCommandRegistry(BlockTestRegistry.get());
         GameruleCommand command = new GameruleCommand(CloudGameRuleRegistry.get());
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("gamerule");
         command.configure(builder, "gamerule", commandRegistry.arguments());
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source(), command.networkData());
 
         assertEquals(4, overloads.size());
         assertEquals(1, overloads.stream().filter(overload -> overload.getOverloads().length == 0).count());
@@ -130,7 +132,7 @@ class CommandNetworkCompilerTest {
                                 .executes(context -> 1)))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(List.of(2, 0), overloads.stream()
                 .map(overload -> overload.getOverloads().length)
@@ -149,7 +151,7 @@ class CommandNetworkCompilerTest {
                         .executes(context -> 1))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(1, overloads.size());
         assertEquals("visible", overloads.getFirst().getOverloads()[0].getName());
@@ -162,7 +164,7 @@ class CommandNetworkCompilerTest {
                 .build();
         LiteralCommandNode<CommandSourceStack> root = Commands.literal("test").redirect(target).build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(1, overloads.size());
         assertEquals("value", overloads.getFirst().getOverloads()[0].getName());
@@ -174,7 +176,7 @@ class CommandNetworkCompilerTest {
                 .then(Commands.argument("message", CommandArgumentTypes.message()).executes(context -> 1))
                 .build();
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
         assertEquals(CommandParam.MESSAGE_ROOT, overloads.getFirst().getOverloads()[0].getType());
     }
@@ -185,7 +187,7 @@ class CommandNetworkCompilerTest {
                 .then(Commands.argument("rotation", CommandArgumentTypes.rotation()).executes(context -> 1))
                 .build();
 
-        CommandParamData parameter = CommandNetworkCompiler.compileOverloads(root, source())
+        CommandParamData parameter = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT)
                 .getFirst()
                 .getOverloads()[0];
 
@@ -200,7 +202,7 @@ class CommandNetworkCompilerTest {
                 .then(Commands.argument("item", item).executes(context -> 1))
                 .build();
 
-        CommandParamData parameter = CommandNetworkCompiler.compileOverloads(root, source())
+        CommandParamData parameter = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT)
                 .getFirst()
                 .getOverloads()[0];
 
@@ -211,12 +213,12 @@ class CommandNetworkCompilerTest {
 
     @Test
     void representsGiveAsOneVanillaOverload() {
-        CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
+        CloudCommandRegistry commandRegistry = new CloudCommandRegistry(BlockTestRegistry.get());
         GiveCommand command = new GiveCommand();
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("give");
         command.configure(builder, "give", commandRegistry.arguments());
 
-        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source());
+        List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(builder.build(), source(), command.networkData());
 
         assertEquals(1, overloads.size());
         CommandParamData[] parameters = overloads.getFirst().getOverloads();
@@ -280,7 +282,7 @@ class CommandNetworkCompilerTest {
         return new CommandSourceStack() {
             @Override
             public CommandSender sender() {
-                throw new UnsupportedOperationException();
+                return InterfaceProxy.create(CommandSender.class, Map.of("hasPermission", true));
             }
 
             @Override

@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.map;
 
+import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.ItemFrame;
 import org.cloudburstmc.api.event.server.MapInitializeEvent;
 import org.cloudburstmc.api.inventory.view.CartographyView;
@@ -260,7 +261,7 @@ public class CloudMapManager implements Maps {
             return false;
         }
 
-        for (var blockEntity : player.getLevel().getBlockEntities()) {
+        for (BlockEntity blockEntity : player.getLevel().getBlockEntities()) {
             if (blockEntity instanceof ItemFrame frame && Objects.equals(mapId(frame.getItem()), id)
                     && frame.getPosition().toFloat().distanceSquared(player.getPosition()) <= 128 * 128) {
                 return false;

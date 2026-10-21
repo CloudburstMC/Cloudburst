@@ -1,25 +1,10 @@
 package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 
 public class ChunkSectionSerializers {
-    private static final ChunkSectionSerializer[] SERIALIZERS = new ChunkSectionSerializer[10];
-
-    static {
-        SERIALIZERS[0] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[1] = ChunkSectionSerializerV1.INSTANCE;
-        SERIALIZERS[2] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[3] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[4] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[5] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[6] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[7] = ChunkSectionSerializerV7.INSTANCE;
-        SERIALIZERS[8] = ChunkSectionSerializerV8.INSTANCE;
-        SERIALIZERS[9] = ChunkSectionSerializerV9.INSTANCE;
-    }
 
     public static void serialize(ByteBuf buf, BlockStorage[] storage, int version) {
         getSerializer(version).serialize(buf, storage);
@@ -30,7 +15,12 @@ public class ChunkSectionSerializers {
     }
 
     public static ChunkSectionSerializer getSerializer(int version) {
-        Preconditions.checkElementIndex(version, SERIALIZERS.length, "Invalid sub-chunk version " + version);
-        return SERIALIZERS[version];
+        return switch (version) {
+            case 1 -> ChunkSectionSerializerV1.INSTANCE;
+            case 8 -> ChunkSectionSerializerV8.INSTANCE;
+            case 9 -> ChunkSectionSerializerV9.INSTANCE;
+            case 0, 2, 3, 4, 5, 6, 7 -> throw new UnsupportedOperationException("Numeric-ID sub-chunk storage is no longer supported: version " + version);
+            default -> throw new IllegalArgumentException("Invalid sub-chunk version " + version);
+        };
     }
 }

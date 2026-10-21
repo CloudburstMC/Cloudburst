@@ -16,6 +16,10 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
 
     @Override
     public Comparable<?> serialize(BlockType type, Map<BlockTrait<?>, Comparable<?>> traits, BlockTrait<Direction> trait, Direction direction) {
+        if (trait == BlockTraits.CORAL_DIRECTION) {
+            return DirectionEncoding.HORIZONTAL_WEST_EAST_NORTH_SOUTH.encode(direction);
+        }
+
         if (trait == BlockTraits.DIRECTION) {
             return horizontalEncoding(type, traits).encode(direction);
         }

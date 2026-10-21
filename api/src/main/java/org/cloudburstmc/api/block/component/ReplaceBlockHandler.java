@@ -16,10 +16,10 @@ public interface ReplaceBlockHandler {
     /**
      * Checks whether a placed block may replace the current block.
      *
-     * @param block block being replaced
-     * @param replacement state being placed
-     * @param player player placing the block, or {@code null}
-     * @param face clicked face
+     * @param block         block being replaced
+     * @param replacement   state being placed
+     * @param player        player placing the block, or {@code null}
+     * @param face          clicked face
      * @param clickPosition click position within the block
      * @return whether replacement is allowed
      */

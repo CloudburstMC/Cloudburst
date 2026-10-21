@@ -30,6 +30,7 @@ import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.*;
 import org.cloudburstmc.api.event.entity.EntityDamageEvent;
+import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupArrowEvent;
 import org.cloudburstmc.api.event.inventory.InventoryPickupItemEvent;
@@ -99,10 +100,11 @@ import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
-import org.cloudburstmc.server.level.VanillaLevelTime;
+import org.cloudburstmc.server.network.LevelTimePacketFactory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
@@ -233,6 +235,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected Location spawnLocation = null;
     protected RespawnConfig respawnConfig = null;
     protected Vector3i sleeping = null;
+    private long sleepStartedAt;
     private @Nullable Location respawnTarget;
     private boolean seenCredits;
     private boolean showingCredits;
@@ -835,6 +838,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return this.sleeping != null;
     }
 
+    public boolean isSleepingLongEnough() {
+        return this.isSleeping() && this.getLevel().getGameTime() - this.sleepStartedAt >= 100;
+    }
+
     public int getInAirTicks() {
         return this.inAirTicks;
     }
@@ -1123,9 +1130,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.invManager.sendAllInventories();
         this.onInventoryContentsChange(this.armor.getContainer());
 
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
-        this.sendPacket(setTimePacket);
+        this.getLevel().sendTime(this);
 
         Location loc = Location.from(this.getPosition(), this.getYaw(), this.getPitch(), this.getLevel());
         PlayerRespawnEvent respawnEvent = new PlayerRespawnEvent(
@@ -1227,7 +1232,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return true;
         }
 
-        boolean canSleep = level.isThundering() || VanillaLevelTime.isNight(level.getTime());
+        boolean canSleep = level.isNightTime();
         if (!canSleep) {
             sendMessage(Component.translatable("tile.bed.noSleep"));
             return true;
@@ -1263,14 +1268,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         this.sleeping = pos.clone();
+        this.sleepStartedAt = level.getGameTime();
         this.teleportWithoutEvent(
                 Location.from(pos.toFloat().add(0.5, 0.5, 0.5), this.getYaw(), this.getPitch(), level));
         this.data.set(BED_POSITION, pos);
 
         Location bedSpawnLoc = Location.from(pos.toFloat(), this.getYaw(), 0f, level);
         setSpawnFromBed(pos, bedSpawnLoc);
-
-        level.sleepTicks = 60;
 
         return true;
     }
@@ -1385,8 +1389,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.data.set(BED_POSITION, Vector3i.ZERO);
             //this.data.setBoolean(CAN_START_SLEEP, false); // TODO what did this change to?
 
-
-            this.getLevel().sleepTicks = 0;
 
             AnimatePacket pk = new AnimatePacket();
             pk.setRuntimeEntityId(this.getRuntimeId());
@@ -1901,6 +1903,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.forceMovement = null;
         }
 
+        if (!revert) {
+            this.updateEnchantmentLocationEffects();
+        }
+
         this.newPosition = null;
     }
 
@@ -2035,6 +2041,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
                 }
 
                 this.entityBaseTick(tickDiff);
+                this.tickTurtleHelmet();
                 this.finishItemUse(currentTick);
                 this.updateBlockingState();
                 this.updateUnderwaterSound();
@@ -2147,6 +2154,13 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         ItemStack result = CloudItemRegistry.get().getComponent(item.getType(), ItemBehaviors.CONSUMABLE) != null
                 ? ConsumableItemHandlers.finishConsumption(item, this) : handler.execute(item, this);
         this.getInventory().setItem(slot, result);
+    }
+
+    private void tickTurtleHelmet() {
+        PotionEffect effect = ArmorItemHandlers.getTurtleHelmetEffect(this, this.isInsideOfWater());
+        if (effect != null) {
+            this.addPotionEffect(effect, null, PotionEffectCause.TURTLE_HELMET);
+        }
     }
 
     private void updateUnderwaterSound() {
@@ -2317,13 +2331,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setDifficulty(this.server.getDifficulty().getId());
         startGamePacket.setDefaultSpawn(this.getLevel().getSpawnLocation().toInt());
         startGamePacket.setAchievementsDisabled(true);
-        startGamePacket.setDayCycleStopTime(VanillaLevelTime.toNetworkTime(this.getLevel().getTime()));
+        startGamePacket.setDayCycleStopTime(LevelTimePacketFactory.networkTime(this.getLevel().getFullTime()));
+        startGamePacket.setCurrentTick(this.getLevel().getGameTime());
         startGamePacket.setRainLevel(0);
         startGamePacket.setLightningLevel(0);
         startGamePacket.setCommandsEnabled(this.isEnableClientCommand());
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        NetworkUtils.gameRulesToNetwork(this.getLevel().getGameRules(), startGamePacket.getGamerules());
+        LevelTimePacketFactory.writeGameRules(this.getLevel(), startGamePacket.getGamerules());
         startGamePacket.setLevelId(""); // This is irrelevant since we have multiple levels
         startGamePacket.setLevelName(this.getLevel().getName());
         startGamePacket.setGeneratorId(1); // 0 old, 1 infinite, 2 flat - Has no effect to my knowledge
@@ -2358,7 +2373,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setWorldId("");
         startGamePacket.setScenarioId("");
         startGamePacket.setOwnerId("");
-        session.getPeer().getCodecHelper().setItemDefinitions(CloudItemRegistry.get());
+        session.getPeer().getCodecHelper().setItemDefinitions(CloudItemRegistry.get().getPalette());
         session.getPeer().getCodecHelper().setBlockDefinitions(BlockPalette.INSTANCE);
         VanillaBlockNetworkData.addBlockProperties(startGamePacket);
         this.sendPacket(VanillaJigsawStructureNetworkData.createPacket());
@@ -2366,7 +2381,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.sendPacket(startGamePacket);
 
         ItemComponentPacket componentPacket = new ItemComponentPacket();
-        componentPacket.getItems().addAll(CloudItemRegistry.get().getItemEntries());
+        componentPacket.getItems().addAll(CloudItemRegistry.get().getPalette().getDefinitions());
         this.sendPacket(componentPacket);
 
         this.sendPacket(VanillaBiomeNetworkData.createPacket());
@@ -4029,13 +4044,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
             this.getChunkManager().prepareRegion(this.getPosition());
 
-            SetTimePacket setTime = new SetTimePacket();
-            setTime.setTime(VanillaLevelTime.toNetworkTime(level.getTime()));
-            this.sendPacket(setTime);
-
-            GameRulesChangedPacket gameRulesChanged = new GameRulesChangedPacket();
-            NetworkUtils.gameRulesToNetwork(level.getGameRules(), gameRulesChanged.getGameRules());
-            this.sendPacket(gameRulesChanged);
+            this.sendPacket(LevelTimePacketFactory.gameRules(level));
+            level.sendTime(this);
 
             if (dimensionChanged) {
                 PlayerActionPacket ack = new PlayerActionPacket();

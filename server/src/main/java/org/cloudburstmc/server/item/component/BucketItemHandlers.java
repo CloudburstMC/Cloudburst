@@ -26,6 +26,7 @@ import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -144,7 +145,7 @@ public final class BucketItemHandlers {
         }
 
         LiquidState liquid = clicked.getLiquid();
-        if (!liquid.isSource()) {
+        if (!liquid.isSource() || clicked.getLiquidLayer() == BlockLayer.SECONDARY && !BlockLayerRules.canCoexist(clicked.getState(), BlockStates.AIR)) {
             return item;
         }
 

@@ -24,12 +24,12 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 @Setter
 @ToString
 public class CloudLevelData {
-    private static final AtomicLongFieldUpdater<CloudLevelData> CURRENT_TICK_UPDATER =
-            AtomicLongFieldUpdater.newUpdater(CloudLevelData.class, "currentTick");
+    private static final AtomicLongFieldUpdater<CloudLevelData> GAME_TIME_UPDATER =
+            AtomicLongFieldUpdater.newUpdater(CloudLevelData.class, "gameTime");
 
     private final CloudGameRules gameRules;
     private final CloudEndFightData endFightData;
-    private volatile long currentTick;
+    private volatile long gameTime;
     @Getter(AccessLevel.NONE)
     private @Nullable Long seed;
     private int dimension;
@@ -38,7 +38,7 @@ public class CloudLevelData {
     private String generatorOptions = "";
     @Getter(AccessLevel.NONE)
     private @Nullable String name;
-    private long time;
+    private final LevelClock clock;
     private Vector3i spawn = Vector3i.from(0, 128, 0);
     private int serverChunkTickRange;
     private int rainTime;
@@ -53,6 +53,7 @@ public class CloudLevelData {
     private Map<String, Object> additionalData = Map.of();
 
     public CloudLevelData() {
+        this.clock = new LevelClock();
         this.gameRules = new CloudGameRules();
         this.endFightData = new CloudEndFightData();
     }
@@ -60,13 +61,13 @@ public class CloudLevelData {
     private CloudLevelData(CloudLevelData source) {
         this.gameRules = new CloudGameRules(source.gameRules);
         this.endFightData = source.endFightData.copy();
-        this.currentTick = source.currentTick;
+        this.gameTime = source.gameTime;
         this.seed = source.seed;
         this.dimension = source.dimension;
         this.generator = source.generator;
         this.generatorOptions = source.generatorOptions;
         this.name = source.name;
-        this.time = source.time;
+        this.clock = source.clock.copy();
         this.spawn = source.spawn;
         this.serverChunkTickRange = source.serverChunkTickRange;
         this.rainTime = source.rainTime;
@@ -136,13 +137,10 @@ public class CloudLevelData {
         this.additionalData = Map.copyOf(Objects.requireNonNull(additionalData, "additionalData"));
     }
 
-    public void tickTime() {
-        if (this.gameRules.get(GameRules.DO_DAYLIGHT_CYCLE)) {
-            this.time++;
-        }
-    }
-
     public void tick() {
-        CURRENT_TICK_UPDATER.incrementAndGet(this);
+        GAME_TIME_UPDATER.incrementAndGet(this);
+        if (this.dimension == CloudLevel.DIMENSION_OVERWORLD && this.gameRules.get(GameRules.DO_DAYLIGHT_CYCLE)) {
+            this.clock.tick();
+        }
     }
 }

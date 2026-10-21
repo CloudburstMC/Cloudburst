@@ -268,7 +268,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         for (int i = 1; i <= 3; ++i) {
             ItemStack potion = this.container.getItem(i);
 
-            var id = potion.getType();
+            ItemType id = potion.getType();
             if ((id == ItemTypes.POTION || id == ItemTypes.SPLASH_POTION || id == ItemTypes.LINGERING_POTION) && potion.getCount() > 0) {
                 switch (i) {
                     case 1:

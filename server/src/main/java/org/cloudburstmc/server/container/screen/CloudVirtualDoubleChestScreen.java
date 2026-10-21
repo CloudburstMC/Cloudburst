@@ -26,7 +26,6 @@ import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudVirtualStorageSection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * A {@link VirtualDoubleChestScreen} implementation that presents a 54-slot double-chest GUI to a
@@ -98,8 +97,8 @@ public class CloudVirtualDoubleChestScreen extends CloudContainerScreen implemen
                 level.getBlockState(fakePosB.getX(), fakePosB.getY(), fakePosB.getZ(), BlockLayer.SECONDARY)
         };
 
-        BlockState chestState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST);
-        BlockState airState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.AIR);
+        BlockState chestState = BlockTypes.CHEST.getDefaultState();
+        BlockState airState = BlockTypes.AIR.getDefaultState();
 
         CloudBlock fakeBlockA = new CloudBlock(level, fakePosA, new BlockState[]{chestState, airState});
         CloudBlock fakeBlockB = new CloudBlock(level, fakePosB, new BlockState[]{chestState, airState});

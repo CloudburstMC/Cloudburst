@@ -10,7 +10,7 @@ import org.cloudburstmc.api.util.Direction;
 public interface MayPlaceBlockHandler {
 
     /**
-     * @param block the block being placed
+     * @param block     the block being placed
      * @param direction the supporting face
      * @return whether placement is allowed
      */

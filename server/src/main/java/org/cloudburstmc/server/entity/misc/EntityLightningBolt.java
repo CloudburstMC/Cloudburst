@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -43,7 +44,7 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
 
         if (isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK) && (this.server.getDifficulty().getId() >= 2)) {
             Block block = this.getLevel().getBlock(this.getPosition().toInt());
-            var state = block.getState();
+            BlockState state = block.getState();
 
             if (state.getType() == AIR || state.getType() == TALL_GRASS) {
 
@@ -54,7 +55,7 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
 //                    getServer().getEventManager().fire(e);
 //
 //                    if (!e.isCancelled()) {
-//                        var fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
+//                        BlockState fire = CloudBlockRegistry.get().getBlock(BlockTypes.FIRE);
 //                        block.set(fire);
 //
 //                        level.scheduleUpdate(block.getPosition(), fire.getBehavior().tickRate() + ThreadLocalRandom.current().nextInt(10));
@@ -114,7 +115,7 @@ public class EntityLightningBolt extends CloudEntity implements LightningBolt {
 
                 if (this.isEffect && this.level.getGameRules().get(GameRules.DO_FIRE_TICK)) {
                     Block block = this.getLevel().getBlock(this.getPosition().toInt());
-                    var state = block.getState();
+                    BlockState state = block.getState();
 
 //                    TODO
 //                    if (state.getType() == AIR || state.getType() == TALL_GRASS) {

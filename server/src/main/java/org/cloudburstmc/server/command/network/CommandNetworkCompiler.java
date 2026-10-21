@@ -78,23 +78,21 @@ public class CommandNetworkCompiler {
         }
     }
 
-    private static CommandData toNetwork(CloudCommandRegistry registry, LiteralCommandNode<CommandSourceStack> root,
-                                         CommandSourceStack source, CommandNetworkData networkData) {
-        List<CommandOverloadData> overloads = compileOverloads(root, source);
+    private static CommandData toNetwork(CloudCommandRegistry registry, LiteralCommandNode<CommandSourceStack> root, CommandSourceStack source, CommandNetworkData networkData) {
+        List<CommandOverloadData> overloads = compileOverloads(root, source, networkData);
         if (overloads.isEmpty()) {
             return null;
         }
 
         return new CommandData(root.getLiteral(), commandDescription(registry.commandDescription(root.getLiteral())),
-                networkData.flags(), CommandPermission.ANY,
+                networkData.flags(), networkData.permission(),
                 commandAliases(root.getLiteral(), registry.aliasesFor(root.getLiteral())),
                 Collections.emptyList(), overloads.toArray(CommandOverloadData[]::new));
     }
 
-    static List<CommandOverloadData> compileOverloads(CommandNode<CommandSourceStack> root, CommandSourceStack source) {
+    static List<CommandOverloadData> compileOverloads(CommandNode<CommandSourceStack> root, CommandSourceStack source, CommandNetworkData networkData) {
         List<ExecutablePath> paths = new ArrayList<>();
-        collectExecutablePaths(root, source, new ArrayList<>(), new ArrayList<>(), paths,
-                Collections.newSetFromMap(new IdentityHashMap<>()));
+        collectExecutablePaths(root, source, new ArrayList<>(), new ArrayList<>(), paths, Collections.newSetFromMap(new IdentityHashMap<>()), networkData);
         return compilePaths(paths);
     }
 
@@ -121,7 +119,8 @@ public class CommandNetworkCompiler {
                                                List<CommandNode<CommandSourceStack>> nodes,
                                                List<CommandParamData> path,
                                                List<ExecutablePath> paths,
-                                               Set<CommandNode<CommandSourceStack>> visiting) {
+                                               Set<CommandNode<CommandSourceStack>> visiting,
+                                               CommandNetworkData networkData) {
         if (!node.canUse(source) || !visiting.add(node)) {
             return;
         }
@@ -131,7 +130,7 @@ public class CommandNetworkCompiler {
         }
 
         if (node.getRedirect() != null) {
-            collectExecutablePaths(node.getRedirect(), source, nodes, path, paths, visiting);
+            collectExecutablePaths(node.getRedirect(), source, nodes, path, paths, visiting, networkData);
         }
 
         for (CommandNode<CommandSourceStack> child : node.getChildren()) {
@@ -139,8 +138,8 @@ public class CommandNetworkCompiler {
                 continue;
             }
             nodes.add(child);
-            path.add(toNetworkParameter(child));
-            collectExecutablePaths(child, source, nodes, path, paths, visiting);
+            path.add(toNetworkParameter(child, networkData));
+            collectExecutablePaths(child, source, nodes, path, paths, visiting, networkData);
             path.removeLast();
             nodes.removeLast();
         }
@@ -220,13 +219,19 @@ public class CommandNetworkCompiler {
         return copy;
     }
 
-    private static CommandParamData toNetworkParameter(CommandNode<CommandSourceStack> node) {
+    private static CommandParamData toNetworkParameter(CommandNode<CommandSourceStack> node, CommandNetworkData networkData) {
         CommandParamData data = new CommandParamData();
         data.setName(node.getName());
 
         if (node instanceof LiteralCommandNode<CommandSourceStack> literal) {
-            data.setEnumData(new CommandEnumData(literal.getLiteral() + "Enum",
-                    Collections.singletonMap(literal.getLiteral(), Collections.emptySet()), false));
+            CommandNetworkData.LiteralParameter presentation = networkData.literalParameters().get(literal.getLiteral());
+            String enumName = literal.getLiteral() + "Enum";
+            if (presentation != null) {
+                data.setName(presentation.name());
+                enumName = presentation.enumName();
+            }
+
+            data.setEnumData(new CommandEnumData(enumName, Collections.singletonMap(literal.getLiteral(), Collections.emptySet()), false));
             return data;
         }
 

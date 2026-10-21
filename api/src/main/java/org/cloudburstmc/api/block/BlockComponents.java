@@ -13,10 +13,21 @@ import org.cloudburstmc.api.data.ComponentType;
 @SuppressWarnings("rawtypes")
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BlockComponents {
+
+    /**
+     * Applies post-break effects using the original block and tool. Not called for explosion destruction.
+     */
+    public static final ComponentType<BlockAfterBreakHandler> AFTER_BREAK = ComponentType.of("after_break", BlockAfterBreakHandler.class);
+
     /**
      * Handles a player's attack on a block. Returning {@code true} consumes the attack.
      */
     public static final ComponentType<AttackBlockHandler> ATTACK = ComponentType.of("attack", AttackBlockHandler.class);
+
+    /**
+     * Makes falling entities carrying this block shatter on landing instead of placing their block.
+     */
+    public static final ComponentType<Boolean> BREAKS_ON_LANDING = ComponentType.of("breaks_on_landing", Boolean.class);
 
     /**
      * Resolves the filled bucket for collection, or {@link org.cloudburstmc.api.item.ItemStack#EMPTY} when unavailable.
@@ -27,6 +38,11 @@ public class BlockComponents {
      * Number of ticks a pressed button remains powered before its scheduled release.
      */
     public static final ComponentType<Integer> BUTTON_PRESS_DURATION_TICKS = ComponentType.of("button_press_duration_ticks", Integer.class);
+
+    /**
+     * Checks whether a proposed block may initially be placed. Defaults to {@link #CAN_SURVIVE}.
+     */
+    public static final ComponentType<BooleanBlockHandler> CAN_BE_PLACED = ComponentType.of("can_be_placed", BooleanBlockHandler.class);
 
     /**
      * Checks whether placement may replace the existing block with the supplied state.
@@ -59,7 +75,7 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockHandler> CAN_SPAWN_ON = ComponentType.of("can_spawn_on", BooleanBlockHandler.class);
 
     /**
-     * Checks whether a block can remain at its position. Placement evaluates this on the proposed block state.
+     * Checks whether a block can remain at its position.
      */
     public static final ComponentType<SurviveBlockHandler> CAN_SURVIVE = ComponentType.of("can_survive", SurviveBlockHandler.class);
 
@@ -69,7 +85,12 @@ public class BlockComponents {
     public static final ComponentType<ComplexBlockHandler> CHECK_ALIVE = ComponentType.of("check_alive", ComplexBlockHandler.class);
 
     /**
-     * Proposes the changes from fertilization without applying them. An empty result means fertilization is unavailable.
+     * Checks whether a block carries direct redstone power to its neighbors.
+     */
+    public static final ComponentType<BooleanBlockStateHandler> CONDUCTS_REDSTONE = ComponentType.of("conducts_redstone", BooleanBlockStateHandler.class);
+
+    /**
+     * Proposes fertilization without applying it. Accepted attempts may produce no changes.
      */
     public static final ComponentType<FertilizeBlockHandler> FERTILIZE = ComponentType.of("fertilize", FertilizeBlockHandler.class);
 
@@ -99,6 +120,11 @@ public class BlockComponents {
     public static final ComponentType<DescriptionBlockHandler> GET_DESCRIPTION_ID = ComponentType.of("get_description_id", DescriptionBlockHandler.class);
 
     /**
+     * Resolves redstone power emitted into a neighboring conductor.
+     */
+    public static final ComponentType<RedstoneSignalHandler> GET_DIRECT_REDSTONE_SIGNAL = ComponentType.of("get_direct_redstone_signal", RedstoneSignalHandler.class);
+
+    /**
      * Resolves the shape used to test entity overlap before invoking {@link #ON_ENTITY_INSIDE}.
      * Defaults to a full block, independently of the shape that blocks movement.
      */
@@ -115,6 +141,11 @@ public class BlockComponents {
     public static final ComponentType<BlockLootHandler> GET_EXPLOSION_LOOT = ComponentType.of("get_explosion_loot", BlockLootHandler.class);
 
     /**
+     * Resolves the damage source used when a falling entity carrying this block lands on another entity.
+     */
+    public static final ComponentType<FallingBlockDamageSourceHandler> GET_FALLING_DAMAGE_SOURCE = ComponentType.of("get_falling_damage_source", FallingBlockDamageSourceHandler.class);
+
+    /**
      * TODO: Implement block gravity queries.
      */
     public static final ComponentType<FloatBlockHandler> GET_GRAVITY = ComponentType.of("get_gravity", FloatBlockHandler.class);
@@ -124,6 +155,12 @@ public class BlockComponents {
      * Returns {@code null} if the block cannot be lit in its current state.
      */
     public static final ComponentType<IgnitionStateHandler> GET_IGNITED_STATE = ComponentType.of("get_ignited_state", IgnitionStateHandler.class);
+
+    /**
+     * Resolves geometry that obstructs light across block faces, in addition to light dampening.
+     * Defaults to an empty shape.
+     */
+    public static final ComponentType<LightOcclusionShapeHandler> GET_LIGHT_OCCLUSION_SHAPE = ComponentType.of("get_light_occlusion_shape", LightOcclusionShapeHandler.class);
 
     /**
      * Resolves item drops for destruction using the supplied loot context. Does not spawn items.
@@ -144,6 +181,11 @@ public class BlockComponents {
      * Resolves the picked item, or {@link org.cloudburstmc.api.item.ItemStack#EMPTY} when no item is available.
      */
     public static final ComponentType<PickBlockHandler> GET_PICK_BLOCK = ComponentType.of("get_pick_block", PickBlockHandler.class);
+
+    /**
+     * Resolves redstone power emitted toward a neighboring block.
+     */
+    public static final ComponentType<RedstoneSignalHandler> GET_REDSTONE_SIGNAL = ComponentType.of("get_redstone_signal", RedstoneSignalHandler.class);
 
     /**
      * Checks whether the supplied item is allowed to break a block. This is separate from mining speed and loot eligibility.
@@ -177,6 +219,12 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockHandler> MAY_PLACE_ON = ComponentType.of("may_place_on", BooleanBlockHandler.class);
 
     /**
+     * Runs after this block type replaces a different primary block type.
+     * State changes and changes to contained liquids do not invoke this callback.
+     */
+    public static final ComponentType<ComplexBlockHandler> ON_ADDED = ComponentType.of("on_added", ComplexBlockHandler.class);
+
+    /**
      * Removes a destroyed block and applies any multi-block effects. Loot is resolved separately.
      */
     public static final ComponentType<BlockDestroyHandler> ON_DESTROY = ComponentType.of("on_destroy", BlockDestroyHandler.class);
@@ -188,6 +236,7 @@ public class BlockComponents {
 
     /**
      * Handles an entity overlapping the block's inside-collision shape.
+     * Called after an accepted {@link org.cloudburstmc.api.event.entity.EntityInsideBlockEvent}.
      */
     public static final ComponentType<EntityInsideBlockHandler> ON_ENTITY_INSIDE = ComponentType.of("on_entity_inside", EntityInsideBlockHandler.class);
 
@@ -210,6 +259,17 @@ public class BlockComponents {
      * TODO: Implement block lightning callbacks.
      */
     public static final ComponentType<ComplexBlockHandler> ON_LIGHTNING_HIT = ComponentType.of("on_lightning_hit", ComplexBlockHandler.class);
+
+    /**
+     * Handles a change to the liquid at a block's position after it is applied.
+     */
+    public static final ComponentType<LiquidChangeBlockHandler> ON_LIQUID_CHANGED = ComponentType.of("on_liquid_changed", LiquidChangeBlockHandler.class);
+
+    /**
+     * Handles a scheduled liquid tick. Receives both block layers at the position.
+     * Registered on the liquid block type, independently of the primary block's scheduled ticks.
+     */
+    public static final ComponentType<ComplexBlockHandler> ON_LIQUID_TICK = ComponentType.of("on_liquid_tick", ComplexBlockHandler.class);
 
     /**
      * Handles a change to a neighboring block.
@@ -242,6 +302,12 @@ public class BlockComponents {
     public static final ComponentType<ComplexBlockHandler> ON_REMOVE = ComponentType.of("on_remove", ComplexBlockHandler.class);
 
     /**
+     * Handles a change to either block layer. Receives the resulting primary block
+     * with both layers available, including changes made without neighbor updates.
+     */
+    public static final ComponentType<ComplexBlockHandler> ON_STATE_CHANGED = ComponentType.of("on_state_changed", ComplexBlockHandler.class);
+
+    /**
      * TODO: Implement entity standing callbacks.
      */
     public static final ComponentType<EntityBlockHandler> ON_STAND_ON = ComponentType.of("on_stand_on", EntityBlockHandler.class);
@@ -262,7 +328,8 @@ public class BlockComponents {
     public static final ComponentType<TickBlockHandler> ON_TICK = ComponentType.of("on_tick", TickBlockHandler.class);
 
     /**
-     * Resolves the proposed placement state before survival, collision and placement checks. Does not change the level.
+     * Resolves the proposed state before survival, collision and placement checks, without changing the level.
+     * Returning {@code null} rejects placement.
      */
     public static final ComponentType<PlacementStateHandler> RESOLVE_PLACEMENT_STATE = ComponentType.of("resolve_placement_state", PlacementStateHandler.class);
 

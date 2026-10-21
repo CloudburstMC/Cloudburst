@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Called before changes caused by fertilizing a block are applied.
+ * Fired before changes caused by fertilizing a block are applied.
+ * Cancellation prevents the proposed changes, item drops and fertilizer consumption.
  */
 public class BlockFertilizeEvent extends BlockEvent implements Cancellable {
 
@@ -42,6 +43,8 @@ public class BlockFertilizeEvent extends BlockEvent implements Cancellable {
 
     /**
      * Gets the mutable list of proposed block changes.
+     * Changes are applied in list order after listeners return. Removing an entry prevents
+     * that change but does not prevent fertilizer consumption.
      *
      * @return the proposed block changes
      */

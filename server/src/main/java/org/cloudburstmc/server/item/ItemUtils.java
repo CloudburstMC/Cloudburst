@@ -24,7 +24,6 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
 import org.cloudburstmc.server.network.inventory.NetworkItemStack;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.utils.Utils;
 
@@ -366,7 +365,7 @@ public class ItemUtils {
         BlockState blockState = item.getBlockState().orElse(null);
         if (blockState != null) {
             try {
-                blockDefinition = CloudBlockRegistry.REGISTRY.getDefinition(blockState);
+                blockDefinition = BlockPalette.INSTANCE.getDefinition(blockState);
             } catch (IllegalArgumentException e) {
                 // Some creative entries reference block states absent from the palette.
             }

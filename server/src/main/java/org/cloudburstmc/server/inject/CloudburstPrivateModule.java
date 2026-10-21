@@ -29,9 +29,9 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(AsyncScheduler.class).to(CloudAsyncScheduler.class);
         this.bindAndExpose(BiomeRegistry.class).toInstance(CloudBiomeRegistry.get());
         this.bindAndExpose(BlockEntityRegistry.class).toInstance(CloudBlockEntityRegistry.get());
-        this.bindAndExpose(BlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
+        this.bindAndExpose(BlockRegistry.class).toInstance(this.server.getBlockRegistry());
         this.bindAndExpose(CloudBiomeRegistry.class).toInstance(CloudBiomeRegistry.get());
-        this.bindAndExpose(CloudBlockRegistry.class).toInstance(CloudBlockRegistry.REGISTRY);
+        this.bindAndExpose(CloudBlockRegistry.class).toInstance(this.server.getBlockRegistry());
         this.bindAndExpose(CloudCommandRegistry.class).toInstance(this.server.getCommandRegistry());
         this.bindAndExpose(CloudConsoleCommandSender.class);
         this.bindAndExpose(CloudDamageTypeRegistry.class).toInstance(CloudDamageTypeRegistry.get());

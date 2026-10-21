@@ -2,24 +2,20 @@ package org.cloudburstmc.server.level.provider.leveldb.serializer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.Int2ShortMap;
-import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import net.daporkchop.ldbjni.direct.DirectDB;
 import net.daporkchop.ldbjni.direct.DirectWriteBatch;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.server.level.chunk.ChunkException;
 import org.cloudburstmc.server.level.chunk.BiomeStorage;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
+import org.cloudburstmc.server.level.chunk.ChunkException;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.leveldb.LevelDBKey;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-class ChunkSerializerV3 extends ChunkSerializerV1 {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class ChunkSerializerV3 implements ChunkSerializer {
 
     static final ChunkSerializer INSTANCE = new ChunkSerializerV3();
     private static final BiomeStorage DEFAULT_BIOME_STORAGE = new BiomeStorage(CloudChunkSection.DEFAULT_BIOME_ID);
@@ -71,22 +67,9 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
         int chunkX = chunkBuilder.getX();
         int chunkZ = chunkBuilder.getZ();
 
-        Int2ShortMap extraDataMap = null;
-
         byte[] extraData = db.get(LevelDBKey.BLOCK_EXTRA_DATA.getKey(chunkX, chunkZ));
         if (extraData != null) {
-            extraDataMap = new Int2ShortOpenHashMap();
-            ByteBuf extraDataBuf = Unpooled.wrappedBuffer(extraData);
-            try {
-                int count = extraDataBuf.readIntLE();
-                for (int i = 0; i < count; i++) {
-                    int key = extraDataBuf.readIntLE();
-                    short value = extraDataBuf.readShortLE();
-                    extraDataMap.put(key, value);
-                }
-            } finally {
-                extraDataBuf.release();
-            }
+            throw new UnsupportedOperationException("Numeric block extra data is no longer supported in chunk " + chunkX + "," + chunkZ);
         }
 
         int sectionCount = chunkBuilder.getLevel().getSectionsCount();
@@ -98,7 +81,6 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
         int subChunkKeyOffset = (chunkVersion >= 24 && chunkVersion <= 26) ? 4 : 0;
 
         int maxSectionY = minSectionY + sectionCount - 1;
-        int minHeight = chunkBuilder.getLevel().getMinHeight();
 
         ByteBuf subchunkKeyBuf = ByteBufAllocator.DEFAULT.ioBuffer(10, 10);
         try {
@@ -124,25 +106,6 @@ class ChunkSerializerV3 extends ChunkSerializerV1 {
                     }
 
                     BlockStorage[] blockStorage = ChunkSectionSerializers.deserialize(buf, chunkBuilder, subChunkVersion);
-                    if (blockStorage[1] == null) {
-                        blockStorage[1] = new BlockStorage();
-                        if (extraDataMap != null) {
-                            int sectionBaseY = absoluteSectionY << 4;
-                            for (Int2ShortMap.Entry entry : extraDataMap.int2ShortEntrySet()) {
-                                int packedKey = entry.getIntKey();
-                                int bx = packedKey & 0xf;
-                                int by = ((packedKey >>> 8) & 0x1ff) + minHeight;
-                                int bz = (packedKey >>> 4) & 0xf;
-                                if (by < sectionBaseY || by >= sectionBaseY + 16) continue;
-                                short value = entry.getShortValue();
-                                int blockId = value & 0xff;
-                                int blockData = (value >> 8) & 0xf;
-                                blockStorage[1].setBlock(CloudChunkSection.blockIndex(bx, by & 0xf, bz),
-                                        CloudBlockRegistry.REGISTRY.getBlock(blockId, blockData));
-                            }
-                        }
-                    }
-
                     sections[arrayIndex] = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry(), blockStorage);
                 } finally {
                     buf.release();

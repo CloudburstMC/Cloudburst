@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.misc;
 
+import lombok.Setter;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
@@ -20,10 +21,11 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.Objects;
 
@@ -38,7 +40,9 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private static final int SETTLED_REMOVAL_DELAY = 3;
 
     private BlockState blockState = BlockStates.SAND;
+    @Setter
     private SoundType landingSound;
+    @Setter
     private SoundType breakSound;
     private int time;
     private boolean dropItem = true;
@@ -74,6 +78,11 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     @Override
     public float getHeight() {
         return 0.98f;
+    }
+
+    @Override
+    public boolean blocksBuilding() {
+        return true;
     }
 
     @Override
@@ -119,7 +128,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        this.setBlockState(CloudBlockRegistry.REGISTRY.getBlock(tag.getCompound("BlockState")));
+        this.setBlockState(BlockStateCodec.read(tag.getCompound("BlockState")));
         this.time = tag.getInt("Time");
         this.dropItem = !tag.containsKey("DropItem") || tag.getBoolean("DropItem");
         this.cancelDrop = tag.getBoolean("CancelDrop");
@@ -140,7 +149,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.putCompound("BlockState", CloudBlockRegistry.REGISTRY.getDefinition(this.blockState).getState());
+        tag.putCompound("BlockState", BlockPalette.INSTANCE.getDefinition(this.blockState).getState());
         tag.putInt("Time", this.time);
         tag.putBoolean("DropItem", this.dropItem);
         tag.putBoolean("CancelDrop", this.cancelDrop);
@@ -259,14 +268,6 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.autoExpire = autoExpire;
     }
 
-    public void setLandingSound(SoundType landingSound) {
-        this.landingSound = landingSound;
-    }
-
-    public void setBreakSound(SoundType breakSound) {
-        this.breakSound = breakSound;
-    }
-
     public boolean startFalling(Vector3i position, BlockState replacement) {
         if (!this.level.removeBlockForFallingEntity(position, replacement, this)) {
             return false;
@@ -328,10 +329,16 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         Block target = this.level.getBlock(position);
         this.damageEntities();
         float distance = Math.max(this.fallDistance, this.highestPosition - this.getY());
-        CloudBlockRegistry.REGISTRY.requireComponent(this.blockState.getType(), BlockComponents.ON_FALLING_LAND)
+        this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.ON_FALLING_LAND)
                 .execute(this, target, distance);
         if (this.cancelDrop) {
             this.close();
+            return;
+        }
+
+        if (this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.BREAKS_ON_LANDING)) {
+            this.close();
+            this.breakBlock();
             return;
         }
 
@@ -378,9 +385,9 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
+        DamageSource source = this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.GET_FALLING_DAMAGE_SOURCE).execute(this);
         for (Entity entity : this.level.getCollidingEntities(this.getBoundingBox())) {
             if (entity != this) {
-                DamageSource source = DamageSource.of(DamageTypes.FALLING_BLOCK, this);
                 entity.damage(damage, source);
             }
         }
@@ -435,6 +442,6 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     private void updateBlockMetadata() {
-        this.data.set(BLOCK, CloudBlockRegistry.REGISTRY.getDefinition(this.blockState));
+        this.data.set(BLOCK, BlockPalette.INSTANCE.getDefinition(this.blockState));
     }
 }

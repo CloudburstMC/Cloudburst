@@ -18,7 +18,7 @@ import org.cloudburstmc.server.inject.qualifier.LevelDirectory;
 import org.cloudburstmc.server.level.provider.CloudLevelProviderContext;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.LevelProviderFactory;
-import org.cloudburstmc.server.level.provider.anvil.AnvilLevelImportSource;
+import org.cloudburstmc.server.level.provider.LevelImportFormat;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.StorageRegistry;
 import org.cloudburstmc.server.utils.Utils;
@@ -117,8 +117,12 @@ public class LevelManager implements Closeable {
     private CloudLevel loadNewLevel(CloudLevelLoadRequest request) {
         long startTime = System.nanoTime();
         try {
-            if (AnvilLevelImportSource.isImportSource(this.levelsPath.resolve(request.id()))) {
-                throw new IllegalStateException("Level '" + request.id() + "' contains Anvil import data. Import it into a separate destination before loading.");
+            Path source = this.levelsPath.resolve(request.id());
+            LevelImportFormat format = LevelImportFormat.detect(source);
+            if (format != null) {
+                log.info("Converting level '{}' from {}", request.id(), format);
+                int chunks = CloudLevelImporter.importLevel(this.server, this.levelsPath, request, format, source, this.ioExecutor);
+                log.info("Converted {} chunks for level '{}'", chunks, request.id());
             }
         } catch (IOException failure) {
             throw new CompletionException("Unable to inspect level storage for " + request.id(), failure);

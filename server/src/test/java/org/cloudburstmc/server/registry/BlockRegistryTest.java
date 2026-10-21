@@ -3,7 +3,11 @@ package org.cloudburstmc.server.registry;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.data.ComponentType;
+import org.cloudburstmc.api.item.ItemDataComponents;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
@@ -17,6 +21,7 @@ import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
+import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +32,39 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BlockRegistryTest {
-    private static final CloudBlockRegistry REGISTRY = createRegistry();
+
+    private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
+
+    @Test
+    void itemLookupPreservesTheStacksBlockState() {
+        BlockState state = BlockTypes.OAK_STAIRS.getStates().stream()
+                .filter(candidate -> candidate != BlockTypes.OAK_STAIRS.getDefaultState())
+                .findFirst().orElseThrow();
+        ItemStack item = ItemStack.builder()
+                .itemType(ItemTypes.OAK_STAIRS)
+                .setData(ItemDataComponents.BLOCK_STATE, state)
+                .build();
+
+        assertSame(state, REGISTRY.getBlock(item));
+        assertNull(REGISTRY.getBlock(ItemStack.from(ItemTypes.STICK)));
+        assertNull(REGISTRY.getBlock(ItemStack.EMPTY));
+    }
+
+    @Test
+    void registeredStatesAndTypesAreImmutableSnapshots() {
+        List<BlockState> states = REGISTRY.getBlockStates();
+
+        assertSame(states, REGISTRY.getBlockStates());
+        assertEquals(states.size(), new HashSet<>(states).size());
+        assertThrows(UnsupportedOperationException.class, states::clear);
+        assertThrows(UnsupportedOperationException.class, REGISTRY.values()::clear);
+    }
+
+    @Test
+    void closingAgainDoesNotReopenOrReconfigureTheRegistry() {
+        assertDoesNotThrow(REGISTRY::close);
+        assertThrows(RegistryException.class, () -> REGISTRY.configure(BlockTypes.STONE));
+    }
 
     @Test
     void serializedPaletteMatchesVanillaPalette() throws IOException {
@@ -430,12 +467,6 @@ class BlockRegistryTest {
     private static <T> T component(BlockType blockType, ComponentType<T> componentType) {
         ComponentMap components = Objects.requireNonNull(REGISTRY.getComponents(blockType), () -> blockType.getId() + " has no component map");
         return Objects.requireNonNull(components.get(componentType), () -> blockType.getId() + " has no " + componentType.getId() + " component");
-    }
-
-    private static CloudBlockRegistry createRegistry() {
-        CloudBlockRegistry registry = new CloudBlockRegistry(CloudItemRegistry.get());
-        registry.close();
-        return registry;
     }
 
     private static NbtMap stripRuntimeOnlyTags(NbtMap state) {

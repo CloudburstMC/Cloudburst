@@ -37,7 +37,11 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
             for (NbtMap patternTag : patternTags) {
                 String pattern = patternTag.getString("Pattern");
                 DyeColor color = DyeColor.getByDyeData(patternTag.getInt("Color"));
-                this.patterns.add(new BannerPattern(BannerPattern.Type.getByName(pattern), color));
+                BannerPattern.Type patternType = BannerPattern.Type.getByName(pattern);
+                if (patternType == null) {
+                    throw new IllegalArgumentException("Unknown banner pattern: " + pattern);
+                }
+                this.patterns.add(new BannerPattern(patternType, color));
             }
         });
     }

@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.block.component;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.player.Player;
@@ -15,12 +16,13 @@ public interface PlacementStateHandler {
     /**
      * Resolves the state that will be placed at the selected block.
      *
-     * @param state state supplied by the held item
-     * @param block selected block
-     * @param player player placing the block
-     * @param face clicked face
+     * @param state         state supplied by the held item
+     * @param block         selected block
+     * @param player        player placing the block
+     * @param face          clicked face
      * @param clickPosition click position within the block
-     * @return state to validate and place
+     * @return state to validate and place, or {@code null} when placement is not supported
      */
+    @Nullable
     BlockState execute(BlockState state, Block block, Player player, Direction face, Vector3f clickPosition);
 }

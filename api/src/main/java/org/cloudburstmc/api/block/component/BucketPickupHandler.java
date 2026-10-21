@@ -13,7 +13,7 @@ public interface BucketPickupHandler {
     /**
      * Returns the filled bucket for a pickup attempt.
      *
-     * @param block the block being collected
+     * @param block  the block being collected
      * @param player the player collecting the block
      * @return the filled bucket, or {@link ItemStack#EMPTY} when the block cannot be collected
      */

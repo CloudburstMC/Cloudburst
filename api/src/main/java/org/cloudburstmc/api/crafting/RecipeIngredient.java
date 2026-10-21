@@ -11,8 +11,8 @@ import java.util.function.Predicate;
  * <p>Use pattern matching to branch on the concrete type:
  * <pre>{@code
  * switch (ingredient) {
- *     case RecipeIngredient.Exact(var item) -> // one specific item
- *     case RecipeIngredient.Tag(var tag)    -> // any item carrying the given tag
+ *     case RecipeIngredient.Exact(Identifier item) -> // one specific item
+ *     case RecipeIngredient.Tag(Identifier tag)    -> // any item carrying the given tag
  * }
  * }</pre>
  *

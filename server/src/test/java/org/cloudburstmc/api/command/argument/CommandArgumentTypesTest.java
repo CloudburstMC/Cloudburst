@@ -22,6 +22,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class CommandArgumentTypesTest {
 
     @Test
+    void durationArgumentsAcceptUnitsAndValidateTheRoundedTickCount() throws CommandSyntaxException {
+        CommandArgumentType<Integer> argument = CommandArgumentTypes.duration(0);
+
+        assertEquals(24000, argument.parse(new StringReader("1d")));
+        assertEquals(30, argument.parse(new StringReader("1.5s")));
+        assertEquals(2, argument.parse(new StringReader("1.5t")));
+        assertEquals(20, argument.parse(new StringReader("20")));
+        assertThrows(CommandSyntaxException.class, () -> argument.parse(new StringReader("-1t")));
+        assertThrows(CommandSyntaxException.class, () -> argument.parse(new StringReader("1m")));
+        assertThrows(CommandSyntaxException.class, () -> argument.parse(new StringReader("1s!")));
+        assertThrows(CommandSyntaxException.class, () -> argument.parse(new StringReader("999999999d")));
+        assertEquals(-20, CommandArgumentTypes.duration(Integer.MIN_VALUE).parse(new StringReader("-1s")));
+    }
+
+    @Test
     void boundedIntegerUsesBrigadierRangeValidation() throws CommandSyntaxException {
         CommandArgumentType<Integer> argument = CommandArgumentTypes.integer(1, 3);
 

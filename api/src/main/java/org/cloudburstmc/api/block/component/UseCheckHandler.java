@@ -10,7 +10,7 @@ import org.cloudburstmc.api.player.Player;
 public interface UseCheckHandler {
 
     /**
-     * @param block the block being used
+     * @param block  the block being used
      * @param player the interacting player
      * @return whether the block may handle the interaction
      */

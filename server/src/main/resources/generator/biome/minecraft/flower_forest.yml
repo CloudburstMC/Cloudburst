@@ -24,7 +24,19 @@ populators:
     on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "dandelion,poppy,blue_orchid,allium,azure_bluet,red_tulip,orange_tulip,white_tulip,pink_tulip,oxeye_daisy,cornflower,lily_of_the_valley"
+    block:
+      - "dandelion"
+      - "poppy"
+      - "blue_orchid"
+      - "allium"
+      - "azure_bluet"
+      - "red_tulip"
+      - "orange_tulip"
+      - "white_tulip"
+      - "pink_tulip"
+      - "oxeye_daisy"
+      - "cornflower"
+      - "lily_of_the_valley"
 
     # Double plants
   - id: "cloudburst:double_plant"

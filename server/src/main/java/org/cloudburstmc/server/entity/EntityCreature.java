@@ -20,6 +20,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.view.CloudArmorView;
 import org.cloudburstmc.server.container.view.CloudOffhandView;
+import org.cloudburstmc.server.enchantment.EquipmentEnchantmentEffects;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
@@ -33,6 +34,8 @@ import java.util.function.DoubleUnaryOperator;
  * Abstract base class for all living creatures. Provides armor (4-slot) and offhand (1-slot) containers.
  */
 public abstract class EntityCreature extends EntityLiving implements Creature {
+
+    private final EquipmentEnchantmentEffects enchantmentEffects = new EquipmentEnchantmentEffects();
 
     protected final CloudArmorView armor = new CloudArmorView(this, new CloudContainer(4));
     protected final CloudOffhandView offhand = new CloudOffhandView(this, new CloudContainer(1));
@@ -79,8 +82,38 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     }
 
     @Override
+    public boolean entityBaseTick(int tickDiff) {
+        boolean updated = super.entityBaseTick(tickDiff);
+        if (this.isAlive() && tickDiff > 0) {
+            this.updateEnchantmentLocationEffects();
+        }
+        return updated;
+    }
+
+    public void updateEnchantmentLocationEffects() {
+        if (this.isAlive()) {
+            this.enchantmentEffects.update(this, this.getArmor());
+        }
+    }
+
+    @Override
     protected float getHelmetDamageMultiplier(DamageSource source) {
         return source.getDamageType().is(DamageTypeTags.DAMAGES_HELMET) && !this.getArmor().getHelmet().isEmpty() ? 0.75f : 1;
+    }
+
+    @Override
+    protected boolean isDamageImmune(DamageSource source) {
+        if (super.isDamageImmune(source)) {
+            return true;
+        }
+
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.isArmor() && CloudEnchantmentRegistry.get().grantsDamageImmunity(this.getArmor().getItem(slot.getArmorSlot()), slot, source)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

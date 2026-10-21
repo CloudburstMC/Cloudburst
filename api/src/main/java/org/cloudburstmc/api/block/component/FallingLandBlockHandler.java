@@ -12,8 +12,8 @@ public interface FallingLandBlockHandler {
     /**
      * Applies block-specific behavior when a falling block reaches the ground.
      *
-     * @param entity the falling block
-     * @param target the block position where it attempts to land
+     * @param entity       the falling block
+     * @param target       the block position where it attempts to land
      * @param fallDistance the distance fallen
      */
     void execute(FallingBlock entity, Block target, float fallDistance);

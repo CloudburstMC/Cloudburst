@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -20,6 +21,7 @@ public class DefaultPlacementStateHandler implements PlacementStateHandler {
     public static final DefaultPlacementStateHandler INSTANCE = new DefaultPlacementStateHandler();
 
     @Override
+    @NonNull
     public BlockState execute(BlockState state, Block block, Player player, Direction face, Vector3f clickPosition) {
         if (player == null) {
             return state;

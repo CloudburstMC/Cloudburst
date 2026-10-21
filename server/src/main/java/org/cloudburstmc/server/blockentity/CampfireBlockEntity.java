@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
@@ -66,7 +67,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
             return false;
         }
 
-        var state = getBlockState();
+        BlockState state = getBlockState();
 
 /*
         if (state.getTrait(BlockTraits.IS_EXTINGUISHED) == null) {

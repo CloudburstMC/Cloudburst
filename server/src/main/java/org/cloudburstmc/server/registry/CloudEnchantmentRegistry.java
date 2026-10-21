@@ -12,6 +12,7 @@ import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.item.ItemDataComponents;
+import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.registry.EnchantmentRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
@@ -77,6 +78,30 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         }
 
         return protection;
+    }
+
+    public boolean grantsDamageImmunity(ItemStack item, EquipmentSlot slot, DamageSource source) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(slot, "slot");
+        Preconditions.checkNotNull(source, "source");
+
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
+            if (this.getBehavior(enchantment.type()).grantsDamageImmunity(enchantment, slot, source)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void applyLocationEffects(ItemStack item, Entity wearer, EquipmentSlot slot) {
+        Preconditions.checkNotNull(item, "item");
+        Preconditions.checkNotNull(wearer, "wearer");
+        Preconditions.checkNotNull(slot, "slot");
+
+        for (Enchantment enchantment : item.getOrDefault(ItemDataComponents.ENCHANTMENTS, Map.of()).values()) {
+            this.getBehavior(enchantment.type()).onLocationChanged(enchantment, wearer, slot);
+        }
     }
 
     public float getExplosionKnockbackResistance(ItemStack item) {
@@ -244,7 +269,7 @@ public class CloudEnchantmentRegistry implements EnchantmentRegistry {
         this.registerVanilla((short) 22, EnchantmentTypes.INFINITY, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 23, EnchantmentTypes.LUCK_OF_THE_SEA, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 24, EnchantmentTypes.LURE, NoopEnchantmentBehavior.INSTANCE);
-        this.registerVanilla((short) 25, EnchantmentTypes.FROST_WALKER, NoopEnchantmentBehavior.INSTANCE);
+        this.registerVanilla((short) 25, EnchantmentTypes.FROST_WALKER, new EnchantmentFrostWalker());
         this.registerVanilla((short) 26, EnchantmentTypes.MENDING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 27, EnchantmentTypes.BINDING, NoopEnchantmentBehavior.INSTANCE);
         this.registerVanilla((short) 28, EnchantmentTypes.VANISHING, NoopEnchantmentBehavior.INSTANCE);

@@ -29,9 +29,34 @@ public class BlockTags {
     public static final BlockTagKey CAN_GLIDE_THROUGH = tag("can_glide_through");
 
     /**
+     * Blocks that cannot support kelp even when their upper face is sturdy.
+     */
+    public static final BlockTagKey CANNOT_SUPPORT_KELP = tag("cannot_support_kelp");
+
+    /**
+     * Blocks that cannot support seagrass even when their upper face is sturdy.
+     */
+    public static final BlockTagKey CANNOT_SUPPORT_SEAGRASS = tag("cannot_support_seagrass");
+
+    /**
      * Blocks that living entities can climb.
      */
     public static final BlockTagKey CLIMBABLE = tag("climbable");
+
+    /**
+     * Blocks that count toward a conduit's frame.
+     */
+    public static final BlockTagKey CONDUIT_EFFECT_BLOCK = tag("conduit_effect_block");
+
+    /**
+     * Living coral blocks on which sea pickles can multiply when fertilized.
+     */
+    public static final BlockTagKey CORAL_BLOCKS = tag("coral_blocks");
+
+    /**
+     * Living coral plants and floor fans.
+     */
+    public static final BlockTagKey CORALS = tag("corals");
 
     /**
      * Blocks that are growable crop plants.
@@ -47,6 +72,16 @@ public class BlockTags {
      * Blocks that are double slabs.
      */
     public static final BlockTagKey DOUBLE_SLAB = tag("double_slab");
+
+    /**
+     * Blocks that create downward bubble columns in source water above them.
+     */
+    public static final BlockTagKey ENABLES_BUBBLE_COLUMN_DRAG_DOWN = tag("enables_bubble_column_drag_down");
+
+    /**
+     * Blocks that create upward bubble columns in source water above them.
+     */
+    public static final BlockTagKey ENABLES_BUBBLE_COLUMN_PUSH_UP = tag("enables_bubble_column_push_up");
 
     /**
      * Blocks that reset accumulated fall distance while an entity occupies them.
@@ -129,6 +164,16 @@ public class BlockTags {
     public static final BlockTagKey LOG = tag("log");
 
     /**
+     * Blocks that mangrove trunks may replace while growing.
+     */
+    public static final BlockTagKey MANGROVE_LOGS_CAN_GROW_THROUGH = tag("mangrove_logs_can_grow_through");
+
+    /**
+     * Blocks that mangrove roots may replace while growing.
+     */
+    public static final BlockTagKey MANGROVE_ROOTS_CAN_GROW_THROUGH = tag("mangrove_roots_can_grow_through");
+
+    /**
      * Blocks mined most effectively with axes.
      */
     public static final BlockTagKey MINEABLE_WITH_AXE = tag("mineable/axe");
@@ -182,6 +227,16 @@ public class BlockTags {
      * Blocks that may be replaced by block placement.
      */
     public static final BlockTagKey REPLACEABLE = tag("replaceable");
+
+    /**
+     * Blocks that may be replaced by growing trees.
+     */
+    public static final BlockTagKey REPLACEABLE_BY_TREES = tag("replaceable_by_trees");
+
+    /**
+     * Sand, red sand, and suspicious sand.
+     */
+    public static final BlockTagKey SAND = tag("sand");
 
     /**
      * Blocks that are saplings.
@@ -249,6 +304,11 @@ public class BlockTags {
     public static final BlockTagKey STEM = tag("stem");
 
     /**
+     * Ground blocks that support a big dripleaf or its stem.
+     */
+    public static final BlockTagKey SUPPORTS_BIG_DRIPLEAF = tag("supports_big_dripleaf");
+
+    /**
      * Blocks on which chorus flowers may survive.
      */
     public static final BlockTagKey SUPPORTS_CHORUS_FLOWER = tag("supports_chorus_flower");
@@ -262,6 +322,36 @@ public class BlockTags {
      * Blocks on which dry vegetation may survive.
      */
     public static final BlockTagKey SUPPORTS_DRY_VEGETATION = tag("supports_dry_vegetation");
+
+    /**
+     * Blocks from which hanging mangrove propagules may grow.
+     */
+    public static final BlockTagKey SUPPORTS_HANGING_MANGROVE_PROPAGULE = tag("supports_hanging_mangrove_propagule");
+
+    /**
+     * Solid blocks that support lily pads without water underneath.
+     */
+    public static final BlockTagKey SUPPORTS_LILY_PAD = tag("supports_lily_pad");
+
+    /**
+     * Ground blocks on which mangrove propagules may survive.
+     */
+    public static final BlockTagKey SUPPORTS_MANGROVE_PROPAGULE = tag("supports_mangrove_propagule");
+
+    /**
+     * Ground blocks on which small dripleaf may be planted without water.
+     */
+    public static final BlockTagKey SUPPORTS_SMALL_DRIPLEAF = tag("supports_small_dripleaf");
+
+    /**
+     * Ground blocks that support sugar cane when water or another valid adjacent support is present.
+     */
+    public static final BlockTagKey SUPPORTS_SUGAR_CANE = tag("supports_sugar_cane");
+
+    /**
+     * Blocks that can replace adjacent water in sugar cane's survival check.
+     */
+    public static final BlockTagKey SUPPORTS_SUGAR_CANE_ADJACENTLY = tag("supports_sugar_cane_adjacently");
 
     /**
      * Blocks on which ordinary vegetation may survive.
@@ -284,6 +374,11 @@ public class BlockTags {
     public static final BlockTagKey TRAPDOOR = tag("trapdoor");
 
     /**
+     * Plants that bone meal can grow in water.
+     */
+    public static final BlockTagKey UNDERWATER_BONEMEALS = tag("underwater_bonemeals");
+
+    /**
      * Blocks with unstable bottom-center support.
      */
     public static final BlockTagKey UNSTABLE_BOTTOM_CENTER = tag("unstable_bottom_center");
@@ -297,6 +392,16 @@ public class BlockTags {
      * Blocks that are walls.
      */
     public static final BlockTagKey WALLS = tag("walls");
+
+    /**
+     * Living coral fans attached to a wall.
+     */
+    public static final BlockTagKey WALL_CORALS = tag("wall_corals");
+
+    /**
+     * Plants whose block space always contains source water, rather than optionally containing liquid.
+     */
+    public static final BlockTagKey WATER_SOURCE_PLANTS = tag("water_source_plants");
 
     /**
      * Fences that connect to other wooden fences.

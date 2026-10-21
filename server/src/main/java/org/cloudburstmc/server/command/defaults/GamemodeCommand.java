@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.command.defaults;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.kyori.adventure.text.Component;
@@ -29,16 +30,18 @@ public class GamemodeCommand extends AdvertisedCommand {
 
     @Override
     public void configure(LiteralArgumentBuilder<CommandSourceStack> builder, String label, CommandArguments arguments) {
-        var namedMode = Commands.argument("gameMode", CommandArgumentTypes.fixedEnumNamed("gameMode", "GameMode",
-                "default", "creative", "spectator", "survival", "adventure", "d", "c", "s", "a"))
-                .executes(this::executeCommand);
+        RequiredArgumentBuilder<CommandSourceStack, String> namedMode =
+                Commands.argument("gameMode", CommandArgumentTypes.fixedEnumNamed("gameMode", "GameMode",
+                                "default", "creative", "spectator", "survival", "adventure", "d", "c", "s", "a"))
+                        .executes(this::executeCommand);
         namedMode.then(Commands.argument("player", arguments.players())
                 .requires(Commands.requiresPermission("cloudburst.command.gamemode.other"))
                 .executes(this::executeCommand));
         builder.then(namedMode);
 
-        var numericMode = Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode", 0, 3))
-                .executes(this::executeCommand);
+        RequiredArgumentBuilder<CommandSourceStack, Integer> numericMode =
+                Commands.argument("gameModeValue", CommandArgumentTypes.integer("gameMode", 0, 3))
+                        .executes(this::executeCommand);
         numericMode.then(Commands.argument("player", arguments.players())
                 .requires(Commands.requiresPermission("cloudburst.command.gamemode.other"))
                 .executes(this::executeCommand));

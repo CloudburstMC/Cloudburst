@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -21,6 +22,10 @@ public class VanillaBlockTransformations {
     public static final Map<BlockType, BlockTransformation> AXE = createAxe();
     public static final Map<BlockType, BlockTransformation> HOE = createHoe();
     public static final Map<BlockType, BlockTransformation> SHOVEL = createShovel();
+    public static final Map<BlockType, BlockTransformation> SHEARS = Map.of(KELP, BlockTransformation.builder()
+            .transform(state -> state.withTrait(BlockTraits.KELP_AGE, BlockTraits.KELP_AGE.getRange().getEnd()))
+            .soundOverride(SoundTypes.MOB_SHEEP_SHEAR)
+            .build());
     public static final Map<BlockType, BlockTransformation> HONEYCOMB = createHoneycomb();
 
     private static Map<BlockType, BlockTransformation> createAxe() {

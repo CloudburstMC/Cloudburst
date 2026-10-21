@@ -10,8 +10,8 @@ import org.cloudburstmc.api.entity.Entity;
 public interface FallOnBlockHandler {
 
     /**
-     * @param block the block landed on
-     * @param entity the landing entity
+     * @param block        the block landed on
+     * @param entity       the landing entity
      * @param fallDistance the distance fallen in blocks
      */
     void execute(Block block, Entity entity, float fallDistance);

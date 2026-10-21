@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.provider;
 
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilderFactory;
 
 import java.io.Closeable;
@@ -23,10 +22,11 @@ public interface LevelImportSource extends Closeable {
 
     /**
      * Visits every persisted chunk and fails if any chunk cannot be read or consumed.
+     * The source closes each imported chunk after the consumer returns.
      *
      * @param factory  creates builders bound to the importing level
-     * @param consumer receives each decoded chunk
+     * @param consumer finishes reading or saving each decoded chunk before returning
      * @return future completed after every chunk has been consumed
      */
-    CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<CloudChunk> consumer);
+    CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<ImportedChunk> consumer);
 }

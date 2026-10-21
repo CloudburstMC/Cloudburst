@@ -9,7 +9,7 @@ import org.cloudburstmc.api.block.Block;
 public interface NeighborBlockHandler {
 
     /**
-     * @param block the block receiving the update
+     * @param block    the block receiving the update
      * @param neighbor the neighboring block that changed
      */
     void execute(Block block, Block neighbor);

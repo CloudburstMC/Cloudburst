@@ -4,23 +4,26 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * Called when an entity causes a block to form.
+ * Called before an entity causes a block to form.
+ * Cancellation prevents formation.
  */
-public final class EntityBlockFormEvent extends BlockFormEvent {
+public class EntityBlockFormEvent extends BlockFormEvent {
 
     private final Entity entity;
 
     /**
      * Creates an entity block-form event.
      *
-     * @param entity the entity forming the block
-     * @param block the block being changed
+     * @param entity   the entity forming the block
+     * @param block    the block being changed
      * @param newState the state that will be formed
      */
     public EntityBlockFormEvent(Entity entity, Block block, BlockState newState) {
         super(block, newState);
-        this.entity = entity;
+        this.entity = requireNonNull(entity, "entity");
     }
 
     /**

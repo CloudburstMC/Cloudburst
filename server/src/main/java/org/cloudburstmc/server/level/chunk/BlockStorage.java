@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
-import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NBTOutputStream;
@@ -13,349 +13,260 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 
-@Log4j2
+/**
+ * Stores one 16-by-16-by-16 block layer using identity-based palette entries.
+ * A singleton palette has no index array. Instances are not thread-safe.
+ */
 public class BlockStorage {
 
     private static final int SIZE = 4096;
+
     private final List<BlockState> palette;
     private final Reference2IntOpenHashMap<BlockState> paletteIndex;
-    private BitArray bitArray;
+    private @Nullable BitArray bitArray;
     private int nonAirCount;
-    private boolean needsCompact;
-    private boolean dirty;
+    private boolean needsCompaction;
 
     public BlockStorage() {
-        this(BitArrayVersion.V1);
+        this(null, new ReferenceArrayList<>(List.of(AIR)), 0, false);
     }
 
-    public BlockStorage(BitArrayVersion version) {
-        this.bitArray = version.createPalette(SIZE);
-        this.palette = new ReferenceArrayList<>(16);
-        this.paletteIndex = new Reference2IntOpenHashMap<>(16);
-        this.paletteIndex.defaultReturnValue(-1);
-        this.palette.add(AIR);
-        this.paletteIndex.put(AIR, 0);
-        this.nonAirCount = 0;
-        this.dirty = true;
-    }
-
-    private BlockStorage(BitArray bitArray, List<BlockState> palette) {
-        this.palette = palette;
+    private BlockStorage(@Nullable BitArray bitArray, List<BlockState> palette, int nonAirCount, boolean needsCompaction) {
         this.bitArray = bitArray;
+        this.palette = palette;
         this.paletteIndex = new Reference2IntOpenHashMap<>(palette.size());
         this.paletteIndex.defaultReturnValue(-1);
-        for (int i = 0; i < palette.size(); i++) {
-            this.paletteIndex.put(palette.get(i), i);
-        }
-        this.nonAirCount = countNonAir();
-        this.dirty = true;
-    }
-
-    private static BitArrayVersion getVersionFromHeader(byte header) {
-        return BitArrayVersion.get(header >> 1, true);
-    }
-
-    private int getPaletteHeader(BitArrayVersion version, boolean runtime) {
-        return (version.getId() << 1) | (runtime ? 1 : 0);
-    }
-
-    public BlockState getBlock(int index) {
-        return this.blockFor(this.bitArray.get(index));
-    }
-
-    public void setBlock(int index, BlockState blockState) {
-        try {
-            BlockState old = this.blockFor(this.bitArray.get(index));
-            int idx = this.idFor(blockState);
-            this.bitArray.set(index, idx);
-            if (old == AIR && blockState != AIR) {
-                this.nonAirCount++;
-            } else if (old != AIR && blockState == AIR) {
-                this.nonAirCount--;
-            }
-            this.dirty = true;
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Unable to set block: " + blockState + ", palette: " + palette, e);
-        }
-    }
-
-    public void writeToNetwork(ByteBuf buffer) {
-        buffer.writeByte(getPaletteHeader(bitArray.getVersion(), true));
-
-        for (int word : bitArray.getWords()) {
-            buffer.writeIntLE(word);
-        }
-
-        VarInts.writeInt(buffer, palette.size());
-
-        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
-        palette.forEach(state -> VarInts.writeInt(buffer, registry.getRuntimeId(state)));
-    }
-
-    public void writeToStorage(ByteBuf buffer) {
-        if (isEmpty()) {
-            buffer.writeByte(0x00);
-            try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);
-                 NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-                nbtOutputStream.writeTag(BlockPalette.INSTANCE.getSerialized(AIR));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return;
-        }
-
-        buffer.writeByte(getPaletteHeader(bitArray.getVersion(), false));
-        for (int word : bitArray.getWords()) {
-            buffer.writeIntLE(word);
-        }
-
-        buffer.writeIntLE(this.palette.size());
-
-        try (ByteBufOutputStream stream = new ByteBufOutputStream(buffer);
-             NBTOutputStream nbtOutputStream = NbtUtils.createWriterLE(stream)) {
-            for (BlockState state : this.palette) {
-                nbtOutputStream.writeTag(BlockPalette.INSTANCE.getSerialized(state));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void readFromStorage(ByteBuf buffer) {
-        byte headerByte = buffer.readByte();
-        int bitsPerEntry = (headerByte & 0xFF) >> 1;
-
-        if (bitsPerEntry == 0) {
-            this.palette.clear();
-            this.paletteIndex.clear();
-            this.bitArray = BitArrayVersion.V1.createPalette(SIZE);
-            try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
-                 NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
-                try {
-                    NbtMap tag = (NbtMap) nbtInputStream.readTag();
-                    BlockState state = CloudBlockRegistry.REGISTRY.getBlock(tag);
-                    this.palette.add(state);
-                    this.paletteIndex.put(state, 0);
-                } catch (Exception e) {
-                    log.throwing(e);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            this.nonAirCount = (this.palette.size() == 1 && this.palette.get(0) == AIR) ? 0 : SIZE;
-            this.dirty = false;
-            return;
-        }
-
-        BitArrayVersion version = getVersionFromHeader(headerByte);
-
-        int expectedWordCount = version.getWordsForSize(SIZE);
-        int[] words = new int[expectedWordCount];
-        for (int i = 0; i < expectedWordCount; i++) {
-            words[i] = buffer.readIntLE();
-        }
-        this.bitArray = version.createPalette(SIZE, words);
-
-        this.palette.clear();
-        this.paletteIndex.clear();
-        int paletteSize = buffer.readIntLE();
-
-        checkArgument(version.getMaxEntryValue() >= paletteSize - 1,
-                "Palette is too large. Max size %s. Actual size %s", version.getMaxEntryValue(),
-                paletteSize);
-
-        // Tracks index remapping when multiple raw palette entries resolve to the same state,
-        // for example when unknown blocks are substituted with air.
-        int[] indexRemap = null;
-
-        try (ByteBufInputStream stream = new ByteBufInputStream(buffer);
-             NBTInputStream nbtInputStream = NbtUtils.createReaderLE(stream)) {
-            for (int i = 0; i < paletteSize; i++) {
-                NbtMap tag = null;
-                BlockState state;
-                try {
-                    tag = (NbtMap) nbtInputStream.readTag();
-                    state = CloudBlockRegistry.REGISTRY.getBlock(tag);
-                } catch (Exception e) {
-                    String blockName = tag != null ? tag.getString("name", "unknown") : "unknown";
-                    log.warn("Unknown block '{}' at palette entry {}, substituting air", blockName, i);
-                    state = AIR;
-                }
-                indexRemap = addPaletteEntry(state, i, paletteSize, indexRemap);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Rewrite any bitarray slots that pointed to a collapsed duplicate, and count non-air
-        // blocks in the same pass to avoid scanning twice.
-        if (indexRemap != null) {
-            int airIndex = this.paletteIndex.getInt(AIR);
-            int count = 0;
-            for (int i = 0; i < SIZE; i++) {
-                int remapped = indexRemap[this.bitArray.get(i)];
-                this.bitArray.set(i, remapped);
-                if (remapped != airIndex) count++;
-            }
-            this.nonAirCount = count;
-        } else {
-            this.nonAirCount = countNonAir();
-        }
-        this.dirty = false;
+        this.rebuildPaletteIndex();
+        this.nonAirCount = nonAirCount;
+        this.needsCompaction = needsCompaction;
     }
 
     /**
-     * Inserts a palette entry during deserialization. If the state is already present,
-     * the raw index is remapped to the first occurrence instead of being appended again.
-     * Returns the (possibly newly allocated) indexRemap array.
+     * Returns the state at {@code (x << 8) | (z << 4) | y} within the layer.
      */
-    private int[] addPaletteEntry(BlockState state, int rawIndex, int paletteSize, int[] indexRemap) {
-        int existing = this.paletteIndex.getInt(state);
-        if (existing != -1) {
-            if (indexRemap == null) {
-                indexRemap = new int[paletteSize];
-                for (int j = 0; j < rawIndex; j++) indexRemap[j] = j;
-            }
-            indexRemap[rawIndex] = existing;
-        } else {
-            int newIdx = this.palette.size();
-            if (indexRemap != null) indexRemap[rawIndex] = newIdx;
-            this.paletteIndex.put(state, newIdx);
-            this.palette.add(state);
-        }
-        return indexRemap;
+    public BlockState getBlock(int index) {
+        Objects.checkIndex(index, SIZE);
+        return this.palette.get(this.paletteIndexAt(index));
     }
 
-    private void onResize(BitArrayVersion version) {
-        BitArray newBitArray = version.createPalette(SIZE);
-
-        for (int i = 0; i < SIZE; i++) {
-            newBitArray.set(i, this.bitArray.get(i));
-        }
-        this.bitArray = newBitArray;
-    }
-
-    private int idFor(BlockState blockState) {
-        int index = this.paletteIndex.getInt(blockState);
-        if (index != -1) {
-            return index;
+    public void setBlock(int index, BlockState state) {
+        Objects.checkIndex(index, SIZE);
+        Objects.requireNonNull(state, "state");
+        BlockState previous = this.palette.get(this.paletteIndexAt(index));
+        if (previous == state) {
+            return;
         }
 
-        index = this.palette.size();
-        BitArrayVersion version = this.bitArray.getVersion();
-        if (index > version.getMaxEntryValue()) {
-            BitArrayVersion next = version.next();
-            if (next != null) {
-                this.onResize(next);
-            }
+        int paletteId = this.idFor(state);
+        Objects.requireNonNull(this.bitArray).set(index, paletteId);
+        if (previous == AIR) {
+            this.nonAirCount++;
+        } else if (state == AIR) {
+            this.nonAirCount--;
         }
-        this.palette.add(blockState);
-        this.paletteIndex.put(blockState, index);
-        this.needsCompact = true;
-        return index;
-    }
 
-    private BlockState blockFor(int index) {
-        return this.palette.get(index);
+        this.needsCompaction = true;
     }
 
     public boolean isEmpty() {
         return this.nonAirCount == 0;
     }
 
+    public BlockStorage copy() {
+        return new BlockStorage(
+                this.bitArray == null ? null : this.bitArray.copy(),
+                new ReferenceArrayList<>(this.palette),
+                this.nonAirCount,
+                this.needsCompaction
+        );
+    }
+
+    public void writeToNetwork(ByteBuf buffer) {
+        this.compact();
+        this.writeIndices(buffer, true);
+
+        if (this.bitArray != null) {
+            VarInts.writeInt(buffer, this.palette.size());
+        }
+
+        for (BlockState state : this.palette) {
+            VarInts.writeInt(buffer, BlockPalette.INSTANCE.getDefinition(state).getRuntimeId());
+        }
+    }
+
+    public void writeToStorage(ByteBuf buffer) {
+        this.compact();
+        this.writeIndices(buffer, false);
+
+        if (this.bitArray != null) {
+            buffer.writeIntLE(this.palette.size());
+        }
+
+        try (NBTOutputStream output = NbtUtils.createWriterLE(new ByteBufOutputStream(buffer))) {
+            for (BlockState state : this.palette) {
+                output.writeTag(BlockStateCodec.write(state));
+            }
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Unable to write block palette", exception);
+        }
+    }
+
     /**
-     * Compacts this storage by removing unreferenced palette entries and downsizing
-     * the bit-array to the smallest version that can hold the remaining entries.
-     * AIR is always retained at index 0.
+     * Decodes a complete named-state layer before returning it.
+     * Runtime-ID palettes, invalid indices and unknown states are rejected.
      */
-    public void compact() {
-        List<BlockState> newPalette = new ReferenceArrayList<>(this.palette.size());
-        newPalette.add(AIR);
+    public static BlockStorage readFromStorage(ByteBuf buffer) {
+        int header = buffer.readUnsignedByte();
+        if ((header & 1) != 0) {
+            throw new IllegalArgumentException("Runtime-ID palettes cannot be read as persisted block states");
+        }
 
-        int[] indexMap = new int[this.palette.size()];
+        int bits = header >>> 1;
+        BitArray indices = null;
+        int paletteSize = 1;
+        if (bits != 0) {
+            BitArrayVersion version = BitArrayVersion.fromBits(bits);
+            int[] words = new int[version.wordCount(SIZE)];
+            for (int index = 0; index < words.length; index++) {
+                words[index] = buffer.readIntLE();
+            }
 
-        for (int i = 0; i < SIZE; i++) {
-            int oldIdx = this.bitArray.get(i);
-            if (indexMap[oldIdx] == 0 && oldIdx != 0) {
-                BlockState state = this.palette.get(oldIdx);
-                int newIdx = newPalette.size();
-                newPalette.add(state);
-                indexMap[oldIdx] = newIdx;
+            indices = version.createArray(SIZE, words);
+            paletteSize = buffer.readIntLE();
+            if (paletteSize < 1 || paletteSize - 1 > version.getMaxValue()) {
+                throw new IllegalArgumentException("Invalid block palette size " + paletteSize + " for " + bits + "-bit indices");
             }
         }
 
-        int liveCount = newPalette.size();
-        BitArrayVersion minVersion = BitArrayVersion.getMinimalVersion(liveCount);
+        List<BlockState> palette = new ReferenceArrayList<>(paletteSize);
+        try (NBTInputStream input = NbtUtils.createReaderLE(new ByteBufInputStream(buffer))) {
+            for (int index = 0; index < paletteSize; index++) {
+                if (!(input.readTag() instanceof NbtMap tag)) {
+                    throw new IllegalArgumentException("Block palette entry " + index + " must be a compound");
+                }
 
-        BitArray newBitArray = minVersion.createPalette(SIZE);
-        for (int i = 0; i < SIZE; i++) {
-            newBitArray.set(i, indexMap[this.bitArray.get(i)]);
+                palette.add(BlockStateCodec.read(tag));
+            }
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Unable to read block palette", exception);
+        }
+
+        BlockStorage storage = new BlockStorage(indices, palette, 0, true);
+        storage.compact();
+        return storage;
+    }
+
+    private int paletteIndexAt(int index) {
+        return this.bitArray == null ? 0 : this.bitArray.get(index);
+    }
+
+    private int idFor(BlockState state) {
+        int existing = this.paletteIndex.getInt(state);
+        if (existing != -1) {
+            return existing;
+        }
+
+        if (this.palette.size() >= SIZE) {
+            this.compact();
+        }
+
+        int index = this.palette.size();
+        if (this.bitArray == null || index > this.bitArray.getVersion().getMaxValue()) {
+            this.resize(BitArrayVersion.forPaletteSize(index + 1));
+        }
+
+        this.palette.add(state);
+        this.paletteIndex.put(state, index);
+        return index;
+    }
+
+    private void resize(BitArrayVersion version) {
+        BitArray resized = version.createArray(SIZE);
+        if (this.bitArray != null) {
+            for (int index = 0; index < SIZE; index++) {
+                resized.set(index, this.bitArray.get(index));
+            }
+        }
+
+        this.bitArray = resized;
+    }
+
+    private void compact() {
+        if (!this.needsCompaction) {
+            return;
+        }
+
+        List<BlockState> livePalette = new ReferenceArrayList<>();
+        Reference2IntOpenHashMap<BlockState> liveIndex = new Reference2IntOpenHashMap<>();
+        liveIndex.defaultReturnValue(-1);
+        int[] remap = new int[this.palette.size()];
+        Arrays.fill(remap, -1);
+        int nonAir = 0;
+
+        for (int index = 0; index < SIZE; index++) {
+            int oldId = this.paletteIndexAt(index);
+            if (oldId >= this.palette.size()) {
+                throw new IllegalArgumentException("Block palette index " + oldId + " at position " + index + " exceeds palette size " + this.palette.size());
+            }
+
+            BlockState state = this.palette.get(oldId);
+            if (remap[oldId] == -1) {
+                int newId = liveIndex.getInt(state);
+                if (newId == -1) {
+                    newId = livePalette.size();
+                    livePalette.add(state);
+                    liveIndex.put(state, newId);
+                }
+                remap[oldId] = newId;
+            }
+
+            if (state != AIR) {
+                nonAir++;
+            }
+        }
+
+        BitArray compacted = null;
+        if (livePalette.size() > 1) {
+            compacted = BitArrayVersion.forPaletteSize(livePalette.size()).createArray(SIZE);
+            for (int index = 0; index < SIZE; index++) {
+                compacted.set(index, remap[this.paletteIndexAt(index)]);
+            }
         }
 
         this.palette.clear();
-        this.palette.addAll(newPalette);
-        this.bitArray = newBitArray;
+        this.palette.addAll(livePalette);
+        this.rebuildPaletteIndex();
+        this.bitArray = compacted;
+        this.nonAirCount = nonAir;
+        this.needsCompaction = false;
+    }
+
+    private void rebuildPaletteIndex() {
         this.paletteIndex.clear();
-        for (int i = 0; i < this.palette.size(); i++) {
-            this.paletteIndex.put(this.palette.get(i), i);
+        for (int index = 0; index < this.palette.size(); index++) {
+            this.paletteIndex.put(this.palette.get(index), index);
         }
-
-        this.nonAirCount = countNonAir();
-        this.needsCompact = false;
     }
 
-    /**
-     * Returns true if the palette has grown since the last compact().
-     */
-    public boolean isCompactNeeded() {
-        return this.needsCompact;
-    }
-
-    /**
-     * Returns true if this storage has been written to since it was last loaded from or saved to disk.
-     */
-    public boolean isDirty() {
-        return this.dirty;
-    }
-
-    /**
-     * Clears the dirty flag after the storage has been successfully persisted.
-     */
-    public void clearDirty() {
-        this.dirty = false;
-    }
-
-    public BlockStorage copy() {
-        return new BlockStorage(this.bitArray.copy(), new ReferenceArrayList<>(this.palette));
-    }
-
-    private int countNonAir() {
-        if (this.palette.size() == 1) {
-            return this.palette.getFirst() == AIR ? 0 : SIZE;
-        }
-
-        int airIndex = this.paletteIndex.getInt(AIR);
-        if (airIndex == -1) {
-            return SIZE;
-        }
-
-        int count = 0;
-        for (int i = 0; i < SIZE; i++) {
-            if (this.bitArray.get(i) != airIndex) {
-                count++;
+    private void writeIndices(ByteBuf buffer, boolean runtime) {
+        int bits = this.bitArray == null ? 0 : this.bitArray.getVersion().getBits();
+        buffer.writeByte((bits << 1) | (runtime ? 1 : 0));
+        if (this.bitArray != null) {
+            for (int word : this.bitArray.getWords()) {
+                buffer.writeIntLE(word);
             }
         }
-
-        return count;
     }
 }

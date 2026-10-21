@@ -8,6 +8,7 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.plugin.PluginDescription;
+import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void preservesRootRequirement() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin(),
                 Commands.literal("test")
                         .requires(Commands.requiresPermission("test.use"))
@@ -35,7 +36,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void aliasesPreserveRootRequirement() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin(),
                 Commands.literal("test")
                         .requires(Commands.requiresPermission("test.use"))
@@ -59,7 +60,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void exposesEveryAvailableRootLabel() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin(),
                 Commands.literal("test")
                         .requires(Commands.requiresPermission("test.use"))
@@ -74,7 +75,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void generatesUsageFromAvailableNodes() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin(),
                 Commands.literal("test")
                         .executes(context -> 1)
@@ -95,7 +96,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void completesOnlyAvailableCommandNodes() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin(),
                 Commands.literal("test")
                         .then(Commands.literal("visible").executes(context -> 1))
@@ -117,7 +118,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void alwaysRegistersStablePluginNamespace() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         Set<String> labels = registry.register(plugin(), Commands.literal("test").executes(context -> 1).build());
 
         assertEquals(Set.of("test", "example:test"), labels);
@@ -125,7 +126,7 @@ class CloudCommandRegistryTest {
 
     @Test
     void usesStableNamespaceWhenUnqualifiedRootIsTaken() {
-        CloudCommandRegistry registry = new CloudCommandRegistry();
+        CloudCommandRegistry registry = new CloudCommandRegistry(BlockTestRegistry.get());
         registry.register(plugin("first"), Commands.literal("test").executes(context -> 1).build());
         Set<String> labels = registry.register(plugin("second"), Commands.literal("test").executes(context -> 1).build());
 

@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.registry;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTag;
 import org.cloudburstmc.api.item.ItemTagKey;
@@ -16,9 +17,10 @@ import java.util.Collection;
 public interface ItemRegistry extends ComponentRegistry<ItemType>, KeyedRegistry<ItemType> {
 
     /**
-     * Adds an item stack to the creative inventory listing.
+     * Adds a nonempty item stack to the creative inventory listing during initialization.
      *
      * @param item creative inventory entry
+     * @throws RegistryException if the item type is unknown, the stack is empty or registration has closed
      */
     void registerCreativeItem(ItemStack item);
 
@@ -27,8 +29,10 @@ public interface ItemRegistry extends ComponentRegistry<ItemType>, KeyedRegistry
      *
      * @param type item type
      * @return resolved component map
+     * @throws RegistryException if the item type is unknown
      */
     @Override
+    @NonNull
     ComponentMap getComponents(ItemType type);
 
     @Override

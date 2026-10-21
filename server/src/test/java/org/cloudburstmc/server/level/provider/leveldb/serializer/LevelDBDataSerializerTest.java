@@ -24,7 +24,7 @@ class LevelDBDataSerializerTest {
         byte[] bytes = Files.readAllBytes(directory.resolve("level.dat"));
 
         assertEquals(bytes.length - 8, ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt(4));
-        assertEquals(10, LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow().getTime());
+        assertEquals(10, LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow().getClock().getTotalTicks());
         assertFalse(Files.exists(directory.resolve("level.dat_old")));
     }
 
@@ -37,8 +37,26 @@ class LevelDBDataSerializerTest {
         ByteBuffer.wrap(damaged).order(ByteOrder.LITTLE_ENDIAN).putInt(4, damaged.length);
         Files.write(file, damaged);
 
-        assertEquals(10, LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow().getTime());
+        assertEquals(10, LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow().getClock().getTotalTicks());
         assertArrayEquals(Files.readAllBytes(directory.resolve("level.dat_old")), Files.readAllBytes(file));
+    }
+
+    @Test
+    void clockStateRoundTripsIndependentlyOfGameTime() throws Exception {
+        CloudLevelData saved = data(49000);
+        saved.setGameTime(1234);
+        saved.getClock().setRate(0.5f);
+        saved.getClock().setPartialTick(0.75f);
+        saved.getClock().setPaused(true);
+
+        LevelDBDataSerializer.INSTANCE.save(saved, directory);
+        CloudLevelData loaded = LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow();
+
+        assertEquals(1234, loaded.getGameTime());
+        assertEquals(49000, loaded.getClock().getTotalTicks());
+        assertEquals(0.5f, loaded.getClock().getRate());
+        assertEquals(0.75f, loaded.getClock().getPartialTick());
+        assertTrue(loaded.getClock().isPaused());
     }
 
     @Test
@@ -55,7 +73,7 @@ class LevelDBDataSerializerTest {
         data.setName("test");
         data.setSeed(1);
         data.setGenerator(Identifier.parse("cloudburst:standard"));
-        data.setTime(time);
+        data.getClock().setTotalTicks(time);
         return data;
     }
 }

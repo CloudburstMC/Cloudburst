@@ -10,7 +10,7 @@ import tools.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 import net.daporkchop.lib.common.util.PValidation;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.server.block.util.BlockUtils;
+import org.cloudburstmc.server.block.BlockStateParser;
 import org.cloudburstmc.server.level.generator.standard.misc.ConstantBlock;
 
 import java.util.Arrays;
@@ -25,11 +25,10 @@ final class BlockSelectorDeserializer extends ValueDeserializer<BlockSelector> {
     @Override
     public BlockSelector deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
         BlockSelector.Entry[] entries = Arrays.stream(ctxt.readValue(p, String[].class))
-                .flatMap(value -> Arrays.stream(value.split(",")))
                 .map(TempEntry::new)
                 .flatMap(TempEntry::flatten)
                 .toArray(BlockSelector.Entry[]::new);
-        if (entries.length == 1) {
+        if (entries.length == 1 && entries[0].weight() == 1) {
             return new ConstantBlock(entries[0].state());
         }
         return new MultiBlockSelector(entries);
@@ -48,7 +47,7 @@ final class BlockSelectorDeserializer extends ValueDeserializer<BlockSelector> {
 
             Preconditions.checkArgument(matcher.find(), "invalid input: \"%s\"", value);
 
-            this.states = BlockUtils.parseStateWildcard(matcher.group(2)).toArray(BlockState[]::new);
+            this.states = BlockStateParser.parseMatching(matcher.group(2)).toArray(BlockState[]::new);
             this.weight = matcher.group(1) == null ? 1 : PValidation.positive(Integer.parseUnsignedInt(matcher.group(1)));
         }
 

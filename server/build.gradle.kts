@@ -1,4 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+import org.gradle.api.artifacts.CacheableRule
+import org.gradle.api.artifacts.ComponentMetadataContext
+import org.gradle.api.artifacts.ComponentMetadataRule
 import java.nio.file.Files
 
 plugins {
@@ -7,7 +10,21 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+@CacheableRule
+public abstract class LibDataChannelAlignmentRule : ComponentMetadataRule {
+    public override fun execute(context: ComponentMetadataContext) {
+        context.details.run {
+            belongsTo("dev.opencollab:libdatachannel-platform:${id.version}")
+        }
+    }
+}
+
 dependencies {
+    components {
+        withModule<LibDataChannelAlignmentRule>("dev.opencollab:libdatachannel-java")
+        withModule<LibDataChannelAlignmentRule>("dev.opencollab:libdatachannel-java-arch-detect")
+    }
+
     implementation(project(":api"))
     implementation(libs.snakeyaml)
     implementation(libs.bedrock.codec)
@@ -45,15 +62,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
     testRuntimeOnly(libs.junit.platform.launcher)
-
-    constraints {
-        implementation(libs.libdatachannel.java) {
-            version {
-                strictly(libs.versions.libdatachannel.get())
-            }
-            because("The Java wrapper and native libraries must use the same build")
-        }
-    }
 }
 
 extraJavaModuleInfo {

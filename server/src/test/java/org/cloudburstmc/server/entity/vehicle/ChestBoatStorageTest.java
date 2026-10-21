@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.item.ItemStack;
@@ -10,8 +12,11 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +38,12 @@ class ChestBoatStorageTest {
                 .build());
 
         assertEquals(BoatType.CHERRY, restored.getBoatType());
-        assertEquals(boat.getInventory().getItem(26), restored.getInventory().getItem(26));
+        ItemStack original = boat.getInventory().getItem(26);
+        ItemStack loaded = restored.getInventory().getItem(26);
+
+        assertEquals(original.getCount(), loaded.getCount());
+        assertTrue(original.isStackableWith(loaded));
+        assertSame(BlockStates.DIRT, loaded.requireBlockState());
         assertTrue(restored.getInventory().getItem(0).isEmpty());
     }
 
@@ -45,7 +55,8 @@ class ChestBoatStorageTest {
     }
 
     private static EntityChestBoat boat() {
-        return new EntityChestBoat(EntityTypes.CHEST_BOAT,
-                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+        Server server = InterfaceProxy.create(Server.class, Map.of("getBlockRegistry", BlockTestRegistry.get()));
+        Level level = InterfaceProxy.create(Level.class, Map.of("getServer", server));
+        return new EntityChestBoat(EntityTypes.CHEST_BOAT, Location.from(Vector3f.ZERO, level));
     }
 }

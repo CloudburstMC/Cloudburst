@@ -111,7 +111,7 @@ public class TimingsHistory {
 
                 //count block entities
                 for (BlockEntity blockEntity : chunk.getBlockEntities()) {
-                    var type = blockEntity.getType().getId();
+                    Identifier type = blockEntity.getType().getId();
 
                     if (!blockEntityCounts.containsKey(type))
                         blockEntityCounts.put(type, new AtomicInteger(0));

@@ -2,22 +2,52 @@ package org.cloudburstmc.server.network;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.level.sound.SoundType;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.block.BlockPalette;
+
+import java.util.Map;
 
 /**
  * Encodes gameplay effects that may combine particles, sounds, and animations.
  */
 @UtilityClass
 public class LevelEffectPacketFactory {
+
+    private static final Map<SoundType, LevelEvent> CAULDRON_INTERACTIONS = Map.ofEntries(
+            Map.entry(SoundTypes.CAULDRON_ADDDYE, LevelEvent.CAULDRON_ADD_DYE),
+            Map.entry(SoundTypes.CAULDRON_CLEANARMOR, LevelEvent.CAULDRON_CLEAN_ARMOR),
+            Map.entry(SoundTypes.CAULDRON_CLEANBANNER, LevelEvent.CAULDRON_CLEAN_BANNER),
+            Map.entry(SoundTypes.CAULDRON_DYEARMOR, LevelEvent.CAULDRON_DYE_ARMOR),
+            Map.entry(SoundTypes.CAULDRON_EXPLODE, LevelEvent.CAULDRON_EXPLODE),
+            Map.entry(SoundTypes.CAULDRON_FILLPOTION, LevelEvent.CAULDRON_FILL_POTION),
+            Map.entry(SoundTypes.CAULDRON_TAKEPOTION, LevelEvent.CAULDRON_TAKE_POTION),
+            Map.entry(SoundTypes.CAULDRON_FILLWATER, LevelEvent.CAULDRON_FILL_WATER),
+            Map.entry(SoundTypes.CAULDRON_TAKEWATER, LevelEvent.CAULDRON_TAKE_WATER),
+            Map.entry(SoundTypes.BUCKET_EMPTY_LAVA, LevelEvent.CAULDRON_FILL_LAVA),
+            Map.entry(SoundTypes.BUCKET_FILL_LAVA, LevelEvent.CAULDRON_TAKE_LAVA),
+            Map.entry(SoundTypes.BUCKET_EMPTY_POWDER_SNOW, LevelEvent.CAULDRON_FILL_POWDER_SNOW),
+            Map.entry(SoundTypes.BUCKET_FILL_POWDER_SNOW, LevelEvent.CAULDRON_TAKE_POWDER_SNOW));
+
+    public static LevelEventPacket cauldronInteraction(Vector3f position, SoundType sound, int color) {
+        LevelEvent type = CAULDRON_INTERACTIONS.get(sound);
+        if (type == null) {
+            throw new IllegalArgumentException("Unknown cauldron interaction: " + sound);
+        }
+
+        int data = type == LevelEvent.CAULDRON_ADD_DYE ? color << 8 >> 8 : 0;
+        return event(position, type, data);
+    }
+
     public static LevelEventPacket blockDestruction(Vector3f position, BlockState state, boolean sound) {
         return event(position, sound ? LevelEvent.PARTICLE_DESTROY_BLOCK : LevelEvent.PARTICLE_DESTROY_BLOCK_NO_SOUND,
-                CloudBlockRegistry.REGISTRY.getRuntimeId(state));
+                BlockPalette.INSTANCE.getDefinition(state).getRuntimeId());
     }
 
     public static LevelEventPacket blockPunch(Vector3f position, BlockState state, Direction face) {
@@ -30,7 +60,7 @@ public class LevelEffectPacketFactory {
             case EAST -> LevelEvent.PARTICLE_BREAK_BLOCK_EAST;
         };
 
-        return event(position, type, CloudBlockRegistry.REGISTRY.getRuntimeId(state));
+        return event(position, type, BlockPalette.INSTANCE.getDefinition(state).getRuntimeId());
     }
 
     public static LevelEventPacket dragonEggTeleport(Vector3i origin, Vector3i destination) {

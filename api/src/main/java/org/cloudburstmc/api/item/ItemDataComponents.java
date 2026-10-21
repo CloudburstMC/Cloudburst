@@ -71,6 +71,11 @@ public class ItemDataComponents {
     public static final ItemDataComponentType<DyeColor> COLOR = value("dye_color", DyeColor.class);
 
     /**
+     * Custom dye applied to equipment as a 24-bit RGB value. Absence preserves its default color.
+     */
+    public static final ItemDataComponentType<Integer> DYED_COLOR = value("dyed_color", Integer.class);
+
+    /**
      * Enchantments indexed by type.
      */
     public static final ItemDataComponentType<Map<EnchantmentType, Enchantment>> ENCHANTMENTS = ItemDataComponentType.registerMap(Identifier.parse("enchantments"), EnchantmentType.class, Enchantment.class);

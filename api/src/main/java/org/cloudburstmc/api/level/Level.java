@@ -2,6 +2,7 @@ package org.cloudburstmc.api.level;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.Server;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.boss.DragonBattle;
@@ -32,6 +33,7 @@ import java.util.function.Predicate;
  * <p>Unless a method explicitly refers to loaded data, block and chunk access may load or generate chunks.
  */
 public interface Level extends ChunkManager, LevelHeightAccessor {
+
     /**
      * Returns the server that owns this level.
      *
@@ -118,13 +120,6 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     DragonBattle getDragonBattle();
 
     /**
-     * Returns the server tick currently being processed by this level.
-     *
-     * @return the current tick
-     */
-    long getCurrentTick();
-
-    /**
      * Saves changed level and chunk data.
      *
      * @return {@code true} when saving was started
@@ -153,7 +148,7 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * Cancels the scheduled block update at a position.
      *
      * @param position the block position
-     * @return {@code true} when an update was cancelled
+     * @return {@code true} when an update was canceled
      */
     boolean cancelScheduledUpdate(Vector3i position);
 
@@ -171,6 +166,15 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @param position the changed block position
      */
     void updateAround(Vector3i position);
+
+    /**
+     * Defers neighbor notifications caused by block-state changes until the action finishes.
+     * State changes and other updates still occur immediately. Nested batches flush after the outermost action.
+     * Changes are not rolled back if the action throws.
+     *
+     * @param action the block changes to perform
+     */
+    void batchBlockUpdates(Runnable action);
 
     /**
      * Returns the biome ID at a position.
@@ -466,6 +470,16 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     boolean hasEntityCollision(@Nullable Entity entity, VoxelShape shape, Vector3i position);
 
     /**
+     * Checks whether entities obstruct a block forming in the supplied shape.
+     * Dropped items, projectiles and spectators do not obstruct formation.
+     *
+     * @param shape    the block-local shape to test
+     * @param position the block position where the shape is placed
+     * @return {@code true} when an entity obstructs formation
+     */
+    boolean hasPlacementObstruction(VoxelShape shape, Vector3i position);
+
+    /**
      * Drops an item at the center of a block position.
      *
      * @param position the block position
@@ -538,46 +552,100 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
     DroppedItem dropItem(Vector3f position, ItemStack item, @Nullable Vector3f motion, boolean dropAround, int delay);
 
     /**
-     * Returns the elapsed daylight-cycle time.
+     * Returns relative daylight time, or zero when this level has no daylight cycle.
      *
-     * <p>The value is not limited to a single day.
-     *
-     * @return the elapsed time in ticks
+     * @return a tick from 0 through 23999
      */
     long getTime();
 
     /**
-     * Changes the elapsed daylight-cycle time.
+     * Moves daylight time forward to the requested position within a day.
+     * The change calls {@link org.cloudburstmc.api.event.level.TimeSkipEvent} and may be cancelled.
      *
-     * @param time the time in ticks
+     * @param time the relative time, wrapped to a single day
+     * @throws IllegalStateException if this level has no daylight cycle
+     * @throws ArithmeticException   if the change exceeds the supported tick range
      */
     void setTime(long time);
 
     /**
-     * Resumes the passage of time.
-     */
-    void startTime();
-
-    /**
-     * Pauses the passage of time.
-     */
-    void stopTime();
-
-    /**
-     * Sends this level's current time to a player.
+     * Returns full daylight time, including completed days.
      *
-     * @param who the recipient
+     * @return the daylight ticks, or zero when this level has no daylight cycle
      */
-    default void sendTime(Player who) {
-        sendTime(new Player[]{who});
+    long getFullTime();
+
+    /**
+     * Sets full daylight time without changing elapsed game time.
+     * The change calls {@link org.cloudburstmc.api.event.level.TimeSkipEvent} and may be cancelled.
+     *
+     * @param time the full daylight tick count
+     * @throws IllegalStateException if this level has no daylight cycle
+     * @throws ArithmeticException   if the change cannot be represented as a signed tick offset
+     */
+    void setFullTime(long time);
+
+    /**
+     * Returns elapsed simulation ticks. Daylight changes and pauses do not change this value.
+     *
+     * @return the elapsed game ticks
+     */
+    long getGameTime();
+
+    /**
+     * Checks whether the dimension supports a daylight cycle, independently of clock pauses and game rules.
+     *
+     * @return whether daylight time is available
+     */
+    boolean hasDaylightCycle();
+
+    /**
+     * Checks daytime sky brightness, including weather.
+     *
+     * @return whether outside light is bright enough for daytime behavior, or false without a daylight cycle
+     */
+    boolean isDayTime();
+
+    /**
+     * Checks nighttime sky brightness, including weather.
+     *
+     * @return whether outside light is dark enough for nighttime behavior, or false without a daylight cycle
+     */
+    boolean isNightTime();
+
+    /**
+     * @return the moon phase, or a full moon when this level has no daylight cycle
+     */
+    default MoonPhase getMoonPhase() {
+        return MoonPhase.forDay(DayCycle.day(this.getFullTime()));
     }
 
     /**
-     * Sends this level's current time to the supplied players.
-     *
-     * @param players the recipients
+     * @return whether the daylight clock is paused, or this level has no daylight cycle
      */
-    void sendTime(Player... players);
+    boolean isTimePaused();
+
+    /**
+     * Pauses or resumes the daylight clock without changing the daylight-cycle game rule.
+     *
+     * @param paused whether to pause the clock
+     * @throws IllegalStateException if this level has no daylight cycle
+     */
+    void setTimePaused(boolean paused);
+
+    /**
+     * @return daylight ticks per simulation tick, or zero when this level has no daylight cycle
+     */
+    float getTimeRate();
+
+    /**
+     * Changes the daylight clock rate without changing elapsed game time.
+     *
+     * @param rate a finite rate from 0.00001 through 1000
+     * @throws IllegalArgumentException if the rate is outside the supported range
+     * @throws IllegalStateException    if this level has no daylight cycle
+     */
+    void setTimeRate(float rate);
 
     /**
      * Checks whether rain is active.
@@ -728,6 +796,15 @@ public interface Level extends ChunkManager, LevelHeightAccessor {
      * @param players  the recipients, empty to send to nobody
      */
     void playSound(Vector3f position, SoundPlayback playback, Player... players);
+
+    /**
+     * Plays block-break particles and sound using the supplied state for players tracking the surrounding chunk.
+     * Does not change the block or drop items.
+     *
+     * @param position the block position
+     * @param state    the state supplying the particles and sound
+     */
+    void playBlockBreakEffect(Vector3i position, BlockState state);
 
     /**
      * Spawns a built-in particle at a position for players tracking the surrounding chunk.

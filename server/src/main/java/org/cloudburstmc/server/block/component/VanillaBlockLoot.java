@@ -9,6 +9,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.component.BlockLootHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 
 import java.util.ArrayList;
@@ -42,8 +43,7 @@ public class VanillaBlockLoot {
 
     public static BlockLootHandler shearsOrSilkTouchOnly(BlockType drop) {
         requireNonNull(drop, "drop");
-        return (block, context) -> hasShears(context) || hasSilkTouch(context)
-                ? List.of(blockItem(drop, 1)) : List.of();
+        return (block, context) -> hasShears(context) || hasSilkTouch(context) ? List.of(blockItem(drop, 1)) : List.of();
     }
 
     public static BlockLootHandler grass(BlockType drop) {
@@ -94,18 +94,23 @@ public class VanillaBlockLoot {
         return (block, context) -> List.of(ItemStack.from(type.getDefaultState(), block.getState().ensureTrait(BlockTraits.GROWTH) + 1));
     }
 
-    public static BlockLootHandler glowstone(BlockType drop) {
-        requireNonNull(drop, "drop");
+    public static BlockLootHandler silkTouchWithUniformBonus(BlockType silkTouchDrop, ItemType normalDrop, int minCount, int maxCount, int limit) {
+        requireNonNull(silkTouchDrop, "silkTouchDrop");
+        requireNonNull(normalDrop, "normalDrop");
+        if (minCount < 1 || maxCount < minCount || limit < maxCount) {
+            throw new IllegalArgumentException("Drop counts must satisfy 1 <= minCount <= maxCount <= limit");
+        }
+
         return (block, context) -> {
             if (hasSilkTouch(context)) {
-                return List.of(blockItem(drop, 1));
+                return List.of(blockItem(silkTouchDrop, 1));
             }
 
-            int count = context.random().nextInt(2, 5);
+            int count = minCount + context.random().nextInt(maxCount - minCount + 1);
             int fortune = fortuneLevel(context);
-
-            count = Math.min(4, count + context.random().nextInt(fortune + 1));
-            return List.of(ItemStack.from(ItemTypes.GLOWSTONE_DUST, count));
+            int bonus = context.random().nextInt(fortune + 1);
+            int total = (int) Math.min(limit, (long) count + bonus);
+            return List.of(ItemStack.from(normalDrop, total));
         };
     }
 

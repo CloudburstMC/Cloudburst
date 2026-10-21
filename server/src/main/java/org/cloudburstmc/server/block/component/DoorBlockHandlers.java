@@ -9,10 +9,10 @@ import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class DoorBlockHandlers {
         level.setBlockState(thisPos, state.withTrait(BlockTraits.IS_OPEN, nowOpen), false, true);
         level.setBlockState(partnerPos, partnerState.withTrait(BlockTraits.IS_OPEN, nowOpen), false, true);
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(state);
+        int soundData = BlockPalette.INSTANCE.getDefinition(state).getRuntimeId();
         level.addLevelSoundEvent(thisPos, nowOpen ? SoundEvent.DOOR_OPEN : SoundEvent.DOOR_CLOSE, soundData);
 
         return true;

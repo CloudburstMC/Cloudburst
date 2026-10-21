@@ -4,6 +4,7 @@ import com.google.common.base.Defaults;
 import com.google.common.primitives.Primitives;
 import lombok.experimental.UtilityClass;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -18,27 +19,34 @@ public class InterfaceProxy {
     }
 
     public static <T> T create(Class<T> type, Map<String, ?> returnValues) {
-        requireNonNull(type, "type");
         requireNonNull(returnValues, "returnValues");
+        return create(type, (proxy, method, arguments) -> invoke(method, returnValues));
+    }
+
+    public static <T> T create(Class<T> type, InvocationHandler handler) {
+        requireNonNull(type, "type");
+        requireNonNull(handler, "handler");
         if (!type.isInterface()) {
             throw new IllegalArgumentException(type.getName() + " is not an interface");
         }
 
         Object proxy = Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                (instance, method, arguments) -> invoke(instance, method, arguments, type, returnValues));
+                (instance, method, arguments) -> method.getDeclaringClass() == Object.class
+                        ? invokeObjectMethod(instance, method, arguments, type)
+                        : handler.invoke(instance, method, arguments));
         return type.cast(proxy);
     }
 
-    private static Object invoke(Object proxy, Method method, Object[] arguments, Class<?> type, Map<String, ?> returnValues) {
-        if (method.getDeclaringClass() == Object.class) {
-            return switch (method.getName()) {
-                case "equals" -> arguments != null && arguments.length == 1 && proxy == arguments[0];
-                case "hashCode" -> System.identityHashCode(proxy);
-                case "toString" -> "InterfaceProxy[" + type.getName() + "]";
-                default -> throw new IllegalStateException("Unsupported Object method: " + method);
-            };
-        }
+    private static Object invokeObjectMethod(Object proxy, Method method, Object[] arguments, Class<?> type) {
+        return switch (method.getName()) {
+            case "equals" -> arguments != null && arguments.length == 1 && proxy == arguments[0];
+            case "hashCode" -> System.identityHashCode(proxy);
+            case "toString" -> "InterfaceProxy[" + type.getName() + "]";
+            default -> throw new IllegalStateException("Unsupported Object method: " + method);
+        };
+    }
 
+    private static Object invoke(Method method, Map<String, ?> returnValues) {
         if (!returnValues.containsKey(method.getName())) {
             return Defaults.defaultValue(method.getReturnType());
         }

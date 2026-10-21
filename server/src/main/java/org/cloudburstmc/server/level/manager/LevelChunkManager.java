@@ -18,9 +18,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -303,6 +301,7 @@ public final class LevelChunkManager {
             }
 
             this.level.unregisterTickContainers(chunkKey);
+            this.level.updateChunkLightBoundary(chunk);
 
             CompletableFuture<?> saveFuture = save && chunk.isGenerated() ? this.saveChunk(chunk) : COMPLETED_VOID_FUTURE;
             saveFuture.whenComplete((r, ex) -> {
@@ -414,6 +413,7 @@ public final class LevelChunkManager {
             if (loadingChunk.isNewChunk()) {
                 EndDimension.onChunkGenerated(this.level, chunk);
             }
+            this.level.initializeChunkLight(chunk);
             this.level.getServer().getEventManager().fire(new ChunkLoadEvent(chunk, loadingChunk.isNewChunk()));
             if (loadingChunk.isPopulationEventPending()) {
                 this.level.getServer().getEventManager().fire(new ChunkPopulateEvent(chunk));
@@ -471,8 +471,8 @@ public final class LevelChunkManager {
         }
 
         try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {
-            for (var iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
-                var entry = iter.next();
+            for (Iterator<Map.Entry<Long, ChunkHolder>> iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
+                Map.Entry<Long, ChunkHolder> entry = iter.next();
                 ChunkHolder loadingChunk = entry.getValue();
                 long chunkKey = loadingChunk.getKey();
                 CloudChunk chunk = loadingChunk.getLoadedChunk();

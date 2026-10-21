@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class Utils {
 
@@ -284,9 +285,9 @@ public class Utils {
 
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     public static <T extends Enum<T>> T[] getEnumValues(Class<T> value, T... except) {
-        var set = Sets.newHashSet(except);
-        var values = value.getEnumConstants();
-        var stream = Arrays.stream(values).filter(v -> !set.contains(v));
+        Set<T> set = Sets.newHashSet(except);
+        T[] values = value.getEnumConstants();
+        Stream<T> stream = Arrays.stream(values).filter(v -> !set.contains(v));
 
         return stream.toArray((s) -> (T[]) Array.newInstance(value, s));
     }
@@ -294,12 +295,11 @@ public class Utils {
     public static void finalAccess(Field field) {
         try {
             if (Integer.parseInt(System.getProperty("java.version").split("\\.")[0]) <= 9) {
-                var modifiers = Field.class.getDeclaredField("modifiers");
+                Field modifiers = Field.class.getDeclaredField("modifiers");
                 modifiers.setAccessible(true);
 
                 modifiers.set(field, field.getModifiers() & (~Modifier.FINAL));
             } else {
-//                var lookup = MethodHandles.privateLookupIn();
             }
         } catch (NoSuchFieldException | IllegalAccessException ignore) {
 

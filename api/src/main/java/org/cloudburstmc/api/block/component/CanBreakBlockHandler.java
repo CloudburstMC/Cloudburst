@@ -11,7 +11,7 @@ public interface CanBreakBlockHandler {
 
     /**
      * @param block the block being broken
-     * @param item the item used to break the block
+     * @param item  the item used to break the block
      * @return whether the item can break the block
      */
     boolean execute(Block block, ItemStack item);

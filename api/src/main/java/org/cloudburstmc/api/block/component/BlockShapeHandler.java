@@ -10,14 +10,14 @@ import org.cloudburstmc.api.util.VoxelShape;
 public interface BlockShapeHandler {
 
     /**
-     * @param state the block state
+     * @param state   the block state
      * @param context the query context
      * @return geometry in block-local coordinates
      */
     VoxelShape execute(BlockState state, BlockShapeContext context);
 
     /**
-     * Declares which mutable external state can affect this handler's result.
+     * Declares which query context can affect this handler's result.
      *
      * @return the strongest context requirement
      */

@@ -24,7 +24,7 @@ public class TreeSpeciesSerializer extends DefaultItemSerializer {
         Preconditions.checkArgument(identifiers.length == TreeSpecies.values().length, "Invalid amount of identifiers provided");
 
         this.identifiers = identifiers;
-        var values = TreeSpecies.values();
+        TreeSpecies[] values = TreeSpecies.values();
         for (int i = 0; i < values.length; i++) {
             dataMap.put(identifiers[i], values[i]);
         }

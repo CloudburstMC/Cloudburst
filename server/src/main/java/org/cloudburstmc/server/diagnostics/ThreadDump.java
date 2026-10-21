@@ -2,10 +2,7 @@ package org.cloudburstmc.server.diagnostics;
 
 import lombok.experimental.UtilityClass;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MonitorInfo;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
+import java.lang.management.*;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -65,7 +62,7 @@ public class ThreadDump {
             }
         }
 
-        for (var synchronizer : thread.getLockedSynchronizers()) {
+        for (LockInfo synchronizer : thread.getLockedSynchronizers()) {
             dump.append("\t- locked synchronizer ").append(synchronizer).append('\n');
         }
     }

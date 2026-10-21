@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.passive.Pig;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 
@@ -51,7 +52,7 @@ public class EntityPig extends Animal implements Pig {
 
     @Override
     public boolean isBreedingItem(ItemStack item) {
-        var id = item.getType();
+        ItemType id = item.getType();
 
         return id == ItemTypes.CARROT || id == ItemTypes.POTATO || id == ItemTypes.BEETROOT;
     }

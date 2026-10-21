@@ -25,8 +25,6 @@ import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudVirtualStorageSection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
-
 
 /**
  * A {@link VirtualChestScreen} implementation that presents a 27-slot chest GUI to a player
@@ -90,8 +88,8 @@ public class CloudVirtualChestScreen extends CloudContainerScreen implements Vir
                 level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ(), BlockLayer.SECONDARY)
         };
 
-        BlockState chestState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.CHEST);
-        BlockState airState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.AIR);
+        BlockState chestState = BlockTypes.CHEST.getDefaultState();
+        BlockState airState = BlockTypes.AIR.getDefaultState();
 
         CloudBlock fakeBlock = new CloudBlock(level, fakePos, new BlockState[]{chestState, airState});
         level.sendBlocks(

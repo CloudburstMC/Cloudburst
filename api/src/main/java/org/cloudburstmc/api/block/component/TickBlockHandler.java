@@ -11,7 +11,7 @@ import java.util.random.RandomGenerator;
 public interface TickBlockHandler {
 
     /**
-     * @param block the block being ticked
+     * @param block  the block being ticked
      * @param random the random source
      */
     void execute(Block block, RandomGenerator random);

@@ -37,15 +37,15 @@ populators:
   - id: "cloudburst:shrub"
     chance: 0.015625 # about 4 per chunk
     on: "grass_block"
-    replace: "air,short_grass"
+    replace: ["air", "short_grass"]
     roundDown: false
-    block: "2*dandelion,poppy"
+    block: ["2*dandelion", "poppy"]
 
     # Double plants
   - id: "cloudburst:double_plant"
     chance: 0.01171875 # about 3 per chunk
     on: "grass_block"
-    replace: "air,short_grass"
+    replace: ["air", "short_grass"]
     types:
       - 1 # lilac
       - 4 # rose

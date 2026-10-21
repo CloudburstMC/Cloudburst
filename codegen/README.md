@@ -12,7 +12,7 @@ On Windows, use `gradlew.bat` instead of `./gradlew`.
 
 ## Generated catalogs
 
-The command runs all four generators:
+The command runs all generators:
 
 | Generator         | Output                                                                           |
 | ----------------- | -------------------------------------------------------------------------------- |
@@ -21,7 +21,7 @@ The command runs all four generators:
 | `ParticleDataGen` | `ParticleTypes` and `ParticleEmitterTypes`                                       |
 | `SoundDataGen`    | `SoundTypes`                                                                     |
 
-Do not edit these generated classes by hand. Update their inputs and run the generator again.
+Do not edit generated outputs by hand. Update their inputs and run the generator again.
 
 ## Source layout
 

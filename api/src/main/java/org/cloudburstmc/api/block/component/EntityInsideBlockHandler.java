@@ -12,8 +12,8 @@ public interface EntityInsideBlockHandler {
     /**
      * Runs the block's inside-entity behavior.
      *
-     * @param block the block containing the entity
-     * @param entity the entity inside the block
+     * @param block   the block containing the entity
+     * @param entity  the entity inside the block
      * @param precise whether precise inside-block collision checks were used
      */
     void execute(Block block, Entity entity, boolean precise);

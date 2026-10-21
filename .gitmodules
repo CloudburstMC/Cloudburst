@@ -1,6 +1,7 @@
 [submodule "src/main/resources/data"]
 	path = server/src/main/resources/data
 	url = https://github.com/CloudburstMC/Data.git
+	branch = temp/26.50-geometry
 [submodule "src/main/resources/locale/cloudburst"]
 	path = server/src/main/resources/locale/cloudburst
 	url = https://github.com/CloudburstMC/Languages.git

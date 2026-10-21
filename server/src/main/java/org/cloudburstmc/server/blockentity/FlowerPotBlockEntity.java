@@ -10,9 +10,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
+import org.cloudburstmc.server.block.BlockStateCodec;
 
-import static org.cloudburstmc.api.block.BlockTypes.AIR;
 
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
@@ -26,17 +25,14 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
+        if (tag.containsKey("item") || tag.containsKey("mData")) {
+            throw new UnsupportedOperationException("Numeric flower pot data is no longer supported");
+        }
 
-        if (tag.containsKey("item") && tag.containsKey("mData")) {
-            short id = tag.getShort("item");
-            int meta = tag.getInt("mData");
-
-            this.plant = registry.getBlock(id, meta);
-        } else if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
+        if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
             NbtMap plantTag = tag.getCompound("PlantBlock");
 
-            this.plant = CloudBlockRegistry.REGISTRY.getBlock(plantTag);
+            this.plant = BlockStateCodec.read(plantTag);
         }
     }
 
@@ -54,7 +50,7 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     public void setPlant(BlockState blockState) {
-        this.plant = blockState == null ? CloudBlockRegistry.REGISTRY.getBlock(AIR) : blockState;
+        this.plant = blockState == null ? BlockStates.AIR : blockState;
     }
 
     @Override

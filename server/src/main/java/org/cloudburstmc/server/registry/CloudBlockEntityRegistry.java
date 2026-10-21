@@ -181,6 +181,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         registerVanilla(BlockEntityTypes.CAULDRON, CauldronBlockEntity::new, "Cauldron");
         registerVanilla(BlockEntityTypes.CHEST, ChestBlockEntity::new, "Chest");
         registerVanilla(BlockEntityTypes.COMPARATOR, ComparatorBlockEntity::new, "Comparator");
+        registerVanilla(BlockEntityTypes.CONDUIT, ConduitBlockEntity::new, "Conduit");
         registerVanilla(BlockEntityTypes.CRAFTER, CrafterBlockEntity::new, "Crafter");
         registerVanilla(BlockEntityTypes.DAYLIGHT_DETECTOR, DaylightDetectorBlockEntity::new, "DaylightDetector");
         registerVanilla(BlockEntityTypes.DISPENSER, DispenserBlockEntity::new, "Dispenser");

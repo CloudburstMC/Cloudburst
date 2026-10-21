@@ -11,13 +11,25 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.potion.EffectType;
-import org.cloudburstmc.server.registry.*;
+import org.cloudburstmc.api.registry.BlockRegistry;
+import org.cloudburstmc.server.registry.CloudEffectRegistry;
+import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
+import org.cloudburstmc.server.registry.CloudItemRegistry;
+import org.cloudburstmc.server.registry.CloudParticleRegistry;
+
+import java.util.Objects;
 
 /**
  * Creates command arguments backed by server-owned registries and selector parsing.
  */
 public class CloudCommandArguments implements CommandArguments {
+
+    private final BlockRegistry blocks;
     private final CloudSelectorArguments selectors = new CloudSelectorArguments();
+
+    public CloudCommandArguments(BlockRegistry blocks) {
+        this.blocks = Objects.requireNonNull(blocks, "blocks");
+    }
 
     @Override
     public CommandArgumentType<ItemType> item(@Nullable String displayName) {
@@ -27,7 +39,7 @@ public class CloudCommandArguments implements CommandArguments {
 
     @Override
     public CommandArgumentType<BlockType> block(@Nullable String displayName) {
-        return CommandArgumentTypes.block(displayName, CloudBlockRegistry.REGISTRY);
+        return CommandArgumentTypes.block(displayName, this.blocks);
     }
 
     @Override

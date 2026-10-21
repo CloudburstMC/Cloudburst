@@ -68,7 +68,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     @Setter
     @Getter
     protected float movementSpeed = 0.1f;
-    protected int turtleTicks = 200;
 
     public EntityLiving(EntityType<?> type, Location location) {
         super(type, location);
@@ -121,6 +120,11 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
+    public boolean blocksBuilding() {
+        return true;
+    }
+
+    @Override
     public boolean isClimbing() {
         if (this instanceof CloudPlayer player && (player.isSpectator() || player.getAbilities().get(Ability.FLYING))) {
             return false;
@@ -157,20 +161,12 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     @Override
     public boolean entityBaseTick(int tickDiff) {
         try (Timing ignored = Timings.livingEntityBaseTickTimer.startTiming()) {
-            boolean isBreathing = !this.isInsideOfWater();
+            boolean inWater = this.isInsideOfWater();
+            boolean inBubbleColumn = inWater && this.level.getBlockState(this.position.add(0, this.getEyeHeight(), 0).toInt()).getType() == BlockTypes.BUBBLE_COLUMN;
+            boolean waterBreathing = this.canBreatheUnderwater() || this.hasPotionEffect(EffectTypes.WATER_BREATHING) || this.hasPotionEffect(EffectTypes.CONDUIT_POWER);
+            boolean isBreathing = !inWater || inBubbleColumn || waterBreathing;
             if (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator())) {
                 isBreathing = true;
-            }
-
-            if (this instanceof CloudPlayer) {
-                if (!isBreathing && ((CloudPlayer) this).getArmor().getHelmet().getType() == ItemTypes.TURTLE_HELMET) {
-                    if (turtleTicks > 0) {
-                        isBreathing = true;
-                        turtleTicks--;
-                    }
-                } else {
-                    turtleTicks = 200;
-                }
             }
 
             this.data.setFlag(BREATHING, isBreathing);
@@ -179,7 +175,6 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             this.tickFreezing(tickDiff);
 
             if (this.isAlive()) {
-
                 if (this.isInsideOfSolid()) {
                     hasUpdate = true;
                     this.damage(1, DamageSource.of(DamageTypes.IN_WALL));
@@ -190,21 +185,19 @@ public abstract class EntityLiving extends CloudEntity implements Living {
                     this.resetFallDistance();
                 }
 
-                if (!this.hasPotionEffect(EffectTypes.WATER_BREATHING) && this.isInsideOfWater()) {
-                    if (this instanceof EntityWaterAnimal || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
+                if (inWater) {
+                    if (inBubbleColumn || waterBreathing || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
                         this.setAirTicks(400);
                     } else {
-                        if (turtleTicks == 0 || turtleTicks == 200) {
-                            hasUpdate = true;
-                            int airTicks = this.getAirTicks() - tickDiff;
+                        hasUpdate = true;
+                        int airTicks = this.getAirTicks() - tickDiff;
 
-                            if (airTicks <= -20) {
-                                airTicks = 0;
-                                this.damage(2, DamageSource.of(DamageTypes.DROWN));
-                            }
-
-                            setAirTicks(airTicks);
+                        if (airTicks <= -20) {
+                            airTicks = 0;
+                            this.damage(2, DamageSource.of(DamageTypes.DROWN));
                         }
+
+                        setAirTicks(airTicks);
                     }
                 } else {
                     if (this instanceof EntityWaterAnimal) {
@@ -244,6 +237,10 @@ public abstract class EntityLiving extends CloudEntity implements Living {
             if (block.getState().getType() == MAGMA) block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
             return hasUpdate;
         }
+    }
+
+    protected boolean canBreatheUnderwater() {
+        return this instanceof EntityWaterAnimal;
     }
 
     public void markInPowderSnow() {

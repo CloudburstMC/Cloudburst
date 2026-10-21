@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.common.misc.file.PFiles;
 import org.cloudburstmc.api.configuration.Configuration;
+import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.CloudServer;
@@ -12,6 +13,7 @@ import org.cloudburstmc.server.level.generator.GeneratorConfigurationMapper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -44,7 +46,7 @@ public class StandardGeneratorUtils {
                 in = Bootstrap.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
-                var plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
+                Optional<PluginContainer> plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
                 if (plugin.isPresent()) {
                     in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                 }

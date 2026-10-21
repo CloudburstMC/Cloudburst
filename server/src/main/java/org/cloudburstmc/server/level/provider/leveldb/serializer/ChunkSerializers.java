@@ -12,9 +12,6 @@ public class ChunkSerializers {
     private static final IntObjectMap<ChunkSerializer> SERIALIZERS = new IntObjectHashMap<>();
 
     static {
-        SERIALIZERS.put(0, ChunkSerializerV1.INSTANCE);
-        SERIALIZERS.put(1, ChunkSerializerV1.INSTANCE);
-        SERIALIZERS.put(2, ChunkSerializerV1.INSTANCE);
         SERIALIZERS.put(3, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(4, ChunkSerializerV3.INSTANCE);
         SERIALIZERS.put(5, ChunkSerializerV3.INSTANCE);
@@ -58,6 +55,10 @@ public class ChunkSerializers {
     }
 
     private static ChunkSerializer getChunkSerializer(int version) {
+        if (version >= 0 && version <= 2) {
+            throw new UnsupportedOperationException("Numeric-ID chunk storage requires world migration: version " + version);
+        }
+
         ChunkSerializer chunkSerializer = SERIALIZERS.get(version);
         if (chunkSerializer == null) {
             throw new IllegalArgumentException("Invalid chunk serialize version " + version);

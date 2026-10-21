@@ -4,6 +4,7 @@ import lombok.Builder;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.item.ItemType;
+import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -15,7 +16,8 @@ import java.util.function.UnaryOperator;
 @Builder
 public record BlockTransformation(UnaryOperator<BlockState> transform, boolean requiresAirAbove,
                                   Set<Direction> disallowedFaces, SoundEvent sound,
-                                  @Nullable LevelEvent particle, @Nullable ItemType drop, boolean consumesItem) {
+                                  @Nullable SoundType soundOverride, @Nullable LevelEvent particle,
+                                  @Nullable ItemType drop, boolean consumesItem) {
     public BlockTransformation {
         Objects.requireNonNull(transform, "transform");
         disallowedFaces = disallowedFaces == null ? Set.of() : Set.copyOf(disallowedFaces);

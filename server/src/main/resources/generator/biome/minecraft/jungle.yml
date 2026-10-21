@@ -45,7 +45,7 @@ populators:
   - id: "cloudburst:huge_tree"
     chance: 0.02197265625 # about 5.625 per chunk
     on: "grass_block"
-    replace: "air,jungle_leaves"
+    replace: ["air", "jungle_leaves"]
     below: "grass_block"
     type: "jungle"
 
@@ -63,10 +63,10 @@ populators:
     on: "grass_block"
     replace: "air"
     roundDown: false
-    block: "2*dandelion,poppy"
+    block: ["2*dandelion", "poppy"]
 
     # Tall grass
   - id: "cloudburst:shrub"
     chance: 0.09765625 # about 25 per chunk
     on: "grass_block"
-    block: "3*short_grass,fern"
+    block: ["3*short_grass", "fern"]

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.blockentity;
 
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTags;
+import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
@@ -109,7 +111,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     private boolean hasSkyAccess() {
         //Check every block from our y coord to the top of the world
         for (int y = getPosition().getY() + 1; y <= 255; y++) {
-            var state = getLevel().getBlockState(getPosition().getX(), y, getPosition().getZ());
+            BlockState state = getLevel().getBlockState(getPosition().getX(), y, getPosition().getZ());
             if (!state.is(BlockTags.TRANSPARENT)) {
                 //There is no sky access
                 return false;
@@ -131,7 +133,7 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
             for (int queryX = tileX - powerLevel; queryX <= tileX + powerLevel; queryX++) {
                 for (int queryZ = tileZ - powerLevel; queryZ <= tileZ + powerLevel; queryZ++) {
 
-                    var testBlockId = getLevel().getBlockState(queryX, queryY, queryZ).getType();
+                    BlockType testBlockId = getLevel().getBlockState(queryX, queryY, queryZ).getType();
                     if (testBlockId != IRON_BLOCK && testBlockId != GOLD_BLOCK && testBlockId != EMERALD_BLOCK &&
                             testBlockId != DIAMOND_BLOCK) {
                         return powerLevel - 1;

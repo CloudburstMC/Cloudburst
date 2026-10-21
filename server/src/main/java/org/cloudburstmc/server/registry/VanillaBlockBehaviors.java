@@ -6,13 +6,18 @@ import org.cloudburstmc.api.block.component.BlockLootHandler;
 import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
+import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.level.sound.SoundTypes;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.server.block.component.*;
+import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +35,19 @@ public class VanillaBlockBehaviors {
     );
 
     private static final int MAXIMUM_FALL_DAMAGE = 40;
+
+    private static final List<CoralFamily> CORALS = List.of(
+            new CoralFamily(BRAIN_CORAL_BLOCK, DEAD_BRAIN_CORAL_BLOCK, BRAIN_CORAL, DEAD_BRAIN_CORAL,
+                    BRAIN_CORAL_FAN, DEAD_BRAIN_CORAL_FAN, BRAIN_CORAL_WALL_FAN, DEAD_BRAIN_CORAL_WALL_FAN),
+            new CoralFamily(BUBBLE_CORAL_BLOCK, DEAD_BUBBLE_CORAL_BLOCK, BUBBLE_CORAL, DEAD_BUBBLE_CORAL,
+                    BUBBLE_CORAL_FAN, DEAD_BUBBLE_CORAL_FAN, BUBBLE_CORAL_WALL_FAN, DEAD_BUBBLE_CORAL_WALL_FAN),
+            new CoralFamily(FIRE_CORAL_BLOCK, DEAD_FIRE_CORAL_BLOCK, FIRE_CORAL, DEAD_FIRE_CORAL,
+                    FIRE_CORAL_FAN, DEAD_FIRE_CORAL_FAN, FIRE_CORAL_WALL_FAN, DEAD_FIRE_CORAL_WALL_FAN),
+            new CoralFamily(HORN_CORAL_BLOCK, DEAD_HORN_CORAL_BLOCK, HORN_CORAL, DEAD_HORN_CORAL,
+                    HORN_CORAL_FAN, DEAD_HORN_CORAL_FAN, HORN_CORAL_WALL_FAN, DEAD_HORN_CORAL_WALL_FAN),
+            new CoralFamily(TUBE_CORAL_BLOCK, DEAD_TUBE_CORAL_BLOCK, TUBE_CORAL, DEAD_TUBE_CORAL,
+                    TUBE_CORAL_FAN, DEAD_TUBE_CORAL_FAN, TUBE_CORAL_WALL_FAN, DEAD_TUBE_CORAL_WALL_FAN)
+    );
 
     private static final Map<ItemType, BlockType> CANDLE_CAKES = Map.ofEntries(
             Map.entry(ItemTypes.CANDLE, CANDLE_CAKE),
@@ -81,6 +99,7 @@ public class VanillaBlockBehaviors {
         configureFences(registry);
         configureBars(registry);
         configureColoredBuildingBlockSlabs(registry);
+        configureAquaticBlocks(registry);
         configureStairs(registry);
         configureVegetation(registry);
         configureWalls(registry);
@@ -104,6 +123,17 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, BARREL, ContainerBlockHandlers.BARREL);
         configureUsable(registry, BEACON, ContainerBlockHandlers.BEACON);
         configureBed(registry, BED);
+        registry.configure(BIG_DRIPLEAF)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, BigDripleafBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, BigDripleafBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_STATE_CHANGED, BigDripleafBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, BigDripleafBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_ENTITY_INSIDE, BigDripleafBlockHandlers.ON_ENTITY_INSIDE)
+                .set(BlockComponents.ON_PROJECTILE_HIT, BigDripleafBlockHandlers.ON_PROJECTILE_HIT)
+                .set(BlockComponents.ON_TICK, BigDripleafBlockHandlers.ON_TICK)
+                .set(BlockComponents.FERTILIZE, BigDripleafBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, BigDripleafBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, BigDripleafBlockHandlers.GET_PICK_BLOCK);
         configureWoodenButton(registry, BIRCH_BUTTON);
         configureDoor(registry, BIRCH_DOOR);
         configureHangingSign(registry, BIRCH_HANGING_SIGN);
@@ -115,6 +145,7 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, BLACKSTONE_SLAB, BLACKSTONE_DOUBLE_SLAB);
         configureUsable(registry, BLAST_FURNACE, ContainerBlockHandlers.BLAST_FURNACE);
         configureConcretePowder(registry, BLUE_CONCRETE_POWDER, BLUE_CONCRETE);
+        registry.configure(BLUE_ICE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(BLUE_ICE));
         configureShulkerBox(registry, BLUE_SHULKER_BOX);
         configureUsable(registry, BREWING_STAND, ContainerBlockHandlers.BREWING_STAND);
         configureSlab(registry, BRICK_SLAB, BRICK_DOUBLE_SLAB);
@@ -122,7 +153,9 @@ public class VanillaBlockBehaviors {
         configureShulkerBox(registry, BROWN_SHULKER_BOX);
         registry.configure(BUBBLE_COLUMN)
                 .set(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> true)
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.update(block))
+                .set(BlockComponents.ON_STATE_CHANGED, BubbleColumnBlockHandlers::schedule)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.schedule(block))
+                .set(BlockComponents.ON_TICK, (block, random) -> BubbleColumnBlockHandlers.update(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, BubbleColumnBlockHandlers.ON_ENTITY_INSIDE);
         registry.configure(BUSH).set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOrSilkTouchOnly(BUSH));
         registry.configure(CACTUS).set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.CACTUS_ENTITY_INSIDE);
@@ -133,6 +166,12 @@ public class VanillaBlockBehaviors {
                 BlockIgnitionHandlers.litState(BlockTraits.IS_EXTINGUISHED, false));
         configureUsable(registry, CARTOGRAPHY_TABLE, ContainerBlockHandlers.CARTOGRAPHY_TABLE);
         registry.configure(CARVED_PUMPKIN).set(BlockComponents.ON_PLACE, new CarvedPumpkinPlaceHandler());
+        registry.configure(CAULDRON)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, CauldronBlockHandlers.USE)
+                .set(BlockComponents.ON_STATE_CHANGED, CauldronBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_TICK, CauldronBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_ENTITY_INSIDE, CauldronBlockHandlers.ON_ENTITY_INSIDE);
         configureWoodenButton(registry, CHERRY_BUTTON);
         configureDoor(registry, CHERRY_DOOR);
         configureHangingSign(registry, CHERRY_HANGING_SIGN);
@@ -163,6 +202,7 @@ public class VanillaBlockBehaviors {
         configureTorch(registry, COLORED_TORCH_GREEN);
         configureTorch(registry, COLORED_TORCH_PURPLE);
         configureTorch(registry, COLORED_TORCH_RED);
+        registry.configure(CONDUIT).set(BlockComponents.ON_STATE_CHANGED, ConduitBlockHandlers.ON_STATE_CHANGED);
         configureDoor(registry, COPPER_DOOR);
         configureOre(registry, COPPER_ORE, OreLoot.copper(COPPER_ORE.getDefaultState()));
         configureTorch(registry, COPPER_TORCH);
@@ -207,6 +247,12 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ATTACK, DragonEggBlockHandlers.ATTACK)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, DragonEggBlockHandlers.USE);
+        registry.configure(DRIED_GHAST)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_ADDED, DriedGhastBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_LIQUID_CHANGED, DriedGhastBlockHandlers.ON_LIQUID_CHANGED)
+                .set(BlockComponents.ON_RANDOM_TICK, DriedGhastBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.ON_TICK, DriedGhastBlockHandlers.ON_TICK);
         configureUsable(registry, DROPPER, ContainerBlockHandlers.DROPPER);
         configureOre(registry, EMERALD_ORE, OreLoot.emerald(EMERALD_ORE.getDefaultState()));
         configureUsable(registry, ENCHANTING_TABLE, ContainerBlockHandlers.ENCHANTING_TABLE);
@@ -233,17 +279,27 @@ public class VanillaBlockBehaviors {
         configureLiquid(registry, FLOWING_LAVA, LiquidTypes.FLOWING_LAVA)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
-                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE);
         configureLiquid(registry, FLOWING_WATER, LiquidTypes.FLOWING_WATER)
-                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
+                .set(BlockComponents.ON_STATE_CHANGED, BubbleColumnBlockHandlers::scheduleFormation)
+                .set(BlockComponents.ON_TICK, (block, random) -> BubbleColumnBlockHandlers.update(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {
+                    LiquidBlockHandlers.schedule(block);
+                    BubbleColumnBlockHandlers.scheduleFormation(block);
+                });
         configureItemFrame(registry, FRAME);
+        registry.configure(FROSTED_ICE)
+                .set(BlockComponents.AFTER_BREAK, IceBlockHandlers.AFTER_BREAK)
+                .set(BlockComponents.ON_ADDED, FrostedIceBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_TICK, FrostedIceBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_REMOVE, FrostedIceBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.GET_PICK_BLOCK, FrostedIceBlockHandlers.GET_PICK_BLOCK);
         configureUsable(registry, FURNACE, ContainerBlockHandlers.FURNACE);
         registry.configure(GLASS).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(GLASS));
         configureItemFrame(registry, GLOW_FRAME);
-        registry.configure(GLOWSTONE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.glowstone(GLOWSTONE));
+        registry.configure(GLOWSTONE)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchWithUniformBonus(GLOWSTONE, ItemTypes.GLOWSTONE_DUST, 2, 4, 4));
         configureOre(registry, GOLD_ORE, OreLoot.gold(GOLD_ORE.getDefaultState()));
         configurePoweredRail(registry, GOLDEN_RAIL);
         configureSlab(registry, GRANITE_SLAB, GRANITE_DOUBLE_SLAB);
@@ -258,6 +314,11 @@ public class VanillaBlockBehaviors {
         configureShulkerBox(registry, GREEN_SHULKER_BOX);
         configureUsable(registry, GRINDSTONE, ContainerBlockHandlers.GRINDSTONE);
         configureUsable(registry, HOPPER, ContainerBlockHandlers.HOPPER);
+        registry.configure(ICE)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(ICE))
+                .set(BlockComponents.AFTER_BREAK, IceBlockHandlers.AFTER_BREAK)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, IceBlockHandlers.ON_RANDOM_TICK);
         configureDoor(registry, IRON_DOOR);
         configureOre(registry, IRON_ORE, OreLoot.iron(IRON_ORE.getDefaultState()));
         configureTrapdoor(registry, IRON_TRAPDOOR);
@@ -271,11 +332,12 @@ public class VanillaBlockBehaviors {
         configureLiquid(registry, LAVA, LiquidTypes.LAVA)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, LiquidBlockHandlers::randomTick)
-                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block))
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.LAVA_ENTITY_INSIDE);
         configureUsable(registry, LECTERN, LecternBlockHandlers.USE);
         registry.configure(LEVER)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, LeverBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, LeverBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
                 .set(BlockComponents.ON_PLACE, new LeverPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, LeverBlockHandlers.USE)
@@ -296,13 +358,20 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, LOOM, ContainerBlockHandlers.LOOM);
         configureConcretePowder(registry, MAGENTA_CONCRETE_POWDER, MAGENTA_CONCRETE);
         configureShulkerBox(registry, MAGENTA_SHULKER_BOX);
-        registry.configure(MAGMA)
-                .set(BlockComponents.ON_PLACE, BubbleColumnBlockHandlers.supportPlacement())
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.updateAbove(block));
         configureWoodenButton(registry, MANGROVE_BUTTON);
         configureDoor(registry, MANGROVE_DOOR);
         configureHangingSign(registry, MANGROVE_HANGING_SIGN);
         configureLeaves(registry, MANGROVE_LEAVES, VanillaBlockLoot.mangroveLeaves(MANGROVE_LEAVES));
+        registry.configure(MANGROVE_LEAVES).set(BlockComponents.FERTILIZE, MangrovePropaguleBlockHandlers.FERTILIZE_LEAVES);
+        registry.configure(MANGROVE_PROPAGULE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, MangrovePropaguleBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, MangrovePropaguleBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, MangrovePropaguleBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, MangrovePropaguleBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.FERTILIZE, MangrovePropaguleBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, MangrovePropaguleBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, MangrovePropaguleBlockHandlers.GET_PICK_BLOCK);
         configureSlab(registry, MANGROVE_SLAB, MANGROVE_DOUBLE_SLAB);
         configureTrapdoor(registry, MANGROVE_TRAPDOOR);
         configureSlab(registry, MOSSY_COBBLESTONE_SLAB, MOSSY_COBBLESTONE_DOUBLE_SLAB);
@@ -336,6 +405,18 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, PINK_CONCRETE_POWDER, PINK_CONCRETE);
         configureShulkerBox(registry, PINK_SHULKER_BOX);
         registry.configure(PODZOL).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchAlternative(PODZOL, DIRT));
+        registry.configure(POINTED_DRIPSTONE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, PointedDripstoneBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, PointedDripstoneBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.START_FALLING, PointedDripstoneBlockHandlers.START_FALLING)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, PointedDripstoneBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PointedDripstoneBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, PointedDripstoneBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_FALL_ON, PointedDripstoneBlockHandlers.ON_FALL_ON)
+                .set(BlockComponents.ON_PROJECTILE_HIT, PointedDripstoneBlockHandlers.ON_PROJECTILE_HIT)
+                .set(BlockComponents.BREAKS_ON_LANDING, true)
+                .set(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_STALACTITE, entity));
         configureSlab(registry, POLISHED_ANDESITE_SLAB, POLISHED_ANDESITE_DOUBLE_SLAB);
         configureSlab(registry, POLISHED_BLACKSTONE_BRICK_SLAB, POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB);
         configureStoneButton(registry, POLISHED_BLACKSTONE_BUTTON);
@@ -347,6 +428,7 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, POLISHED_SULFUR_SLAB, POLISHED_SULFUR_DOUBLE_SLAB);
         configureSlab(registry, POLISHED_TUFF_SLAB, POLISHED_TUFF_DOUBLE_SLAB);
         configureWoodenButton(registry, POPLAR_BUTTON);
+        registry.configure(PACKED_ICE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(PACKED_ICE));
         configureDoor(registry, POPLAR_DOOR);
         configureHangingSign(registry, POPLAR_HANGING_SIGN);
         configureSlab(registry, POPLAR_SLAB, POPLAR_DOUBLE_SLAB);
@@ -379,10 +461,23 @@ public class VanillaBlockBehaviors {
         configureShulkerBox(registry, RED_SHULKER_BOX);
         configureOre(registry, REDSTONE_ORE, OreLoot.redstone(REDSTONE_ORE.getDefaultState()));
         configureTorch(registry, REDSTONE_TORCH);
+        registry.configure(REDSTONE_TORCH)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> face != block.getState().ensureTrait(BlockTraits.TORCH_DIRECTION) ? 15 : 0)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, (block, face) -> face == Direction.UP ? 15 : 0);
+        registry.configure(REDSTONE_BLOCK).set(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> 15);
         configureSlab(registry, RESIN_BRICK_SLAB, RESIN_BRICK_DOUBLE_SLAB);
         configureUsable(registry, RESPAWN_ANCHOR, RespawnAnchorBlockHandlers.RESPAWN_ANCHOR);
         configureFalling(registry, SAND, SoundTypes.LAND_SAND, SoundTypes.DIG_SAND);
         configureSlab(registry, SANDSTONE_SLAB, SANDSTONE_DOUBLE_SLAB);
+        registry.configure(SEA_LANTERN)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchWithUniformBonus(SEA_LANTERN, ItemTypes.PRISMARINE_CRYSTALS, 2, 3, 5));
+        registry.configure(SEA_PICKLE)
+                .set(BlockComponents.CAN_BE_REPLACED, SeaPickleBlockHandlers.CAN_BE_REPLACED)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SeaPickleBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, SeaPickleBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(SeaPickleBlockHandlers.CAN_SURVIVE))
+                .set(BlockComponents.FERTILIZE, SeaPickleBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, SeaPickleBlockHandlers.GET_LOOT);
         configureUsable(registry, SMITHING_TABLE, ContainerBlockHandlers.SMITHING_TABLE);
         configureUsable(registry, SMOKER, ContainerBlockHandlers.SMOKER);
         configureSlab(registry, SMOOTH_QUARTZ_SLAB, SMOOTH_QUARTZ_DOUBLE_SLAB);
@@ -407,13 +502,22 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FireBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE);
         registry.configure(SOUL_SAND)
-                .set(BlockComponents.ON_PLACE, BubbleColumnBlockHandlers.supportPlacement())
-                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.FULL_BLOCK_SUPPORT_SHAPE)
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> BubbleColumnBlockHandlers.updateAbove(block));
+                .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.FULL_BLOCK_SUPPORT_SHAPE);
         configureTorch(registry, SOUL_TORCH);
         registry.configure(SPONGE)
-                .set(BlockComponents.ON_PLACE, SpongeBlockHandlers.place())
+                .set(BlockComponents.ON_STATE_CHANGED, SpongeBlockHandlers::absorb)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> SpongeBlockHandlers.absorb(block));
+        registry.configure(SMALL_DRIPLEAF_BLOCK)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SmallDripleafBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_BE_PLACED, SmallDripleafBlockHandlers.CAN_BE_PLACED)
+                .set(BlockComponents.CAN_SURVIVE, SmallDripleafBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_STATE_CHANGED, SmallDripleafBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_PLACE, SmallDripleafBlockHandlers.ON_PLACE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SmallDripleafBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, SmallDripleafBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_DESTROY, SmallDripleafBlockHandlers.ON_DESTROY)
+                .set(BlockComponents.FERTILIZE, SmallDripleafBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOnly(SMALL_DRIPLEAF_BLOCK));
         configureWoodenButton(registry, SPRUCE_BUTTON);
         configureDoor(registry, SPRUCE_DOOR);
         configureHangingSign(registry, SPRUCE_HANGING_SIGN);
@@ -465,6 +569,17 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_DESTROY, TripwireHookBlockHandlers.ON_DESTROY);
         configureSlab(registry, TUFF_BRICK_SLAB, TUFF_BRICK_DOUBLE_SLAB);
         configureSlab(registry, TUFF_SLAB, TUFF_DOUBLE_SLAB);
+        registry.configure(TURTLE_EGG)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_ADDED, TurtleEggBlockHandlers.ON_ADDED)
+                .set(BlockComponents.CAN_BE_REPLACED, TurtleEggBlockHandlers.CAN_BE_REPLACED)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, TurtleEggBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.ON_PLACE, TurtleEggBlockHandlers.ON_PLACE)
+                .set(BlockComponents.ON_DESTROY, TurtleEggBlockHandlers.ON_DESTROY)
+                .set(BlockComponents.ON_STEP_ON, TurtleEggBlockHandlers.ON_STEP_ON)
+                .set(BlockComponents.ON_FALL_ON, TurtleEggBlockHandlers.ON_FALL_ON)
+                .set(BlockComponents.ON_RANDOM_TICK, TurtleEggBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(TURTLE_EGG));
         configureTorch(registry, UNDERWATER_TORCH);
         configureShulkerBox(registry, UNDYED_SHULKER_BOX);
         configureTorch(registry, UNLIT_REDSTONE_TORCH);
@@ -475,8 +590,16 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, WARPED_SLAB, WARPED_DOUBLE_SLAB);
         configureTrapdoor(registry, WARPED_TRAPDOOR);
         configureLiquid(registry, WATER, LiquidTypes.WATER)
-                .set(BlockComponents.ON_TICK, (block, random) -> LiquidBlockHandlers.tick(block))
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> LiquidBlockHandlers.schedule(block));
+                .set(BlockComponents.ON_STATE_CHANGED, BubbleColumnBlockHandlers::scheduleFormation)
+                .set(BlockComponents.ON_TICK, (block, random) -> BubbleColumnBlockHandlers.update(block))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {
+                    LiquidBlockHandlers.schedule(block);
+                    BubbleColumnBlockHandlers.scheduleFormation(block);
+                });
+        registry.configure(WATERLILY)
+                .set(BlockComponents.CAN_SURVIVE, LilyPadBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(LilyPadBlockHandlers.CAN_SURVIVE))
+                .set(BlockComponents.ON_ENTITY_INSIDE, LilyPadBlockHandlers.ON_ENTITY_INSIDE);
         configureDoor(registry, WAXED_COPPER_DOOR);
         configureTrapdoor(registry, WAXED_COPPER_TRAPDOOR);
         configureSlab(registry, WAXED_CUT_COPPER_SLAB, WAXED_DOUBLE_CUT_COPPER_SLAB);
@@ -494,6 +617,8 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, WEATHERED_CUT_COPPER_SLAB, WEATHERED_DOUBLE_CUT_COPPER_SLAB);
         registry.configure(WEB)
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.WEB_ENTITY_INSIDE);
+        registry.configure(WET_SPONGE).set(BlockComponents.ON_STATE_CHANGED,
+                block -> SpongeBlockHandlers.dry(block, ((CloudLevel) block.getLevel()).getDimension() == CloudLevel.DIMENSION_NETHER));
         configureConcretePowder(registry, WHITE_CONCRETE_POWDER, WHITE_CONCRETE);
         configureShulkerBox(registry, WHITE_SHULKER_BOX);
         configureConcretePowder(registry, YELLOW_CONCRETE_POWDER, YELLOW_CONCRETE);
@@ -515,10 +640,44 @@ public class VanillaBlockBehaviors {
         for (BlockType type : NO_LOOT_BLOCKS) {
             registry.configure(type).set(BlockComponents.GET_LOOT, DefaultBlockHandlers.NO_LOOT);
         }
+        configureLightOcclusion(registry);
+    }
+
+    private static void configureLightOcclusion(CloudBlockRegistry registry) {
+        for (BlockType type : VanillaBlockTags.values(BlockTags.SLAB)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.OUTLINE);
+        }
+
+        for (BlockType type : VanillaBlockTags.values(BlockTags.STAIRS)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.STAIRS);
+        }
+
+        for (BlockType type : List.of(DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED, ENCHANTING_TABLE, FARMLAND, GRASS_PATH, SNOW_LAYER)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.OUTLINE);
+        }
+
+        for (BlockType type : List.of(SCULK_SENSOR, CALIBRATED_SCULK_SENSOR, SCULK_SHRIEKER)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, state -> CloudVoxelShapes.box(0, 0, 0, 1, 0.5f, 1));
+        }
+
+        for (BlockType type : List.of(ACACIA_SHELF, BAMBOO_SHELF, BIRCH_SHELF, CHERRY_SHELF, CRIMSON_SHELF,
+                DARK_OAK_SHELF, JUNGLE_SHELF, MANGROVE_SHELF, OAK_SHELF, PALE_OAK_SHELF, POPLAR_SHELF,
+                SPRUCE_SHELF, WARPED_SHELF)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.SHELF);
+        }
+
+        registry.configure(LECTERN).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.LECTERN);
+        registry.configure(END_PORTAL_FRAME).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, LightOcclusionBlockHandlers.END_PORTAL_FRAME);
+        registry.configure(STONECUTTER_BLOCK).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE,
+                state -> CloudVoxelShapes.box(0, 0, 0, 1, 9 / 16f, 1));
+        for (BlockType type : List.of(PISTON, STICKY_PISTON, PISTON_ARM_COLLISION, STICKY_PISTON_ARM_COLLISION)) {
+            registry.configure(type).set(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, BlockState::getCollisionShape);
+        }
     }
 
     private void configureAnvil(CloudBlockRegistry registry, BlockType type) {
         configureFalling(registry, type, SoundTypes.RANDOM_ANVIL_LAND, SoundTypes.RANDOM_ANVIL_BREAK, 2)
+                .set(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_ANVIL, entity))
                 .set(BlockComponents.ON_FALLING_LAND, FallingBlockHandlers.ANVIL_LAND)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, AnvilBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
@@ -617,7 +776,7 @@ public class VanillaBlockBehaviors {
 
     private ComponentBuilder configureLiquid(CloudBlockRegistry registry, BlockType blockType, LiquidType liquidType) {
         BlockRegistrationAccess.bindLiquidType(blockType, liquidType);
-        return registry.configure(blockType);
+        return registry.configure(blockType).set(BlockComponents.ON_LIQUID_TICK, LiquidBlockHandlers::tick);
     }
 
     private void configureOre(CloudBlockRegistry registry, BlockType type, OreLoot loot) {
@@ -657,6 +816,8 @@ public class VanillaBlockBehaviors {
 
     private void configureStoneButton(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
                 .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.STONE_PRESS_TICKS)
                 .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
@@ -678,10 +839,83 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.USE, TrapdoorBlockHandlers.USE);
     }
 
+    private void configureAquaticBlocks(CloudBlockRegistry registry) {
+        registry.configure(FROG_SPAWN)
+                .set(BlockComponents.CAN_SURVIVE, FrogspawnBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_STATE_CHANGED, FrogspawnBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FrogspawnBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, FrogspawnBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_ENTITY_INSIDE, FrogspawnBlockHandlers.ON_ENTITY_INSIDE);
+
+        registry.configure(KELP)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, KelpBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, KelpBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, KelpBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, KelpBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, KelpBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_REMOVE, KelpBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.FERTILIZE, KelpBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, KelpBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, KelpBlockHandlers.GET_PICK_BLOCK);
+
+        registry.configure(REEDS)
+                .set(BlockComponents.CAN_SURVIVE, SugarCaneBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, SugarCaneBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SugarCaneBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, SugarCaneBlockHandlers.ON_TICK)
+                .set(BlockComponents.FERTILIZE, SugarCaneBlockHandlers.FERTILIZE)
+                .set(BlockComponents.GET_LOOT, SugarCaneBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, SugarCaneBlockHandlers.GET_PICK_BLOCK);
+
+        registry.configure(SEAGRASS)
+                .set(BlockComponents.CAN_SURVIVE, UnderwaterPlantBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, UnderwaterPlantBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_DESTROY, UnderwaterPlantBlockHandlers.ON_DESTROY)
+                .set(BlockComponents.GET_LOOT, UnderwaterPlantBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, block -> ItemStack.from(SEAGRASS.getDefaultState()))
+                .set(BlockComponents.FERTILIZE, UnderwaterPlantBlockHandlers.FERTILIZE);
+
+        for (CoralFamily family : CORALS) {
+            configureCoralDeath(registry, family.block(), family.deadBlock())
+                    .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchAlternative(family.block(), family.deadBlock()));
+
+            for (BlockType type : List.of(family.plant(), family.deadPlant(), family.fan(), family.deadFan(), family.wallFan(), family.deadWallFan())) {
+                BlockType itemBlock = type == family.wallFan() ? family.fan() : type == family.deadWallFan() ? family.deadFan() : type;
+                registry.configure(type)
+                        .set(BlockComponents.CAN_SURVIVE, CoralBlockHandlers.CAN_SURVIVE)
+                        .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(CoralBlockHandlers.CAN_SURVIVE))
+                        .set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchOnly(itemBlock))
+                        .set(BlockComponents.GET_PICK_BLOCK, block -> ItemStack.from(itemBlock.getDefaultState()));
+            }
+
+            configureCoralDeath(registry, family.plant(), family.deadPlant());
+            configureCoralDeath(registry, family.fan(), family.deadFan());
+            configureCoralDeath(registry, family.wallFan(), family.deadWallFan());
+
+            for (BlockType type : List.of(family.fan(), family.wallFan())) {
+                registry.configure(type).set(BlockComponents.RESOLVE_PLACEMENT_STATE, CoralBlockHandlers.fanPlacement(family.fan(), family.wallFan(), family.deadFan(), family.deadWallFan()));
+            }
+
+            for (BlockType type : List.of(family.deadFan(), family.deadWallFan())) {
+                registry.configure(type).set(BlockComponents.RESOLVE_PLACEMENT_STATE, CoralBlockHandlers.fanPlacement(family.deadFan(), family.deadWallFan(), family.deadFan(), family.deadWallFan()));
+            }
+        }
+    }
+
+    private ComponentBuilder configureCoralDeath(CloudBlockRegistry registry, BlockType living, BlockType dead) {
+        return registry.configure(living)
+                .set(BlockComponents.ON_STATE_CHANGED, CoralBlockHandlers.ON_STATE_CHANGED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, CoralBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, CoralBlockHandlers.die(dead));
+    }
+
     private void configureVegetation(CloudBlockRegistry registry) {
         for (BlockType type : SINGLE_PLANTS) {
             configureSinglePlant(registry, type);
         }
+
         registry.configure(CACTUS_FLOWER)
                 .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CACTUS_FLOWER_CAN_SURVIVE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(VegetationBlockHandlers.CACTUS_FLOWER_CAN_SURVIVE));
@@ -689,11 +923,14 @@ public class VanillaBlockBehaviors {
         registry.configure(SHORT_GRASS)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growInto(TALL_GRASS))
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(SHORT_GRASS));
+
         registry.configure(FERN)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growInto(LARGE_FERN))
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(FERN));
+
         registry.configure(SHORT_DRY_GRASS)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.replaceWith(TALL_DRY_GRASS));
+
         registry.configure(SWEET_BERRY_BUSH)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growToAge(3));
 
@@ -791,6 +1028,7 @@ public class VanillaBlockBehaviors {
         configureCakeSupport(registry, type);
         registry.configure(type)
                 .set(BlockComponents.GET_IGNITED_STATE, BlockIgnitionHandlers.litState(BlockTraits.IS_LIT, true))
+                .set(BlockComponents.GET_PICK_BLOCK, block -> ItemStack.from(ItemTypes.CAKE))
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(candle)));
     }
 
@@ -803,11 +1041,17 @@ public class VanillaBlockBehaviors {
 
     private void configureWoodenButton(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
                 .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS)
                 .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
                 .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ButtonBlockHandlers.ON_NEIGHBOUR_CHANGED);
+    }
+
+    private record CoralFamily(BlockType block, BlockType deadBlock, BlockType plant, BlockType deadPlant,
+                               BlockType fan, BlockType deadFan, BlockType wallFan, BlockType deadWallFan) {
     }
 }

@@ -25,7 +25,6 @@ import org.cloudburstmc.server.container.mapping.SimpleContainerMapping;
 import org.cloudburstmc.server.container.view.CloudVirtualHopperSection;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 /**
  * A {@link VirtualHopperScreen} implementation that presents a 5-slot hopper GUI to a player
@@ -89,8 +88,8 @@ public class CloudVirtualHopperScreen extends CloudContainerScreen implements Vi
                 level.getBlockState(fakePos.getX(), fakePos.getY(), fakePos.getZ(), BlockLayer.SECONDARY)
         };
 
-        BlockState hopperState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.HOPPER);
-        BlockState airState = CloudBlockRegistry.REGISTRY.getBlock(BlockTypes.AIR);
+        BlockState hopperState = BlockTypes.HOPPER.getDefaultState();
+        BlockState airState = BlockTypes.AIR.getDefaultState();
 
         CloudBlock fakeBlock = new CloudBlock(level, fakePos, new BlockState[]{hopperState, airState});
         level.sendBlocks(

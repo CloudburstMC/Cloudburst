@@ -1,8 +1,8 @@
 package org.cloudburstmc.server.registry;
 
+import com.google.common.base.Preconditions;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.EnchantmentTarget;
 import org.cloudburstmc.api.entity.EntityType;
@@ -14,6 +14,7 @@ import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.registry.RegistryException;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.item.ArmorMaterial;
@@ -23,11 +24,12 @@ import org.cloudburstmc.server.item.component.*;
 import org.cloudburstmc.server.item.serializer.*;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.cloudburstmc.api.item.ItemTypes.*;
-import static org.cloudburstmc.server.registry.CloudItemRegistry.repairWith;
 
 /**
  * Configures server behavior for vanilla item types.
@@ -161,6 +163,9 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.USE, FishingRodItemHandlers.USE);
         registry.configure(ItemTypes.FLINT_AND_STEEL).set(ItemBehaviors.USE_ON, IgnitionItemHandlers.FLINT_AND_STEEL_USE_ON);
         configureSpawnEgg(registry, ItemTypes.FOX_SPAWN_EGG, EntityTypes.FOX);
+        registry.configure(ItemTypes.FROG_SPAWN)
+                .set(ItemBehaviors.USE, PlaceOnWaterItemHandlers.USE)
+                .set(ItemBehaviors.USE_ON, PlaceOnWaterItemHandlers.USE_ON);
         configureSpawnEgg(registry, ItemTypes.FROG_SPAWN_EGG, EntityTypes.FROG);
         configureSpawnEgg(registry, ItemTypes.GHAST_SPAWN_EGG, EntityTypes.GHAST);
         configureSpawnEgg(registry, ItemTypes.GLOW_SQUID_SPAWN_EGG, EntityTypes.GLOW_SQUID);
@@ -279,6 +284,7 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.SALMON));
         configureSpawnEgg(registry, ItemTypes.SALMON_SPAWN_EGG, EntityTypes.SALMON);
         configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, repairWith());
+        registry.configure(SHEARS).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHEARS));
         configureSpawnEgg(registry, ItemTypes.SHEEP_SPAWN_EGG, EntityTypes.SHEEP);
         configureDamageableEnchantable(registry, ItemTypes.SHIELD, 336, repairWith(ItemTags.WOODEN_TOOL_MATERIALS), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
         registry.configure(ItemTypes.SHIELD)
@@ -309,13 +315,9 @@ public final class VanillaItemBehaviors {
         configureSword(registry, STONE_SWORD, ToolMaterials.STONE, repairWith(ItemTags.STONE_TOOL_MATERIALS));
         configureSpawnEgg(registry, ItemTypes.STRAY_SPAWN_EGG, EntityTypes.STRAY);
         configureSpawnEgg(registry, ItemTypes.STRIDER_SPAWN_EGG, EntityTypes.STRIDER);
-        registry.configure(ItemTypes.STRING)
-                .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.TRIP_WIRE.getDefaultState()));
         registry.configure(ItemTypes.SULFUR_CUBE_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(EntityTypes.SULFUR_CUBE));
         configureSpawnEgg(registry, ItemTypes.SULFUR_CUBE_SPAWN_EGG, EntityTypes.SULFUR_CUBE);
-        registry.configure(ItemTypes.SWEET_BERRIES)
-                .set(ItemBehaviors.GET_BLOCK, item -> Optional.of(BlockTypes.SWEET_BERRY_BUSH.getDefaultState().withTrait(BlockTraits.GROWTH, 0)));
         registry.configure(ItemTypes.TADPOLE_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.TADPOLE));
         configureSpawnEgg(registry, ItemTypes.TADPOLE_SPAWN_EGG, EntityTypes.TADPOLE);
@@ -365,6 +367,9 @@ public final class VanillaItemBehaviors {
         );
         registry.configure(ItemTypes.WATER_BUCKET)
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.place(BlockStates.WATER));
+        registry.configure(ItemTypes.WATERLILY)
+                .set(ItemBehaviors.USE, PlaceOnWaterItemHandlers.USE)
+                .set(ItemBehaviors.USE_ON, PlaceOnWaterItemHandlers.USE_ON);
         configureSpawnEgg(registry, ItemTypes.WITCH_SPAWN_EGG, EntityTypes.WITCH);
         registry.configure(ItemTypes.WIND_CHARGE).set(ItemBehaviors.USE, WindChargeItemHandlers.USE);
         configureSpawnEgg(registry, ItemTypes.WITHER_SKELETON_SPAWN_EGG, EntityTypes.WITHER_SKELETON);
@@ -412,7 +417,7 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> slot)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
-                        CloudItemRegistry.enchantableWith(
+                        enchantableWith(
                                 EnchantmentTarget.ARMOR,
                                 enchantmentTarget(slot),
                                 EnchantmentTarget.BREAKABLE,
@@ -438,7 +443,7 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.GET_EQUIPMENT_SLOT, item -> EquipmentSlot.CHEST)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
-                        CloudItemRegistry.enchantableWith(EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE, EnchantmentTarget.WEARABLE)
+                        enchantableWith(EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE, EnchantmentTarget.WEARABLE)
                 )
                 .set(ItemBehaviors.USE, ArmorItemHandlers.equip(EquipmentSlot.CHEST, SoundTypes.ARMOR_EQUIP_ELYTRA));
     }
@@ -453,7 +458,7 @@ public final class VanillaItemBehaviors {
             EnchantmentTarget... additionalEnchantmentTargets
     ) {
         configureDamageableVanilla(registry, type, maxDamage, repairWith)
-                .set(ItemBehaviors.CAN_ENCHANT_WITH, CloudItemRegistry.toolEnchantableWith(additionalEnchantmentTargets))
+                .set(ItemBehaviors.CAN_ENCHANT_WITH, toolEnchantableWith(additionalEnchantmentTargets))
                 .set(ItemBehaviors.GET_ATTACK_DAMAGE, item -> attackDamage)
                 .set(ItemBehaviors.GET_ATTACK_DURABILITY_DAMAGE, item -> 1)
                 .set(ItemBehaviors.GET_TOOL, item -> tool)
@@ -501,7 +506,7 @@ public final class VanillaItemBehaviors {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
-                        CloudItemRegistry.enchantableWith(
+                        enchantableWith(
                                 EnchantmentTarget.FIRE_ASPECT,
                                 EnchantmentTarget.MELEE_WEAPON,
                                 EnchantmentTarget.SHARP_WEAPON,
@@ -522,7 +527,7 @@ public final class VanillaItemBehaviors {
         configureDamageableVanilla(registry, type, material.getDurability(), repairWith)
                 .set(
                         ItemBehaviors.CAN_ENCHANT_WITH,
-                        CloudItemRegistry.enchantableWith(
+                        enchantableWith(
                                 EnchantmentTarget.FIRE_ASPECT,
                                 EnchantmentTarget.MELEE_WEAPON,
                                 EnchantmentTarget.SHARP_WEAPON,
@@ -566,12 +571,12 @@ public final class VanillaItemBehaviors {
             EnchantmentTarget... enchantmentTargets
     ) {
         CloudComponentMap components = configureDamageableVanilla(registry, type, maxDamage, repairWith);
-        components.set(ItemBehaviors.CAN_ENCHANT_WITH, CloudItemRegistry.enchantableWith(enchantmentTargets));
+        components.set(ItemBehaviors.CAN_ENCHANT_WITH, enchantableWith(enchantmentTargets));
         return components;
     }
 
     private CloudComponentMap configureDamageableVanilla(CloudItemRegistry registry, ItemType type, int maxDamage, CanRepairWithHandler repairWith) {
-        CloudComponentMap components = (CloudComponentMap) registry.configure(type);
+        CloudComponentMap components = registry.configure(type);
         components.set(ItemBehaviors.DAMAGEABLE, () -> true);
         components.set(ItemBehaviors.GET_DAMAGE_CHANCE, DefaultItemHandlers.GET_DAMAGE_CHANCE);
         components.set(ItemBehaviors.GET_MAX_DAMAGE, item -> maxDamage);
@@ -580,4 +585,57 @@ public final class VanillaItemBehaviors {
         components.set(ItemBehaviors.CAN_REPAIR_WITH, repairWith);
         return components;
     }
+
+    private static CanEnchantWithHandler enchantableWith(EnchantmentTarget... targets) {
+        Preconditions.checkNotNull(targets, "targets");
+        for (EnchantmentTarget target : targets) {
+            Preconditions.checkNotNull(target, "target");
+        }
+
+        Set<EnchantmentTarget> supportedTargets = targets.length == 0 ? Set.of() : EnumSet.copyOf(List.of(targets));
+        return (item, enchantment) -> enchantment != null && supportedTargets.contains(enchantment.target());
+    }
+
+    private static CanEnchantWithHandler toolEnchantableWith(EnchantmentTarget... additionalTargets) {
+        Preconditions.checkNotNull(additionalTargets, "additionalTargets");
+        for (EnchantmentTarget target : additionalTargets) {
+            Preconditions.checkNotNull(target, "additionalTarget");
+        }
+
+        EnumSet<EnchantmentTarget> targets =
+                EnumSet.of(EnchantmentTarget.TOOL, EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
+        targets.addAll(List.of(additionalTargets));
+        return enchantableWith(targets.toArray(EnchantmentTarget[]::new));
+    }
+
+    private static CanRepairWithHandler repairWith(Identifier... materials) {
+        Preconditions.checkNotNull(materials, "materials");
+        for (Identifier repairMaterial : materials) {
+            Preconditions.checkNotNull(repairMaterial, "repairMaterial");
+        }
+
+        Identifier[] repairMaterials = materials.clone();
+        return (item, material) -> {
+            if (item.isEmpty() || material.isEmpty()) {
+                return false;
+            }
+
+            Identifier materialId = material.getType().getId();
+            for (Identifier repairMaterial : repairMaterials) {
+                if (repairMaterial.equals(materialId)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+    }
+
+    private static CanRepairWithHandler repairWith(ItemTagKey tag) {
+        Preconditions.checkNotNull(tag, "tag");
+        return (item, material) -> !item.isEmpty()
+                && !material.isEmpty()
+                && VanillaItemTags.resolve(tag).isTagged(material.getType());
+    }
+
 }

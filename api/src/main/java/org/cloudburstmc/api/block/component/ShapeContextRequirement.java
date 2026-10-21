@@ -9,6 +9,10 @@ public enum ShapeContextRequirement {
      */
     STATE_ONLY,
     /**
+     * The block position affects the shape without reading the surrounding level.
+     */
+    POSITION,
+    /**
      * The surrounding level may affect the shape.
      */
     LEVEL,

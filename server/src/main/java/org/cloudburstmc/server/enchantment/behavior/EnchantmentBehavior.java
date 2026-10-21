@@ -3,6 +3,7 @@ package org.cloudburstmc.server.enchantment.behavior;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.item.EquipmentSlot;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemType;
@@ -20,6 +21,13 @@ public abstract class EnchantmentBehavior {
 
     public float getBurningTimeReduction(Enchantment enchantment) {
         return 0;
+    }
+
+    public boolean grantsDamageImmunity(Enchantment enchantment, EquipmentSlot slot, DamageSource source) {
+        return false;
+    }
+
+    public void onLocationChanged(Enchantment enchantment, Entity wearer, EquipmentSlot slot) {
     }
 
     public float modifyDamage(Enchantment enchantment, Entity target, float damage) {

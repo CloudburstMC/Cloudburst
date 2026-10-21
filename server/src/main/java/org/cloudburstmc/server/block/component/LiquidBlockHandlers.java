@@ -14,6 +14,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.utils.Hash;
@@ -26,8 +27,7 @@ import java.util.random.RandomGenerator;
 public class LiquidBlockHandlers {
     private static final int OCCLUSION_CACHE_SIZE = 2048;
     private static final Direction[] DIRECTIONS = Direction.values();
-    private static final ThreadLocal<OcclusionResult[]> OCCLUSION_CACHE =
-            ThreadLocal.withInitial(() -> new OcclusionResult[OCCLUSION_CACHE_SIZE]);
+    private static final ThreadLocal<OcclusionResult[]> OCCLUSION_CACHE = ThreadLocal.withInitial(() -> new OcclusionResult[OCCLUSION_CACHE_SIZE]);
 
     public static void tick(Block block) {
         LiquidState liquid = block.getLiquid();
@@ -40,10 +40,6 @@ public class LiquidBlockHandlers {
         Vector3i pos = block.getPosition();
         if (family.harden(level, pos)) {
             return;
-        }
-
-        if (family == LiquidFamily.WATER && liquid.isSource()) {
-            BubbleColumnBlockHandlers.update(block);
         }
 
         LiquidState next = family.nextState(level, pos, liquid);
@@ -568,12 +564,11 @@ public class LiquidBlockHandlers {
             return;
         }
 
-        LiquidReaction reaction = target.getState().getLiquidReaction();
         if (family == LiquidFamily.LAVA && target.getState() != BlockStates.AIR) {
             level.playSound(targetPos, SoundTypes.RANDOM_FIZZ, 0.5f, 2.6f);
         }
 
-        if (reaction.removesBlock() && !allowBlockReplacement(source, target, liquid)) {
+        if (BlockLayerRules.requiresBlockRemoval(target.getState(), liquid) && !allowBlockReplacement(source, target, liquid)) {
             return;
         }
 

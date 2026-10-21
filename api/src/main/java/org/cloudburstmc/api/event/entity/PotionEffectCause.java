@@ -25,6 +25,10 @@ public enum PotionEffectCause {
      */
     COMMAND,
     /**
+     * Applied by an active conduit.
+     */
+    CONDUIT,
+    /**
      * Removed because the entity died.
      */
     DEATH,
@@ -56,6 +60,10 @@ public enum PotionEffectCause {
      * Changed by an item preventing lethal damage.
      */
     TOTEM,
+    /**
+     * Applied by wearing a turtle shell helmet.
+     */
+    TURTLE_HELMET,
     /**
      * Applied by contact with a wither rose.
      */

@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Converts every chunk from an iterable source provider into a target provider.
+ * Converts saved chunk records into a separate destination provider.
  */
 @Log4j2
 public class CloudLevelConverter {
@@ -25,16 +25,15 @@ public class CloudLevelConverter {
         this.level = Objects.requireNonNull(level, "level");
     }
 
-    public CompletableFuture<Void> convert() {
+    public CompletableFuture<Integer> convert() {
         CloudChunkBuilderFactory factory = (x, z) -> new CloudChunkBuilder(x, z, this.level);
         AtomicInteger converted = new AtomicInteger();
         return this.source.visitChunks(factory, chunk -> {
-            chunk.initialize();
-            this.target.saveChunk(chunk).join();
+            this.target.saveImportedChunk(chunk).join();
             int count = converted.incrementAndGet();
             if ((count & 1023) == 512) {
                 log.info("{} chunks converted", count);
             }
-        }).thenRun(() -> log.info("Conversion completed. {} chunks converted", converted.get()));
+        }).thenApply(ignored -> converted.get());
     }
 }

@@ -65,10 +65,14 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
                 .putInt("StorageVersion", STORAGE_VERSION)
                 .putInt("serverChunkTickRange", data.getServerChunkTickRange())
                 .putInt("NetherScale", data.getNetherScale())
-                .putLong("currentTick", data.getCurrentTick())
+                .putLong("currentTick", data.getGameTime())
                 .putLong("LastPlayed", data.getLastPlayed())
                 .putLong("RandomSeed", data.getSeed())
-                .putLong("Time", data.getTime())
+                .putLong("Time", data.getClock().getTotalTicks())
+                .putCompound("CloudburstClock", NbtMap.builder()
+                        .putFloat("partialTick", data.getClock().getPartialTick())
+                        .putFloat("rate", data.getClock().getRate())
+                        .putBoolean("paused", data.getClock().isPaused()).build())
                 .putInt("SpawnX", data.getSpawn().getX())
                 .putInt("SpawnY", data.getSpawn().getY())
                 .putInt("SpawnZ", data.getSpawn().getZ())
@@ -129,10 +133,18 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         tag.listenForInt("GameType", id -> data.setGameMode(GameMode.from(id)));
         tag.listenForInt("serverChunkTickRange", data::setServerChunkTickRange);
         tag.listenForInt("NetherScale", data::setNetherScale);
-        tag.listenForLong("currentTick", data::setCurrentTick);
+        tag.listenForLong("currentTick", data::setGameTime);
         tag.listenForLong("LastPlayed", data::setLastPlayed);
         tag.listenForLong("RandomSeed", data::setSeed);
-        tag.listenForLong("Time", data::setTime);
+        tag.listenForLong("Time", data.getClock()::setTotalTicks);
+        NbtMap clock = tag.getCompound("CloudburstClock");
+        try {
+            clock.listenForFloat("rate", data.getClock()::setRate);
+            clock.listenForFloat("partialTick", data.getClock()::setPartialTick);
+            clock.listenForBoolean("paused", data.getClock()::setPaused);
+        } catch (IllegalArgumentException exception) {
+            throw new IOException("Invalid daylight clock state", exception);
+        }
         if (tag.containsKey("SpawnX") && tag.containsKey("SpawnY") && tag.containsKey("SpawnZ")) {
             int x = tag.getInt("SpawnX");
             int y = tag.getInt("SpawnY");

@@ -7,8 +7,8 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 import javax.annotation.Nullable;
 
@@ -162,7 +162,7 @@ public class TripwireCalculator {
     private void emitHookSounds(CloudLevel level, Vector3i pos, BlockState newState, boolean wasAttached, boolean wasPowered) {
         boolean nowAttached = newState.ensureTrait(BlockTraits.IS_ATTACHED);
         boolean nowPowered = newState.ensureTrait(BlockTraits.IS_POWERED);
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(newState);
+        int soundData = BlockPalette.INSTANCE.getDefinition(newState).getRuntimeId();
 
         if (nowPowered && !wasPowered) {
             level.addLevelSoundEvent(pos, SoundEvent.PRESSURE_PLATE_CLICK_ON, soundData);

@@ -12,7 +12,7 @@ public interface BlockExperienceHandler {
     /**
      * Resolves the block's experience for a break operation.
      *
-     * @param block the block being broken
+     * @param block   the block being broken
      * @param context the loot context
      * @return the experience to drop
      */

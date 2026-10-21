@@ -9,6 +9,7 @@ public enum DirectionEncoding {
     HORIZONTAL_SOUTH_WEST_NORTH_EAST(Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST),
     HORIZONTAL_EAST_WEST_SOUTH_NORTH(Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH),
     HORIZONTAL_NORTH_EAST_SOUTH_WEST(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST),
+    HORIZONTAL_WEST_EAST_NORTH_SOUTH(Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH),
     FACING_DOWN_UP_SOUTH_NORTH_EAST_WEST(Direction.DOWN, Direction.UP, Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST),
     FACING_DOWN_UP_NORTH_SOUTH_WEST_EAST(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
 

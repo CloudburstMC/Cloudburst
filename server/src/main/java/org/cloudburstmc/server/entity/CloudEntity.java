@@ -28,6 +28,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
+import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.EffectTypes;
@@ -52,6 +53,7 @@ import org.cloudburstmc.server.entity.data.BuoyancyDataSerializer;
 import org.cloudburstmc.server.entity.data.SyncedEntityData;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.level.*;
+import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.math.MathHelper;
@@ -59,6 +61,7 @@ import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.ActivePotionEffect;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
+import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
 import java.util.*;
@@ -858,6 +861,10 @@ public abstract class CloudEntity implements Entity {
         return false;
     }
 
+    public boolean blocksBuilding() {
+        return false;
+    }
+
     protected boolean hasMovementEntityCollisions() {
         return true;
     }
@@ -1066,8 +1073,16 @@ public abstract class CloudEntity implements Entity {
 
             boolean hasUpdate = false;
 
+            boolean wasBurning = this.isOnFire();
+            boolean wasFreezing = this.getFreezeTicks() > 0;
+
             this.checkBlockCollision();
             this.applyLiquidCurrent();
+
+            if (wasBurning && !this.isOnFire() || wasFreezing && this.getFreezeTicks() == 0) {
+                float pitch = 1.6f + (this.level.getRandom().nextFloat() - this.level.getRandom().nextFloat()) * 0.4f;
+                this.level.playSound(this.position, SoundTypes.RANDOM_FIZZ, 0.7f, pitch);
+            }
 
             if (this.position.getY() < this.level.getMinHeight() - 64) {
                 this.onBelowLevel();
@@ -1186,8 +1201,17 @@ public abstract class CloudEntity implements Entity {
     }
 
     public void applyFallDamage(float fallDistance) {
+        this.applyFallDamage(fallDistance, 1, DamageSource.of(DamageTypes.FALL));
+    }
+
+    public void applyFallDamage(float fallDistance, float multiplier, DamageSource source) {
+        Objects.requireNonNull(source, "source");
         if (!Float.isFinite(fallDistance) || fallDistance < 0) {
             throw new IllegalArgumentException("Fall distance must be finite and non-negative");
+        }
+
+        if (!Float.isFinite(multiplier) || multiplier < 0) {
+            throw new IllegalArgumentException("Fall damage multiplier must be finite and non-negative");
         }
 
         if (this.hasPotionEffect(EffectTypes.SLOW_FALLING)) {
@@ -1200,10 +1224,10 @@ public abstract class CloudEntity implements Entity {
 
         ActivePotionEffect jumpBoost = this.effects.get(EffectTypes.JUMP_BOOST);
         long jumpReduction = jumpBoost == null ? 0 : jumpBoost.getAmplifier() + 1L;
-        float damage = (float) Math.floor((double) fallDistance + 1.0e-6 - 3 - jumpReduction);
+        float damage = (float) Math.floor(((double) fallDistance + 1.0e-6 - 3 - jumpReduction) * multiplier);
 
         if (damage > 0) {
-            this.damage(damage, DamageSource.of(DamageTypes.FALL));
+            this.damage(damage, source);
         }
     }
 
@@ -1249,6 +1273,30 @@ public abstract class CloudEntity implements Entity {
 
     protected boolean isTouchingWater() {
         return this.scanLiquidContact(false).touchingWater();
+    }
+
+    @Override
+    public boolean isInWaterOrRain() {
+        if (this.isTouchingWater()) {
+            return true;
+        }
+
+        if (!this.level.isRaining() || this.level.getDimension() != CloudLevel.DIMENSION_OVERWORLD) {
+            return false;
+        }
+
+        Vector3i feet = this.position.toInt();
+        Vector3i head = this.position.add(0, this.getHeight(), 0).toInt();
+        return this.isExposedToRain(feet) || this.isExposedToRain(head);
+    }
+
+    private boolean isExposedToRain(Vector3i position) {
+        if (this.level.getLoadedBlock(position) == null || !this.level.canBlockSeeSky(position)) {
+            return false;
+        }
+
+        CloudBiome biome = CloudBiomeRegistry.get().getBiome(this.level.getBiomeId(position.getX(), position.getY(), position.getZ()));
+        return biome != null && biome.hasPrecipitation() && !biome.coldEnoughToSnow(position.getX(), position.getY(), position.getZ(), this.level.getSeaLevel());
     }
 
     /**

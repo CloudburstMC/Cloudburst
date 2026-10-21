@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.util;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
+import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 
@@ -38,8 +39,7 @@ public class BlockStateHash {
      */
     public static int fnv1a32(NbtMap tag) {
         byte[] bytes;
-        try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
-             var writer = NbtUtils.createWriterLE(stream)) {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream(); NBTOutputStream writer = NbtUtils.createWriterLE(stream)) {
             writer.writeTag(tag);
             bytes = stream.toByteArray();
         } catch (IOException e) {

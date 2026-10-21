@@ -87,7 +87,7 @@ public class JavaPluginLoader implements PluginLoader {
         Path dataDirectory = path.getParent().resolve(description.getId());
         Logger logger = LoggerFactory.getLogger(description.getId());
 
-        var pluginClass = getPluginClass(path, (JavaPluginDescription) description);
+        Class<?> pluginClass = getPluginClass(path, (JavaPluginDescription) description);
         Injector inj = injector.createChildInjector(new PluginModule(description, logger, dataDirectory, pluginClass));
 
         return new CloudPluginContainer(inj.getInstance(pluginClass), description, logger, dataDirectory);

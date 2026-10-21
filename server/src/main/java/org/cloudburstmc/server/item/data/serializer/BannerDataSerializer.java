@@ -41,10 +41,10 @@ public class BannerDataSerializer implements ItemDataComponentSerializer<BannerD
             return null;
         }
 
-        var base = DyeColor.getByDyeData(tag.getInt("Base", 0));
-        var bannerType = tag.getInt("Type", 0);
+        DyeColor base = DyeColor.getByDyeData(tag.getInt("Base", 0));
+        int bannerType = tag.getInt("Type", 0);
 
-        var patternTags = tag.getList("Patterns", NbtType.COMPOUND);
+        List<NbtMap> patternTags = tag.getList("Patterns", NbtType.COMPOUND);
         List<BannerPattern> patterns;
 
         if (patternTags != null) {
@@ -53,7 +53,11 @@ public class BannerDataSerializer implements ItemDataComponentSerializer<BannerD
             for (NbtMap patternTag : patternTags) {
                 String pattern = patternTag.getString("Pattern");
                 DyeColor color = DyeColor.getByDyeData(patternTag.getInt("Color"));
-                patterns.add(new BannerPattern(BannerPattern.Type.getByName(pattern), color));
+                BannerPattern.Type type = BannerPattern.Type.getByName(pattern);
+                if (type == null) {
+                    throw new IllegalArgumentException("Unknown banner pattern: " + pattern);
+                }
+                patterns.add(new BannerPattern(type, color));
             }
         } else {
             patterns = ImmutableList.of();

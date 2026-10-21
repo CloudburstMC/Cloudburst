@@ -211,32 +211,23 @@ public class CloudChunkSection implements ChunkSection {
 
     /**
      * Writes this section to a buffer for on-disk serialization.
-     * Uses version 8 format (no sectionY byte) so existing world saves remain compatible.
-     * Layer 1 is omitted entirely when it is all-air and has not been modified since load.
+     * Uses version 8 format without a section Y byte and omits trailing empty layers.
      */
     public void writeToDisk(ByteBuf buffer) {
-        for (BlockStorage blockStorage : this.storage) {
-            if (blockStorage.isCompactNeeded()) {
-                blockStorage.compact();
-            }
-        }
         int layerCount = effectiveLayerCount();
         buffer.writeByte(DISK_CHUNK_SECTION_VERSION);
         buffer.writeByte(layerCount);
         for (int i = 0; i < layerCount; i++) {
             this.storage[i].writeToStorage(buffer);
-            this.storage[i].clearDirty();
         }
     }
 
     /**
-     * Returns the number of layers to actually serialize. Trailing layers are excluded
-     * when they are both all-air and unmodified since load, but the count is always at
-     * least 1 because the primary layer is always present.
+     * Includes the primary layer and any layers through the last nonempty layer.
      */
     private int effectiveLayerCount() {
         int count = this.storage.length;
-        while (count > 1 && this.storage[count - 1].isEmpty() && !this.storage[count - 1].isDirty()) {
+        while (count > 1 && this.storage[count - 1].isEmpty()) {
             count--;
         }
         return count;

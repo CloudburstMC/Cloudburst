@@ -130,6 +130,8 @@ public class EntitySerializer {
                     } catch (RegistryException e) {
                         dirty = true;
                     }
+                } catch (UnsupportedOperationException failure) {
+                    throw failure;
                 } catch (Exception e) {
                     log.warn("Skipping invalid entity data in chunk {},{}: {}", chunk.getX(), chunk.getZ(), e.toString());
                     log.debug("Invalid entity data", e);

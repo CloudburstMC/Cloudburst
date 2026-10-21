@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @UtilityClass
 public class EntityMovementController {
+
     private static final float GROUND_PROBE_DISTANCE = 1.0E-4f;
 
     public static void move(CloudEntity entity, MovementType type, float dx, float dy, float dz) {
@@ -47,6 +48,9 @@ public class EntityMovementController {
             applyCollisionState(entity, movementResult);
             stopBlockedMotion(entity, movementResult);
             entity.updateFallState(entity.onGround);
+            if (type != MovementType.PLAYER && entity instanceof EntityCreature creature) {
+                creature.updateEnchantmentLocationEffects();
+            }
             synchronizeForcedMovement(entity, type, previousBox);
         }
     }

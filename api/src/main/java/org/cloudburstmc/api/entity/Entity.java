@@ -50,12 +50,24 @@ public interface Entity extends Damageable, Emitter {
      */
     Optional<EntitySnapshot> createSnapshot();
 
+    /**
+     * @return the level containing this entity
+     */
     Level getLevel();
 
+    /**
+     * @return the chunk containing this entity
+     */
     Chunk getChunk();
 
+    /**
+     * @return the server that owns this entity
+     */
     Server getServer();
 
+    /**
+     * @return the entity's unique identifier
+     */
     long getUniqueId();
 
     /**
@@ -81,6 +93,9 @@ public interface Entity extends Damageable, Emitter {
      */
     float getEyeHeight();
 
+    /**
+     * @return the vertical display offset from this entity's position, in blocks
+     */
     default float getBaseOffset() {
         return 0f;
     }
@@ -96,10 +111,16 @@ public interface Entity extends Damageable, Emitter {
         return Vector3f.from(0f, getHeight(), 0f);
     }
 
+    /**
+     * @return the base height at which this entity carries passengers, in blocks
+     */
     default float getMountedHeightOffset() {
         return getHeight() * 0.75f;
     }
 
+    /**
+     * @return the additional vertical offset used when this entity rides another entity
+     */
     default float getPassengerHeightOffset() {
         return 0f;
     }
@@ -120,6 +141,9 @@ public interface Entity extends Damageable, Emitter {
      */
     float getLength();
 
+    /**
+     * @return whether this entity participates in entity collisions
+     */
     boolean canCollide();
 
     /**
@@ -131,16 +155,36 @@ public interface Entity extends Damageable, Emitter {
         return PushReaction.NORMAL;
     }
 
+    /**
+     * Applies this entity's response to contact with another entity.
+     *
+     * @param entity the entity in contact
+     */
     void onEntityCollision(Entity entity);
 
+    /**
+     * @return the downward acceleration used by this entity's movement
+     */
     float getGravity();
 
+    /**
+     * @return the drag coefficient used by this entity's movement
+     */
     float getDrag();
 
+    /**
+     * @return whether this entity has a non-empty name tag
+     */
     boolean hasNameTag();
 
+    /**
+     * @return the name tag, or an empty string when unnamed
+     */
     String getNameTag();
 
+    /**
+     * @param name the name tag, or an empty string to clear it
+     */
     void setNameTag(String name);
 
     /**
@@ -176,8 +220,14 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean removeScoreboardTag(String tag);
 
+    /**
+     * @return whether this entity's name tag may be displayed
+     */
     boolean isNameTagVisible();
 
+    /**
+     * @param visible whether to allow the name tag to be displayed
+     */
     void setNameTagVisible(boolean visible);
 
     /**
@@ -271,12 +321,28 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean spawn();
 
+    /**
+     * Shows an already spawned entity to a player when its chunk is available.
+     *
+     * @param player the recipient
+     */
     void spawnTo(Player player);
 
+    /**
+     * Spawns this entity if needed and shows it to eligible players viewing its chunk.
+     */
     void spawnToAll();
 
+    /**
+     * Hides this entity from one player without removing it from the level.
+     *
+     * @param player the viewer
+     */
     void despawnFrom(Player player);
 
+    /**
+     * Hides this entity from its viewers without removing it from the level.
+     */
     void despawnFromAll();
 
     /**
@@ -331,19 +397,53 @@ public interface Entity extends Damageable, Emitter {
      */
     void lockFreezeTicks(boolean locked);
 
+    /**
+     * @param entity the other entity
+     * @return whether this entity can collide with it
+     */
     boolean canCollideWith(Entity entity);
 
+    /**
+     * @param entity the entity testing collision, or null for a general query
+     * @return whether this entity presents a collision obstacle
+     */
     boolean canBeCollidedWith(@Nullable Entity entity);
 
+    /**
+     * @return the horizontal direction determined by this entity's yaw
+     */
     Direction getDirection();
 
+    /**
+     * @return the unit direction vector determined by yaw and pitch
+     */
     Vector3f getDirectionVector();
 
+    /**
+     * @return the unit horizontal direction vector in the X-Z plane
+     */
     Vector2f getDirectionPlane();
 
+    /**
+     * @return the horizontal direction determined by this entity's yaw
+     */
     Direction getHorizontalDirection();
 
+    /**
+     * Advances this entity's update cycle.
+     *
+     * @param currentTick the current server tick
+     * @return whether the entity should remain scheduled for updates
+     */
     boolean onUpdate(int currentTick);
+
+    /**
+     * Checks whether the entity touches water or is exposed to rain.
+     * Snowfall does not count as rain.
+     *
+     * @return whether water or rain is touching the entity
+     */
+    boolean isInWaterOrRain();
 
     /**
      * @return whether any burning duration remains
@@ -447,18 +547,47 @@ public interface Entity extends Damageable, Emitter {
      */
     void onStruckByLightning(LightningBolt lightningBolt);
 
+    /**
+     * Handles a player's interaction with this entity.
+     *
+     * @param player     the interacting player
+     * @param item       the held item
+     * @param clickedPos the interaction position relative to this entity
+     * @return whether the interaction was handled
+     */
     boolean onInteract(Player player, ItemStack item, Vector3f clickedPos);
 
+    /**
+     * @return the world-space X coordinate
+     */
     float getX();
 
+    /**
+     * @return the world-space Y coordinate
+     */
     float getY();
 
+    /**
+     * @return the world-space Z coordinate
+     */
     float getZ();
 
+    /**
+     * @return this entity's world-space position
+     */
     Vector3f getPosition();
 
+    /**
+     * Changes position within the current level without resolving movement collisions.
+     *
+     * @param position the destination
+     * @return whether the position was applied
+     */
     boolean setPosition(Vector3f position);
 
+    /**
+     * @return the current level, position and rotation
+     */
     Location getLocation();
 
     /**
@@ -475,16 +604,43 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean setMotion(Vector3f motion);
 
+    /**
+     * Resets fall distance and applies a multiplier to subsequent movement.
+     *
+     * @param state           the block causing the slowdown
+     * @param speedMultiplier the movement multiplier for each axis
+     */
     void makeStuckInBlock(BlockState state, Vector3f speedMultiplier);
 
+    /**
+     * @param yaw   horizontal rotation in degrees
+     * @param pitch vertical rotation in degrees
+     */
     void setRotation(float yaw, float pitch);
 
+    /**
+     * Changes position and rotation within the current level without resolving movement collisions.
+     *
+     * @param position the destination
+     * @param yaw      horizontal rotation in degrees
+     * @param pitch    vertical rotation in degrees
+     * @return whether the position and rotation were applied
+     */
     boolean setPositionAndRotation(Vector3f position, float yaw, float pitch);
 
+    /**
+     * @return vertical rotation in degrees
+     */
     float getPitch();
 
+    /**
+     * @return horizontal rotation in degrees
+     */
     float getYaw();
 
+    /**
+     * @return whether liquid currents can change this entity's motion
+     */
     boolean canBeMovedByCurrents();
 
     /**
@@ -494,14 +650,30 @@ public interface Entity extends Damageable, Emitter {
      */
     boolean canTriggerPressurePlate();
 
+    /**
+     * @return whether other entities can push this entity
+     */
     boolean isPushable();
 
+    /**
+     * @return whether this entity is resting on a collision surface
+     */
     boolean isOnGround();
 
+    /**
+     * @param onGround whether this entity is resting on a collision surface
+     */
     void setOnGround(boolean onGround);
 
+    /**
+     * @return the supporting block position, or empty when no support is known
+     */
     Optional<Vector3i> getSupportingBlockPosition();
 
+    /**
+     * @param position the block position to test
+     * @return whether that block is this entity's current support
+     */
     default boolean isSupportedBy(Vector3i position) {
         return this.getSupportingBlockPosition().filter(position::equals).isPresent();
     }

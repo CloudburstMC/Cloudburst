@@ -20,6 +20,7 @@ public class BlockEntityTypes {
     public static final BlockEntityType<Chest> CHEST = type("chest", Chest.class);
     public static final BlockEntityType<CommandBlock> COMMAND_BLOCK = type("command_block", CommandBlock.class);
     public static final BlockEntityType<Comparator> COMPARATOR = type("comparator", Comparator.class);
+    public static final BlockEntityType<Conduit> CONDUIT = type("conduit", Conduit.class);
     public static final BlockEntityType<Crafter> CRAFTER = type("crafter", Crafter.class);
     public static final BlockEntityType<DaylightDetector> DAYLIGHT_DETECTOR = type("daylight_detector", DaylightDetector.class);
     public static final BlockEntityType<Dispenser> DISPENSER = type("dispenser", Dispenser.class);

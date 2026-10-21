@@ -6,17 +6,24 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.BlockDestroyHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.RedstoneSignalHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.LeverDirection;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.util.PlacementSupport;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 @UtilityClass
 public class LeverBlockHandlers {
+
+    public static final RedstoneSignalHandler GET_REDSTONE_SIGNAL = (block, face) ->
+            block.getState().ensureTrait(BlockTraits.IS_OPEN) ? 15 : 0;
+
+    public static final RedstoneSignalHandler GET_DIRECT_REDSTONE_SIGNAL = (block, face) ->
+            block.getState().ensureTrait(BlockTraits.IS_OPEN) && face == block.getState().ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection().getOpposite() ? 15 : 0;
 
     public static final UseBlockHandler USE = (block, player, direction, item) -> {
         BlockState state = block.getState();
@@ -27,12 +34,12 @@ public class LeverBlockHandlers {
 
         level.setBlockState(pos, state.withTrait(BlockTraits.IS_OPEN, nowOn), false, true);
 
-        int soundData = CloudBlockRegistry.REGISTRY.getRuntimeId(state);
+        int soundData = BlockPalette.INSTANCE.getDefinition(state).getRuntimeId();
         level.addLevelSoundEvent(pos, nowOn ? SoundEvent.BLOCK_CLICK : SoundEvent.BLOCK_CLICK_FAIL, soundData);
 
         level.updateAround(pos);
         LeverDirection leverDirection = state.ensureTrait(BlockTraits.LEVER_DIRECTION);
-        Vector3i attachedPos = leverDirection.getDirection().relative(pos);
+        Vector3i attachedPos = PlacementSupport.supportPosition(pos, leverDirection.getDirection());
         level.updateAround(attachedPos);
 
         return true;
@@ -42,7 +49,7 @@ public class LeverBlockHandlers {
         BlockState state = block.getState();
         LeverDirection leverDirection = state.ensureTrait(BlockTraits.LEVER_DIRECTION);
         Vector3i pos = block.getPosition();
-        Direction supportFace = leverDirection.getDirection().getOpposite();
+        Direction supportFace = leverDirection.getDirection();
         Vector3i supportPos = PlacementSupport.supportPosition(pos, supportFace);
 
         if (!neighbor.getPosition().equals(supportPos)) {
@@ -67,7 +74,7 @@ public class LeverBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
         LeverDirection leverDirection = state.ensureTrait(BlockTraits.LEVER_DIRECTION);
-        Vector3i attachedPos = leverDirection.getDirection().relative(pos);
+        Vector3i attachedPos = PlacementSupport.supportPosition(pos, leverDirection.getDirection());
 
         level.updateAround(pos);
         level.updateAround(attachedPos);

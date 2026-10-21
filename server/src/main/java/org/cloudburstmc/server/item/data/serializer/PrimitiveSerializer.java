@@ -33,7 +33,7 @@ public class PrimitiveSerializer<T> implements ItemDataComponentSerializer<T> {
 
     @Override
     public T deserialize(Identifier id, NbtMap tag) {
-        var value = tag.get(key);
+        Object value = tag.get(key);
         if (value == null) {
             return null;
         }

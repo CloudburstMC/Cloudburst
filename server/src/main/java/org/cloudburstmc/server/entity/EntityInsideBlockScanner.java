@@ -5,12 +5,16 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.block.component.EntityInsideBlockHandler;
+import org.cloudburstmc.api.entity.Entity;
+import org.cloudburstmc.api.event.entity.EntityInsideBlockEvent;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentMap;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.component.DefaultBlockHandlers;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +26,15 @@ import static org.cloudburstmc.api.block.BlockTypes.PORTAL;
 @UtilityClass
 public class EntityInsideBlockScanner {
 
+    public static void applyEffects(Block block, Entity entity, boolean precise) {
+        EntityInsideBlockHandler handler = block.requireComponent(BlockComponents.ON_ENTITY_INSIDE);
+        if (handler != DefaultBlockHandlers.ON_ENTITY_INSIDE && canApplyEffects(block, entity)) {
+            handler.execute(block, entity, precise);
+        }
+    }
+
     public static void scan(CloudEntity entity) {
+        stepOnSupportingBlock(entity);
         List<EntityMovementSegment> movements = entity.drainMovementSegments();
 
         Optional<Vector3i> portal = Optional.empty();
@@ -48,6 +60,25 @@ public class EntityInsideBlockScanner {
             if (entity.inPortalTicks == 0) {
                 entity.portalEntryBlock = null;
             }
+        }
+    }
+
+    private static boolean canApplyEffects(Block block, Entity entity) {
+        EntityInsideBlockEvent event = new EntityInsideBlockEvent(entity, block);
+        block.getLevel().getServer().getEventManager().fire(event);
+        return !event.isCancelled()
+                && block.getLevel().getBlockState(block.getPosition()) == block.getState()
+                && block.getLevel().getBlock(block.getPosition()).getSecondaryState() == block.getSecondaryState();
+    }
+
+    private static void stepOnSupportingBlock(CloudEntity entity) {
+        if (!entity.onGround || entity.noPhysics || !entity.isAlive()) {
+            return;
+        }
+
+        Block block = entity.level.getLoadedBlock(entity.getLandingBlockPosition());
+        if (block != null) {
+            block.requireComponent(BlockComponents.ON_STEP_ON).execute(block, entity);
         }
     }
 
@@ -100,7 +131,9 @@ public class EntityInsideBlockScanner {
 
                     BlockState state = block.getState();
                     if (state.getType() == PORTAL) {
-                        portal = Optional.of(block.getPosition());
+                        if (insideBlocks.add(block.getPosition()) && canApplyEffects(block, entity)) {
+                            portal = Optional.of(block.getPosition());
+                        }
                         continue;
                     }
 
@@ -110,7 +143,7 @@ public class EntityInsideBlockScanner {
                     if (!insideShape.isEmpty()
                             && insideShape.overlaps(box, x, y, z)
                             && insideBlocks.add(block.getPosition())) {
-                        behaviors.require(BlockComponents.ON_ENTITY_INSIDE).execute(block, entity, true);
+                        applyEffects(block, entity, true);
                     }
                 }
             }

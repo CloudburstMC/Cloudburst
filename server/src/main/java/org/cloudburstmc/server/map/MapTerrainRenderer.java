@@ -203,7 +203,7 @@ public class MapTerrainRenderer extends MapRenderer {
         int color = 0;
         int maximum = 0;
 
-        for (var entry : counts.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {
             if (entry.getValue() > maximum) {
                 maximum = entry.getValue();
                 color = entry.getKey();

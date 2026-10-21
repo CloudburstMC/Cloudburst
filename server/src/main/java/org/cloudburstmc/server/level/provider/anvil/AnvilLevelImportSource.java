@@ -3,10 +3,12 @@ package org.cloudburstmc.server.level.provider.anvil;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.server.level.CloudLevelData;
-import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilderFactory;
+import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.cloudburstmc.server.level.provider.LevelImportSource;
+import org.cloudburstmc.server.level.provider.migration.NukkitBlockStateConverter;
+import org.cloudburstmc.server.level.provider.migration.NukkitItemDataConverter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
@@ -22,12 +24,17 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Reads Nukkit Anvil worlds for conversion into a separate Cloudburst destination.
+ */
 @ParametersAreNonnullByDefault
 public class AnvilLevelImportSource implements LevelImportSource {
 
     private final Path levelPath;
     private final Path regionsPath;
     private final Executor executor;
+    private final NukkitBlockStateConverter blocks;
+    private final NukkitItemDataConverter items;
     private volatile boolean closed;
 
     public AnvilLevelImportSource(Path levelPath, Executor executor) throws IOException {
@@ -38,6 +45,9 @@ public class AnvilLevelImportSource implements LevelImportSource {
         if (!isImportSource(this.levelPath)) {
             throw new IOException("Import source has no Anvil region files: " + levelPath);
         }
+
+        this.blocks = new NukkitBlockStateConverter();
+        this.items = new NukkitItemDataConverter();
     }
 
     public static boolean isImportSource(Path levelPath) throws IOException {
@@ -58,7 +68,7 @@ public class AnvilLevelImportSource implements LevelImportSource {
     }
 
     @Override
-    public CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<CloudChunk> consumer) {
+    public CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<ImportedChunk> consumer) {
         checkForClosed();
 
         List<Path> paths;
@@ -68,37 +78,33 @@ public class AnvilLevelImportSource implements LevelImportSource {
             return CompletableFuture.failedFuture(e);
         }
 
-        CompletableFuture<?>[] futures = paths.stream()
-                .map(path -> CompletableFuture.runAsync(() -> {
-                    try (RegionFile regionFile = new RegionFile(path)) {
-                        RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
-                        for (int x = 0; x < 32; x++) {
-                            for (int z = 0; z < 32; z++) {
-                                if (!regionFile.hasChunk(x, z)) {
-                                    continue;
-                                }
+        return CompletableFuture.runAsync(() -> {
+            for (Path path : paths) {
+                try (RegionFile regionFile = new RegionFile(path)) {
+                    RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
+                    for (int x = 0; x < 32; x++) {
+                        for (int z = 0; z < 32; z++) {
+                            if (!regionFile.hasChunk(x, z)) {
+                                continue;
+                            }
 
-                                int chunkX = origin.x() + x;
-                                int chunkZ = origin.z() + z;
+                            int chunkX = origin.x() + x;
+                            int chunkZ = origin.z() + z;
 
-                                CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
-                                ByteBuf buffer = regionFile.readChunk(x, z);
-                                try {
-                                    AnvilConverter.convertToCloudburst(builder, buffer);
-                                } finally {
-                                    buffer.release();
-                                }
-
-                                consumer.accept(builder.build());
+                            CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
+                            ByteBuf buffer = regionFile.readChunk(x, z);
+                            try (ImportedChunk imported = AnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items)) {
+                                consumer.accept(imported);
+                            } finally {
+                                buffer.release();
                             }
                         }
-                    } catch (Exception exception) {
-                        throw new CompletionException(exception);
                     }
-                }, this.executor))
-                .toArray(CompletableFuture<?>[]::new);
-
-        return CompletableFuture.allOf(futures);
+                } catch (Exception exception) {
+                    throw new CompletionException(exception);
+                }
+            }
+        }, Thread::startVirtualThread);
     }
 
     @Override

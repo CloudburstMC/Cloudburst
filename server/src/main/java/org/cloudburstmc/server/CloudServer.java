@@ -193,7 +193,7 @@ public class CloudServer implements Server {
     private final CloudEntityRegistry entityRegistry = CloudEntityRegistry.get();
     private final CloudParticleRegistry particleRegistry = CloudParticleRegistry.get();
     private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
-    private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry();
+    private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry(this.blockRegistry);
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
         Preconditions.checkState(instance == null, "Already initialized!");
@@ -1583,7 +1583,7 @@ public class CloudServer implements Server {
     }
 
     @Override
-    public BlockRegistry getBlockRegistry() {
+    public CloudBlockRegistry getBlockRegistry() {
         return blockRegistry;
     }
 

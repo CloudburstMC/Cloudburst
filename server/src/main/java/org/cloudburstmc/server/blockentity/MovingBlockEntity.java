@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.blockentity;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.blockentity.BlockEntity;
@@ -9,15 +11,17 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.block.util.BlockStateMetaMappings;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
-import org.cloudburstmc.server.registry.CloudBlockRegistry;
 
 public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     private BlockState blockState = BlockStates.AIR;
     private BlockState extraBlockState = BlockStates.AIR;
     private BaseBlockEntity blockEntity;
+
+    @Setter
+    @Getter
     private Vector3i piston;
 
     public MovingBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -28,24 +32,14 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
 
-        CloudBlockRegistry registry = CloudBlockRegistry.REGISTRY;
-        if (tag.containsKey("movingBlockId") && tag.containsKey("movingBlockData")) {
-            int id = tag.getByte("movingBlockId") & 0xff;
-            int meta = tag.getByte("movingBlockData");
-
-            this.blockState = registry.getBlock(id, meta);
-        } else {
-            NbtMap blockTag = tag.getCompound("movingBlock");
-            int legacyId = registry.getLegacyId(blockTag.getString("name"));
-            short meta = blockTag.getShort("val");
-
-            this.blockState = registry.getBlock(legacyId, meta);
-
-            NbtMap extraBlockTag = tag.getCompound("movingBlockExtra");
-            int extraId = registry.getLegacyId(extraBlockTag.getString("name", "minecraft:air"));
-            short extraData = extraBlockTag.getShort("val");
-            this.extraBlockState = registry.getBlock(extraId, extraData);
+        if (tag.containsKey("movingBlockId") || tag.containsKey("movingBlockData")) {
+            throw new UnsupportedOperationException("Numeric moving block data is no longer supported");
         }
+
+        this.blockState = BlockStateCodec.read(tag.getCompound("movingBlock"));
+        this.extraBlockState = tag.containsKey("movingBlockExtra")
+                ? BlockStateCodec.read(tag.getCompound("movingBlockExtra"))
+                : BlockStates.AIR;
 
         tag.listenForCompound("movingEntity", entityTag -> {
             BlockEntityType<?> type = CloudBlockEntityRegistry.get().getBlockEntityType(entityTag.getString("id"));
@@ -60,15 +54,8 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
 
-        tag.putCompound("movingBlock", NbtMap.builder()
-                .putString("name", this.blockState.getType().toString())
-                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(this.blockState)) //TODO: check
-                .build());
-
-        tag.putCompound("movingBlockExtra", NbtMap.builder()
-                .putString("name", this.extraBlockState.getType().toString())
-                .putShort("val", (short) BlockStateMetaMappings.getMetaFromState(this.extraBlockState)) //TODO: check
-                .build());
+        tag.putCompound("movingBlock", BlockStateCodec.write(this.blockState));
+        tag.putCompound("movingBlockExtra", BlockStateCodec.write(this.extraBlockState));
 
         tag.putInt("pistonPosX", this.piston.getX());
         tag.putInt("pistonPosY", this.piston.getY());
@@ -101,14 +88,6 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     public void setBlockEntity(BlockEntity blockEntity) {
         this.blockEntity = (BaseBlockEntity) blockEntity;
-    }
-
-    public Vector3i getPiston() {
-        return piston;
-    }
-
-    public void setPiston(Vector3i piston) {
-        this.piston = piston;
     }
 
     @Override

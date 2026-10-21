@@ -28,6 +28,20 @@ class AnvilDataSerializerTest {
     }
 
     @Test
+    void gameTimeAndDaylightTimeAreImportedFromTheirOwnFields(@TempDir Path directory) throws Exception {
+        NbtMap root = NbtMap.builder().putCompound("Data", NbtMap.builder()
+                .putLong("Time", 123456)
+                .putLong("DayTime", 49000)
+                .build()).build();
+        Files.write(directory.resolve("level.dat"), NbtFiles.encodeCompressed(root));
+
+        CloudLevelData loaded = AnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory);
+
+        assertEquals(123456, loaded.getGameTime());
+        assertEquals(49000, loaded.getClock().getTotalTicks());
+    }
+
+    @Test
     void corruptPrimaryIsNotRestoredOrReplacedFromBackup(@TempDir Path directory) throws Exception {
         NbtMap root = NbtMap.builder().putCompound("Data", NbtMap.EMPTY).build();
         Files.write(directory.resolve("level.dat_old"), NbtFiles.encodeCompressed(root));
