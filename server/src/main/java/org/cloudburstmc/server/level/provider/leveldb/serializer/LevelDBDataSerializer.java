@@ -57,7 +57,7 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         NbtMapBuilder tag = NbtMap.builder();
         tag.putAll(data.getAdditionalData());
         tag.putString("LevelName", data.getName())
-                .putString("FlatWorldLayers", data.getGeneratorOptions())
+                .putString("generatorOptions", data.getGeneratorOptions())
                 .putString("generatorName", data.getGenerator().toString())
                 .putInt("lightningTime", data.getLightningTime())
                 .putInt("Difficulty", data.getDifficulty().getId())
@@ -126,8 +126,7 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         data.setAdditionalData(tag);
 
         tag.listenForString("LevelName", data::setName);
-        tag.listenForString("FlatWorldLayers", data::setGeneratorOptions);
-        tag.listenForString("generatorName", value -> data.setGenerator(Identifier.parse(value)));
+        readGenerator(tag, data);
         tag.listenForInt("lightningTime", data::setLightningTime);
         tag.listenForInt("Difficulty", id -> data.setDifficulty(Difficulty.fromId(id)));
         tag.listenForInt("GameType", id -> data.setGameMode(GameMode.from(id)));
@@ -167,6 +166,24 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
                 loadGameRule(data, rule, value);
             }
         });
+    }
+
+    private static void readGenerator(NbtMap tag, CloudLevelData data) throws IOException {
+        if (!tag.containsKey("generatorName")) {
+            return;
+        }
+
+        if (!tag.containsKey("generatorName", NbtType.STRING)) {
+            throw new IOException("Generator name must be a string");
+        }
+
+        data.setGenerator(Identifier.parse(tag.getString("generatorName")));
+        String optionsKey = tag.containsKey("generatorOptions") ? "generatorOptions" : "FlatWorldLayers";
+        if (tag.containsKey(optionsKey) && !tag.containsKey(optionsKey, NbtType.STRING)) {
+            throw new IOException("Generator options must be a string");
+        }
+
+        data.setGeneratorOptions(tag.getString(optionsKey));
     }
 
     private static <T extends Comparable<T>> void writeGameRule(NbtMapBuilder tag, LevelGameRules.Entry<T> entry) {
