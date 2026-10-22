@@ -47,6 +47,20 @@ class LevelDBDataSerializerTest {
     }
 
     @Test
+    void unqualifiedForeignGeneratorNamesDoNotSelectNativeGenerators() throws Exception {
+        writeMetadata(NbtMap.builder().putString("generatorName", "default")
+                .putString("generatorOptions", "").putLong("RandomSeed", 42).build());
+        CloudLevelData initial = data(0);
+        initial.setGeneratorOptions("overworld");
+
+        CloudLevelData loaded = LevelDBDataSerializer.INSTANCE.load(initial, directory).orElseThrow();
+
+        assertEquals(initial.getGenerator(), loaded.getGenerator());
+        assertEquals("overworld", loaded.getGeneratorOptions());
+        assertEquals(42, loaded.getSeed());
+    }
+
+    @Test
     void nativeGeneratorOptionsAreSavedSeparatelyFromBedrockFlatPresets() throws Exception {
         CloudLevelData saved = data(0);
         saved.setGeneratorOptions("overworld");
@@ -54,26 +68,23 @@ class LevelDBDataSerializerTest {
         LevelDBDataSerializer.INSTANCE.save(saved, directory);
 
         NbtMap tag = readMetadata();
+        assertEquals(1, tag.getInt("CloudburstStorageVersion"));
         assertEquals("cloudburst:standard", tag.getString("generatorName"));
         assertEquals("overworld", tag.getString("generatorOptions"));
         assertFalse(tag.containsKey("FlatWorldLayers"));
     }
 
     @Test
-    void olderNativeOptionsAreMigratedAtThePersistenceBoundary() throws Exception {
-        writeMetadata(NbtMap.builder().putString("generatorName", "cloudburst:standard")
-                .putString("FlatWorldLayers", "nether").build());
+    void nativeStorageDoesNotFallBackToBedrockFlatPresets() throws Exception {
+        writeMetadata(NbtMap.builder().putInt("CloudburstStorageVersion", 1)
+                .putString("generatorName", "cloudburst:standard").putString("FlatWorldLayers", "nether").build());
 
-        CloudLevelData loaded = LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow();
-        assertEquals("nether", loaded.getGeneratorOptions());
-
-        LevelDBDataSerializer.INSTANCE.save(loaded, directory);
-        assertEquals("nether", readMetadata().getString("generatorOptions"));
+        assertThrows(IOException.class, () -> LevelDBDataSerializer.INSTANCE.load(data(0), directory));
     }
 
     @Test
-    void explicitNativeOptionsTakePrecedenceOverTheOldField() throws Exception {
-        writeMetadata(NbtMap.builder().putString("generatorName", "cloudburst:standard")
+    void nativeOptionsAreIndependentOfPreservedForeignFields() throws Exception {
+        writeMetadata(NbtMap.builder().putInt("CloudburstStorageVersion", 1).putString("generatorName", "cloudburst:standard")
                 .putString("generatorOptions", "overworld").putString("FlatWorldLayers", "{\"encoding_version\":6}").build());
 
         assertEquals("overworld", LevelDBDataSerializer.INSTANCE.load(data(0), directory).orElseThrow().getGeneratorOptions());
@@ -81,7 +92,7 @@ class LevelDBDataSerializerTest {
 
     @Test
     void malformedNativeOptionsAreNotSilentlyIgnored() throws Exception {
-        writeMetadata(NbtMap.builder().putString("generatorName", "cloudburst:standard")
+        writeMetadata(NbtMap.builder().putInt("CloudburstStorageVersion", 1).putString("generatorName", "cloudburst:standard")
                 .putInt("generatorOptions", 1).build());
 
         assertThrows(IOException.class, () -> LevelDBDataSerializer.INSTANCE.load(data(0), directory));
@@ -135,6 +146,19 @@ class LevelDBDataSerializerTest {
 
         assertThrows(IOException.class, () -> LevelDBDataSerializer.INSTANCE.load(data(0), directory));
         assertEquals("corrupt", Files.readString(file));
+    }
+
+    @Test
+    void metadataWithTrailingDataIsRejectedByBothImportAndNormalLoading() throws Exception {
+        LevelDBDataSerializer.INSTANCE.save(data(0), directory);
+        Path file = directory.resolve("level.dat");
+        byte[] original = Files.readAllBytes(file);
+        byte[] malformed = java.util.Arrays.copyOf(original, original.length + 1);
+        ByteBuffer.wrap(malformed).order(ByteOrder.LITTLE_ENDIAN).putInt(4, malformed.length - 8);
+        Files.write(file, malformed);
+
+        assertThrows(IOException.class, () -> LevelDBDataSerializer.readMetadata(file));
+        assertThrows(IOException.class, () -> LevelDBDataSerializer.INSTANCE.load(data(0), directory));
     }
 
     private void writeMetadata(NbtMap tag) throws IOException {

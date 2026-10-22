@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.level.provider.migration;
 
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 
@@ -9,12 +10,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Translates Nukkit generation progress without replaying completed terrain decoration.
+ * Translates Nukkit generation markers to destination generation status.
  */
 @UtilityClass
 public class NukkitChunkGeneration {
 
-    public static ChunkGenerationStatus readLevelDB(byte[] data) throws IOException {
+    /**
+     * Reads a LevelDB finalization record. A missing record means generation is finished.
+     */
+    public static ChunkGenerationStatus readLevelDB(byte @Nullable [] data) throws IOException {
         if (data == null) {
             return ChunkGenerationStatus.FINISHED;
         }
@@ -32,6 +36,9 @@ public class NukkitChunkGeneration {
         };
     }
 
+    /**
+     * Reads Anvil generation flags, giving completed population precedence over generation.
+     */
     public static ChunkGenerationStatus readAnvil(NbtMap tag) {
         if (tag.getBoolean("TerrainPopulated")) {
             return ChunkGenerationStatus.FINISHED;

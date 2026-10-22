@@ -21,7 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NukkitPendingTickReaderTest {
+class LevelDBPendingTickReaderTest {
 
     private static final NbtMap STONE = BlockStateCodec.write(BlockTestRegistry.get().getBlock(BlockTypes.STONE));
 
@@ -31,7 +31,7 @@ class NukkitPendingTickReaderTest {
         records.save(0, 0, 0, 0,
                 tick(0, 64, 0, 12), tick(-1, 64, 0, 13),
                 tick(0, 64, -1, 14), tick(-2, 64, -2, 15));
-        NukkitPendingTickReader reader = records.reader(0);
+        LevelDBPendingTickReader reader = records.reader(0);
 
         for (Vector3i position : List.of(Vector3i.from(0, 64, 0), Vector3i.from(-1, 64, 0),
                 Vector3i.from(0, 64, -1), Vector3i.from(-2, 64, -2))) {
@@ -94,7 +94,7 @@ class NukkitPendingTickReaderTest {
     void rejectsGenuineOutOfBoundsTicksWithTheirSourceChunkInTheError() throws Exception {
         Records records = new Records();
         records.save(0, 0, 0, 0, tick(16, 64, 0, 5));
-        NukkitPendingTickReader reader = records.reader(0);
+        LevelDBPendingTickReader reader = records.reader(0);
 
         IOException failure = assertThrows(IOException.class, () -> reader.read(0, 0, -64, 320));
         assertTrue(failure.getMessage().contains("source chunk (0, 0)"));
@@ -133,17 +133,17 @@ class NukkitPendingTickReaderTest {
                 output.writeTag(root);
             }
 
-            this.data.put(ByteBuffer.wrap(NukkitLevelDBKeys.key(x, z, dimension, '3')), bytes.toByteArray());
+            this.data.put(ByteBuffer.wrap(LevelDBImportKeys.key(x, z, dimension, '3')), bytes.toByteArray());
         }
 
-        private NukkitPendingTickReader reader(int dimension) throws IOException {
-            return new NukkitPendingTickReader(InterfaceProxy.create(DB.class, (proxy, method, arguments) -> {
+        private LevelDBPendingTickReader reader(int dimension) throws IOException {
+            return new LevelDBPendingTickReader(InterfaceProxy.create(DB.class, (proxy, method, arguments) -> {
                 if (method.getName().equals("get")) {
                     return this.data.get(ByteBuffer.wrap((byte[]) arguments[0]));
                 }
 
                 throw new AssertionError("Unexpected database access: " + method);
-            }), dimension, new NukkitBlockStateConverter());
+            }), dimension, new NukkitLevelDBChunkCodec());
         }
     }
 }

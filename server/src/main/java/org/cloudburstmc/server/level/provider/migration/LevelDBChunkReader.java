@@ -2,46 +2,45 @@ package org.cloudburstmc.server.level.provider.migration;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.chunk.BiomeStorage;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.iq80.leveldb.DB;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Reads a Nukkit LevelDB chunk into named Cloudburst storage.
+ * Reads dimension-qualified LevelDB records into named Cloudburst storage.
  */
-public class NukkitLevelDBChunkReader {
+public class LevelDBChunkReader {
 
     private final DB database;
     private final int dimension;
-    private final NukkitBlockStateConverter blocks;
-    private final NukkitItemDataConverter items;
-    private final NukkitBlockStorageReader storage;
-    private final NukkitPendingTickReader ticks;
+    private final LevelDBChunkCodec codec;
+    private final LevelDBPendingTickReader tickReader;
+    private final LevelDBEntityReader entityReader;
 
-    public NukkitLevelDBChunkReader(DB database, int dimension, NukkitBlockStateConverter blocks, NukkitItemDataConverter items) {
+    public LevelDBChunkReader(DB database, int dimension, LevelDBChunkCodec codec) {
         this.database = Objects.requireNonNull(database, "database");
         this.dimension = dimension;
-        this.blocks = Objects.requireNonNull(blocks, "blocks");
-        this.items = Objects.requireNonNull(items, "items");
-        this.storage = new NukkitBlockStorageReader(blocks);
-        this.ticks = new NukkitPendingTickReader(database, dimension, blocks);
+        this.codec = Objects.requireNonNull(codec, "codec");
+        this.tickReader = new LevelDBPendingTickReader(database, dimension, codec);
+        this.entityReader = new LevelDBEntityReader(database, dimension);
     }
 
+    /**
+     * Decodes the source chunk at the builder's coordinates within the destination height range.
+     * The caller owns the returned chunk and must close it after saving or consuming it.
+     */
     public ImportedChunk read(CloudChunkBuilder builder) throws IOException {
         byte[] versionTag = get(builder, ',');
         if (versionTag == null) {
@@ -49,12 +48,12 @@ public class NukkitLevelDBChunkReader {
         }
 
         if (versionTag == null || versionTag.length != 1) {
-            throw new IOException("Missing or invalid Nukkit chunk version at " + builder.getX() + "," + builder.getZ());
+            throw new IOException("Missing or invalid LevelDB chunk version at " + builder.getX() + "," + builder.getZ());
         }
 
         int version = versionTag[0] & 0xff;
         if (version > 42) {
-            throw new IOException("Unknown Nukkit chunk version: " + version);
+            throw new IOException("Unknown LevelDB chunk version: " + version);
         }
 
         CloudChunkSection[] sections = new CloudChunkSection[builder.getLevel().getSectionsCount()];
@@ -70,29 +69,29 @@ public class NukkitLevelDBChunkReader {
         readExtraBlocks(builder, sections, version);
         builder.setSections(sections);
         builder.setHeightMap(heightMap);
-        builder.setGenerationStatus(NukkitChunkGeneration.readLevelDB(get(builder, '6')));
+        builder.setGenerationStatus(this.codec.readGeneration(get(builder, '6')));
 
-        List<NbtMap> entities = NukkitEntityData.entities(builder, compounds(get(builder, '2')), this.blocks, this.items);
-        List<NbtMap> blockEntities = NukkitEntityData.blockEntities(builder, compounds(get(builder, '1')), this.blocks, this.items);
-        NbtMap pendingTicks = this.ticks.read(builder.getX(), builder.getZ(), builder.getLevel().getMinHeight(), builder.getLevel().getMaxHeight());
+        List<NbtMap> entities = ImportedEntityData.entities(this.entityReader.readEntities(builder.getX(), builder.getZ()), this.codec::convertEntity);
+        List<NbtMap> blockEntities = ImportedEntityData.blockEntities(builder, this.entityReader.readBlockEntities(builder.getX(), builder.getZ()), this.codec::convertBlockEntity);
+        NbtMap pendingTicks = this.tickReader.read(builder.getX(), builder.getZ(), builder.getLevel().getMinHeight(), builder.getLevel().getMaxHeight());
 
         return new ImportedChunk(builder.build(), entities, blockEntities, pendingTicks);
     }
 
-    private byte[] get(CloudChunkBuilder builder, int tag) {
-        return this.database.get(NukkitLevelDBKeys.key(builder.getX(), builder.getZ(), this.dimension, tag));
+    private byte @Nullable [] get(CloudChunkBuilder builder, int tag) {
+        return this.database.get(LevelDBImportKeys.key(builder.getX(), builder.getZ(), this.dimension, tag));
     }
 
     private void readSections(CloudChunkBuilder builder, CloudChunkSection[] sections, int version) throws IOException {
         for (int keyY = Byte.MIN_VALUE; keyY <= Byte.MAX_VALUE; keyY++) {
-            byte[] data = this.database.get(NukkitLevelDBKeys.section(builder.getX(), builder.getZ(), this.dimension, keyY));
+            byte[] data = this.database.get(LevelDBImportKeys.section(builder.getX(), builder.getZ(), this.dimension, keyY));
             if (data == null) {
                 continue;
             }
 
             int y = version >= 24 && version <= 26 ? keyY - 4 : keyY;
             int index = sectionIndex(builder, y);
-            sections[index] = new CloudChunkSection(builder.getLevel().getServer().getBlockRegistry(), this.storage.readSection(data, y));
+            sections[index] = new CloudChunkSection(builder.getLevel().getServer().getBlockRegistry(), this.codec.readSection(data, y));
         }
     }
 
@@ -108,7 +107,7 @@ public class NukkitLevelDBChunkReader {
                 for (int z = 0; z < 16; z++) {
                     int index = x << 11 | z << 7 | y;
                     int metadata = (terrain[32768 + (index >> 1)] >>> ((index & 1) * 4)) & 0xf;
-                    section.setBlockState(x, y & 15, z, BlockLayer.PRIMARY, this.blocks.read(terrain[index] & 0xff, metadata));
+                    section.setBlockState(x, y & 15, z, BlockLayer.PRIMARY, this.codec.readLegacyBlock(terrain[index] & 0xff, metadata));
                 }
             }
         }
@@ -136,14 +135,15 @@ public class NukkitLevelDBChunkReader {
         if (data == null) {
             data = get(builder, '-');
         }
+
         if (data == null) {
-            throw new IOException("Nukkit chunk has no biome data");
+            throw new IOException("LevelDB chunk has no biome data");
         }
 
         ByteBuf input = Unpooled.wrappedBuffer(data);
         try {
             for (int i = 0; i < 256; i++) {
-                heights[i] = input.readUnsignedShortLE();
+                heights[i] = this.codec.readHeight(input.readUnsignedShortLE(), builder.getLevel().getMinHeight(), threeDimensional);
             }
 
             if (threeDimensional) {
@@ -159,10 +159,10 @@ public class NukkitLevelDBChunkReader {
             }
 
             if (input.isReadable()) {
-                throw new IOException("Unexpected trailing Nukkit biome data");
+                throw new IOException("Unexpected trailing biome data");
             }
         } catch (IndexOutOfBoundsException | IllegalArgumentException failure) {
-            throw new IOException("Invalid Nukkit biome data", failure);
+            throw new IOException("Invalid LevelDB biome data", failure);
         } finally {
             input.release();
         }
@@ -185,11 +185,13 @@ public class NukkitLevelDBChunkReader {
                 int key = input.readIntLE();
                 int value = input.readUnsignedShortLE();
                 int bits = version < 3 ? 7 : 8;
+
                 int x = key >>> (bits + 4) & 15;
                 int z = key >>> bits & 15;
                 int y = key & ((1 << bits) - 1);
+
                 CloudChunkSection section = section(builder, sections, y >> 4);
-                BlockState state = this.blocks.read(value & 0xff, value >>> 8 & 15);
+                BlockState state = this.codec.readLegacyBlock(value & 0xff, value >>> 8 & 15);
                 BlockState existing = section.getBlockState(x, y & 15, z, BlockLayer.SECONDARY);
                 if (existing.getType() != BlockTypes.AIR && existing != state) {
                     throw new IOException("Conflicting secondary block data at " + x + "," + y + "," + z);
@@ -204,12 +206,12 @@ public class NukkitLevelDBChunkReader {
         }
     }
 
-    private static void fillBiomes(CloudChunkBuilder builder, CloudChunkSection[] sections, byte[] biomes) throws IOException {
+    private void fillBiomes(CloudChunkBuilder builder, CloudChunkSection[] sections, byte[] biomes) throws IOException {
         for (int y = 0; y < sections.length; y++) {
             CloudChunkSection section = section(builder, sections, y + builder.getLevel().getMinSectionY());
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    section.fillColumnBiome(x, z, biomes[x * 16 + z] & 0xff);
+                    section.fillColumnBiome(x, z, this.codec.readColumnBiome(biomes, x, z));
                 }
             }
         }
@@ -231,25 +233,5 @@ public class NukkitLevelDBChunkReader {
         }
 
         return index;
-    }
-
-    private static List<NbtMap> compounds(byte[] data) throws IOException {
-        if (data == null) {
-            return List.of();
-        }
-
-        List<NbtMap> tags = new ArrayList<>();
-        try (ByteArrayInputStream bytes = new ByteArrayInputStream(data);
-             NBTInputStream input = NbtUtils.createReaderLE(bytes)) {
-            while (bytes.available() > 0) {
-                if (!(input.readTag() instanceof NbtMap tag)) {
-                    throw new IOException("Nukkit entity data must contain compounds");
-                }
-
-                tags.add(tag);
-            }
-        }
-
-        return tags;
     }
 }

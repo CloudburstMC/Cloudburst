@@ -21,6 +21,7 @@ import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
@@ -28,12 +29,41 @@ import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Reads and writes LevelDB level metadata while retaining unrecognized fields.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LevelDBDataSerializer implements CloudLevelDataSerializer {
     public static final CloudLevelDataSerializer INSTANCE = new LevelDBDataSerializer();
+    public static final int CLOUDBURST_STORAGE_VERSION = 1;
 
     private static final int STORAGE_VERSION = 10;
     private static final int STORAGE_VERSION_MIN = 8;
+
+    /**
+     * Reads one metadata file without modifying it or falling back to a backup.
+     * The header, payload length and single root compound must be valid.
+     * Does not validate the Cloudburst storage marker or generator fields.
+     */
+    public static NbtMap readMetadata(Path path) throws IOException {
+        try (InputStream bytes = Files.newInputStream(path);
+             LittleEndianDataInputStream stream = new LittleEndianDataInputStream(bytes);
+             NBTInputStream reader = new NBTInputStream(stream)) {
+            int version = stream.readInt();
+            int length = stream.readInt();
+            if (version < STORAGE_VERSION_MIN || version > STORAGE_VERSION + 2 || length != Files.size(path) - 8) {
+                throw new IOException("Invalid LevelDB level.dat header: " + path);
+            }
+
+            if (!(reader.readTag() instanceof NbtMap tag) || bytes.read() != -1) {
+                throw new IOException("level.dat must contain one NBT compound: " + path);
+            }
+
+            return tag;
+        } catch (RuntimeException failure) {
+            throw new IOException("Invalid LevelDB metadata: " + path, failure);
+        }
+    }
 
     @Override
     public Optional<CloudLevelData> load(CloudLevelData initialData, Path levelPath) throws IOException {
@@ -57,6 +87,7 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
         NbtMapBuilder tag = NbtMap.builder();
         tag.putAll(data.getAdditionalData());
         tag.putString("LevelName", data.getName())
+                .putInt("CloudburstStorageVersion", CLOUDBURST_STORAGE_VERSION)
                 .putString("generatorOptions", data.getGeneratorOptions())
                 .putString("generatorName", data.getGenerator().toString())
                 .putInt("lightningTime", data.getLightningTime())
@@ -102,27 +133,7 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
     }
 
     private void loadData(CloudLevelData data, Path levelDatPath) throws IOException {
-        NbtMap tag;
-        try (LittleEndianDataInputStream stream = new LittleEndianDataInputStream(Files.newInputStream(levelDatPath));
-             NBTInputStream nbtInputStream = new NBTInputStream(stream)) {
-
-            int version = stream.readInt();
-            if (version < STORAGE_VERSION_MIN || version > STORAGE_VERSION + 2) {
-                throw new IOException("Incompatible level.dat version: " + version);
-            }
-
-            int length = stream.readInt();
-            if (length < 0 || length != Files.size(levelDatPath) - 8) {
-                throw new IOException("Invalid level.dat payload length: " + length);
-            }
-
-            if (!(nbtInputStream.readTag() instanceof NbtMap compound)) {
-                throw new IOException("level.dat must contain an NBT compound");
-            }
-
-            tag = compound;
-        }
-
+        NbtMap tag = readMetadata(levelDatPath);
         data.setAdditionalData(tag);
 
         tag.listenForString("LevelName", data::setName);
@@ -169,21 +180,20 @@ public class LevelDBDataSerializer implements CloudLevelDataSerializer {
     }
 
     private static void readGenerator(NbtMap tag, CloudLevelData data) throws IOException {
-        if (!tag.containsKey("generatorName")) {
+        if (!tag.containsKey("CloudburstStorageVersion")) {
             return;
         }
 
-        if (!tag.containsKey("generatorName", NbtType.STRING)) {
-            throw new IOException("Generator name must be a string");
+        if (!tag.containsKey("CloudburstStorageVersion", NbtType.INT) || tag.getInt("CloudburstStorageVersion") != CLOUDBURST_STORAGE_VERSION) {
+            throw new IOException("Unsupported Cloudburst storage version");
+        }
+
+        if (!tag.containsKey("generatorName", NbtType.STRING) || tag.getString("generatorName").indexOf(':') < 1 || !tag.containsKey("generatorOptions", NbtType.STRING)) {
+            throw new IOException("Cloudburst storage requires a namespaced generator and string generatorOptions");
         }
 
         data.setGenerator(Identifier.parse(tag.getString("generatorName")));
-        String optionsKey = tag.containsKey("generatorOptions") ? "generatorOptions" : "FlatWorldLayers";
-        if (tag.containsKey(optionsKey) && !tag.containsKey(optionsKey, NbtType.STRING)) {
-            throw new IOException("Generator options must be a string");
-        }
-
-        data.setGeneratorOptions(tag.getString(optionsKey));
+        data.setGeneratorOptions(tag.getString("generatorOptions"));
     }
 
     private static <T extends Comparable<T>> void writeGameRule(NbtMapBuilder tag, LevelGameRules.Entry<T> entry) {

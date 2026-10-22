@@ -22,12 +22,14 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static org.cloudburstmc.api.block.BlockStates.AIR;
 
 /**
  * Stores one 16-by-16-by-16 block layer using identity-based palette entries.
  * A singleton palette has no index array. Instances are not thread-safe.
+ * Buffer methods read or append one layer without releasing the supplied buffer.
  */
 public class BlockStorage {
 
@@ -39,6 +41,9 @@ public class BlockStorage {
     private int nonAirCount;
     private boolean needsCompaction;
 
+    /**
+     * Creates a layer filled with air.
+     */
     public BlockStorage() {
         this(null, new ReferenceArrayList<>(List.of(AIR)), 0, false);
     }
@@ -55,12 +60,22 @@ public class BlockStorage {
 
     /**
      * Returns the state at {@code (x << 8) | (z << 4) | y} within the layer.
+     * Each local coordinate ranges from 0 to 15.
+     *
+     * @throws IndexOutOfBoundsException if the index is outside 0 to 4095
      */
     public BlockState getBlock(int index) {
         Objects.checkIndex(index, SIZE);
         return this.palette.get(this.paletteIndexAt(index));
     }
 
+    /**
+     * Replaces the state at an index using the same layout as {@link #getBlock(int)}.
+     *
+     * @param index layer index from 0 to 4095
+     * @param state non-null state to store
+     * @throws IndexOutOfBoundsException if the index is outside the layer
+     */
     public void setBlock(int index, BlockState state) {
         Objects.checkIndex(index, SIZE);
         Objects.requireNonNull(state, "state");
@@ -80,10 +95,16 @@ public class BlockStorage {
         this.needsCompaction = true;
     }
 
+    /**
+     * Returns whether every position contains {@link org.cloudburstmc.api.block.BlockStates#AIR}.
+     */
     public boolean isEmpty() {
         return this.nonAirCount == 0;
     }
 
+    /**
+     * Returns an independently mutable copy sharing only the immutable block states.
+     */
     public BlockStorage copy() {
         return new BlockStorage(
                 this.bitArray == null ? null : this.bitArray.copy(),
@@ -93,6 +114,9 @@ public class BlockStorage {
         );
     }
 
+    /**
+     * Appends a layer encoded with runtime block IDs.
+     */
     public void writeToNetwork(ByteBuf buffer) {
         this.compact();
         this.writeIndices(buffer, true);
@@ -106,6 +130,9 @@ public class BlockStorage {
         }
     }
 
+    /**
+     * Appends a layer encoded with named block states for persistence.
+     */
     public void writeToStorage(ByteBuf buffer) {
         this.compact();
         this.writeIndices(buffer, false);
@@ -124,10 +151,22 @@ public class BlockStorage {
     }
 
     /**
-     * Decodes a complete named-state layer before returning it.
+     * Reads one named-state layer from the current buffer position.
+     * Bytes following the layer remain unread.
      * Runtime-ID palettes, invalid indices and unknown states are rejected.
      */
     public static BlockStorage readFromStorage(ByteBuf buffer) {
+        return readFromStorage(buffer, BlockStateCodec::read);
+    }
+
+    /**
+     * Decodes a named-state layer with the supplied palette-entry decoder.
+     * Storage headers and indices are validated independently of state resolution.
+     * Each decoder result must be non-null.
+     * Bytes following the layer remain unread.
+     */
+    public static BlockStorage readFromStorage(ByteBuf buffer, Function<NbtMap, BlockState> decoder) {
+        Objects.requireNonNull(decoder, "decoder");
         int header = buffer.readUnsignedByte();
         if ((header & 1) != 0) {
             throw new IllegalArgumentException("Runtime-ID palettes cannot be read as persisted block states");
@@ -157,7 +196,7 @@ public class BlockStorage {
                     throw new IllegalArgumentException("Block palette entry " + index + " must be a compound");
                 }
 
-                palette.add(BlockStateCodec.read(tag));
+                palette.add(Objects.requireNonNull(decoder.apply(tag), "decoded block state"));
             }
         } catch (IOException exception) {
             throw new UncheckedIOException("Unable to read block palette", exception);

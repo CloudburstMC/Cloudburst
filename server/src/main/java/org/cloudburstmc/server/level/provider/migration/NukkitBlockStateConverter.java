@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Converts Nukkit numeric block references and saved class names at the world import boundary.
- * Unknown references fail conversion rather than losing blocks or their metadata.
+ * Resolves Nukkit numeric block references and saved block names using pinned mappings.
+ * Unmapped references fail conversion.
  */
 public class NukkitBlockStateConverter {
 
@@ -59,6 +59,9 @@ public class NukkitBlockStateConverter {
         }
     }
 
+    /**
+     * Resolves the saved block class name used by Anvil scheduled ticks to its numeric ID.
+     */
     public int readSaveId(String name) {
         Integer id = this.saveIds.get(name);
         if (id == null) {
@@ -67,6 +70,9 @@ public class NukkitBlockStateConverter {
         return id;
     }
 
+    /**
+     * Resolves a numeric ID and metadata using the pinned mapping, rejecting unmapped combinations.
+     */
     public BlockState read(int id, int metadata) {
         long key = key(id, metadata);
         return this.resolved.computeIfAbsent(key, ignored -> {
@@ -79,11 +85,17 @@ public class NukkitBlockStateConverter {
         });
     }
 
+    /**
+     * Upgrades saved named states, including states containing legacy numeric metadata.
+     */
     public BlockState readNamed(NbtMap tag) {
         NbtMap state = tag.containsKey("val") ? BlockStateUpdaters.updateBlockState(tag, tag.getInt("version")) : tag;
         return BlockStateCodec.read(state);
     }
 
+    /**
+     * Converts embedded block references and normalizes position and motion vectors to floats.
+     */
     public NbtMap convertEntity(NbtMap tag) {
         NbtMapBuilder converted = tag.toBuilder();
         convertVector(tag, converted, "Pos");
@@ -108,6 +120,9 @@ public class NukkitBlockStateConverter {
         return converted.build();
     }
 
+    /**
+     * Converts flower-pot and moving-block references, including nested moving block entities.
+     */
     public NbtMap convertBlockEntity(NbtMap tag) {
         NbtMapBuilder converted = tag.toBuilder();
         if (tag.getString("id").equals("FlowerPot") && tag.containsKey("item")) {

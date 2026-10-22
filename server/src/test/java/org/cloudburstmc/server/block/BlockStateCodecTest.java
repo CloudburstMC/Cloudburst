@@ -2,14 +2,14 @@ package org.cloudburstmc.server.block;
 
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BlockStateCodecTest {
 
@@ -49,6 +49,28 @@ class BlockStateCodecTest {
                 .build();
 
         assertThrows(IllegalArgumentException.class, () -> BlockStateCodec.read(invalid));
+    }
+
+    @Test
+    void unregisteredNamesUseTheExplicitFallbackWithoutWeakeningStateValidation() {
+        BlockState unknown = REGISTRY.getBlock(BlockTypes.UNKNOWN);
+        NbtMap custom = NbtMap.builder().putString("name", "test:unregistered_block")
+                .putCompound("states", NbtMap.EMPTY).build();
+
+        assertSame(unknown, BlockStateCodec.read(custom, id -> {
+            assertEquals(Identifier.parse("test:unregistered_block"), id);
+            return unknown;
+        }));
+
+        NbtMap invalid = BlockStateCodec.write(REGISTRY.getBlock(BlockTypes.OAK_STAIRS)).toBuilder()
+                .putCompound("states", NbtMap.builder().putString("cloudburst:unknown_property", "invalid").build())
+                .build();
+        for (NbtMap malformed : new NbtMap[]{NbtMap.EMPTY, invalid,
+                custom.toBuilder().putString("states", "not a compound").build()}) {
+            assertThrows(IllegalArgumentException.class, () -> BlockStateCodec.read(malformed, id -> {
+                throw new AssertionError("Malformed states must not use the fallback");
+            }));
+        }
     }
 
     @Test

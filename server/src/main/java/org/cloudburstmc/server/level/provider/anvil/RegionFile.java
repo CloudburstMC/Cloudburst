@@ -13,7 +13,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
 /**
- * Reads an import source without repairing, padding, or rewriting its region files.
+ * Reads Anvil regions without modifying their files.
+ * Chunk coordinates are local to the region and range from 0 to 31.
  */
 public class RegionFile implements Closeable {
 
@@ -27,6 +28,14 @@ public class RegionFile implements Closeable {
     private final int[] offsets = new int[ENTRY_COUNT];
     private final FileChannel channel;
 
+    /**
+     * Opens a region for reading and validates its location table.
+     * Chunk payloads are validated when read, not when the file is opened.
+     *
+     * @param path region file to open
+     * @throws IOException if the file cannot be opened, has invalid sector boundaries
+     *                     or assigns overlapping sectors to chunks
+     */
     public RegionFile(Path path) throws IOException {
         channel = FileChannel.open(path, StandardOpenOption.READ);
         try {
@@ -69,6 +78,17 @@ public class RegionFile implements Closeable {
         }
     }
 
+    /**
+     * Returns the decompressed chunk payload. The caller must release the returned buffer.
+     * Supports GZIP and zlib compression and limits decompressed payloads to 16 MiB.
+     *
+     * @param x local chunk x from 0 to 31
+     * @param z local chunk z from 0 to 31
+     * @return a read-only buffer independent of the file's lifetime
+     * @throws IllegalArgumentException if either coordinate is outside the region
+     * @throws IOException if the chunk is absent, its payload cannot be read or decompressed,
+     *                     or its compression or size is unsupported
+     */
     public ByteBuf readChunk(int x, int z) throws IOException {
         int offset = offsets[index(x, z)];
         if (offset == 0) {
@@ -105,6 +125,14 @@ public class RegionFile implements Closeable {
         }
     }
 
+    /**
+     * Tests for an entry in the location table without reading or validating its payload.
+     *
+     * @param x local chunk x from 0 to 31
+     * @param z local chunk z from 0 to 31
+     * @return whether the chunk has an allocated location
+     * @throws IllegalArgumentException if either coordinate is outside the region
+     */
     public boolean hasChunk(int x, int z) {
         return offsets[index(x, z)] != 0;
     }
@@ -128,6 +156,9 @@ public class RegionFile implements Closeable {
         }
     }
 
+    /**
+     * Closes the file channel. Previously returned buffers remain the caller's responsibility.
+     */
     @Override
     public void close() throws IOException {
         channel.close();

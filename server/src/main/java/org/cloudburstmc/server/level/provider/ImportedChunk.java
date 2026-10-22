@@ -8,7 +8,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Converted terrain and entity records ready for persistence without spawning entities.
+ * Owns converted terrain and immutable entity record lists without spawning entities.
+ * Entity chunk assignments are finalized after all terrain is saved.
+ * Closing this record releases its chunk.
+ *
+ * @param chunk         converted terrain owned by this record
+ * @param entities      entity records whose final chunks are determined from their positions
+ * @param blockEntities block entity records belonging to this chunk
+ * @param pendingTicks  converted pending ticks for this chunk
  */
 public record ImportedChunk(CloudChunk chunk, List<NbtMap> entities, List<NbtMap> blockEntities, NbtMap pendingTicks) implements Closeable {
 

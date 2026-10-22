@@ -25,10 +25,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Reads Nukkit Anvil worlds for conversion into a separate Cloudburst destination.
+ * Traverses offline Anvil regions and converts numeric Nukkit chunk encodings.
+ * The source must remain unchanged throughout both the tick scan and terrain conversion.
  */
 @ParametersAreNonnullByDefault
-public class NukkitAnvilLevelImportSource implements LevelImportSource {
+public class AnvilLevelImportSource implements LevelImportSource {
 
     private final Path levelPath;
     private final Path regionsPath;
@@ -37,7 +38,7 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
     private final NukkitItemDataConverter items;
     private volatile boolean closed;
 
-    public NukkitAnvilLevelImportSource(Path levelPath, Executor executor) throws IOException {
+    public AnvilLevelImportSource(Path levelPath, Executor executor) throws IOException {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.levelPath = levelPath.toRealPath();
         this.regionsPath = this.levelPath.resolve("region");
@@ -50,6 +51,9 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
         this.items = new NukkitItemDataConverter();
     }
 
+    /**
+     * Checks for region files without validating the encoding of their chunks.
+     */
     public static boolean isImportSource(Path levelPath) throws IOException {
         Path regions = levelPath.resolve("region");
         if (!Files.isDirectory(regions)) {
@@ -67,6 +71,10 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
         return false;
     }
 
+    /**
+     * Scans all scheduled ticks before converting terrain so cross-chunk ticks reach their owners.
+     * Each imported chunk is closed after the consumer returns.
+     */
     @Override
     public CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<ImportedChunk> consumer) {
         checkForClosed();
@@ -162,6 +170,9 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
         }, this.executor);
     }
 
+    /**
+     * Rejects new operations without cancelling visits or metadata reads already started.
+     */
     @Override
     public void close() {
         this.closed = true;

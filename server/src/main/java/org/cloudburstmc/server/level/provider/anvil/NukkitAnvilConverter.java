@@ -14,7 +14,7 @@ import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.cloudburstmc.server.level.provider.migration.NukkitBlockStateConverter;
 import org.cloudburstmc.server.level.provider.migration.NukkitBlockStorageReader;
 import org.cloudburstmc.server.level.provider.migration.NukkitChunkGeneration;
-import org.cloudburstmc.server.level.provider.migration.NukkitEntityData;
+import org.cloudburstmc.server.level.provider.migration.ImportedEntityData;
 import org.cloudburstmc.server.level.provider.migration.NukkitItemDataConverter;
 import org.cloudburstmc.server.utils.NibbleArray;
 
@@ -28,15 +28,29 @@ import java.util.List;
 @UtilityClass
 public class NukkitAnvilConverter {
 
+    /**
+     * Reads the Level compound from an uncompressed numeric Nukkit Anvil envelope.
+     * Requires a byte V marker and rejects Java DataVersion markers, but does not validate the version value.
+     * Advances the buffer's reader index without releasing the caller-owned buffer.
+     */
     public static NbtMap readChunk(ByteBuf chunkBuf) throws IOException {
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf); NBTInputStream nbtInputStream = NbtUtils.createReader(stream)) {
             if (!(nbtInputStream.readTag() instanceof NbtMap root) || !(root.get("Level") instanceof NbtMap level)) {
                 throw new IOException("Anvil chunk must contain a Level compound");
             }
+
+            if (root.containsKey("DataVersion") || level.containsKey("DataVersion") || !level.containsKey("V", NbtType.BYTE)) {
+                throw new IOException("Unsupported Anvil chunk encoding. Numeric Bedrock Anvil chunks require a byte V field");
+            }
+
             return level;
         }
     }
 
+    /**
+     * Converts one chunk using previously collected scheduled ticks.
+     * The caller owns both the input buffer and the returned chunk.
+     */
     public static ImportedChunk convertToCloudburst(CloudChunkBuilder chunkBuilder, ByteBuf chunkBuf,
                                                    NukkitBlockStateConverter blocks, NukkitItemDataConverter items,
                                                    NukkitAnvilPendingTicks pendingTicks) throws IOException {
@@ -125,8 +139,10 @@ public class NukkitAnvilConverter {
         chunkBuilder.setHeightMap(heightMap);
         chunkBuilder.setGenerationStatus(NukkitChunkGeneration.readAnvil(tag));
 
-        List<NbtMap> entities = NukkitEntityData.entities(chunkBuilder, tag.getList("Entities", NbtType.COMPOUND), blocks, items);
-        List<NbtMap> blockEntities = NukkitEntityData.blockEntities(chunkBuilder, tag.getList("TileEntities", NbtType.COMPOUND), blocks, items);
+        List<NbtMap> entities = ImportedEntityData.entities(tag.getList("Entities", NbtType.COMPOUND),
+                entity -> blocks.convertEntity(items.convert(entity)));
+        List<NbtMap> blockEntities = ImportedEntityData.blockEntities(chunkBuilder, tag.getList("TileEntities", NbtType.COMPOUND),
+                blockEntity -> blocks.convertBlockEntity(items.convert(blockEntity)));
         NbtMap ticks = pendingTicks.take(chunkBuilder.getX(), chunkBuilder.getZ(), chunkBuilder.getLevel().getMinHeight(), chunkBuilder.getLevel().getMaxHeight(), tag);
 
         return new ImportedChunk(chunkBuilder.build(), entities, blockEntities, ticks);

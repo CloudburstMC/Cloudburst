@@ -15,20 +15,27 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Converts Nukkit's overlapping saved tick lists into chunk-local pending ticks.
+ * Assigns saved ticks to their containing chunks and preserves their remaining delays.
  */
-public class NukkitPendingTickReader {
+public class LevelDBPendingTickReader {
 
     private final DB database;
     private final int dimension;
-    private final NukkitBlockStateConverter blocks;
+    private final LevelDBChunkCodec codec;
 
-    public NukkitPendingTickReader(DB database, int dimension, NukkitBlockStateConverter blocks) {
+    public LevelDBPendingTickReader(DB database, int dimension, LevelDBChunkCodec codec) {
         this.database = Objects.requireNonNull(database, "database");
         this.dimension = dimension;
-        this.blocks = Objects.requireNonNull(blocks, "blocks");
+        this.codec = Objects.requireNonNull(codec, "codec");
     }
 
+    /**
+     * Collects ticks from overlapping source records for the requested chunk.
+     * Destination-owned entries take precedence over duplicate neighbor entries.
+     * Duplicates share a position and converted block type. Equal ownership favors the shorter delay,
+     * then the lower priority value. Delays are rebased against a destination current tick of zero.
+     * The destination height range includes {@code minY} and excludes {@code maxY}.
+     */
     public NbtMap read(int chunkX, int chunkZ, int minY, int maxY) throws IOException {
         Map<TickKey, ImportedTick> ticks = new LinkedHashMap<>();
 
@@ -36,7 +43,7 @@ public class NukkitPendingTickReader {
             for (int offsetZ = 0; offsetZ <= 1; offsetZ++) {
                 int sourceX = Math.addExact(chunkX, offsetX);
                 int sourceZ = Math.addExact(chunkZ, offsetZ);
-                byte[] data = this.database.get(NukkitLevelDBKeys.key(sourceX, sourceZ, this.dimension, '3'));
+                byte[] data = this.database.get(LevelDBImportKeys.key(sourceX, sourceZ, this.dimension, '3'));
                 if (data == null) {
                     continue;
                 }
@@ -44,7 +51,7 @@ public class NukkitPendingTickReader {
                 try {
                     this.readRecord(data, sourceX, sourceZ, chunkX, chunkZ, minY, maxY, ticks);
                 } catch (IOException | RuntimeException failure) {
-                    throw new IOException("Invalid Nukkit pending ticks in source chunk (" + sourceX + ", " + sourceZ + ") while importing chunk (" + chunkX + ", " + chunkZ + ")", failure);
+                    throw new IOException("Invalid pending ticks in source chunk (" + sourceX + ", " + sourceZ + ") while importing chunk (" + chunkX + ", " + chunkZ + ")", failure);
                 }
             }
         }
@@ -73,7 +80,7 @@ public class NukkitPendingTickReader {
             long minX = (long) sourceX << 4;
             long minZ = (long) sourceZ << 4;
             if (position.getX() < minX - 2 || position.getX() >= minX + 16 || position.getZ() < minZ - 2 || position.getZ() >= minZ + 16) {
-                throw new IOException("Pending tick is outside Nukkit's saved chunk border: " + position);
+                throw new IOException("Pending tick is outside its saved chunk border: " + position);
             }
 
             if ((position.getX() >> 4) != chunkX || (position.getZ() >> 4) != chunkZ) {
@@ -88,15 +95,7 @@ public class NukkitPendingTickReader {
                 throw new IOException("Pending tick has no long delay: " + position);
             }
 
-            NbtMap serialized = tag.getCompound("blockState");
-            BlockState state;
-            if (serialized.containsKey("name")) {
-                state = this.blocks.readNamed(serialized);
-            } else if (tag.containsKey("tileID", NbtType.BYTE)) {
-                state = this.blocks.read(tag.getByte("tileID") & 0xff, 0);
-            } else {
-                throw new IOException("Pending tick has no block reference: " + position);
-            }
+            BlockState state = this.codec.readTickState(tag);
 
             long delay = Math.max(0, Math.subtractExact(tag.getLong("time"), root.getInt("currentTick")));
             NbtMap converted = NbtMap.builder()
@@ -104,7 +103,7 @@ public class NukkitPendingTickReader {
                     .putCompound("blockState", BlockStateCodec.write(state))
                     .putLong("time", delay).putInt("p", tag.getInt("p")).build();
             ImportedTick tick = new ImportedTick(converted, sourceX == chunkX && sourceZ == chunkZ);
-            ticks.merge(new TickKey(position, state.getType()), tick, NukkitPendingTickReader::selectTick);
+            ticks.merge(new TickKey(position, state.getType()), tick, LevelDBPendingTickReader::selectTick);
         }
     }
 

@@ -519,7 +519,7 @@ public class CloudServer implements Server {
             this.globalScheduler.cancelAllTasks();
             this.asyncScheduler.cancelAllTasks();
 
-            log.debug("Unloading all levels");
+            log.debug("Unloading all worlds");
             if (this.mapManager != null) {
                 this.mapManager.save();
             }
@@ -1466,7 +1466,7 @@ public class CloudServer implements Server {
 
         String defaultName = this.configuration.getDefaultLevel();
 
-        List<CompletableFuture<CloudLevel>> levelFutures = new ArrayList<>(levelDefinitions.size());
+        List<CloudLevelLoadRequest> requests = new ArrayList<>(levelDefinitions.size());
         for (String name : levelDefinitions.keySet()) {
             final LevelDefinition config = levelDefinitions.get(name);
             if (config.getDimension() == null) {
@@ -1474,7 +1474,7 @@ public class CloudServer implements Server {
             }
 
             if (this.isDimensionDisabled(config.getDimension())) {
-                log.info("Skipping disabled {} level '{}'", config.getDimension(), name);
+                log.info("Skipping world '{}' because its dimension is disabled", name);
                 continue;
             }
 
@@ -1484,10 +1484,6 @@ public class CloudServer implements Server {
             if (seedObj instanceof Number) {
                 seed = ((Number) seedObj).longValue();
             } else if (seedObj instanceof String) {
-                if (seedObj == name) {
-                    log.debug("World \"§a{}§r\" does not have a seed! Using the name as the seed", name);
-                }
-
                 //this internally generates an MD5 hash of the seed string
                 UUID uuid = UUID.nameUUIDFromBytes(((String) seedObj).getBytes(StandardCharsets.UTF_8));
                 seed = uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits();
@@ -1498,7 +1494,7 @@ public class CloudServer implements Server {
             Identifier generator = Identifier.parse(config.getGenerator());
             String options = config.getOptions();
 
-            levelFutures.add(this.levelBuilder(name)
+            requests.add(this.levelBuilder(name)
                     .seed(seed)
                     .dimension(switch (config.getDimension()) {
                         case OVERWORLD -> CloudLevel.DIMENSION_OVERWORLD;
@@ -1507,7 +1503,15 @@ public class CloudServer implements Server {
                     })
                     .generator(generator == null ? this.generatorRegistry.getFallback() : generator)
                     .generatorOptions(options)
-                    .load());
+                    .importProfile(config.getImportProfile())
+                    .build());
+        }
+
+        // Split any combined Bedrock import before a destination level opens its database.
+        this.levelManager.prepareConfiguredLevels(requests, defaultName);
+        List<CompletableFuture<CloudLevel>> levelFutures = new ArrayList<>(requests.size());
+        for (CloudLevelLoadRequest request : requests) {
+            levelFutures.add(this.levelManager.load(request));
         }
 
         // Wait for levels to load.

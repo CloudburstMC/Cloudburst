@@ -36,11 +36,20 @@ public interface LevelProvider extends PlayerDataProvider, Closeable {
 
     /**
      * Atomically persists converted terrain and entity records without loading entities.
+     * The caller retains ownership of the imported chunk and must keep it open until completion.
      *
      * @param imported converted chunk whose destination must not already contain a chunk
      * @return future completed after all chunk records are persisted
      */
     CompletableFuture<Void> saveImportedChunk(ImportedChunk imported);
+
+    /**
+     * Finalizes imported records after all terrain has been saved.
+     * Await completion before opening the destination level for normal use.
+     *
+     * @return future completed after entities are stored in their position's chunks
+     */
+    CompletableFuture<Void> completeImport();
 
     /**
      * Persists a chunk's pending ticks without performing a complete chunk save.

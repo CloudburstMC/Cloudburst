@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.level.provider.migration.LevelDBImportProfile;
 
 import java.nio.file.Path;
 import java.util.Objects;
@@ -10,11 +11,12 @@ import java.util.Objects;
  * Immutable configuration for loading or creating a level.
  *
  * @param id               level identity and storage directory name
- * @param seed             seed used when persisted level data does not exist
+ * @param seed             fallback seed when storage supplies none
  * @param dimension        configured dimension
- * @param generator        generator used when persisted level data does not exist
- * @param generatorOptions generator options used when persisted level data does not exist
+ * @param generator        generator used for new levels and new terrain in imported levels
+ * @param generatorOptions options for the selected creation or import generator
  * @param storage          explicitly selected storage format, or {@code null} for detection
+ * @param importProfile    source LevelDB encoding, or {@code null} for detection
  */
 public record CloudLevelLoadRequest(
         String id,
@@ -22,13 +24,17 @@ public record CloudLevelLoadRequest(
         int dimension,
         Identifier generator,
         String generatorOptions,
-        @Nullable Identifier storage
+        @Nullable Identifier storage,
+        @Nullable LevelDBImportProfile importProfile
 ) {
     public CloudLevelLoadRequest {
         validateId(id);
         validateDimension(dimension);
         Objects.requireNonNull(generator, "generator");
         Objects.requireNonNull(generatorOptions, "generatorOptions");
+        if (importProfile == LevelDBImportProfile.CLOUDBURST) {
+            throw new IllegalArgumentException("Cloudburst storage is not an import profile");
+        }
     }
 
     /**

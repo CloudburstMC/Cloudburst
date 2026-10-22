@@ -15,18 +15,22 @@ import java.util.Objects;
 /**
  * Stores one 16-by-16-by-16 biome layer using integer palette entries.
  * A singleton palette has no index array. Instances are not thread-safe.
+ * Buffer methods read or append one layer without releasing the supplied buffer.
  */
 public class BiomeStorage {
 
     private static final int SIZE = 4096;
-    private static final int COPY_PREVIOUS_DISK = 0xFE;
-    private static final int COPY_PREVIOUS_NETWORK = 0xFF;
+    private static final int COPY_PREVIOUS_BITS = 0x7F;
 
     private final IntList palette;
     private final Int2IntOpenHashMap paletteIndex;
     private @Nullable BitArray bitArray;
     private boolean needsCompaction;
 
+    /**
+     * Creates a layer filled with the supplied biome ID.
+     * Biome IDs are stored without registry validation.
+     */
     public BiomeStorage(int defaultBiomeId) {
         this(null, IntArrayList.of(defaultBiomeId), false);
     }
@@ -42,12 +46,22 @@ public class BiomeStorage {
 
     /**
      * Returns the biome ID at {@code (x << 8) | (z << 4) | y} within the layer.
+     * Each local coordinate ranges from 0 to 15.
+     *
+     * @throws IndexOutOfBoundsException if the index is outside 0 to 4095
      */
     public int getBiome(int index) {
         Objects.checkIndex(index, SIZE);
         return this.palette.getInt(this.paletteIndexAt(index));
     }
 
+    /**
+     * Replaces the biome ID at an index using the same layout as {@link #getBiome(int)}.
+     *
+     * @param index layer index from 0 to 4095
+     * @param biomeId ID to store without registry validation
+     * @throws IndexOutOfBoundsException if the index is outside the layer
+     */
     public void setBiome(int index, int biomeId) {
         Objects.checkIndex(index, SIZE);
         if (this.palette.getInt(this.paletteIndexAt(index)) == biomeId) {
@@ -59,6 +73,9 @@ public class BiomeStorage {
         this.needsCompaction = true;
     }
 
+    /**
+     * Returns an independently mutable copy of this layer.
+     */
     public BiomeStorage copy() {
         return new BiomeStorage(
                 this.bitArray == null ? null : this.bitArray.copy(),
@@ -70,13 +87,16 @@ public class BiomeStorage {
     /**
      * Writes runtime biome IDs, reusing the previous layer when safe for network decoding.
      * Singleton and leading-zero palettes are always written in full.
+     *
+     * @param buffer destination buffer at its current writer index
+     * @param previous preceding encoded layer, or {@code null} for the first layer
      */
     public void writeToNetwork(ByteBuf buffer, @Nullable BiomeStorage previous) {
         this.compact();
         if (previous != null && this.bitArray != null && previous.bitArray != null
                 && this.palette.getInt(0) != 0 && previous.palette.getInt(0) != 0
                 && this.hasSameValues(previous)) {
-            buffer.writeByte(COPY_PREVIOUS_NETWORK);
+            buffer.writeByte((COPY_PREVIOUS_BITS << 1) | 1);
             return;
         }
 
@@ -92,11 +112,14 @@ public class BiomeStorage {
 
     /**
      * Writes fixed-width biome IDs, reusing an identical previous layer when available.
+     *
+     * @param buffer destination buffer at its current writer index
+     * @param previous preceding encoded layer, or {@code null} for the first layer
      */
     public void writeToDisk(ByteBuf buffer, @Nullable BiomeStorage previous) {
         this.compact();
         if (previous != null && this.hasSameValues(previous)) {
-            buffer.writeByte(COPY_PREVIOUS_DISK);
+            buffer.writeByte(COPY_PREVIOUS_BITS << 1);
             return;
         }
 
@@ -111,12 +134,17 @@ public class BiomeStorage {
     }
 
     /**
-     * Decodes a complete disk layer. A copy-last record returns an independent copy.
+     * Reads one disk layer from the current buffer position, leaving following bytes unread.
+     * A copy-last record returns an independent copy of the previous layer.
      * Invalid headers, palette sizes and indices are rejected.
+     *
+     * @param buffer source buffer at its current reader index
+     * @param previous preceding decoded layer, or {@code null} for the first layer
      */
     public static BiomeStorage readFromDisk(ByteBuf buffer, @Nullable BiomeStorage previous) {
         int header = buffer.readUnsignedByte();
-        if (header == COPY_PREVIOUS_DISK) {
+        int bits = header >>> 1;
+        if (bits == COPY_PREVIOUS_BITS) {
             if (previous == null) {
                 throw new IllegalArgumentException("Biome copy-last record has no previous layer");
             }
@@ -124,11 +152,7 @@ public class BiomeStorage {
             return previous.copy();
         }
 
-        if ((header & 1) != 0) {
-            throw new IllegalArgumentException("Network biome palettes cannot be read as persisted biome data");
-        }
-
-        int bits = header >>> 1;
+        // Biome IDs remain fixed-width on disk regardless of the header's low bit.
         if (bits == 0) {
             return new BiomeStorage(buffer.readIntLE());
         }

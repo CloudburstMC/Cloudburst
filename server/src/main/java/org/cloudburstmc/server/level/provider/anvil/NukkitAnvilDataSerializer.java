@@ -18,11 +18,17 @@ import org.cloudburstmc.server.registry.CloudGameRuleRegistry;
 import java.io.IOException;
 import java.nio.file.Path;
 
+/**
+ * Reads Nukkit Anvil level metadata without changing the source files.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class NukkitAnvilDataSerializer {
 
     public static final NukkitAnvilDataSerializer INSTANCE = new NukkitAnvilDataSerializer();
 
+    /**
+     * Applies source metadata to a copy of the supplied defaults, retaining unrecognized fields.
+     */
     public CloudLevelData load(CloudLevelData initialData, Path levelPath) throws IOException {
         CloudLevelData data = initialData.copy();
         loadData(data, levelPath.resolve("level.dat"));

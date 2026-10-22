@@ -37,6 +37,11 @@ public class NukkitItemDataConverter {
         }
     }
 
+    /**
+     * Converts numeric item references throughout nested compounds and inventory lists.
+     * Variant metadata is consumed only when the pinned mapping identifies a named variant.
+     * Existing Name fields are not remapped. Unmapped numeric IDs or variants fail conversion.
+     */
     public NbtMap convert(NbtMap source) {
         NbtMapBuilder converted = source.toBuilder();
         source.forEach((name, value) -> {

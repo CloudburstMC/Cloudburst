@@ -1,14 +1,15 @@
 package org.cloudburstmc.server.level.provider;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.nbt.NBTInputStream;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.util.stream.LittleEndianDataInputStream;
-import org.cloudburstmc.server.level.provider.anvil.NukkitAnvilLevelImportSource;
-import org.cloudburstmc.server.level.provider.migration.NukkitLevelDBImportSource;
+import org.cloudburstmc.server.level.provider.anvil.AnvilLevelImportSource;
+import org.cloudburstmc.server.level.provider.migration.LevelDBImportProfile;
+import org.cloudburstmc.server.level.provider.migration.LevelDBImportSource;
+import org.cloudburstmc.server.level.provider.migration.OfflineLevelDBSnapshot;
+import org.cloudburstmc.server.level.provider.migration.StagedLevelImport;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
 
@@ -16,8 +17,8 @@ import java.util.concurrent.Executor;
  * Source formats converted before a level is opened for normal use.
  */
 public enum LevelImportFormat {
-    NUKKIT_LEVELDB("Nukkit LevelDB"),
-    NUKKIT_ANVIL("Nukkit Anvil");
+    LEVELDB("LevelDB"),
+    ANVIL("Anvil");
 
     private final String displayName;
 
@@ -25,67 +26,65 @@ public enum LevelImportFormat {
         this.displayName = displayName;
     }
 
-    public static @Nullable LevelImportFormat detect(Path source) throws IOException {
-        Path backup = source.resolveSibling("." + source.getFileName() + ".nukkit-backup");
-        if (!Files.exists(source) && Files.exists(backup)) {
-            throw new IOException("Interrupted level conversion. Restore " + backup + " to " + source + " before loading");
+    /**
+     * Detects a supported import source and rejects ambiguous or interrupted imports.
+     * Returns {@code null} for native storage or when no import format is detected.
+     * Source files are not modified or repaired during detection.
+     *
+     * @param source  directory containing the saved world
+     * @param profile explicit LevelDB encoding, or {@code null} for metadata detection
+     * @throws IOException if the source is ambiguous, incomplete or uses an unsupported encoding
+     */
+    public static @Nullable LevelImportFormat detect(Path source, @Nullable LevelDBImportProfile profile) throws IOException {
+        StagedLevelImport.checkInterruptedImport(source);
+
+        boolean anvil = AnvilLevelImportSource.isImportSource(source);
+        boolean levelDB = Files.isDirectory(source.resolve("db"));
+        if (anvil && levelDB) {
+            throw new IOException("Level contains both Anvil regions and a LevelDB database: " + source);
         }
 
-        if (NukkitAnvilLevelImportSource.isImportSource(source)) {
-            return NUKKIT_ANVIL;
+        if (anvil) {
+            if (profile != null) {
+                throw new IOException("import-profile applies only to LevelDB sources");
+            }
+
+            return ANVIL;
         }
 
-        Path metadata = source.resolve("level.dat");
-        if (!Files.isDirectory(source.resolve("db"))) {
+        if (!levelDB) {
             return null;
         }
 
-        NbtMap tag;
-        try {
-            tag = readMetadata(metadata);
-        } catch (IOException failure) {
-            Path previous = source.resolve("level.dat_old");
-            if (!Files.exists(metadata) && !Files.exists(previous)) {
+        if (Files.notExists(source.resolve("level.dat"), LinkOption.NOFOLLOW_LINKS)
+                && Files.notExists(source.resolve("level.dat_old"), LinkOption.NOFOLLOW_LINKS)) {
+            if (OfflineLevelDBSnapshot.isDatabaseEmpty(source)) {
                 return null;
             }
-            try {
-                tag = readMetadata(previous);
-            } catch (IOException backupFailure) {
-                failure.addSuppressed(backupFailure);
-                throw failure;
-            }
+
+            throw new IOException("LevelDB database contains records but level.dat and level.dat_old are missing: " + source);
         }
 
-        String generator = tag.getString("generatorName");
-        return !generator.isEmpty() && generator.indexOf(':') < 0 && tag.containsKey("generatorOptions") && !tag.containsKey("CloudburstClock") ? NUKKIT_LEVELDB : null;
-    }
-
-    private static NbtMap readMetadata(Path metadata) throws IOException {
-        try (LittleEndianDataInputStream stream = new LittleEndianDataInputStream(Files.newInputStream(metadata));
-             NBTInputStream reader = new NBTInputStream(stream)) {
-            int version = stream.readInt();
-            int length = stream.readInt();
-
-            if (version < 8 || version > 12 || length != Files.size(metadata) - 8) {
-                throw new IOException("Invalid LevelDB level.dat header: " + metadata);
-            }
-
-            if (!(reader.readTag() instanceof NbtMap tag)) {
-                throw new IOException("level.dat must contain an NBT compound: " + metadata);
-            }
-
-            return tag;
-        }
+        return LevelDBImportProfile.detect(LevelDBImportSource.readMetadata(source), profile) == LevelDBImportProfile.CLOUDBURST ? null : LEVELDB;
     }
 
     public String getDisplayName() {
         return this.displayName;
     }
 
-    public LevelImportSource open(Path source, int dimension, Executor executor) throws IOException {
+    /**
+     * Opens an offline source owned by the caller. The dimension selects LevelDB records only.
+     * Keep the source open until its asynchronous operations finish, then close it.
+     *
+     * @param source    directory containing the saved world
+     * @param dimension dimension to read from a LevelDB source
+     * @param profile   explicit LevelDB encoding, or {@code null} for metadata detection
+     * @param executor  executor for source metadata loading
+     */
+    public LevelImportSource open(Path source, int dimension, @Nullable LevelDBImportProfile profile, Executor executor) throws IOException {
         return switch (this) {
-            case NUKKIT_LEVELDB -> new NukkitLevelDBImportSource(source, dimension, executor);
-            case NUKKIT_ANVIL -> new NukkitAnvilLevelImportSource(source, executor);
+            case LEVELDB -> new LevelDBImportSource(source, dimension, profile, executor);
+            case ANVIL -> new AnvilLevelImportSource(source, executor);
         };
     }
 }

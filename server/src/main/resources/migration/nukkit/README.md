@@ -1,24 +1,7 @@
-# Nukkit Migration
+# Nukkit Mappings
 
-Imports Nukkit Anvil and LevelDB worlds.
-
-## Importing
-
-1. Stop Nukkit and Cloudburst.
-2. Copy the Nukkit world into Cloudburst's configured levels directory.
-3. Configure that directory name in `config/cloudburst-global.yml` with the intended
-   dimension and generator.
-4. Start Cloudburst. The world is converted automatically before loading.
-
-The original is retained as `.<level-name>.nukkit-backup` beside the converted world.
-Keep it until the converted world has been checked. Existing backups are never overwritten.
-
-LevelDB imports only the configured dimension. Other dimensions remain in the backup.
-New terrain uses the configured generator.
-
-If startup reports an interrupted conversion, stop Cloudburst. Move any incomplete
-converted world aside and restore the backup to the original directory name.
-Before retrying, move any remaining backup out of the levels directory rather than deleting it.
+Numeric block and item mappings used by the Anvil and LevelDB import decoders.
+See [World imports](../README.md) for setup and backup handling.
 
 ## Compatibility
 
@@ -31,7 +14,7 @@ These resources are copied from [Nukkit commit 935d60c](https://github.com/Cloud
 
 | Local file           | Nukkit source                                    |
 | -------------------- | ------------------------------------------------ |
-| `block_states.nbt`   | `runtime_block_states.dat` (gzip-compressed NBT) |
+| `block_states.nbt`    | `runtime_block_states.dat` (gzip-compressed NBT)  |
 | `item_ids.json`      | `legacy_item_ids.json`                           |
 | `item_variants.json` | `item_mappings.json`                             |
 

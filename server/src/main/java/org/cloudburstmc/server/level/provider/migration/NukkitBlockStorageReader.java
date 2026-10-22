@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
- * Decodes numeric and named Nukkit sub-chunks without runtime compatibility paths.
+ * Decodes numeric and named Nukkit block layers for world import.
  */
 public class NukkitBlockStorageReader {
 
@@ -32,6 +32,10 @@ public class NukkitBlockStorageReader {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
     }
 
+    /**
+     * Applies saved secondary blocks to the destination sections, rejecting conflicting states.
+     * Missing sections are created within the supplied height range.
+     */
     public void readAnvilExtraData(byte[] data, CloudChunkSection[] sections, int minSectionY, BlockRegistry registry) throws IOException {
         if (data.length == 0) {
             return;
@@ -84,6 +88,9 @@ public class NukkitBlockStorageReader {
         }
     }
 
+    /**
+     * Decodes an Anvil section using its enclosing chunk's encoding version.
+     */
     public BlockStorage[] readAnvilSection(NbtMap section, int version) throws IOException {
         try {
             return switch (version) {
@@ -141,6 +148,9 @@ public class NukkitBlockStorageReader {
         return result;
     }
 
+    /**
+     * Decodes a complete LevelDB sub-chunk at its absolute section Y coordinate.
+     */
     public BlockStorage[] readSection(byte[] data, int sectionY) throws IOException {
         ByteBuf input = Unpooled.wrappedBuffer(data);
         try {

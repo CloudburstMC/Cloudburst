@@ -113,14 +113,16 @@ class GlobalConfigurationMappingTest {
                 LevelDimension.OVERWORLD,
                 "test",
                 "cloudburst:standard",
-                "overworld"
+                "overworld",
+                null
         ));
 
         levelDefinitions.put("nether", new LevelDefinition(
                 LevelDimension.NETHER,
                 null,
                 "cloudburst:standard",
-                "nether"
+                "nether",
+                null
         ));
 
         assertEquals(

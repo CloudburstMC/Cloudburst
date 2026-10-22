@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Rehomes overlapping Anvil tick snapshots before their destination chunks are saved.
+ * Collects Anvil scheduled ticks by destination chunk before terrain conversion.
  */
 public class NukkitAnvilPendingTicks {
 
@@ -23,6 +23,11 @@ public class NukkitAnvilPendingTicks {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
     }
 
+    /**
+     * Collects a source chunk's ticks, preferring destination-owned entries when duplicates overlap.
+     * Duplicates share a position and numeric block ID. Equal ownership favors the shorter delay,
+     * then the lower priority value.
+     */
     public void add(int sourceX, int sourceZ, NbtMap chunk) throws IOException {
         if (!chunk.containsKey("TileTicks")) {
             return;
@@ -63,6 +68,10 @@ public class NukkitAnvilPendingTicks {
         }
     }
 
+    /**
+     * Removes and converts this destination chunk's ticks, omitting ticks for blocks no longer present.
+     * The destination height range includes {@code minY} and excludes {@code maxY}.
+     */
     public NbtMap take(int x, int z, int minY, int maxY, NbtMap chunk) throws IOException {
         Map<TickKey, SavedTick> ticks = this.chunks.remove(CloudChunk.key(x, z));
         if (ticks == null) {
@@ -93,6 +102,9 @@ public class NukkitAnvilPendingTicks {
                 : NbtMap.builder().putInt("currentTick", 0).putList("tickList", NbtType.COMPOUND, entries).build();
     }
 
+    /**
+     * Fails if collected ticks still refer to chunks that were not imported.
+     */
     public void requireConsumed() throws IOException {
         if (!this.chunks.isEmpty()) {
             throw new IOException("Nukkit Anvil scheduled ticks reference " + this.chunks.size() + " missing destination chunks");

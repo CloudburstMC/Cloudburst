@@ -12,21 +12,27 @@ import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
-import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.ImportedChunk;
+import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.provider.leveldb.serializer.*;
+import org.cloudburstmc.server.level.provider.migration.OfflineLevelDBSnapshot;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
+/**
+ * Persists native level metadata, chunks and entity records in LevelDB.
+ */
 @Log4j2
 @ParametersAreNonnullByDefault
 public class LevelDBProvider implements LevelProvider {
@@ -45,9 +51,23 @@ public class LevelDBProvider implements LevelProvider {
     private final DirectDB db;
     private volatile boolean closed;
 
-    public LevelDBProvider(String levelId, Path worldPath, Executor executor) throws IOException {
+    /**
+     * Opens storage for one level. If both metadata files are absent, writes initial metadata
+     * only after confirming that the database contains no records, before opening it for use.
+     * Existing metadata is validated separately by {@link #loadLevelData(CloudLevelData)}.
+     */
+    public LevelDBProvider(String levelId, Path worldPath, CloudLevelData initialData, Executor executor) throws IOException {
         this.path = worldPath.resolve(levelId);
-        this.executor = executor;
+        this.executor = Objects.requireNonNull(executor, "executor");
+        Objects.requireNonNull(initialData, "initialData");
+        if (Files.notExists(this.path.resolve("level.dat"), LinkOption.NOFOLLOW_LINKS) && Files.notExists(this.path.resolve("level.dat_old"), LinkOption.NOFOLLOW_LINKS)) {
+            if (!OfflineLevelDBSnapshot.isDatabaseEmpty(this.path)) {
+                throw new IOException("Cannot initialize a populated LevelDB database without level metadata: " + this.path);
+            }
+
+            LevelDBDataSerializer.INSTANCE.save(initialData, this.path);
+        }
+
         Path dbPath = this.path.resolve("db");
         Files.createDirectories(dbPath);
         Preconditions.checkArgument(Files.isDirectory(dbPath), "db is not a directory");
@@ -113,6 +133,18 @@ public class LevelDBProvider implements LevelProvider {
     @Override
     public CompletableFuture<Void> saveImportedChunk(ImportedChunk imported) {
         return saveChunk(imported.chunk(), imported);
+    }
+
+    @Override
+    public CompletableFuture<Void> completeImport() {
+        checkForClosed();
+        return CompletableFuture.runAsync(() -> {
+            try {
+                ImportedChunkSerializer.relocateEntities(this.db);
+            } catch (IOException failure) {
+                throw new CompletionException("Unable to finalize imported entities", failure);
+            }
+        }, this.executor);
     }
 
     private CompletableFuture<Void> saveChunk(Chunk chunk, @Nullable ImportedChunk imported) {

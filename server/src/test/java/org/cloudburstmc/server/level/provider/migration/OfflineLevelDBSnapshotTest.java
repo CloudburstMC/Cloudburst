@@ -1,16 +1,22 @@
 package org.cloudburstmc.server.level.provider.migration;
 
+import com.sun.nio.file.ExtendedOpenOption;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class OfflineLevelDBSnapshotTest {
 
@@ -28,6 +34,26 @@ class OfflineLevelDBSnapshotTest {
         assertFalse(Files.exists(copied));
         assertTrue(Files.isRegularFile(database.resolve("CURRENT")));
         assertEquals("metadata", Files.readString(directory.resolve("level.dat")));
+    }
+
+    @Test
+    void copiesExportedWorldWithoutCreatingAMissingSourceLock(@TempDir Path directory) throws Exception {
+        Path database = source(directory);
+        Files.delete(database.resolve("LOCK"));
+        Path copied;
+
+        try (OfflineLevelDBSnapshot snapshot = new OfflineLevelDBSnapshot(directory)) {
+            copied = snapshot.path();
+            assertEquals("MANIFEST-000001\n", Files.readString(copied.resolve("db/CURRENT")));
+            assertEquals("manifest", Files.readString(copied.resolve("db/MANIFEST-000001")));
+            assertEquals("metadata", Files.readString(copied.resolve("level.dat")));
+            assertFalse(Files.exists(copied.resolve("db/LOCK")));
+            assertFalse(Files.exists(database.resolve("LOCK")));
+        }
+
+        assertFalse(Files.exists(copied));
+        assertFalse(Files.exists(database.resolve("LOCK")));
+        assertEquals("MANIFEST-000001\n", Files.readString(database.resolve("CURRENT")));
     }
 
     @Test
@@ -68,6 +94,32 @@ class OfflineLevelDBSnapshotTest {
                 }
             });
         }
+    }
+
+    @Test
+    void waitsForATransientWindowsSharingLockBeforeDeletingTheSnapshot(@TempDir Path directory) throws Exception {
+        assumeTrue(File.separatorChar == '\\');
+        source(directory);
+        Path copied;
+
+        try (OfflineLevelDBSnapshot snapshot = new OfflineLevelDBSnapshot(directory)) {
+            copied = snapshot.path();
+            try (FileChannel locked = FileChannel.open(copied.resolve("db/MANIFEST-000001"),
+                    StandardOpenOption.READ, ExtendedOpenOption.NOSHARE_DELETE);
+                 ExecutorService executor = Executors.newSingleThreadExecutor()) {
+                Future<Void> release = executor.submit(() -> {
+                    Thread.sleep(150);
+                    locked.close();
+                    return null;
+                });
+
+                snapshot.close();
+                release.get();
+            }
+        }
+
+        assertFalse(Files.exists(copied));
+        assertEquals("metadata", Files.readString(directory.resolve("level.dat")));
     }
 
     @Test
