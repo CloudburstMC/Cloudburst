@@ -29,6 +29,18 @@ class LevelImportFormatTest {
     }
 
     @Test
+    void detectsBackupMetadataWithoutRestoringTheSource(@TempDir Path directory) throws Exception {
+        writeMetadata(directory, NbtMap.builder()
+                .putString("generatorName", "normal")
+                .putString("generatorOptions", "")
+                .build());
+        Files.move(directory.resolve("level.dat"), directory.resolve("level.dat_old"));
+
+        assertEquals(LevelImportFormat.NUKKIT_LEVELDB, LevelImportFormat.detect(directory));
+        assertFalse(Files.exists(directory.resolve("level.dat")));
+    }
+
+    @Test
     void nativeWorldDoesNotRequireRecentClockMetadata(@TempDir Path directory) throws Exception {
         writeMetadata(directory, NbtMap.builder()
                 .putString("generatorName", "cloudburst:standard")

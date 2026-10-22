@@ -4,7 +4,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.util.stream.LittleEndianDataInputStream;
-import org.cloudburstmc.server.level.provider.anvil.AnvilLevelImportSource;
+import org.cloudburstmc.server.level.provider.anvil.NukkitAnvilLevelImportSource;
 import org.cloudburstmc.server.level.provider.migration.NukkitLevelDBImportSource;
 
 import java.io.IOException;
@@ -16,8 +16,14 @@ import java.util.concurrent.Executor;
  * Source formats converted before a level is opened for normal use.
  */
 public enum LevelImportFormat {
-    NUKKIT_LEVELDB,
-    NUKKIT_ANVIL;
+    NUKKIT_LEVELDB("Nukkit LevelDB"),
+    NUKKIT_ANVIL("Nukkit Anvil");
+
+    private final String displayName;
+
+    LevelImportFormat(String displayName) {
+        this.displayName = displayName;
+    }
 
     public static @Nullable LevelImportFormat detect(Path source) throws IOException {
         Path backup = source.resolveSibling("." + source.getFileName() + ".nukkit-backup");
@@ -25,7 +31,7 @@ public enum LevelImportFormat {
             throw new IOException("Interrupted level conversion. Restore " + backup + " to " + source + " before loading");
         }
 
-        if (AnvilLevelImportSource.isImportSource(source)) {
+        if (NukkitAnvilLevelImportSource.isImportSource(source)) {
             return NUKKIT_ANVIL;
         }
 
@@ -55,7 +61,8 @@ public enum LevelImportFormat {
     }
 
     private static NbtMap readMetadata(Path metadata) throws IOException {
-        try (LittleEndianDataInputStream stream = new LittleEndianDataInputStream(Files.newInputStream(metadata)); NBTInputStream reader = new NBTInputStream(stream)) {
+        try (LittleEndianDataInputStream stream = new LittleEndianDataInputStream(Files.newInputStream(metadata));
+             NBTInputStream reader = new NBTInputStream(stream)) {
             int version = stream.readInt();
             int length = stream.readInt();
 
@@ -71,10 +78,14 @@ public enum LevelImportFormat {
         }
     }
 
+    public String getDisplayName() {
+        return this.displayName;
+    }
+
     public LevelImportSource open(Path source, int dimension, Executor executor) throws IOException {
         return switch (this) {
             case NUKKIT_LEVELDB -> new NukkitLevelDBImportSource(source, dimension, executor);
-            case NUKKIT_ANVIL -> new AnvilLevelImportSource(source, executor);
+            case NUKKIT_ANVIL -> new NukkitAnvilLevelImportSource(source, executor);
         };
     }
 }

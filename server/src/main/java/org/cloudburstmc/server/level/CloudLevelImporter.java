@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.level;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.inject.LevelModule;
 import org.cloudburstmc.server.level.provider.LevelImportFormat;
@@ -10,18 +11,23 @@ import org.cloudburstmc.server.level.provider.migration.StagedLevelImport;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 
 /**
  * Converts an offline source without loading or registering the destination level.
  */
 @UtilityClass
+@Log4j2
 public class CloudLevelImporter {
 
-    public static int importLevel(CloudServer server, Path levelsPath, CloudLevelLoadRequest request,
+    public static void importLevel(CloudServer server, Path levelsPath, CloudLevelLoadRequest request,
                                   LevelImportFormat format, Path sourcePath, Executor executor) throws IOException {
+        long started = System.nanoTime();
+        log.info("Converting level '{}' from {}", request.id(), format.getDisplayName());
+        int chunks;
+        Path backup;
         try (StagedLevelImport staging = new StagedLevelImport(levelsPath, request.id(), sourcePath)) {
-            int chunks;
             try (LevelImportSource source = format.open(sourcePath, request.dimension(), Runnable::run);
                  LevelDBProvider destination = new LevelDBProvider(request.id(), staging.stagingRoot(), executor)) {
                 CloudLevelData data = source.loadLevelData(request.createInitialData(server.getLevelDefaults())).join();
@@ -41,8 +47,11 @@ public class CloudLevelImporter {
                 destination.saveLevelData(data).join();
             }
 
-            staging.publish();
-            return chunks;
+            backup = staging.publish();
         }
+
+        String elapsed = String.format(Locale.ROOT, "%.2f", (System.nanoTime() - started) / 1_000_000_000d);
+        log.info("Converted level '{}' ({} chunks) in {} s", request.id(), chunks, elapsed);
+        log.info("Original level '{}' retained as '{}'", request.id(), backup.getFileName());
     }
 }

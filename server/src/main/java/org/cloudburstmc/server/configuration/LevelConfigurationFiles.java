@@ -7,6 +7,7 @@ import org.cloudburstmc.server.configuration.validation.ConfigurationValidationE
 import org.cloudburstmc.server.configuration.validation.SettingsValidation;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -20,9 +21,8 @@ public class LevelConfigurationFiles {
         return read(file);
     }
 
-    public static LevelConfiguration level(Path file, Configuration defaults, String language, boolean create) throws IOException {
-        ConfigurationTemplates.ensure(file, "cloudburst-level.yml", language, create);
-        Configuration document = read(file);
+    public static LevelConfiguration level(Path file, Configuration defaults) throws IOException {
+        Configuration document = Files.notExists(file) ? new YamlConfigurationLoader().create() : read(file);
         document.setDefaults(defaults);
         document.copyDefaults();
 

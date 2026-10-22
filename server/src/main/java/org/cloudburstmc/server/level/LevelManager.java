@@ -120,14 +120,13 @@ public class LevelManager implements Closeable {
             Path source = this.levelsPath.resolve(request.id());
             LevelImportFormat format = LevelImportFormat.detect(source);
             if (format != null) {
-                log.info("Converting level '{}' from {}", request.id(), format);
-                int chunks = CloudLevelImporter.importLevel(this.server, this.levelsPath, request, format, source, this.ioExecutor);
-                log.info("Converted {} chunks for level '{}'", chunks, request.id());
+                CloudLevelImporter.importLevel(this.server, this.levelsPath, request, format, source, this.ioExecutor);
             }
         } catch (IOException failure) {
-            throw new CompletionException("Unable to inspect level storage for " + request.id(), failure);
+            throw new CompletionException("Unable to prepare level '" + request.id() + "'", failure);
         }
 
+        this.server.getConfig().createLevelConfiguration(request.id());
         CloudLevelData initialData = request.createInitialData(this.server.getLevelDefaults());
         StorageRegistry storageRegistry = this.server.getStorageRegistry();
         Identifier storage = request.storage();

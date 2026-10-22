@@ -2,34 +2,41 @@ package org.cloudburstmc.server.level.provider.anvil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import lombok.experimental.UtilityClass;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
-import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.cloudburstmc.server.level.provider.migration.NukkitBlockStateConverter;
+import org.cloudburstmc.server.level.provider.migration.NukkitChunkGeneration;
 import org.cloudburstmc.server.level.provider.migration.NukkitEntityData;
 import org.cloudburstmc.server.level.provider.migration.NukkitItemDataConverter;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
-public class AnvilConverter {
+/**
+ * Converts persisted Nukkit Anvil terrain and entity records.
+ */
+@UtilityClass
+public class NukkitAnvilConverter {
 
     public static ImportedChunk convertToCloudburst(CloudChunkBuilder chunkBuilder, ByteBuf chunkBuf, NukkitBlockStateConverter blocks, NukkitItemDataConverter items) throws IOException {
         NbtMap tag;
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf); NBTInputStream nbtInputStream = NbtUtils.createReader(stream)) {
-            tag = (NbtMap) nbtInputStream.readTag();
-            if (!tag.containsKey("Level") || !(tag.get("Level") instanceof NbtMap)) {
-                throw new IllegalArgumentException("No level tag found in chunk data");
+            if (!(nbtInputStream.readTag() instanceof NbtMap root) || !(root.get("Level") instanceof NbtMap level)) {
+                throw new IOException("Anvil chunk must contain a Level compound");
             }
-            tag = tag.getCompound("Level");
+            tag = level;
         }
+
+        validateUnsupportedRecords(tag);
 
         CloudChunkSection[] sections = new CloudChunkSection[chunkBuilder.getLevel().getSectionsCount()];
         for (NbtMap sectionTag : tag.getList("Sections", NbtType.COMPOUND)) {
@@ -64,20 +71,23 @@ public class AnvilConverter {
                 }
             }
 
-            sections[sectionIndex] = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry(), new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight);
+            sections[sectionIndex] = new CloudChunkSection(
+                    chunkBuilder.getLevel().getServer().getBlockRegistry(),
+                    new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight
+            );
         }
-        chunkBuilder.setSections(sections);
 
-        byte[] biomes;
+        byte[] biomes = new byte[256];
         if (tag.containsKey("BiomeColors")) {
             int[] biomeColors = tag.getIntArray("BiomeColors");
-            biomes = new byte[256];
             if (biomeColors.length != 256) {
                 throw new IOException("Invalid Nukkit biome color array");
             }
 
-            for (int i = 0; i < 256; i++) {
-                biomes[i] = (byte) (biomeColors[i] >>> 24);
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    biomes[x * 16 + z] = (byte) (biomeColors[z * 16 + x] >>> 24);
+                }
             }
         } else {
             biomes = tag.getByteArray("Biomes");
@@ -88,14 +98,16 @@ public class AnvilConverter {
         }
 
         if (biomes.length == 256) {
-            for (CloudChunkSection section : sections) {
+            for (int i = 0; i < sections.length; i++) {
+                CloudChunkSection section = sections[i];
                 if (section == null) {
-                    continue;
+                    section = new CloudChunkSection(chunkBuilder.getLevel().getServer().getBlockRegistry());
+                    sections[i] = section;
                 }
 
                 for (int x = 0; x < 16; x++) {
                     for (int z = 0; z < 16; z++) {
-                        int biomeId = biomes[z * 16 + x] & 0xFF;
+                        int biomeId = biomes[x * 16 + z] & 0xFF;
                         section.fillColumnBiome(x, z, biomeId);
                     }
                 }
@@ -113,19 +125,25 @@ public class AnvilConverter {
             throw new IOException("Invalid Nukkit height map");
         }
 
+        chunkBuilder.setSections(sections);
         chunkBuilder.setHeightMap(heightMap);
+        chunkBuilder.setGenerationStatus(NukkitChunkGeneration.readAnvil(tag));
 
-        if (tag.getBoolean("TerrainGenerated")) {
-            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.GENERATED);
+        List<NbtMap> entities = NukkitEntityData.entities(chunkBuilder, tag.getList("Entities", NbtType.COMPOUND), blocks, items);
+        List<NbtMap> blockEntities = NukkitEntityData.blockEntities(chunkBuilder, tag.getList("TileEntities", NbtType.COMPOUND), blocks, items);
+
+        return new ImportedChunk(chunkBuilder.build(), entities, blockEntities, NbtMap.EMPTY);
+    }
+
+    private static void validateUnsupportedRecords(NbtMap tag) throws IOException {
+        if (tag.containsKey("TileTicks") && (!(tag.get("TileTicks") instanceof List<?> ticks) || !ticks.isEmpty())) {
+            throw new IOException("Nukkit Anvil TileTicks require a save-ID mapping and cannot be discarded");
         }
 
-        if (tag.getBoolean("TerrainPopulated")) {
-            chunkBuilder.setGenerationStatus(ChunkGenerationStatus.POPULATED);
+        byte[] extraData = tag.getByteArray("ExtraData");
+        if (extraData.length != 0 && !Arrays.equals(extraData, new byte[Integer.BYTES])) {
+            throw new IOException("Nukkit Anvil ExtraData conversion is not supported");
         }
-
-        return new ImportedChunk(chunkBuilder.build(),
-                NukkitEntityData.entities(chunkBuilder, tag.getList("Entities", NbtType.COMPOUND), blocks, items),
-                NukkitEntityData.blockEntities(chunkBuilder, tag.getList("TileEntities", NbtType.COMPOUND), blocks, items), NbtMap.EMPTY);
     }
 
     private static int getAnvilIndex(int x, int y, int z) {

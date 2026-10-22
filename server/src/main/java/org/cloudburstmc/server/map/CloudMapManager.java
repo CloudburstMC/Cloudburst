@@ -40,20 +40,21 @@ public class CloudMapManager implements Maps {
         this.directory = Objects.requireNonNull(directory, "directory");
 
         try {
-            Files.createDirectories(this.directory);
             long minimumNextId = 0;
-            try (DirectoryStream<Path> files = Files.newDirectoryStream(this.directory, "map_*.dat")) {
-                for (Path file : files) {
-                    String name = file.getFileName().toString();
-                    try {
-                        long id = Long.parseLong(name.substring(4, name.length() - 4));
-                        if (id >= 0) {
-                            NbtMap stored = MapDataFiles.read(file, id);
-                            long maximumReservedId = Arrays.stream(stored.getLongArray("mapIds")).max().orElseThrow();
-                            minimumNextId = Math.max(minimumNextId, Math.addExact(maximumReservedId, 1));
+            if (!Files.notExists(this.directory)) {
+                try (DirectoryStream<Path> files = Files.newDirectoryStream(this.directory, "map_*.dat")) {
+                    for (Path file : files) {
+                        String name = file.getFileName().toString();
+                        try {
+                            long id = Long.parseLong(name.substring(4, name.length() - 4));
+                            if (id >= 0) {
+                                NbtMap stored = MapDataFiles.read(file, id);
+                                long maximumReservedId = Arrays.stream(stored.getLongArray("mapIds")).max().orElseThrow();
+                                minimumNextId = Math.max(minimumNextId, Math.addExact(maximumReservedId, 1));
+                            }
+                        } catch (NumberFormatException ignored) {
+                            log.warn("Ignoring map file with an invalid identifier: {}", file);
                         }
-                    } catch (NumberFormatException ignored) {
-                        log.warn("Ignoring map file with an invalid identifier: {}", file);
                     }
                 }
             }

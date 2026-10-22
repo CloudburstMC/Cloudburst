@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * Reads Nukkit Anvil worlds for conversion into a separate Cloudburst destination.
  */
 @ParametersAreNonnullByDefault
-public class AnvilLevelImportSource implements LevelImportSource {
+public class NukkitAnvilLevelImportSource implements LevelImportSource {
 
     private final Path levelPath;
     private final Path regionsPath;
@@ -37,7 +37,7 @@ public class AnvilLevelImportSource implements LevelImportSource {
     private final NukkitItemDataConverter items;
     private volatile boolean closed;
 
-    public AnvilLevelImportSource(Path levelPath, Executor executor) throws IOException {
+    public NukkitAnvilLevelImportSource(Path levelPath, Executor executor) throws IOException {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.levelPath = levelPath.toRealPath();
         this.regionsPath = this.levelPath.resolve("region");
@@ -93,7 +93,7 @@ public class AnvilLevelImportSource implements LevelImportSource {
 
                             CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
                             ByteBuf buffer = regionFile.readChunk(x, z);
-                            try (ImportedChunk imported = AnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items)) {
+                            try (ImportedChunk imported = NukkitAnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items)) {
                                 consumer.accept(imported);
                             } finally {
                                 buffer.release();
@@ -113,7 +113,7 @@ public class AnvilLevelImportSource implements LevelImportSource {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return AnvilDataSerializer.INSTANCE.load(initialData, this.levelPath);
+                return NukkitAnvilDataSerializer.INSTANCE.load(initialData, this.levelPath);
             } catch (IOException e) {
                 throw new CompletionException(e);
             }

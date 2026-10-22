@@ -10,14 +10,14 @@ import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AnvilLevelImportSourceTest {
+class NukkitAnvilLevelImportSourceTest {
 
     @Test
     void openingMissingSourceDoesNotCreateDirectories(@TempDir Path directory) {
         Path source = directory.resolve("missing");
 
         assertThrows(IOException.class, () -> {
-            try (AnvilLevelImportSource ignored = new AnvilLevelImportSource(source, Runnable::run)) {
+            try (NukkitAnvilLevelImportSource ignored = new NukkitAnvilLevelImportSource(source, Runnable::run)) {
                 fail("A missing import source must not open successfully");
             }
         });
@@ -31,7 +31,7 @@ class AnvilLevelImportSourceTest {
             Path regions = Files.createDirectory(level.resolve("region"));
             Files.write(regions.resolve(name), new byte[8192]);
 
-            try (AnvilLevelImportSource source = new AnvilLevelImportSource(level, Runnable::run)) {
+            try (NukkitAnvilLevelImportSource source = new NukkitAnvilLevelImportSource(level, Runnable::run)) {
                 CompletionException failure = assertThrows(CompletionException.class, () -> source.visitChunks(
                         (x, z) -> {
                             throw new AssertionError("Overflowing coordinates must not reach the chunk factory");
@@ -52,7 +52,7 @@ class AnvilLevelImportSourceTest {
         Path region = regions.resolve("invalid.mca");
         Files.write(region, new byte[8192]);
 
-        try (AnvilLevelImportSource source = new AnvilLevelImportSource(directory, Runnable::run)) {
+        try (NukkitAnvilLevelImportSource source = new NukkitAnvilLevelImportSource(directory, Runnable::run)) {
             CompletionException failure = assertThrows(CompletionException.class, () -> source.visitChunks(
                     (x, z) -> {
                         throw new AssertionError("No chunk should be decoded from an invalid region name");

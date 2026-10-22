@@ -19,8 +19,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnvilDataSerializer {
-    public static final AnvilDataSerializer INSTANCE = new AnvilDataSerializer();
+public class NukkitAnvilDataSerializer {
+
+    public static final NukkitAnvilDataSerializer INSTANCE = new NukkitAnvilDataSerializer();
 
     public CloudLevelData load(CloudLevelData initialData, Path levelPath) throws IOException {
         CloudLevelData data = initialData.copy();

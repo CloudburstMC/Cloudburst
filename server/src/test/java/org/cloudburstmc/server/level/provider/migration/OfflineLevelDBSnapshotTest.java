@@ -31,6 +31,32 @@ class OfflineLevelDBSnapshotTest {
     }
 
     @Test
+    void copiesBackupMetadataWithoutRepairingTheSource(@TempDir Path directory) throws Exception {
+        source(directory);
+        Files.writeString(directory.resolve("level.dat_old"), "backup metadata");
+        Files.delete(directory.resolve("level.dat"));
+
+        try (OfflineLevelDBSnapshot snapshot = new OfflineLevelDBSnapshot(directory)) {
+            assertFalse(Files.exists(snapshot.path().resolve("level.dat")));
+            assertEquals("backup metadata", Files.readString(snapshot.path().resolve("level.dat_old")));
+        }
+
+        assertFalse(Files.exists(directory.resolve("level.dat")));
+        assertEquals("backup metadata", Files.readString(directory.resolve("level.dat_old")));
+    }
+
+    @Test
+    void retainsBothMetadataRecoveryCandidates(@TempDir Path directory) throws Exception {
+        source(directory);
+        Files.writeString(directory.resolve("level.dat_old"), "backup metadata");
+
+        try (OfflineLevelDBSnapshot snapshot = new OfflineLevelDBSnapshot(directory)) {
+            assertEquals("metadata", Files.readString(snapshot.path().resolve("level.dat")));
+            assertEquals("backup metadata", Files.readString(snapshot.path().resolve("level.dat_old")));
+        }
+    }
+
+    @Test
     void rejectsASourceWhoseDatabaseLockIsHeld(@TempDir Path directory) throws Exception {
         Path database = source(directory);
         try (FileChannel channel = FileChannel.open(database.resolve("LOCK"), StandardOpenOption.WRITE);

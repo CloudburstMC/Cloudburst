@@ -21,7 +21,7 @@ class StagedLevelImportTest {
             stagingRoot = staging.stagingRoot();
             Path converted = Files.createDirectory(stagingRoot.resolve("world"));
             Files.writeString(converted.resolve("converted"), "converted data");
-            staging.publish();
+            assertEquals(directory.toRealPath().resolve(".world.nukkit-backup"), staging.publish());
         }
 
         assertEquals("converted data", Files.readString(source.resolve("converted")));

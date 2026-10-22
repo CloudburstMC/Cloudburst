@@ -4,6 +4,7 @@ import org.cloudburstmc.server.ServerFileLayout;
 
 import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
 import org.cloudburstmc.server.configuration.validation.ConfigurationValidationException;
+import org.cloudburstmc.server.level.provider.migration.StagedLevelImport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -18,6 +19,41 @@ class ServerConfigurationReloadTest {
 
     @TempDir
     Path directory;
+
+    @Test
+    void levelSettingsAreCreatedOnlyInThePublishedDestination() throws Exception {
+        prepare();
+        ServerFileLayout layout = new ServerFileLayout(directory, directory.resolve("worlds"));
+        Path source = directory.resolve("worlds/example");
+        Files.delete(layout.level("example"));
+        Files.writeString(source.resolve("level.dat"), "original metadata");
+
+        ServerConfigurations config = ServerConfigurations.load(layout);
+        config.initializeLevelConfiguration("example");
+        config.initializeLevelConfiguration("dynamic");
+
+        assertFalse(Files.exists(layout.level("example")));
+        assertFalse(Files.exists(directory.resolve("worlds/dynamic")));
+        assertEquals(40, config.getLevelConfiguration("example").getLevel().getMaxLiquidTicks());
+        assertEquals(40, config.getLevelConfiguration("dynamic").getLevel().getMaxLiquidTicks());
+
+        Path backup;
+        try (StagedLevelImport staging = new StagedLevelImport(directory.resolve("worlds"), "example", source)) {
+            Path converted = Files.createDirectory(staging.stagingRoot().resolve("example"));
+            Files.writeString(converted.resolve("level.dat"), "converted metadata");
+            backup = staging.publish();
+        }
+
+        config.createLevelConfiguration("example");
+        config.reload();
+
+        assertEquals("original metadata", Files.readString(backup.resolve("level.dat")));
+        assertFalse(Files.exists(backup.resolve("cloudburst-level.yml")));
+        assertTrue(Files.exists(layout.level("example")));
+        assertEquals("converted metadata", Files.readString(source.resolve("level.dat")));
+        assertEquals(40, config.getLevelConfiguration("example").getLevel().getMaxLiquidTicks());
+        assertFalse(Files.exists(directory.resolve("worlds/dynamic")));
+    }
 
     @Test
     void sparseOverridesInheritDefaultsWithoutBeingRewritten() throws Exception {

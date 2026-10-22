@@ -3,9 +3,9 @@ package org.cloudburstmc.server.level.provider;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
+import java.io.Closeable;
 import java.util.List;
 import java.util.Objects;
-import java.io.Closeable;
 
 /**
  * Converted terrain and entity records ready for persistence without spawning entities.

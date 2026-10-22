@@ -41,7 +41,7 @@ public class StagedLevelImport implements Closeable {
         return this.stagingRoot;
     }
 
-    public void publish() throws IOException {
+    public Path publish() throws IOException {
         Path stagedLevel = this.stagingRoot.resolve(this.destination.getFileName());
         if (!Files.isDirectory(stagedLevel, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("Import produced no destination level");
@@ -58,6 +58,8 @@ public class StagedLevelImport implements Closeable {
             }
             throw failure;
         }
+
+        return this.backup;
     }
 
     @Override

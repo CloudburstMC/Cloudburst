@@ -26,7 +26,8 @@ public class OfflineLevelDBSnapshot implements Closeable {
         Path world = source.toRealPath();
         Path database = world.resolve("db");
         if (!Files.isRegularFile(database.resolve("CURRENT"), LinkOption.NOFOLLOW_LINKS)
-                || !Files.isRegularFile(world.resolve("level.dat"), LinkOption.NOFOLLOW_LINKS)) {
+                || !(Files.isRegularFile(world.resolve("level.dat"), LinkOption.NOFOLLOW_LINKS)
+                || Files.isRegularFile(world.resolve("level.dat_old"), LinkOption.NOFOLLOW_LINKS))) {
             throw new IOException("Not a LevelDB world: " + source);
         }
 
@@ -44,7 +45,12 @@ public class OfflineLevelDBSnapshot implements Closeable {
                     copyUnchanged(file, target.resolve(file.getFileName()));
                 }
 
-                copyUnchanged(world.resolve("level.dat"), this.path.resolve("level.dat"));
+                for (String name : List.of("level.dat", "level.dat_old")) {
+                    Path metadata = world.resolve(name);
+                    if (Files.exists(metadata, LinkOption.NOFOLLOW_LINKS)) {
+                        copyUnchanged(metadata, this.path.resolve(name));
+                    }
+                }
                 if (!files.equals(files(database))) {
                     throw new IOException("Source database changed while being copied");
                 }

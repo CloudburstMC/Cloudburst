@@ -301,7 +301,6 @@ public class CloudServer implements Server {
         log.info("Loading {} ...", configPath);
         this.configuration = ServerConfigurations.load(this.files);
         this.levelManager.initializeExecutors(this.configuration.getChunkSystem());
-        Files.createDirectories(this.getPlayerDataPath());
         this.playerDataSerializer = new DefaultPlayerDataSerializer(this.getPlayerDataPath());
         this.profileCache = new UserProfileCache(this.files.userCache(),
                 this.getConfig().getPlayer().getUserCacheSize(), this.getConfig().getPlayer().isSaveUserCacheOnStopOnly());
@@ -386,11 +385,10 @@ public class CloudServer implements Server {
             this.commandRegistry.close();
         } catch (RegistryException e) {
             throw new IllegalStateException("Unable to close registries", e);
-        } finally {
-            this.eventManager.fire(new RegistriesClosedEvent(this.packManager));
         }
 
         this.registerVanillaComponents();
+        this.eventManager.fire(new RegistriesClosedEvent(this.packManager));
 
         Identifier defaultStorageId = Identifier.parse(getConfig().getLevelStorage().getDefaultFormat());
         if (storageRegistry.isRegistered(defaultStorageId)) {

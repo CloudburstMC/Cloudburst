@@ -14,14 +14,14 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class AnvilDataSerializerTest {
+class NukkitAnvilDataSerializerTest {
 
     @Test
     void readsCompressedMetadataWithoutChangingTheSource(@TempDir Path directory) throws Exception {
         NbtMap root = NbtMap.builder().putCompound("Data", NbtMap.builder().putString("LevelName", "test").build()).build();
         Files.write(directory.resolve("level.dat"), NbtFiles.encodeCompressed(root));
 
-        CloudLevelData loaded = AnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory);
+        CloudLevelData loaded = NukkitAnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory);
 
         assertEquals("test", loaded.getName());
         assertEquals(root, NbtFiles.readCompressed(directory.resolve("level.dat")));
@@ -35,7 +35,7 @@ class AnvilDataSerializerTest {
                 .build()).build();
         Files.write(directory.resolve("level.dat"), NbtFiles.encodeCompressed(root));
 
-        CloudLevelData loaded = AnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory);
+        CloudLevelData loaded = NukkitAnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory);
 
         assertEquals(123456, loaded.getGameTime());
         assertEquals(49000, loaded.getClock().getTotalTicks());
@@ -47,7 +47,7 @@ class AnvilDataSerializerTest {
         Files.write(directory.resolve("level.dat_old"), NbtFiles.encodeCompressed(root));
         Files.writeString(directory.resolve("level.dat"), "corrupt");
 
-        assertThrows(IOException.class, () -> AnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory));
+        assertThrows(IOException.class, () -> NukkitAnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory));
 
         assertEquals("corrupt", Files.readString(directory.resolve("level.dat")));
         assertEquals(root, NbtFiles.readCompressed(directory.resolve("level.dat_old")));
@@ -59,6 +59,6 @@ class AnvilDataSerializerTest {
 
     @Test
     void missingMetadataFailsInsteadOfCreatingAnEmptyLevel(@TempDir Path directory) {
-        assertThrows(IOException.class, () -> AnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory));
+        assertThrows(IOException.class, () -> NukkitAnvilDataSerializer.INSTANCE.load(new CloudLevelData(), directory));
     }
 }

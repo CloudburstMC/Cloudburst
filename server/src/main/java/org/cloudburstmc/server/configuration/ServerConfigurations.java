@@ -42,10 +42,6 @@ public class ServerConfigurations {
         return configuration;
     }
 
-    /**
-     * Publishes one replacement snapshot only after every file has passed validation.
-     * Startup-only changes are rejected without changing active settings.
-     */
     public synchronized void reload() {
         Snapshot replacement = readSnapshot(layout, false, snapshot.runtimeSettings().keySet());
         requireReloadable(snapshot, replacement);
@@ -72,12 +68,21 @@ public class ServerConfigurations {
             Configuration defaults = new YamlConfigurationLoader().create();
             Map<?, ?> values = ServerConfigurationMappers.SETTINGS.convertValue(current.defaults(), Map.class);
             values.forEach((key, value) -> defaults.set(ConfigurationPath.key(key.toString()), value));
-            LevelConfiguration settings = LevelConfigurationFiles.level(layout.level(name), defaults, current.global().getSettings().getLanguage(), true);
+            LevelConfiguration settings = LevelConfigurationFiles.level(layout.level(name), defaults);
             Map<String, LevelConfiguration> runtime = new LinkedHashMap<>(current.runtimeSettings());
             runtime.put(name, settings);
             snapshot = new Snapshot(current.properties(), current.global(), current.defaults(), current.levels(), Map.copyOf(runtime));
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to load settings for level " + name, e);
+        }
+    }
+
+    public synchronized void createLevelConfiguration(String name) {
+        try {
+            ConfigurationTemplates.ensure(layout.level(name), "cloudburst-level.yml", snapshot.global().getSettings().getLanguage(), true);
+            initializeLevelConfiguration(name);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to create settings for level " + name, e);
         }
     }
 
@@ -301,14 +306,14 @@ public class ServerConfigurations {
             Map<String, LevelConfiguration> runtimeSettings = new LinkedHashMap<>();
 
             for (Map.Entry<String, LevelDefinition> entry : global.getLevels().entrySet()) {
-                LevelConfiguration settings = LevelConfigurationFiles.level(layout.level(entry.getKey()), defaults, language, create);
+                LevelConfiguration settings = LevelConfigurationFiles.level(layout.level(entry.getKey()), defaults);
                 levels.put(entry.getKey(), entry.getValue());
                 runtimeSettings.put(entry.getKey(), settings);
             }
 
             for (String name : additionalLevels) {
                 if (!runtimeSettings.containsKey(name)) {
-                    runtimeSettings.put(name, LevelConfigurationFiles.level(layout.level(name), defaults, language, create));
+                    runtimeSettings.put(name, LevelConfigurationFiles.level(layout.level(name), defaults));
                 }
             }
 

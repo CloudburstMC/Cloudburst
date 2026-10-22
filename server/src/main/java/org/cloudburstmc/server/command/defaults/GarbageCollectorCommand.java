@@ -9,7 +9,6 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.level.CloudLevel;
-import org.cloudburstmc.server.utils.ThreadCache;
 
 public class GarbageCollectorCommand extends AdvertisedCommand {
 
@@ -35,7 +34,6 @@ public class GarbageCollectorCommand extends AdvertisedCommand {
             tilesCollected += tilesCount - level.getBlockEntities().size();
         }
 
-        ThreadCache.clean();
         System.gc();
 
         long freedMemory = Runtime.getRuntime().freeMemory() - memory;
