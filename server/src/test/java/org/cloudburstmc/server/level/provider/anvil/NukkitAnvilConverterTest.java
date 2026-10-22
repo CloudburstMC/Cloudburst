@@ -4,30 +4,18 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 class NukkitAnvilConverterTest {
-
-    @Test
-    void pendingTicksAreNotSilentlyDiscarded() throws IOException {
-        NbtMap tick = NbtMap.builder().putString("i", "BlockWater").putInt("t", 20).build();
-        NbtMap level = NbtMap.builder().putList("TileTicks", NbtType.COMPOUND, List.of(tick)).build();
-
-        IOException failure = reject(level);
-
-        assertTrue(failure.getMessage().contains("TileTicks"));
-    }
 
     @Test
     void extraBlockDataIsNotSilentlyDiscarded() throws IOException {
@@ -46,7 +34,7 @@ class NukkitAnvilConverterTest {
         ByteBuf buffer = Unpooled.wrappedBuffer(bytes.toByteArray());
         try {
             return assertThrows(IOException.class, () -> {
-                try (ImportedChunk ignored = NukkitAnvilConverter.convertToCloudburst(null, buffer, null, null)) {
+                try (ImportedChunk ignored = NukkitAnvilConverter.convertToCloudburst(null, buffer, null, null, null)) {
                     fail("Unsupported Anvil records were accepted");
                 }
             });

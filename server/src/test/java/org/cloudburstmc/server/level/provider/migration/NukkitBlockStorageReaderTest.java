@@ -9,6 +9,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,55 @@ import static org.junit.jupiter.api.Assertions.*;
 class NukkitBlockStorageReaderTest {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
+
+    @Test
+    void readsPackedAnvilLayersWithoutChangingAxesOrMetadata() throws IOException {
+        int index = CloudChunkSection.blockIndex(3, 5, 7);
+        int[] primary = new int[4096];
+        int[] secondary = new int[4096];
+        primary[index] = 35 << 6 | 1;
+        secondary[index] = 9 << 6;
+        NbtMap section = NbtMap.builder().putByte("Y", (byte) 0)
+                .putIntArray("layer1", primary).putIntArray("layer2", secondary).build();
+        NukkitBlockStateConverter blocks = new NukkitBlockStateConverter();
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(blocks);
+
+        for (int version = 2; version <= 4; version++) {
+            BlockStorage[] layers = reader.readAnvilSection(section, version);
+            assertSame(blocks.read(35, 1), layers[0].getBlock(index));
+            assertSame(blocks.read(9, 0), layers[1].getBlock(index));
+            assertSame(BlockTypes.AIR, layers[0].getBlock(CloudChunkSection.blockIndex(5, 3, 7)).getType());
+        }
+    }
+
+    @Test
+    void convertsByteArrayAnvilCoordinatesToXzy() throws IOException {
+        byte[] ids = new byte[4096];
+        byte[] metadata = new byte[2048];
+        int source = 5 << 8 | 7 << 4 | 3;
+        ids[source] = 35;
+        metadata[source >> 1] = 0x10;
+        NbtMap section = NbtMap.builder().putByteArray("Blocks", ids).putByteArray("Data", metadata).build();
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(new NukkitBlockStateConverter());
+
+        BlockStorage[] layers = reader.readAnvilSection(section, 1);
+        assertSame(BlockTypes.ORANGE_WOOL, layers[0].getBlock(CloudChunkSection.blockIndex(3, 5, 7)).getType());
+        assertTrue(layers[1].isEmpty());
+    }
+
+    @Test
+    void rejectsMalformedOrAmbiguousAnvilStorage() throws IOException {
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(new NukkitBlockStateConverter());
+        NbtMap packed = NbtMap.builder().putIntArray("layer1", new int[4096]).putIntArray("layer2", new int[4096]).build();
+        int[] invalidReferences = new int[4096];
+        invalidReferences[0] = -1;
+
+        assertThrows(IOException.class, () -> reader.readAnvilSection(packed, 5));
+        assertThrows(IOException.class, () -> reader.readAnvilSection(packed, 1));
+        assertThrows(IOException.class, () -> reader.readAnvilSection(packed.toBuilder().putIntArray("layer2", new int[1]).build(), 4));
+        assertThrows(IOException.class, () -> reader.readAnvilSection(packed.toBuilder().putByteArray("Blocks", new byte[4096]).build(), 4));
+        assertThrows(IOException.class, () -> reader.readAnvilSection(packed.toBuilder().putIntArray("layer1", invalidReferences).build(), 4));
+    }
 
     @Test
     void convertsUnsignedNumericIdsAndBothMetadataNibbles() throws IOException {

@@ -10,6 +10,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
+import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -24,6 +25,63 @@ public class NukkitBlockStorageReader {
 
     public NukkitBlockStorageReader(NukkitBlockStateConverter blocks) {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
+    }
+
+    public BlockStorage[] readAnvilSection(NbtMap section, int version) throws IOException {
+        try {
+            return switch (version) {
+                case 0, 1 -> readAnvilBytes(section);
+                case 2, 3, 4 -> readAnvilPacked(section);
+                default -> throw new IOException("Unknown Nukkit Anvil chunk version: " + version);
+            };
+        } catch (IllegalArgumentException | IndexOutOfBoundsException failure) {
+            throw new IOException("Invalid Nukkit Anvil section " + section.getByte("Y") + " for version " + version, failure);
+        }
+    }
+
+    private BlockStorage[] readAnvilBytes(NbtMap section) throws IOException {
+        byte[] ids = section.getByteArray("Blocks");
+        byte[] metadata = section.getByteArray("Data");
+        if (ids.length != SIZE || metadata.length != SIZE / 2
+                || section.containsKey("layer1") || section.containsKey("layer2")
+                || section.containsKey("Blocks2PM1E") || section.containsKey("Blocks3PM1E")) {
+            throw new IOException("Invalid or unsupported byte-array Nukkit Anvil section " + section.getByte("Y"));
+        }
+
+        NibbleArray data = new NibbleArray(metadata);
+        BlockStorage primary = new BlockStorage();
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 16; y++) {
+                    int source = y << 8 | z << 4 | x;
+                    int target = x << 8 | z << 4 | y;
+                    primary.setBlock(target, this.blocks.read(ids[source] & 0xff, data.get(source)));
+                }
+            }
+        }
+
+        return new BlockStorage[]{primary, new BlockStorage()};
+    }
+
+    private BlockStorage[] readAnvilPacked(NbtMap section) throws IOException {
+        if (section.containsKey("Blocks") || section.containsKey("Data")) {
+            throw new IOException("Packed Nukkit Anvil sections must not contain byte-array block data");
+        }
+
+        BlockStorage[] result = new BlockStorage[]{new BlockStorage(), new BlockStorage()};
+        for (int layer = 0; layer < result.length; layer++) {
+            String name = "layer" + (layer + 1);
+            int[] entries = section.getIntArray(name);
+            if (entries.length != SIZE) {
+                throw new IOException("Nukkit Anvil " + name + " must contain " + SIZE + " entries");
+            }
+
+            for (int i = 0; i < SIZE; i++) {
+                result[layer].setBlock(i, this.blocks.read(entries[i] >>> 6, entries[i] & 0x3f));
+            }
+        }
+
+        return result;
     }
 
     public BlockStorage[] readSection(byte[] data, int sectionY) throws IOException {

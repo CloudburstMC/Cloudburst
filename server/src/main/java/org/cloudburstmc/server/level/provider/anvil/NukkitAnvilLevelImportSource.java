@@ -79,6 +79,13 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
         }
 
         return CompletableFuture.runAsync(() -> {
+            NukkitAnvilPendingTicks pendingTicks;
+            try {
+                pendingTicks = this.readPendingTicks(paths);
+            } catch (IOException failure) {
+                throw new CompletionException("Unable to read Nukkit Anvil scheduled ticks", failure);
+            }
+
             for (Path path : paths) {
                 try (RegionFile regionFile = new RegionFile(path)) {
                     RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
@@ -93,8 +100,10 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
 
                             CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
                             ByteBuf buffer = regionFile.readChunk(x, z);
-                            try (ImportedChunk imported = NukkitAnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items)) {
+                            try (ImportedChunk imported = NukkitAnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items, pendingTicks)) {
                                 consumer.accept(imported);
+                            } catch (IOException | RuntimeException failure) {
+                                throw new IOException("Unable to import Nukkit Anvil chunk (" + chunkX + ", " + chunkZ + ") from " + path.getFileName(), failure);
                             } finally {
                                 buffer.release();
                             }
@@ -104,7 +113,40 @@ public class NukkitAnvilLevelImportSource implements LevelImportSource {
                     throw new CompletionException(exception);
                 }
             }
+
+            try {
+                pendingTicks.requireConsumed();
+            } catch (IOException failure) {
+                throw new CompletionException(failure);
+            }
         }, Thread::startVirtualThread);
+    }
+
+    private NukkitAnvilPendingTicks readPendingTicks(List<Path> paths) throws IOException {
+        NukkitAnvilPendingTicks ticks = new NukkitAnvilPendingTicks(this.blocks);
+        for (Path path : paths) {
+            RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
+            try (RegionFile region = new RegionFile(path)) {
+                for (int x = 0; x < 32; x++) {
+                    for (int z = 0; z < 32; z++) {
+                        if (!region.hasChunk(x, z)) {
+                            continue;
+                        }
+
+                        ByteBuf buffer = region.readChunk(x, z);
+                        try {
+                            ticks.add(origin.x() + x, origin.z() + z, NukkitAnvilConverter.readChunk(buffer));
+                        } catch (IOException | RuntimeException failure) {
+                            throw new IOException("Invalid Nukkit Anvil ticks in chunk (" + (origin.x() + x) + ", " + (origin.z() + z) + ") from " + path.getFileName(), failure);
+                        } finally {
+                            buffer.release();
+                        }
+                    }
+                }
+            }
+        }
+
+        return ticks;
     }
 
     @Override

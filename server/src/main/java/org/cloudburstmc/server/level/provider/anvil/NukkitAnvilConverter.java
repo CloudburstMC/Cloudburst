@@ -12,6 +12,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunkBuilder;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.provider.ImportedChunk;
 import org.cloudburstmc.server.level.provider.migration.NukkitBlockStateConverter;
+import org.cloudburstmc.server.level.provider.migration.NukkitBlockStorageReader;
 import org.cloudburstmc.server.level.provider.migration.NukkitChunkGeneration;
 import org.cloudburstmc.server.level.provider.migration.NukkitEntityData;
 import org.cloudburstmc.server.level.provider.migration.NukkitItemDataConverter;
@@ -27,17 +28,27 @@ import java.util.List;
 @UtilityClass
 public class NukkitAnvilConverter {
 
-    public static ImportedChunk convertToCloudburst(CloudChunkBuilder chunkBuilder, ByteBuf chunkBuf, NukkitBlockStateConverter blocks, NukkitItemDataConverter items) throws IOException {
-        NbtMap tag;
+    public static NbtMap readChunk(ByteBuf chunkBuf) throws IOException {
         try (ByteBufInputStream stream = new ByteBufInputStream(chunkBuf); NBTInputStream nbtInputStream = NbtUtils.createReader(stream)) {
             if (!(nbtInputStream.readTag() instanceof NbtMap root) || !(root.get("Level") instanceof NbtMap level)) {
                 throw new IOException("Anvil chunk must contain a Level compound");
             }
-            tag = level;
+            return level;
         }
+    }
 
+    public static ImportedChunk convertToCloudburst(CloudChunkBuilder chunkBuilder, ByteBuf chunkBuf,
+                                                   NukkitBlockStateConverter blocks, NukkitItemDataConverter items,
+                                                   NukkitAnvilPendingTicks pendingTicks) throws IOException {
+        NbtMap tag = readChunk(chunkBuf);
         validateUnsupportedRecords(tag);
 
+        int version = tag.getByte("V") & 0xff;
+        if (version > 4) {
+            throw new IOException("Unknown Nukkit Anvil chunk version: " + version);
+        }
+
+        NukkitBlockStorageReader storage = new NukkitBlockStorageReader(blocks);
         CloudChunkSection[] sections = new CloudChunkSection[chunkBuilder.getLevel().getSectionsCount()];
         for (NbtMap sectionTag : tag.getList("Sections", NbtType.COMPOUND)) {
             int y = sectionTag.getByte("Y");
@@ -50,30 +61,10 @@ public class NukkitAnvilConverter {
                 throw new IOException("Duplicate imported section: " + y);
             }
 
-            byte[] blockIds = sectionTag.getByteArray("Blocks");
-            byte[] metadata = sectionTag.getByteArray("Data");
-            if (blockIds.length != 4096 || metadata.length != 2048) {
-                throw new IOException("Invalid Nukkit block arrays in section " + y);
-            }
-
-            NibbleArray data = new NibbleArray(metadata);
-            byte[] blockLight = sectionTag.getByteArray("BlockLight");
-            byte[] skyLight = sectionTag.getByteArray("SkyLight");
-
-            BlockStorage blockStorage = new BlockStorage();
-            for (int blockX = 0; blockX < 16; blockX++) {
-                for (int blockZ = 0; blockZ < 16; blockZ++) {
-                    for (int blockY = 0; blockY < 16; blockY++) {
-                        int anvilIndex = getAnvilIndex(blockX, blockY, blockZ);
-                        int cloudburstIndex = CloudChunkSection.blockIndex(blockX, blockY, blockZ);
-                        blockStorage.setBlock(cloudburstIndex, blocks.read(blockIds[anvilIndex] & 0xff, data.get(anvilIndex)));
-                    }
-                }
-            }
-
+            BlockStorage[] layers = storage.readAnvilSection(sectionTag, version);
             sections[sectionIndex] = new CloudChunkSection(
                     chunkBuilder.getLevel().getServer().getBlockRegistry(),
-                    new BlockStorage[]{blockStorage, new BlockStorage()}, blockLight, skyLight
+                    layers, readLight(sectionTag, "BlockLight"), readLight(sectionTag, "SkyLight")
             );
         }
 
@@ -131,22 +122,38 @@ public class NukkitAnvilConverter {
 
         List<NbtMap> entities = NukkitEntityData.entities(chunkBuilder, tag.getList("Entities", NbtType.COMPOUND), blocks, items);
         List<NbtMap> blockEntities = NukkitEntityData.blockEntities(chunkBuilder, tag.getList("TileEntities", NbtType.COMPOUND), blocks, items);
+        NbtMap ticks = pendingTicks.take(chunkBuilder.getX(), chunkBuilder.getZ(), chunkBuilder.getLevel().getMinHeight(), chunkBuilder.getLevel().getMaxHeight(), tag);
 
-        return new ImportedChunk(chunkBuilder.build(), entities, blockEntities, NbtMap.EMPTY);
+        return new ImportedChunk(chunkBuilder.build(), entities, blockEntities, ticks);
     }
 
     private static void validateUnsupportedRecords(NbtMap tag) throws IOException {
-        if (tag.containsKey("TileTicks") && (!(tag.get("TileTicks") instanceof List<?> ticks) || !ticks.isEmpty())) {
-            throw new IOException("Nukkit Anvil TileTicks require a save-ID mapping and cannot be discarded");
-        }
-
         byte[] extraData = tag.getByteArray("ExtraData");
         if (extraData.length != 0 && !Arrays.equals(extraData, new byte[Integer.BYTES])) {
             throw new IOException("Nukkit Anvil ExtraData conversion is not supported");
         }
     }
 
-    private static int getAnvilIndex(int x, int y, int z) {
-        return (y << 8) + (z << 4) + x;
+    private static byte[] readLight(NbtMap section, String name) throws IOException {
+        byte[] bytes = section.getByteArray(name);
+        if (bytes.length == 0 && !section.containsKey(name)) {
+            return new byte[2048];
+        }
+
+        if (bytes.length != 2048) {
+            throw new IOException("Invalid Nukkit Anvil " + name + " array in section " + section.getByte("Y"));
+        }
+
+        NibbleArray source = new NibbleArray(bytes);
+        NibbleArray target = new NibbleArray(4096);
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = 0; y < 16; y++) {
+                    target.set(CloudChunkSection.blockIndex(x, y, z), source.get(y << 8 | z << 4 | x));
+                }
+            }
+        }
+
+        return target.getData();
     }
 }

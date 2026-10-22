@@ -3,10 +3,13 @@ package org.cloudburstmc.server.level.provider.migration;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.server.Bootstrap;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.registry.RegistryUtils;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,15 +17,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Converts Nukkit numeric block references at the world import boundary.
+ * Converts Nukkit numeric block references and saved class names at the world import boundary.
  * Unknown references fail conversion rather than losing blocks or their metadata.
  */
 public class NukkitBlockStateConverter {
 
     private final Map<Long, NbtMap> states;
+    private final Map<String, Integer> saveIds;
     private final Map<Long, BlockState> resolved = new ConcurrentHashMap<>();
 
     public NukkitBlockStateConverter() throws IOException {
+        try (InputStream input = RegistryUtils.getOrAssertResource("migration/nukkit/block_save_ids.json")) {
+            this.saveIds = Map.copyOf(Bootstrap.JSON_MAPPER.readValue(input, new TypeReference<Map<String, Integer>>() {}));
+        }
+
         try (NBTInputStream input = NbtUtils.createGZIPReader(RegistryUtils.getOrAssertResource("migration/nukkit/block_states.nbt"))) {
             Object root = input.readTag();
             if (!(root instanceof NbtList<?> palette) || palette.getType() != NbtType.COMPOUND) {
@@ -49,6 +57,14 @@ public class NukkitBlockStateConverter {
 
             this.states = Map.copyOf(entries);
         }
+    }
+
+    public int readSaveId(String name) {
+        Integer id = this.saveIds.get(name);
+        if (id == null) {
+            throw new IllegalArgumentException("Unmapped Nukkit block save ID: " + name);
+        }
+        return id;
     }
 
     public BlockState read(int id, int metadata) {
