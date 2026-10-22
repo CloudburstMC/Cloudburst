@@ -138,15 +138,32 @@ tasks.shadowJar {
     duplicatesStrategy = DuplicatesStrategy.FAIL
     failOnDuplicateEntries = true
 
+    val textResources = listOf(
+        "META-INF/io.netty.versions.properties",
+        "META-INF/LICENSE",
+        "META-INF/LICENSE.txt",
+        "META-INF/LICENSE.md",
+        "META-INF/NOTICE",
+        "META-INF/NOTICE.md",
+        "META-INF/DEPENDENCIES"
+    )
+
+    filesMatching(
+        listOf(
+            "META-INF/cloudburst/LICENSE",
+            "META-INF/cloudburst/LICENSE.LESSER",
+            "META-INF/proguard/gson.pro"
+        )
+    ) {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
     // Resource mergers need every input before producing a single entry.
     filesMatching(
         listOf(
             "META-INF/services/**",
-            "META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat",
-            "META-INF/io.netty.versions.properties",
-            "META-INF/LICENSE.md",
-            "META-INF/proguard/gson.pro"
-        )
+            "META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat"
+        ) + textResources
     ) {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
@@ -157,16 +174,10 @@ tasks.shadowJar {
     }
     transform(Log4j2PluginsCacheFileTransformer())
     mergeServiceFiles()
-    append("META-INF/io.netty.versions.properties")
-    append("META-INF/LICENSE.md")
-    append("META-INF/proguard/gson.pro")
+    textResources.forEach { append(it) }
     exclude(
         "META-INF/maven/com.google.code.gson/gson/**",
-        "META-INF/versions/**/OSGI-INF/MANIFEST.MF",
-        "META-INF/DEPENDENCIES",
-        "META-INF/LICENSE",
-        "META-INF/LICENSE.txt",
-        "META-INF/NOTICE"
+        "META-INF/versions/**/OSGI-INF/MANIFEST.MF"
     )
 }
 
