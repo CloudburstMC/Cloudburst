@@ -25,8 +25,6 @@ Before retrying, move any remaining backup out of the levels directory rather th
 Unknown block and item mappings fail import. Older releases and forks are compatible only
 when their storage formats and numeric ID assignments match these mappings.
 
-Anvil chunks containing nonempty `ExtraData` are not supported and fail conversion.
-
 ## Mapping Sources
 
 These resources are copied from [Nukkit commit 935d60c](https://github.com/CloudburstMC/Nukkit/tree/935d60c50f3860b434c9c7fdaa30253393ae8724/src/main/resources).

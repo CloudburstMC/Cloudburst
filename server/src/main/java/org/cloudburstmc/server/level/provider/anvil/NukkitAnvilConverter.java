@@ -41,8 +41,6 @@ public class NukkitAnvilConverter {
                                                    NukkitBlockStateConverter blocks, NukkitItemDataConverter items,
                                                    NukkitAnvilPendingTicks pendingTicks) throws IOException {
         NbtMap tag = readChunk(chunkBuf);
-        validateUnsupportedRecords(tag);
-
         int version = tag.getByte("V") & 0xff;
         if (version > 4) {
             throw new IOException("Unknown Nukkit Anvil chunk version: " + version);
@@ -67,6 +65,13 @@ public class NukkitAnvilConverter {
                     layers, readLight(sectionTag, "BlockLight"), readLight(sectionTag, "SkyLight")
             );
         }
+
+        if (tag.containsKey("ExtraData") && !tag.containsKey("ExtraData", NbtType.BYTE_ARRAY)) {
+            throw new IOException("Nukkit Anvil ExtraData must be a byte array");
+        }
+
+        storage.readAnvilExtraData(tag.getByteArray("ExtraData"), sections,
+                chunkBuilder.getLevel().getMinSectionY(), chunkBuilder.getLevel().getServer().getBlockRegistry());
 
         byte[] biomes = new byte[256];
         if (tag.containsKey("BiomeColors")) {
@@ -125,13 +130,6 @@ public class NukkitAnvilConverter {
         NbtMap ticks = pendingTicks.take(chunkBuilder.getX(), chunkBuilder.getZ(), chunkBuilder.getLevel().getMinHeight(), chunkBuilder.getLevel().getMaxHeight(), tag);
 
         return new ImportedChunk(chunkBuilder.build(), entities, blockEntities, ticks);
-    }
-
-    private static void validateUnsupportedRecords(NbtMap tag) throws IOException {
-        byte[] extraData = tag.getByteArray("ExtraData");
-        if (extraData.length != 0 && !Arrays.equals(extraData, new byte[Integer.BYTES])) {
-            throw new IOException("Nukkit Anvil ExtraData conversion is not supported");
-        }
     }
 
     private static byte[] readLight(NbtMap section, String name) throws IOException {

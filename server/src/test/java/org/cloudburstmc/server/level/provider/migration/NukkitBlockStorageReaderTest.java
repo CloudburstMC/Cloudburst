@@ -3,6 +3,7 @@ package org.cloudburstmc.server.level.provider.migration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
@@ -15,12 +16,59 @@ import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class NukkitBlockStorageReaderTest {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
+
+    @Test
+    void restoresAnvilExtraDataWithItsOwnCoordinatesAndByteOrder() throws IOException {
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(new NukkitBlockStateConverter());
+        CloudChunkSection[] sections = new CloudChunkSection[24];
+        int key = 13 << 13 | 2 << 9 | (-12 + 64);
+
+        reader.readAnvilExtraData(extraData(key, 1 << 8 | 35), sections, -4, REGISTRY);
+
+        CloudChunkSection restored = assertInstanceOf(CloudChunkSection.class, sections[3]);
+        assertSame(BlockTypes.ORANGE_WOOL, restored.getBlockState(13, 4, 2, BlockLayer.SECONDARY).getType());
+        assertSame(BlockTypes.AIR, restored.getBlockState(13, 4, 2, BlockLayer.PRIMARY).getType());
+    }
+
+    @Test
+    void anvilExtraDataDoesNotOverwriteConflictingSecondaryBlocks() throws IOException {
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(new NukkitBlockStateConverter());
+        CloudChunkSection[] sections = new CloudChunkSection[24];
+        int key = 3 << 13 | 5 << 9 | (36 + 64);
+        byte[] water = extraData(key, 9);
+        sections[6] = new CloudChunkSection(REGISTRY);
+        sections[6].setBlockState(3, 4, 5, BlockLayer.PRIMARY, BlockTypes.STONE.getDefaultState());
+
+        reader.readAnvilExtraData(water, sections, -4, REGISTRY);
+        reader.readAnvilExtraData(water, sections, -4, REGISTRY);
+
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(extraData(key, 10), sections, -4, REGISTRY));
+        CloudChunkSection restored = assertInstanceOf(CloudChunkSection.class, sections[6]);
+        assertSame(BlockTypes.WATER, restored.getBlockState(3, 4, 5, BlockLayer.SECONDARY).getType());
+        assertSame(BlockTypes.STONE, restored.getBlockState(3, 4, 5, BlockLayer.PRIMARY).getType());
+    }
+
+    @Test
+    void validatesAnvilExtraDataBeforeLosingSavedState() throws IOException {
+        NukkitBlockStorageReader reader = new NukkitBlockStorageReader(new NukkitBlockStateConverter());
+        CloudChunkSection[] sections = new CloudChunkSection[16];
+
+        reader.readAnvilExtraData(new byte[0], sections, 0, REGISTRY);
+        reader.readAnvilExtraData(new byte[4], sections, 0, REGISTRY);
+
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(new byte[3], sections, 0, REGISTRY));
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(new byte[]{0, 0, 0, 1}, sections, 0, REGISTRY));
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(extraData(1 << 17, 9), sections, 0, REGISTRY));
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(extraData(300 + 64, 9), sections, 0, REGISTRY));
+        assertThrows(IOException.class, () -> reader.readAnvilExtraData(extraData(64, 0xffff), sections, 0, REGISTRY));
+    }
 
     @Test
     void readsPackedAnvilLayersWithoutChangingAxesOrMetadata() throws IOException {
@@ -111,6 +159,10 @@ class NukkitBlockStorageReaderTest {
         assertSame(BlockTypes.WATER, layers[1].getBlock(4095).getType());
         assertThrows(IOException.class, () -> reader.readSection(data, 0));
         assertThrows(IOException.class, () -> reader.readSection(new byte[]{8, 3}, 0));
+    }
+
+    private static byte[] extraData(int key, int value) {
+        return ByteBuffer.allocate(10).putInt(1).putInt(key).putShort((short) value).array();
     }
 
     private static void writeSingleton(ByteBuf buffer, NbtMap state) throws IOException {

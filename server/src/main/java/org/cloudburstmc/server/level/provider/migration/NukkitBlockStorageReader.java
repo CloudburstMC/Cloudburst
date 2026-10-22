@@ -3,16 +3,21 @@ package org.cloudburstmc.server.level.provider.migration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.server.level.chunk.BlockStorage;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArray;
 import org.cloudburstmc.server.level.chunk.bitarray.BitArrayVersion;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
@@ -25,6 +30,58 @@ public class NukkitBlockStorageReader {
 
     public NukkitBlockStorageReader(NukkitBlockStateConverter blocks) {
         this.blocks = Objects.requireNonNull(blocks, "blocks");
+    }
+
+    public void readAnvilExtraData(byte[] data, CloudChunkSection[] sections, int minSectionY, BlockRegistry registry) throws IOException {
+        if (data.length == 0) {
+            return;
+        }
+
+        if (data.length < Integer.BYTES) {
+            throw new IOException("Truncated Nukkit Anvil ExtraData count");
+        }
+
+        ByteBuffer input = ByteBuffer.wrap(data);
+        int count = input.getInt();
+        if (count < 0 || count > 16 * 16 * 512 || input.remaining() != count * 6) {
+            throw new IOException("Invalid Nukkit Anvil ExtraData count or length");
+        }
+
+        for (int i = 0; i < count; i++) {
+            int key = input.getInt();
+            int value = Short.toUnsignedInt(input.getShort());
+            if (key >>> 17 != 0) {
+                throw new IOException("Invalid Nukkit Anvil ExtraData position: " + key);
+            }
+
+            int x = key >>> 13 & 15;
+            int z = key >>> 9 & 15;
+            int y = (key & 511) - 64;
+            int sectionIndex = (y >> 4) - minSectionY;
+            if (sectionIndex < 0 || sectionIndex >= sections.length) {
+                throw new IOException("Nukkit Anvil ExtraData is outside the destination height: " + y);
+            }
+
+            BlockState state;
+            try {
+                state = this.blocks.read(value & 0xff, value >>> 8);
+            } catch (IllegalArgumentException failure) {
+                throw new IOException("Invalid Nukkit Anvil ExtraData block at " + x + "," + y + "," + z, failure);
+            }
+
+            CloudChunkSection section = sections[sectionIndex];
+            if (section == null) {
+                section = new CloudChunkSection(registry);
+                sections[sectionIndex] = section;
+            }
+
+            BlockState existing = section.getBlockState(x, y & 15, z, BlockLayer.SECONDARY);
+            if (existing.getType() != BlockTypes.AIR && existing != state) {
+                throw new IOException("Conflicting Nukkit Anvil secondary block at " + x + "," + y + "," + z);
+            }
+
+            section.setBlockState(x, y & 15, z, BlockLayer.SECONDARY, state);
+        }
     }
 
     public BlockStorage[] readAnvilSection(NbtMap section, int version) throws IOException {
