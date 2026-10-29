@@ -1,3 +1,6 @@
+val lombokDependency = libs.lombok
+val checkerQualDependency = libs.checker.qual
+
 subprojects {
     apply(plugin = "java-library")
     if (name != "codegen") {
@@ -34,14 +37,14 @@ subprojects {
     }
 
     dependencies {
-        "compileOnly"(rootProject.libs.lombok)
-        "annotationProcessor"(rootProject.libs.lombok)
+        "compileOnly"(lombokDependency)
+        "annotationProcessor"(lombokDependency)
 
-        "compileOnly"(rootProject.libs.checker.qual)
-        "testCompileOnly"(rootProject.libs.checker.qual)
+        "compileOnly"(checkerQualDependency)
+        "testCompileOnly"(checkerQualDependency)
 
-        "testAnnotationProcessor"(rootProject.libs.lombok)
-        "testImplementation"(rootProject.libs.lombok)
+        "testAnnotationProcessor"(lombokDependency)
+        "testImplementation"(lombokDependency)
     }
 
     tasks {
