@@ -15,6 +15,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.trait.serializer.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,7 +47,7 @@ public class BlockTraitSerializers {
         Comparable<?> serializedValue = serializer == null ? value : serializer.serialize(type, traits, trait, value);
 
         if (serializedValue instanceof Enum<?> enumValue) {
-            serializedValue = enumValue.name().toLowerCase();
+            serializedValue = enumValue.name().toLowerCase(Locale.ROOT);
         }
 
         builder.put(traitName, serializedValue);

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.pack;
 
 import org.cloudburstmc.api.pack.ResourcePack;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -116,6 +117,27 @@ class CloudPackManagerTest {
 
         assertEquals(1, this.manager.createInfoPacket(false).getResourcePackInfos().size());
         assertEquals(1, this.manager.createStackPacket(false).getResourcePacks().size());
+    }
+
+    @Test
+    void advertisesRequiredFeaturesBeforeResourcesAreLoaded() {
+        this.manager.close();
+
+        assertEquals(List.of(
+                new ExperimentData("data_driven_items", true),
+                new ExperimentData("upcoming_creator_features", true),
+                new ExperimentData("experimental_molang_features", true),
+                new ExperimentData("y_2026_drop_4", true)
+        ), this.manager.createStackPacket(false).getExperiments());
+    }
+
+    @Test
+    void keepsFeatureListsIndependentBetweenConnections() {
+        this.manager.close();
+        List<ExperimentData> expected = List.copyOf(this.manager.createStackPacket(false).getExperiments());
+        this.manager.createStackPacket(false).getExperiments().clear();
+
+        assertEquals(expected, this.manager.createStackPacket(false).getExperiments());
     }
 
     @Test

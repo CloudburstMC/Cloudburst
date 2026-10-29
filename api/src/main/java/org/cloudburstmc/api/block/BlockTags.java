@@ -174,6 +174,11 @@ public class BlockTags {
     public static final BlockTagKey MANGROVE_ROOTS_CAN_GROW_THROUGH = tag("mangrove_roots_can_grow_through");
 
     /**
+     * Blocks whose heat melts icicles one or two blocks above them.
+     */
+    public static final BlockTagKey MELTS_ICICLE_ABOVE = tag("melts_icicle_above");
+
+    /**
      * Blocks mined most effectively with axes.
      */
     public static final BlockTagKey MINEABLE_WITH_AXE = tag("mineable/axe");
@@ -282,6 +287,11 @@ public class BlockTags {
      * Vegetation that can share a position with a snow layer.
      */
     public static final BlockTagKey SNOWLOGGABLE = tag("snowloggable");
+
+    /**
+     * Pointed dripstone, sulfur spikes and icicles.
+     */
+    public static final BlockTagKey SPELEOTHEMS = tag("speleothems");
 
     /**
      * Blocks that swords break faster than hand mining.

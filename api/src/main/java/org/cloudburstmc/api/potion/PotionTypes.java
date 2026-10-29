@@ -13,12 +13,14 @@ public class PotionTypes {
 
     public static final PotionType AWKWARD = type("awkward");
     public static final PotionType FIRE_RESISTANCE = type("fire_resistance", effect(EffectTypes.FIRE_RESISTANCE, 3600));
+    public static final PotionType FREEZING = type("freezing", effect(EffectTypes.FREEZING, 900));
     public static final PotionType HARMING = type("harming", effect(EffectTypes.INSTANT_DAMAGE, 1));
     public static final PotionType HEALING = type("healing", effect(EffectTypes.INSTANT_HEALTH, 1));
     public static final PotionType INFESTED = type("infested", effect(EffectTypes.INFESTED, 3600));
     public static final PotionType INVISIBILITY = type("invisibility", effect(EffectTypes.INVISIBILITY, 3600));
     public static final PotionType LEAPING = type("leaping", effect(EffectTypes.JUMP_BOOST, 3600));
     public static final PotionType LONG_FIRE_RESISTANCE = type("long_fire_resistance", effect(EffectTypes.FIRE_RESISTANCE, 9600));
+    public static final PotionType LONG_FREEZING = type("long_freezing", effect(EffectTypes.FREEZING, 1800));
     public static final PotionType LONG_INVISIBILITY = type("long_invisibility", effect(EffectTypes.INVISIBILITY, 9600));
     public static final PotionType LONG_LEAPING = type("long_leaping", effect(EffectTypes.JUMP_BOOST, 9600));
     public static final PotionType LONG_MUNDANE = type("long_mundane");

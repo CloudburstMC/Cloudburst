@@ -23,6 +23,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.BlockLayers;
+import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 
 import java.lang.reflect.InvocationHandler;
@@ -178,6 +179,10 @@ public class BlockTestWorld {
         return this.states.getOrDefault(position, BlockStates.AIR);
     }
 
+    public Map<Vector3i, BlockState> getStates() {
+        return Map.copyOf(this.states);
+    }
+
     public Block block(Vector3i position) {
         BlockState state = this.state(position);
         BlockState secondary = this.secondaryState(position);
@@ -195,6 +200,12 @@ public class BlockTestWorld {
             case "getOutlineShape" -> this.registry.requireComponent(state.getType(), BlockComponents.GET_OUTLINE_SHAPE)
                     .execute(state, BlockShapeContext.at(this.level, position));
             case "getSide" -> this.block(((Direction) arguments[0]).relative(position));
+            case "getSideState" -> {
+                int step = arguments.length > 1 ? (Integer) arguments[1] : 1;
+                Vector3i neighbor = position.add(((Direction) arguments[0]).getUnitVector().mul(step));
+                yield arguments.length < 3 || arguments[2] == BlockLayer.PRIMARY ? this.state(neighbor) : this.secondaryState(neighbor);
+            }
+            case "isFaceSturdy" -> BlockSupport.isFaceSturdy(this.level, position, (Direction) arguments[0], (SupportType) arguments[1]);
             case "getRelative" -> this.block(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
             case "getRelativeState" -> this.state(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
             case "getComponents" -> this.registry.requireComponents(state.getType());

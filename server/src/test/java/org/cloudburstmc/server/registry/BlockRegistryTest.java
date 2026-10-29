@@ -22,6 +22,7 @@ import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
+import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
 
@@ -237,8 +238,12 @@ class BlockRegistryTest {
 
     @Test
     void soulFireRequiresItsOwnBaseBlocks() {
+        Vector3i position = Vector3i.from(0, 64, 0);
         for (BlockType type : List.of(BlockTypes.SOUL_SAND, BlockTypes.SOUL_SOIL, BlockTypes.STONE)) {
-            Block target = InterfaceProxy.create(Block.class, Map.of("getSideState", type.getDefaultState(), "getLiquid", LiquidState.empty()));
+            BlockTestWorld world = new BlockTestWorld(REGISTRY);
+            world.setState(position, BlockStates.SOUL_FIRE);
+            world.setState(Direction.DOWN.relative(position), type.getDefaultState());
+            Block target = world.block(position);
             boolean soulBase = type != BlockTypes.STONE;
             assertEquals(soulBase, component(BlockTypes.SOUL_FIRE, BlockComponents.CAN_SURVIVE).execute(target));
             assertSame(soulBase ? BlockStates.SOUL_FIRE : BlockStates.FIRE, FireBlockHandlers.placementState(target));

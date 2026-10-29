@@ -38,7 +38,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<BambooStalkThickness> BAMBOO_STALK_THICKNESS = EnumBlockTrait.of("bamboo_stalk_thickness", BambooStalkThickness.class);
 
     /**
-     * Direction in which an amethyst bud or cluster points, away from its support.
+     * Direction in which a bud, cluster or ice crystal points, away from its support.
      */
     public static final EnumBlockTrait<Direction> BLOCK_FACE = EnumBlockTrait.of("block_face", "minecraft:block_face", Direction.class);
 
@@ -83,7 +83,7 @@ public class BlockTraits {
     public static final EnumBlockTrait<DripleafTilt> DRIPLEAF_TILT = EnumBlockTrait.of("dripleaf_tilt", "big_dripleaf_tilt", DripleafTilt.class);
 
     /**
-     * Shape of a pointed dripstone or sulfur spike segment, including tips and merged tips.
+     * Shape of a pointed dripstone, sulfur spike or icicle segment, including tips and merged tips.
      */
     public static final EnumBlockTrait<DripstoneThickness> DRIPSTONE_THICKNESS = EnumBlockTrait.of("dripstone_thickness", DripstoneThickness.class);
 
@@ -132,6 +132,26 @@ public class BlockTraits {
      * Shape of a regular rail, including straight, ascending and curved connections.
      */
     public static final EnumBlockTrait<RailDirection> RAIL_DIRECTION = EnumBlockTrait.of("rail_direction", RailDirection.class);
+
+    /**
+     * Shape of redstone wire's eastern connection.
+     */
+    public static final EnumBlockTrait<RedstoneSide> REDSTONE_EAST = EnumBlockTrait.of("redstone_east", RedstoneSide.class);
+
+    /**
+     * Shape of redstone wire's northern connection.
+     */
+    public static final EnumBlockTrait<RedstoneSide> REDSTONE_NORTH = EnumBlockTrait.of("redstone_north", RedstoneSide.class);
+
+    /**
+     * Shape of redstone wire's southern connection.
+     */
+    public static final EnumBlockTrait<RedstoneSide> REDSTONE_SOUTH = EnumBlockTrait.of("redstone_south", RedstoneSide.class);
+
+    /**
+     * Shape of redstone wire's western connection.
+     */
+    public static final EnumBlockTrait<RedstoneSide> REDSTONE_WEST = EnumBlockTrait.of("redstone_west", RedstoneSide.class);
 
     /**
      * Whether seagrass is a single plant or the upper or lower half of a tall plant.
@@ -393,22 +413,32 @@ public class BlockTraits {
     public static final BooleanBlockTrait CAN_SUMMON = BooleanBlockTrait.of("can_summon");
 
     /**
-     * Whether a fence, pane, bar or tripwire connects to its eastern neighbor.
+     * Whether a block connects to the block below it.
+     */
+    public static final BooleanBlockTrait CONNECTION_DOWN = BooleanBlockTrait.of("connection_down", "minecraft:connection_down");
+
+    /**
+     * Whether a block connects to its eastern neighbor.
      */
     public static final BooleanBlockTrait CONNECTION_EAST = BooleanBlockTrait.of("connection_east", "minecraft:connection_east");
 
     /**
-     * Whether a fence, pane, bar or tripwire connects to its northern neighbor.
+     * Whether a block connects to its northern neighbor.
      */
     public static final BooleanBlockTrait CONNECTION_NORTH = BooleanBlockTrait.of("connection_north", "minecraft:connection_north");
 
     /**
-     * Whether a fence, pane, bar or tripwire connects to its southern neighbor.
+     * Whether a block connects to its southern neighbor.
      */
     public static final BooleanBlockTrait CONNECTION_SOUTH = BooleanBlockTrait.of("connection_south", "minecraft:connection_south");
 
     /**
-     * Whether a fence, pane, bar or tripwire connects to its western neighbor.
+     * Whether a block connects to the block above it.
+     */
+    public static final BooleanBlockTrait CONNECTION_UP = BooleanBlockTrait.of("connection_up", "minecraft:connection_up");
+
+    /**
+     * Whether a block connects to its western neighbor.
      */
     public static final BooleanBlockTrait CONNECTION_WEST = BooleanBlockTrait.of("connection_west", "minecraft:connection_west");
 
@@ -483,7 +513,8 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_ACTIVE = BooleanBlockTrait.of("is_active", "active");
 
     /**
-     * Whether tripwire is attached to a complete hook circuit, or a hanging sign uses its attached mounting form.
+     * Whether tripwire is attached to a hook circuit, a hanging sign uses its attached mounting form,
+     * or an icicle segment is placed directly against its support.
      */
     public static final BooleanBlockTrait IS_ATTACHED = BooleanBlockTrait.of("is_attached", "attached_bit");
 
@@ -543,7 +574,7 @@ public class BlockTraits {
     public static final BooleanBlockTrait IS_EXTINGUISHED = BooleanBlockTrait.of("is_extinguished", "extinguished");
 
     /**
-     * Whether a block uses its hanging form. Pointed dripstone uses this for a downward-growing stalactite.
+     * Whether a block uses its hanging form. For pointed segments, the tip points downward.
      */
     public static final BooleanBlockTrait IS_HANGING = BooleanBlockTrait.of("is_hanging", "hanging");
 

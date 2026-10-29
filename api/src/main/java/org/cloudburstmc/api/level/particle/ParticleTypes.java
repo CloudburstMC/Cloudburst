@@ -60,6 +60,7 @@ public class ParticleTypes {
     public static final ParticleType GREEN_FLAME = type("green_flame");
     public static final ParticleType HEART = type("heart");
     public static final ParticleType HUGE_EXPLOSION = type("huge_explosion");
+    public static final ParticleType ICE_BALL_BREAK = type("ice_ball_break");
     public static final ParticleType ICON_CRACK = type("icon_crack");
     public static final ParticleType INK = type("ink");
     public static final ParticleType LARGE_EXPLODE = type("large_explode");

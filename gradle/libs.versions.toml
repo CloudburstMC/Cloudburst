@@ -8,9 +8,9 @@ jackson = "3.2.3"
 jline = "4.4.6"
 junit = "6.1.3"
 log4j = "2.26.1"
-protocol = "3.0.0.Beta13-20260928.195116-33"
-network = "2.0.0.CR6-20261020.133638-5"
-libdatachannel = "0.24.6.0-20261019.131650-5"
+protocol = "3.0.0.Beta15-20261027.163553-3"
+network = "2.0.0.CR6-20261029.102743-20"
+libdatachannel = "0.24.6.0-20261029.091642-10"
 
 [libraries]
 adventure-api = { group = "net.kyori", name = "adventure-api", version.ref = "adventure" }

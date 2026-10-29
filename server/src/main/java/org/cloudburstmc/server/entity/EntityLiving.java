@@ -50,6 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
@@ -247,6 +248,13 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         this.inPowderSnow = true;
     }
 
+    public void freezeForTicks(int ticks) {
+        checkArgument(ticks >= 0, "ticks cannot be negative");
+        if (!this.isFreezeTickingLocked() && this.canFreeze()) {
+            this.setFreezeTicks(this.getFreezeTicks() + Math.min(ticks, this.getMaxFreezeTicks() - this.getFreezeTicks()));
+        }
+    }
+
     private void tickFreezing(int tickDiff) {
         if (this.isFreezeTickingLocked()) {
             this.consumeInPowderSnow();
@@ -254,9 +262,10 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         }
 
         boolean canFreeze = this.canFreeze();
+        boolean hasFreezingEffect = this.hasPotionEffect(EffectTypes.FREEZING);
         if (this.consumeInPowderSnow() && canFreeze) {
             this.setFreezeTicks(this.getFreezeTicks() + tickDiff);
-        } else {
+        } else if (!canFreeze || !hasFreezingEffect) {
             this.setFreezeTicks(this.getFreezeTicks() - 2 * tickDiff);
         }
 
@@ -267,7 +276,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         int previousTicksLived = Math.max(0, this.ticksLived - tickDiff);
         int damagePulses = this.ticksLived / 40 - previousTicksLived / 40;
         for (int pulse = 0; pulse < damagePulses; pulse++) {
-            if (this.damage(1, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
+            if (this.damage(hasFreezingEffect ? 1.5f : 1f, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
                 this.getLevel().playSound(this.getPosition(), SoundTypes.MOB_PLAYER_HURT_FREEZE);
             }
         }

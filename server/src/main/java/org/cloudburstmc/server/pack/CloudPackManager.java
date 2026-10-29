@@ -7,6 +7,7 @@ import org.cloudburstmc.api.pack.ResourcePack;
 import org.cloudburstmc.api.registry.ResourcePackRegistry;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
+import org.cloudburstmc.server.network.VanillaExperiments;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -135,6 +136,7 @@ public class CloudPackManager implements ResourcePackRegistry {
         ResourcePackStackPacket packet = new ResourcePackStackPacket();
         packet.setForcedToAccept(required);
         packet.setGameVersion("*");
+        packet.getExperiments().addAll(VanillaExperiments.getEnabled());
 
         for (CloudResourcePack pack : this.packs.values()) {
             packet.getResourcePacks().add(new ResourcePackStackPacket.Entry(

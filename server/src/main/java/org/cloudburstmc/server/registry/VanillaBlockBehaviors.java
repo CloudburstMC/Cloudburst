@@ -189,6 +189,8 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_RANDOM_TICK, ChorusBlockHandlers.FLOWER_RANDOM_TICK)
                 .set(BlockComponents.ON_TICK, ChorusBlockHandlers.ON_TICK);
         registry.configure(CHORUS_PLANT)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ChorusBlockHandlers.PLANT_PLACEMENT)
+                .set(BlockComponents.ON_ADDED, ChorusBlockHandlers.PLANT_ADDED)
                 .set(BlockComponents.CAN_SURVIVE, ChorusBlockHandlers.PLANT_CAN_SURVIVE)
                 .set(BlockComponents.GET_LOOT, ChorusBlockHandlers.PLANT_LOOT)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ChorusBlockHandlers.PLANT_NEIGHBOUR_CHANGED)
@@ -273,6 +275,8 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, EXPOSED_CUT_COPPER_SLAB, EXPOSED_DOUBLE_CUT_COPPER_SLAB);
         registry.configure(FARMLAND).set(BlockComponents.ON_FALL_ON, FarmlandBlockHandlers.FALL_ON);
         registry.configure(FIRE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, FireBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.ON_ADDED, FireBlockHandlers.ON_ADDED)
                 .set(BlockComponents.CAN_SURVIVE, FireBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FireBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.FIRE_ENTITY_INSIDE);
@@ -319,6 +323,15 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.AFTER_BREAK, IceBlockHandlers.AFTER_BREAK)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, IceBlockHandlers.ON_RANDOM_TICK);
+        registry.configure(ICE_CRYSTAL)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, IceCrystalBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, IceCrystalBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, IceCrystalBlockHandlers.ON_NEIGHBOUR_CHANGED);
+        configureSpeleothem(registry, ICICLE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, IcicleBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, IcicleBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.ON_FALL_ON, SpeleothemBlockHandlers.ON_FALL_ON);
         configureDoor(registry, IRON_DOOR);
         configureOre(registry, IRON_ORE, OreLoot.iron(IRON_ORE.getDefaultState()));
         configureTrapdoor(registry, IRON_TRAPDOOR);
@@ -405,18 +418,10 @@ public class VanillaBlockBehaviors {
         configureConcretePowder(registry, PINK_CONCRETE_POWDER, PINK_CONCRETE);
         configureShulkerBox(registry, PINK_SHULKER_BOX);
         registry.configure(PODZOL).set(BlockComponents.GET_LOOT, VanillaBlockLoot.silkTouchAlternative(PODZOL, DIRT));
-        registry.configure(POINTED_DRIPSTONE)
-                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, PointedDripstoneBlockHandlers.RESOLVE_PLACEMENT_STATE)
-                .set(BlockComponents.CAN_SURVIVE, PointedDripstoneBlockHandlers.CAN_SURVIVE)
-                .set(BlockComponents.START_FALLING, PointedDripstoneBlockHandlers.START_FALLING)
+        configureSpeleothem(registry, POINTED_DRIPSTONE)
                 .set(BlockComponents.CAN_RANDOM_TICK, true)
                 .set(BlockComponents.ON_RANDOM_TICK, PointedDripstoneBlockHandlers.ON_RANDOM_TICK)
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PointedDripstoneBlockHandlers.ON_NEIGHBOUR_CHANGED)
-                .set(BlockComponents.ON_TICK, PointedDripstoneBlockHandlers.ON_TICK)
-                .set(BlockComponents.ON_FALL_ON, PointedDripstoneBlockHandlers.ON_FALL_ON)
-                .set(BlockComponents.ON_PROJECTILE_HIT, PointedDripstoneBlockHandlers.ON_PROJECTILE_HIT)
-                .set(BlockComponents.BREAKS_ON_LANDING, true)
-                .set(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_STALACTITE, entity));
+                .set(BlockComponents.ON_FALL_ON, SpeleothemBlockHandlers.ON_FALL_ON);
         configureSlab(registry, POLISHED_ANDESITE_SLAB, POLISHED_ANDESITE_DOUBLE_SLAB);
         configureSlab(registry, POLISHED_BLACKSTONE_BRICK_SLAB, POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB);
         configureStoneButton(registry, POLISHED_BLACKSTONE_BUTTON);
@@ -459,6 +464,17 @@ public class VanillaBlockBehaviors {
         configureFalling(registry, RED_SAND, SoundTypes.LAND_SAND, SoundTypes.DIG_SAND);
         configureSlab(registry, RED_SANDSTONE_SLAB, RED_SANDSTONE_DOUBLE_SLAB);
         configureShulkerBox(registry, RED_SHULKER_BOX);
+        registry.configure(REDSTONE_WIRE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, RedstoneWireBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, RedstoneWireBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, RedstoneWireBlockHandlers.USE)
+                .set(BlockComponents.ON_ADDED, RedstoneWireBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_REMOVE, RedstoneWireBlockHandlers.ON_REMOVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, RedstoneWireBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_REDSTONE_UPDATE, RedstoneWireBlockHandlers.ON_REDSTONE_UPDATE)
+                .set(BlockComponents.GET_REDSTONE_SIGNAL, RedstoneWireBlockHandlers.GET_REDSTONE_SIGNAL)
+                .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, RedstoneWireBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL);
         configureOre(registry, REDSTONE_ORE, OreLoot.redstone(REDSTONE_ORE.getDefaultState()));
         configureTorch(registry, REDSTONE_TORCH);
         registry.configure(REDSTONE_TORCH)
@@ -538,6 +554,9 @@ public class VanillaBlockBehaviors {
         configureBed(registry, STRAW_BED);
         configureSlab(registry, SULFUR_BRICK_SLAB, SULFUR_BRICK_DOUBLE_SLAB);
         configureSlab(registry, SULFUR_SLAB, SULFUR_DOUBLE_SLAB);
+        configureSpeleothem(registry, SULFUR_SPIKE)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, SpeleothemBlockHandlers.naturalGrowth(SULFUR, 2));
         registry.configure(SWEET_BERRY_BUSH)
                 .set(BlockComponents.ON_ENTITY_INSIDE, VegetationBlockHandlers.SWEET_BERRY_BUSH_ENTITY_INSIDE)
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.sweetBerryBush())
@@ -640,7 +659,39 @@ public class VanillaBlockBehaviors {
         for (BlockType type : NO_LOOT_BLOCKS) {
             registry.configure(type).set(BlockComponents.GET_LOOT, DefaultBlockHandlers.NO_LOOT);
         }
+        configureRedstoneConnections(registry);
         configureLightOcclusion(registry);
+    }
+
+    private static void configureRedstoneConnections(CloudBlockRegistry registry) {
+        for (BlockType type : BlockTypes.values()) {
+            if (type.is(BlockTags.BUTTON) || type.is(BlockTags.PRESSURE_PLATE) || type.is(BlockTags.LIGHTNING_RODS)) {
+                registry.configure(type).set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.ALL_SIDES);
+            }
+        }
+
+        for (BlockType type : List.of(LEVER, REDSTONE_TORCH, UNLIT_REDSTONE_TORCH, REDSTONE_BLOCK,
+                POWERED_COMPARATOR, UNPOWERED_COMPARATOR, DAYLIGHT_DETECTOR, DAYLIGHT_DETECTOR_INVERTED,
+                DETECTOR_RAIL, TRIPWIRE_HOOK, TRAPPED_CHEST, LECTERN, TARGET, JUKEBOX, SCULK_SENSOR, CALIBRATED_SCULK_SENSOR)) {
+            registry.configure(type).set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.ALL_SIDES);
+        }
+        for (BlockType type : List.of(POWERED_REPEATER, UNPOWERED_REPEATER)) {
+            registry.configure(type).set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.REPEATER);
+        }
+        registry.configure(OBSERVER).set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.OBSERVER);
+        registry.configure(REDSTONE_WIRE).set(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, RedstoneConnectionHandlers.WIRE);
+    }
+
+    private static ComponentBuilder configureSpeleothem(CloudBlockRegistry registry, BlockType type) {
+        return registry.configure(type)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SpeleothemBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, SpeleothemBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.START_FALLING, SpeleothemBlockHandlers.START_FALLING)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SpeleothemBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, SpeleothemBlockHandlers.ON_TICK)
+                .set(BlockComponents.ON_PROJECTILE_HIT, SpeleothemBlockHandlers.ON_PROJECTILE_HIT)
+                .set(BlockComponents.BREAKS_ON_LANDING, true)
+                .set(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_STALACTITE, entity));
     }
 
     private static void configureLightOcclusion(CloudBlockRegistry registry) {

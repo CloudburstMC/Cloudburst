@@ -2059,6 +2059,10 @@ public abstract class CloudEntity implements Entity {
         checkNotNull(cause, "cause");
         checkState(this instanceof Living, "Potion effects can only be applied to living entities");
 
+        if (effect.getType() == EffectTypes.FREEZING && !CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
+            return false;
+        }
+
         ActivePotionEffect oldEffect = this.effects.get(effect.getType());
         PotionEffect oldEffectSnapshot = oldEffect == null ? null : oldEffect.snapshot();
         PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;

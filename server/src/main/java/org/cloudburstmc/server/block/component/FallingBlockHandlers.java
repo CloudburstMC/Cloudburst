@@ -2,6 +2,7 @@ package org.cloudburstmc.server.block.component;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.EntityTypes;
@@ -19,8 +20,7 @@ public class FallingBlockHandlers {
 
     private static final int FALL_DELAY = 1;
 
-    public static final BooleanBlockHandler IS_FREE_TO_FALL = block ->
-            block.getSide(Direction.DOWN).getState().isReplaceable();
+    public static final BooleanBlockHandler IS_FREE_TO_FALL = block -> block.getSide(Direction.DOWN).getState().isReplaceable();
 
     public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
         if (neighbor.getPosition().equals(block.getSide(Direction.DOWN).getPosition())) {
@@ -44,11 +44,9 @@ public class FallingBlockHandlers {
 
         CardinalDirection direction = entity.getBlockState().ensureTrait(BlockTraits.CARDINAL_DIRECTION);
         if (entity.getBlockState().getType() == BlockTypes.ANVIL) {
-            entity.setBlockState(BlockTypes.CHIPPED_ANVIL.getDefaultState()
-                    .withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
+            entity.setBlockState(BlockTypes.CHIPPED_ANVIL.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
         } else if (entity.getBlockState().getType() == BlockTypes.CHIPPED_ANVIL) {
-            entity.setBlockState(BlockTypes.DAMAGED_ANVIL.getDefaultState()
-                    .withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
+            entity.setBlockState(BlockTypes.DAMAGED_ANVIL.getDefaultState().withTrait(BlockTraits.CARDINAL_DIRECTION, direction));
         } else {
             entity.setDropCancelled(true);
         }
@@ -58,8 +56,7 @@ public class FallingBlockHandlers {
         block.getLevel().scheduleUpdate(block.getPosition(), FALL_DELAY);
     }
 
-    public static ComplexBlockHandler startFalling(SoundType landingSound, SoundType breakSound,
-                                                   float damagePerBlock, int maximumDamage) {
+    public static ComplexBlockHandler startFalling(@Nullable SoundType landingSound, @Nullable SoundType breakSound, float damagePerBlock, int maximumDamage) {
         return block -> {
             EntityFallingBlock fallingBlock = (EntityFallingBlock) CloudEntityRegistry.get().newEntity(
                     EntityTypes.FALLING_BLOCK,

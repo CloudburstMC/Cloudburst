@@ -173,6 +173,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
         this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {});
         this.registerComponent(BlockComponents.CONDUCTS_REDSTONE, BlockSupport::isViewBlocking);
+        this.registerComponent(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, (block, direction) -> false);
         this.registerComponent(BlockComponents.FERTILIZE, (block, player, random) -> FertilizationResult.none());
         this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
         this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);

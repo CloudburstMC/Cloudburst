@@ -80,6 +80,8 @@ public class NetworkUtils {
         potionTypeMap.put(PotionTypes.WEAVING, (short) 44);
         potionTypeMap.put(PotionTypes.OOZING, (short) 45);
         potionTypeMap.put(PotionTypes.INFESTED, (short) 46);
+        potionTypeMap.put(PotionTypes.FREEZING, (short) 47);
+        potionTypeMap.put(PotionTypes.LONG_FREEZING, (short) 48);
 
         effectTypeMap.put(EffectTypes.SPEED, (byte) 1);
         effectTypeMap.put(EffectTypes.SLOWNESS, (byte) 2);
@@ -118,6 +120,7 @@ public class NetworkUtils {
         effectTypeMap.put(EffectTypes.INFESTED, (byte) 35);
         effectTypeMap.put(EffectTypes.RAID_OMEN, (byte) 36);
         effectTypeMap.put(EffectTypes.BREATH_OF_THE_NAUTILUS, (byte) 37);
+        effectTypeMap.put(EffectTypes.FREEZING, (byte) 38);
     }
 
     public static AttributeData attributeToNetwork(Attribute attr) {

@@ -232,7 +232,7 @@ public class BlockTypes {
     public static final BlockType CHISELED_TUFF = type("chiseled_tuff");
     public static final BlockType CHISELED_TUFF_BRICKS = type("chiseled_tuff_bricks");
     public static final BlockType CHORUS_FLOWER = type("chorus_flower", BlockTraits.AGE);
-    public static final BlockType CHORUS_PLANT = type("chorus_plant");
+    public static final BlockType CHORUS_PLANT = type("chorus_plant", BlockTraits.CONNECTION_DOWN, BlockTraits.CONNECTION_EAST, BlockTraits.CONNECTION_NORTH, BlockTraits.CONNECTION_SOUTH, BlockTraits.CONNECTION_UP, BlockTraits.CONNECTION_WEST);
     public static final BlockType CINNABAR = type("cinnabar");
     public static final BlockType CINNABAR_BRICK_DOUBLE_SLAB = type("cinnabar_brick_double_slab", BlockTraits.SLAB_SLOT);
     public static final BlockType CINNABAR_BRICK_SLAB = type("cinnabar_brick_slab", BlockTraits.SLAB_SLOT);
@@ -417,6 +417,7 @@ public class BlockTypes {
     public static final BlockType DIORITE_WALL = type("diorite_wall", BlockTraits.HAS_POST, BlockTraits.WALL_CONNECTION_EAST, BlockTraits.WALL_CONNECTION_NORTH, BlockTraits.WALL_CONNECTION_SOUTH, BlockTraits.WALL_CONNECTION_WEST);
     public static final BlockType DIRT = type("dirt");
     public static final BlockType DIRT_WITH_ROOTS = type("dirt_with_roots");
+    public static final BlockType DISC_PRESS = type("disc_press", BlockTraits.CARDINAL_DIRECTION);
     public static final BlockType DISPENSER = type("dispenser", BlockTraits.FACING_DIRECTION, BlockTraits.IS_TRIGGERED);
     public static final BlockType DOUBLE_CUT_COPPER_SLAB = type("double_cut_copper_slab", BlockTraits.SLAB_SLOT);
     public static final BlockType DRAGON_EGG = type("dragon_egg");
@@ -577,7 +578,7 @@ public class BlockTypes {
     public static final BlockType EXPOSED_LIGHTNING_ROD = type("exposed_lightning_rod", BlockTraits.FACING_DIRECTION, BlockTraits.IS_POWERED);
     public static final BlockType FARMLAND = type("farmland", BlockTraits.MOISTURIZED_AMOUNT);
     public static final BlockType FERN = type("fern");
-    public static final BlockType FIRE = type("fire", BlockTraits.AGE);
+    public static final BlockType FIRE = type("fire", BlockTraits.AGE, BlockTraits.CONNECTION_EAST, BlockTraits.CONNECTION_NORTH, BlockTraits.CONNECTION_SOUTH, BlockTraits.CONNECTION_UP, BlockTraits.CONNECTION_WEST);
     public static final BlockType FIRE_CORAL = type("fire_coral");
     public static final BlockType FIRE_CORAL_BLOCK = type("fire_coral_block");
     public static final BlockType FIRE_CORAL_FAN = type("fire_coral_fan", BlockTraits.CORAL_FAN_DIRECTION);
@@ -693,6 +694,8 @@ public class BlockTypes {
     public static final BlockType HORN_CORAL_FAN = type("horn_coral_fan", BlockTraits.CORAL_FAN_DIRECTION);
     public static final BlockType HORN_CORAL_WALL_FAN = type("horn_coral_wall_fan", BlockTraits.CORAL_DIRECTION);
     public static final BlockType ICE = type("ice");
+    public static final BlockType ICE_CRYSTAL = type("ice_crystal", BlockTraits.BLOCK_FACE);
+    public static final BlockType ICICLE = type("icicle", BlockTraits.IS_ATTACHED, BlockTraits.DRIPSTONE_THICKNESS, BlockTraits.IS_HANGING);
     public static final BlockType INFESTED_CHISELED_STONE_BRICKS = type("infested_chiseled_stone_bricks");
     public static final BlockType INFESTED_COBBLESTONE = type("infested_cobblestone");
     public static final BlockType INFESTED_CRACKED_STONE_BRICKS = type("infested_cracked_stone_bricks");
@@ -1161,7 +1164,7 @@ public class BlockTypes {
     public static final BlockType REDSTONE_LAMP = type("redstone_lamp");
     public static final BlockType REDSTONE_ORE = type("redstone_ore");
     public static final BlockType REDSTONE_TORCH = type("redstone_torch", BlockTraits.TORCH_DIRECTION);
-    public static final BlockType REDSTONE_WIRE = type("redstone_wire", BlockTraits.REDSTONE_SIGNAL);
+    public static final BlockType REDSTONE_WIRE = type("redstone_wire", BlockTraits.REDSTONE_EAST, BlockTraits.REDSTONE_NORTH, BlockTraits.REDSTONE_SOUTH, BlockTraits.REDSTONE_WEST, BlockTraits.REDSTONE_SIGNAL);
     public static final BlockType REEDS = type("reeds", BlockTraits.AGE);
     public static final BlockType REINFORCED_DEEPSLATE = type("reinforced_deepslate");
     public static final BlockType REPEATING_COMMAND_BLOCK = type("repeating_command_block", BlockTraits.FACING_DIRECTION, BlockTraits.IS_CONDITIONAL);

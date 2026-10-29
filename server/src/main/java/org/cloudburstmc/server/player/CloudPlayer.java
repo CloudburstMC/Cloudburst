@@ -2353,9 +2353,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         startGamePacket.setFromWorldTemplate(false);
         startGamePacket.setWorldTemplateOptionLocked(false);
         startGamePacket.setVanillaVersion("*");
-        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
-        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
-        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        startGamePacket.getExperiments().addAll(VanillaExperiments.getEnabled());
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setInventoriesServerAuthoritative(true);

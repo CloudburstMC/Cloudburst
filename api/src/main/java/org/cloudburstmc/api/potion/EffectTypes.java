@@ -21,6 +21,7 @@ public class EffectTypes {
     public static final EffectType DARKNESS = harmfulType(Identifiers.DARKNESS, Vector3i.from(41, 39, 33));
     public static final EffectType FATAL_POISON = harmfulType(Identifiers.FATAL_POISON, Vector3i.from(78, 147, 49));
     public static final EffectType FIRE_RESISTANCE = beneficialType(Identifiers.FIRE_RESISTANCE, Vector3i.from(228, 154, 58));
+    public static final EffectType FREEZING = harmfulType(Identifiers.FREEZING, Vector3i.from(158, 238, 238));
     public static final EffectType HASTE = beneficialType(Identifiers.HASTE, Vector3i.from(217, 192, 67));
     public static final EffectType HEALTH_BOOST = beneficialType(Identifiers.HEALTH_BOOST, Vector3i.from(248, 125, 35));
     public static final EffectType HUNGER = harmfulType(Identifiers.HUNGER, Vector3i.from(88, 118, 83));

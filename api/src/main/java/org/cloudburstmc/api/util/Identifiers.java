@@ -614,6 +614,7 @@ public class Identifiers {
     public static final Identifier DARKNESS = Identifier.parse("darkness");
     public static final Identifier FATAL_POISON = Identifier.parse("fatal_poison");
     public static final Identifier FIRE_RESISTANCE = Identifier.parse("fire_resistance");
+    public static final Identifier FREEZING = Identifier.parse("freezing");
     public static final Identifier HASTE = Identifier.parse("haste");
     public static final Identifier HEALTH_BOOST = Identifier.parse("health_boost");
     public static final Identifier HUNGER = Identifier.parse("hunger");

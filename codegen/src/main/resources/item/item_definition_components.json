@@ -1,5 +1,4 @@
 {
-  "format_version": "1.26.30",
   "components": [
     "minecraft:allow_off_hand",
     "minecraft:block_placer",

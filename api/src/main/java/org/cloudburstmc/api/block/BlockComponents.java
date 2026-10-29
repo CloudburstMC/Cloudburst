@@ -90,6 +90,12 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockStateHandler> CONDUCTS_REDSTONE = ComponentType.of("conducts_redstone", BooleanBlockStateHandler.class);
 
     /**
+     * Determines whether redstone wire can connect to a block, independently of its signal strength.
+     * Defaults to rejecting connections.
+     */
+    public static final ComponentType<RedstoneConnectionHandler> CONNECTS_TO_REDSTONE_WIRE = ComponentType.of("connects_to_redstone_wire", RedstoneConnectionHandler.class);
+
+    /**
      * Proposes fertilization without applying it. Accepted attempts may produce no changes.
      */
     public static final ComponentType<FertilizeBlockHandler> FERTILIZE = ComponentType.of("fertilize", FertilizeBlockHandler.class);
