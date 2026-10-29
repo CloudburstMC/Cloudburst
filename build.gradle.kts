@@ -1,9 +1,23 @@
+import org.gradle.language.jvm.tasks.ProcessResources
+
 subprojects {
     apply(plugin = "java-library")
     if (name != "codegen") {
         apply(plugin = "maven-publish")
 
         configure<PublishingExtension> {
+            publications.withType<MavenPublication>().configureEach {
+                pom {
+                    licenses {
+                        license {
+                            name.set("GNU Lesser General Public License, version 3 or later")
+                            url.set("https://www.gnu.org/licenses/lgpl-3.0.html")
+                            distribution.set("repo")
+                        }
+                    }
+                }
+            }
+
             repositories {
                 maven {
                     name = "opencollab"
@@ -45,6 +59,13 @@ subprojects {
     }
 
     tasks {
+        named<ProcessResources>("processResources") {
+            from(rootProject.layout.projectDirectory) {
+                include("LICENSE", "LICENSE.LESSER")
+                into("META-INF/cloudburst")
+            }
+        }
+
         withType<JavaCompile> {
             options.encoding = "UTF-8"
             options.compilerArgs.addAll(listOf("-implicit:none", "-Xlint:deprecation", "-Xlint:unchecked"))
