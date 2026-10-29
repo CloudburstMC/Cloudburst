@@ -126,8 +126,7 @@ class CloudPackManagerTest {
         assertEquals(List.of(
                 new ExperimentData("data_driven_items", true),
                 new ExperimentData("upcoming_creator_features", true),
-                new ExperimentData("experimental_molang_features", true),
-                new ExperimentData("y_2026_drop_4", true)
+                new ExperimentData("experimental_molang_features", true)
         ), this.manager.createStackPacket(false).getExperiments());
     }
 
