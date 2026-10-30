@@ -65,8 +65,10 @@ public class EntityTurtle extends Animal implements Turtle {
     @Override
     protected void loadCustom(NbtMap tag) {
         super.loadCustom(tag);
-        // Home falls back to the loaded position per axis; the base position hook
-        // runs after applyData now, so redo the fallback with the loaded position.
+        // Home falls back to the loaded position per axis. The base position
+        // hook runs before applyData, so the transition hook already fell back
+        // to the loaded position; redo it here with the same values so every
+        // present/absent combination of Pos and HomePos* stays covered.
         Vector3i loaded = this.position.toInt();
         Vector3i home = this.homePosition;
         this.homePosition = Vector3i.from(

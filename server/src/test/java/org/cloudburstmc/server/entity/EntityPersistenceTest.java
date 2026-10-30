@@ -1,10 +1,13 @@
 package org.cloudburstmc.server.entity;
 
+import org.cloudburstmc.api.enchantment.Enchantment;
+import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.data.LivingData;
+import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
@@ -32,6 +35,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -577,6 +581,63 @@ class EntityPersistenceTest {
         ghast.loadAdditionalData(NbtMap.builder().putInt("Age", -24000).build());
 
         assertEquals(0.2375f, ghast.getScale());
+    }
+
+    @Test
+    void explicitScaleBabyHappyGhastKeepsBabyScale() {
+        CloudEntity ghast = (CloudEntity) PersistenceFixtures.entity(EntityTypes.HAPPY_GHAST);
+        ghast.loadAdditionalData(NbtMap.builder()
+                .putInt("Age", -24000)
+                .putFloat("Scale", 1.0f)
+                .build());
+
+        // The old load set the base scale first, then the transition hook
+        // derived the baby scale; an explicit tag scale never won for a baby.
+        assertEquals(0.2375f, ghast.getScale());
+    }
+
+    @Test
+    void activeEffectsAppliedOncePerLoad() {
+        byte absorptionId = NetworkUtils.effectToNetwork(EffectTypes.ABSORPTION);
+        TestEntities.CountingCreatureEntity creature =
+                PersistenceFixtures.entity(TestEntities.COUNTING_CREATURE_TYPE);
+        creature.absorptionApplications = 0;
+        creature.loadAdditionalData(NbtMap.builder()
+                .putList("ActiveEffects", NbtType.COMPOUND, List.of(NbtMap.builder()
+                        .putByte("Id", absorptionId)
+                        .putByte("Amplifier", (byte) 0)
+                        .putInt("Duration", 200)
+                        .putBoolean("Ambient", false)
+                        .putBoolean("ShowParticles", false)
+                        .build()))
+                .build());
+
+        assertEquals(1, creature.absorptionApplications,
+                "each active effect must apply exactly once per load");
+        assertNotNull(creature.getPotionEffect(EffectTypes.ABSORPTION));
+    }
+
+    @Test
+    void fireLoadIgnoresFireProtectionArmor() {
+        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
+        ItemStack boots = ItemStack.builder().itemType(ItemTypes.DIAMOND_BOOTS)
+                .setData(ItemDataComponents.ENCHANTMENTS,
+                        Map.of(EnchantmentTypes.FIRE_PROTECTION,
+                                new Enchantment(EnchantmentTypes.FIRE_PROTECTION, 4)))
+                .build();
+        creature.loadAdditionalData(NbtMap.builder()
+                .putShort("Fire", (short) 5)
+                .putList("Armor", NbtType.COMPOUND, List.of(
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 0),
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 1),
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 2),
+                        ItemUtils.serializeItem(boots, 3)))
+                .build());
+
+        // The old load ran setOnFire before the armor was loaded, so no
+        // reduction applied: 5 seconds become 100 ticks and save back as 100.
+        assertEquals(100, creature.getFireTicks());
+        assertEquals((short) 100, save(creature).getShort("Fire"));
     }
 
     @Test

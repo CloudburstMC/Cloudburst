@@ -472,12 +472,11 @@ public abstract class CloudEntity implements Entity {
      * countdown, the air supply, the scale, the name tag and the active
      * effects, with today's keys, types and presence semantics. It runs once
      * before the deprecated transition hook so subclass state derived from it
-     * (a baby ghast's scale, a turtle's home) still wins, and again as part of
-     * {@link #loadCustom} after it. A key the tag does not hold leaves the
-     * current value alone, except for the keys today's load always wrote. Every
-     * read is lenient like the mapper: any number binds to a numeric property,
-     * any number binds to a boolean, and any numeric list binds to a position
-     * list.
+     * (a baby ghast's scale, a turtle's home) still wins. A key the tag does
+     * not hold leaves the current value alone, except for the keys today's
+     * load always wrote. Every read is lenient like the mapper: any number
+     * binds to a numeric property, any number binds to a boolean, and any
+     * numeric list binds to a position list.
      *
      * @param tag the stored tag
      */
@@ -498,7 +497,15 @@ public abstract class CloudEntity implements Entity {
         this.highestPosition = this.getY();
 
         this.setFallDistance(getFloat(tag, "FallDistance", 0f));
-        this.setOnFire(getShort(tag, "Fire", (short) 0));
+        // Fire loads exactly as the old applyData did: the tagged seconds ran
+        // through setOnFire before the creature's armor was loaded, so no
+        // Fire Protection reduction applied. Assign the countdown directly
+        // instead of going through the armor-aware setter.
+        short fireSeconds = getShort(tag, "Fire", (short) 0);
+        int fireTicks = fireSeconds * 20;
+        if (fireTicks > this.fireTicks) {
+            this.fireTicks = fireTicks;
+        }
         this.setAirTicks(getShort(tag, "Air", (short) 400));
         this.setOnGround(getBoolean(tag, "OnGround", false));
         if (tag.containsKey("Scale")) {
@@ -531,12 +538,14 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
-     * Reads data that subclasses handle outside their data class.
+     * Reads data that subclasses handle outside their data class. The base
+     * exception keys load exactly once, in {@link #loadBaseCustom} before the
+     * deprecated transition hook, so this stays a no-op for the base: every
+     * subclass {@code super.loadCustom} call in the chain still resolves here.
      *
      * @param tag the stored tag
      */
     protected void loadCustom(NbtMap tag) {
-        this.loadBaseCustom(tag);
     }
 
     /**
