@@ -84,4 +84,9 @@ class SkullPersistenceTest {
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void skullBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(SkullBlockEntity.class, SkullData.class);
+    }
 }

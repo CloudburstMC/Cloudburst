@@ -108,4 +108,9 @@ class SignPersistenceTest {
         assertEquals("a", saved.getString("Text1"));
         assertEquals("d", saved.getString("Text4"));
     }
+
+    @Test
+    void signBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(SignBlockEntity.class, SignData.class);
+    }
 }

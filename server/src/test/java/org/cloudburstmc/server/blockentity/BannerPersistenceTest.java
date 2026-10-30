@@ -123,4 +123,9 @@ class BannerPersistenceTest {
         NbtMap client = entity.getClientTag();
         assertEquals(Set.of("id", "Base", "Type"), client.keySet());
     }
+
+    @Test
+    void bannerBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(BannerBlockEntity.class, BannerData.class);
+    }
 }

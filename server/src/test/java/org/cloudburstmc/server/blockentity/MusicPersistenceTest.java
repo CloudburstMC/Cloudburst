@@ -79,4 +79,9 @@ class MusicPersistenceTest {
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void musicBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(MusicBlockEntity.class, MusicData.class);
+    }
 }

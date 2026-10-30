@@ -74,4 +74,9 @@ class ConduitPersistenceTest {
         assertFalse(keys.contains("Target"));
         assertFalse(keys.contains("Active"));
     }
+
+    @Test
+    void conduitBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(ConduitBlockEntity.class, BlockEntityData.class);
+    }
 }

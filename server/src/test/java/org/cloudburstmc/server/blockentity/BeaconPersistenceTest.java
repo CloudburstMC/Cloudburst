@@ -110,4 +110,9 @@ class BeaconPersistenceTest {
         assertFalse(client.containsKey("primary"), "client tag still has primary");
         assertFalse(client.containsKey("secondary"), "client tag still has secondary");
     }
+
+    @Test
+    void beaconBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(BeaconBlockEntity.class, BeaconData.class);
+    }
 }

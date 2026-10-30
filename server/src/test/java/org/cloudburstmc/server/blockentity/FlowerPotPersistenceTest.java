@@ -105,4 +105,9 @@ class FlowerPotPersistenceTest {
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void flowerPotBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(FlowerPotBlockEntity.class, FlowerPotData.class);
+    }
 }

@@ -85,4 +85,9 @@ class PistonPersistenceTest {
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void pistonBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(PistonBlockEntity.class, BlockEntityData.class);
+    }
 }

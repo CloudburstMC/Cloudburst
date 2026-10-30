@@ -93,4 +93,9 @@ class EndGatewayPersistenceTest {
         assertEquals(Set.of("id", "Age", "ExitPortal"), client.keySet());
         assertEquals(List.of(0, 0, 0), client.getList("ExitPortal", NbtType.INT));
     }
+
+    @Test
+    void endGatewayBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(EndGatewayBlockEntity.class, EndGatewayData.class);
+    }
 }

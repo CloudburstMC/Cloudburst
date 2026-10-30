@@ -10,8 +10,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 
 public class BedBlockEntity extends BaseBlockEntity implements Bed {
 
-    public DyeColor color = DyeColor.WHITE;
-
     public BedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -22,25 +20,18 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        this.color = DyeColor.getByWoolData(((BedData) data).getColor());
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ((BedData) data).setColor((byte) this.getColor().getWoolData());
+    protected BedData data() {
+        return (BedData) super.data();
     }
 
     @Override
     public DyeColor getColor() {
-        return color;
+        return data().getColor();
     }
 
     @Override
     public void setColor(DyeColor color) {
-        this.color = color;
+        data().setColor(color);
     }
 
     @Override

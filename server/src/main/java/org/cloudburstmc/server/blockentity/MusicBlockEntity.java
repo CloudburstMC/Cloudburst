@@ -9,9 +9,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 
 public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
-    private byte note;
-    private boolean powered;
-
     public MusicBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -22,38 +19,27 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        MusicData music = (MusicData) data;
-        this.note = music.getNote();
-        this.powered = music.isPowered();
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        MusicData music = (MusicData) data;
-        music.setNote(this.note);
-        music.setPowered(this.powered);
+    protected MusicData data() {
+        return (MusicData) super.data();
     }
 
     public byte getNote() {
-        return note;
+        return data().getNote();
     }
 
     public void setNote(int note) {
-        this.note = (byte) note;
+        data().setNote((byte) note);
     }
 
     public void changeNote() {
-        this.setNote((note + 1) % 25);
+        this.setNote((getNote() + 1) % 25);
     }
 
     public boolean isPowered() {
-        return this.powered;
+        return data().isPowered();
     }
 
     public void setPowered(boolean powered) {
-        this.powered = powered;
+        data().setPowered(powered);
     }
 }

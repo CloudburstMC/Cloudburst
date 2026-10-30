@@ -10,6 +10,7 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 
@@ -19,11 +20,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class BannerBlockEntity extends BaseBlockEntity implements Banner {
-
-    private final List<BannerPattern> patterns = new ArrayList<>();
-    private boolean patternsPresent;
-    private DyeColor base = DyeColor.WHITE;
-    private int type;
 
     public BannerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -35,44 +31,19 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        BannerData banner = (BannerData) data;
-        this.base = DyeColor.getByDyeData(banner.getBase());
-        this.type = banner.getType();
-        this.patterns.clear();
-        this.patternsPresent = banner.getPatterns() != null;
-        if (banner.getPatterns() != null) {
-            for (BannerPatternData patternTag : banner.getPatterns()) {
-                BannerPattern.Type patternType = BannerPattern.Type.getByName(patternTag.getPattern());
-                if (patternType == null) {
-                    throw new IllegalArgumentException("Unknown banner pattern: " + patternTag.getPattern());
-                }
-                this.patterns.add(new BannerPattern(patternType, DyeColor.getByDyeData(patternTag.getColor())));
-            }
-        }
+    protected BannerData data() {
+        return (BannerData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        BannerData banner = (BannerData) data;
-        banner.setBase(this.base.getDyeData());
-        banner.setType(this.type);
-        if (this.patterns.isEmpty()) {
-            // The DTO instance is held across loads, so an explicitly loaded
-            // empty list must be cleared for the client tag; the server tag
-            // restores it through saveCustom when it was explicitly loaded.
-            banner.setPatterns(null);
-        } else {
-            List<BannerPatternData> patternTags = new ArrayList<>();
-            for (BannerPattern pattern : this.patterns) {
-                BannerPatternData patternTag = new BannerPatternData();
-                patternTag.setColor(pattern.getColor().getDyeData() & 0x0f);
-                patternTag.setPattern(pattern.getType().getName());
-                patternTags.add(patternTag);
-            }
-            banner.setPatterns(patternTags);
+    protected void loadCustom(NbtMap tag) {
+        // The presence flag follows the merged DTO, exactly like the previous
+        // applyData: a tag that carries Patterns (even an empty one) marks the
+        // list present, so the server tag keeps an explicitly loaded empty list.
+        // An empty list is stored as absent so the client tag stays as today.
+        data().setPatternsPresent(data().getPatterns() != null);
+        if (data().getPatterns() != null && data().getPatterns().isEmpty()) {
+            data().setPatterns(null);
         }
     }
 
@@ -80,53 +51,78 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     protected void saveCustom(NbtMapBuilder tag) {
         // An explicitly loaded empty list round-trips as an empty list. The DTO
         // only carries non-empty layers, so the client tag stays as today.
-        if (this.patternsPresent && this.patterns.isEmpty()) {
+        if (data().isPatternsPresent()
+                && (data().getPatterns() == null || data().getPatterns().isEmpty())) {
             tag.putList("Patterns", NbtType.COMPOUND, List.of());
         }
     }
 
     @Override
     public DyeColor getBase() {
-        return this.base;
+        return data().getBase();
     }
 
     @Override
     public void setBase(DyeColor color) {
-        this.base = checkNotNull(color, "color");
+        data().setBase(checkNotNull(color, "color"));
     }
 
     @Override
     public int getBannerType() {
-        return type;
+        return data().getType();
     }
 
     @Override
     public void setBannerType(int type) {
-        this.type = type;
+        data().setType(type);
     }
 
     @Override
     public void addPattern(BannerPattern pattern) {
-        this.patterns.add(pattern);
+        List<BannerPatternData> patterns = data().getPatterns() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(data().getPatterns());
+        BannerPatternData layer = new BannerPatternData();
+        layer.setColor(pattern.getColor());
+        layer.setPattern(pattern.getType());
+        patterns.add(layer);
+        data().setPatterns(patterns);
     }
 
     @Override
     public BannerPattern getPattern(int index) {
-        return this.patterns.get(index);
+        return runtimePatterns().get(index);
     }
 
     @Override
     public ImmutableList<BannerPattern> getPatterns() {
-        return ImmutableList.copyOf(this.patterns);
+        return ImmutableList.copyOf(runtimePatterns());
     }
 
     @Override
     public void removePattern(int index) {
-        this.patterns.remove(index);
+        List<BannerPatternData> current = data().getPatterns() == null ? List.of() : data().getPatterns();
+        List<BannerPatternData> patterns = new ArrayList<>(current);
+        patterns.remove(index);
+        // An emptied list is stored as absent so the client tag stays as today;
+        // the sticky presence flag still marks it explicitly loaded.
+        data().setPatterns(patterns.isEmpty() ? null : patterns);
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
+    }
+
+    private List<BannerPattern> runtimePatterns() {
+        List<BannerPatternData> patterns = data().getPatterns();
+        if (patterns == null) {
+            return List.of();
+        }
+        List<BannerPattern> runtime = new ArrayList<>(patterns.size());
+        for (BannerPatternData layer : patterns) {
+            runtime.add(new BannerPattern(layer.getPattern(), layer.getColor()));
+        }
+        return runtime;
     }
 }

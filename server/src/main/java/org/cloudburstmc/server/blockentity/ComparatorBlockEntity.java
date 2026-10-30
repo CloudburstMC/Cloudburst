@@ -9,8 +9,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 
 public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator {
 
-    private int outputSignal;
-
     public ComparatorBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -21,22 +19,15 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        this.outputSignal = ((ComparatorData) data).getOutputSignal();
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ((ComparatorData) data).setOutputSignal(this.outputSignal);
+    protected ComparatorData data() {
+        return (ComparatorData) super.data();
     }
 
     public int getOutputSignal() {
-        return outputSignal;
+        return data().getOutputSignal();
     }
 
     public void setOutputSignal(int outputSignal) {
-        this.outputSignal = outputSignal;
+        data().setOutputSignal(outputSignal);
     }
 }

@@ -78,4 +78,9 @@ class ComparatorPersistenceTest {
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void comparatorBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(ComparatorBlockEntity.class, ComparatorData.class);
+    }
 }

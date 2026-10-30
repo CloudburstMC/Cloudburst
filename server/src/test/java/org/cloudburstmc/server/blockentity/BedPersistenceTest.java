@@ -83,4 +83,9 @@ class BedPersistenceTest {
 
         assertEquals(Set.of("id", "color"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void bedBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(BedBlockEntity.class, BedData.class);
+    }
 }

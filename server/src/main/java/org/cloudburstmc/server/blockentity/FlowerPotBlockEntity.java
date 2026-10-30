@@ -13,8 +13,6 @@ import org.cloudburstmc.nbt.NbtMap;
 
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
 
-    private BlockState plant;
-
     public FlowerPotBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -25,15 +23,8 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        this.plant = ((FlowerPotData) data).getPlant();
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ((FlowerPotData) data).setPlant(this.plant);
+    protected FlowerPotData data() {
+        return (FlowerPotData) super.data();
     }
 
     @Override
@@ -44,11 +35,12 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     public BlockState getPlant() {
+        BlockState plant = data().getPlant();
         return plant != null ? plant : BlockStates.AIR;
     }
 
     public void setPlant(BlockState blockState) {
-        this.plant = blockState;
+        data().setPlant(blockState);
     }
 
     @Override

@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtClient;
+import org.cloudburstmc.api.nbt.NbtCodec;
+import org.cloudburstmc.api.nbt.codec.WoolColorCodec;
+import org.cloudburstmc.api.util.data.DyeColor;
 
 /**
  * Persistent data of a bed: its color as wool data. White by default, like today's save code.
@@ -16,7 +19,8 @@ public class BedData extends BlockEntityData {
 
     @NbtClient
     @JsonProperty("color")
-    private byte color;
+    @NbtCodec(WoolColorCodec.class)
+    private DyeColor color = DyeColor.WHITE;
 
     public BedData() {
     }

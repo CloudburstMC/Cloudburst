@@ -116,4 +116,9 @@ class CauldronPersistenceTest {
         assertNull(saved.get("IsSplash"));
         assertEquals(NbtType.INT, NbtType.byClass(saved.get("CustomColor").getClass()));
     }
+
+    @Test
+    void cauldronBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(CauldronBlockEntity.class, CauldronData.class);
+    }
 }

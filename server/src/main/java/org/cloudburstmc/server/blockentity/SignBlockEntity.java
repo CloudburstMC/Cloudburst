@@ -19,9 +19,6 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
     private static final String[] LEGACY_TEXT_TAGS = {"Text1", "Text2", "Text3", "Text4"};
 
-    private String[] text = {"", "", "", ""};
-    private String textOwner = "";
-
     public SignBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -41,20 +38,8 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        SignData sign = (SignData) data;
-        String text = sign.getText();
-        this.text = text != null ? Arrays.copyOf(text.split("\n", 4), 4) : new String[]{"", "", "", ""};
-        this.textOwner = sign.getTextOwner() != null ? sign.getTextOwner() : "";
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        SignData sign = (SignData) data;
-        sign.setText(String.join("\n", this.text));
-        sign.setTextOwner(this.textOwner);
+    protected SignData data() {
+        return (SignData) super.data();
     }
 
     @Override
@@ -64,15 +49,17 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
             for (int i = 0; i < 4; i++) {
                 text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
             }
-            this.text = text;
+            data().setText(String.join("\n", text));
         }
     }
 
     public String[] getText() {
-        return Arrays.copyOf(text, text.length);
+        String text = data().getText();
+        return Arrays.copyOf(text != null ? text.split("\n", 4) : new String[0], 4);
     }
 
     public void setText(String... lines) {
+        String[] text = new String[4];
         for (int i = 0; i < 4; i++) {
             if (i < lines.length)
                 text[i] = lines[i];
@@ -80,16 +67,18 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
                 text[i] = "";
         }
 
+        data().setText(String.join("\n", text));
         this.spawnToAll();
         this.setDirty();
     }
 
     public String getTextOwner() {
-        return textOwner;
+        String textOwner = data().getTextOwner();
+        return textOwner != null ? textOwner : "";
     }
 
     public void setTextOwner(String textOwner) {
-        this.textOwner = textOwner;
+        data().setTextOwner(textOwner);
     }
 
     @Override

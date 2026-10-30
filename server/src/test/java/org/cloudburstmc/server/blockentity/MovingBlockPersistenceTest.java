@@ -144,4 +144,9 @@ class MovingBlockPersistenceTest {
         NbtMap client = entity.getClientTag();
         assertFalse(client.containsKey("movingEntity"), "client tag still has movingEntity");
     }
+
+    @Test
+    void movingBlockBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(MovingBlockEntity.class, MovingBlockData.class);
+    }
 }
