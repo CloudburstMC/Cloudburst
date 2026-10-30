@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.SnowGolem;
 import org.cloudburstmc.api.event.player.PlayerShearEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -48,16 +47,13 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
+        // Migrated from applyData: runs before the living-state load below,
+        // matching the old applyData-before-loadCustom order.
         if (tag.containsKey("Pumpkin")) {
             this.setDerp(!getBoolean(tag, "Pumpkin", !this.isDerp()));
         }
+        super.loadCustom(tag);
     }
 
     @Override

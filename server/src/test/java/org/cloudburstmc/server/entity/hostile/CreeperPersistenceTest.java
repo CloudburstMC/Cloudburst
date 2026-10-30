@@ -10,11 +10,17 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -96,10 +102,18 @@ class CreeperPersistenceTest {
 
     @Test
     void creeperKeepsNoDuplicateState() {
-        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityCreeper.class, CreatureData.class,
-                java.util.Map.of(
+                Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityCreeper.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("powered")) {
+            assertFalse(fields.contains(removed),
+                    "EntityCreeper keeps " + removed + "; state must live in metadata only");
+        }
     }
 }

@@ -1,18 +1,29 @@
 package org.cloudburstmc.server.entity.hostile;
 
+import org.cloudburstmc.api.boss.BossBar;
+import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.EnderDragonData;
+import org.cloudburstmc.api.entity.hostile.EnderDragon;
+import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -35,6 +46,63 @@ class EnderDragonPersistenceTest {
         NbtMapBuilder builder = NbtMap.builder();
         dragon.saveAdditionalData(builder);
         return builder.build();
+    }
+
+    /**
+     * Counts death processing without needing a live level: the fixture has
+     * none, so the production event broadcast and loot drops are skipped and
+     * only the creation of the death event is observed.
+     */
+    private static final class DeathCountingDragon extends EntityEnderDragon {
+        int deathEvents;
+
+        DeathCountingDragon(EntityType<EnderDragon> type, Location location) {
+            super(type, location);
+        }
+
+        @Override
+        protected EntityDeathEvent createDeathEvent() {
+            deathEvents++;
+            return new EntityDeathEvent(this, getDeathDamageSource(), List.of(), 500);
+        }
+
+        @Override
+        protected boolean prepareDeath(EntityDeathEvent event) {
+            return true;
+        }
+
+        @Override
+        protected void processDeath(EntityDeathEvent event) {
+        }
+    }
+
+    @Test
+    void dyingDragonReloadDoesNotDieAgain() {
+        DeathCountingDragon dragon = new DeathCountingDragon(EntityTypes.ENDER_DRAGON,
+                Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+        // initEntity needs a live level, so the fixture never runs it; give
+        // the dragon a boss bar the way initEntity would, so a re-run of
+        // beginDeath can complete instead of failing on a null bar.
+        try {
+            Field bar = EntityEnderDragon.class.getDeclaredField("bossBar");
+            bar.setAccessible(true);
+            bar.set(dragon, InterfaceProxy.create(BossBar.class));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+        dragon.loadAdditionalData(NbtMap.builder()
+                .putFloat("Health", 0f)
+                .putInt("DragonDeathTime", 5)
+                .putInt("DragonDeathExperience", 500)
+                .build());
+
+        assertTrue(dragon.isInDeathSequence());
+        assertEquals(0, dragon.deathEvents, "reloading a dying dragon must not process death again");
+
+        NbtMap saved = save(dragon);
+
+        assertEquals(5, saved.getInt("DragonDeathTime"));
+        assertEquals(500, saved.getInt("DragonDeathExperience"));
     }
 
     @Test
@@ -93,17 +161,17 @@ class EnderDragonPersistenceTest {
 
     @Test
     void enderDragonKeepsNoDuplicateState() {
-        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityEnderDragon.class, EnderDragonData.class,
-                java.util.Map.of(
+                Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));
-        java.util.Set<String> fields = new java.util.HashSet<>();
-        for (java.lang.reflect.Field field : EntityEnderDragon.class.getDeclaredFields()) {
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityEnderDragon.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
-        for (String removed : java.util.Set.of("dragonDeathTime", "deathExperience")) {
-            assertTrue(!fields.contains(removed),
+        for (String removed : Set.of("dragonDeathTime", "deathExperience")) {
+            assertFalse(fields.contains(removed),
                     "EntityEnderDragon keeps " + removed + "; state must live in EnderDragonData only");
         }
     }

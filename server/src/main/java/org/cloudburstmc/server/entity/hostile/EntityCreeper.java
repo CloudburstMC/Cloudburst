@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.CreeperPowerEvent;
@@ -44,16 +43,13 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
+        // Migrated from applyData: runs before the living-state load below,
+        // matching the old applyData-before-loadCustom order.
         if (tag.containsKey("powered")) {
             this.setPowered(getBoolean(tag, "powered", this.isPowered()));
         }
+        super.loadCustom(tag);
     }
 
     @Override

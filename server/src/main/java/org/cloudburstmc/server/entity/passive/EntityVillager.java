@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.Villager;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
@@ -54,22 +53,19 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
-    protected void initEntity() {
+    public void initEntity() {
         super.initEntity();
         this.setMaxHealth(20);
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
+        // Migrated from applyData: runs before the living-state load below,
+        // matching the old applyData-before-loadCustom order.
         if (tag.containsKey("Profession")) {
             this.setProfession(getInt(tag, "Profession", this.getProfession()));
         }
+        super.loadCustom(tag);
     }
 
     @Override

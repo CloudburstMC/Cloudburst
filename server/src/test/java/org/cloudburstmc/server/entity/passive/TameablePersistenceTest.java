@@ -9,9 +9,15 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -61,7 +67,7 @@ class TameablePersistenceTest {
         assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
         assertEquals(123L, written.getLong("OwnerID"));
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertEquals(true, written.getBoolean("Sitting"));
+        assertTrue(written.getBoolean("Sitting"));
     }
 
     @Test
@@ -74,7 +80,7 @@ class TameablePersistenceTest {
         assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
         assertEquals(-1L, written.getLong("OwnerID"));
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertEquals(false, written.getBoolean("Sitting"));
+        assertFalse(written.getBoolean("Sitting"));
     }
 
     @Test
@@ -106,15 +112,38 @@ class TameablePersistenceTest {
         assertTrue(written.get("OwnerID") instanceof Long, "OwnerID must be a long");
         assertEquals(-1L, written.getLong("OwnerID"));
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("Sitting").getClass()), "Sitting must be a byte");
-        assertEquals(true, written.getBoolean("Sitting"));
+        assertTrue(written.getBoolean("Sitting"));
+    }
+
+    @Test
+    void nonNumericOwnerIdLeavesStateUnchanged() {
+        TestTameable tameable = tameable();
+        tameable.setOwnerId(7L);
+
+        // Today's load ignored a non-numeric OwnerID: the mapper bound it to
+        // null, so nothing was tamed.
+        tameable.loadAdditionalData(NbtMap.builder()
+                .putString("OwnerID", "not-a-number")
+                .build());
+
+        assertEquals(7L, tameable.getOwnerId());
+        assertFalse(tameable.isTamed());
     }
 
     @Test
     void tameableKeepsNoDuplicateState() {
-        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityTameable.class, CreatureData.class,
-                java.util.Map.of(
+                Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityTameable.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("ownerId", "sitting")) {
+            assertFalse(fields.contains(removed),
+                    "EntityTameable keeps " + removed + "; state must live in metadata only");
+        }
     }
 }

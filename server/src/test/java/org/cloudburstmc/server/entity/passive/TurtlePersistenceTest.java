@@ -5,14 +5,20 @@ import org.cloudburstmc.api.entity.data.TurtleData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -106,18 +112,18 @@ class TurtlePersistenceTest {
 
     @Test
     void turtleKeepsNoDuplicateState() {
-        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityTurtle.class, TurtleData.class,
-                java.util.Map.of(
+                Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()",
                         "age", "the base tick counter, not the persisted Age"));
-        java.util.Set<String> fields = new java.util.HashSet<>();
-        for (java.lang.reflect.Field field : EntityTurtle.class.getDeclaredFields()) {
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityTurtle.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
-        for (String removed : java.util.Set.of("growingAge", "homePosition")) {
-            assertTrue(!fields.contains(removed),
+        for (String removed : Set.of("growingAge", "homePosition")) {
+            assertFalse(fields.contains(removed),
                     "EntityTurtle keeps " + removed + "; state must live in TurtleData only");
         }
     }

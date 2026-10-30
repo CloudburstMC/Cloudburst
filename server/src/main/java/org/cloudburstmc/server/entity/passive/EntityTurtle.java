@@ -58,22 +58,20 @@ public class EntityTurtle extends Animal implements Turtle {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
         // Age is a DTO int, but setting it syncs the baby metadata and the
-        // collision box, exactly as the old applyData did. An absent key resets
-        // to today's default of 0.
+        // collision box, exactly as the old applyData did: it runs before the
+        // living-state load below, matching the old applyData-before-loadCustom
+        // order. An absent key resets to today's default of 0.
         this.setAge(getInt(tag, "Age", 0));
+        super.loadCustom(tag);
         // Home spans three keys with a per-axis fallback to the loaded
-        // position, matching the previous applyData plus transition hook.
+        // position, as the previous transition hook did after the base load.
+        // The DTO holds it once and starts at ZERO, so it is never null here.
         Vector3i loaded = this.position.toInt();
-        Vector3i home = this.data().getHomePosition();
-        int fallbackX = home == null ? loaded.getX() : home.getX();
-        int fallbackY = home == null ? loaded.getY() : home.getY();
-        int fallbackZ = home == null ? loaded.getZ() : home.getZ();
         this.data().setHomePosition(Vector3i.from(
-                tag.containsKey("HomePosX") ? getInt(tag, "HomePosX", fallbackX) : loaded.getX(),
-                tag.containsKey("HomePosY") ? getInt(tag, "HomePosY", fallbackY) : loaded.getY(),
-                tag.containsKey("HomePosZ") ? getInt(tag, "HomePosZ", fallbackZ) : loaded.getZ()));
+                tag.containsKey("HomePosX") ? getInt(tag, "HomePosX", loaded.getX()) : loaded.getX(),
+                tag.containsKey("HomePosY") ? getInt(tag, "HomePosY", loaded.getY()) : loaded.getY(),
+                tag.containsKey("HomePosZ") ? getInt(tag, "HomePosZ", loaded.getZ()) : loaded.getZ()));
     }
 
     @Override

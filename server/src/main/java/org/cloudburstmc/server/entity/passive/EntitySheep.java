@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -43,7 +42,7 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public float getHeight() {
-        if (this.isBaby()) {
+        if (isBaby()) {
             return 0.65f;
         }
         return 1.3f;
@@ -62,19 +61,19 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
+        // Migrated from applyData: runs before the living-state load below,
+        // matching the old applyData-before-loadCustom order. The raw byte
+        // reaches the client metadata exactly as the old setColor(int) path
+        // wrote it; out-of-range values stay unnormalised there, while the
+        // save still normalises through getColor().getWoolData() as before.
         if (tag.containsKey("Color")) {
-            this.setColor(DyeColor.getByWoolData(Byte.toUnsignedInt(getByte(tag, "Color", (byte) this.getColor().getWoolData()))));
+            this.data.set(COLOR, getByte(tag, "Color", this.data.require(COLOR)));
         }
         if (tag.containsKey("Sheared")) {
             this.setSheared(getBoolean(tag, "Sheared", this.isSheared()));
         }
+        super.loadCustom(tag);
     }
 
     @Override

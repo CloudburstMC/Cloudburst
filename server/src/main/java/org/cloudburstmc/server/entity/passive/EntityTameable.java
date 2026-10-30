@@ -2,7 +2,6 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Ownable;
-import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -32,20 +31,19 @@ public abstract class EntityTameable extends Animal implements Ownable {
     }
 
     @Override
-    protected CreatureData data() {
-        return (CreatureData) super.data();
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
-        if (tag.containsKey("OwnerID")) {
+        // Migrated from applyData: runs before the living-state load below,
+        // matching the old applyData-before-loadCustom order. Only a numeric
+        // value tames, exactly as the old DTO null-check did: a non-numeric
+        // value bound to null and left everything alone.
+        if (tag.get("OwnerID") instanceof Number) {
             this.setOwnerId(getLong(tag, "OwnerID", this.getOwnerId()));
             this.setTamed(true);
         }
         if (tag.containsKey("Sitting")) {
             this.setSitting(getBoolean(tag, "Sitting", this.isSitting()));
         }
+        super.loadCustom(tag);
     }
 
     @Override

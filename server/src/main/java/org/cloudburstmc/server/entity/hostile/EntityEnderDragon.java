@@ -128,11 +128,13 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        super.loadCustom(tag);
         // Death progress lives in the DTO; the dying flag derives from it,
-        // exactly as the old applyData derived it. An absent death-time key
-        // leaves the current progress alone; an absent experience key falls
-        // back to today's reward lookup.
+        // exactly as the old applyData derived it. It runs before the
+        // living-state load below, matching the old applyData-before-loadCustom
+        // order: a dying dragon saved with Health 0 reloads with dying already
+        // true, so setHealth(0) cannot begin death a second time. An absent
+        // death-time key leaves the current progress alone; an absent
+        // experience key falls back to today's reward lookup.
         if (tag.containsKey("DragonDeathTime")) {
             this.data().setDragonDeathTime(getInt(tag, "DragonDeathTime", this.data().getDragonDeathTime()));
             this.dying = this.data().getDragonDeathTime() > 0;
@@ -142,6 +144,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
         } else {
             this.data().setDragonDeathExperience(this.getExperienceReward());
         }
+        super.loadCustom(tag);
     }
 
     @Override

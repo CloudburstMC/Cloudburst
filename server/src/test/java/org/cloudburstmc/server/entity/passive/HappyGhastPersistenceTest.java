@@ -4,12 +4,19 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.HappyGhastData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -67,18 +74,18 @@ class HappyGhastPersistenceTest {
 
     @Test
     void happyGhastKeepsNoDuplicateState() {
-        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityHappyGhast.class, HappyGhastData.class,
-                java.util.Map.of(
+                Map.of(
                         "armor", "an armor view over the live container in data().getArmor()",
                         "offhand", "an offhand view over the live container in data().getOffhand()",
                         "age", "the base tick counter, not the persisted Age"));
-        java.util.Set<String> fields = new java.util.HashSet<>();
-        for (java.lang.reflect.Field field : EntityHappyGhast.class.getDeclaredFields()) {
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityHappyGhast.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
-        for (String removed : java.util.Set.of("growingAge")) {
-            assertTrue(!fields.contains(removed),
+        for (String removed : Set.of("growingAge")) {
+            assertFalse(fields.contains(removed),
                     "EntityHappyGhast keeps " + removed + "; state must live in HappyGhastData only");
         }
     }
