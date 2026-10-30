@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -227,5 +228,20 @@ class HumanPersistenceTest {
 
         assertEquals("Steve", human.getNameTag());
         assertEquals("Steve", save(human).getString("CustomName"));
+    }
+
+    @Test
+    void humanClearedSkinIsNotWritten() {
+        EntityHuman human = human();
+        human.loadAdditionalData(NbtMap.builder()
+                .putCompound("Skin", skinTag())
+                .build());
+
+        assertNotNull(human.getSkin());
+
+        human.setSkin(null);
+
+        NbtMap saved = save(human);
+        assertFalse(saved.containsKey("Skin"), "saved tag still has Skin");
     }
 }

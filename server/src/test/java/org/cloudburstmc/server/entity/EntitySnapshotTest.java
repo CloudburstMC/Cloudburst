@@ -88,7 +88,7 @@ class EntitySnapshotTest {
         @Override
         protected void fillData(EntityData data) {
             super.fillData(data);
-            data.setCustomName("Picked pig");
+            this.setNameTag("Picked pig");
         }
     }
 }

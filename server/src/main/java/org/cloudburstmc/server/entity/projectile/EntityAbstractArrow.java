@@ -105,6 +105,10 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
             arrowData.setInBlockX(this.embeddedPosition.getX());
             arrowData.setInBlockY(this.embeddedPosition.getY());
             arrowData.setInBlockZ(this.embeddedPosition.getZ());
+        } else {
+            arrowData.setInBlockX(null);
+            arrowData.setInBlockY(null);
+            arrowData.setInBlockZ(null);
         }
 
         arrowData.setPickup(switch (this.pickupStatus) {

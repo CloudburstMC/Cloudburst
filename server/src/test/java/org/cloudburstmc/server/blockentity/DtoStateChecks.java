@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Anything the runtime still declares outside the allowed exceptions is transient or
  * hook-owned state, never a second copy of DTO state.
  */
-final class DtoStateChecks {
+public final class DtoStateChecks {
 
     private DtoStateChecks() {
     }
@@ -34,7 +34,7 @@ final class DtoStateChecks {
      * @param runtimeClass the migrated block-entity class
      * @param dataClass    its DTO class
      */
-    static void assertKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass) {
+    public static void assertKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass) {
         assertKeepsNoDuplicateState(runtimeClass, dataClass, Map.of());
     }
 
@@ -47,8 +47,41 @@ final class DtoStateChecks {
      * @param allowedExceptions fields the runtime may keep anyway, each mapped to the
      *                          reason it holds no DTO state
      */
-    static void assertKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass,
+    public static void assertKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass,
             Map<String, String> allowedExceptions) {
+        checkNoDuplicateState(runtimeClass, dataClass, BaseBlockEntity.class, allowedExceptions);
+    }
+
+    /**
+     * Asserts the runtime entity class keeps no duplicate of its DTO's state.
+     * <p>
+     * Unlike the block-entity variant, the hierarchy walk includes
+     * {@code CloudEntity} itself: a subclass check then also fails while the base
+     * still duplicates state, and passes once the base is clean.
+     *
+     * @param runtimeClass the migrated entity class
+     * @param dataClass    its DTO class
+     */
+    public static void assertEntityKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass) {
+        assertEntityKeepsNoDuplicateState(runtimeClass, dataClass, Map.of());
+    }
+
+    /**
+     * Asserts the runtime entity class keeps no duplicate of its DTO's state, except
+     * for the given fields.
+     *
+     * @param runtimeClass      the migrated entity class
+     * @param dataClass         its DTO class
+     * @param allowedExceptions fields the runtime may keep anyway, each mapped to the
+     *                          reason it holds no DTO state
+     */
+    public static void assertEntityKeepsNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass,
+            Map<String, String> allowedExceptions) {
+        checkNoDuplicateState(runtimeClass, dataClass, Object.class, allowedExceptions);
+    }
+
+    private static void checkNoDuplicateState(Class<?> runtimeClass, Class<?> dataClass,
+            Class<?> hierarchyRoot, Map<String, String> allowedExceptions) {
         Set<String> dtoFields = new HashSet<>();
         for (Class<?> current = dataClass; current != null && current != Object.class;
              current = current.getSuperclass()) {
@@ -62,7 +95,7 @@ final class DtoStateChecks {
 
         List<Field> runtimeFields = new ArrayList<>();
         for (Class<?> current = runtimeClass;
-             current != null && current != Object.class && current != BaseBlockEntity.class;
+             current != null && current != Object.class && current != hierarchyRoot;
              current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (field.isSynthetic() || Modifier.isStatic(field.getModifiers())) {

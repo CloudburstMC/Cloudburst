@@ -5,16 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.api.nbt.NbtTag;
-import org.cloudburstmc.api.nbt.NbtTagType;
 
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 
 /**
- * Persistent data shared by every entity.
+ * Persistent data shared by every entity: the keys the base entity keeps in
+ * runtime types. Movement and physics state ({@code Pos}, {@code Motion},
+ * {@code Rotation}, {@code FallDistance}, {@code OnGround}), the air supply,
+ * scale, the name tag and the active effects stay in their runtime holders and
+ * travel through the base entity's load/save hooks instead.
  */
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
 @Getter
@@ -22,29 +25,8 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @EqualsAndHashCode
 public class EntityData {
 
-    @JsonProperty("Pos")
-    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.FLOAT)
-    private List<Float> pos = List.of(0f, 0f, 0f);
-
-    @JsonProperty("Motion")
-    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.FLOAT)
-    private List<Float> motion = List.of(0f, 0f, 0f);
-
-    @JsonProperty("Rotation")
-    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.FLOAT)
-    private List<Float> rotation = List.of(0f, 0f);
-
-    @JsonProperty("FallDistance")
-    private float fallDistance;
-
     @JsonProperty("Fire")
     private short fire;
-
-    @JsonProperty("Air")
-    private short air = 400;
-
-    @JsonProperty("OnGround")
-    private boolean onGround;
 
     @JsonProperty("Invulnerable")
     private boolean invulnerable;
@@ -55,53 +37,9 @@ public class EntityData {
     @JsonProperty("FromBucket")
     private Boolean fromBucket;
 
-    @JsonProperty("Scale")
-    private float scale = 1;
-
-    @JsonProperty("ActiveEffects")
-    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    private List<Effect> activeEffects;
-
-    @JsonProperty("CustomName")
-    private String customName;
-
-    @JsonProperty("CustomNameVisible")
-    private Boolean customNameVisible;
-
-    @JsonProperty("CustomNameAlwaysVisible")
-    private Boolean customNameAlwaysVisible;
-
     @JsonProperty("Tags")
-    private List<String> tags = List.of();
+    private Set<String> tags = new LinkedHashSet<>();
 
     public EntityData() {
-    }
-
-    /**
-     * A single active potion effect stored on an entity.
-     */
-    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
-    @Getter
-    @Setter
-    @EqualsAndHashCode
-    public static class Effect {
-
-        @JsonProperty("Id")
-        private byte id;
-
-        @JsonProperty("Amplifier")
-        private byte amplifier;
-
-        @JsonProperty("Duration")
-        private int duration;
-
-        @JsonProperty("Ambient")
-        private boolean ambient;
-
-        @JsonProperty("ShowParticles")
-        private boolean showParticles;
-
-        public Effect() {
-        }
     }
 }

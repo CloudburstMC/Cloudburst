@@ -9,6 +9,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
@@ -59,6 +60,19 @@ public class EntityTurtle extends Animal implements Turtle {
                 turtleData.getHomePosY() != null ? turtleData.getHomePosY() : this.getPosition().getFloorY(),
                 turtleData.getHomePosZ() != null ? turtleData.getHomePosZ() : this.getPosition().getFloorZ()
         );
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        // Home falls back to the loaded position per axis; the base position hook
+        // runs after applyData now, so redo the fallback with the loaded position.
+        Vector3i loaded = this.position.toInt();
+        Vector3i home = this.homePosition;
+        this.homePosition = Vector3i.from(
+                tag.containsKey("HomePosX") ? home.getX() : loaded.getX(),
+                tag.containsKey("HomePosY") ? home.getY() : loaded.getY(),
+                tag.containsKey("HomePosZ") ? home.getZ() : loaded.getZ());
     }
 
     @Override

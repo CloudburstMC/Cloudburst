@@ -3370,8 +3370,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected void applyData(EntityData data) {
-        // The base path checks ground support against this.level, so the saved
-        // level is assigned before it runs; loadCustom keeps the rest as now.
+        // The player-data hooks in loadCustom need the saved level, so it is
+        // assigned before the deprecated transition hook runs.
         org.cloudburstmc.api.entity.data.PlayerData saved =
                 (org.cloudburstmc.api.entity.data.PlayerData) data;
         if (saved.getLevel() != null && this.server != null) {
@@ -3425,6 +3425,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
         tag.listenForString("lastIP", this.playerData::setLastAddress);
 
         String level = this.playerData.getLevel();

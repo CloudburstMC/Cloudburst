@@ -16,18 +16,14 @@ import org.cloudburstmc.api.item.component.DeathProtectionComponent;
 import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.view.CloudArmorView;
 import org.cloudburstmc.server.container.view.CloudOffhandView;
 import org.cloudburstmc.server.enchantment.EquipmentEnchantmentEffects;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -42,6 +38,8 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
 
     public EntityCreature(EntityType<?> type, Location location) {
         super(type, location);
+        data().setArmor(this.armor.getContainer());
+        data().setOffhand(this.offhand.getContainer());
     }
 
     @Override
@@ -50,32 +48,8 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        CreatureData creatureData = (CreatureData) data;
-        if (creatureData.getOffhand() != null && !creatureData.getOffhand().isEmpty()) {
-            this.offhand.setOffhandItem(ItemUtils.deserializeItem(creatureData.getOffhand().getFirst()));
-        }
-        if (creatureData.getArmor() != null && !creatureData.getArmor().isEmpty()) {
-            CloudContainer container = this.armor.getContainer();
-            List<NbtMap> items = creatureData.getArmor();
-            for (int slot = 0; slot < 4 && slot < items.size(); ++slot) {
-                container.setItem(slot, ItemUtils.deserializeItem(items.get(slot)));
-            }
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        CreatureData creatureData = (CreatureData) data;
-        creatureData.setOffhand(List.of(ItemUtils.serializeItem(this.offhand.getOffhandItem(), 0)));
-
-        List<NbtMap> armor = new ArrayList<>(this.armor.size());
-        for (int i = 0; i < this.armor.size(); i++) {
-            armor.add(ItemUtils.serializeItem(this.armor.getItem(i), i));
-        }
-        creatureData.setArmor(armor);
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     public ArmorView getArmor() {

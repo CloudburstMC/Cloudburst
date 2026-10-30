@@ -1,20 +1,18 @@
 package org.cloudburstmc.api.entity.data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Persistent data of a living entity: everything shared plus health.
+ * Persistent data of a living entity: everything shared. Health is
+ * attribute-backed, so it stays in its runtime holder and travels through the
+ * living entity's load/save hooks instead.
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 public class LivingData extends EntityData {
-
-    @JsonProperty("Health")
-    private float health = 20;
 
     public LivingData() {
     }

@@ -149,6 +149,7 @@ public class EntityHuman extends EntityCreature implements Human {
 
     @Override
     protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
         if (this instanceof CloudPlayer) {
             // Players read their inventory through their data class.
             return;
@@ -209,6 +210,8 @@ public class EntityHuman extends EntityCreature implements Human {
                 skinTag.putList("AnimatedImageData", NbtType.COMPOUND, animationsTag);
             }
             humanData.setSkin(skinTag.build());
+        } else {
+            humanData.setSkin(null);
         }
     }
 
@@ -361,7 +364,7 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     private boolean canFitPose(Pose pose) {
-        return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.scale).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
+        return !this.level.hasCollision(this, HumanPoses.dimensions(pose).boundingBox(this.position, this.getScale()).deflate(1.0E-5f, 1.0E-5f, 1.0E-5f));
     }
 
 

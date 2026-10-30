@@ -2,19 +2,20 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.AbstractArrowData;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,9 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Data-path tests for the abstract-arrow branch. {@link EntityAbstractArrow} is abstract
- * and has no registered type mapping to {@link AbstractArrowData}, so the tests drive
- * {@code applyData}/{@code fillData} directly through a minimal subclass and assert the
- * mapped NBT types, exactly as the production save path would write them.
+ * and has no registered type mapping to its data, so the tests drive the production
+ * load and save paths through a minimal subclass and assert the mapped NBT types.
  */
 class AbstractArrowPersistenceTest {
 
@@ -46,28 +46,33 @@ class AbstractArrowPersistenceTest {
                 Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
     }
 
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
         TestArrow arrow = arrow();
 
-        AbstractArrowData loaded = new AbstractArrowData();
-        loaded.setDamage(2.0f);
-        loaded.setInGround(true);
-        loaded.setPierceLevel(5);
-        loaded.setInBlockX(1);
-        loaded.setInBlockY(2);
-        loaded.setInBlockZ(3);
-        loaded.setPickup(0);
-        arrow.applyData(loaded);
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putFloat("damage", 2.0f)
+                .putBoolean("inGround", true)
+                .putByte("PierceLevel", (byte) 5)
+                .putInt("inBlockX", 1)
+                .putInt("inBlockY", 2)
+                .putInt("inBlockZ", 3)
+                .putByte("pickup", (byte) 0)
+                .build());
 
         assertEquals(ArrowPickupStatus.DISALLOWED, arrow.getPickupStatus());
 
-        AbstractArrowData filled = new AbstractArrowData();
-        arrow.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(arrow);
 
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
-        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "inBlockX", "inBlockY", "inBlockZ", "pickup"));
+        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "inBlockX", "inBlockY", "inBlockZ", "pickup",
+                "PotionGroundTicks", "identifier"));
         assertEquals(expectedKeys, written.keySet());
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("inGround").getClass()), "inGround must be a byte");
         assertTrue(written.getBoolean("inGround"));
@@ -85,13 +90,11 @@ class AbstractArrowPersistenceTest {
     void defaultInstanceFillsTodayDefaults() {
         TestArrow arrow = arrow();
 
-        AbstractArrowData filled = new AbstractArrowData();
-        arrow.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(arrow);
 
         // Today's save always writes the flying state, no pierce or block, and open pickup.
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
-        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "pickup"));
+        expectedKeys.addAll(Set.of("damage", "inGround", "PierceLevel", "pickup", "PotionGroundTicks", "identifier"));
         assertEquals(expectedKeys, written.keySet());
         assertEquals(NbtType.BYTE, NbtType.byClass(written.get("inGround").getClass()), "inGround must be a byte");
         assertFalse(written.getBoolean("inGround"));
@@ -105,15 +108,39 @@ class AbstractArrowPersistenceTest {
         arrow.setPierceLevel(3);
         arrow.setPickupStatus(ArrowPickupStatus.CREATIVE_ONLY);
 
-        AbstractArrowData loaded = new AbstractArrowData();
-        loaded.setInGround(true);
-        arrow.applyData(loaded);
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putBoolean("inGround", true)
+                .build());
         // The pickup rule has no presence bit: it always falls back to open pickup.
         assertEquals(ArrowPickupStatus.ALLOWED, arrow.getPickupStatus());
 
-        // All DTO fields null, as the mapper leaves them when the keys are absent.
-        arrow.applyData(new AbstractArrowData());
+        // A tag without keys keeps the current values, as today's load did.
+        arrow.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(3, arrow.getPierceLevel());
+    }
+
+    @Test
+    void clearedBlockPositionIsNotWritten() throws Exception {
+        TestArrow arrow = arrow();
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putBoolean("inGround", true)
+                .putInt("inBlockX", 1)
+                .putInt("inBlockY", 2)
+                .putInt("inBlockZ", 3)
+                .build());
+
+        // Pulling the arrow out clears the block position the same runtime fields hold.
+        Field inGround = EntityAbstractArrow.class.getDeclaredField("inGround");
+        inGround.setAccessible(true);
+        inGround.set(arrow, false);
+        Field embeddedPosition = EntityAbstractArrow.class.getDeclaredField("embeddedPosition");
+        embeddedPosition.setAccessible(true);
+        embeddedPosition.set(arrow, null);
+
+        NbtMap saved = save(arrow);
+        assertFalse(saved.containsKey("inBlockX"), "saved tag still has inBlockX");
+        assertFalse(saved.containsKey("inBlockY"), "saved tag still has inBlockY");
+        assertFalse(saved.containsKey("inBlockZ"), "saved tag still has inBlockZ");
     }
 }

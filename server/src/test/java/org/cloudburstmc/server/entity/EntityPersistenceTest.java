@@ -2,7 +2,11 @@ package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.LivingData;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.player.Player;
@@ -11,6 +15,8 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -18,12 +24,16 @@ import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.testutil.TestEntities;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -269,6 +279,132 @@ class EntityPersistenceTest {
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PIG));
         assertEquals(org.cloudburstmc.api.entity.data.PaintingData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
+    }
+
+
+
+
+    @Test
+    void entityDataInstanceIsStable() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        EntityData before = entity.data();
+
+        entity.loadAdditionalData(NbtMap.builder()
+                .putShort("Fire", (short) 5)
+                .putList("Tags", NbtType.STRING, List.of("one"))
+                .build());
+
+        assertSame(before, entity.data(), "load must fill the held instance in place");
+        // Fire loads as seconds into the live countdown, exactly as today's applyData did.
+        assertEquals(100, entity.getFireTicks());
+        assertEquals((short) 5, before.getFire());
+        assertEquals(Set.of("one"), before.getTags());
+
+        entity.loadAdditionalData(NbtMap.EMPTY);
+        assertSame(before, entity.data(), "save must not replace the held instance");
+
+        // An empty tag set still saves as an empty STRING list, as today.
+        CloudEntity fresh = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        fresh.loadAdditionalData(NbtMap.EMPTY);
+        NbtMapBuilder freshBuilder = NbtMap.builder();
+        fresh.saveAdditionalData(freshBuilder);
+        NbtMap resaved = freshBuilder.build();
+        assertTrue(resaved.get("Tags") instanceof NbtList<?>, "Tags must be a list");
+        assertSame(NbtType.STRING, ((NbtList<?>) resaved.get("Tags")).getType(),
+                "Tags must keep the STRING element type");
+    }
+
+    @Test
+    void exceptionKeysStillRoundTrip() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        NbtMap input = NbtMap.builder()
+                .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
+                .putList("Motion", NbtType.FLOAT, List.of(0f, 1f, 0f))
+                .putList("Rotation", NbtType.FLOAT, List.of(90f, 0f))
+                .putFloat("FallDistance", 2.5f)
+                .putShort("Air", (short) 300)
+                .putFloat("Health", 5f)
+                .putString("CustomName", "Bob")
+                .putBoolean("CustomNameVisible", true)
+                .putBoolean("CustomNameAlwaysVisible", false)
+                .build();
+        entity.loadAdditionalData(input);
+
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        NbtMap saved = builder.build();
+
+        for (String key : input.keySet()) {
+            assertEquals(input.get(key), saved.get(key), "value of " + key);
+            assertEquals(NbtType.byClass(input.get(key).getClass()),
+                    NbtType.byClass(saved.get(key).getClass()), "type of " + key);
+        }
+    }
+
+    @Test
+    void creatureArmorLivesInData() {
+        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
+        CreatureData data = creature.data();
+
+        assertSame(data.getArmor(), creature.armor.getContainer(),
+                "the armor DTO must be the live armor container");
+        assertSame(data.getOffhand(), creature.offhand.getContainer(),
+                "the offhand DTO must be the live offhand container");
+
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
+        creature.loadAdditionalData(NbtMap.builder()
+                .putList("Armor", NbtType.COMPOUND, List.of(
+                        ItemUtils.serializeItem(diamond, 0),
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 1),
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 2),
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 3)))
+                .putList("Offhand", NbtType.COMPOUND, List.of(
+                        ItemUtils.serializeItem(ItemStack.EMPTY, 0)))
+                .build());
+
+        assertEquals(diamond, creature.getArmor().getHelmet());
+        assertSame(data.getArmor(), creature.armor.getContainer(),
+                "load must fill the live container in place");
+
+        creature.getArmor().setBoots(diamond);
+
+        NbtMapBuilder builder = NbtMap.builder();
+        creature.saveAdditionalData(builder);
+        NbtMap saved = builder.build();
+
+        List<NbtMap> armor = saved.getList("Armor", NbtType.COMPOUND);
+        assertEquals(4, armor.size());
+        assertEquals(ItemUtils.serializeItem(diamond, 3), armor.get(3),
+                "a viewer-side armor change must reach the saved tag");
+    }
+
+    @Test
+    void cloudEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(CloudEntity.class, EntityData.class);
+        // The old shape kept base state in runtime fields whose names match no DTO
+        // property, so the shared check stays blind to them. Forbid them explicitly;
+        // this fails on the pre-migration class.
+        Set<String> fields = new HashSet<>();
+        for (Field field : CloudEntity.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("freezeTicks", "scale")) {
+            assertFalse(fields.contains(removed),
+                    "CloudEntity keeps " + removed + "; state must live in EntityData only");
+        }
+    }
+
+    @Test
+    void livingEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityLiving.class, LivingData.class);
+    }
+
+    @Test
+    void creatureKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(EntityCreature.class, CreatureData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 
     /**

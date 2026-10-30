@@ -66,8 +66,14 @@ class HangingEntityPersistenceTest {
         hanging.saveCustom(tiles);
         NbtMap savedTiles = tiles.build();
 
-        assertEquals(Set.of("TileX", "TileY", "TileZ"), hanging.customKeys());
-        assertEquals(Set.of("TileX", "TileY", "TileZ"), savedTiles.keySet());
+        assertEquals(
+                Set.of("TileX", "TileY", "TileZ", "Pos", "Motion", "Rotation", "FallDistance", "OnGround", "Air",
+                        "Scale", "CustomName", "CustomNameVisible", "CustomNameAlwaysVisible", "ActiveEffects"),
+                hanging.customKeys());
+        assertEquals(
+                Set.of("TileX", "TileY", "TileZ", "Pos", "Motion", "Rotation", "FallDistance", "OnGround", "Air",
+                        "Scale"),
+                savedTiles.keySet(), "saveCustom must write every present key customKeys() owns");
         assertTrue(savedTiles.get("TileX") instanceof Integer, "TileX must be an int");
         assertEquals(1, savedTiles.getInt("TileX"));
         assertEquals(64, savedTiles.getInt("TileY"));

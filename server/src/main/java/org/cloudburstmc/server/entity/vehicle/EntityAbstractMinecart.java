@@ -98,6 +98,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
         if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
             throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
         }
@@ -724,7 +725,7 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected boolean applyDamage(CloudEntityDamageEvent source) {
-        if (invulnerable && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (isInvulnerable() && !source.getDamageType().is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         } else {
             source.setDamage((float) Math.min((double) source.getDamage() * 15, Float.MAX_VALUE));

@@ -8,6 +8,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.junit.jupiter.api.Test;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,25 +42,17 @@ class BaseDataTest {
     @Test
     void entityBaseDataRoundTrips() {
         NbtMap tag = NbtMap.builder()
-                .putList("Pos", NbtType.FLOAT, List.of(1.5f, 64.0f, -2.5f))
-                .putList("Rotation", NbtType.FLOAT, List.of(90.0f, 0.0f))
-                .putList("Motion", NbtType.FLOAT, List.of(0.0f, 0.0f, 0.0f))
                 .putShort("Fire", (short) 5)
                 .putList("Tags", NbtType.STRING, List.of("one", "two"))
                 .build();
 
         EntityData read = mapper.read(tag, EntityData.class);
 
-        assertEquals(List.of(1.5f, 64.0f, -2.5f), read.getPos());
-        assertEquals(List.of(90.0f, 0.0f), read.getRotation());
         assertEquals((short) 5, read.getFire());
-        assertEquals(List.of("one", "two"), read.getTags());
+        assertEquals(new LinkedHashSet<>(List.of("one", "two")), read.getTags());
 
         NbtMap written = mapper.write(read);
 
-        assertSame(NbtType.FLOAT, assertInstanceOf(NbtList.class, written.get("Pos")).getType());
-        assertSame(NbtType.FLOAT, assertInstanceOf(NbtList.class, written.get("Rotation")).getType());
-        assertSame(NbtType.FLOAT, assertInstanceOf(NbtList.class, written.get("Motion")).getType());
         assertEquals((short) 5, assertInstanceOf(Short.class, written.get("Fire")));
         assertSame(NbtType.STRING, assertInstanceOf(NbtList.class, written.get("Tags")).getType());
     }
@@ -91,19 +84,13 @@ class BaseDataTest {
         assertEquals(firstBlock.hashCode(), secondBlock.hashCode());
 
         EntityData firstEntity = new EntityData();
-        EntityData.Effect firstEffect = new EntityData.Effect();
-        firstEffect.setId((byte) 1);
-        firstEffect.setAmplifier((byte) 2);
-        firstEffect.setDuration(100);
-        firstEffect.setAmbient(true);
-        firstEntity.setActiveEffects(List.of(firstEffect));
+        firstEntity.setFire((short) 1);
+        firstEntity.setInvulnerable(true);
+        firstEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
         EntityData secondEntity = new EntityData();
-        EntityData.Effect secondEffect = new EntityData.Effect();
-        secondEffect.setId((byte) 1);
-        secondEffect.setAmplifier((byte) 2);
-        secondEffect.setDuration(100);
-        secondEffect.setAmbient(true);
-        secondEntity.setActiveEffects(List.of(secondEffect));
+        secondEntity.setFire((short) 1);
+        secondEntity.setInvulnerable(true);
+        secondEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
 
         assertEquals(firstEntity, secondEntity);
         assertEquals(firstEntity.hashCode(), secondEntity.hashCode());

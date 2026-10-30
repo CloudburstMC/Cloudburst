@@ -254,7 +254,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.invulnerable = true;
+        this.setInvulnerable(true);
         this.data.setFlag(FIRE_IMMUNE, true);
         this.data.setFlag(NO_AI, true);
         this.data.set(AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);

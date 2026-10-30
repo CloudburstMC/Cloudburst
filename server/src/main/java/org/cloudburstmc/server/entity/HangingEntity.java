@@ -7,6 +7,7 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -50,6 +51,7 @@ public abstract class HangingEntity extends CloudEntity {
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putInt("TileX", (int) this.getX());
         tag.putInt("TileY", (int) this.getY());
         tag.putInt("TileZ", (int) this.getZ());
@@ -57,7 +59,9 @@ public abstract class HangingEntity extends CloudEntity {
 
     @Override
     protected Set<String> customKeys() {
-        return Set.of("TileX", "TileY", "TileZ");
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.addAll(Set.of("TileX", "TileY", "TileZ"));
+        return Set.copyOf(keys);
     }
 
     @Override

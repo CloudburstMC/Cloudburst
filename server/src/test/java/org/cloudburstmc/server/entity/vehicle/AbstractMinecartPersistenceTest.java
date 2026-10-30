@@ -3,7 +3,6 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.AbstractMinecartData;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
@@ -13,7 +12,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -28,10 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Data-path tests for the abstract-minecart branch. {@link EntityAbstractMinecart} is
- * abstract and has no registered type mapping to {@link AbstractMinecartData}, so the
- * tests drive {@code applyData}/{@code fillData} directly through a minimal subclass
- * and assert the mapped NBT types, exactly as the production save path would write
- * them. Numeric display data is still rejected outside the data path.
+ * abstract and has no registered type mapping to its data, so the tests drive the
+ * production load and save paths through a minimal subclass and assert the mapped
+ * NBT types. Numeric display data is still rejected outside the data path.
  */
 class AbstractMinecartPersistenceTest {
 
@@ -61,26 +58,30 @@ class AbstractMinecartPersistenceTest {
                 Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
     }
 
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
         TestMinecart minecart = minecart();
 
-        AbstractMinecartData loaded = new AbstractMinecartData();
-        loaded.setDisplayOffset(9);
-        loaded.setCustomDisplayTile(true);
-        loaded.setDisplayBlock(BlockStates.SAND);
-        minecart.applyData(loaded);
+        minecart.loadAdditionalData(NbtMap.builder()
+                .putInt("DisplayOffset", 9)
+                .putBoolean("CustomDisplayTile", true)
+                .putCompound("DisplayBlock", BlockStateCodec.write(BlockStates.SAND))
+                .build());
 
         assertTrue(minecart.hasDisplay());
         assertEquals(BlockStates.SAND, minecart.getDisplayBlock());
         assertEquals(9, minecart.getDisplayOffset());
 
-        AbstractMinecartData filled = new AbstractMinecartData();
-        minecart.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(minecart);
 
         Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
-        expectedKeys.addAll(Set.of("DisplayOffset", "CustomDisplayTile", "DisplayBlock"));
+        expectedKeys.addAll(Set.of("DisplayOffset", "CustomDisplayTile", "DisplayBlock", "identifier"));
         assertEquals(expectedKeys, written.keySet());
         assertTrue(written.get("DisplayOffset") instanceof Integer, "DisplayOffset must be an int");
         assertEquals(9, written.getInt("DisplayOffset"));
@@ -94,12 +95,12 @@ class AbstractMinecartPersistenceTest {
     void defaultInstanceWritesNoDisplayKeys() {
         TestMinecart minecart = minecart();
 
-        AbstractMinecartData filled = new AbstractMinecartData();
-        minecart.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(minecart);
 
         // Today's save omits every display key for a plain cart at the default offset.
-        assertEquals(BASE_KEYS, written.keySet());
+        Set<String> expectedKeys = new HashSet<>(BASE_KEYS);
+        expectedKeys.add("identifier");
+        assertEquals(expectedKeys, written.keySet());
         assertFalse(minecart.hasDisplay());
         assertEquals(6, minecart.getDisplayOffset());
     }
@@ -111,8 +112,8 @@ class AbstractMinecartPersistenceTest {
         minecart.setDisplayBlock(BlockStates.SAND);
         minecart.setDisplayBlockOffset(9);
 
-        // All DTO fields null, as the mapper leaves them when the keys are absent.
-        minecart.applyData(new AbstractMinecartData());
+        // A tag without keys keeps the current values, as today's load did.
+        minecart.loadAdditionalData(NbtMap.EMPTY);
 
         assertTrue(minecart.hasDisplay());
         assertEquals(BlockStates.SAND, minecart.getDisplayBlock());
