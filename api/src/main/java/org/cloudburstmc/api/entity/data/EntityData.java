@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -25,9 +26,6 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @EqualsAndHashCode
 public class EntityData {
 
-    @JsonProperty("Fire")
-    private short fire;
-
     @JsonProperty("Invulnerable")
     private boolean invulnerable;
 
@@ -38,6 +36,7 @@ public class EntityData {
     private Boolean fromBucket;
 
     @JsonProperty("Tags")
+    @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<>();
 
     public EntityData() {

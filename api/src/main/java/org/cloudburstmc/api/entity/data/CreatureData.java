@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
+import org.cloudburstmc.api.nbt.NbtPositional;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
 
@@ -24,11 +25,13 @@ public class CreatureData extends LivingData {
     @JsonProperty("Offhand")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
     @NbtContainerSize(1)
+    @NbtPositional
     private ItemContainer offhand = ItemContainers.detached(1);
 
     @JsonProperty("Armor")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
     @NbtContainerSize(4)
+    @NbtPositional
     private ItemContainer armor = ItemContainers.detached(4);
 
     public CreatureData() {

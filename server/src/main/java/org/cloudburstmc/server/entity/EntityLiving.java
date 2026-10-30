@@ -91,7 +91,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     @Override
     protected void loadCustom(NbtMap tag) {
         super.loadCustom(tag);
-        this.setHealth(tag.getFloat("Health", 20f));
+        this.setHealth(getFloat(tag, "Health", 20f));
     }
 
     @Override

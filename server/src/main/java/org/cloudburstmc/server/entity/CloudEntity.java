@@ -101,7 +101,7 @@ public abstract class CloudEntity implements Entity {
     protected final SyncedEntityData data = new SyncedEntityData();
     /**
      * The data instance holding this entity's state. The base keys the hooks
-     * own (movement, air, scale, name tag, effects) live in their runtime
+     * own (movement, fire, air, scale, name tag, effects) live in their runtime
      * holders instead.
      */
     private final EntityData entityData;
@@ -257,6 +257,8 @@ public abstract class CloudEntity implements Entity {
         this.tag = tag;
 
         ServerNbt.MAPPER.readInto(tag, this.data());
+        this.normalizeData();
+        this.loadBaseCustom(tag);
         this.applyData(this.data());
         this.loadCustom(tag);
     }
@@ -278,8 +280,6 @@ public abstract class CloudEntity implements Entity {
 
         EntityData data = this.data();
         this.fillData(data);
-        // Fire ticks down live in full int range; snapshot it into the DTO for the write.
-        data.setFire((short) this.getFireTicks());
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         if (!(this instanceof CloudPlayer)) {
@@ -435,38 +435,75 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
-     * Reads data that subclasses handle outside their data class: the movement
-     * and physics state, the air supply, the scale, the name tag and the active
-     * effects, with today's keys, types and presence semantics (an absent key
-     * leaves the current value alone, except for the keys today's load always
-     * wrote).
+     * Re-applies the setter normalization the previous load path ran while
+     * copying data onto the entity, which a plain in-place read bypasses:
+     * frozen ticks are clamped and a zero result is omitted, a non-bucketable
+     * never keeps a bucket value, and tags skip blanks and stop at the cap.
+     */
+    private void normalizeData() {
+        EntityData data = this.data();
+
+        Integer frozen = data.getTicksFrozen();
+        if (frozen != null) {
+            int clamped = Math.clamp(frozen, 0, this.getMaxFreezeTicks());
+            data.setTicksFrozen(clamped == 0 ? null : clamped);
+        }
+
+        if (!(this instanceof Bucketable)) {
+            data.setFromBucket(null);
+        }
+
+        Set<String> tags = data.getTags();
+        if (tags == null) {
+            data.setTags(new LinkedHashSet<>());
+        } else {
+            List<String> kept = new ArrayList<>(tags);
+            tags.clear();
+            for (String tag : kept) {
+                if (tag != null && !tag.isBlank() && tags.size() < MAX_SCOREBOARD_TAGS) {
+                    tags.add(tag);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads the base exception keys: the movement and physics state, the fire
+     * countdown, the air supply, the scale, the name tag and the active
+     * effects, with today's keys, types and presence semantics. It runs once
+     * before the deprecated transition hook so subclass state derived from it
+     * (a baby ghast's scale, a turtle's home) still wins, and again as part of
+     * {@link #loadCustom} after it. A key the tag does not hold leaves the
+     * current value alone, except for the keys today's load always wrote. Every
+     * read is lenient like the mapper: any number binds to a numeric property,
+     * any number binds to a boolean, and any numeric list binds to a position
+     * list.
      *
      * @param tag the stored tag
      */
-    protected void loadCustom(NbtMap tag) {
-        tag.listenForList("Pos", NbtType.FLOAT, pos -> {
-            if (pos.size() == 3) {
-                this.setPosition(Vector3f.from(pos.get(0), pos.get(1), pos.get(2)));
-            }
-        });
-        tag.listenForList("Rotation", NbtType.FLOAT, rotation -> {
-            if (rotation.size() == 2) {
-                this.setRotation(rotation.get(0), rotation.get(1));
-            }
-        });
-        tag.listenForList("Motion", NbtType.FLOAT, motion -> {
-            if (motion.size() == 3) {
-                this.setMotion(Vector3f.from(motion.get(0), motion.get(1), motion.get(2)));
-            }
-        });
+    protected void loadBaseCustom(NbtMap tag) {
+        List<Float> pos = getFloatList(tag, "Pos");
+        if (pos != null && pos.size() == 3) {
+            this.setPosition(Vector3f.from(pos.get(0), pos.get(1), pos.get(2)));
+        }
+        List<Float> rotation = getFloatList(tag, "Rotation");
+        if (rotation != null && rotation.size() == 2) {
+            this.setRotation(rotation.get(0), rotation.get(1));
+        }
+        List<Float> motion = getFloatList(tag, "Motion");
+        if (motion != null && motion.size() == 3) {
+            this.setMotion(Vector3f.from(motion.get(0), motion.get(1), motion.get(2)));
+        }
 
         this.highestPosition = this.getY();
 
-        this.setFallDistance(tag.getFloat("FallDistance", 0f));
-        this.setOnFire(tag.getShort("Fire", (short) 0));
-        this.setAirTicks(tag.getShort("Air", (short) 400));
-        this.setOnGround(tag.getBoolean("OnGround", false));
-        this.setScale(tag.getFloat("Scale", 1f));
+        this.setFallDistance(getFloat(tag, "FallDistance", 0f));
+        this.setOnFire(getShort(tag, "Fire", (short) 0));
+        this.setAirTicks(getShort(tag, "Air", (short) 400));
+        this.setOnGround(getBoolean(tag, "OnGround", false));
+        if (tag.containsKey("Scale")) {
+            this.setScale(getFloat(tag, "Scale", 1f));
+        }
 
         // The DTO now holds the frozen ticks; refresh the derived freeze-strength
         // metadata the setter would have synced on a fresh read.
@@ -476,17 +513,95 @@ public abstract class CloudEntity implements Entity {
         tag.listenForList("ActiveEffects", NbtType.COMPOUND, effects -> {
             for (NbtMap effect : effects) {
                 this.restorePotionEffect(new PotionEffect(
-                        NetworkUtils.effectFromNetwork(effect.getByte("Id", (byte) 0)),
-                        effect.getInt("Duration", 0),
-                        Byte.toUnsignedInt(effect.getByte("Amplifier", (byte) 0)),
-                        effect.getBoolean("Ambient", false),
-                        effect.getBoolean("ShowParticles", false)));
+                        NetworkUtils.effectFromNetwork(getByte(effect, "Id", (byte) 0)),
+                        getInt(effect, "Duration", 0),
+                        Byte.toUnsignedInt(getByte(effect, "Amplifier", (byte) 0)),
+                        getBoolean(effect, "Ambient", false),
+                        getBoolean(effect, "ShowParticles", false)));
             }
         });
 
         tag.listenForString("CustomName", this::setNameTag);
-        tag.listenForBoolean("CustomNameVisible", this::setNameTagVisible);
-        tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
+        if (tag.containsKey("CustomNameVisible")) {
+            this.setNameTagVisible(getBoolean(tag, "CustomNameVisible", false));
+        }
+        if (tag.containsKey("CustomNameAlwaysVisible")) {
+            this.setNameTagAlwaysVisible(getBoolean(tag, "CustomNameAlwaysVisible", false));
+        }
+    }
+
+    /**
+     * Reads data that subclasses handle outside their data class.
+     *
+     * @param tag the stored tag
+     */
+    protected void loadCustom(NbtMap tag) {
+        this.loadBaseCustom(tag);
+    }
+
+    /**
+     * Reads a numeric property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static float getFloat(NbtMap tag, String key, float defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.floatValue() : defaultValue;
+    }
+
+    /**
+     * Reads a short property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static short getShort(NbtMap tag, String key, short defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.shortValue() : defaultValue;
+    }
+
+    /**
+     * Reads an int property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static int getInt(NbtMap tag, String key, int defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.intValue() : defaultValue;
+    }
+
+    /**
+     * Reads a byte property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static byte getByte(NbtMap tag, String key, byte defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.byteValue() : defaultValue;
+    }
+
+    /**
+     * Reads a boolean property leniently, like the mapper: any number binds,
+     * with zero meaning false, and anything else keeps the default.
+     */
+    protected static boolean getBoolean(NbtMap tag, String key, boolean defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.intValue() != 0 : defaultValue;
+    }
+
+    /**
+     * Reads a position list leniently, like the mapper: any numeric element
+     * list binds, anything else (an absent key, a missing list, a non-numeric
+     * element) returns {@code null} so the caller keeps the current value.
+     */
+    protected static @Nullable List<Float> getFloatList(NbtMap tag, String key) {
+        Object value = tag.get(key);
+        if (!(value instanceof List<?> list)) {
+            return null;
+        }
+        List<Float> result = new ArrayList<>(list.size());
+        for (Object element : list) {
+            if (!(element instanceof Number number)) {
+                return null;
+            }
+            result.add(number.floatValue());
+        }
+        return result;
     }
 
     /**
@@ -501,6 +616,7 @@ public abstract class CloudEntity implements Entity {
         Vector3f motion = this.getMotion();
         tag.putList("Motion", NbtType.FLOAT, List.of(motion.getX(), motion.getY(), motion.getZ()));
         tag.putFloat("FallDistance", this.fallDistance);
+        tag.putShort("Fire", (short) this.getFireTicks());
         tag.putShort("Air", this.data.require(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
         tag.putFloat("Scale", this.getScale());
@@ -532,7 +648,7 @@ public abstract class CloudEntity implements Entity {
      * @return the custom keys
      */
     protected Set<String> customKeys() {
-        return Set.of("Pos", "Motion", "Rotation", "FallDistance", "OnGround", "Air",
+        return Set.of("Pos", "Motion", "Rotation", "FallDistance", "Fire", "OnGround", "Air",
                 "Scale", "CustomName", "CustomNameVisible", "CustomNameAlwaysVisible", "ActiveEffects");
     }
 

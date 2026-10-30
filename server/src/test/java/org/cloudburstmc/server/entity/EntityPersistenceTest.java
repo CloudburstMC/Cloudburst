@@ -10,6 +10,8 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.potion.EffectTypes;
+import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -18,6 +20,8 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -33,6 +37,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -297,7 +302,9 @@ class EntityPersistenceTest {
         assertSame(before, entity.data(), "load must fill the held instance in place");
         // Fire loads as seconds into the live countdown, exactly as today's applyData did.
         assertEquals(100, entity.getFireTicks());
-        assertEquals((short) 5, before.getFire());
+        // Fire is hook-owned now; no DTO may declare it.
+        assertFalse(ServerNbt.MAPPER.ownedKeys(EntityData.class).contains("Fire"));
+        assertTrue(entity.customKeys().contains("Fire"));
         assertEquals(Set.of("one"), before.getTags());
 
         entity.loadAdditionalData(NbtMap.EMPTY);
@@ -317,16 +324,26 @@ class EntityPersistenceTest {
     @Test
     void exceptionKeysStillRoundTrip() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        byte speedId = NetworkUtils.effectToNetwork(EffectTypes.SPEED);
         NbtMap input = NbtMap.builder()
                 .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
                 .putList("Motion", NbtType.FLOAT, List.of(0f, 1f, 0f))
                 .putList("Rotation", NbtType.FLOAT, List.of(90f, 0f))
                 .putFloat("FallDistance", 2.5f)
                 .putShort("Air", (short) 300)
+                .putBoolean("OnGround", false)
+                .putFloat("Scale", 2.5f)
                 .putFloat("Health", 5f)
                 .putString("CustomName", "Bob")
                 .putBoolean("CustomNameVisible", true)
                 .putBoolean("CustomNameAlwaysVisible", false)
+                .putList("ActiveEffects", NbtType.COMPOUND, List.of(NbtMap.builder()
+                        .putByte("Id", speedId)
+                        .putByte("Amplifier", (byte) 1)
+                        .putInt("Duration", 200)
+                        .putBoolean("Ambient", true)
+                        .putBoolean("ShowParticles", false)
+                        .build()))
                 .build();
         entity.loadAdditionalData(input);
 
@@ -339,6 +356,27 @@ class EntityPersistenceTest {
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
+
+        PotionEffect restored = entity.getPotionEffect(EffectTypes.SPEED);
+        assertNotNull(restored, "the ActiveEffects entry must restore");
+        assertEquals(1, restored.getAmplifier());
+        assertEquals(200, restored.getDuration());
+        assertTrue(restored.isAmbient());
+        assertFalse(restored.hasParticles());
+    }
+
+    @Test
+    void fireRoundTripsAsLiveCountdown() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder().putShort("Fire", (short) 5).build());
+        assertEquals(100, entity.getFireTicks());
+
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        NbtMap saved = builder.build();
+
+        assertTrue(saved.get("Fire") instanceof Short, "Fire must stay a short");
+        assertEquals((short) 100, saved.getShort("Fire"));
     }
 
     @Test
@@ -376,6 +414,192 @@ class EntityPersistenceTest {
         assertEquals(4, armor.size());
         assertEquals(ItemUtils.serializeItem(diamond, 3), armor.get(3),
                 "a viewer-side armor change must reach the saved tag");
+    }
+
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
+    private static NbtMap withoutSlot(NbtMap tag) {
+        NbtMapBuilder stripped = tag.toBuilder();
+        stripped.remove("Slot");
+        return stripped.build();
+    }
+
+    @Test
+    void tagsKeepOrderAcrossLoadAndSave() {
+        List<String> ordered = List.of(
+                "tag10", "tag02", "tag33", "alpha", "zeta",
+                "m1", "m2", "m3", "m4", "k", "tag00", "last");
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putList("Tags", NbtType.STRING, ordered)
+                .build());
+
+        assertEquals(ordered, save(entity).getList("Tags", NbtType.STRING));
+
+        CloudEntity reloaded = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        reloaded.loadAdditionalData(save(entity));
+        assertEquals(ordered, save(reloaded).getList("Tags", NbtType.STRING),
+                "tag order must survive a load-save cycle");
+    }
+
+    @Test
+    void blankAndExcessTagsAreDroppedOnLoad() {
+        List<String> tags = new ArrayList<>(List.of("", "   "));
+        for (int i = 0; i < 1030; i++) {
+            tags.add("tag" + i);
+        }
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putList("Tags", NbtType.STRING, tags)
+                .build());
+
+        assertEquals(1024, entity.getScoreboardTags().size());
+        assertFalse(entity.getScoreboardTags().contains(""));
+
+        List<String> written = save(entity).getList("Tags", NbtType.STRING);
+        assertEquals(1024, written.size());
+        assertEquals("tag0", written.get(0));
+        assertEquals("tag1023", written.get(1023));
+    }
+
+    @Test
+    void overMaxFreezeTicksAreClampedOnLoad() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder().putInt("TicksFrozen", 500).build());
+
+        assertEquals(140, entity.getFreezeTicks());
+        assertEquals(140, save(entity).getInt("TicksFrozen"));
+    }
+
+    @Test
+    void explicitZeroFreezeTicksAreOmitted() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder().putInt("TicksFrozen", 0).build());
+
+        assertEquals(0, entity.getFreezeTicks());
+        assertFalse(save(entity).containsKey("TicksFrozen"),
+                "an explicit zero must save like an absent key");
+    }
+
+    @Test
+    void negativeFreezeTicksAreDroppedOnLoad() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder().putInt("TicksFrozen", -5).build());
+
+        assertEquals(0, entity.getFreezeTicks());
+        assertFalse(save(entity).containsKey("TicksFrozen"));
+    }
+
+    @Test
+    void fromBucketIsDroppedForNonBucketable() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder().putBoolean("FromBucket", true).build());
+
+        assertFalse(entity.isFromBucket());
+        assertFalse(save(entity).containsKey("FromBucket"));
+    }
+
+    @Test
+    void fromBucketSurvivesForBucketable() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.SALMON);
+        entity.loadAdditionalData(NbtMap.builder().putBoolean("FromBucket", true).build());
+
+        assertTrue(entity.isFromBucket());
+
+        NbtMap saved = save(entity);
+        assertTrue(saved.get("FromBucket") instanceof Byte, "FromBucket must stay a byte");
+        assertTrue(saved.getBoolean("FromBucket"));
+    }
+
+    @Test
+    void hookReadsAreLenientAcrossKinds() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putShort("Health", (short) 7)
+                .putInt("Air", 300)
+                .putInt("CustomNameVisible", 1)
+                .putDouble("Scale", 2.0)
+                .putDouble("FallDistance", 3.0)
+                .putInt("Fire", 5)
+                .putList("Pos", NbtType.DOUBLE, List.of(1.0, 2.0, 3.0))
+                .putList("Motion", NbtType.DOUBLE, List.of(0.0, 1.0, 0.0))
+                .putList("Rotation", NbtType.DOUBLE, List.of(90.0, 0.0))
+                .build());
+
+        assertEquals(7f, ((EntityLiving) entity).getHealth());
+        assertEquals(300, entity.getAirTicks());
+        assertTrue(entity.isNameTagVisible());
+        assertEquals(2f, entity.getScale());
+        assertEquals(3f, entity.fallDistance);
+        assertEquals(100, entity.getFireTicks());
+        assertEquals(Vector3f.from(1f, 2f, 3f), entity.getPosition());
+        assertEquals(Vector3f.from(0f, 1f, 0f), entity.getMotion());
+        assertEquals(90f, entity.getYaw());
+        assertEquals(0f, entity.getPitch());
+    }
+
+    @Test
+    void activeEffectsBindAcrossKinds() {
+        byte speedId = NetworkUtils.effectToNetwork(EffectTypes.SPEED);
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putList("ActiveEffects", NbtType.COMPOUND, List.of(NbtMap.builder()
+                        .putShort("Id", speedId)
+                        .putInt("Amplifier", 2)
+                        .putShort("Duration", (short) 200)
+                        .putInt("Ambient", 1)
+                        .putShort("ShowParticles", (short) 0)
+                        .build()))
+                .build());
+
+        PotionEffect restored = entity.getPotionEffect(EffectTypes.SPEED);
+        assertNotNull(restored, "a wrong-kind ActiveEffects entry must still restore");
+        assertEquals(2, restored.getAmplifier());
+        assertEquals(200, restored.getDuration());
+        assertTrue(restored.isAmbient());
+        assertFalse(restored.hasParticles());
+
+        NbtMap written = save(entity).getList("ActiveEffects", NbtType.COMPOUND).get(0);
+        assertTrue(written.get("Id") instanceof Byte, "Id must stay a byte");
+        assertTrue(written.get("Amplifier") instanceof Byte, "Amplifier must stay a byte");
+        assertTrue(written.get("Duration") instanceof Integer, "Duration must stay an int");
+        assertTrue(written.get("Ambient") instanceof Byte, "Ambient must stay a byte");
+        assertTrue(written.get("ShowParticles") instanceof Byte, "ShowParticles must stay a byte");
+    }
+
+    @Test
+    void babyHappyGhastLoadsWithBabyScale() {
+        CloudEntity ghast = (CloudEntity) PersistenceFixtures.entity(EntityTypes.HAPPY_GHAST);
+        ghast.loadAdditionalData(NbtMap.builder().putInt("Age", -24000).build());
+
+        assertEquals(0.2375f, ghast.getScale());
+    }
+
+    @Test
+    void slotlessArmorListLoadsPositionally() {
+        EntityCreature creature = (EntityCreature) PersistenceFixtures.entity(EntityTypes.PIG);
+        ItemStack iron = ItemStack.from(ItemTypes.IRON_INGOT, 1);
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
+        creature.getArmor().setBoots(diamond);
+
+        NbtMap ironNoSlot = withoutSlot(ItemUtils.serializeItem(iron, 3));
+        NbtMap goldNoSlot = withoutSlot(ItemUtils.serializeItem(diamond, 0));
+        creature.loadAdditionalData(NbtMap.builder()
+                .putList("Armor", NbtType.COMPOUND, List.of(ironNoSlot, goldNoSlot))
+                .putList("Offhand", NbtType.COMPOUND,
+                        List.of(withoutSlot(ItemUtils.serializeItem(diamond, 0))))
+                .build());
+
+        // Entries bind by position, ignoring any Slot tag...
+        assertEquals(iron, creature.getArmor().getItem(0));
+        assertEquals(diamond, creature.getArmor().getItem(1));
+        // ...and missing slots keep their current item instead of clearing.
+        assertEquals(diamond, creature.getArmor().getItem(3));
+        assertEquals(diamond, creature.getOffhand().getOffhandItem());
     }
 
     @Test

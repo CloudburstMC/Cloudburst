@@ -6,6 +6,7 @@ import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
+import org.cloudburstmc.api.nbt.NbtPositional;
 import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.server.network.NetworkUtils;
@@ -172,20 +173,29 @@ public class ServerTypesNbtModule extends SimpleModule {
          */
         private final int size;
 
+        /**
+         * Whether entries bind by position ({@link NbtPositional}): the first
+         * entry fills slot 0, ignoring any {@code Slot} tag, and a short list
+         * leaves the remaining slots untouched instead of clearing them.
+         */
+        private final boolean positional;
+
         ItemContainerDeserializer() {
-            this(-1);
+            this(-1, false);
         }
 
-        private ItemContainerDeserializer(int size) {
+        private ItemContainerDeserializer(int size, boolean positional) {
             super(ItemContainer.class);
             this.size = size;
+            this.positional = positional;
         }
 
         @Override
         public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) {
             NbtContainerSize annotation =
                     property == null ? null : property.getAnnotation(NbtContainerSize.class);
-            return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value());
+            boolean positional = property != null && property.getAnnotation(NbtPositional.class) != null;
+            return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value(), positional);
         }
 
         @Override
@@ -205,7 +215,7 @@ public class ServerTypesNbtModule extends SimpleModule {
             p.skipChildren();
             // Stage every entry before the container is created, so a failed
             // read never leaves a partially filled container behind.
-            List<StagedEntry> staged = stage(p, list, size);
+            List<StagedEntry> staged = positional ? stagePositional(p, list, size) : stage(p, list, size);
             ItemContainer created = ItemContainers.detached(size);
             for (StagedEntry entry : staged) {
                 created.setItem(entry.slot(), entry.item());
@@ -219,6 +229,16 @@ public class ServerTypesNbtModule extends SimpleModule {
                 return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
             }
             p.skipChildren();
+            if (positional) {
+                // Creature equipment loads as today: entries fill slots by
+                // position, extra entries are ignored, and missing slots keep
+                // their current item instead of being cleared.
+                List<StagedEntry> staged = stagePositional(p, list, into.size());
+                for (StagedEntry entry : staged) {
+                    into.setItem(entry.slot(), entry.item());
+                }
+                return into;
+            }
             // Stage every entry before the container is touched, so a failed
             // read never leaves a partially updated container behind.
             List<StagedEntry> staged = stage(p, list, into.size());
@@ -244,6 +264,25 @@ public class ServerTypesNbtModule extends SimpleModule {
                 int index = slot.intValue();
                 if (index < 0 || index >= size) {
                     throw rangeMismatch(p, entry, size);
+                }
+                staged.add(new StagedEntry(index,
+                        org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+            }
+            return staged;
+        }
+
+        /**
+         * Reads every entry of a positional container list without touching any
+         * container: entries fill slots by position, ignoring any {@code Slot}
+         * tag, and entries past the container's size are ignored. A failed item
+         * read throws before anything was applied.
+         */
+        private static List<StagedEntry> stagePositional(JsonParser p, List<?> list, int size) {
+            List<StagedEntry> staged = new ArrayList<>(Math.min(list.size(), size));
+            for (int index = 0; index < list.size() && index < size; index++) {
+                Object entry = list.get(index);
+                if (!(entry instanceof NbtMap item)) {
+                    throw mismatch(p, entry);
                 }
                 staged.add(new StagedEntry(index,
                         org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));

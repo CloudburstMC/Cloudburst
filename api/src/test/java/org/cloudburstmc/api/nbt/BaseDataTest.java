@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BaseDataTest {
 
@@ -42,18 +43,18 @@ class BaseDataTest {
     @Test
     void entityBaseDataRoundTrips() {
         NbtMap tag = NbtMap.builder()
-                .putShort("Fire", (short) 5)
+                .putBoolean("Invulnerable", true)
                 .putList("Tags", NbtType.STRING, List.of("one", "two"))
                 .build();
 
         EntityData read = mapper.read(tag, EntityData.class);
 
-        assertEquals((short) 5, read.getFire());
+        assertTrue(read.isInvulnerable());
         assertEquals(new LinkedHashSet<>(List.of("one", "two")), read.getTags());
 
         NbtMap written = mapper.write(read);
 
-        assertEquals((short) 5, assertInstanceOf(Short.class, written.get("Fire")));
+        assertEquals((byte) 1, assertInstanceOf(Byte.class, written.get("Invulnerable")));
         assertSame(NbtType.STRING, assertInstanceOf(NbtList.class, written.get("Tags")).getType());
     }
 
@@ -84,11 +85,9 @@ class BaseDataTest {
         assertEquals(firstBlock.hashCode(), secondBlock.hashCode());
 
         EntityData firstEntity = new EntityData();
-        firstEntity.setFire((short) 1);
         firstEntity.setInvulnerable(true);
         firstEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
         EntityData secondEntity = new EntityData();
-        secondEntity.setFire((short) 1);
         secondEntity.setInvulnerable(true);
         secondEntity.setTags(new LinkedHashSet<>(List.of("one", "two")));
 
