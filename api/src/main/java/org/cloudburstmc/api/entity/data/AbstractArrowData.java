@@ -5,8 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
+import org.cloudburstmc.api.nbt.NbtCodec;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.nbt.codec.ArrowPickupStatusCodec;
 import org.cloudburstmc.math.vector.Vector3i;
 
 /**
@@ -31,8 +34,8 @@ public class AbstractArrowData extends ProjectileData {
     private Vector3i embeddedPosition;
 
     @JsonProperty("pickup")
-    @NbtTag(NbtTagType.BYTE)
-    private int pickup = 1;
+    @NbtCodec(ArrowPickupStatusCodec.class)
+    private ArrowPickupStatus pickup = ArrowPickupStatus.ALLOWED;
 
     public AbstractArrowData() {
     }

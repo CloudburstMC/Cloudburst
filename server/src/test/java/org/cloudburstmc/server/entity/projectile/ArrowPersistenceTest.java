@@ -138,7 +138,8 @@ class ArrowPersistenceTest {
     }
 
     @Test
-    void arrowKeepsNoDuplicateState() {        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+    void arrowKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityArrow.class, ArrowData.class);
         Set<String> fields = new HashSet<>();
         for (Field field : EntityArrow.class.getDeclaredFields()) {

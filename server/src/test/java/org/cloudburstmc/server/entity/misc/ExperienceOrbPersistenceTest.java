@@ -119,4 +119,36 @@ class ExperienceOrbPersistenceTest {
                     "EntityExperienceOrb keeps " + removed + "; state must live in ExperienceOrbData only");
         }
     }
+
+    @Test
+    void experienceValueIsMetadataOnly() {
+        assertFalse(hasDtoField(ExperienceOrbData.class, "experienceValue"),
+                "ExperienceOrbData keeps experienceValue; state must live in metadata only");
+        assertFalse(hasDtoField(ExperienceOrbData.class, "experiencevalue"),
+                "ExperienceOrbData keeps experienceValue; state must live in metadata only");
+    }
+
+    private static boolean hasDtoField(Class<?> type, String name) {
+        for (Class<?> current = type; current != null && current != Object.class;
+             current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (field.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Test
+    void largePickupDelayNarrowsOnlyOnSave() {
+        EntityExperienceOrb orb = (EntityExperienceOrb) PersistenceFixtures.entity(EntityTypes.XP_ORB);
+        orb.setPickupDelay(40000);
+
+        assertEquals(40000, orb.getPickupDelay());
+
+        NbtMap saved = save(orb);
+        assertTrue(saved.get("PickupDelay") instanceof Short, "PickupDelay must be a short");
+        assertEquals((short) 40000, saved.getShort("PickupDelay"));
+    }
 }

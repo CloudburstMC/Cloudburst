@@ -133,6 +133,31 @@ class AbstractMinecartPersistenceTest {
     }
 
     @Test
+    void legacyNumericDisplayBlockStaysOnSkipPath() {
+        TestMinecart minecart = minecart();
+        NbtMap tag = NbtMap.builder()
+                .putBoolean("CustomDisplayTile", true)
+                .putCompound("DisplayBlock", NbtMap.builder().putInt("val", 1).build())
+                .build();
+
+        // A legacy numeric block must fail on the skip-entity path, never the
+        // chunk-aborting one, exactly as today.
+        assertThrows(IllegalArgumentException.class, () -> minecart.loadAdditionalData(tag));
+    }
+
+    @Test
+    void malformedDisplayBlockFailsWithoutFlag() {
+        TestMinecart minecart = minecart();
+        NbtMap tag = NbtMap.builder()
+                .putCompound("DisplayBlock", NbtMap.builder().putString("name", "no_such_block_xyz").build())
+                .build();
+
+        // The block is decoded whenever its key is present, as the mapper did before,
+        // even when the display flag is unset.
+        assertThrows(IllegalArgumentException.class, () -> minecart.loadAdditionalData(tag));
+    }
+
+    @Test
     void abstractMinecartKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityAbstractMinecart.class, AbstractMinecartData.class);

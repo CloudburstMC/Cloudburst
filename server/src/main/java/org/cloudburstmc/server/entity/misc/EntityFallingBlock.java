@@ -122,8 +122,10 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         // Migrated from applyData: the block state, timers and behavior flags run before
         // the base load below, matching the old applyData-before-loadCustom order. The block
         // state key is required, so a tag without it closes the entity, exactly as the old
-        // null check did. Keys with a load default reset when absent; the sounds keep their
-        // current values, exactly as the old null checks did.
+        // null check did. The state is read only here: the mapper leaves it alone so a bad
+        // state fails with the bare error, as before. Keys with a load default reset when
+        // absent; the sounds keep their current values, exactly as the old null checks did,
+        // and are saved in today's normalized form.
         if (!tag.containsKey("BlockState")) {
             this.close();
             return;
@@ -138,15 +140,15 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.data().setAutoExpire(getBoolean(tag, "AutoExpire", true));
 
         if (tag.containsKey("LandingSound")) {
-            String landingSound = this.data().getLandingSound();
-            if (landingSound != null) {
-                SoundType.of(Identifier.parse(landingSound));
+            Object raw = tag.get("LandingSound");
+            if (raw instanceof String sound) {
+                this.setLandingSound(SoundType.of(Identifier.parse(sound)));
             }
         }
         if (tag.containsKey("BreakSound")) {
-            String breakSound = this.data().getBreakSound();
-            if (breakSound != null) {
-                SoundType.of(Identifier.parse(breakSound));
+            Object raw = tag.get("BreakSound");
+            if (raw instanceof String sound) {
+                this.setBreakSound(SoundType.of(Identifier.parse(sound)));
             }
         }
         super.loadCustom(tag);

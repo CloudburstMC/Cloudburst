@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.entity.vehicle;
 
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.ChestBoatData;
 import org.cloudburstmc.api.item.ItemStack;
@@ -52,10 +53,13 @@ class ChestBoatPersistenceTest {
     void dataRoundTripPreservesKeysAndTypes() {
         EntityChestBoat boat = boat();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
-        ItemStack dirt = ItemStack.from(ItemTypes.DIRT, 1);
+        ItemStack dirt = ItemStack.builder(BlockStates.DIRT).amount(1).build();
 
-        boat.getInventory().setItem(0, diamond);
-        boat.getInventory().setItem(5, dirt);
+        boat.loadAdditionalData(NbtMap.builder()
+                .putList("Items", NbtType.COMPOUND, List.of(
+                        ItemUtils.serializeItem(diamond, 0),
+                        ItemUtils.serializeItem(dirt, 5)))
+                .build());
 
         assertEquals(diamond, boat.getInventory().getItem(0));
         assertEquals(dirt, boat.getInventory().getItem(5));

@@ -131,4 +131,29 @@ class DroppedItemPersistenceTest {
                     "EntityDroppedItem keeps " + removed + "; state must live in DroppedItemData only");
         }
     }
+
+    @Test
+    void airItemReadsEmpty() {
+        EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
+        item.loadAdditionalData(NbtMap.builder()
+                .putCompound("Item", ItemUtils.serializeItem(ItemStack.EMPTY))
+                .build());
+
+        assertTrue(item.getItem().isEmpty());
+        // The hopper path and the name path both assume a non-null item, as today.
+        assertTrue(item.getItem().isEmpty());
+        item.getName();
+    }
+
+    @Test
+    void largePickupDelayNarrowsOnlyOnSave() {
+        EntityDroppedItem item = (EntityDroppedItem) PersistenceFixtures.entity(EntityTypes.ITEM);
+        item.setPickupDelay(40000);
+
+        assertEquals(40000, item.getPickupDelay());
+
+        NbtMap saved = save(item);
+        assertTrue(saved.get("PickupDelay") instanceof Short, "PickupDelay must be a short");
+        assertEquals((short) 40000, saved.getShort("PickupDelay"));
+    }
 }

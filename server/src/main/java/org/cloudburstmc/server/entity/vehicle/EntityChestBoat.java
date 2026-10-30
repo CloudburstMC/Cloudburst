@@ -42,6 +42,7 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
         this.data.set(CONTAINER_STRENGTH_MODIFIER, 0);
     }
 
+    // The DTO stays internal, so the live container is always the detached CloudContainer above.
     private CloudContainer liveContainer() {
         return (CloudContainer) this.data().getItems();
     }

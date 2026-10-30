@@ -12,6 +12,7 @@ import org.cloudburstmc.api.nbt.NbtSkipEmpty;
 import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
@@ -56,8 +57,21 @@ public class ServerTypesNbtModule extends SimpleModule {
         addDeserializer(EffectType.class, new EffectTypeDeserializer());
         addSerializer(BoatType.class, new BoatTypeSerializer());
         addDeserializer(BoatType.class, new BoatTypeDeserializer());
+        addSerializer(PotionType.class, new PotionTypeSerializer());
+        addDeserializer(PotionType.class, new PotionTypeDeserializer());
         addSerializer(PotionEffect.class, new PotionEffectSerializer());
         addDeserializer(PotionEffect.class, new PotionEffectDeserializer());
+    }
+
+    private static String describe(Object tag) {
+        return switch (tag) {
+            case List<?> list -> "a list of " + list.size() + " values";
+            case NbtMap ignored -> "a compound";
+            case Number ignored -> "a number";
+            case String value -> "\"" + value + "\"";
+            case null -> "nothing";
+            default -> "an NBT " + tag.getClass().getSimpleName();
+        };
     }
 
     /**
@@ -94,17 +108,6 @@ public class ServerTypesNbtModule extends SimpleModule {
             }
             p.skipChildren();
             return NetworkUtils.effectFromNetwork(number.byteValue());
-        }
-
-        private static String describe(Object tag) {
-            return switch (tag) {
-                case List<?> list -> "a list of " + list.size() + " values";
-                case NbtMap ignored -> "a compound";
-                case Number ignored -> "a number";
-                case String value -> "\"" + value + "\"";
-                case null -> "nothing";
-                default -> "an NBT " + tag.getClass().getSimpleName();
-            };
         }
     }
 
@@ -337,17 +340,6 @@ public class ServerTypesNbtModule extends SimpleModule {
                     "Item container slots must be between 0 and " + (size - 1)));
             return mismatch;
         }
-
-        private static String describe(Object tag) {
-            return switch (tag) {
-                case List<?> list -> "a list of " + list.size() + " values";
-                case NbtMap ignored -> "a compound";
-                case Number ignored -> "a number";
-                case String value -> "\"" + value + "\"";
-                case null -> "nothing";
-                default -> "an NBT " + tag.getClass().getSimpleName();
-            };
-        }
     }
 
     /**
@@ -385,16 +377,42 @@ public class ServerTypesNbtModule extends SimpleModule {
             p.skipChildren();
             return VanillaBoats.fromVariant(number.intValue()).type();
         }
+    }
 
-        private static String describe(Object tag) {
-            return switch (tag) {
-                case List<?> list -> "a list of " + list.size() + " values";
-                case NbtMap ignored -> "a compound";
-                case Number ignored -> "a number";
-                case String value -> "\"" + value + "\"";
-                case null -> "nothing";
-                default -> "an NBT " + tag.getClass().getSimpleName();
-            };
+    /**
+     * Stores a potion type as its network id in a short, as splash potions are stored today.
+     * An id the mapping does not know fails the read with the mapping's own error, exactly
+     * like the previous load path.
+     */
+    private static final class PotionTypeSerializer extends StdSerializer<PotionType> {
+
+        PotionTypeSerializer() {
+            super(PotionType.class);
+        }
+
+        @Override
+        public void serialize(PotionType value, JsonGenerator gen, SerializationContext provider) {
+            gen.writeNumber(NetworkUtils.potionToNetwork(value));
+        }
+    }
+
+    private static final class PotionTypeDeserializer extends StdDeserializer<PotionType> {
+
+        PotionTypeDeserializer() {
+            super(PotionType.class);
+        }
+
+        @Override
+        public PotionType deserialize(JsonParser p, DeserializationContext ctxt) {
+            Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
+            if (!(tag instanceof Number number)) {
+                MismatchedInputException mismatch = MismatchedInputException.from(p, PotionType.class,
+                        "Cannot read a potion type from " + describe(tag) + "; expected a short potion id");
+                mismatch.initCause(new NbtKindMismatchException("Potion types are stored as short potion ids"));
+                throw mismatch;
+            }
+            p.skipChildren();
+            return NetworkUtils.potionFromNetwork(number.shortValue());
         }
     }
 
@@ -432,17 +450,6 @@ public class ServerTypesNbtModule extends SimpleModule {
             }
             p.skipChildren();
             return PotionEffectDataSerializer.deserialize(map);
-        }
-
-        private static String describe(Object tag) {
-            return switch (tag) {
-                case List<?> list -> "a list of " + list.size() + " values";
-                case NbtMap ignored -> "a compound";
-                case Number ignored -> "a number";
-                case String value -> "\"" + value + "\"";
-                case null -> "nothing";
-                default -> "an NBT " + tag.getClass().getSimpleName();
-            };
         }
     }
 

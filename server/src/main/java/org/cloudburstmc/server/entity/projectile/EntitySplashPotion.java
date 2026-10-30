@@ -126,14 +126,14 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     @Override
     public PotionType getPotionType() {
-        Short potionId = this.data().getPotionId();
-        return potionId == null ? PotionTypes.WATER : NetworkUtils.potionFromNetwork(potionId);
+        PotionType potionId = this.data().getPotionId();
+        return potionId == null ? PotionTypes.WATER : potionId;
     }
 
     @Override
     public void setPotionType(PotionType type) {
         requireNonNull(type, "type");
-        this.data().setPotionId(NetworkUtils.potionToNetwork(type));
+        this.data().setPotionId(type);
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(type));
         this.data.setFlag(ENCHANTED, type != PotionTypes.WATER && type != PotionTypes.MUNDANE
                 && type != PotionTypes.THICK && type != PotionTypes.AWKWARD);
@@ -156,9 +156,9 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
         // the metadata sync, exactly as the old applyData did; an absent key keeps the
         // current value.
         if (tag.containsKey("PotionId")) {
-            Short potionId = this.data().getPotionId();
+            PotionType potionId = this.data().getPotionId();
             if (potionId != null) {
-                this.setPotionType(NetworkUtils.potionFromNetwork(potionId));
+                this.setPotionType(potionId);
             }
         }
         super.loadCustom(tag);

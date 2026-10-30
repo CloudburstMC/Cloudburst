@@ -20,6 +20,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -191,6 +192,30 @@ class FallingBlockPersistenceTest {
         block.loadAdditionalData(NbtMap.builder().putInt("Time", 5).build());
 
         assertTrue(block.isClosed());
+    }
+
+    @Test
+    void unnamespacedSoundSavesNormalized() {
+        EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
+        block.loadAdditionalData(NbtMap.builder()
+                .putCompound("BlockState", stateTag(BlockStates.SAND))
+                .putString("LandingSound", "random.fizz")
+                .putString("BreakSound", "random.fizz")
+                .build());
+
+        NbtMap saved = save(block);
+        assertEquals("minecraft:random.fizz", saved.getString("LandingSound"));
+        assertEquals("minecraft:random.fizz", saved.getString("BreakSound"));
+    }
+
+    @Test
+    void valBlockStateFailsBare() {
+        EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
+        NbtMap tag = NbtMap.builder()
+                .putCompound("BlockState", NbtMap.builder().putInt("val", 1).build())
+                .build();
+
+        assertThrows(UnsupportedOperationException.class, () -> block.loadAdditionalData(tag));
     }
 
     @Test

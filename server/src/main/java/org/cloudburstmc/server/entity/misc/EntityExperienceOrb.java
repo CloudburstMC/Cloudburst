@@ -86,18 +86,16 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: age runs before the base load below, matching the
-        // old applyData-before-loadCustom order, and keeps its current value when absent.
-        // Experience, count and pickup delay already sit in the data instance; the setters
-        // re-run here to keep their validation, exactly as the old applyData did.
+        // Migrated from applyData: age and the metadata-backed value run before the
+        // base load below, matching the old applyData-before-loadCustom order, and keep
+        // their current values when absent. The count and pickup delay already sit in
+        // the data instance; the setters re-run here to keep their validation, exactly
+        // as the old applyData did.
         if (tag.containsKey("Age")) {
             this.age = getShort(tag, "Age", (short) this.age);
         }
         if (tag.containsKey("experience value")) {
-            Integer experience = this.data().getExperienceValue();
-            if (experience != null) {
-                this.setExperience(experience);
-            }
+            this.setExperience(getInt(tag, "experience value", this.getExperience()));
         }
         if (tag.containsKey("Count")) {
             this.setCount(this.data().getCount());
@@ -112,12 +110,14 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
         tag.putShort("Age", (short) this.age);
+        tag.putInt("experience value", this.getExperience());
     }
 
     @Override
     protected Set<String> customKeys() {
         Set<String> keys = new HashSet<>(super.customKeys());
         keys.add("Age");
+        keys.add("experience value");
         return Set.copyOf(keys);
     }
 
@@ -288,7 +288,6 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
             throw new IllegalArgumentException("XP amount must be greater than 0, got " + experience);
         }
         this.data.set(VALUE, experience);
-        this.data().setExperienceValue(experience);
     }
 
     @Override
@@ -303,6 +302,6 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     public void setPickupDelay(int pickupDelay) {
-        this.data().setPickupDelay((short) pickupDelay);
+        this.data().setPickupDelay(pickupDelay);
     }
 }

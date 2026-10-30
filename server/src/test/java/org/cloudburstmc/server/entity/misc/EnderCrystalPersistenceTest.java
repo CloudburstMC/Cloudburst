@@ -113,8 +113,50 @@ class EnderCrystalPersistenceTest {
     }
 
     @Test
+    void zeroBeamTargetStaysAbsent() {
+        EntityEnderCrystal crystal = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
+        crystal.setBeamTarget(Vector3i.ZERO);
+
+        assertNull(crystal.getBeamTarget());
+
+        NbtMap saved = save(crystal);
+        assertTrue(saved.get("BeamTarget") == null, "ZERO beam must be omitted, as today");
+    }
+
+    @Test
+    void wrongTypedMetadataKeepsCurrent() {
+        EntityEnderCrystal crystal = (EntityEnderCrystal) PersistenceFixtures.entity(EntityTypes.ENDER_CRYSTAL);
+        crystal.setShowingBase(false);
+        crystal.setBeamTarget(Vector3i.from(1, 2, 3));
+
+        crystal.loadAdditionalData(NbtMap.builder()
+                .putString("ShowBottom", "no")
+                .putString("BeamTarget", "no")
+                .build());
+
+        assertFalse(crystal.isShowingBase());
+        assertEquals(Vector3i.from(1, 2, 3), crystal.getBeamTarget());
+    }
+
+    @Test
     void enderCrystalKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityEnderCrystal.class, EnderCrystalData.class);
+        assertFalse(hasDtoField(EnderCrystalData.class, "showBottom"),
+                "EnderCrystalData keeps showBottom; state must live in metadata only");
+        assertFalse(hasDtoField(EnderCrystalData.class, "beamTarget"),
+                "EnderCrystalData keeps beamTarget; state must live in metadata only");
+    }
+
+    private static boolean hasDtoField(Class<?> type, String name) {
+        for (Class<?> current = type; current != null && current != Object.class;
+             current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (field.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

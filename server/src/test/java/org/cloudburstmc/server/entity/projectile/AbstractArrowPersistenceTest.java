@@ -144,6 +144,20 @@ class AbstractArrowPersistenceTest {
     }
 
     @Test
+    void unknownPickupReadsAllowed() {
+        TestArrow arrow = arrow();
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putByte("pickup", (byte) 5)
+                .build());
+
+        assertEquals(ArrowPickupStatus.ALLOWED, arrow.getPickupStatus());
+
+        NbtMap saved = save(arrow);
+        assertTrue(saved.get("pickup") instanceof Byte, "pickup must be a byte");
+        assertEquals((byte) 1, saved.getByte("pickup"));
+    }
+
+    @Test
     void abstractArrowKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityAbstractArrow.class, AbstractArrowData.class);

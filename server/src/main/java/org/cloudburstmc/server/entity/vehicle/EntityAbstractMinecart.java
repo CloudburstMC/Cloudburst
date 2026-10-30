@@ -88,13 +88,24 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
         // Migrated from applyData: the display offset and custom block run before the
         // vehicle load below, matching the old applyData-before-loadCustom order. The
         // offset has a load default, so it resets when absent; the custom block keeps its
-        // current values when absent, exactly as the old null checks did.
+        // current values when absent, exactly as the old null checks did. The block is
+        // decoded whenever its key is present, as the mapper did before, and failures
+        // stay on the skip-entity path, never the chunk-aborting one.
         this.setDisplayBlockOffset(tag.containsKey("DisplayOffset")
                 ? getInt(tag, "DisplayOffset", DEFAULT_DISPLAY_OFFSET) : DEFAULT_DISPLAY_OFFSET);
 
-        if (getBoolean(tag, "CustomDisplayTile", false)) {
-            this.setDisplay(true);
-            this.setDisplayBlock(BlockStateCodec.read(tag.getCompound("DisplayBlock")));
+        boolean customDisplay = getBoolean(tag, "CustomDisplayTile", false);
+        if (tag.containsKey("DisplayBlock") || customDisplay) {
+            BlockState displayBlock;
+            try {
+                displayBlock = BlockStateCodec.read(tag.getCompound("DisplayBlock"));
+            } catch (UnsupportedOperationException failure) {
+                throw new IllegalArgumentException(failure.getMessage(), failure);
+            }
+            if (customDisplay) {
+                this.setDisplay(true);
+                this.setDisplayBlock(displayBlock);
+            }
         }
         super.loadCustom(tag);
         if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {

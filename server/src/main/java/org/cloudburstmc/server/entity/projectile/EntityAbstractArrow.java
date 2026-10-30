@@ -45,20 +45,12 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
 
     @Override
     public ArrowPickupStatus getPickupStatus() {
-        return switch (this.data().getPickup()) {
-            case 0 -> ArrowPickupStatus.DISALLOWED;
-            case 2 -> ArrowPickupStatus.CREATIVE_ONLY;
-            default -> ArrowPickupStatus.ALLOWED;
-        };
+        return this.data().getPickup();
     }
 
     @Override
     public void setPickupStatus(ArrowPickupStatus status) {
-        this.data().setPickup(switch (requireNonNull(status, "status")) {
-            case DISALLOWED -> 0;
-            case ALLOWED -> 1;
-            case CREATIVE_ONLY -> 2;
-        });
+        this.data().setPickup(requireNonNull(status, "status"));
     }
 
     @Override

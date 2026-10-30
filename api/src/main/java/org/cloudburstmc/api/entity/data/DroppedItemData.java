@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.nbt.NbtTag;
+import org.cloudburstmc.api.nbt.NbtTagType;
 
 /**
  * Persistent data of a dropped item: everything shared plus its pickup delay
@@ -17,7 +19,8 @@ import org.cloudburstmc.api.item.ItemStack;
 public class DroppedItemData extends EntityData {
 
     @JsonProperty("PickupDelay")
-    private short pickupDelay;
+    @NbtTag(NbtTagType.SHORT)
+    private int pickupDelay;
 
     @JsonProperty("Item")
     private ItemStack item = ItemStack.EMPTY;

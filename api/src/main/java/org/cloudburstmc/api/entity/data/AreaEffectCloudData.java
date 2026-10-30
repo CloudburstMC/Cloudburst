@@ -14,10 +14,12 @@ import java.util.List;
 
 /**
  * Persistent data of an area effect cloud: everything shared plus its timers,
- * radius behavior, potion id, custom effects, color and duration scale. The
- * effect list is the live one the runtime mutates; a read replaces it, so the
- * runtime keeps no second copy. The duration scale is conditional: a scale of
- * one is not written, so it travels through the load/save hooks.
+ * radius behavior, potion id, custom effects and duration scale. Radius,
+ * wait time and particle color are metadata-backed, so they travel through
+ * the load/save hooks instead. The effect list is the live one the runtime
+ * mutates; a read replaces it, so the runtime keeps no second copy. The
+ * duration scale is conditional: a scale of one is not written, so it travels
+ * through the load/save hooks.
  */
 @Getter
 @Setter
@@ -31,9 +33,6 @@ public class AreaEffectCloudData extends EntityData {
     @JsonProperty("PotionId")
     private Short potionId;
 
-    @JsonProperty("ParticleColor")
-    private Integer particleColor;
-
     @JsonProperty("Duration")
     private int duration;
 
@@ -43,17 +42,11 @@ public class AreaEffectCloudData extends EntityData {
     @JsonProperty("ReapplicationDelay")
     private int reapplicationDelay;
 
-    @JsonProperty("Radius")
-    private float radius = 3.0F;
-
     @JsonProperty("RadiusOnUse")
     private float radiusOnUse;
 
     @JsonProperty("RadiusPerTick")
     private float radiusPerTick;
-
-    @JsonProperty("WaitTime")
-    private int waitTime = 10;
 
     @JsonIgnore
     private Float potionDurationScale;

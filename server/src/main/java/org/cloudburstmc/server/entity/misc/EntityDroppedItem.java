@@ -140,7 +140,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
-                        !this.isInsideOfWater() && (this.getItem() == null ||
+                        !this.isInsideOfWater() && (this.getItem().isEmpty() ||
                         this.getItem().getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
     }
 
@@ -160,7 +160,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.timing.startTiming();
 
-        if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
+        if (this.age % 60 == 0 && this.onGround && !this.getItem().isEmpty() && this.isAlive()) {
             if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
@@ -168,7 +168,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (closeItem == null || !closeItem.isStackableWith(getItem())) {
+                        if (closeItem.isEmpty() || !closeItem.isStackableWith(getItem())) {
                             continue;
                         }
 
@@ -293,7 +293,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     public ItemStack getItem() {
         ItemStack item = this.data().getItem();
-        return item == null || item.isEmpty() ? null : item;
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     @Override
@@ -313,7 +313,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     public void setPickupDelay(int pickupDelay) {
-        this.data().setPickupDelay((short) pickupDelay);
+        this.data().setPickupDelay(pickupDelay);
     }
 
     public boolean isFromFishing() {

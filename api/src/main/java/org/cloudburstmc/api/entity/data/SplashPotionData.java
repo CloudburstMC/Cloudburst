@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.api.nbt.NbtTag;
+import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.potion.PotionType;
 
 /**
- * Persistent data of a splash potion: projectile data plus its potion id.
+ * Persistent data of a splash potion: projectile data plus its potion type.
  */
 @Getter
 @Setter
@@ -14,7 +17,8 @@ import lombok.Setter;
 public class SplashPotionData extends ProjectileData {
 
     @JsonProperty("PotionId")
-    private Short potionId;
+    @NbtTag(NbtTagType.SHORT)
+    private PotionType potionId;
 
     public SplashPotionData() {
     }

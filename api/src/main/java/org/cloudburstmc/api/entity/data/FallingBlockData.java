@@ -17,7 +17,7 @@ import org.cloudburstmc.api.nbt.NbtShortBlockState;
 @EqualsAndHashCode(callSuper = true)
 public class FallingBlockData extends EntityData {
 
-    @JsonProperty("BlockState")
+    @JsonProperty(value = "BlockState", access = JsonProperty.Access.READ_ONLY)
     @NbtShortBlockState
     private BlockState blockState = BlockStates.SAND;
 

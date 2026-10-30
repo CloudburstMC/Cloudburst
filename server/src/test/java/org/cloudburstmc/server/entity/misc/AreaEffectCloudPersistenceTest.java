@@ -151,6 +151,24 @@ class AreaEffectCloudPersistenceTest {
     }
 
     @Test
+    void wrongTypedMetadataKeepsCurrent() {
+        EntityAreaEffectCloud cloud = (EntityAreaEffectCloud) PersistenceFixtures.entity(EntityTypes.AREA_EFFECT_CLOUD);
+        cloud.setRadius(4.5f);
+        cloud.setWaitTime(20);
+        cloud.setPotionColor(0xff112233);
+
+        cloud.loadAdditionalData(NbtMap.builder()
+                .putString("Radius", "no")
+                .putString("WaitTime", "no")
+                .putString("ParticleColor", "no")
+                .build());
+
+        assertEquals(4.5f, cloud.getRadius());
+        assertEquals(20, cloud.getWaitTime());
+        assertEquals(0xff112233, cloud.getPotionColor());
+    }
+
+    @Test
     void areaEffectCloudKeepsNoDuplicateState() {
         DtoStateChecks.assertEntityKeepsNoDuplicateState(
                 EntityAreaEffectCloud.class, AreaEffectCloudData.class);
@@ -162,5 +180,23 @@ class AreaEffectCloudPersistenceTest {
             assertFalse(fields.contains(removed),
                     "EntityAreaEffectCloud keeps " + removed + "; state must live in AreaEffectCloudData only");
         }
+        assertFalse(hasDtoField(AreaEffectCloudData.class, "radius"),
+                "AreaEffectCloudData keeps radius; state must live in metadata only");
+        assertFalse(hasDtoField(AreaEffectCloudData.class, "waitTime"),
+                "AreaEffectCloudData keeps waitTime; state must live in metadata only");
+        assertFalse(hasDtoField(AreaEffectCloudData.class, "particleColor"),
+                "AreaEffectCloudData keeps particleColor; state must live in metadata only");
+    }
+
+    private static boolean hasDtoField(Class<?> type, String name) {
+        for (Class<?> current = type; current != null && current != Object.class;
+             current = current.getSuperclass()) {
+            for (Field field : current.getDeclaredFields()) {
+                if (field.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
