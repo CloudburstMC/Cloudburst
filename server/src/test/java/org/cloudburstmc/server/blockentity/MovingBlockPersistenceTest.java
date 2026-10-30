@@ -13,6 +13,7 @@ import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -148,5 +149,16 @@ class MovingBlockPersistenceTest {
     @Test
     void movingBlockBlockEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertKeepsNoDuplicateState(MovingBlockEntity.class, MovingBlockData.class);
+        // The old shape kept the states in runtime fields named blockState and
+        // extraBlockState, which match no DTO property, so the shared check stays
+        // blind to them. Forbid them explicitly; this fails on the pre-migration class.
+        Set<String> fields = new HashSet<>();
+        for (Field field : MovingBlockEntity.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        assertFalse(fields.contains("blockState"),
+                "MovingBlockEntity keeps blockState; state must live in MovingBlockData only");
+        assertFalse(fields.contains("extraBlockState"),
+                "MovingBlockEntity keeps extraBlockState; state must live in MovingBlockData only");
     }
 }

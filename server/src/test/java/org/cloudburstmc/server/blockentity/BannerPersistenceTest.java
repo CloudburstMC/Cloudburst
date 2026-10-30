@@ -11,11 +11,13 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -122,6 +124,84 @@ class BannerPersistenceTest {
 
         NbtMap client = entity.getClientTag();
         assertEquals(Set.of("id", "Base", "Type"), client.keySet());
+    }
+
+    @Test
+    void missingPatternKeyFailsLoad() {
+        // A layer without a Pattern key fails the load, exactly like the previous
+        // load path, which converted the stored name after reading it.
+        BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
+        NbtMap tag = NbtMap.builder()
+                .putString("id", "Banner")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Patterns", NbtType.COMPOUND, List.of(
+                        NbtMap.builder().putInt("Color", 11).build()))
+                .build();
+
+        Exception failure = assertThrows(Exception.class, () -> entity.loadAdditionalData(tag));
+        assertLoadFailure(failure, "Unknown banner pattern: null");
+    }
+
+    @Test
+    void unknownPatternNameFailsLoad() {
+        // A layer with a pattern name the registry does not know fails the load,
+        // exactly like the previous load path.
+        BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
+        NbtMap tag = NbtMap.builder()
+                .putString("id", "Banner")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Patterns", NbtType.COMPOUND, List.of(
+                        NbtMap.builder().putInt("Color", 11).putString("Pattern", "xx").build()))
+                .build();
+
+        Exception failure = assertThrows(Exception.class, () -> entity.loadAdditionalData(tag));
+        assertLoadFailure(failure, "Unknown banner pattern: xx");
+    }
+
+    @Test
+    void patternLayersRoundTripWithColourEncoding() {
+        BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
+        entity.loadAdditionalData(bannerTag());
+
+        // Each layer saves as the compound the save code wrote: the dye data
+        // masked to four bits under Color, then the pattern name under Pattern.
+        List<NbtMap> layers = entity.getServerTag().getList("Patterns", NbtType.COMPOUND);
+        assertEquals(2, layers.size());
+        assertEquals(List.of("Color", "Pattern"), new ArrayList<>(layers.get(0).keySet()));
+        assertEquals(11, layers.get(0).getInt("Color"));
+        assertEquals(NbtType.INT, NbtType.byClass(layers.get(0).get("Color").getClass()));
+        assertEquals("cs", layers.get(0).getString("Pattern"));
+        assertEquals(NbtType.STRING, NbtType.byClass(layers.get(0).get("Pattern").getClass()));
+        assertEquals(0, layers.get(1).getInt("Color"));
+        assertEquals(NbtType.INT, NbtType.byClass(layers.get(1).get("Color").getClass()));
+        assertEquals("bo", layers.get(1).getString("Pattern"));
+
+        // Edge colours keep the old four-bit mask: NONE (-1) saves as 15.
+        entity.addPattern(new BannerPattern(BannerPattern.Type.getByName("cre"), DyeColor.NONE));
+        List<NbtMap> relayers = entity.getServerTag().getList("Patterns", NbtType.COMPOUND);
+        assertEquals(3, relayers.size());
+        assertEquals(15, relayers.get(2).getInt("Color"));
+        assertEquals(NbtType.INT, NbtType.byClass(relayers.get(2).get("Color").getClass()));
+        assertEquals("cre", relayers.get(2).getString("Pattern"));
+    }
+
+    private static void assertLoadFailure(Exception failure, String message) {
+        // The failure is the previous load path's unknown-pattern error, as on
+        // the previous load path.
+        Throwable cause = failure;
+        boolean recognized = false;
+        while (cause != null) {
+            if (message.equals(cause.getMessage())) {
+                recognized = true;
+                break;
+            }
+            cause = cause.getCause();
+        }
+        assertTrue(recognized, "expected a '" + message + "' failure, got " + failure);
     }
 
     @Test

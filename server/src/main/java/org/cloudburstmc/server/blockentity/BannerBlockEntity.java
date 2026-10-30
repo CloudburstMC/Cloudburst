@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.data.BannerData;
-import org.cloudburstmc.api.blockentity.data.BannerPatternData;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.BannerPattern;
@@ -79,30 +78,29 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
     @Override
     public void addPattern(BannerPattern pattern) {
-        List<BannerPatternData> patterns = data().getPatterns() == null
+        List<BannerPattern> patterns = data().getPatterns() == null
                 ? new ArrayList<>()
                 : new ArrayList<>(data().getPatterns());
-        BannerPatternData layer = new BannerPatternData();
-        layer.setColor(pattern.getColor());
-        layer.setPattern(pattern.getType());
-        patterns.add(layer);
+        patterns.add(pattern);
         data().setPatterns(patterns);
     }
 
     @Override
     public BannerPattern getPattern(int index) {
-        return runtimePatterns().get(index);
+        List<BannerPattern> patterns = data().getPatterns() == null ? List.of() : data().getPatterns();
+        return patterns.get(index);
     }
 
     @Override
     public ImmutableList<BannerPattern> getPatterns() {
-        return ImmutableList.copyOf(runtimePatterns());
+        List<BannerPattern> patterns = data().getPatterns();
+        return patterns == null ? ImmutableList.of() : ImmutableList.copyOf(patterns);
     }
 
     @Override
     public void removePattern(int index) {
-        List<BannerPatternData> current = data().getPatterns() == null ? List.of() : data().getPatterns();
-        List<BannerPatternData> patterns = new ArrayList<>(current);
+        List<BannerPattern> current = data().getPatterns() == null ? List.of() : data().getPatterns();
+        List<BannerPattern> patterns = new ArrayList<>(current);
         patterns.remove(index);
         // An emptied list is stored as absent so the client tag stays as today;
         // the sticky presence flag still marks it explicitly loaded.
@@ -112,17 +110,5 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     @Override
     public boolean isSpawnable() {
         return true;
-    }
-
-    private List<BannerPattern> runtimePatterns() {
-        List<BannerPatternData> patterns = data().getPatterns();
-        if (patterns == null) {
-            return List.of();
-        }
-        List<BannerPattern> runtime = new ArrayList<>(patterns.size());
-        for (BannerPatternData layer : patterns) {
-            runtime.add(new BannerPattern(layer.getPattern(), layer.getColor()));
-        }
-        return runtime;
     }
 }

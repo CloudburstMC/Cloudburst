@@ -9,7 +9,9 @@ import org.cloudburstmc.api.nbt.NbtClient;
 import org.cloudburstmc.api.nbt.NbtCodec;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.nbt.codec.BannerPatternsCodec;
 import org.cloudburstmc.api.nbt.codec.DyeDataIntCodec;
+import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 
 import java.util.List;
@@ -36,8 +38,9 @@ public class BannerData extends BlockEntityData {
 
     @NbtClient
     @JsonProperty("Patterns")
+    @NbtCodec(BannerPatternsCodec.class)
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    private List<BannerPatternData> patterns;
+    private List<BannerPattern> patterns;
 
     @JsonIgnore
     private boolean patternsPresent;

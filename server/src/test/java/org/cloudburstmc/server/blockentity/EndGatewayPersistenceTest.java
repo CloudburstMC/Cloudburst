@@ -9,11 +9,13 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -97,5 +99,14 @@ class EndGatewayPersistenceTest {
     @Test
     void endGatewayBlockEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertKeepsNoDuplicateState(EndGatewayBlockEntity.class, EndGatewayData.class);
+        // The old shape kept the exit in a runtime field named exitPosition, which
+        // matches no DTO property, so the shared check stays blind to it. Forbid it
+        // explicitly; this fails on the pre-migration class.
+        Set<String> fields = new HashSet<>();
+        for (Field field : EndGatewayBlockEntity.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        assertFalse(fields.contains("exitPosition"),
+                "EndGatewayBlockEntity keeps exitPosition; state must live in EndGatewayData only");
     }
 }

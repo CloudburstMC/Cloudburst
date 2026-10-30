@@ -110,6 +110,28 @@ class SignPersistenceTest {
     }
 
     @Test
+    void shortSignTextIsSavedAsLoaded() {
+        // A short loaded Text used to resave with literal "null" lines padding it;
+        // the save now keeps the loaded value on both tags.
+        SignBlockEntity entity = (SignBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SIGN, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Sign")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putString("Text", "a\nb")
+                .putString("TextOwner", "Steve")
+                .build());
+
+        assertArrayEquals(new String[]{"a", "b", null, null}, entity.getText());
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals("a\nb", saved.getString("Text"));
+
+        assertEquals("a\nb", entity.getClientTag().getString("Text"));
+    }
+
+    @Test
     void signBlockEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertKeepsNoDuplicateState(SignBlockEntity.class, SignData.class);
     }
