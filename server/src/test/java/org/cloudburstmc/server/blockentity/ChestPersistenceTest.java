@@ -2,18 +2,19 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
 import org.cloudburstmc.api.blockentity.data.ChestData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -182,9 +184,7 @@ class ChestPersistenceTest {
         // unpair() itself broadcasts and looks up the pair chest, which needs a live level;
         // replicate its local state change (it clears the position but keeps pairlead)
         // so the save path can be tested standalone.
-        Field pairPosition = ChestBlockEntity.class.getDeclaredField("pairPosition");
-        pairPosition.setAccessible(true);
-        pairPosition.set(entity, null);
+        entity.data().setPairPosition(null);
         assertFalse(entity.isPaired());
 
         NbtMap saved = entity.getServerTag();
@@ -232,5 +232,78 @@ class ChestPersistenceTest {
         assertNull(plain.getLootTableSeed());
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
+    }
+
+    @Test
+    void pairedChestCombinedContainerSeesDataContainers() {
+        ChestBlockEntity left = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
+                Vector3i.from(10, 64, -5));
+        ChestBlockEntity right = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
+                Vector3i.from(11, 64, -5));
+
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
+        ItemStack stick = ItemStack.from(ItemTypes.STICK, 2);
+        left.data().getItems().setItem(3, diamond);
+        right.data().getItems().setItem(5, stick);
+
+        // Wire the pairing the way createPair does, then run the production pairing path
+        // without the live-level lookup (fixtures have no level to look the pair up in).
+        left.data().setPairPosition(right.getPosition());
+        right.data().setPairPosition(left.getPosition());
+        left.setPairlead(true);
+        left.createCombinedContainer(right);
+
+        CloudContainer combined = left.getContainer();
+        assertEquals(54, combined.size());
+
+        // Locate each half's slots without assuming the production slot ordering.
+        int diamondSlot = -1;
+        int stickSlot = -1;
+        for (int slot = 0; slot < combined.size(); slot++) {
+            if (combined.getItem(slot).equals(diamond)) {
+                diamondSlot = slot;
+            }
+            if (combined.getItem(slot).equals(stick)) {
+                stickSlot = slot;
+            }
+        }
+        assertNotEquals(-1, diamondSlot, "combined container sees the left chest's DTO container");
+        assertNotEquals(-1, stickSlot, "combined container sees the right chest's DTO container");
+        assertNotEquals(diamondSlot, stickSlot);
+
+        // Writes through the combined container land in each chest's DTO container ...
+        ItemStack gold = ItemStack.from(ItemTypes.GOLD_INGOT, 1);
+        combined.setItem(diamondSlot, gold);
+        assertEquals(gold, left.data().getItems().getItem(3));
+
+        combined.setItem(stickSlot, ItemStack.EMPTY);
+        assertTrue(right.data().getItems().getItem(5).isEmpty());
+
+        // ... and writes through a DTO container show up in the combined container.
+        ItemStack iron = ItemStack.from(ItemTypes.IRON_INGOT, 4);
+        right.data().getItems().setItem(5, iron);
+        assertEquals(iron, combined.getItem(stickSlot));
+
+        ItemStack coal = ItemStack.from(ItemTypes.COAL, 7);
+        left.data().getItems().setItem(3, coal);
+        assertEquals(coal, combined.getItem(diamondSlot));
+    }
+
+    @Test
+    void chestBlockEntityKeepsNoDuplicateState() {
+        // Retained fields and why they hold no DTO state: combinedContainer is the transient
+        // paired view built over the two chests' DTO containers; pairlead is hook-persisted
+        // pairing state with no DTO property of its own.
+        DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, ChestData.class);
+    }
+
+    @Test
+    void enderChestBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, ChestData.class);
+    }
+
+    @Test
+    void containerBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(ContainerBlockEntity.class, ContainerData.class);
     }
 }

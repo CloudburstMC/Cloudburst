@@ -3,9 +3,8 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Dispenser;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.ContainerData;
 import org.cloudburstmc.api.blockentity.data.DispenserData;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.inventory.view.BlockDispenserView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -14,7 +13,6 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.container.CloudContainer;
 
 import java.util.HashSet;
 
@@ -24,11 +22,8 @@ import java.util.HashSet;
  */
 public class DispenserBlockEntity extends ContainerBlockEntity implements Dispenser, BlockDispenserView {
 
-    private String lootTable;
-    private Integer lootTableSeed;
-
     public DispenserBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(9));
+        super(type, chunk, position);
     }
 
     @Override
@@ -47,46 +42,36 @@ public class DispenserBlockEntity extends ContainerBlockEntity implements Dispen
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        DispenserData dispenser = (DispenserData) data;
-        for (SlottedItem entry : dispenser.getItems()) {
-            this.container.setItem(entry.slot(), entry.item());
-        }
-        this.lootTable = dispenser.getLootTable();
-        this.lootTableSeed = dispenser.getLootTableSeed();
+    protected DispenserData data() {
+        return (DispenserData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        DispenserData dispenser = (DispenserData) data;
-        dispenser.setItems(ContainerData.slotted(this.container.getContents()));
-        dispenser.setLootTable(this.lootTable);
-        dispenser.setLootTableSeed(this.lootTableSeed);
+    protected ItemContainer items() {
+        return data().getItems();
     }
 
     public String getLootTable() {
-        return lootTable;
+        return data().getLootTable();
     }
 
     public void setLootTable(String lootTable) {
-        this.lootTable = lootTable;
+        data().setLootTable(lootTable);
     }
 
     public Integer getLootTableSeed() {
-        return lootTableSeed;
+        return data().getLootTableSeed();
     }
 
     public void setLootTableSeed(Integer lootTableSeed) {
-        this.lootTableSeed = lootTableSeed;
+        data().setLootTableSeed(lootTableSeed);
     }
 
     @Override
     public void close() {
         if (!closed) {
-            for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
-                listener.onInventoryRemoved(this.container);
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
+                listener.onInventoryRemoved(this.getContainer());
             }
             super.close();
         }
@@ -94,29 +79,14 @@ public class DispenserBlockEntity extends ContainerBlockEntity implements Dispen
 
     @Override
     public void onBreak() {
-        for (ItemStack content : this.container.getContents()) {
+        for (ItemStack content : this.getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
-        this.container.clear();
+        this.getContainer().clear();
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
-    }
-
-    @Override
-    public ItemStack getItem(int slot) {
-        return container.getItem(slot);
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack itemStack) {
-        this.container.setItem(slot, itemStack);
-    }
-
-    @Override
-    public int size() {
-        return this.container.size();
     }
 }

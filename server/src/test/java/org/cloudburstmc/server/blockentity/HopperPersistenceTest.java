@@ -143,4 +143,11 @@ class HopperPersistenceTest {
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }
+
+    @Test
+    void hopperBlockEntityKeepsNoDuplicateState() {
+        // Retained field and why it holds no DTO state: pickupArea is derived from the
+        // block position on every construction, never persisted.
+        DtoStateChecks.assertKeepsNoDuplicateState(HopperBlockEntity.class, HopperData.class);
+    }
 }

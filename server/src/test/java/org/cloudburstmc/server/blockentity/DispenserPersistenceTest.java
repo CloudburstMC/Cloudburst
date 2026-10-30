@@ -119,4 +119,9 @@ class DispenserPersistenceTest {
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }
+
+    @Test
+    void dispenserBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(DispenserBlockEntity.class, DispenserData.class);
+    }
 }

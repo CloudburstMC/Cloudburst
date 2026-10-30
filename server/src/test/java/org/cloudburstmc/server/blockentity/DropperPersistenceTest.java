@@ -119,4 +119,9 @@ class DropperPersistenceTest {
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }
+
+    @Test
+    void dropperBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(DropperBlockEntity.class, DropperData.class);
+    }
 }

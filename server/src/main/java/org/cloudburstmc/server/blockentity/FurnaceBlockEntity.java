@@ -11,6 +11,7 @@ import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -51,8 +52,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     protected short burnDuration = 0;
     protected int currentCookDuration;
 
+    protected final CloudContainer container;
+
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(3));
+        super(type, chunk, position);
+        this.container = new CloudContainer(3);
     }
 
     @Override
@@ -68,6 +72,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     @Override
     protected Class<? extends BlockEntityData> minimumDataClass() {
         return FurnaceData.class;
+    }
+
+    @Override
+    protected ItemContainer items() {
+        return container;
     }
 
     @Override

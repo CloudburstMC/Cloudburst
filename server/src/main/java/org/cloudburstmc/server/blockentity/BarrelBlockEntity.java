@@ -4,8 +4,7 @@ import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.data.BarrelData;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.ContainerData;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -14,7 +13,6 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.container.CloudContainer;
 
 import java.util.HashSet;
 
@@ -23,11 +21,8 @@ import java.util.HashSet;
  */
 public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, BlockStorageView {
 
-    private String lootTable;
-    private Integer lootTableSeed;
-
     public BarrelBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(27));
+        super(type, chunk, position);
     }
 
     @Override
@@ -41,46 +36,36 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        BarrelData barrel = (BarrelData) data;
-        for (SlottedItem entry : barrel.getItems()) {
-            this.container.setItem(entry.slot(), entry.item());
-        }
-        this.lootTable = barrel.getLootTable();
-        this.lootTableSeed = barrel.getLootTableSeed();
+    protected BarrelData data() {
+        return (BarrelData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        BarrelData barrel = (BarrelData) data;
-        barrel.setItems(ContainerData.slotted(this.container.getContents()));
-        barrel.setLootTable(this.lootTable);
-        barrel.setLootTableSeed(this.lootTableSeed);
+    protected ItemContainer items() {
+        return data().getItems();
     }
 
     public String getLootTable() {
-        return lootTable;
+        return data().getLootTable();
     }
 
     public void setLootTable(String lootTable) {
-        this.lootTable = lootTable;
+        data().setLootTable(lootTable);
     }
 
     public Integer getLootTableSeed() {
-        return lootTableSeed;
+        return data().getLootTableSeed();
     }
 
     public void setLootTableSeed(Integer lootTableSeed) {
-        this.lootTableSeed = lootTableSeed;
+        data().setLootTableSeed(lootTableSeed);
     }
 
     @Override
     public void close() {
         if (!closed) {
-            for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
-                listener.onInventoryRemoved(this.container);
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
+                listener.onInventoryRemoved(this.getContainer());
             }
             super.close();
         }
@@ -88,34 +73,14 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
 
     @Override
     public void onBreak() {
-        for (ItemStack content : this.container.getContents()) {
+        for (ItemStack content : this.getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
-        this.container.clear(); // Stop items from being moved around by another player in the inventory
+        this.getContainer().clear(); // Stop items from being moved around by another player in the inventory
     }
 
     @Override
     public boolean isSpawnable() {
         return true;
-    }
-
-    @Override
-    public CloudContainer getContainer() {
-        return container;
-    }
-
-    @Override
-    public ItemStack getItem(int slot) {
-        return container.getItem(slot);
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack itemStack) {
-        this.container.setItem(slot, itemStack);
-    }
-
-    @Override
-    public int size() {
-        return this.container.size();
     }
 }

@@ -5,25 +5,19 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.nbt.NbtTag;
-import org.cloudburstmc.api.nbt.NbtTagType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Persistent data shared by every item container: its slotted items plus an optional
- * loot-table reference. Concrete container DTOs declare their own keys on top; the
- * crafter is not loot-capable and declares its items separately.
+ * Persistent data shared by every loot-capable item container: an optional loot-table
+ * reference. Each concrete container DTO declares its own items property with the slot
+ * count of its block-entity type.
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 public abstract class ContainerData extends BlockEntityData implements LootTableHolder {
-
-    @JsonProperty("Items")
-    @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    private List<SlottedItem> items = List.of();
 
     @JsonProperty("LootTable")
     private String lootTable;

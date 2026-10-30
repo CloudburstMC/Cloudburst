@@ -119,4 +119,9 @@ class BarrelPersistenceTest {
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }
+
+    @Test
+    void barrelBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(BarrelBlockEntity.class, BarrelData.class);
+    }
 }

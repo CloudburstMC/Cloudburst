@@ -2,6 +2,7 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -9,6 +10,11 @@ import org.cloudburstmc.server.container.CloudContainer;
 
 /**
  * Base class for block entities that own a {@link CloudContainer} (item storage).
+ *
+ * <p>The storage lives in the block entity's data instance; this class only delegates to it.
+ * Subclasses return their DTO's container from {@link #items()} and override
+ * {@link #getContainer()} only when they expose a different view, like a paired chest's
+ * combined container.</p>
  *
  * <p>This class intentionally does <em>not</em> implement
  * {@link org.cloudburstmc.api.inventory.view.SlotGroup}. The view/slot-group abstraction
@@ -20,27 +26,32 @@ import org.cloudburstmc.server.container.CloudContainer;
  */
 public abstract class ContainerBlockEntity extends BaseBlockEntity {
 
-    protected final CloudContainer container;
-
-    public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position, CloudContainer container) {
+    public ContainerBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
-        this.container = container;
     }
 
+    /**
+     * Returns the single storage container held by this block entity's data instance.
+     * Slot accessors use this; {@link #getContainer()} may return a wider view.
+     *
+     * @return the DTO's container
+     */
+    protected abstract ItemContainer items();
+
     public CloudContainer getContainer() {
-        return container;
+        return (CloudContainer) items();
     }
 
     public ItemStack getItem(int slot) {
-        return container.getItem(slot);
+        return items().getItem(slot);
     }
 
     public void setItem(int slot, ItemStack itemStack) {
-        container.setItem(slot, itemStack);
+        items().setItem(slot, itemStack);
     }
 
     public int size() {
-        return container.size();
+        return items().size();
     }
 
     public BlockEntity getBlockEntity() {

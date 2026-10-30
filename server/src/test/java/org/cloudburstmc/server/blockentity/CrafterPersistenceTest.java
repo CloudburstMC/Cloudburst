@@ -82,4 +82,9 @@ class CrafterPersistenceTest {
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }
+
+    @Test
+    void crafterBlockEntityKeepsNoDuplicateState() {
+        DtoStateChecks.assertKeepsNoDuplicateState(CrafterBlockEntity.class, CrafterData.class);
+    }
 }

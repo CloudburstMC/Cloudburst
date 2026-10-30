@@ -124,4 +124,11 @@ class ShulkerBoxPersistenceTest {
         assertFalse(plain.getServerTag().containsKey("LootTable"));
         assertFalse(plain.getServerTag().containsKey("LootTableSeed"));
     }
+
+    @Test
+    void shulkerBoxBlockEntityKeepsNoDuplicateState() {
+        // Retained fields and why they hold no DTO state: animationState, openProgress,
+        // previousOpenProgress and viewerCount are live lid-animation state, never persisted.
+        DtoStateChecks.assertKeepsNoDuplicateState(ShulkerBoxBlockEntity.class, ShulkerBoxData.class);
+    }
 }

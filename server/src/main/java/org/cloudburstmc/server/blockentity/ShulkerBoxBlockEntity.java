@@ -4,11 +4,10 @@ import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.blockentity.data.ContainerData;
 import org.cloudburstmc.api.blockentity.data.ShulkerBoxData;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.PushReaction;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
@@ -21,7 +20,6 @@ import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
-import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -38,16 +36,13 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     private static final float ANIMATION_STEP = 0.1f;
     private static final float COLLISION_EPSILON = 1.0E-6f;
 
-    private Direction facing = Direction.UP;
     private ShulkerBoxAnimationState animationState = ShulkerBoxAnimationState.CLOSED;
     private float openProgress;
     private float previousOpenProgress;
     private int viewerCount;
-    private String lootTable;
-    private Integer lootTableSeed;
 
     public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(27));
+        super(type, chunk, position);
     }
 
     @Override
@@ -61,50 +56,38 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        ShulkerBoxData shulker = (ShulkerBoxData) data;
-        for (SlottedItem entry : shulker.getItems()) {
-            this.container.setItem(entry.slot(), entry.item());
-        }
-        this.facing = Direction.fromIndex(shulker.getFacing());
-        this.lootTable = shulker.getLootTable();
-        this.lootTableSeed = shulker.getLootTableSeed();
+    protected ShulkerBoxData data() {
+        return (ShulkerBoxData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ShulkerBoxData shulker = (ShulkerBoxData) data;
-        shulker.setItems(ContainerData.slotted(this.container.getContents()));
-        shulker.setFacing((byte) this.facing.getIndex());
-        shulker.setLootTable(this.lootTable);
-        shulker.setLootTableSeed(this.lootTableSeed);
+    protected ItemContainer items() {
+        return data().getItems();
     }
 
     public String getLootTable() {
-        return lootTable;
+        return data().getLootTable();
     }
 
     public void setLootTable(String lootTable) {
-        this.lootTable = lootTable;
+        data().setLootTable(lootTable);
     }
 
     public Integer getLootTableSeed() {
-        return lootTableSeed;
+        return data().getLootTableSeed();
     }
 
     public void setLootTableSeed(Integer lootTableSeed) {
-        this.lootTableSeed = lootTableSeed;
+        data().setLootTableSeed(lootTableSeed);
     }
 
     @Override
     public Direction getFacing() {
-        return facing;
+        return data().getFacing();
     }
 
     public void setFacing(Direction facing) {
-        this.facing = Objects.requireNonNull(facing, "facing");
+        data().setFacing(Objects.requireNonNull(facing, "facing"));
         this.setDirty();
     }
 
@@ -153,7 +136,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     public boolean canOpen() {
-        BoundingBox openingSweep = lidMovementBox(this.getPosition(), this.facing, 0, 0.5f)
+        BoundingBox openingSweep = lidMovementBox(this.getPosition(), getFacing(), 0, 0.5f)
                 .deflate(COLLISION_EPSILON, COLLISION_EPSILON, COLLISION_EPSILON);
         return this.animationState != ShulkerBoxAnimationState.CLOSED
                 || !this.getLevel().hasCollision(null, openingSweep);
@@ -197,11 +180,11 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     private void pushEntities() {
-        BoundingBox box = ShulkerBoxGeometry.box(this.getPosition(), this.facing, this.openProgress);
+        BoundingBox box = ShulkerBoxGeometry.box(this.getPosition(), getFacing(), this.openProgress);
         for (Entity entity : this.getLevel().getNearbyEntities(box)) {
             if (entity.getPushReaction() != PushReaction.IGNORE && entity instanceof CloudEntity cloudEntity) {
                 BoundingBox entityBox = entity.getBoundingBox();
-                float distance = switch (this.facing) {
+                float distance = switch (getFacing()) {
                     case DOWN -> box.getMinY() - entityBox.getMaxY();
                     case UP -> box.getMaxY() - entityBox.getMinY();
                     case NORTH -> box.getMinZ() - entityBox.getMaxZ();
@@ -211,9 +194,9 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
                 };
 
                 cloudEntity.move(MovementType.SHULKER_BOX,
-                        distance * Math.abs(this.facing.getStepX()),
-                        distance * Math.abs(this.facing.getStepY()),
-                        distance * Math.abs(this.facing.getStepZ()));
+                        distance * Math.abs(getFacing().getStepX()),
+                        distance * Math.abs(getFacing().getStepY()),
+                        distance * Math.abs(getFacing().getStepZ()));
             }
         }
     }
@@ -251,7 +234,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     @Override
     public void close() {
         if (!closed) {
-            for (ContainerListener listener : new HashSet<>(this.container.getListeners())) {
+            for (ContainerListener listener : new HashSet<>(this.getContainer().getListeners())) {
                 if (listener instanceof CloudPlayer) {
                     ((CloudPlayer) listener).closeInventory();
                 }

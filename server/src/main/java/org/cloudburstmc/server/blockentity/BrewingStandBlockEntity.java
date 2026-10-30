@@ -13,6 +13,7 @@ import org.cloudburstmc.api.blockentity.data.ContainerData;
 import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -54,8 +55,11 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private short fuelTotal;
     private int fuelAmount;
 
+    private final CloudContainer container;
+
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(5));
+        super(type, chunk, position);
+        this.container = new CloudContainer(5);
     }
 
     @Override
@@ -71,6 +75,11 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     @Override
     protected Class<? extends BlockEntityData> minimumDataClass() {
         return BrewingStandData.class;
+    }
+
+    @Override
+    protected ItemContainer items() {
+        return container;
     }
 
     @Override
