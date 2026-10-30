@@ -10,6 +10,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 
 import java.util.EnumMap;
@@ -37,8 +38,6 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         SOUND_MAP.put(Record.PIGSTEP, SoundEvent.RECORD_PIGSTEP);
     }
 
-    private ItemStack recordItem = ItemStack.EMPTY;
-
     public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -49,30 +48,32 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        ItemStack loaded = ((JukeboxData) data).getRecordItem();
-        this.recordItem = loaded != null ? loaded : ItemStack.EMPTY;
+    protected JukeboxData data() {
+        return (JukeboxData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ((JukeboxData) data).setRecordItem(this.recordItem == null || this.recordItem.isEmpty() ? null : this.recordItem);
+    protected void loadCustom(NbtMap tag) {
+        ItemStack loaded = data().getRecordItem();
+        if (loaded != null && loaded.isEmpty()) {
+            // An empty record compound carries no item; keep it absent so it stays omitted.
+            data().setRecordItem(null);
+        }
     }
 
     public ItemStack getRecordItem() {
-        return recordItem;
+        ItemStack recordItem = data().getRecordItem();
+        return recordItem != null ? recordItem : ItemStack.EMPTY;
     }
 
     public void setRecordItem(ItemStack recordItem) {
-        this.recordItem = recordItem;
+        data().setRecordItem(recordItem == null || recordItem.isEmpty() ? null : recordItem);
     }
 
     public void play() {
-        if (this.recordItem.getType() == ItemTypes.MUSIC_DISC_13) {
+        if (getRecordItem().getType() == ItemTypes.MUSIC_DISC_13) {
 
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemDataComponents.RECORD_TYPE)));
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(getRecordItem().get(ItemDataComponents.RECORD_TYPE)));
         }
     }
 
@@ -81,10 +82,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void dropItem() {
-        if (!this.recordItem.isEmpty()) {
+        ItemStack recordItem = getRecordItem();
+        if (!recordItem.isEmpty()) {
             this.stop();
-            this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
-            this.recordItem = ItemStack.EMPTY;
+            this.getLevel().dropItem(this.getPosition().add(UP), recordItem);
+            data().setRecordItem(null);
         }
     }
 
@@ -95,10 +97,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     @Override
     public void onBreak() {
-        if (!this.recordItem.isEmpty()) {
+        ItemStack recordItem = getRecordItem();
+        if (!recordItem.isEmpty()) {
             this.stop();
-            this.dropItemOnBreak(this.recordItem);
-            this.recordItem = ItemStack.EMPTY;
+            this.dropItemOnBreak(recordItem);
+            data().setRecordItem(null);
         }
     }
 }

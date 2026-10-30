@@ -162,4 +162,30 @@ class FurnacePersistenceTest {
         }
         assertEquals(Set.of("id"), smoker.getClientTag().keySet());
     }
+
+    @Test
+    void absentKeysKeepTodayDefaults() {
+        FurnaceBlockEntity entity = (FurnaceBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FURNACE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Furnace")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh furnace is cold and empty: every counter reads zero.
+        assertEquals(0, entity.getCookProgress());
+        assertEquals(0, entity.getBurnProgress());
+        assertEquals(0, entity.getBurnDuration());
+        for (int slot = 0; slot < SIZE; slot++) {
+            assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
+        }
+    }
+
+    @Test
+    void furnaceBlockEntityKeepsNoDuplicateState() {
+        // Retained field and why it holds no DTO state: currentCookDuration is the live
+        // smelt timer, never persisted.
+        DtoStateChecks.assertKeepsNoDuplicateState(FurnaceBlockEntity.class, FurnaceData.class);
+    }
 }

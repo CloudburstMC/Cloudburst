@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -119,5 +120,47 @@ class ItemFramePersistenceTest {
 
         assertEquals(0, entity.getItemRotation());
         assertEquals(0.0f, entity.getServerTag().getFloat("ItemRotation"));
+    }
+
+    @Test
+    void absentKeysKeepTodayDefaults() {
+        ItemFrameBlockEntity entity = (ItemFrameBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.ITEM_FRAME, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "ItemFrame")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh frame shows nothing, faces forward, drops always and is not fixed.
+        assertTrue(entity.getItem().isEmpty());
+        assertEquals(0, entity.getItemRotation());
+        assertEquals(1.0f, entity.getItemDropChance());
+        assertFalse(entity.isFixed());
+    }
+
+    @Test
+    void airItemStaysOmitted() {
+        ItemFrameBlockEntity entity = (ItemFrameBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.ITEM_FRAME, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "ItemFrame")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putCompound("Item", ItemUtils.serializeItem(ItemStack.EMPTY))
+                .putFloat("ItemRotation", 0.0f)
+                .putFloat("ItemDropChance", 1.0f)
+                .putBoolean("Fixed", false)
+                .build());
+
+        assertTrue(entity.getItem().isEmpty());
+        assertFalse(entity.getServerTag().containsKey("Item"), "server tag gained Item");
+        assertFalse(entity.getClientTag().containsKey("Item"), "client tag gained Item");
+    }
+
+    @Test
+    void itemFrameBlockEntityKeepsNoDuplicateState() {
+        // No retained fields: the item, rotation, drop chance and fixed flag live in ItemFrameData.
+        DtoStateChecks.assertKeepsNoDuplicateState(ItemFrameBlockEntity.class, ItemFrameData.class);
     }
 }

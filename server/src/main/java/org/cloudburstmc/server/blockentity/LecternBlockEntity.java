@@ -13,6 +13,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 
 import javax.annotation.Nonnegative;
 
@@ -21,10 +22,6 @@ import javax.annotation.Nonnegative;
  * displayed page number out of the book's total pages.
  */
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
-
-    private ItemStack book;
-    private int page;
-    private int totalPages;
 
     public LecternBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -51,57 +48,62 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        LecternData lectern = (LecternData) data;
-        if (Boolean.TRUE.equals(lectern.getHasBook())) {
-            this.book = lectern.getBook();
-            this.page = lectern.getPage() != null ? lectern.getPage() : 0;
-            this.totalPages = lectern.getTotalPages() != null ? lectern.getTotalPages() : 0;
-        }
+    protected LecternData data() {
+        return (LecternData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        LecternData lectern = (LecternData) data;
-        if (this.book != null) {
-            lectern.setHasBook(true);
-            lectern.setBook(this.book);
-            lectern.setPage(this.page);
-            lectern.setTotalPages(this.totalPages);
+    protected void loadCustom(NbtMap tag) {
+        if (!Boolean.TRUE.equals(data().getHasBook()) || data().getBook() == null) {
+            // Without the book flag, or without the book itself, the book keys are
+            // ignored, exactly as before: an empty lectern stores no book keys at all.
+            data().setHasBook(null);
+            data().setBook(null);
+            data().setPage(null);
+            data().setTotalPages(null);
         } else {
-            lectern.setHasBook(null);
-            lectern.setBook(null);
-            lectern.setPage(null);
-            lectern.setTotalPages(null);
+            // The book flag promises a complete book record; missing page keys
+            // default exactly as before so the save writes them back.
+            if (data().getPage() == null) {
+                data().setPage(0);
+            }
+            if (data().getTotalPages() == null) {
+                data().setTotalPages(0);
+            }
         }
     }
 
     @Override
     public void onBreak() {
-        if (this.book != null) {
-            this.dropItemOnBreak(this.book);
+        if (data().getBook() != null) {
+            this.dropItemOnBreak(data().getBook());
         }
     }
 
     @Override
     public boolean hasBook() {
-        return this.book != null;
+        return data().getBook() != null;
     }
 
     @Override
     public ItemStack getBook() {
-        return this.book != null ? this.book : ItemStack.EMPTY;
+        ItemStack book = data().getBook();
+        return book != null ? book : ItemStack.EMPTY;
     }
 
     @Override
     public void setBook(ItemStack item) {
         if (item != null && !item.isEmpty()
                 && (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK)) {
-            this.book = item.withCount(1);
+            data().setBook(item.withCount(1));
+            data().setHasBook(true);
+            if (data().getPage() == null) {
+                data().setPage(0);
+            }
         } else {
-            this.book = null;
+            data().setBook(null);
+            data().setHasBook(null);
+            data().setPage(null);
         }
 
         updateTotalPages(true);
@@ -109,7 +111,8 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public int getTotalPages() {
-        return totalPages;
+        Integer totalPages = data().getTotalPages();
+        return totalPages != null ? totalPages : 0;
     }
 
     public int getLeftPage() {
@@ -130,20 +133,21 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public int getPage() {
-        return this.page;
+        Integer page = data().getPage();
+        return page != null ? page : 0;
     }
 
     @Override
     public void setPage(@Nonnegative int page) {
-        this.page = GenericMath.clamp(page, 0, this.totalPages);
+        data().setPage(GenericMath.clamp(page, 0, getTotalPages()));
         this.getLevel().updateAround(this.getPosition());
     }
 
     private void updateTotalPages(boolean updateRedstone) {
         if (hasBook()) {
-            this.totalPages = this.book.get(ItemDataComponents.BOOK_DATA).getPages().size();
+            data().setTotalPages(data().getBook().get(ItemDataComponents.BOOK_DATA).getPages().size());
         } else {
-            this.totalPages = 0;
+            data().setTotalPages(null);
         }
 
         if (updateRedstone) {

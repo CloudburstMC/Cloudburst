@@ -12,8 +12,6 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -96,18 +94,21 @@ class CampfirePersistenceTest {
     }
 
     @Test
-    void campfireClearedSlotIsNotWritten() throws Exception {
+    void campfireClearedSlotIsNotWritten() {
         CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
         entity.loadAdditionalData(campfireTag());
 
         // clearItems() itself broadcasts, which needs a live level; replicate its
-        // local state change so the save path can be tested standalone.
-        Field items = CampfireBlockEntity.class.getDeclaredField("items");
-        items.setAccessible(true);
-        Arrays.fill((ItemStack[]) items.get(entity), null);
-        Field itemTimes = CampfireBlockEntity.class.getDeclaredField("itemTimes");
-        itemTimes.setAccessible(true);
-        Arrays.fill((int[]) itemTimes.get(entity), 0);
+        // local state change through the DTO so the save path can be tested standalone.
+        CampfireData data = (CampfireData) entity.data();
+        data.setItem1(null);
+        data.setItemTime1(null);
+        data.setItem2(null);
+        data.setItemTime2(null);
+        data.setItem3(null);
+        data.setItemTime3(null);
+        data.setItem4(null);
+        data.setItemTime4(null);
 
         NbtMap saved = entity.getServerTag();
         for (String key : Set.of("Item1", "Item2", "Item3", "Item4",
@@ -122,5 +123,52 @@ class CampfirePersistenceTest {
                 "ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4")) {
             assertFalse(client.containsKey(key), "client tag still has " + key);
         }
+    }
+
+    @Test
+    void absentKeysKeepTodayDefaults() {
+        CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Campfire")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh campfire holds nothing; every slot and time key stays absent.
+        for (int slot = 0; slot < 4; slot++) {
+            assertNull(entity.getItemInFire(slot), "slot " + slot);
+        }
+        assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
+        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void unpairedTimeKeysAreNormalized() {
+        CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Campfire")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putCompound("Item1", ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 1)))
+                .putInt("ItemTime2", 50)
+                .build());
+
+        // An item without its time cooks from zero; a time without its item is
+        // dropped. The save writes exactly the keys it used to.
+        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 1), entity.getItemInFire(0));
+        assertNull(entity.getItemInFire(1));
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals(0, saved.getInt("ItemTime1"));
+        assertFalse(saved.containsKey("Item2"), "server tag gained Item2");
+        assertFalse(saved.containsKey("ItemTime2"), "server tag gained ItemTime2");
+    }
+
+    @Test
+    void campfireBlockEntityKeepsNoDuplicateState() {
+        // No retained fields: every slot and its time live in CampfireData.
+        DtoStateChecks.assertKeepsNoDuplicateState(CampfireBlockEntity.class, CampfireData.class);
     }
 }

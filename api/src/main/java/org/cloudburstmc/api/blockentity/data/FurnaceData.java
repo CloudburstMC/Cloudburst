@@ -4,10 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.api.inventory.ItemContainer;
+import org.cloudburstmc.api.inventory.ItemContainers;
+import org.cloudburstmc.api.nbt.NbtContainerSize;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
-
-import java.util.List;
 
 /**
  * Persistent data of a furnace: its slotted items plus the cook, burn and burn-duration counters.
@@ -20,7 +21,8 @@ public class FurnaceData extends BlockEntityData {
 
     @JsonProperty("Items")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    private List<SlottedItem> items = List.of();
+    @NbtContainerSize(3)
+    private ItemContainer items = ItemContainers.detached(3);
 
     @JsonProperty("CookTime")
     private short cookTime;

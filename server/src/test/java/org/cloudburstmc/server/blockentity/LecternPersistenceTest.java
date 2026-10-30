@@ -12,7 +12,6 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -88,15 +87,18 @@ class LecternPersistenceTest {
     }
 
     @Test
-    void lecternTakenBookIsNotWritten() throws Exception {
+    void lecternTakenBookIsNotWritten() {
         LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
         entity.loadAdditionalData(lecternTag());
 
         // setBook() itself updates redstone, which needs a live level; replicate its
-        // local state change (taking the book clears it) so the save path can be tested standalone.
-        Field book = LecternBlockEntity.class.getDeclaredField("book");
-        book.setAccessible(true);
-        book.set(entity, null);
+        // local state change (taking the book clears it) through the DTO so the
+        // save path can be tested standalone.
+        LecternData data = (LecternData) entity.data();
+        data.setBook(null);
+        data.setHasBook(null);
+        data.setPage(null);
+        data.setTotalPages(null);
 
         assertFalse(entity.hasBook());
 
@@ -127,5 +129,82 @@ class LecternPersistenceTest {
         // An empty lectern stores no book keys; a loaded hasBook:0b stays dropped, exactly as before.
         assertFalse(entity.getServerTag().containsKey("hasBook"), "server tag gained hasBook");
         assertFalse(entity.getClientTag().containsKey("hasBook"), "client tag gained hasBook");
+    }
+
+    @Test
+    void absentKeysKeepTodayDefaults() {
+        LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Lectern")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh lectern holds no book and shows page zero of zero.
+        assertFalse(entity.hasBook());
+        assertTrue(entity.getBook().isEmpty());
+        assertEquals(0, entity.getPage());
+        assertEquals(0, entity.getTotalPages());
+        assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
+        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void bookWithoutHasBookIsIgnored() {
+        LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Lectern")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putCompound("book", ItemUtils.serializeItem(ItemStack.from(ItemTypes.WRITTEN_BOOK, 1)))
+                .putInt("page", 2)
+                .putInt("totalPages", 5)
+                .build());
+
+        // Without the book flag the book keys are ignored, exactly as before.
+        assertFalse(entity.hasBook());
+        assertTrue(entity.getBook().isEmpty());
+        assertEquals(0, entity.getPage());
+        assertEquals(0, entity.getTotalPages());
+
+        NbtMap saved = entity.getServerTag();
+        for (String key : Set.of("hasBook", "book", "page", "totalPages")) {
+            assertFalse(saved.containsKey(key), "server tag gained " + key);
+        }
+    }
+
+    @Test
+    void bookWithMissingPageKeysLoadsZero() {
+        LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Lectern")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putBoolean("hasBook", true)
+                .putCompound("book", ItemUtils.serializeItem(ItemStack.from(ItemTypes.WRITTEN_BOOK, 1)))
+                .build());
+
+        // The book flag promises a complete book record; missing page keys read
+        // zero, exactly as before, so the save writes them back.
+        assertTrue(entity.hasBook());
+        assertEquals(0, entity.getPage());
+        assertEquals(0, entity.getTotalPages());
+
+        NbtMap saved = entity.getServerTag();
+        assertTrue(saved.containsKey("page"), "server tag lost page");
+        assertEquals(0, saved.getInt("page"));
+        assertEquals(NbtType.INT, NbtType.byClass(saved.get("page").getClass()), "type of page");
+        assertTrue(saved.containsKey("totalPages"), "server tag lost totalPages");
+        assertEquals(0, saved.getInt("totalPages"));
+        assertEquals(NbtType.INT, NbtType.byClass(saved.get("totalPages").getClass()), "type of totalPages");
+    }
+
+    @Test
+    void lecternBlockEntityKeepsNoDuplicateState() {
+        // No retained fields: the book, page and totals live in LecternData.
+        DtoStateChecks.assertKeepsNoDuplicateState(LecternBlockEntity.class, LecternData.class);
     }
 }

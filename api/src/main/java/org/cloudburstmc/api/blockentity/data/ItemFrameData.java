@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.blockentity.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,6 +24,12 @@ public class ItemFrameData extends BlockEntityData {
 
     @JsonProperty("Fixed")
     private boolean fixed;
+
+    @JsonIgnore
+    private int itemRotation;
+
+    @JsonIgnore
+    private float itemDropChance = 1.0f;
 
     public ItemFrameData() {
     }

@@ -10,12 +10,10 @@ import org.cloudburstmc.api.blockentity.data.CampfireData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
-
-    private final ItemStack[] items = new ItemStack[4];
-    private final int[] itemTimes = new int[4];
 
     public CampfireBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -27,56 +25,28 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        CampfireData campfire = (CampfireData) data;
-        ItemStack[] loaded = {campfire.getItem1(), campfire.getItem2(), campfire.getItem3(), campfire.getItem4()};
-        Integer[] times = {campfire.getItemTime1(), campfire.getItemTime2(), campfire.getItemTime3(), campfire.getItemTime4()};
-
-        boolean hasItems = false;
-        for (int i = 0; i < 4; i++) {
-            if (loaded[i] != null) {
-                this.items[i] = loaded[i];
-                hasItems = true;
-            } else {
-                this.items[i] = null;
-            }
-            this.itemTimes[i] = times[i] != null ? times[i] : 0;
-        }
-        if (hasItems) this.scheduleUpdate();
+    protected CampfireData data() {
+        return (CampfireData) super.data();
     }
 
     @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        CampfireData campfire = (CampfireData) data;
-        if (this.items[0] != null) {
-            campfire.setItem1(this.items[0]);
-            campfire.setItemTime1(this.itemTimes[0]);
-        } else {
-            campfire.setItem1(null);
-            campfire.setItemTime1(null);
-        }
-        if (this.items[1] != null) {
-            campfire.setItem2(this.items[1]);
-            campfire.setItemTime2(this.itemTimes[1]);
-        } else {
-            campfire.setItem2(null);
-            campfire.setItemTime2(null);
-        }
-        if (this.items[2] != null) {
-            campfire.setItem3(this.items[2]);
-            campfire.setItemTime3(this.itemTimes[2]);
-        } else {
-            campfire.setItem3(null);
-            campfire.setItemTime3(null);
-        }
-        if (this.items[3] != null) {
-            campfire.setItem4(this.items[3]);
-            campfire.setItemTime4(this.itemTimes[3]);
-        } else {
-            campfire.setItem4(null);
-            campfire.setItemTime4(null);
+    protected void loadCustom(NbtMap tag) {
+        normalizeSlot(0, data().getItem1(), data().getItemTime1());
+        normalizeSlot(1, data().getItem2(), data().getItemTime2());
+        normalizeSlot(2, data().getItem3(), data().getItemTime3());
+        normalizeSlot(3, data().getItem4(), data().getItemTime4());
+    }
+
+    /**
+     * Restores the previous load shape for one slot: a time without its item is
+     * dropped, and an item without its time cooks from zero, so the save writes
+     * exactly the keys it used to.
+     */
+    private void normalizeSlot(int index, ItemStack item, Integer time) {
+        if (item == null) {
+            setSlot(index, null, null);
+        } else if (time == null) {
+            setSlot(index, item, 0);
         }
     }
 
@@ -102,14 +72,17 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         boolean haveUpdate = false;
         boolean itemChange = false;
 
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] != null) {
-                if (++itemTimes[i] >= 600) {
-                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(items[i], BlockTypes.CAMPFIRE.getId()).getResult();
+        for (int i = 0; i < 4; i++) {
+            ItemStack item = getItemInFire(i);
+            if (item != null) {
+                int time = getItemTime(i) + 1;
+                if (time >= 600) {
+                    ItemStack output = CloudRecipeRegistry.get().matchFurnaceRecipe(item, BlockTypes.CAMPFIRE.getId()).getResult();
                     this.getLevel().dropItem(this.getPosition(), output);
-                    items[i] = null;
-                    itemTimes[i] = 0;
+                    setSlot(i, null, null);
                     itemChange = true;
+                } else {
+                    setSlotTime(i, time);
                 }
                 haveUpdate = true;
             }
@@ -122,7 +95,8 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public void onBreak() {
-        for (ItemStack item : items) {
+        for (int i = 0; i < 4; i++) {
+            ItemStack item = getItemInFire(i);
             if (item != null) {
                 this.dropItemOnBreak(item);
             }
@@ -130,10 +104,51 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     public ItemStack getItemInFire(int index) {
-        if (index < 0 || index >= items.length) {
-            return null;
+        return switch (index) {
+            case 0 -> data().getItem1();
+            case 1 -> data().getItem2();
+            case 2 -> data().getItem3();
+            case 3 -> data().getItem4();
+            default -> null;
+        };
+    }
+
+    private int getItemTime(int index) {
+        Integer time = switch (index) {
+            case 0 -> data().getItemTime1();
+            case 1 -> data().getItemTime2();
+            case 2 -> data().getItemTime3();
+            case 3 -> data().getItemTime4();
+            default -> null;
+        };
+        return time != null ? time : 0;
+    }
+
+    private void setSlot(int index, ItemStack item, Integer time) {
+        switch (index) {
+            case 0 -> {
+                data().setItem1(item);
+                data().setItemTime1(time);
+            }
+            case 1 -> {
+                data().setItem2(item);
+                data().setItemTime2(time);
+            }
+            case 2 -> {
+                data().setItem3(item);
+                data().setItemTime3(time);
+            }
+            case 3 -> {
+                data().setItem4(item);
+                data().setItemTime4(time);
+            }
+            default -> {
+            }
         }
-        return items[index];
+    }
+
+    private void setSlotTime(int index, int time) {
+        setSlot(index, getItemInFire(index), time);
     }
 
     public boolean putItemInFire(ItemStack item) {
@@ -155,7 +170,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
 
     @Override
     public boolean putItemInFire(ItemStack item, int index, boolean overwrite) {
-        if (index < 0 || index >= items.length) return false;
+        if (index < 0 || index >= 4) return false;
 //        if (!(item.getBehavior() instanceof ItemEdibleBehavior)) return false; //TODO: edible items
 //
 //        item = item.withAmount(1);
@@ -181,9 +196,8 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
      * Method is used to clear all of the items cooking in the fire, without dropping any into the world.
      */
     public void clearItems() {
-        for (int i = 0; i < items.length; i++) {
-            items[i] = null;
-            itemTimes[i] = 0;
+        for (int i = 0; i < 4; i++) {
+            setSlot(i, null, null);
         }
         spawnToAll();
     }

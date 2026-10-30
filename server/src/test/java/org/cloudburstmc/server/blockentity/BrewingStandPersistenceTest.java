@@ -126,4 +126,31 @@ class BrewingStandPersistenceTest {
         assertEquals(0, client.getInt("FuelAmount"));
         assertEquals((short) 0, client.getShort("FuelTotal"));
     }
+
+    @Test
+    void absentKeysKeepTodayDefaults() {
+        BrewingStandBlockEntity entity = (BrewingStandBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BREWING_STAND, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "BrewingStand")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh stand idles at the full brew timer with no fuel and empty slots.
+        assertEquals(BrewingStandBlockEntity.MAX_COOK_TIME, entity.getCookTime());
+        assertEquals(0, entity.getFuelAmount());
+        assertEquals((short) 0, entity.getFuelTotal());
+        assertTrue(entity.getIngredient().isEmpty());
+        assertTrue(entity.getFuel().isEmpty());
+        for (int slot = 0; slot < 3; slot++) {
+            assertTrue(entity.getBottle(slot).isEmpty(), "bottle " + slot);
+        }
+    }
+
+    @Test
+    void brewingStandBlockEntityKeepsNoDuplicateState() {
+        // No retained fields: the container, timer and fuel state live in BrewingStandData.
+        DtoStateChecks.assertKeepsNoDuplicateState(BrewingStandBlockEntity.class, BrewingStandData.class);
+    }
 }

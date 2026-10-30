@@ -20,11 +20,6 @@ import java.util.Set;
 
 public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
-    private ItemStack item = ItemStack.EMPTY;
-    private int itemRotation;
-    private float itemDropChance = 1.0f;
-    private boolean fixed;
-
     public ItemFrameBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
@@ -35,20 +30,8 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        ItemFrameData frame = (ItemFrameData) data;
-        ItemStack loaded = frame.getItem();
-        this.item = loaded != null ? loaded : ItemStack.EMPTY;
-        this.fixed = frame.isFixed();
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        ItemFrameData frame = (ItemFrameData) data;
-        frame.setItem(this.item.isEmpty() ? null : this.item);
-        frame.setFixed(this.fixed);
+    protected ItemFrameData data() {
+        return (ItemFrameData) super.data();
     }
 
     @Override
@@ -57,20 +40,22 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
             if (!Float.isFinite(value) || value % 45 != 0 || value < 0 || value >= 360) {
                 throw new IllegalArgumentException("Invalid frame rotation");
             }
-            this.itemRotation = (int) (value / 45);
+            data().setItemRotation((int) (value / 45));
         });
 
         tag.listenForFloat("ItemDropChance", value -> {
             if (!Float.isFinite(value) || value < 0 || value > 1) {
                 throw new IllegalArgumentException("Invalid frame item drop chance");
             }
-            this.itemDropChance = value;
+            data().setItemDropChance(value);
         });
 
-        if (!this.item.isEmpty()) {
-            this.item = this.item.withCount(1);
+        ItemStack item = data().getItem();
+        if (item != null && !item.isEmpty()) {
+            data().setItem(item.withCount(1));
         } else {
-            this.itemRotation = 0;
+            data().setItem(null);
+            data().setItemRotation(0);
         }
 
         this.updateMapState();
@@ -78,14 +63,14 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
-        tag.putFloat("ItemRotation", this.itemRotation * 45);
-        tag.putFloat("ItemDropChance", this.itemDropChance);
+        tag.putFloat("ItemRotation", data().getItemRotation() * 45);
+        tag.putFloat("ItemDropChance", data().getItemDropChance());
     }
 
     @Override
     protected void saveCustomClient(NbtMapBuilder tag) {
-        tag.putFloat("ItemRotation", this.itemRotation * 45);
-        tag.putFloat("ItemDropChance", this.itemDropChance);
+        tag.putFloat("ItemRotation", data().getItemRotation() * 45);
+        tag.putFloat("ItemDropChance", data().getItemDropChance());
     }
 
     @Override
@@ -95,8 +80,8 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public void onBreak() {
-        this.item = ItemStack.EMPTY;
-        this.itemRotation = 0;
+        data().setItem(null);
+        data().setItemRotation(0);
     }
 
     @Override
@@ -106,7 +91,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public int getItemRotation() {
-        return this.itemRotation;
+        return data().getItemRotation();
     }
 
     @Override
@@ -115,8 +100,8 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
             throw new IllegalArgumentException("Frame rotation must be between zero and seven");
         }
 
-        if (this.itemRotation != itemRotation) {
-            this.itemRotation = itemRotation;
+        if (data().getItemRotation() != itemRotation) {
+            data().setItemRotation(itemRotation);
             this.setDirty();
             this.getLevel().updateComparatorOutputLevel(this.getPosition());
         }
@@ -124,18 +109,19 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public ItemStack getItem() {
-        return this.item;
+        ItemStack item = data().getItem();
+        return item != null ? item : ItemStack.EMPTY;
     }
 
     @Override
     public void setItem(ItemStack item) {
         Objects.requireNonNull(item, "item");
-        ItemStack displayed = item.isEmpty() ? ItemStack.EMPTY : item.withCount(1);
+        ItemStack displayed = item.isEmpty() ? null : item.withCount(1);
 
-        if (!this.item.equals(displayed)) {
-            this.item = displayed;
-            if (displayed.isEmpty()) {
-                this.itemRotation = 0;
+        if (!Objects.equals(data().getItem(), displayed)) {
+            data().setItem(displayed);
+            if (displayed == null) {
+                data().setItemRotation(0);
             }
 
             this.updateMapState();
@@ -146,7 +132,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
 
     @Override
     public float getItemDropChance() {
-        return this.itemDropChance;
+        return data().getItemDropChance();
     }
 
     @Override
@@ -155,21 +141,21 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
             throw new IllegalArgumentException("Item drop chance must be between zero and one");
         }
 
-        if (this.itemDropChance != itemDropChance) {
-            this.itemDropChance = itemDropChance;
+        if (data().getItemDropChance() != itemDropChance) {
+            data().setItemDropChance(itemDropChance);
             this.setDirty();
         }
     }
 
     @Override
     public boolean isFixed() {
-        return this.fixed;
+        return data().isFixed();
     }
 
     @Override
     public void setFixed(boolean fixed) {
-        if (this.fixed != fixed) {
-            this.fixed = fixed;
+        if (data().isFixed() != fixed) {
+            data().setFixed(fixed);
             super.setDirty();
         }
     }
@@ -181,7 +167,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         BlockState state = this.getLevel().getBlockState(this.getPosition());
         if (state.getType() == BlockTypes.FRAME || state.getType() == BlockTypes.GLOW_FRAME) {
             this.getLevel().setBlockState(this.getPosition(), state.withTrait(BlockTraits.HAS_MAP,
-                    this.item.getType() == ItemTypes.FILLED_MAP), false, true);
+                    getItem().getType() == ItemTypes.FILLED_MAP), false, true);
         }
     }
 

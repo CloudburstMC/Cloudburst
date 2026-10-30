@@ -92,4 +92,24 @@ class JukeboxPersistenceTest {
         assertTrue(entity.getRecordItem().isEmpty());
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
     }
+
+    @Test
+    void absentRecordItemLoadsEmpty() {
+        JukeboxBlockEntity entity = (JukeboxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.JUKEBOX, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Jukebox")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        // A fresh jukebox holds no record.
+        assertTrue(entity.getRecordItem().isEmpty());
+    }
+
+    @Test
+    void jukeboxBlockEntityKeepsNoDuplicateState() {
+        // No retained fields: the record item lives in JukeboxData.
+        DtoStateChecks.assertKeepsNoDuplicateState(JukeboxBlockEntity.class, JukeboxData.class);
+    }
 }
