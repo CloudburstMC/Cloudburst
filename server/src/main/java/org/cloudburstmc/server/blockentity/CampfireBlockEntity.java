@@ -5,18 +5,14 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Campfire;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.CampfireData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
-
-    private static final String[] ITEM_TAGS = {"Item1", "Item2", "Item3", "Item4"};
-    private static final String[] TIME_TAGS = {"ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4"};
 
     private final ItemStack[] items = new ItemStack[4];
     private final int[] itemTimes = new int[4];
@@ -26,38 +22,44 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        CampfireData campfire = (CampfireData) data;
+        ItemStack[] loaded = {campfire.getItem1(), campfire.getItem2(), campfire.getItem3(), campfire.getItem4()};
+        Integer[] times = {campfire.getItemTime1(), campfire.getItemTime2(), campfire.getItemTime3(), campfire.getItemTime4()};
 
         boolean hasItems = false;
         for (int i = 0; i < 4; i++) {
-            if (tag.containsKey(ITEM_TAGS[i])) {
-                ItemStack item = ItemUtils.deserializeItem(tag.getCompound(ITEM_TAGS[i]));
-                items[i] = item;
+            if (loaded[i] != null) {
+                this.items[i] = loaded[i];
                 hasItems = true;
             } else {
-                items[i] = null;
+                this.items[i] = null;
             }
-
-            if (tag.containsKey(TIME_TAGS[i])) {
-                itemTimes[i] = tag.getInt(TIME_TAGS[i]);
-            } else {
-                itemTimes[i] = 0;
-            }
+            this.itemTimes[i] = times[i] != null ? times[i] : 0;
         }
         if (hasItems) this.scheduleUpdate();
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
-
-        for (int i = 0; i < 4; i++) {
-            ItemStack item = this.items[i];
-            if (item != null) {
-                tag.putCompound(ITEM_TAGS[i], ItemUtils.serializeItem(item));
-                tag.putInt(TIME_TAGS[i], this.itemTimes[i]);
-            }
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        CampfireData campfire = (CampfireData) data;
+        if (this.items[0] != null) {
+            campfire.setItem1(this.items[0]);
+            campfire.setItemTime1(this.itemTimes[0]);
+        }
+        if (this.items[1] != null) {
+            campfire.setItem2(this.items[1]);
+            campfire.setItemTime2(this.itemTimes[1]);
+        }
+        if (this.items[2] != null) {
+            campfire.setItem3(this.items[2]);
+            campfire.setItemTime3(this.itemTimes[2]);
+        }
+        if (this.items[3] != null) {
+            campfire.setItem4(this.items[3]);
+            campfire.setItemTime4(this.itemTimes[3]);
         }
     }
 

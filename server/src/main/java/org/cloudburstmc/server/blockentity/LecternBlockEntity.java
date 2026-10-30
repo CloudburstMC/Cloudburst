@@ -2,6 +2,8 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Lectern;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.LecternData;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -11,9 +13,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.item.ItemUtils;
 
 import javax.annotation.Nonnegative;
 
@@ -22,11 +21,6 @@ import javax.annotation.Nonnegative;
  * displayed page number out of the book's total pages.
  */
 public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
-
-    private static final String TAG_HAS_BOOK = "hasBook";
-    private static final String TAG_BOOK = "book";
-    private static final String TAG_PAGE = "page";
-    private static final String TAG_TOTAL_PAGES = "totalPages";
 
     private ItemStack book;
     private int page;
@@ -52,25 +46,25 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        if (tag.getBoolean(TAG_HAS_BOOK)) {
-            this.book = ItemUtils.deserializeItem(tag.getCompound(TAG_BOOK));
-            this.page = tag.getInt(TAG_PAGE);
-            this.totalPages = tag.getInt(TAG_TOTAL_PAGES);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        LecternData lectern = (LecternData) data;
+        if (Boolean.TRUE.equals(lectern.getHasBook())) {
+            this.book = lectern.getBook();
+            this.page = lectern.getPage() != null ? lectern.getPage() : 0;
+            this.totalPages = lectern.getTotalPages() != null ? lectern.getTotalPages() : 0;
         }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        LecternData lectern = (LecternData) data;
         if (this.book != null) {
-            tag.putBoolean(TAG_HAS_BOOK, true);
-            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book));
-            tag.putInt(TAG_PAGE, this.page);
-            tag.putInt(TAG_TOTAL_PAGES, this.totalPages);
+            lectern.setHasBook(true);
+            lectern.setBook(this.book);
+            lectern.setPage(this.page);
+            lectern.setTotalPages(this.totalPages);
         }
     }
 

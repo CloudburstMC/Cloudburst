@@ -7,6 +7,10 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BrewingStand;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.BrewingStandData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.event.inventory.BrewFinishEvent;
 import org.cloudburstmc.api.event.inventory.BrewStartEvent;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -17,20 +21,15 @@ import org.cloudburstmc.api.item.ItemType;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudBrewingRecipe;
 import org.cloudburstmc.server.crafting.CloudContainerRecipe;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -54,6 +53,8 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private int cookTime = MAX_COOK_TIME;
     private short fuelTotal;
     private int fuelAmount;
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(5));
@@ -70,37 +71,45 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.container.setItem(itemTag.getByte("Slot"), item);
-            }
-        });
-
-        tag.listenForInt("CookTime", this::setCookTime);
-        tag.listenForInt("FuelAmount", this::setFuelAmount);
-        tag.listenForShort("FuelTotal", this::setFuelTotal);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        BrewingStandData brewing = (BrewingStandData) data;
+        for (SlottedItem entry : brewing.getItems()) {
+            this.container.setItem(entry.slot(), entry.item());
+        }
+        this.setCookTime(brewing.getCookTime());
+        this.setFuelAmount(brewing.getFuelAmount());
+        this.setFuelTotal(brewing.getFuelTotal());
+        this.lootTable = brewing.getLootTable();
+        this.lootTableSeed = brewing.getLootTableSeed();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        List<NbtMap> items = new ArrayList<>();
-        container.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
-        tag.putInt("CookTime", this.cookTime);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        BrewingStandData brewing = (BrewingStandData) data;
+        brewing.setItems(ContainerData.slotted(this.container.getContents()));
+        brewing.setCookTime(this.cookTime);
+        brewing.setFuelAmount(this.fuelAmount);
+        brewing.setFuelTotal(this.fuelTotal);
+        brewing.setLootTable(this.lootTable);
+        brewing.setLootTableSeed(this.lootTableSeed);
     }
 
-    @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    public String getLootTable() {
+        return lootTable;
+    }
 
-        tag.putInt("FuelAmount", this.fuelAmount);
-        tag.putShort("FuelTotal", this.fuelTotal);
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     @Override

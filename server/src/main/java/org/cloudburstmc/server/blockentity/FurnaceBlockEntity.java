@@ -4,6 +4,10 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.FurnaceData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
@@ -17,21 +21,15 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudFurnaceRecipe;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 import static org.cloudburstmc.api.block.BlockTypes.LIT_FURNACE;
@@ -52,6 +50,8 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     protected short cookTime = 0;
     protected short burnDuration = 0;
     protected int currentCookDuration;
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(3));
@@ -68,31 +68,45 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-            }
-        });
-        tag.listenForShort("CookTime", this::setCookTime);
-        tag.listenForShort("BurnTime", this::setBurnTime);
-        tag.listenForShort("BurnDuration", this::setBurnDuration);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        FurnaceData furnace = (FurnaceData) data;
+        for (SlottedItem entry : furnace.getItems()) {
+            this.container.setItem(entry.slot(), entry.item());
+        }
+        this.setCookTime(furnace.getCookTime());
+        this.setBurnTime(furnace.getBurnTime());
+        this.setBurnDuration(furnace.getBurnDuration());
+        this.lootTable = furnace.getLootTable();
+        this.lootTableSeed = furnace.getLootTableSeed();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        FurnaceData furnace = (FurnaceData) data;
+        furnace.setItems(ContainerData.slotted(this.container.getContents()));
+        furnace.setCookTime(this.cookTime);
+        furnace.setBurnTime(this.burnTime);
+        furnace.setBurnDuration(this.burnDuration);
+        furnace.setLootTable(this.lootTable);
+        furnace.setLootTableSeed(this.lootTableSeed);
+    }
 
-        tag.putShort("CookTime", cookTime);
-        tag.putShort("BurnTime", burnTime);
-        tag.putShort("BurnDuration", burnDuration);
-        List<NbtMap> items = new ArrayList<>();
-        container.forEachSlot((itemStack, slot) -> {
-            items.add(ItemUtils.serializeItem(itemStack, slot));
-        });
-        tag.putList("Items", NbtType.COMPOUND, items);
+    public String getLootTable() {
+        return lootTable;
+    }
+
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     @Override

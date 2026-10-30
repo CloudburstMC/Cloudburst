@@ -2,16 +2,15 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.JukeboxData;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -45,21 +44,16 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForCompound("RecordItem", itemTag -> {
-            this.recordItem = ItemUtils.deserializeItem(itemTag);
-        });
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        ItemStack loaded = ((JukeboxData) data).getRecordItem();
+        this.recordItem = loaded != null ? loaded : ItemStack.EMPTY;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        if (!this.recordItem.isEmpty()) {
-            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
-        }
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        ((JukeboxData) data).setRecordItem(this.recordItem == null || this.recordItem.isEmpty() ? null : this.recordItem);
     }
 
     public ItemStack getRecordItem() {
