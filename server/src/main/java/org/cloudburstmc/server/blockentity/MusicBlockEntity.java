@@ -2,10 +2,10 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Noteblock;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.MusicData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
 
@@ -17,19 +17,19 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("note", this::setNote);
-        tag.listenForBoolean("powered", this::setPowered);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        MusicData music = (MusicData) data;
+        this.note = music.getNote();
+        this.powered = music.isPowered();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("note", this.getNote());
-        tag.putBoolean("powered", this.isPowered());
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        MusicData music = (MusicData) data;
+        music.setNote(this.note);
+        music.setPowered(this.powered);
     }
 
     public byte getNote() {

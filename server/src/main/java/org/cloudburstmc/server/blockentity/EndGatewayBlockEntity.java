@@ -3,6 +3,8 @@ package org.cloudburstmc.server.blockentity;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.EndGateway;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.EndGatewayData;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -12,6 +14,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 
 import java.util.List;
+import java.util.Set;
 
 public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway {
 
@@ -28,10 +31,23 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForLong("Age", this::setAge);
-        tag.listenForBoolean("ExactTeleport", this::setExactTeleport);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        EndGatewayData gateway = (EndGatewayData) data;
+        this.age = gateway.getAge();
+        this.exactTeleport = gateway.isExactTeleport();
+    }
+
+    @Override
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        EndGatewayData gateway = (EndGatewayData) data;
+        gateway.setAge(this.age);
+        gateway.setExactTeleport(this.exactTeleport);
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
         tag.listenForList("ExitPortal", NbtType.INT, coordinates -> {
             if (coordinates.size() >= 3) {
                 this.exitPosition = Vector3i.from(coordinates.get(0), coordinates.get(1), coordinates.get(2));
@@ -40,20 +56,22 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putLong("Age", this.age);
-        tag.putBoolean("ExactTeleport", this.exactTeleport);
+    protected void saveCustom(NbtMapBuilder tag) {
         if (this.exitPosition != null) {
             tag.putList("ExitPortal", NbtType.INT, List.of(this.exitPosition.getX(), this.exitPosition.getY(), this.exitPosition.getZ()));
         }
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
+    protected void saveCustomClient(NbtMapBuilder tag) {
         tag.putInt("Age", networkAge());
         Vector3i exit = this.exitPosition == null ? Vector3i.ZERO : this.exitPosition;
         tag.putList("ExitPortal", NbtType.INT, List.of(exit.getX(), exit.getY(), exit.getZ()));
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        return Set.of("ExitPortal");
     }
 
     @Override

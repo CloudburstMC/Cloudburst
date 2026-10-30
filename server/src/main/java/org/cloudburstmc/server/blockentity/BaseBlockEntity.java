@@ -105,7 +105,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return id;
     }
 
-    public void loadAdditionalData(NbtMap tag) {
+    public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
         tags.putIfAbsent(this.getType(), tag);
 
@@ -113,7 +113,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.loadCustom(tag);
     }
 
-    public void saveAdditionalData(NbtMapBuilder tag) {
+    public final void saveAdditionalData(NbtMapBuilder tag) {
         Class<? extends BlockEntityData> dataClass = CloudBlockEntityRegistry.get().getDataClass(this.type);
         Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
         excluded.addAll(this.customKeys());
@@ -135,8 +135,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         this.saveCustom(tag);
-
-        this.saveClientData(tag);
 
 //        NbtMap nbt = tag.build();
 //        checkNbt(this.tag, nbt);
@@ -272,18 +270,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         return Set.of();
     }
 
-    /**
-     * NBT data that is specifically sent to the client
-     *
-     * @param tag tag to write data to
-     * @deprecated subclasses are migrated to {@link #saveCustomClient(NbtMapBuilder)};
-     * this hook stays until every subclass is migrated.
-     */
-    @Deprecated
-    protected void saveClientData(NbtMapBuilder tag) {
-
-    }
-
     public final NbtMap getItemTag() {
         return this.getTag(false, false, true);
     }
@@ -332,7 +318,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
             this.fillData(data);
             tag.putAll(ServerNbt.MAPPER.writeClient(data));
             this.saveCustomClient(tag);
-            this.saveClientData(tag);
         }
 
         return tag.build();

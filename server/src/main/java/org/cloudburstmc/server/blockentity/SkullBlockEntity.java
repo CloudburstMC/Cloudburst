@@ -2,10 +2,10 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.SkullData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     private float rotation;
@@ -18,23 +18,23 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("SkullType", this::setSkullType);
-        tag.listenForFloat("Rotation", this::setRotation);
-        tag.listenForInt("MouthTickCount", this::setMouthTickCount);
-        tag.listenForBoolean("MouthMoving", this::setMouthMoving);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        SkullData skull = (SkullData) data;
+        this.skullType = skull.getSkullType();
+        this.rotation = skull.getRotation();
+        this.mouthTickCount = skull.getMouthTickCount();
+        this.mouthMoving = skull.isMouthMoving();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("SkullType", (byte) this.getSkullType());
-        tag.putFloat("Rotation", this.getRotation());
-        tag.putInt("MouthTickCount", this.getMouthTickCount());
-        tag.putBoolean("MouthMoving", this.isMouthMoving());
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        SkullData skull = (SkullData) data;
+        skull.setSkullType((byte) this.skullType);
+        skull.setRotation(this.rotation);
+        skull.setMouthTickCount(this.mouthTickCount);
+        skull.setMouthMoving(this.mouthMoving);
     }
 
     public float getRotation() {

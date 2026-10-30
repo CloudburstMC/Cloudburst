@@ -2,10 +2,10 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ComparatorData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator {
 
@@ -16,17 +16,15 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("OutputSignal", this::setOutputSignal);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        this.outputSignal = ((ComparatorData) data).getOutputSignal();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("OutputSignal", this.getOutputSignal());
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        ((ComparatorData) data).setOutputSignal(this.outputSignal);
     }
 
     public int getOutputSignal() {

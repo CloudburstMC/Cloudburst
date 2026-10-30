@@ -3,13 +3,13 @@ package org.cloudburstmc.server.blockentity;
 import com.google.common.collect.ImmutableList;
 import org.cloudburstmc.api.blockentity.Banner;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BannerData;
+import org.cloudburstmc.api.blockentity.data.BannerPatternData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,51 +27,44 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("Base", this::setBase);
-        tag.listenForInt("Type", this::setBannerType);
-
-        tag.listenForList("Patterns", NbtType.COMPOUND, patternTags -> {
-            for (NbtMap patternTag : patternTags) {
-                String pattern = patternTag.getString("Pattern");
-                DyeColor color = DyeColor.getByDyeData(patternTag.getInt("Color"));
-                BannerPattern.Type patternType = BannerPattern.Type.getByName(pattern);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        BannerData banner = (BannerData) data;
+        this.base = DyeColor.getByDyeData(banner.getBase());
+        this.type = banner.getType();
+        this.patterns.clear();
+        if (banner.getPatterns() != null) {
+            for (BannerPatternData patternTag : banner.getPatterns()) {
+                BannerPattern.Type patternType = BannerPattern.Type.getByName(patternTag.getPattern());
                 if (patternType == null) {
-                    throw new IllegalArgumentException("Unknown banner pattern: " + pattern);
+                    throw new IllegalArgumentException("Unknown banner pattern: " + patternTag.getPattern());
                 }
-                this.patterns.add(new BannerPattern(patternType, color));
+                this.patterns.add(new BannerPattern(patternType, DyeColor.getByDyeData(patternTag.getColor())));
             }
-        });
+        }
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
-
-        tag.putInt("Base", this.base.getDyeData());
-        tag.putInt("Type", this.type);
-
-        if (!patterns.isEmpty()) {
-            List<NbtMap> patternsTag = new ArrayList<>();
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        BannerData banner = (BannerData) data;
+        banner.setBase(this.base.getDyeData());
+        banner.setType(this.type);
+        if (!this.patterns.isEmpty()) {
+            List<BannerPatternData> patternTags = new ArrayList<>();
             for (BannerPattern pattern : this.patterns) {
-                patternsTag.add(NbtMap.builder().
-                        putInt("Color", pattern.getColor().getDyeData() & 0x0f).
-                        putString("Pattern", pattern.getType().getName())
-                        .build());
+                BannerPatternData patternTag = new BannerPatternData();
+                patternTag.setColor(pattern.getColor().getDyeData() & 0x0f);
+                patternTag.setPattern(pattern.getType().getName());
+                patternTags.add(patternTag);
             }
-            tag.putList("Patterns", NbtType.COMPOUND, patternsTag);
+            banner.setPatterns(patternTags);
         }
     }
 
     @Override
     public DyeColor getBase() {
         return this.base;
-    }
-
-    private void setBase(int base) {
-        this.base = DyeColor.getByDyeData(base);
     }
 
     @Override

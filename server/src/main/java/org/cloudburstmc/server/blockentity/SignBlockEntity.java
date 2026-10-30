@@ -3,11 +3,12 @@ package org.cloudburstmc.server.blockentity;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.SignData;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -35,30 +36,31 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        String[] text;
-        if (!tag.containsKey("Text")) {
-            text = new String[4];
-            for (int i = 0; i < 4; i++) {
-                text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
-            }
-        } else {
-            text = Arrays.copyOf(tag.getString("Text").split("\n", 4), 4);
-        }
-
-        this.text = text;
-
-        tag.listenForString("TextOwner", this::setTextOwner);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        SignData sign = (SignData) data;
+        String text = sign.getText();
+        this.text = text != null ? Arrays.copyOf(text.split("\n", 4), 4) : new String[]{"", "", "", ""};
+        this.textOwner = sign.getTextOwner() != null ? sign.getTextOwner() : "";
     }
 
     @Override
-    public void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        SignData sign = (SignData) data;
+        sign.setText(String.join("\n", this.text));
+        sign.setTextOwner(this.textOwner);
+    }
 
-        tag.putString("Text", String.join("\n", this.text));
-        tag.putString("TextOwner", this.textOwner);
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (!tag.containsKey("Text")) {
+            String[] text = new String[4];
+            for (int i = 0; i < 4; i++) {
+                text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
+            }
+            this.text = text;
+        }
     }
 
     public String[] getText() {

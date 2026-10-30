@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BeaconData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -13,7 +15,6 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.container.screen.CloudBeaconContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
@@ -42,18 +43,29 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("primary", this::setPrimaryEffect);
-        tag.listenForInt("secondary", this::setSecondaryEffect);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        BeaconData beacon = (BeaconData) data;
+        // Set the fields directly: the public setters spawn and dirty, which the
+        // stub level in tests cannot handle, and a chunk load needs neither.
+        if (beacon.getPrimary() != null) {
+            this.primaryEffect = NetworkUtils.effectFromNetwork(beacon.getPrimary().byteValue());
+        }
+        if (beacon.getSecondary() != null) {
+            this.secondaryEffect = NetworkUtils.effectFromNetwork(beacon.getSecondary().byteValue());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("primary", NetworkUtils.effectToNetwork(this.getPrimaryEffect()));
-        tag.putInt("secondary", NetworkUtils.effectToNetwork(this.getSecondaryEffect()));
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        BeaconData beacon = (BeaconData) data;
+        if (this.primaryEffect != null) {
+            beacon.setPrimary((int) NetworkUtils.effectToNetwork(this.primaryEffect));
+        }
+        if (this.secondaryEffect != null) {
+            beacon.setSecondary((int) NetworkUtils.effectToNetwork(this.secondaryEffect));
+        }
     }
 
     @Override

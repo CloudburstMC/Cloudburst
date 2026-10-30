@@ -4,13 +4,11 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.FlowerPot;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.FlowerPotData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockStateCodec;
 
 
 public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
@@ -22,26 +20,22 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        if (tag.containsKey("item") || tag.containsKey("mData")) {
-            throw new UnsupportedOperationException("Numeric flower pot data is no longer supported");
-        }
-
-        if (tag.containsKey("PlantBlock", NbtType.COMPOUND)) {
-            NbtMap plantTag = tag.getCompound("PlantBlock");
-
-            this.plant = BlockStateCodec.read(plantTag);
-        }
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        BlockState plant = ((FlowerPotData) data).getPlant();
+        this.plant = plant != null ? plant : BlockStates.AIR;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        ((FlowerPotData) data).setPlant(this.plant == BlockStates.AIR ? null : this.plant);
+    }
 
-        if (this.plant != BlockStates.AIR) {
-            tag.putCompound("PlantBlock", BlockPalette.INSTANCE.getSerialized(this.plant));
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (tag.containsKey("item") || tag.containsKey("mData")) {
+            throw new UnsupportedOperationException("Numeric flower pot data is no longer supported");
         }
     }
 
