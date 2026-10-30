@@ -77,4 +77,42 @@ class BaseDataTest {
 
         assertEquals("Box", read.getCustomName());
     }
+
+    @Test
+    void baseDataUsesValueEquality() {
+        BlockEntityData firstBlock = new BlockEntityData();
+        firstBlock.setMovable(false);
+        firstBlock.setCustomName("Box");
+        BlockEntityData secondBlock = new BlockEntityData();
+        secondBlock.setMovable(false);
+        secondBlock.setCustomName("Box");
+
+        assertEquals(firstBlock, secondBlock);
+        assertEquals(firstBlock.hashCode(), secondBlock.hashCode());
+
+        EntityData firstEntity = new EntityData();
+        EntityData.Effect firstEffect = new EntityData.Effect();
+        firstEffect.setId((byte) 1);
+        firstEffect.setAmplifier((byte) 2);
+        firstEffect.setDuration(100);
+        firstEffect.setAmbient(true);
+        firstEntity.setActiveEffects(List.of(firstEffect));
+        EntityData secondEntity = new EntityData();
+        EntityData.Effect secondEffect = new EntityData.Effect();
+        secondEffect.setId((byte) 1);
+        secondEffect.setAmplifier((byte) 2);
+        secondEffect.setDuration(100);
+        secondEffect.setAmbient(true);
+        secondEntity.setActiveEffects(List.of(secondEffect));
+
+        assertEquals(firstEntity, secondEntity);
+        assertEquals(firstEntity.hashCode(), secondEntity.hashCode());
+
+        NbtMap tag = NbtMap.builder()
+                .putByte("isMovable", (byte) 0)
+                .putString("CustomName", "Box")
+                .build();
+
+        assertEquals(mapper.read(tag, BlockEntityData.class), mapper.read(tag, BlockEntityData.class));
+    }
 }

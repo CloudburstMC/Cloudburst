@@ -2,6 +2,7 @@ package org.cloudburstmc.api.entity.data;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtTag;
@@ -18,6 +19,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
 @Getter
 @Setter
+@EqualsAndHashCode
 public class EntityData {
 
     @JsonProperty("Pos")
@@ -81,6 +83,7 @@ public class EntityData {
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
     @Getter
     @Setter
+    @EqualsAndHashCode
     public static class Effect {
 
         @JsonProperty("Id")
