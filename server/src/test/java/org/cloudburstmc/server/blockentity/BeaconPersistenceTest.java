@@ -11,10 +11,12 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
@@ -81,5 +83,31 @@ class BeaconPersistenceTest {
         // so a configured beacon is never required before saving.
         assertEquals(Set.of("id", "x", "y", "z", "isMovable"), entity.getServerTag().keySet());
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void beaconClearedEffectIsNotWritten() throws Exception {
+        BeaconBlockEntity entity = (BeaconBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BEACON, POSITION);
+        entity.loadAdditionalData(beaconTag());
+
+        // The setters themselves broadcast, which needs a live level; replicate their
+        // local state change so the save path can be tested standalone.
+        Field primary = BeaconBlockEntity.class.getDeclaredField("primaryEffect");
+        primary.setAccessible(true);
+        primary.set(entity, null);
+        Field secondary = BeaconBlockEntity.class.getDeclaredField("secondaryEffect");
+        secondary.setAccessible(true);
+        secondary.set(entity, null);
+
+        assertNull(entity.getPrimaryEffect());
+        assertNull(entity.getSecondaryEffect());
+
+        NbtMap saved = entity.getServerTag();
+        assertFalse(saved.containsKey("primary"), "server tag still has primary");
+        assertFalse(saved.containsKey("secondary"), "server tag still has secondary");
+
+        NbtMap client = entity.getClientTag();
+        assertFalse(client.containsKey("primary"), "client tag still has primary");
+        assertFalse(client.containsKey("secondary"), "client tag still has secondary");
     }
 }

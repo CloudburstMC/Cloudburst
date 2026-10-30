@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -126,5 +127,21 @@ class MovingBlockPersistenceTest {
         assertEquals(10, saved.getInt("pistonPosX"));
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void movingBlockClearedEntityIsNotWritten() {
+        MovingBlockEntity entity = (MovingBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.MOVING_BLOCK, POSITION);
+        entity.loadAdditionalData(movingBlockTag());
+        assertNotNull(entity.getBlockEntity());
+
+        entity.setBlockEntity(null);
+        assertNull(entity.getBlockEntity());
+
+        NbtMap saved = entity.getServerTag();
+        assertFalse(saved.containsKey("movingEntity"), "server tag still has movingEntity");
+
+        NbtMap client = entity.getClientTag();
+        assertFalse(client.containsKey("movingEntity"), "client tag still has movingEntity");
     }
 }

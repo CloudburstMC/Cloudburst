@@ -53,18 +53,30 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         if (this.items[0] != null) {
             campfire.setItem1(this.items[0]);
             campfire.setItemTime1(this.itemTimes[0]);
+        } else {
+            campfire.setItem1(null);
+            campfire.setItemTime1(null);
         }
         if (this.items[1] != null) {
             campfire.setItem2(this.items[1]);
             campfire.setItemTime2(this.itemTimes[1]);
+        } else {
+            campfire.setItem2(null);
+            campfire.setItemTime2(null);
         }
         if (this.items[2] != null) {
             campfire.setItem3(this.items[2]);
             campfire.setItemTime3(this.itemTimes[2]);
+        } else {
+            campfire.setItem3(null);
+            campfire.setItemTime3(null);
         }
         if (this.items[3] != null) {
             campfire.setItem4(this.items[3]);
             campfire.setItemTime4(this.itemTimes[3]);
+        } else {
+            campfire.setItem4(null);
+            campfire.setItemTime4(null);
         }
     }
 

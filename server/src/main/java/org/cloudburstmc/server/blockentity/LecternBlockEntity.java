@@ -70,6 +70,11 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
             lectern.setBook(this.book);
             lectern.setPage(this.page);
             lectern.setTotalPages(this.totalPages);
+        } else {
+            lectern.setHasBook(null);
+            lectern.setBook(null);
+            lectern.setPage(null);
+            lectern.setTotalPages(null);
         }
     }
 

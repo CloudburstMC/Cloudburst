@@ -67,9 +67,13 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
         BeaconData beacon = (BeaconData) data;
         if (this.primaryEffect != null) {
             beacon.setPrimary((int) NetworkUtils.effectToNetwork(this.primaryEffect));
+        } else {
+            beacon.setPrimary(null);
         }
         if (this.secondaryEffect != null) {
             beacon.setSecondary((int) NetworkUtils.effectToNetwork(this.secondaryEffect));
+        } else {
+            beacon.setSecondary(null);
         }
     }
 

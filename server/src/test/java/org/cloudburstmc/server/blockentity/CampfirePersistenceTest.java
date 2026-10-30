@@ -12,10 +12,13 @@ import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,5 +93,34 @@ class CampfirePersistenceTest {
         assertTrue(entity.getServerTag().getBoolean("isMovable"));
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void campfireClearedSlotIsNotWritten() throws Exception {
+        CampfireBlockEntity entity = (CampfireBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAMPFIRE, POSITION);
+        entity.loadAdditionalData(campfireTag());
+
+        // clearItems() itself broadcasts, which needs a live level; replicate its
+        // local state change so the save path can be tested standalone.
+        Field items = CampfireBlockEntity.class.getDeclaredField("items");
+        items.setAccessible(true);
+        Arrays.fill((ItemStack[]) items.get(entity), null);
+        Field itemTimes = CampfireBlockEntity.class.getDeclaredField("itemTimes");
+        itemTimes.setAccessible(true);
+        Arrays.fill((int[]) itemTimes.get(entity), 0);
+
+        NbtMap saved = entity.getServerTag();
+        for (String key : Set.of("Item1", "Item2", "Item3", "Item4",
+                "ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4")) {
+            assertFalse(saved.containsKey(key), "server tag still has " + key);
+        }
+        assertNull(entity.getItemInFire(0));
+        assertNull(entity.getItemInFire(2));
+
+        NbtMap client = entity.getClientTag();
+        for (String key : Set.of("Item1", "Item2", "Item3", "Item4",
+                "ItemTime1", "ItemTime2", "ItemTime3", "ItemTime4")) {
+            assertFalse(client.containsKey(key), "client tag still has " + key);
+        }
     }
 }

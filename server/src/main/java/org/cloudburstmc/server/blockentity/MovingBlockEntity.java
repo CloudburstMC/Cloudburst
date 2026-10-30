@@ -71,6 +71,8 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
         if (this.blockEntity != null) {
             moving.setMovingEntity(this.blockEntity.getServerTag());
+        } else {
+            moving.setMovingEntity(null);
         }
     }
 
