@@ -37,8 +37,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Reading is lenient: any numeric tag binds to any numeric property, and a byte binds to
  * a {@code boolean}. A property whose tag has another kind, for example a string for an
- * {@code int}, keeps its default and the mismatch is logged at debug level. Absent and
- * unknown keys are ignored.
+ * {@code int}, keeps its default and the mismatch is logged at warn level. A failure
+ * caused by element or property code itself (a non-Jackson exception in the cause
+ * chain) is rethrown instead. Absent and unknown keys are ignored.
  * <p>
  * {@link NbtMap} and {@link org.cloudburstmc.nbt.NbtList} values pass through unchanged
  * in both directions.

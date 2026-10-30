@@ -115,6 +115,9 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
             } catch (InvalidDefinitionException e) {
                 throw e;
             } catch (JacksonException e) {
+                if (hasNonJacksonCause(e)) {
+                    throw e;
+                }
                 skipped(p, start, depth, e);
             }
         }
@@ -128,13 +131,36 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
             } catch (InvalidDefinitionException e) {
                 throw e;
             } catch (JacksonException e) {
+                if (hasNonJacksonCause(e)) {
+                    throw e;
+                }
                 skipped(p, start, depth, e);
                 return instance;
             }
         }
 
+        /**
+         * Whether a binding failure was caused by something other than the tag's
+         * shape. A non-Jackson exception in the cause chain means element or
+         * property code rejected the value, so the read must fail instead of
+         * silently keeping the default.
+         *
+         * @param e the binding failure
+         * @return true when user code caused the failure
+         */
+        private static boolean hasNonJacksonCause(JacksonException e) {
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                if (!(cause instanceof JacksonException)) {
+                    return true;
+                }
+                cause = cause.getCause();
+            }
+            return false;
+        }
+
         private void skipped(JsonParser p, JsonToken start, int depth, JacksonException e) {
-            log.debug("NBT key {} does not fit {}, keeping its default: {}",
+            log.warn("NBT key {} does not fit {}, keeping its default: {}",
                     getName(), getDeclaringClass().getName(), e.getOriginalMessage());
             skipValue(p, start, depth);
         }

@@ -9,6 +9,11 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -23,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NbtMapperReadTest {
@@ -195,6 +201,69 @@ class NbtMapperReadTest {
 
         assertEquals(NbtMap.EMPTY, mapper.writeClient(dto));
         assertEquals(Set.of("Secret"), mapper.write(dto).keySet());
+    }
+
+    @Test
+    void elementFailureFailsTheRead() {
+        NbtMapper mapper = NbtMapper.create(new FailingModule());
+        NbtMap tag = NbtMap.builder()
+                .putList("items", NbtType.COMPOUND, List.of(
+                        NbtMap.builder().putInt("a", 1).build()))
+                .build();
+
+        // The element deserializer rejects the value, so the list property
+        // must fail instead of silently reading as empty.
+        assertThrows(JacksonException.class, () -> mapper.read(tag, Bag.class));
+    }
+
+    @Test
+    void singleElementFailureFailsTheRead() {
+        NbtMapper mapper = NbtMapper.create(new FailingModule());
+        NbtMap tag = NbtMap.builder()
+                .putCompound("item", NbtMap.builder().putInt("a", 1).build())
+                .build();
+
+        // A directly rejected value fails the read as well (surfaced as a
+        // binding failure whose cause is the rejection).
+        JacksonException thrown = assertThrows(JacksonException.class, () -> mapper.read(tag, SingleBag.class));
+        assertTrue(hasCause(thrown, IllegalStateException.class));
+    }
+
+    private static boolean hasCause(Throwable thrown, Class<? extends Throwable> type) {
+        for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
+            if (type.isInstance(cause)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class Bag {
+        @JsonProperty("items")
+        List<BadItem> items = List.of();
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class SingleBag {
+        @JsonProperty("item")
+        BadItem item;
+    }
+
+    static class BadItem {
+        int a;
+    }
+
+    static class FailingModule extends SimpleModule {
+        FailingModule() {
+            super("failing");
+            addDeserializer(BadItem.class, new StdDeserializer<>(BadItem.class) {
+                @Override
+                public BadItem deserialize(JsonParser p, DeserializationContext ctxt) {
+                    throw new IllegalStateException("bad item");
+                }
+            });
+        }
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
