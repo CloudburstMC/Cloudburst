@@ -35,7 +35,10 @@ public abstract class ContainerData extends BlockEntityData implements LootTable
     }
 
     /**
-     * Copies container contents into slotted items, skipping empty slots.
+     * Copies container contents into slotted items, one entry per slot.
+     *
+     * <p>Empty slots are kept as air compounds so the saved list always has one
+     * entry per slot, exactly as today's save code writes.
      *
      * @param contents the container's contents, one entry per slot
      * @return the slotted items
@@ -43,9 +46,7 @@ public abstract class ContainerData extends BlockEntityData implements LootTable
     public static List<SlottedItem> slotted(ItemStack[] contents) {
         List<SlottedItem> items = new ArrayList<>(contents.length);
         for (int slot = 0; slot < contents.length; slot++) {
-            if (contents[slot] != null && !contents[slot].isEmpty()) {
-                items.add(new SlottedItem(slot, contents[slot]));
-            }
+            items.add(new SlottedItem(slot, contents[slot]));
         }
         return items;
     }

@@ -34,10 +34,19 @@ class ChestPersistenceTest {
     private static final Vector3i POSITION = Vector3i.from(10, 64, -5);
     private static final int SIZE = 27;
 
-    private static List<NbtMap> fullItems(ItemStack stack, int stackSlot) {
-        List<NbtMap> items = new ArrayList<>();
-        items.add(ItemUtils.serializeItem(stack, stackSlot));
-        items.add(ItemUtils.serializeItem(ItemStack.from(ItemTypes.STICK, 2), 5));
+    private static List<NbtMap> fullItems() {
+        List<NbtMap> items = new ArrayList<>(SIZE);
+        for (int slot = 0; slot < SIZE; slot++) {
+            ItemStack stack;
+            if (slot == 3) {
+                stack = ItemStack.from(ItemTypes.DIAMOND, 5);
+            } else if (slot == 5) {
+                stack = ItemStack.from(ItemTypes.STICK, 2);
+            } else {
+                stack = ItemStack.EMPTY;
+            }
+            items.add(ItemUtils.serializeItem(stack, slot));
+        }
         return items;
     }
 
@@ -49,7 +58,7 @@ class ChestPersistenceTest {
                 .putInt("z", -5)
                 .putBoolean("isMovable", true)
                 .putString("CustomName", "Loot chest")
-                .putList("Items", NbtType.COMPOUND, fullItems(ItemStack.from(ItemTypes.DIAMOND, 5), 3))
+                .putList("Items", NbtType.COMPOUND, fullItems())
                 .putBoolean("Findable", true)
                 .putString("LootTable", "minecraft:chests/simple_dungeon")
                 .putInt("LootTableSeed", 12345)
@@ -89,7 +98,7 @@ class ChestPersistenceTest {
     }
 
     @Test
-    void emptyChestWritesEmptyItemsList() {
+    void emptyChestWritesAirForEverySlot() {
         ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "Chest")
@@ -100,7 +109,45 @@ class ChestPersistenceTest {
 
         NbtList<?> items = assertInstanceOf(NbtList.class, entity.getServerTag().get("Items"));
         assertEquals(NbtType.COMPOUND, items.getType());
-        assertEquals(0, items.size());
+        assertEquals(SIZE, items.size());
+        for (int slot = 0; slot < SIZE; slot++) {
+            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+                    "slot " + slot);
+        }
+
+        // Air entries load back as empty slots.
+        for (int slot = 0; slot < SIZE; slot++) {
+            assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
+        }
+    }
+
+    @Test
+    void nonLeadPairedChestKeepsPairKeys() {
+        ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Chest")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putInt("pairx", 11)
+                .putInt("pairz", -5)
+                .putBoolean("pairlead", false)
+                .build());
+
+        assertTrue(entity.isPaired());
+
+        NbtMap saved = entity.getServerTag();
+        assertTrue(saved.get("pairx") instanceof Integer);
+        assertEquals(11, saved.getInt("pairx"));
+        assertTrue(saved.get("pairz") instanceof Integer);
+        assertEquals(-5, saved.getInt("pairz"));
+        assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("pairlead").getClass()));
+        assertFalse(saved.getBoolean("pairlead"));
+
+        NbtMap client = entity.getClientTag();
+        assertFalse(client.containsKey("pairx"));
+        assertFalse(client.containsKey("pairz"));
+        assertFalse(client.containsKey("pairlead"));
     }
 
     @Test

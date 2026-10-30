@@ -77,7 +77,11 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
-        writePair(tag);
+        if (this.pairPosition != null) {
+            tag.putInt("pairx", this.pairPosition.getX());
+            tag.putInt("pairz", this.pairPosition.getZ());
+            tag.putBoolean("pairlead", this.pairlead);
+        }
     }
 
     @Override

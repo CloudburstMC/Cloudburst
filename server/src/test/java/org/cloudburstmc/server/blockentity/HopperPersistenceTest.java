@@ -5,6 +5,7 @@ import org.cloudburstmc.api.blockentity.data.HopperData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -19,6 +20,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,10 +34,18 @@ class HopperPersistenceTest {
     private static final int SIZE = 5;
 
     private static NbtMap hopperTag() {
-        List<NbtMap> items = new ArrayList<>();
-        ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 5);
-        items.add(ItemUtils.serializeItem(stack, 2));
-        items.add(ItemUtils.serializeItem(ItemStack.from(ItemTypes.STICK, 2), 4));
+        List<NbtMap> items = new ArrayList<>(SIZE);
+        for (int slot = 0; slot < SIZE; slot++) {
+            ItemStack stack;
+            if (slot == 2) {
+                stack = ItemStack.from(ItemTypes.DIAMOND, 5);
+            } else if (slot == 4) {
+                stack = ItemStack.from(ItemTypes.STICK, 2);
+            } else {
+                stack = ItemStack.EMPTY;
+            }
+            items.add(ItemUtils.serializeItem(stack, slot));
+        }
         return NbtMap.builder()
                 .putString("id", "Hopper")
                 .putInt("x", 10)
@@ -76,6 +86,26 @@ class HopperPersistenceTest {
         }
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
+    void emptyHopperWritesAirForEverySlot() {
+        HopperBlockEntity entity = (HopperBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.HOPPER, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Hopper")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putInt("TransferCooldown", 8)
+                .build());
+
+        NbtList<?> items = assertInstanceOf(NbtList.class, entity.getServerTag().get("Items"));
+        assertEquals(NbtType.COMPOUND, items.getType());
+        assertEquals(SIZE, items.size());
+        for (int slot = 0; slot < SIZE; slot++) {
+            assertEquals(ItemUtils.serializeItem(ItemStack.EMPTY, slot), items.get(slot),
+                    "slot " + slot);
+        }
     }
 
     @Test

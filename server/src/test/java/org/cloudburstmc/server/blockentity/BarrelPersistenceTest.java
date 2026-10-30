@@ -32,10 +32,18 @@ class BarrelPersistenceTest {
     private static final int SIZE = 27;
 
     private static NbtMap barrelTag() {
-        List<NbtMap> items = new ArrayList<>();
-        ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 5);
-        items.add(ItemUtils.serializeItem(stack, 3));
-        items.add(ItemUtils.serializeItem(ItemStack.from(ItemTypes.STICK, 2), 5));
+        List<NbtMap> items = new ArrayList<>(SIZE);
+        for (int slot = 0; slot < SIZE; slot++) {
+            ItemStack stack;
+            if (slot == 3) {
+                stack = ItemStack.from(ItemTypes.DIAMOND, 5);
+            } else if (slot == 5) {
+                stack = ItemStack.from(ItemTypes.STICK, 2);
+            } else {
+                stack = ItemStack.EMPTY;
+            }
+            items.add(ItemUtils.serializeItem(stack, slot));
+        }
         return NbtMap.builder()
                 .putString("id", "Barrel")
                 .putInt("x", 10)
