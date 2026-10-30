@@ -8,7 +8,8 @@ import org.cloudburstmc.api.item.ItemStack;
 
 /**
  * Persistent data of an arrow: abstract-arrow data plus its item
- * and potion ground ticks.
+ * and potion ground ticks. The item is set when the entity initializes;
+ * a data instance without one writes no item, as before.
  */
 @Getter
 @Setter

@@ -15,13 +15,13 @@ import lombok.Setter;
 public class FireworksRocketData extends ProjectileData {
 
     @JsonProperty("Life")
-    private Integer life;
+    private int life;
 
     @JsonProperty("LifeTime")
-    private Integer lifetime;
+    private int lifetime;
 
     @JsonProperty("ShotAtAngle")
-    private Boolean shotAtAngle;
+    private boolean shotAtAngle;
 
     public FireworksRocketData() {
     }

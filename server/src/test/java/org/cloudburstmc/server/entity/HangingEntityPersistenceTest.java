@@ -5,26 +5,30 @@ import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.HangingData;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Data-path tests for hanging entities. {@link HangingEntity} is abstract and has no
- * registered type mapping to {@link HangingData}, so the tests drive
- * {@code applyData}/{@code fillData} directly and assert the mapped NBT types,
- * exactly as the production save path would write them. Tile coordinates are
- * computed from the position on every save, so they travel through the custom hooks.
+ * registered type mapping to {@link HangingData}, so the tests drive the production
+ * load and save paths through a minimal subclass and assert the mapped NBT types.
+ * Tile coordinates are computed from the position on every save, so they travel
+ * through the custom hooks.
  */
 class HangingEntityPersistenceTest {
 
@@ -42,22 +46,23 @@ class HangingEntityPersistenceTest {
         return hanging;
     }
 
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
         TestHanging hanging = hanging();
 
-        HangingData loaded = new HangingData();
-        loaded.setDirection(2);
-        hanging.applyData(loaded);
+        hanging.loadAdditionalData(NbtMap.builder()
+                .putByte("Direction", (byte) 2)
+                .build());
 
-        assertEquals(2, hanging.direction);
+        assertEquals(2, hanging.getDirection().getIndex());
 
-        // Base data carries a default origin, so restore the position after applying.
-        hanging.setPosition(Vector3f.from(1.2f, 64.7f, -3.4f));
-
-        HangingData filled = new HangingData();
-        hanging.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(hanging);
 
         assertTrue(written.get("Direction") instanceof Byte, "Direction must be a byte");
         assertEquals((byte) 2, written.getByte("Direction"));
@@ -84,9 +89,7 @@ class HangingEntityPersistenceTest {
     void defaultInstanceFillsTodayDefaults() {
         TestHanging hanging = hanging();
 
-        HangingData filled = new HangingData();
-        hanging.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(hanging);
 
         // Today's save always writes the direction byte, zero for a fresh hanging.
         assertTrue(written.get("Direction") instanceof Byte, "Direction must be a byte");
@@ -96,11 +99,25 @@ class HangingEntityPersistenceTest {
     @Test
     void absentKeyLeavesStateUnchanged() {
         TestHanging hanging = hanging();
-        hanging.direction = 3;
+        hanging.data().setDirection(Direction.fromIndex(3));
 
-        // All DTO fields null, as the mapper leaves them when the keys are absent.
-        hanging.applyData(new HangingData());
+        // A tag without keys keeps the current values, as today's load did.
+        hanging.loadAdditionalData(NbtMap.EMPTY);
 
-        assertEquals(3, hanging.direction);
+        assertEquals(3, hanging.getDirection().getIndex());
+    }
+
+    @Test
+    void hangingKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                HangingEntity.class, HangingData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : HangingEntity.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("direction")) {
+            assertFalse(fields.contains(removed),
+                    "HangingEntity keeps " + removed + "; state must live in HangingData only");
+        }
     }
 }

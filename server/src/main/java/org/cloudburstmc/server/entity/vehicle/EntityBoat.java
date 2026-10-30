@@ -26,6 +26,7 @@ import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.PredictionType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
@@ -53,7 +54,6 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     private static final int CORRECTION_INTERVAL_TICKS = 5;
 
-    private BoatType boatType = BoatType.OAK;
     private BoatStatus status = BoatStatus.IN_AIR;
     private Buoyancy buoyancy;
     private float waterLevel;
@@ -96,37 +96,41 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
+    protected BoatData data() {
+        return (BoatData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return BoatData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        BoatData boatData = (BoatData) data;
-        this.setBoatType(VanillaBoats.fromVariant(boatData.getWoodType()).type());
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((BoatData) data).setWoodType(VanillaBoats.definition(this.boatType).variant());
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the hull runs before the vehicle load below, matching the
+        // old applyData-before-loadCustom order. The wood type has no presence bit, so it
+        // always falls back to oak, exactly as the old getInt-with-default load did. The
+        // setter re-runs to keep the metadata sync.
+        BoatType boatType = this.data().getWoodType();
+        this.setBoatType(tag.containsKey("WoodType") && boatType != null ? boatType : BoatType.OAK);
+        super.loadCustom(tag);
     }
 
     @Override
     public BoatType getBoatType() {
-        return this.boatType;
+        return this.data().getWoodType();
     }
 
     @Override
     public void setBoatType(BoatType type) {
-        this.boatType = Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(type, "type");
+        this.data().setWoodType(type);
         this.data.set(VARIANT, VanillaBoats.definition(type).variant());
         this.updatePassengers();
     }
 
     public ItemType getBoatItem() {
-        return VanillaBoats.definition(this.boatType).boatItem();
+        return VanillaBoats.definition(this.getBoatType()).boatItem();
     }
 
     @Override
@@ -659,7 +663,7 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     public float getMountedHeightOffset() {
-        return this.boatType == BoatType.BAMBOO ? 0.1f : -0.2f;
+        return this.getBoatType() == BoatType.BAMBOO ? 0.1f : -0.2f;
     }
 
     private float getPassengerVerticalOffset(Entity passenger) {

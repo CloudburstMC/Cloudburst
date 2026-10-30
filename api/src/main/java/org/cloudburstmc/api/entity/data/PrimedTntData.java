@@ -14,7 +14,7 @@ import lombok.Setter;
 public class PrimedTntData extends EntityData {
 
     @JsonProperty("Fuse")
-    private Integer fuse;
+    private int fuse = 80;
 
     public PrimedTntData() {
     }

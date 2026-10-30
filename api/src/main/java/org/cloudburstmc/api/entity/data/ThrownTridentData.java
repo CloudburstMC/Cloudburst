@@ -16,10 +16,10 @@ import org.cloudburstmc.api.item.ItemStack;
 public class ThrownTridentData extends AbstractArrowData {
 
     @JsonProperty("Trident")
-    private ItemStack trident;
+    private ItemStack trident = ItemStack.EMPTY;
 
     @JsonProperty("DealtDamage")
-    private Boolean dealtDamage;
+    private boolean dealtDamage;
 
     public ThrownTridentData() {
     }

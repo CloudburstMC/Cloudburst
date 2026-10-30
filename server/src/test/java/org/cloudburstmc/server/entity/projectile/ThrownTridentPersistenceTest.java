@@ -7,16 +7,19 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -102,5 +105,19 @@ class ThrownTridentPersistenceTest {
 
         NbtMap saved = save(trident);
         assertEquals(true, saved.getBoolean("DealtDamage"));
+    }
+
+    @Test
+    void thrownTridentKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityThrownTrident.class, ThrownTridentData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityThrownTrident.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("trident", "dealtDamage")) {
+            assertFalse(fields.contains(removed),
+                    "EntityThrownTrident keeps " + removed + "; state must live in ThrownTridentData only");
+        }
     }
 }

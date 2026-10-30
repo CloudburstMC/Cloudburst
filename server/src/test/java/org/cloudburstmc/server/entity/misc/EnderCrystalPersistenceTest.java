@@ -6,11 +6,13 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -108,5 +110,11 @@ class EnderCrystalPersistenceTest {
 
         NbtMap saved = save(crystal);
         assertTrue(saved.get("BeamTarget") == null, "BeamTarget must be absent");
+    }
+
+    @Test
+    void enderCrystalKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityEnderCrystal.class, EnderCrystalData.class);
     }
 }

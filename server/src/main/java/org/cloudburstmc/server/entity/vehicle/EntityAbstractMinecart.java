@@ -22,7 +22,9 @@ import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
@@ -32,8 +34,10 @@ import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.math.MathHelper;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
@@ -70,38 +74,55 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
+    protected AbstractMinecartData data() {
+        return (AbstractMinecartData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return AbstractMinecartData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        AbstractMinecartData minecartData = (AbstractMinecartData) data;
-        this.setDisplayBlockOffset(minecartData.getDisplayOffset() != null ? minecartData.getDisplayOffset() : DEFAULT_DISPLAY_OFFSET);
-
-        if (Boolean.TRUE.equals(minecartData.getCustomDisplayTile())) {
-            this.setDisplay(true);
-
-            this.setDisplayBlock(minecartData.getDisplayBlock());
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        AbstractMinecartData minecartData = (AbstractMinecartData) data;
-        minecartData.setDisplayOffset(this.getDisplayOffset() != DEFAULT_DISPLAY_OFFSET ? this.getDisplayOffset() : null);
-        minecartData.setCustomDisplayTile(this.hasDisplay() ? true : null);
-        minecartData.setDisplayBlock(this.hasDisplay() ? this.getDisplayBlock() : null);
-    }
-
-    @Override
     protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the display offset and custom block run before the
+        // vehicle load below, matching the old applyData-before-loadCustom order. The
+        // offset has a load default, so it resets when absent; the custom block keeps its
+        // current values when absent, exactly as the old null checks did.
+        this.setDisplayBlockOffset(tag.containsKey("DisplayOffset")
+                ? getInt(tag, "DisplayOffset", DEFAULT_DISPLAY_OFFSET) : DEFAULT_DISPLAY_OFFSET);
+
+        if (getBoolean(tag, "CustomDisplayTile", false)) {
+            this.setDisplay(true);
+            this.setDisplayBlock(BlockStateCodec.read(tag.getCompound("DisplayBlock")));
+        }
         super.loadCustom(tag);
         if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
             throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
         }
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        // The display keys are conditional: the default offset and a missing display are
+        // not written, as before.
+        if (this.getDisplayOffset() != DEFAULT_DISPLAY_OFFSET) {
+            tag.putInt("DisplayOffset", this.getDisplayOffset());
+        }
+        if (this.hasDisplay()) {
+            tag.putBoolean("CustomDisplayTile", true);
+            tag.putCompound("DisplayBlock", BlockStateCodec.write(this.getDisplayBlock()));
+        }
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("DisplayOffset");
+        keys.add("CustomDisplayTile");
+        keys.add("DisplayBlock");
+        return Set.copyOf(keys);
     }
 
     public abstract MinecartType getMinecartType();

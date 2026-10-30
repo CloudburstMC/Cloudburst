@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.api.nbt.NbtTag;
-import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.nbt.NbtCodec;
+import org.cloudburstmc.api.nbt.codec.DirectionCodec;
+import org.cloudburstmc.api.util.Direction;
 
 /**
  * Persistent data of a hanging entity: everything shared plus its attachment direction.
@@ -16,8 +17,8 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 public class HangingData extends EntityData {
 
     @JsonProperty("Direction")
-    @NbtTag(NbtTagType.BYTE)
-    private Integer direction;
+    @NbtCodec(DirectionCodec.class)
+    private Direction direction = Direction.DOWN;
 
     public HangingData() {
     }

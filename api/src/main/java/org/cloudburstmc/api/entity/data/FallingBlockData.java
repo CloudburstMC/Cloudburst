@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.api.nbt.NbtShortBlockState;
 
 /**
  * Persistent data of a falling block: everything shared plus its state, timers,
@@ -16,13 +18,14 @@ import org.cloudburstmc.nbt.NbtMap;
 public class FallingBlockData extends EntityData {
 
     @JsonProperty("BlockState")
-    private NbtMap blockState;
+    @NbtShortBlockState
+    private BlockState blockState = BlockStates.SAND;
 
     @JsonProperty("Time")
     private int time;
 
     @JsonProperty("DropItem")
-    private Boolean dropItem;
+    private boolean dropItem = true;
 
     @JsonProperty("CancelDrop")
     private boolean cancelDrop;
@@ -34,10 +37,10 @@ public class FallingBlockData extends EntityData {
     private float damagePerBlock;
 
     @JsonProperty("MaximumDamage")
-    private Integer maximumDamage;
+    private int maximumDamage = 40;
 
     @JsonProperty("AutoExpire")
-    private Boolean autoExpire;
+    private boolean autoExpire = true;
 
     @JsonProperty("LandingSound")
     private String landingSound;

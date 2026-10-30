@@ -16,12 +16,12 @@ import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.potion.*;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotionColor;
-import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
 
 import java.util.*;
 
@@ -32,54 +32,51 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.NO_AI;
 
 public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectCloud {
-    private final List<PotionEffect> customEffects = new ArrayList<>();
     private final Map<Long, Integer> victims = new HashMap<>();
-    private int reapplicationDelay;
-    private int durationOnUse;
-    private float radiusOnUse;
     private int nextApply;
-    private int particleColor;
     private boolean particleColorSet;
     private int lastAge;
-    private int duration = 600;
-    private float radiusPerTick;
-    private float potionDurationScale = 1.0F;
-    private PotionType potionType = PotionTypes.WATER;
 
     public EntityAreaEffectCloud(EntityType<?> type, Location location) {
         super(type, location);
         this.data.set(AREA_EFFECT_CLOUD_RADIUS, 3.0F);
         this.data.set(AREA_EFFECT_CLOUD_WAITING, 10);
         this.data.set(AREA_EFFECT_CLOUD_PARTICLE, NetworkUtils.particleToNetwork(ParticleTypes.MOB_SPELL_AMBIENT));
-        this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(this.potionType));
+        this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(PotionTypes.WATER));
+        this.data().setPotionId(NetworkUtils.potionToNetwork(PotionTypes.WATER));
         this.recalculatePotionColor();
     }
 
     @Override
     public int getWaitTime() {
-        return this.data.require(AREA_EFFECT_CLOUD_WAITING);
+        return this.data().getWaitTime();
     }
 
     @Override
     public void setWaitTime(int waitTime) {
         checkArgument(waitTime >= 0, "waitTime cannot be negative");
+        this.data().setWaitTime(waitTime);
         this.data.set(AREA_EFFECT_CLOUD_WAITING, waitTime);
     }
 
     @Override
     public PotionType getPotionType() {
-        return this.potionType;
+        Short potionId = this.data().getPotionId();
+        return potionId == null ? PotionTypes.WATER : NetworkUtils.potionFromNetwork(potionId);
     }
 
     @Override
     public void setPotionType(PotionType potionType) {
-        this.potionType = requireNonNull(potionType, "potionType");
+        requireNonNull(potionType, "potionType");
+        this.data().setPotionId(NetworkUtils.potionToNetwork(potionType));
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(potionType));
         this.recalculatePotionColor();
     }
 
     private void recalculatePotionColor() {
-        int color = this.particleColorSet ? this.particleColor : 0xff000000 | CloudPotionColor.calculateEffects(this.getApplicationEffects()).orElse(0x2828ff);
+        Integer particleColor = this.data().getParticleColor();
+        int color = this.particleColorSet && particleColor != null ? particleColor
+                : 0xff000000 | CloudPotionColor.calculateEffects(this.getApplicationEffects()).orElse(0x2828ff);
         this.updatePotionColor(color);
     }
 
@@ -90,7 +87,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public void setPotionColor(int argb) {
-        this.particleColor = argb;
+        this.data().setParticleColor(argb);
         this.particleColorSet = true;
         this.updatePotionColor(argb);
     }
@@ -106,67 +103,73 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     private void updatePotionColor(int argb) {
         this.data.set(EFFECT_COLOR, argb);
+        this.data().setParticleColor(argb);
     }
 
     @Override
     public int getReapplicationDelay() {
-        return this.reapplicationDelay;
+        return this.data().getReapplicationDelay();
     }
 
     @Override
     public void setReapplicationDelay(int reapplicationDelay) {
         checkArgument(reapplicationDelay >= 0, "reapplicationDelay cannot be negative");
-        this.reapplicationDelay = reapplicationDelay;
+        this.data().setReapplicationDelay(reapplicationDelay);
     }
 
     @Override
     public int getDurationOnUse() {
-        return this.durationOnUse;
+        return this.data().getDurationOnUse();
     }
 
     @Override
     public void setDurationOnUse(int durationOnUse) {
-        this.durationOnUse = durationOnUse;
+        this.data().setDurationOnUse(durationOnUse);
     }
 
     @Override
     public float getRadiusOnUse() {
-        return this.radiusOnUse;
+        return this.data().getRadiusOnUse();
     }
 
     @Override
     public void setRadiusOnUse(float radiusOnUse) {
         checkArgument(Float.isFinite(radiusOnUse), "radiusOnUse must be finite");
-        this.radiusOnUse = radiusOnUse;
+        this.data().setRadiusOnUse(radiusOnUse);
     }
 
     @Override
     public float getRadiusPerTick() {
-        return this.radiusPerTick;
+        return this.data().getRadiusPerTick();
     }
 
     @Override
     public void setRadiusPerTick(float radiusPerTick) {
         checkArgument(Float.isFinite(radiusPerTick), "radiusPerTick must be finite");
-        this.radiusPerTick = radiusPerTick;
+        this.data().setRadiusPerTick(radiusPerTick);
     }
 
     @Override
     public int getDuration() {
-        return this.duration;
+        return this.data().getDuration();
     }
 
     @Override
     public void setDuration(int duration) {
         checkArgument(duration == PotionEffect.INFINITE_DURATION || duration >= 0,
                 "duration must be non-negative or PotionEffect.INFINITE_DURATION");
-        this.duration = duration;
+        this.data().setDuration(duration);
+    }
+
+    private float potionDurationScale() {
+        Float potionDurationScale = this.data().getPotionDurationScale();
+        return potionDurationScale == null ? 1.0F : potionDurationScale;
     }
 
     public void setPotionDurationScale(float potionDurationScale) {
         checkArgument(Float.isFinite(potionDurationScale) && potionDurationScale >= 0.0F,
                 "potionDurationScale must be finite and non-negative");
-        this.potionDurationScale = potionDurationScale;
+        this.data().setPotionDurationScale(potionDurationScale);
     }
 
     @Override
@@ -177,6 +180,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     @Override
     public void setRadius(float radius) {
         checkArgument(Float.isFinite(radius), "radius must be finite");
+        this.data().setRadius(Math.clamp(radius, 0.0F, 32.0F));
         this.data.set(AREA_EFFECT_CLOUD_RADIUS, Math.clamp(radius, 0.0F, 32.0F));
         if (this.boundingBox != null) {
             this.recalculateBoundingBox();
@@ -195,36 +199,36 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public List<PotionEffect> getCustomEffects() {
-        return List.copyOf(this.customEffects);
+        return List.copyOf(this.data().getMobEffects());
     }
 
     @Override
     public boolean hasCustomEffects() {
-        return !this.customEffects.isEmpty();
+        return !this.data().getMobEffects().isEmpty();
     }
 
     @Override
     public boolean hasCustomEffect(EffectType type) {
         requireNonNull(type, "type");
-        return this.customEffects.stream().anyMatch(effect -> effect.getType() == type);
+        return this.data().getMobEffects().stream().anyMatch(effect -> effect.getType() == type);
     }
 
     @Override
     public boolean addCustomEffect(PotionEffect effect, boolean overwrite) {
         requireNonNull(effect, "effect");
-        for (int index = 0; index < this.customEffects.size(); index++) {
-            if (this.customEffects.get(index).getType() == effect.getType()) {
+        for (int index = 0; index < this.data().getMobEffects().size(); index++) {
+            if (this.data().getMobEffects().get(index).getType() == effect.getType()) {
                 if (!overwrite) {
                     return false;
                 }
 
-                this.customEffects.set(index, effect);
+                this.data().getMobEffects().set(index, effect);
                 this.recalculatePotionColor();
                 return true;
             }
         }
 
-        this.customEffects.add(effect);
+        this.data().getMobEffects().add(effect);
         this.recalculatePotionColor();
         return true;
     }
@@ -232,7 +236,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     @Override
     public boolean removeCustomEffect(EffectType type) {
         requireNonNull(type, "type");
-        boolean changed = this.customEffects.removeIf(effect -> effect.getType() == type);
+        boolean changed = this.data().getMobEffects().removeIf(effect -> effect.getType() == type);
         if (changed) {
             this.recalculatePotionColor();
         }
@@ -242,11 +246,11 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public boolean clearCustomEffects() {
-        if (this.customEffects.isEmpty()) {
+        if (this.data().getMobEffects().isEmpty()) {
             return false;
         }
 
-        this.customEffects.clear();
+        this.data().getMobEffects().clear();
         this.recalculatePotionColor();
         return true;
     }
@@ -271,73 +275,76 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
+    protected AreaEffectCloudData data() {
+        return (AreaEffectCloudData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return AreaEffectCloudData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        AreaEffectCloudData cloudData = (AreaEffectCloudData) data;
-        if (cloudData.getMobEffects() != null) {
-            for (NbtMap effectTag : cloudData.getMobEffects()) {
-                this.customEffects.add(PotionEffectDataSerializer.deserialize(effectTag));
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: every key runs before the base load below, matching the
+        // old applyData-before-loadCustom order. The values are snapshotted first: the
+        // potion setter recalculates the color into the data instance, which must not
+        // clobber the stored color before the color setter restores it. The effect list
+        // already sits in the data instance; every other setter re-runs to keep its
+        // validation and metadata sync, exactly as the old applyData did. Each keeps its
+        // current value when absent.
+        Integer particleColor = this.data().getParticleColor();
+        if (tag.containsKey("PotionId")) {
+            Short potionId = this.data().getPotionId();
+            if (potionId != null) {
+                this.setPotionType(NetworkUtils.potionFromNetwork(potionId));
             }
         }
+        if (tag.containsKey("ParticleColor") && particleColor != null) {
+            this.setPotionColor(particleColor);
+        }
+        if (tag.containsKey("Duration")) {
+            this.setDuration(this.data().getDuration());
+        }
+        if (tag.containsKey("DurationOnUse")) {
+            this.setDurationOnUse(this.data().getDurationOnUse());
+        }
+        if (tag.containsKey("ReapplicationDelay")) {
+            this.setReapplicationDelay(this.data().getReapplicationDelay());
+        }
+        if (tag.containsKey("Radius")) {
+            this.setRadius(this.data().getRadius());
+        }
+        if (tag.containsKey("RadiusOnUse")) {
+            this.setRadiusOnUse(this.data().getRadiusOnUse());
+        }
+        if (tag.containsKey("RadiusPerTick")) {
+            this.setRadiusPerTick(this.data().getRadiusPerTick());
+        }
+        if (tag.containsKey("WaitTime")) {
+            this.setWaitTime(this.data().getWaitTime());
+        }
+        if (tag.containsKey("PotionDurationScale")) {
+            this.setPotionDurationScale(getFloat(tag, "PotionDurationScale", 1.0F));
+        }
+        super.loadCustom(tag);
+    }
 
-        if (cloudData.getPotionId() != null) {
-            this.setPotionType(NetworkUtils.potionFromNetwork(cloudData.getPotionId()));
-        }
-        if (cloudData.getParticleColor() != null) {
-            this.particleColor = cloudData.getParticleColor();
-            this.particleColorSet = true;
-            this.updatePotionColor(cloudData.getParticleColor());
-        }
-        if (cloudData.getDuration() != null) {
-            this.setDuration(cloudData.getDuration());
-        }
-        if (cloudData.getDurationOnUse() != null) {
-            this.setDurationOnUse(cloudData.getDurationOnUse());
-        }
-        if (cloudData.getReapplicationDelay() != null) {
-            this.setReapplicationDelay(cloudData.getReapplicationDelay());
-        }
-        if (cloudData.getRadius() != null) {
-            this.setRadius(cloudData.getRadius());
-        }
-        if (cloudData.getRadiusOnUse() != null) {
-            this.setRadiusOnUse(cloudData.getRadiusOnUse());
-        }
-        if (cloudData.getRadiusPerTick() != null) {
-            this.setRadiusPerTick(cloudData.getRadiusPerTick());
-        }
-        if (cloudData.getWaitTime() != null) {
-            this.setWaitTime(cloudData.getWaitTime());
-        }
-        if (cloudData.getPotionDurationScale() != null) {
-            this.setPotionDurationScale(cloudData.getPotionDurationScale());
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        // The duration scale is conditional: a scale of one is not written, as before.
+        float potionDurationScale = this.potionDurationScale();
+        if (potionDurationScale != 1.0F) {
+            tag.putFloat("PotionDurationScale", potionDurationScale);
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        AreaEffectCloudData cloudData = (AreaEffectCloudData) data;
-        List<NbtMap> effects = new ArrayList<>();
-        for (PotionEffect effect : this.customEffects) {
-            effects.add(PotionEffectDataSerializer.serialize(effect));
-        }
-        cloudData.setMobEffects(effects);
-        cloudData.setPotionId(NetworkUtils.potionToNetwork(getPotionType()));
-        cloudData.setParticleColor(getPotionColor());
-        cloudData.setDuration(getDuration());
-        cloudData.setDurationOnUse(durationOnUse);
-        cloudData.setReapplicationDelay(reapplicationDelay);
-        cloudData.setRadius(getRadius());
-        cloudData.setRadiusOnUse(radiusOnUse);
-        cloudData.setRadiusPerTick(getRadiusPerTick());
-        cloudData.setWaitTime(getWaitTime());
-        cloudData.setPotionDurationScale(this.potionDurationScale != 1.0F ? this.potionDurationScale : null);
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("PotionDurationScale");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -393,7 +400,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                     this.server.getEventManager().fire(event);
                     if (!event.isCancelled() && !event.getAffectedEntities().isEmpty()) {
                         for (Living affectedEntity : event.getAffectedEntities()) {
-                            this.victims.put(affectedEntity.getUniqueId(), age + this.reapplicationDelay);
+                            this.victims.put(affectedEntity.getUniqueId(), age + this.getReapplicationDelay());
                             for (PotionEffect effect : applicationEffects) {
                                 if (effect.getType() == EffectTypes.INSTANT_HEALTH
                                         || effect.getType() == EffectTypes.INSTANT_DAMAGE) {
@@ -422,8 +429,8 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 ((CloudEntity) affectedEntity).addPotionEffect(effect, this, PotionEffectCause.AREA_EFFECT_CLOUD);
                             }
 
-                            if (this.radiusOnUse != 0) {
-                                radius += this.radiusOnUse;
+                            if (this.getRadiusOnUse() != 0) {
+                                radius += this.getRadiusOnUse();
                                 if (radius < 0.5F) {
                                     this.setRadius(radius);
                                     this.kill();
@@ -432,8 +439,8 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 }
                             }
 
-                            if (this.durationOnUse != 0 && this.getDuration() != PotionEffect.INFINITE_DURATION) {
-                                int duration = this.getDuration() + this.durationOnUse;
+                            if (this.getDurationOnUse() != 0 && this.getDuration() != PotionEffect.INFINITE_DURATION) {
+                                int duration = this.getDuration() + this.getDurationOnUse();
                                 if (duration <= 0) {
                                     this.kill();
                                     this.timing.stopTiming();
@@ -462,15 +469,15 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     private List<PotionEffect> getApplicationEffects() {
-        List<PotionEffect> effects = new ArrayList<>(this.potionType.getEffects().size() + this.customEffects.size());
-        this.potionType.getEffects().forEach(effect -> effects.add(this.scaleDuration(effect)));
-        this.customEffects.forEach(effect -> effects.add(this.scaleDuration(effect)));
+        List<PotionEffect> effects = new ArrayList<>(this.getPotionType().getEffects().size() + this.data().getMobEffects().size());
+        this.getPotionType().getEffects().forEach(effect -> effects.add(this.scaleDuration(effect)));
+        this.data().getMobEffects().forEach(effect -> effects.add(this.scaleDuration(effect)));
         return effects;
     }
 
     private PotionEffect scaleDuration(PotionEffect effect) {
         if (!effect.isInfinite() && effect.getDuration() != 0) {
-            int duration = Math.max((int) Math.floor(effect.getDuration() * this.potionDurationScale), 1);
+            int duration = Math.max((int) Math.floor(effect.getDuration() * this.potionDurationScale()), 1);
             return effect.withDuration(duration);
         }
         return effect;

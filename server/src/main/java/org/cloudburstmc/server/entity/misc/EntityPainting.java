@@ -22,7 +22,6 @@ import org.cloudburstmc.server.player.CloudPlayer;
 public class EntityPainting extends HangingEntity implements Painting {
 
     public final static Motive[] motives = Motive.values();
-    private Motive motive = Motive.KEBAB;
 
     public EntityPainting(EntityType<Painting> type, Location location) {
         super(type, location);
@@ -38,23 +37,13 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
+    protected PaintingData data() {
+        return (PaintingData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return PaintingData.class;
-    }
-
-    @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        PaintingData paintingData = (PaintingData) data;
-        if (paintingData.getMotive() != null) {
-            this.setMotive(paintingData.getMotive());
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((PaintingData) data).setMotive(this.motive.title);
     }
 
     @Override
@@ -64,7 +53,7 @@ public class EntityPainting extends HangingEntity implements Painting {
         addPainting.setRuntimeEntityId(this.getRuntimeId());
         addPainting.setPosition(this.getPosition());
         addPainting.setDirection(this.getDirection().getHorizontalIndex());
-        addPainting.setMotive(this.motive.title);
+        addPainting.setMotive(this.getMotive().title);
         return addPainting;
     }
 
@@ -85,14 +74,10 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     public Motive getMotive() {
-        return motive;
-    }
-
-    private void setMotive(String motive) {
-        this.motive = Motive.from(motive);
+        return this.data().getMotive();
     }
 
     public void setMotive(Motive motive) {
-        this.motive = motive;
+        this.data().setMotive(motive);
     }
 }

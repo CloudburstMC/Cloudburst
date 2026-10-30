@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity.vehicle;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.data.AbstractMinecartData;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.data.MinecartType;
@@ -11,11 +12,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -127,5 +130,11 @@ class AbstractMinecartPersistenceTest {
 
         CloudEntity entity = minecart;
         assertThrows(UnsupportedOperationException.class, () -> entity.loadAdditionalData(tag.build()));
+    }
+
+    @Test
+    void abstractMinecartKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityAbstractMinecart.class, AbstractMinecartData.class);
     }
 }

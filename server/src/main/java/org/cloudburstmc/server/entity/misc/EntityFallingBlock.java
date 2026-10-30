@@ -1,10 +1,8 @@
 package org.cloudburstmc.server.entity.misc;
 
-import lombok.Setter;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
@@ -21,6 +19,7 @@ import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlock;
@@ -39,18 +38,6 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     private static final int MAX_LIFETIME = 600;
     private static final int SETTLED_REMOVAL_DELAY = 3;
 
-    private BlockState blockState = BlockStates.SAND;
-    @Setter
-    private SoundType landingSound;
-    @Setter
-    private SoundType breakSound;
-    private int time;
-    private boolean dropItem = true;
-    private boolean cancelDrop;
-    private boolean hurtEntities;
-    private float damagePerBlock;
-    private int maximumDamage = 40;
-    private boolean autoExpire = true;
     private boolean landingPending;
     private int settledRemovalDelay;
 
@@ -121,52 +108,48 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
+    protected FallingBlockData data() {
+        return (FallingBlockData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return FallingBlockData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        FallingBlockData fallingData = (FallingBlockData) data;
-        if (fallingData.getBlockState() == null) {
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the block state, timers and behavior flags run before
+        // the base load below, matching the old applyData-before-loadCustom order. The block
+        // state key is required, so a tag without it closes the entity, exactly as the old
+        // null check did. Keys with a load default reset when absent; the sounds keep their
+        // current values, exactly as the old null checks did.
+        if (!tag.containsKey("BlockState")) {
             this.close();
             return;
         }
+        this.setBlockState(BlockStateCodec.read(tag.getCompound("BlockState")));
+        this.data().setTime(getInt(tag, "Time", 0));
+        this.data().setDropItem(getBoolean(tag, "DropItem", true));
+        this.data().setCancelDrop(getBoolean(tag, "CancelDrop", false));
+        this.data().setHurtEntities(getBoolean(tag, "HurtEntities", false));
+        this.data().setDamagePerBlock(getFloat(tag, "DamagePerBlock", 0f));
+        this.data().setMaximumDamage(getInt(tag, "MaximumDamage", 40));
+        this.data().setAutoExpire(getBoolean(tag, "AutoExpire", true));
 
-        this.setBlockState(BlockStateCodec.read(fallingData.getBlockState()));
-        this.time = fallingData.getTime();
-        this.dropItem = fallingData.getDropItem() == null || fallingData.getDropItem();
-        this.cancelDrop = fallingData.isCancelDrop();
-        this.hurtEntities = fallingData.isHurtEntities();
-        this.damagePerBlock = fallingData.getDamagePerBlock();
-        this.maximumDamage = fallingData.getMaximumDamage() != null ? fallingData.getMaximumDamage() : 40;
-        this.autoExpire = fallingData.getAutoExpire() == null || fallingData.getAutoExpire();
-
-        if (fallingData.getLandingSound() != null) {
-            this.landingSound = SoundType.of(Identifier.parse(fallingData.getLandingSound()));
+        if (tag.containsKey("LandingSound")) {
+            String landingSound = this.data().getLandingSound();
+            if (landingSound != null) {
+                SoundType.of(Identifier.parse(landingSound));
+            }
         }
-
-        if (fallingData.getBreakSound() != null) {
-            this.breakSound = SoundType.of(Identifier.parse(fallingData.getBreakSound()));
+        if (tag.containsKey("BreakSound")) {
+            String breakSound = this.data().getBreakSound();
+            if (breakSound != null) {
+                SoundType.of(Identifier.parse(breakSound));
+            }
         }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        FallingBlockData fallingData = (FallingBlockData) data;
-        fallingData.setBlockState(BlockPalette.INSTANCE.getDefinition(this.blockState).getState());
-        fallingData.setTime(this.time);
-        fallingData.setDropItem(this.dropItem);
-        fallingData.setCancelDrop(this.cancelDrop);
-        fallingData.setHurtEntities(this.hurtEntities);
-        fallingData.setDamagePerBlock(this.damagePerBlock);
-        fallingData.setMaximumDamage(this.maximumDamage);
-        fallingData.setAutoExpire(this.autoExpire);
-
-        fallingData.setLandingSound(this.landingSound == null ? null : this.landingSound.getId().toString());
-        fallingData.setBreakSound(this.breakSound == null ? null : this.breakSound.getId().toString());
+        super.loadCustom(tag);
     }
 
     @Override
@@ -191,48 +174,48 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     @Override
     public BlockState getBlockState() {
-        return this.blockState;
+        return this.data().getBlockState();
     }
 
     @Override
     public void setBlockState(BlockState blockState) {
-        this.blockState = Objects.requireNonNull(blockState, "blockState");
+        this.data().setBlockState(Objects.requireNonNull(blockState, "blockState"));
         this.updateBlockMetadata();
     }
 
     @Override
     public boolean doesDropItem() {
-        return this.dropItem;
+        return this.data().isDropItem();
     }
 
     @Override
     public void setDropItem(boolean dropItem) {
-        this.dropItem = dropItem;
+        this.data().setDropItem(dropItem);
     }
 
     @Override
     public boolean isDropCancelled() {
-        return this.cancelDrop;
+        return this.data().isCancelDrop();
     }
 
     @Override
     public void setDropCancelled(boolean cancelDrop) {
-        this.cancelDrop = cancelDrop;
+        this.data().setCancelDrop(cancelDrop);
     }
 
     @Override
     public boolean canHurtEntities() {
-        return this.hurtEntities;
+        return this.data().isHurtEntities();
     }
 
     @Override
     public void setHurtEntities(boolean hurtEntities) {
-        this.hurtEntities = hurtEntities;
+        this.data().setHurtEntities(hurtEntities);
     }
 
     @Override
     public float getDamagePerBlock() {
-        return this.damagePerBlock;
+        return this.data().getDamagePerBlock();
     }
 
     @Override
@@ -241,15 +224,15 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             throw new IllegalArgumentException("damagePerBlock must not be negative");
         }
 
-        this.damagePerBlock = damagePerBlock;
+        this.data().setDamagePerBlock(damagePerBlock);
         if (damagePerBlock > 0) {
-            this.hurtEntities = true;
+            this.data().setHurtEntities(true);
         }
     }
 
     @Override
     public int getMaximumDamage() {
-        return this.maximumDamage;
+        return this.data().getMaximumDamage();
     }
 
     @Override
@@ -257,17 +240,35 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         if (maximumDamage < 0) {
             throw new IllegalArgumentException("maximumDamage must not be negative");
         }
-        this.maximumDamage = maximumDamage;
+        this.data().setMaximumDamage(maximumDamage);
     }
 
     @Override
     public boolean doesAutoExpire() {
-        return this.autoExpire;
+        return this.data().isAutoExpire();
     }
 
     @Override
     public void setAutoExpire(boolean autoExpire) {
-        this.autoExpire = autoExpire;
+        this.data().setAutoExpire(autoExpire);
+    }
+
+    public SoundType getLandingSound() {
+        String landingSound = this.data().getLandingSound();
+        return landingSound == null ? null : SoundType.of(Identifier.parse(landingSound));
+    }
+
+    public void setLandingSound(SoundType landingSound) {
+        this.data().setLandingSound(landingSound == null ? null : landingSound.getId().toString());
+    }
+
+    public SoundType getBreakSound() {
+        String breakSound = this.data().getBreakSound();
+        return breakSound == null ? null : SoundType.of(Identifier.parse(breakSound));
+    }
+
+    public void setBreakSound(SoundType breakSound) {
+        this.data().setBreakSound(breakSound == null ? null : breakSound.getId().toString());
     }
 
     public boolean startFalling(Vector3i position, BlockState replacement) {
@@ -275,10 +276,10 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return false;
         }
 
-        this.time++;
+        this.data().setTime(this.data().getTime() + 1);
         this.applyGravityAndMove();
         if (!this.spawn()) {
-            this.level.setBlockState(position, this.blockState);
+            this.level.setBlockState(position, this.getBlockState());
             return false;
         }
 
@@ -306,7 +307,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return updated;
         }
 
-        this.time += tickDiff;
+        this.data().setTime(this.data().getTime() + tickDiff);
         this.applyGravityAndMove();
 
         Vector3i position = this.getPosition().toInt();
@@ -331,14 +332,14 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         Block target = this.level.getBlock(position);
         this.damageEntities();
         float distance = Math.max(this.fallDistance, this.highestPosition - this.getY());
-        this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.ON_FALLING_LAND)
+        this.level.getServer().getBlockRegistry().requireComponent(this.getBlockState().getType(), BlockComponents.ON_FALLING_LAND)
                 .execute(this, target, distance);
-        if (this.cancelDrop) {
+        if (this.isDropCancelled()) {
             this.close();
             return;
         }
 
-        if (this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.BREAKS_ON_LANDING)) {
+        if (this.level.getServer().getBlockRegistry().requireComponent(this.getBlockState().getType(), BlockComponents.BREAKS_ON_LANDING)) {
             this.close();
             this.breakBlock();
             return;
@@ -350,7 +351,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        EntityChangeBlockEvent event = new EntityChangeBlockEvent(this, target, this.blockState);
+        EntityChangeBlockEvent event = new EntityChangeBlockEvent(this, target, this.getBlockState());
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             this.close();
@@ -376,18 +377,18 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     private void damageEntities() {
-        if (!this.hurtEntities || this.damagePerBlock <= 0) {
+        if (!this.canHurtEntities() || this.getDamagePerBlock() <= 0) {
             return;
         }
 
         float distance = Math.max(this.fallDistance, this.highestPosition - this.getY());
         int effectiveDistance = (int) Math.ceil(distance - 1);
-        float damage = Math.min((float) Math.floor(effectiveDistance * this.damagePerBlock), this.maximumDamage);
+        float damage = Math.min((float) Math.floor(effectiveDistance * this.getDamagePerBlock()), this.getMaximumDamage());
         if (damage <= 0) {
             return;
         }
 
-        DamageSource source = this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.GET_FALLING_DAMAGE_SOURCE).execute(this);
+        DamageSource source = this.level.getServer().getBlockRegistry().requireComponent(this.getBlockState().getType(), BlockComponents.GET_FALLING_DAMAGE_SOURCE).execute(this);
         for (Entity entity : this.level.getCollidingEntities(this.getBoundingBox())) {
             if (entity != this) {
                 entity.damage(damage, source);
@@ -401,49 +402,52 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         }
 
         Block prospective = new CloudBlock(this.level, target.getPosition(),
-                new BlockState[]{this.blockState, target.getSecondaryState()});
+                new BlockState[]{this.getBlockState(), target.getSecondaryState()});
         return prospective.requireComponent(BlockComponents.CAN_SURVIVE).execute(prospective)
                 && !prospective.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(prospective);
     }
 
     private boolean hasExpired(Vector3i position) {
-        if (!this.autoExpire) {
+        if (!this.doesAutoExpire()) {
             return false;
         }
 
         boolean outsideLevel = position.getY() < this.level.getMinHeight()
                 || position.getY() >= this.level.getMaxHeight();
-        return this.time > MAX_LIFETIME || this.time > OUTSIDE_LEVEL_TIMEOUT && outsideLevel;
+        int time = this.data().getTime();
+        return time > MAX_LIFETIME || time > OUTSIDE_LEVEL_TIMEOUT && outsideLevel;
     }
 
     private void breakBlock() {
         this.dropBlockItem();
-        if (this.breakSound != null) {
-            this.level.playSound(this.getPosition(), this.breakSound);
+        SoundType breakSound = this.getBreakSound();
+        if (breakSound != null) {
+            this.level.playSound(this.getPosition(), breakSound);
         }
     }
 
     private void dropBlockItem() {
-        if (this.cancelDrop || !this.dropItem || !this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
+        if (this.isDropCancelled() || !this.doesDropItem() || !this.level.getGameRules().get(GameRules.DO_ENTITY_DROPS)) {
             return;
         }
 
-        this.blockState.getType().asItem().ifPresent(itemType -> this.level.dropItem(
+        this.getBlockState().getType().asItem().ifPresent(itemType -> this.level.dropItem(
                 this.getPosition(),
                 ItemStack.builder()
                         .itemType(itemType)
-                        .setData(ItemDataComponents.BLOCK_STATE, this.blockState)
+                        .setData(ItemDataComponents.BLOCK_STATE, this.getBlockState())
                         .amount(1)
                         .build()));
     }
 
     private void playLandingSound(Vector3i position) {
-        if (this.landingSound != null) {
-            this.level.playSound(position, this.landingSound);
+        SoundType landingSound = this.getLandingSound();
+        if (landingSound != null) {
+            this.level.playSound(position, landingSound);
         }
     }
 
     private void updateBlockMetadata() {
-        this.data.set(BLOCK, BlockPalette.INSTANCE.getDefinition(this.blockState));
+        this.data.set(BLOCK, BlockPalette.INSTANCE.getDefinition(this.getBlockState()));
     }
 }

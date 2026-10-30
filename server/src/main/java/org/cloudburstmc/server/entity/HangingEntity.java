@@ -15,7 +15,6 @@ import java.util.Set;
  * Nukkit Project
  */
 public abstract class HangingEntity extends CloudEntity {
-    protected byte direction;
 
     public HangingEntity(EntityType<?> type, Location location) {
         super(type, location);
@@ -30,23 +29,13 @@ public abstract class HangingEntity extends CloudEntity {
     }
 
     @Override
+    protected HangingData data() {
+        return (HangingData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return HangingData.class;
-    }
-
-    @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        HangingData hangingData = (HangingData) data;
-        if (hangingData.getDirection() != null) {
-            this.direction = hangingData.getDirection().byteValue();
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((HangingData) data).setDirection((int) this.direction);
     }
 
     @Override
@@ -66,7 +55,7 @@ public abstract class HangingEntity extends CloudEntity {
 
     @Override
     public Direction getDirection() {
-        return Direction.fromIndex(this.direction);
+        return this.data().getDirection();
     }
 
     @Override
@@ -88,7 +77,7 @@ public abstract class HangingEntity extends CloudEntity {
         if (this.lastYaw != this.getY() || !this.position.equals(this.lastPosition)) {
             this.despawnFromAll();
 
-            this.direction = (byte) (this.getYaw() / 90);
+            this.data().setDirection(Direction.fromIndex((byte) (this.getYaw() / 90)));
 
             this.lastYaw = this.getYaw();
             this.lastPosition = this.position;

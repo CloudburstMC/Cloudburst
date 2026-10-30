@@ -1,15 +1,20 @@
 package org.cloudburstmc.server.nbt;
 
 import org.cloudburstmc.api.blockentity.data.SlottedItem;
+import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtPositional;
+import org.cloudburstmc.api.nbt.NbtSkipEmpty;
 import org.cloudburstmc.api.nbt.internal.NbtParser;
 import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.network.NetworkUtils;
+import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -20,6 +25,7 @@ import tools.jackson.databind.DeserializationConfig;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.module.SimpleModule;
@@ -48,6 +54,10 @@ public class ServerTypesNbtModule extends SimpleModule {
         addDeserializer(ItemContainer.class, new ItemContainerDeserializer());
         addSerializer(EffectType.class, new EffectTypeSerializer());
         addDeserializer(EffectType.class, new EffectTypeDeserializer());
+        addSerializer(BoatType.class, new BoatTypeSerializer());
+        addDeserializer(BoatType.class, new BoatTypeDeserializer());
+        addSerializer(PotionEffect.class, new PotionEffectSerializer());
+        addDeserializer(PotionEffect.class, new PotionEffectDeserializer());
     }
 
     /**
@@ -151,15 +161,32 @@ public class ServerTypesNbtModule extends SimpleModule {
 
     private static final class ItemContainerSerializer extends StdSerializer<ItemContainer> {
 
+        private final boolean skipEmpty;
+
         ItemContainerSerializer() {
+            this(false);
+        }
+
+        private ItemContainerSerializer(boolean skipEmpty) {
             super(ItemContainer.class);
+            this.skipEmpty = skipEmpty;
+        }
+
+        @Override
+        public ValueSerializer<?> createContextual(SerializationContext ctxt, BeanProperty property) {
+            boolean skipEmpty = property != null && property.getAnnotation(NbtSkipEmpty.class) != null;
+            return new ItemContainerSerializer(skipEmpty);
         }
 
         @Override
         public void serialize(ItemContainer value, JsonGenerator gen, SerializationContext provider) {
             List<NbtMap> items = new ArrayList<>(value.size());
             for (int slot = 0; slot < value.size(); slot++) {
-                items.add(org.cloudburstmc.server.item.ItemUtils.serializeItem(value.getItem(slot), slot));
+                ItemStack item = value.getItem(slot);
+                if (skipEmpty && item.isEmpty()) {
+                    continue;
+                }
+                items.add(org.cloudburstmc.server.item.ItemUtils.serializeItem(item, slot));
             }
             gen.writeEmbeddedObject(new NbtList<>(NbtType.COMPOUND, items));
         }
@@ -309,6 +336,102 @@ public class ServerTypesNbtModule extends SimpleModule {
             mismatch.initCause(new NbtKindMismatchException(
                     "Item container slots must be between 0 and " + (size - 1)));
             return mismatch;
+        }
+
+        private static String describe(Object tag) {
+            return switch (tag) {
+                case List<?> list -> "a list of " + list.size() + " values";
+                case NbtMap ignored -> "a compound";
+                case Number ignored -> "a number";
+                case String value -> "\"" + value + "\"";
+                case null -> "nothing";
+                default -> "an NBT " + tag.getClass().getSimpleName();
+            };
+        }
+    }
+
+    /**
+     * Stores a boat hull as its variant int, as boats are stored today.
+     * An id the variant mapping does not know fails the read with the mapping's own
+     * error, exactly like the previous load path.
+     */
+    private static final class BoatTypeSerializer extends StdSerializer<BoatType> {
+
+        BoatTypeSerializer() {
+            super(BoatType.class);
+        }
+
+        @Override
+        public void serialize(BoatType value, JsonGenerator gen, SerializationContext provider) {
+            gen.writeNumber(VanillaBoats.definition(value).variant());
+        }
+    }
+
+    private static final class BoatTypeDeserializer extends StdDeserializer<BoatType> {
+
+        BoatTypeDeserializer() {
+            super(BoatType.class);
+        }
+
+        @Override
+        public BoatType deserialize(JsonParser p, DeserializationContext ctxt) {
+            Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
+            if (!(tag instanceof Number number)) {
+                MismatchedInputException mismatch = MismatchedInputException.from(p, BoatType.class,
+                        "Cannot read a boat type from " + describe(tag) + "; expected an int variant");
+                mismatch.initCause(new NbtKindMismatchException("Boat types are stored as int variants"));
+                throw mismatch;
+            }
+            p.skipChildren();
+            return VanillaBoats.fromVariant(number.intValue()).type();
+        }
+
+        private static String describe(Object tag) {
+            return switch (tag) {
+                case List<?> list -> "a list of " + list.size() + " values";
+                case NbtMap ignored -> "a compound";
+                case Number ignored -> "a number";
+                case String value -> "\"" + value + "\"";
+                case null -> "nothing";
+                default -> "an NBT " + tag.getClass().getSimpleName();
+            };
+        }
+    }
+
+    /**
+     * Stores a potion effect as its data compound, as area effect clouds are stored today.
+     * An effect id the mapping does not know fails the read with the mapping's own error,
+     * exactly like the previous load path.
+     */
+    private static final class PotionEffectSerializer extends StdSerializer<PotionEffect> {
+
+        PotionEffectSerializer() {
+            super(PotionEffect.class);
+        }
+
+        @Override
+        public void serialize(PotionEffect value, JsonGenerator gen, SerializationContext provider) {
+            gen.writeEmbeddedObject(PotionEffectDataSerializer.serialize(value));
+        }
+    }
+
+    private static final class PotionEffectDeserializer extends StdDeserializer<PotionEffect> {
+
+        PotionEffectDeserializer() {
+            super(PotionEffect.class);
+        }
+
+        @Override
+        public PotionEffect deserialize(JsonParser p, DeserializationContext ctxt) {
+            Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
+            if (!(tag instanceof NbtMap map)) {
+                MismatchedInputException mismatch = MismatchedInputException.from(p, PotionEffect.class,
+                        "Cannot read a potion effect from " + describe(tag) + "; expected a compound");
+                mismatch.initCause(new NbtKindMismatchException("Potion effects are stored as compounds"));
+                throw mismatch;
+            }
+            p.skipChildren();
+            return PotionEffectDataSerializer.deserialize(map);
         }
 
         private static String describe(Object tag) {

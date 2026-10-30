@@ -7,28 +7,20 @@ import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 
 /**
- * Persistent data of a dropped item: everything shared plus health, pickup delay,
- * age, owner and the item itself.
+ * Persistent data of a dropped item: everything shared plus its pickup delay
+ * and the item itself. Health, age and owner travel through the load/save hooks:
+ * they mirror the live combat, tick and metadata state instead.
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 public class DroppedItemData extends EntityData {
 
-    @JsonProperty("Health")
-    private Short health;
-
     @JsonProperty("PickupDelay")
-    private Short pickupDelay;
-
-    @JsonProperty("Age")
-    private Short age;
-
-    @JsonProperty("OwnerID")
-    private Long ownerId;
+    private short pickupDelay;
 
     @JsonProperty("Item")
-    private ItemStack item;
+    private ItemStack item = ItemStack.EMPTY;
 
     public DroppedItemData() {
     }

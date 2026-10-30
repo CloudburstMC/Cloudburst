@@ -8,11 +8,13 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -147,6 +149,24 @@ class FallingBlockPersistenceTest {
     }
 
     @Test
+    void absentTimeResetsToZero() {
+        EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
+        block.loadAdditionalData(NbtMap.builder()
+                .putCompound("BlockState", stateTag(BlockStates.SAND))
+                .putInt("Time", 5)
+                .build());
+
+        // Time has no presence bit: it always falls back to zero, exactly as the
+        // get-with-default load did.
+        block.loadAdditionalData(NbtMap.builder()
+                .putCompound("BlockState", stateTag(BlockStates.SAND))
+                .build());
+
+        NbtMap saved = save(block);
+        assertEquals(0, saved.getInt("Time"));
+    }
+
+    @Test
     void absentSoundsLeaveStateUnchanged() {
         EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
         block.loadAdditionalData(NbtMap.builder()
@@ -171,5 +191,19 @@ class FallingBlockPersistenceTest {
         block.loadAdditionalData(NbtMap.builder().putInt("Time", 5).build());
 
         assertTrue(block.isClosed());
+    }
+
+    @Test
+    void fallingBlockKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityFallingBlock.class, FallingBlockData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityFallingBlock.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("blockState", "landingSound", "breakSound", "time", "dropItem", "cancelDrop", "hurtEntities", "damagePerBlock", "maximumDamage", "autoExpire")) {
+            assertFalse(fields.contains(removed),
+                    "EntityFallingBlock keeps " + removed + "; state must live in FallingBlockData only");
+        }
     }
 }

@@ -23,9 +23,6 @@ import java.util.Map;
 
 public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTrident {
 
-    protected ItemStack trident;
-    private boolean dealtDamage;
-
     public EntityThrownTrident(EntityType<ThrownTrident> type, Location location) {
         super(type, location);
     }
@@ -63,7 +60,12 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.trident = ItemStack.EMPTY;
+        this.data().setTrident(ItemStack.EMPTY);
+    }
+
+    @Override
+    protected ThrownTridentData data() {
+        return (ThrownTridentData) super.data();
     }
 
     @Override
@@ -72,34 +74,14 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        ThrownTridentData tridentData = (ThrownTridentData) data;
-        if (tridentData.getTrident() != null) {
-            this.trident = tridentData.getTrident();
-        }
-        if (tridentData.getDealtDamage() != null) {
-            this.dealtDamage = tridentData.getDealtDamage();
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ThrownTridentData tridentData = (ThrownTridentData) data;
-        // Today's save writes an air compound when no trident was ever set.
-        tridentData.setTrident(this.trident == null ? ItemStack.EMPTY : this.trident);
-        tridentData.setDealtDamage(this.dealtDamage);
-    }
-
-    @Override
     public ItemStack getTrident() {
-        return this.trident != null ? this.trident : ItemStack.EMPTY;
+        ItemStack trident = this.data().getTrident();
+        return trident != null ? trident : ItemStack.EMPTY;
     }
 
     @Override
     public void setTrident(ItemStack item) {
-        this.trident = item;
+        this.data().setTrident(item == null ? ItemStack.EMPTY : item);
     }
 
     @Override
@@ -114,7 +96,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
 
     @Override
     protected boolean canHitEntity(Entity entity) {
-        return !this.dealtDamage && super.canHitEntity(entity);
+        return !this.data().isDealtDamage() && super.canHitEntity(entity);
     }
 
     @Override
@@ -125,7 +107,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
 
         this.timing.startTiming();
 
-        boolean hasUpdate = (this.isEmbedded() || this.dealtDamage)
+        boolean hasUpdate = (this.isEmbedded() || this.data().isDealtDamage())
                 && this.loyaltyLevel() > 0 && this.getOwner() instanceof CloudPlayer player
                 && player.isOnline() && player.isAlive() && !player.isSpectator()
                 ? this.returnTo(player, currentTick) : super.onUpdate(currentTick);
@@ -206,7 +188,7 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
         }
 
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.ITEM_TRIDENT_HIT);
-        this.dealtDamage = true;
+        this.data().setDealtDamage(true);
         this.motion = Vector3f.from(-this.motion.getX() * 0.02f, -this.motion.getY() * 0.2f, -this.motion.getZ() * 0.02f);
         this.updateMovement();
     }

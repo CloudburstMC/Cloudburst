@@ -5,15 +5,18 @@ import org.cloudburstmc.api.entity.data.PrimedTntData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -80,5 +83,19 @@ class PrimedTntPersistenceTest {
         tnt.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(10, tnt.getFuse());
+    }
+
+    @Test
+    void primedTntKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityPrimedTnt.class, PrimedTntData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityPrimedTnt.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("fuse")) {
+            assertFalse(fields.contains(removed),
+                    "EntityPrimedTnt keeps " + removed + "; state must live in PrimedTntData only");
+        }
     }
 }

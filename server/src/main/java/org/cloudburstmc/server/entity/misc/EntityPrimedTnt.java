@@ -14,12 +14,12 @@ import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 
+import org.cloudburstmc.nbt.NbtMap;
+
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE_TIME;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.IGNITED;
 
 public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive {
-
-    private int fuse = 80;
 
     public EntityPrimedTnt(EntityType<PrimedTnt> type, Location location) {
         super(type, location);
@@ -76,23 +76,24 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
+    protected PrimedTntData data() {
+        return (PrimedTntData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return PrimedTntData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        PrimedTntData tntData = (PrimedTntData) data;
-        if (tntData.getFuse() != null) {
-            this.setFuse(tntData.getFuse());
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the fuse runs before the base load below, matching the
+        // old applyData-before-loadCustom order, and keeps its current value when absent.
+        // The setter re-runs to keep its validation, exactly as the old applyData did.
+        if (tag.containsKey("Fuse")) {
+            this.setFuse(this.data().getFuse());
         }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((PrimedTntData) data).setFuse(this.getFuse());
+        super.loadCustom(tag);
     }
 
     public boolean canCollideWith(Entity entity) {
@@ -127,9 +128,9 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
             }
 
             this.data.setFlag(IGNITED, true);
-            this.setFuse(Math.max(0, this.fuse - tickDiff));
+            this.setFuse(Math.max(0, this.getFuse() - tickDiff));
             this.flushEntityData();
-            if (this.fuse == 0) {
+            if (this.getFuse() == 0) {
                 this.explode();
                 this.close();
             }
@@ -137,7 +138,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
         this.timing.stopTiming();
 
-        return !this.closed && (hasUpdate || this.fuse > 0 || this.motion.length() > 0.00001);
+        return !this.closed && (hasUpdate || this.getFuse() > 0 || this.motion.length() > 0.00001);
     }
 
     public void explode() {
@@ -153,7 +154,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     public int getFuse() {
-        return this.fuse;
+        return this.data().getFuse();
     }
 
     @Override
@@ -162,7 +163,7 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
             throw new IllegalArgumentException("Fuse must be non-negative");
         }
 
-        this.fuse = fuse;
+        this.data().setFuse(fuse);
         if (this.data.getFlag(IGNITED)) {
             this.data.set(FUSE_TIME, fuse);
         }

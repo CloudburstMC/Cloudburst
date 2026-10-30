@@ -8,20 +8,26 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Data-path tests for the projectile branch. {@link EntityProjectile} is abstract and has
- * no registered type mapping to {@link ProjectileData}, so the tests drive
- * {@code applyData}/{@code fillData} directly through a minimal subclass and assert the
- * mapped NBT types, exactly as the production save path would write them.
+ * no registered type mapping to {@link ProjectileData}, so the tests drive the production
+ * load and save paths through a minimal subclass and assert the mapped NBT types.
  */
 class ProjectilePersistenceTest {
 
@@ -37,19 +43,23 @@ class ProjectilePersistenceTest {
                 Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
     }
 
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
+    }
+
     @Test
     void dataRoundTripPreservesKeysAndTypes() {
         TestProjectile projectile = projectile();
 
-        ProjectileData loaded = new ProjectileData();
-        loaded.setDamage(2.5f);
-        projectile.applyData(loaded);
+        projectile.loadAdditionalData(NbtMap.builder()
+                .putFloat("damage", 2.5f)
+                .build());
 
         assertEquals(2.5f, projectile.getDamage());
 
-        ProjectileData filled = new ProjectileData();
-        projectile.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(projectile);
 
         assertTrue(written.get("damage") instanceof Float, "damage must be a float");
         assertEquals(2.5f, written.getFloat("damage"));
@@ -59,9 +69,7 @@ class ProjectilePersistenceTest {
     void defaultInstanceFillsTodayDefaults() {
         TestProjectile projectile = projectile();
 
-        ProjectileData filled = new ProjectileData();
-        projectile.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(projectile);
 
         // Today's save always writes the unset damage as zero.
         assertTrue(written.get("damage") instanceof Float, "damage must be a float");
@@ -73,9 +81,23 @@ class ProjectilePersistenceTest {
         TestProjectile projectile = projectile();
         projectile.setDamage(3f);
 
-        // The DTO field stays null, as the mapper leaves it when the key is absent.
-        projectile.applyData(new ProjectileData());
+        // A tag without keys keeps the current values, as today's load did.
+        projectile.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(3f, projectile.getDamage());
+    }
+
+    @Test
+    void projectileKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityProjectile.class, ProjectileData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityProjectile.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("damage")) {
+            assertFalse(fields.contains(removed),
+                    "EntityProjectile keeps " + removed + "; state must live in ProjectileData only");
+        }
     }
 }

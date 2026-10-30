@@ -6,15 +6,18 @@ import org.cloudburstmc.api.entity.misc.Painting.Motive;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -101,5 +104,19 @@ class PaintingPersistenceTest {
 
         assertEquals(3, painting.getDirection().getIndex());
         assertEquals(Motive.SUNSET, painting.getMotive());
+    }
+
+    @Test
+    void paintingKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityPainting.class, PaintingData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityPainting.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("motive")) {
+            assertFalse(fields.contains(removed),
+                    "EntityPainting keeps " + removed + "; state must live in PaintingData only");
+        }
     }
 }

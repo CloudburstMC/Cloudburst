@@ -4,25 +4,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.api.block.BlockState;
 
 /**
- * Persistent data of an abstract minecart: everything shared plus its display
- * block offset and optional custom display block.
+ * Persistent data of an abstract minecart. Display state is metadata-backed, so
+ * it travels through the load/save hooks and this class stays an empty marker
+ * for the branch.
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 public class AbstractMinecartData extends EntityData {
-
-    @JsonProperty("DisplayOffset")
-    private Integer displayOffset;
-
-    @JsonProperty("CustomDisplayTile")
-    private Boolean customDisplayTile;
-
-    @JsonProperty("DisplayBlock")
-    private BlockState displayBlock;
 
     public AbstractMinecartData() {
     }

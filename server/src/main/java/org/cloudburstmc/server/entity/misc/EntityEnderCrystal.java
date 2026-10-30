@@ -111,36 +111,27 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
+    protected EnderCrystalData data() {
+        return (EnderCrystalData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return EnderCrystalData.class;
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        EnderCrystalData crystalData = (EnderCrystalData) data;
-        if (crystalData.getShowBottom() != null) {
-            this.setShowingBase(crystalData.getShowBottom());
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the setters run before the base load below, matching
+        // the old applyData-before-loadCustom order, and keep their current values when
+        // their key is absent. The setters write both the data instance and the metadata.
+        if (tag.containsKey("ShowBottom")) {
+            this.setShowingBase(getBoolean(tag, "ShowBottom", this.isShowingBase()));
         }
-        if (crystalData.getBeamTarget() != null) {
-            this.setBeamTarget(Vector3i.from(
-                    crystalData.getBeamTarget().getInt("X"),
-                    crystalData.getBeamTarget().getInt("Y"),
-                    crystalData.getBeamTarget().getInt("Z")));
+        if (tag.containsKey("BeamTarget")) {
+            this.setBeamTarget(this.data().getBeamTarget());
         }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        EnderCrystalData crystalData = (EnderCrystalData) data;
-        crystalData.setShowBottom(this.isShowingBase());
-        Vector3i beamTarget = this.getBeamTarget();
-        crystalData.setBeamTarget(beamTarget == null ? null : NbtMap.builder()
-                .putInt("X", beamTarget.getX())
-                .putInt("Y", beamTarget.getY())
-                .putInt("Z", beamTarget.getZ())
-                .build());
+        super.loadCustom(tag);
     }
 
     @Override
@@ -151,16 +142,18 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     @Override
     public void setShowingBase(boolean showingBase) {
         this.data.setFlag(EntityFlag.SHOW_BOTTOM, showingBase);
+        this.data().setShowBottom(showingBase);
     }
 
     @Override
     public @Nullable Vector3i getBeamTarget() {
-        Vector3i target = this.data.get(BLOCK_TARGET_POS);
+        Vector3i target = this.data().getBeamTarget();
         return target == null || target.equals(Vector3i.ZERO) ? null : target;
     }
 
     @Override
     public void setBeamTarget(@Nullable Vector3i target) {
+        this.data().setBeamTarget(target);
         this.data.set(BLOCK_TARGET_POS, target == null ? Vector3i.ZERO : target);
     }
 }

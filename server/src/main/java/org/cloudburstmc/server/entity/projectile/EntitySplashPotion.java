@@ -12,6 +12,7 @@ import org.cloudburstmc.api.event.entity.PotionSplashEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
@@ -28,7 +29,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.AUX_
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.ENCHANTED;
 
 public class EntitySplashPotion extends EntityProjectile implements SplashPotion {
-    private PotionType type = PotionTypes.WATER;
 
     public EntitySplashPotion(EntityType<? extends SplashPotion> type, Location location) {
         super(type, location);
@@ -72,7 +72,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     protected void splash(Entity collidedWith) {
         this.close();
-        int color = CloudPotionColor.calculateEffects(this.type.getEffects()).orElse(0x2828ff);
+        int color = CloudPotionColor.calculateEffects(this.getPotionType().getEffects()).orElse(0x2828ff);
         this.getLevel().addChunkPacket(this.getPosition(), LevelEffectPacketFactory.event(this.getPosition(), LevelEvent.PARTICLE_POTION_SPLASH, 0xff000000 | color));
         this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.GLASS);
 
@@ -97,7 +97,7 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             return;
         }
 
-        CloudPotion potion = new CloudPotion(this.type);
+        CloudPotion potion = new CloudPotion(this.getPotionType());
         for (Living living : event.getAffectedEntities()) {
             potion.apply(living, event.getIntensity(living), 1.0f, damageSource, this, PotionEffectCause.POTION_SPLASH);
         }
@@ -126,15 +126,22 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     @Override
     public PotionType getPotionType() {
-        return this.type;
+        Short potionId = this.data().getPotionId();
+        return potionId == null ? PotionTypes.WATER : NetworkUtils.potionFromNetwork(potionId);
     }
 
     @Override
     public void setPotionType(PotionType type) {
-        this.type = requireNonNull(type, "type");
+        requireNonNull(type, "type");
+        this.data().setPotionId(NetworkUtils.potionToNetwork(type));
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(type));
         this.data.setFlag(ENCHANTED, type != PotionTypes.WATER && type != PotionTypes.MUNDANE
                 && type != PotionTypes.THICK && type != PotionTypes.AWKWARD);
+    }
+
+    @Override
+    protected SplashPotionData data() {
+        return (SplashPotionData) super.data();
     }
 
     @Override
@@ -143,17 +150,17 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        SplashPotionData potionData = (SplashPotionData) data;
-        if (potionData.getPotionId() != null) {
-            this.setPotionType(NetworkUtils.potionFromNetwork(potionData.getPotionId()));
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the potion runs before the projectile load below,
+        // matching the old applyData-before-loadCustom order. The setter re-runs to keep
+        // the metadata sync, exactly as the old applyData did; an absent key keeps the
+        // current value.
+        if (tag.containsKey("PotionId")) {
+            Short potionId = this.data().getPotionId();
+            if (potionId != null) {
+                this.setPotionType(NetworkUtils.potionFromNetwork(potionId));
+            }
         }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((SplashPotionData) data).setPotionId(NetworkUtils.potionToNetwork(this.type));
+        super.loadCustom(tag);
     }
 }

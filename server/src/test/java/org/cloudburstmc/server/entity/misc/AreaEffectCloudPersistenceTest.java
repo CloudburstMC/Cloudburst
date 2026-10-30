@@ -9,6 +9,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
@@ -16,6 +17,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -146,5 +148,19 @@ class AreaEffectCloudPersistenceTest {
         NbtMap saved = save(cloud);
 
         assertFalse(saved.containsKey("PotionDurationScale"), "default scale must not be written");
+    }
+
+    @Test
+    void areaEffectCloudKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityAreaEffectCloud.class, AreaEffectCloudData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityAreaEffectCloud.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("customEffects", "reapplicationDelay", "durationOnUse", "radiusOnUse", "particleColor", "duration", "radiusPerTick", "potionDurationScale", "potionType")) {
+            assertFalse(fields.contains(removed),
+                    "EntityAreaEffectCloud keeps " + removed + "; state must live in AreaEffectCloudData only");
+        }
     }
 }

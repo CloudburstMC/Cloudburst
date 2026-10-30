@@ -1,15 +1,19 @@
 package org.cloudburstmc.api.entity.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.math.vector.Vector3i;
 
 /**
  * Persistent data of an abstract arrow: projectile data plus its stuck state,
- * pierce level, embedded block position and pickup rule.
+ * pierce level and pickup rule. The embedded block position is conditional: it
+ * is only written while the arrow is stuck, so it travels through the load/save
+ * hooks.
  */
 @Getter
 @Setter
@@ -17,20 +21,14 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 public class AbstractArrowData extends ProjectileData {
 
     @JsonProperty("inGround")
-    private Boolean inGround;
+    private boolean inGround;
 
     @JsonProperty("PierceLevel")
     @NbtTag(NbtTagType.BYTE)
-    private Integer pierceLevel;
+    private int pierceLevel;
 
-    @JsonProperty("inBlockX")
-    private Integer inBlockX;
-
-    @JsonProperty("inBlockY")
-    private Integer inBlockY;
-
-    @JsonProperty("inBlockZ")
-    private Integer inBlockZ;
+    @JsonIgnore
+    private Vector3i embeddedPosition;
 
     @JsonProperty("pickup")
     @NbtTag(NbtTagType.BYTE)

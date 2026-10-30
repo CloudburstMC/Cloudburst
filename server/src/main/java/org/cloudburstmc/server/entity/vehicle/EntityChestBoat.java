@@ -12,15 +12,15 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
 import org.cloudburstmc.server.player.CloudPlayer;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,15 +29,26 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
 
 public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
-    private final CloudContainer container = new CloudContainer(27);
-    private final CloudEntityStorageView inventory = new CloudEntityStorageView(this.container);
+    private final CloudEntityStorageView inventory;
     private final Set<CloudPlayer> inventoryViewers = new HashSet<>();
 
     public EntityChestBoat(EntityType<ChestBoat> type, Location location) {
         super(type, location);
+        CloudContainer container = new CloudContainer(27);
+        this.data().setItems(container);
+        this.inventory = new CloudEntityStorageView(container);
         this.data.set(CONTAINER_TYPE, (byte) ContainerType.CHEST_BOAT.getId());
         this.data.set(CONTAINER_SIZE, 27);
         this.data.set(CONTAINER_STRENGTH_MODIFIER, 0);
+    }
+
+    private CloudContainer liveContainer() {
+        return (CloudContainer) this.data().getItems();
+    }
+
+    @Override
+    protected ChestBoatData data() {
+        return (ChestBoatData) super.data();
     }
 
     @Override
@@ -46,33 +57,27 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        ChestBoatData boatData = (ChestBoatData) data;
-        this.container.clear();
-        if (boatData.getItems() != null) {
-            for (SlottedItem item : boatData.getItems()) {
-                int slot = item.slot();
-                if (slot >= this.container.size()) {
-                    throw new IllegalArgumentException("Invalid chest boat inventory slot " + slot);
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the inventory runs before the boat load below, matching
+        // the old applyData-before-loadCustom order. The inventory is always cleared before
+        // the stored items are read, exactly as the old load did. A stored slot outside the
+        // inventory fails the read, exactly as the old load did when it indexed the
+        // container; the mapper keeps the current contents for such a tag, so the range is
+        // re-checked here, outside the mapper, to fail with the same error as before.
+        if (!tag.containsKey("Items")) {
+            this.data().getItems().clear();
+        } else {
+            int size = this.data().getItems().size();
+            for (NbtMap item : tag.getList("Items", NbtType.COMPOUND, List.of())) {
+                if (item.get("Slot") instanceof Number slot) {
+                    int index = slot.intValue();
+                    if (index < 0 || index >= size) {
+                        throw new IllegalArgumentException("Invalid chest boat inventory slot " + index);
+                    }
                 }
-
-                this.container.setItem(slot, item.item());
             }
         }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        List<SlottedItem> items = new ArrayList<>();
-        for (int slot = 0; slot < this.container.size(); slot++) {
-            ItemStack item = this.container.getItem(slot);
-            if (!item.isEmpty()) {
-                items.add(new SlottedItem(slot, item));
-            }
-        }
-        ((ChestBoatData) data).setItems(items);
+        super.loadCustom(tag);
     }
 
     @Override
@@ -126,7 +131,7 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     public void addInventoryViewer(CloudPlayer player) {
         if (this.inventoryViewers.add(player)) {
-            this.container.addContainerListener(player);
+            this.liveContainer().addContainerListener(player);
             if (this.inventoryViewers.size() == 1) {
                 this.level.playSound(this.position, new SoundPlayback(SoundTypes.RANDOM_CHESTOPEN, 0.5f, 1));
             }
@@ -135,7 +140,7 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     public void removeInventoryViewer(CloudPlayer player) {
         if (this.inventoryViewers.remove(player)) {
-            this.container.removeContainerListener(player);
+            this.liveContainer().removeContainerListener(player);
             if (this.inventoryViewers.isEmpty() && !this.closed) {
                 this.level.playSound(this.position, new SoundPlayback(SoundTypes.RANDOM_CHESTCLOSED, 0.5f, 1));
             }
@@ -154,13 +159,13 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     @Override
     protected void dropContents() {
-        for (ItemStack item : this.container.getContents()) {
+        for (ItemStack item : this.liveContainer().getContents()) {
             if (!item.isEmpty()) {
                 this.level.dropItem(this.position, item);
             }
         }
 
-        this.container.clear();
+        this.liveContainer().clear();
     }
 
     @Override
@@ -175,6 +180,6 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
             player.closeInventory(InventoryCloseEvent.Reason.CANT_USE);
         }
 
-        this.container.close();
+        this.liveContainer().close();
     }
 }

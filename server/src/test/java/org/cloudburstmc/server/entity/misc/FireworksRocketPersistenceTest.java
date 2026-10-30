@@ -5,12 +5,15 @@ import org.cloudburstmc.api.entity.data.FireworksRocketData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -96,5 +99,20 @@ class FireworksRocketPersistenceTest {
         assertEquals(12, rocket.getLife());
         assertEquals(90, rocket.getLifetime());
         assertTrue(save(rocket).getBoolean("ShotAtAngle"));
+    }
+
+    @Test
+    void fireworksRocketKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityFireworksRocket.class, FireworksRocketData.class,
+                Map.of("firework", "the live firework item, never persisted; rebuilt through setFireworkData"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityFireworksRocket.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("life", "lifetime", "shotAtAngle")) {
+            assertFalse(fields.contains(removed),
+                    "EntityFireworksRocket keeps " + removed + "; state must live in FireworksRocketData only");
+        }
     }
 }

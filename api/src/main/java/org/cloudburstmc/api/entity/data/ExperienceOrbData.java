@@ -7,7 +7,8 @@ import lombok.Setter;
 
 /**
  * Persistent data of an experience orb: everything shared plus its value,
- * age, count and pickup delay.
+ * count and pickup delay. Age travels through the load/save hooks, mirroring
+ * the live tick counter instead.
  */
 @Getter
 @Setter
@@ -15,16 +16,13 @@ import lombok.Setter;
 public class ExperienceOrbData extends EntityData {
 
     @JsonProperty("experience value")
-    private Integer experienceValue;
-
-    @JsonProperty("Age")
-    private Short age;
+    private Integer experienceValue = 1;
 
     @JsonProperty("Count")
-    private Integer count;
+    private int count = 1;
 
     @JsonProperty("PickupDelay")
-    private Short pickupDelay;
+    private short pickupDelay;
 
     public ExperienceOrbData() {
     }

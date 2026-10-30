@@ -14,7 +14,7 @@ import lombok.Setter;
 public class ProjectileData extends EntityData {
 
     @JsonProperty("damage")
-    private Float damage;
+    private float damage;
 
     public ProjectileData() {
     }

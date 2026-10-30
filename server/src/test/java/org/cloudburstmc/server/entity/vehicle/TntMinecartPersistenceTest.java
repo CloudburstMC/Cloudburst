@@ -7,15 +7,18 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.block.BlockStateCodec;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -96,5 +99,19 @@ class TntMinecartPersistenceTest {
         // The fuse has a presence bit; the offset always falls back to its default.
         assertEquals(30, minecart.getFuse());
         assertEquals(6, minecart.getDisplayOffset());
+    }
+
+    @Test
+    void tntMinecartKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityTntMinecart.class, TntMinecartData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityTntMinecart.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("fuse")) {
+            assertFalse(fields.contains(removed),
+                    "EntityTntMinecart keeps " + removed + "; state must live in TntMinecartData only");
+        }
     }
 }

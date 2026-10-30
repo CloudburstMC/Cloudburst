@@ -14,6 +14,8 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
@@ -25,9 +27,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.CUST
 
 public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
-    private ItemStack itemStack = ItemStack.from(ItemTypes.ARROW);
-    private int potionGroundTicks;
-
     public EntityArrow(EntityType<Arrow> type, Location location) {
         super(type, location);
     }
@@ -35,7 +34,12 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setItemStack(this.itemStack);
+        this.setItemStack(ItemStack.from(ItemTypes.ARROW));
+    }
+
+    @Override
+    protected ArrowData data() {
+        return (ArrowData) super.data();
     }
 
     @Override
@@ -44,26 +48,24 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        ArrowData arrowData = (ArrowData) data;
-        if (arrowData.getItem() != null) {
-            this.setItemStack(arrowData.getItem());
+    protected void loadCustom(NbtMap tag) {
+        // Migrated from applyData: the item and ground ticks run before the abstract-arrow
+        // load below, matching the old applyData-before-loadCustom order. The item setter
+        // re-runs to keep its validation, exactly as the old applyData did; the ground ticks
+        // have a load default of zero, so they reset when absent.
+        if (tag.containsKey("Item")) {
+            ItemStack item = this.data().getItem();
+            if (item != null) {
+                this.setItemStack(item);
+            }
         }
-        this.potionGroundTicks = Math.max(0, arrowData.getPotionGroundTicks());
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ArrowData arrowData = (ArrowData) data;
-        arrowData.setItem(this.itemStack);
-        arrowData.setPotionGroundTicks(this.potionGroundTicks);
+        this.data().setPotionGroundTicks(Math.max(0, getInt(tag, "PotionGroundTicks", 0)));
+        super.loadCustom(tag);
     }
 
     @Override
     public ItemStack getItemStack() {
-        return this.itemStack;
+        return this.data().getItem();
     }
 
     @Override
@@ -75,8 +77,8 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
         PotionType potion = item.get(ItemDataComponents.POTION_TYPE);
         byte display = potion == null ? 0 : (byte) (NetworkUtils.potionToNetwork(potion) + 1);
-        this.itemStack = item.withCount(1);
-        this.potionGroundTicks = 0;
+        this.data().setItem(item.withCount(1));
+        this.data().setPotionGroundTicks(0);
         this.data.set(CUSTOM_DISPLAY, display);
     }
 
@@ -127,7 +129,7 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
             return false;
         }
 
-        PotionType potion = this.itemStack.get(ItemDataComponents.POTION_TYPE);
+        PotionType potion = this.getItemStack().get(ItemDataComponents.POTION_TYPE);
         if (potion != null) {
             Entity owner = this.getOwner();
             DamageSource.Builder source = DamageSource.builder(DamageTypes.INDIRECT_MAGIC).directEntity(this);
@@ -158,14 +160,14 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
         int tickDiff = Math.max(0, currentTick - this.lastUpdate);
         boolean hasUpdate = super.onUpdate(currentTick);
 
-        if (this.isEmbedded() && this.itemStack.has(ItemDataComponents.POTION_TYPE)) {
-            this.potionGroundTicks += tickDiff;
-            if (this.potionGroundTicks >= 600) {
+        if (this.isEmbedded() && this.getItemStack().has(ItemDataComponents.POTION_TYPE)) {
+            this.data().setPotionGroundTicks(this.data().getPotionGroundTicks() + tickDiff);
+            if (this.data().getPotionGroundTicks() >= 600) {
                 this.setItemStack(ItemStack.from(ItemTypes.ARROW));
                 hasUpdate = true;
             }
         } else {
-            this.potionGroundTicks = 0;
+            this.data().setPotionGroundTicks(0);
         }
 
         if (this.onGround || this.hadCollision) {

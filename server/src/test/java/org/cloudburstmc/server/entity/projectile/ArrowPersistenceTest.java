@@ -8,12 +8,14 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -116,5 +118,35 @@ class ArrowPersistenceTest {
         assertEquals(ArrowPickupStatus.ALLOWED, arrow.getPickupStatus());
         assertEquals((byte) 1, saved.getByte("pickup"));
         assertTrue(saved.getBoolean("inGround"));
+    }
+
+    @Test
+    void absentPotionGroundTicksResetToZero() {
+        EntityArrow arrow = (EntityArrow) PersistenceFixtures.entity(EntityTypes.ARROW);
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)))
+                .putInt("PotionGroundTicks", 500)
+                .build());
+
+        // The ground ticks have a load default of zero, so they reset when absent.
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putCompound("Item", ItemUtils.serializeItem(ItemStack.from(ItemTypes.ARROW)))
+                .build());
+
+        NbtMap saved = save(arrow);
+        assertEquals(0, saved.getInt("PotionGroundTicks"));
+    }
+
+    @Test
+    void arrowKeepsNoDuplicateState() {        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityArrow.class, ArrowData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityArrow.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("itemStack", "potionGroundTicks")) {
+            assertFalse(fields.contains(removed),
+                    "EntityArrow keeps " + removed + "; state must live in ArrowData only");
+        }
     }
 }

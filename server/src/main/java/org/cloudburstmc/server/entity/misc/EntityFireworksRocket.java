@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.entity.misc;
 
-import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.entity.Entity;
@@ -49,11 +48,6 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     private static final double GLIDE_BOOST_CORRECTION = 0.5;
     private static final FireworkData DEFAULT_FIREWORK_DATA = FireworkData.of(List.of(), (byte) 1);
 
-    private int life;
-    private int lifetime;
-    @Setter
-    private boolean shotAtAngle;
-
     private ItemStack firework;
     private CloudPlayer boostedPlayer;
 
@@ -74,32 +68,13 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     }
 
     @Override
+    protected FireworksRocketData data() {
+        return (FireworksRocketData) super.data();
+    }
+
+    @Override
     protected Class<? extends EntityData> minimumDataClass() {
         return FireworksRocketData.class;
-    }
-
-    @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        FireworksRocketData rocketData = (FireworksRocketData) data;
-        if (rocketData.getLife() != null) {
-            this.life = rocketData.getLife();
-        }
-        if (rocketData.getLifetime() != null) {
-            this.lifetime = rocketData.getLifetime();
-        }
-        if (rocketData.getShotAtAngle() != null) {
-            this.shotAtAngle = rocketData.getShotAtAngle();
-        }
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        FireworksRocketData rocketData = (FireworksRocketData) data;
-        rocketData.setLife(this.life);
-        rocketData.setLifetime(this.lifetime);
-        rocketData.setShotAtAngle(this.shotAtAngle);
     }
 
     @Override
@@ -132,14 +107,14 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
                 return true;
             }
 
-            if (this.life == 0) {
+            if (this.getLife() == 0) {
                 this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.LAUNCH);
             }
 
-            this.life++;
+            this.setLife(this.getLife() + 1);
 
             hasUpdate = true;
-            if (this.life > this.lifetime) {
+            if (this.getLife() > this.getLifetime()) {
                 this.explode();
             }
         }
@@ -154,7 +129,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
     private void updateFreeFlight() {
         double horizontalAcceleration = this.isCollidedHorizontally ? 1.0 : 1.15;
-        Vector3f nextMotion = this.shotAtAngle ? this.motion
+        Vector3f nextMotion = this.isShotAtAngle() ? this.motion
                 : this.motion.mul(horizontalAcceleration, 1.0, horizontalAcceleration).add(0, 0.04, 0);
         Vector3f nextPosition = this.position.add(nextMotion);
         RayTraceContext trace = new RayTraceContext(this.position, nextPosition, BlockShapeMode.COLLIDER,
@@ -279,22 +254,30 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
     @Override
     public int getLife() {
-        return life;
+        return this.data().getLife();
     }
 
     @Override
     public void setLife(int life) {
-        this.life = life;
+        this.data().setLife(life);
     }
 
     @Override
     public int getLifetime() {
-        return lifetime;
+        return this.data().getLifetime();
     }
 
     @Override
     public void setLifetime(int lifetime) {
-        this.lifetime = lifetime;
+        this.data().setLifetime(lifetime);
+    }
+
+    public boolean isShotAtAngle() {
+        return this.data().isShotAtAngle();
+    }
+
+    public void setShotAtAngle(boolean shotAtAngle) {
+        this.data().setShotAtAngle(shotAtAngle);
     }
 
     @Override
@@ -366,7 +349,7 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     private void updateLifetime() {
         Random rand = ThreadLocalRandom.current();
         int flightLevel = 1 + this.getFireworkData().getFlightLevel();
-        this.lifetime = 10 * flightLevel + rand.nextInt(6) + rand.nextInt(7);
+        this.setLifetime(10 * flightLevel + rand.nextInt(6) + rand.nextInt(7));
     }
 
     @Override

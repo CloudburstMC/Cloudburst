@@ -2,6 +2,7 @@ package org.cloudburstmc.server.entity.projectile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.data.AbstractArrowData;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.level.Level;
@@ -10,6 +11,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -130,17 +132,28 @@ class AbstractArrowPersistenceTest {
                 .putInt("inBlockZ", 3)
                 .build());
 
-        // Pulling the arrow out clears the block position the same runtime fields hold.
-        Field inGround = EntityAbstractArrow.class.getDeclaredField("inGround");
-        inGround.setAccessible(true);
-        inGround.set(arrow, false);
-        Field embeddedPosition = EntityAbstractArrow.class.getDeclaredField("embeddedPosition");
-        embeddedPosition.setAccessible(true);
-        embeddedPosition.set(arrow, null);
+        // Pulling the arrow out clears the stuck state, so the block position is not written.
+        arrow.loadAdditionalData(NbtMap.builder()
+                .putBoolean("inGround", false)
+                .build());
 
         NbtMap saved = save(arrow);
         assertFalse(saved.containsKey("inBlockX"), "saved tag still has inBlockX");
         assertFalse(saved.containsKey("inBlockY"), "saved tag still has inBlockY");
         assertFalse(saved.containsKey("inBlockZ"), "saved tag still has inBlockZ");
+    }
+
+    @Test
+    void abstractArrowKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityAbstractArrow.class, AbstractArrowData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityAbstractArrow.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("pickupStatus", "pierceLevel", "inGround", "embeddedPosition")) {
+            assertFalse(fields.contains(removed),
+                    "EntityAbstractArrow keeps " + removed + "; state must live in AbstractArrowData only");
+        }
     }
 }

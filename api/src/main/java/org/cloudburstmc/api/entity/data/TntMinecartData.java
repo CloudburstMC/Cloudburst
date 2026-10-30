@@ -14,7 +14,7 @@ import lombok.Setter;
 public class TntMinecartData extends AbstractMinecartData {
 
     @JsonProperty("Fuse")
-    private Integer fuse;
+    private int fuse = -1;
 
     public TntMinecartData() {
     }

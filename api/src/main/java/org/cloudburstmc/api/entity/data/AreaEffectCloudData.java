@@ -1,18 +1,23 @@
 package org.cloudburstmc.api.entity.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
-import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.api.potion.PotionEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Persistent data of an area effect cloud: everything shared plus its timers,
- * radius behavior, potion id, custom effects, color and duration scale.
+ * radius behavior, potion id, custom effects, color and duration scale. The
+ * effect list is the live one the runtime mutates; a read replaces it, so the
+ * runtime keeps no second copy. The duration scale is conditional: a scale of
+ * one is not written, so it travels through the load/save hooks.
  */
 @Getter
 @Setter
@@ -21,7 +26,7 @@ public class AreaEffectCloudData extends EntityData {
 
     @JsonProperty("mobEffects")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-    private List<NbtMap> mobEffects;
+    private List<PotionEffect> mobEffects = new ArrayList<>();
 
     @JsonProperty("PotionId")
     private Short potionId;
@@ -30,27 +35,27 @@ public class AreaEffectCloudData extends EntityData {
     private Integer particleColor;
 
     @JsonProperty("Duration")
-    private Integer duration;
+    private int duration;
 
     @JsonProperty("DurationOnUse")
-    private Integer durationOnUse;
+    private int durationOnUse;
 
     @JsonProperty("ReapplicationDelay")
-    private Integer reapplicationDelay;
+    private int reapplicationDelay;
 
     @JsonProperty("Radius")
-    private Float radius;
+    private float radius = 3.0F;
 
     @JsonProperty("RadiusOnUse")
-    private Float radiusOnUse;
+    private float radiusOnUse;
 
     @JsonProperty("RadiusPerTick")
-    private Float radiusPerTick;
+    private float radiusPerTick;
 
     @JsonProperty("WaitTime")
-    private Integer waitTime;
+    private int waitTime = 10;
 
-    @JsonProperty("PotionDurationScale")
+    @JsonIgnore
     private Float potionDurationScale;
 
     public AreaEffectCloudData() {

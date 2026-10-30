@@ -8,20 +8,27 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
+import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Data-path tests for the boat branch. The stub fixture cannot build boats
  * ({@code initEntity} needs a live location), so the tests construct them directly
- * without initializing and drive {@code applyData}/{@code fillData}, asserting the
- * mapped NBT types exactly as the production save path would write them.
+ * without initializing and drive the production load and save paths, asserting the
+ * mapped NBT types.
  */
 class BoatPersistenceTest {
 
@@ -29,6 +36,12 @@ class BoatPersistenceTest {
         PersistenceFixtures.ensureInitialized();
         return new EntityBoat(EntityTypes.BOAT,
                 Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
+    }
+
+    private static NbtMap save(CloudEntity entity) {
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        return builder.build();
     }
 
     @Test
@@ -39,15 +52,13 @@ class BoatPersistenceTest {
         EntityBoat boat = boat();
         int variant = VanillaBoats.definition(BoatType.BAMBOO).variant();
 
-        BoatData loaded = new BoatData();
-        loaded.setWoodType(variant);
-        boat.applyData(loaded);
+        boat.loadAdditionalData(NbtMap.builder()
+                .putInt("WoodType", variant)
+                .build());
 
         assertEquals(BoatType.BAMBOO, boat.getBoatType());
 
-        BoatData filled = new BoatData();
-        boat.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(boat);
 
         assertTrue(written.get("WoodType") instanceof Integer, "WoodType must be an int");
         assertEquals(variant, written.getInt("WoodType"));
@@ -57,9 +68,7 @@ class BoatPersistenceTest {
     void defaultInstanceFillsTodayDefaults() {
         EntityBoat boat = boat();
 
-        BoatData filled = new BoatData();
-        boat.fillData(filled);
-        NbtMap written = ServerNbt.MAPPER.write(filled);
+        NbtMap written = save(boat);
 
         // Today's save always writes the oak variant for a fresh boat.
         assertTrue(written.get("WoodType") instanceof Integer, "WoodType must be an int");
@@ -73,8 +82,22 @@ class BoatPersistenceTest {
 
         // The wood type has no presence bit: it always falls back to oak,
         // exactly as today's getInt-with-default load does.
-        boat.applyData(new BoatData());
+        boat.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(BoatType.OAK, boat.getBoatType());
+    }
+
+    @Test
+    void boatKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityBoat.class, BoatData.class);
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityBoat.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("boatType")) {
+            assertFalse(fields.contains(removed),
+                    "EntityBoat keeps " + removed + "; state must live in BoatData only");
+        }
     }
 }
