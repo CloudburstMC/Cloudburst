@@ -9,6 +9,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.DroppedItemData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -17,8 +19,6 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
@@ -88,25 +88,36 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForShort("Health", this::setHealth);
-        tag.listenForShort("PickupDelay", this::setPickupDelay);
-        tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
-        tag.listenForCompound("Item", itemTag -> this.item = ItemUtils.deserializeItem(itemTag));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        DroppedItemData itemData = (DroppedItemData) data;
+        if (itemData.getHealth() != null) {
+            this.setHealth(itemData.getHealth());
+        }
+        if (itemData.getPickupDelay() != null) {
+            this.setPickupDelay(itemData.getPickupDelay());
+        }
+        if (itemData.getAge() != null) {
+            this.age = itemData.getAge();
+        }
+        if (itemData.getOwnerId() != null) {
+            this.data.set(OWNER_EID, itemData.getOwnerId());
+        }
+        if (itemData.getItem() != null) {
+            this.item = itemData.getItem();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putShort("Health", (short) this.getHealth());
-        tag.putShort("PickupDelay", (short) this.pickupDelay);
-        tag.putShort("Age", (short) this.age);
-        tag.putLong("OwnerID", this.data.require(OWNER_EID));
-        tag.putCompound("Item", ItemUtils.serializeItem(this.item));
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        DroppedItemData itemData = (DroppedItemData) data;
+        itemData.setHealth((short) this.getHealth());
+        itemData.setPickupDelay((short) this.pickupDelay);
+        itemData.setAge((short) this.age);
+        itemData.setOwnerId(this.data.require(OWNER_EID));
+        // Today's save writes an air compound when no item was ever set.
+        itemData.setItem(this.item == null ? ItemStack.EMPTY : this.item);
     }
 
     @Override

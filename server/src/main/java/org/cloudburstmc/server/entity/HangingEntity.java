@@ -1,10 +1,13 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.HangingData;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+
+import java.util.Set;
 
 /**
  * author: MagicDroidX
@@ -26,20 +29,30 @@ public abstract class HangingEntity extends CloudEntity {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("Direction", v -> this.direction = v);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        HangingData hangingData = (HangingData) data;
+        if (hangingData.getDirection() != null) {
+            this.direction = hangingData.getDirection().byteValue();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((HangingData) data).setDirection((int) this.direction);
+    }
 
-        tag.putByte("Direction", this.direction);
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
         tag.putInt("TileX", (int) this.getX());
         tag.putInt("TileY", (int) this.getY());
         tag.putInt("TileZ", (int) this.getZ());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        return Set.of("TileX", "TileY", "TileZ");
     }
 
     @Override

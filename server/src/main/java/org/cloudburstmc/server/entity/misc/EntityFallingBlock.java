@@ -9,6 +9,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.FallingBlockData;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -19,10 +21,7 @@ import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -121,50 +120,47 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        if (!tag.containsKey("BlockState")) {
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        FallingBlockData fallingData = (FallingBlockData) data;
+        if (fallingData.getBlockState() == null) {
             this.close();
             return;
         }
 
-        this.setBlockState(BlockStateCodec.read(tag.getCompound("BlockState")));
-        this.time = tag.getInt("Time");
-        this.dropItem = !tag.containsKey("DropItem") || tag.getBoolean("DropItem");
-        this.cancelDrop = tag.getBoolean("CancelDrop");
-        this.hurtEntities = tag.getBoolean("HurtEntities");
-        this.damagePerBlock = tag.getFloat("DamagePerBlock");
-        this.maximumDamage = tag.containsKey("MaximumDamage") ? tag.getInt("MaximumDamage") : 40;
-        this.autoExpire = !tag.containsKey("AutoExpire") || tag.getBoolean("AutoExpire");
+        this.setBlockState(fallingData.getBlockState());
+        this.time = fallingData.getTime();
+        this.dropItem = fallingData.getDropItem() == null || fallingData.getDropItem();
+        this.cancelDrop = fallingData.isCancelDrop();
+        this.hurtEntities = fallingData.isHurtEntities();
+        this.damagePerBlock = fallingData.getDamagePerBlock();
+        this.maximumDamage = fallingData.getMaximumDamage() != null ? fallingData.getMaximumDamage() : 40;
+        this.autoExpire = fallingData.getAutoExpire() == null || fallingData.getAutoExpire();
 
-        if (tag.containsKey("LandingSound")) {
-            this.landingSound = SoundType.of(Identifier.parse(tag.getString("LandingSound")));
+        if (fallingData.getLandingSound() != null) {
+            this.landingSound = SoundType.of(Identifier.parse(fallingData.getLandingSound()));
         }
 
-        if (tag.containsKey("BreakSound")) {
-            this.breakSound = SoundType.of(Identifier.parse(tag.getString("BreakSound")));
+        if (fallingData.getBreakSound() != null) {
+            this.breakSound = SoundType.of(Identifier.parse(fallingData.getBreakSound()));
         }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putCompound("BlockState", BlockPalette.INSTANCE.getDefinition(this.blockState).getState());
-        tag.putInt("Time", this.time);
-        tag.putBoolean("DropItem", this.dropItem);
-        tag.putBoolean("CancelDrop", this.cancelDrop);
-        tag.putBoolean("HurtEntities", this.hurtEntities);
-        tag.putFloat("DamagePerBlock", this.damagePerBlock);
-        tag.putInt("MaximumDamage", this.maximumDamage);
-        tag.putBoolean("AutoExpire", this.autoExpire);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        FallingBlockData fallingData = (FallingBlockData) data;
+        fallingData.setBlockState(this.blockState);
+        fallingData.setTime(this.time);
+        fallingData.setDropItem(this.dropItem);
+        fallingData.setCancelDrop(this.cancelDrop);
+        fallingData.setHurtEntities(this.hurtEntities);
+        fallingData.setDamagePerBlock(this.damagePerBlock);
+        fallingData.setMaximumDamage(this.maximumDamage);
+        fallingData.setAutoExpire(this.autoExpire);
 
-        if (this.landingSound != null) {
-            tag.putString("LandingSound", this.landingSound.getId().toString());
-        }
-
-        if (this.breakSound != null) {
-            tag.putString("BreakSound", this.breakSound.getId().toString());
-        }
+        fallingData.setLandingSound(this.landingSound == null ? null : this.landingSound.getId().toString());
+        fallingData.setBreakSound(this.breakSound == null ? null : this.breakSound.getId().toString());
     }
 
     @Override

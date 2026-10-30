@@ -6,11 +6,11 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.ExperienceOrbData;
 import org.cloudburstmc.api.entity.misc.ExperienceOrb;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -72,23 +72,31 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("experience value", this::setExperience);
-        tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForInt("Count", this::setCount);
-        tag.listenForShort("PickupDelay", v -> this.pickupDelay = v);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        ExperienceOrbData orbData = (ExperienceOrbData) data;
+        if (orbData.getExperienceValue() != null) {
+            this.setExperience(orbData.getExperienceValue());
+        }
+        if (orbData.getAge() != null) {
+            this.age = orbData.getAge();
+        }
+        if (orbData.getCount() != null) {
+            this.setCount(orbData.getCount());
+        }
+        if (orbData.getPickupDelay() != null) {
+            this.pickupDelay = orbData.getPickupDelay();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("experience value", this.getExperience());
-        tag.putShort("Age", (short) this.age);
-        tag.putInt("Count", this.count);
-        tag.putShort("PickupDelay", (short) this.pickupDelay);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ExperienceOrbData orbData = (ExperienceOrbData) data;
+        orbData.setExperienceValue(this.getExperience());
+        orbData.setAge((short) this.age);
+        orbData.setCount(this.count);
+        orbData.setPickupDelay((short) this.pickupDelay);
     }
 
     @Override

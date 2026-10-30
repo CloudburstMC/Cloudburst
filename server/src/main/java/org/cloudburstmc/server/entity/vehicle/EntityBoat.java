@@ -10,6 +10,8 @@ import org.cloudburstmc.api.entity.EntityComponents;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Pose;
 import org.cloudburstmc.api.entity.component.Buoyancy;
+import org.cloudburstmc.api.entity.data.BoatData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.vehicle.Boat;
 import org.cloudburstmc.api.entity.vehicle.BoatStatus;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
@@ -24,8 +26,6 @@ import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.PredictionType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
@@ -96,15 +96,16 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setBoatType(VanillaBoats.fromVariant(tag.getInt("WoodType", 0)).type());
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        BoatData boatData = (BoatData) data;
+        this.setBoatType(VanillaBoats.fromVariant(boatData.getWoodType()).type());
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("WoodType", VanillaBoats.definition(this.boatType).variant());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((BoatData) data).setWoodType(VanillaBoats.definition(this.boatType).variant());
     }
 
     @Override

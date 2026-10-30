@@ -6,17 +6,16 @@ import org.cloudburstmc.api.enchantment.EnchantmentType;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.ThrownTridentData;
 import org.cloudburstmc.api.entity.projectile.ThrownTrident;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -68,17 +67,24 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForCompound("Trident", itemTag -> this.trident = ItemUtils.deserializeItem(itemTag));
-        tag.listenForBoolean("DealtDamage", value -> this.dealtDamage = value);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        ThrownTridentData tridentData = (ThrownTridentData) data;
+        if (tridentData.getTrident() != null) {
+            this.trident = tridentData.getTrident();
+        }
+        if (tridentData.getDealtDamage() != null) {
+            this.dealtDamage = tridentData.getDealtDamage();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putCompound("Trident", ItemUtils.serializeItem(this.trident));
-        tag.putBoolean("DealtDamage", this.dealtDamage);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ThrownTridentData tridentData = (ThrownTridentData) data;
+        // Today's save writes an air compound when no trident was ever set.
+        tridentData.setTrident(this.trident == null ? ItemStack.EMPTY : this.trident);
+        tridentData.setDealtDamage(this.dealtDamage);
     }
 
     @Override

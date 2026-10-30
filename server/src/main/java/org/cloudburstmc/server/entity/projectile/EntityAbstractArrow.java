@@ -3,14 +3,14 @@ package org.cloudburstmc.server.entity.projectile;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.AbstractArrowData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.projectile.AbstractArrow;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.server.CloudServer;
@@ -70,16 +70,20 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForBoolean("inGround", value -> this.inGround = value);
-        tag.listenForByte("PierceLevel", value -> this.setPierceLevel(Byte.toUnsignedInt(value)));
-        if (tag.containsKey("inBlockX") && tag.containsKey("inBlockY") && tag.containsKey("inBlockZ")) {
-            this.embeddedPosition = Vector3i.from(tag.getInt("inBlockX"), tag.getInt("inBlockY"), tag.getInt("inBlockZ"));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        AbstractArrowData arrowData = (AbstractArrowData) data;
+        if (arrowData.getInGround() != null) {
+            this.inGround = arrowData.getInGround();
+        }
+        if (arrowData.getPierceLevel() != null) {
+            this.setPierceLevel(arrowData.getPierceLevel());
+        }
+        if (arrowData.getInBlockX() != null && arrowData.getInBlockY() != null && arrowData.getInBlockZ() != null) {
+            this.embeddedPosition = Vector3i.from(arrowData.getInBlockX(), arrowData.getInBlockY(), arrowData.getInBlockZ());
         }
 
-        this.pickupStatus = switch (tag.getByte("pickup", (byte) 1)) {
+        this.pickupStatus = switch (arrowData.getPickup()) {
             case 0 -> ArrowPickupStatus.DISALLOWED;
             case 2 -> ArrowPickupStatus.CREATIVE_ONLY;
             default -> ArrowPickupStatus.ALLOWED;
@@ -87,24 +91,22 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putBoolean("inGround", this.inGround);
-        tag.putByte("PierceLevel", (byte) this.pierceLevel);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        AbstractArrowData arrowData = (AbstractArrowData) data;
+        arrowData.setInGround(this.inGround);
+        arrowData.setPierceLevel(this.pierceLevel);
         if (this.inGround && this.embeddedPosition != null) {
-            tag.putInt("inBlockX", this.embeddedPosition.getX());
-            tag.putInt("inBlockY", this.embeddedPosition.getY());
-            tag.putInt("inBlockZ", this.embeddedPosition.getZ());
+            arrowData.setInBlockX(this.embeddedPosition.getX());
+            arrowData.setInBlockY(this.embeddedPosition.getY());
+            arrowData.setInBlockZ(this.embeddedPosition.getZ());
         }
 
-        byte pickup = switch (this.pickupStatus) {
+        arrowData.setPickup(switch (this.pickupStatus) {
             case DISALLOWED -> 0;
             case ALLOWED -> 1;
             case CREATIVE_ONLY -> 2;
-        };
-
-        tag.putByte("pickup", pickup);
+        });
     }
 
     @Override

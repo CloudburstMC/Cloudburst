@@ -200,7 +200,7 @@ class EntityPersistenceTest {
         assertTrue(failures.isEmpty(), "Entity round-trip failures: " + failures);
         assertEquals(org.cloudburstmc.api.entity.data.CreatureData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PIG));
-        assertEquals(EntityData.class,
+        assertEquals(org.cloudburstmc.api.entity.data.PaintingData.class,
                 CloudEntityRegistry.get().getDataClass(EntityTypes.PAINTING));
     }
 

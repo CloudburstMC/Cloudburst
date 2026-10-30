@@ -6,6 +6,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.data.EnderCrystalData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.level.ExplosionBlockInteraction;
@@ -14,7 +16,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -24,9 +25,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.BLOC
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMUNE;
 
 public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Explosive {
-
-    private static final String TAG_SHOW_BOTTOM = "ShowBottom";
-    private static final String TAG_BEAM_TARGET = "BeamTarget";
 
     public EntityEnderCrystal(EntityType<EnderCrystal> type, Location location) {
         super(type, location);
@@ -113,25 +111,31 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForBoolean(TAG_SHOW_BOTTOM, this::setShowingBase);
-        tag.listenForCompound(TAG_BEAM_TARGET, beam -> this.setBeamTarget(Vector3i.from(
-                beam.getInt("X"), beam.getInt("Y"), beam.getInt("Z"))));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        EnderCrystalData crystalData = (EnderCrystalData) data;
+        if (crystalData.getShowBottom() != null) {
+            this.setShowingBase(crystalData.getShowBottom());
+        }
+        if (crystalData.getBeamTarget() != null) {
+            this.setBeamTarget(Vector3i.from(
+                    crystalData.getBeamTarget().getInt("X"),
+                    crystalData.getBeamTarget().getInt("Y"),
+                    crystalData.getBeamTarget().getInt("Z")));
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putBoolean(TAG_SHOW_BOTTOM, this.isShowingBase());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        EnderCrystalData crystalData = (EnderCrystalData) data;
+        crystalData.setShowBottom(this.isShowingBase());
         Vector3i beamTarget = this.getBeamTarget();
-        if (beamTarget != null) {
-            tag.putCompound(TAG_BEAM_TARGET, NbtMap.builder()
-                    .putInt("X", beamTarget.getX())
-                    .putInt("Y", beamTarget.getY())
-                    .putInt("Z", beamTarget.getZ())
-                    .build());
-        }
+        crystalData.setBeamTarget(beamTarget == null ? null : NbtMap.builder()
+                .putInt("X", beamTarget.getX())
+                .putInt("Y", beamTarget.getY())
+                .putInt("Z", beamTarget.getZ())
+                .build());
     }
 
     @Override

@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.ArrowData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -12,10 +14,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.BlockHitResult;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 
@@ -40,17 +39,21 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForCompound("Item", item -> this.setItemStack(ItemUtils.deserializeItem(item)));
-        this.potionGroundTicks = Math.max(0, tag.getInt("PotionGroundTicks"));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        ArrowData arrowData = (ArrowData) data;
+        if (arrowData.getItem() != null) {
+            this.setItemStack(arrowData.getItem());
+        }
+        this.potionGroundTicks = Math.max(0, arrowData.getPotionGroundTicks());
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putCompound("Item", ItemUtils.serializeItem(this.itemStack));
-        tag.putInt("PotionGroundTicks", this.potionGroundTicks);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ArrowData arrowData = (ArrowData) data;
+        arrowData.setItem(this.itemStack);
+        arrowData.setPotionGroundTicks(this.potionGroundTicks);
     }
 
     @Override

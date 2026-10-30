@@ -8,6 +8,8 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.data.AbstractMinecartData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.event.vehicle.VehicleMoveEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleUpdateEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -20,9 +22,7 @@ import org.cloudburstmc.api.util.data.RailDirection;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlockDefinition;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.block.util.RailConnector;
@@ -70,35 +70,31 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setDisplayBlockOffset(tag.getInt("DisplayOffset", DEFAULT_DISPLAY_OFFSET));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        AbstractMinecartData minecartData = (AbstractMinecartData) data;
+        this.setDisplayBlockOffset(minecartData.getDisplayOffset() != null ? minecartData.getDisplayOffset() : DEFAULT_DISPLAY_OFFSET);
 
-        if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
-            throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
-        }
-
-        if (tag.getBoolean("CustomDisplayTile")) {
+        if (Boolean.TRUE.equals(minecartData.getCustomDisplayTile())) {
             this.setDisplay(true);
 
-            this.setDisplayBlock(BlockStateCodec.read(tag.getCompound("DisplayBlock")));
+            this.setDisplayBlock(minecartData.getDisplayBlock());
         }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        AbstractMinecartData minecartData = (AbstractMinecartData) data;
+        minecartData.setDisplayOffset(this.getDisplayOffset() != DEFAULT_DISPLAY_OFFSET ? this.getDisplayOffset() : null);
+        minecartData.setCustomDisplayTile(this.hasDisplay() ? true : null);
+        minecartData.setDisplayBlock(this.hasDisplay() ? this.getDisplayBlock() : null);
+    }
 
-        if (this.hasDisplay()) {
-            tag.putBoolean("CustomDisplayTile", true);
-
-            tag.putCompound("DisplayBlock", BlockStateCodec.write(this.getDisplayBlock()));
-        }
-
-        tag.remove("DisplayOffset");
-
-        if (this.getDisplayOffset() != DEFAULT_DISPLAY_OFFSET) {
-            tag.putInt("DisplayOffset", this.getDisplayOffset());
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (tag.containsKey("DisplayTile") || tag.containsKey("DisplayData")) {
+            throw new UnsupportedOperationException("Numeric minecart display data is no longer supported");
         }
     }
 

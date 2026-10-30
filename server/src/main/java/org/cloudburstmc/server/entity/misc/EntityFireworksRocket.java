@@ -9,6 +9,8 @@ import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.FireworksRocketData;
 import org.cloudburstmc.api.entity.misc.FireworksRocket;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -24,7 +26,6 @@ import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.data.FireworkData;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -73,21 +74,27 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("Life", v -> this.life = v);
-        tag.listenForInt("LifeTime", v -> this.lifetime = v);
-        tag.listenForBoolean("ShotAtAngle", v -> this.shotAtAngle = v);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        FireworksRocketData rocketData = (FireworksRocketData) data;
+        if (rocketData.getLife() != null) {
+            this.life = rocketData.getLife();
+        }
+        if (rocketData.getLifetime() != null) {
+            this.lifetime = rocketData.getLifetime();
+        }
+        if (rocketData.getShotAtAngle() != null) {
+            this.shotAtAngle = rocketData.getShotAtAngle();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("Life", this.life);
-        tag.putInt("LifeTime", this.lifetime);
-        tag.putBoolean("ShotAtAngle", this.shotAtAngle);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        FireworksRocketData rocketData = (FireworksRocketData) data;
+        rocketData.setLife(this.life);
+        rocketData.setLifetime(this.lifetime);
+        rocketData.setShotAtAngle(this.shotAtAngle);
     }
 
     @Override

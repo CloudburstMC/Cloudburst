@@ -7,6 +7,8 @@ import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.ProjectileData;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
@@ -17,8 +19,6 @@ import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -66,15 +66,18 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForNumber("damage", v -> this.setDamage(v.floatValue()));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        ProjectileData projectileData = (ProjectileData) data;
+        if (projectileData.getDamage() != null) {
+            this.setDamage(projectileData.getDamage());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putFloat("damage", this.damage);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((ProjectileData) data).setDamage(this.damage);
     }
 
     public int getResultDamage() {

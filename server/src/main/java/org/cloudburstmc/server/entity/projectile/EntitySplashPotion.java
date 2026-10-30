@@ -4,14 +4,14 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.damage.DamageSource;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.SplashPotionData;
 import org.cloudburstmc.api.entity.projectile.SplashPotion;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.event.entity.PotionSplashEvent;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.potion.PotionTypes;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
@@ -28,9 +28,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.AUX_
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.ENCHANTED;
 
 public class EntitySplashPotion extends EntityProjectile implements SplashPotion {
-
-    private static final String TAG_POTION_ID = "PotionId";
-
     private PotionType type = PotionTypes.WATER;
 
     public EntitySplashPotion(EntityType<? extends SplashPotion> type, Location location) {
@@ -141,14 +138,17 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForShort(TAG_POTION_ID, id -> this.setPotionType(NetworkUtils.potionFromNetwork(id)));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        SplashPotionData potionData = (SplashPotionData) data;
+        if (potionData.getPotionId() != null) {
+            this.setPotionType(NetworkUtils.potionFromNetwork(potionData.getPotionId()));
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putShort(TAG_POTION_ID, NetworkUtils.potionToNetwork(this.type));
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((SplashPotionData) data).setPotionId(NetworkUtils.potionToNetwork(this.type));
     }
 }

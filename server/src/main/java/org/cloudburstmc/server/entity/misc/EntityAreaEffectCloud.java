@@ -6,6 +6,8 @@ import org.cloudburstmc.api.entity.Living;
 import org.cloudburstmc.api.entity.RegainReason;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.AreaEffectCloudData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.misc.AreaEffectCloud;
 import org.cloudburstmc.api.event.entity.AreaEffectCloudApplyEvent;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
@@ -14,8 +16,6 @@ import org.cloudburstmc.api.level.particle.ParticleType;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
 import org.cloudburstmc.api.potion.*;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -32,18 +32,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.FIRE_IMMU
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.NO_AI;
 
 public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectCloud {
-    private static final String TAG_DURATION = "Duration";
-    private static final String TAG_REAPPLICATION_DELAY = "ReapplicationDelay";
-    private static final String TAG_DURATION_ON_USE = "DurationOnUse";
-    private static final String TAG_RADIUS_ON_USE = "RadiusOnUse";
-    private static final String TAG_RADIUS_PER_TICK = "RadiusPerTick";
-    private static final String TAG_POTION_ID = "PotionId";
-    private static final String TAG_RADIUS = "Radius";
-    private static final String TAG_MOB_EFFECTS = "mobEffects";
-    private static final String TAG_PARTICLE_COLOR = "ParticleColor";
-    private static final String TAG_WAIT_TIME = "WaitTime";
-    private static final String TAG_POTION_DURATION_SCALE = "PotionDurationScale";
-
     private final List<PotionEffect> customEffects = new ArrayList<>();
     private final Map<Long, Integer> victims = new HashMap<>();
     private int reapplicationDelay;
@@ -283,52 +271,68 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effectTags -> {
-            for (NbtMap effectTag : effectTags) {
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        AreaEffectCloudData cloudData = (AreaEffectCloudData) data;
+        if (cloudData.getMobEffects() != null) {
+            for (NbtMap effectTag : cloudData.getMobEffects()) {
                 this.customEffects.add(PotionEffectDataSerializer.deserialize(effectTag));
             }
-        });
+        }
 
-        tag.listenForShort(TAG_POTION_ID, potionId -> this.setPotionType(NetworkUtils.potionFromNetwork(potionId)));
-        tag.listenForInt(TAG_PARTICLE_COLOR, color -> {
-            this.particleColor = color;
+        if (cloudData.getPotionId() != null) {
+            this.setPotionType(NetworkUtils.potionFromNetwork(cloudData.getPotionId()));
+        }
+        if (cloudData.getParticleColor() != null) {
+            this.particleColor = cloudData.getParticleColor();
             this.particleColorSet = true;
-            this.updatePotionColor(color);
-        });
-        tag.listenForInt(TAG_DURATION, this::setDuration);
-        tag.listenForInt(TAG_DURATION_ON_USE, this::setDurationOnUse);
-        tag.listenForInt(TAG_REAPPLICATION_DELAY, this::setReapplicationDelay);
-        tag.listenForFloat(TAG_RADIUS, this::setRadius);
-        tag.listenForFloat(TAG_RADIUS_ON_USE, this::setRadiusOnUse);
-        tag.listenForFloat(TAG_RADIUS_PER_TICK, this::setRadiusPerTick);
-        tag.listenForInt(TAG_WAIT_TIME, this::setWaitTime);
-        tag.listenForFloat(TAG_POTION_DURATION_SCALE, this::setPotionDurationScale);
+            this.updatePotionColor(cloudData.getParticleColor());
+        }
+        if (cloudData.getDuration() != null) {
+            this.setDuration(cloudData.getDuration());
+        }
+        if (cloudData.getDurationOnUse() != null) {
+            this.setDurationOnUse(cloudData.getDurationOnUse());
+        }
+        if (cloudData.getReapplicationDelay() != null) {
+            this.setReapplicationDelay(cloudData.getReapplicationDelay());
+        }
+        if (cloudData.getRadius() != null) {
+            this.setRadius(cloudData.getRadius());
+        }
+        if (cloudData.getRadiusOnUse() != null) {
+            this.setRadiusOnUse(cloudData.getRadiusOnUse());
+        }
+        if (cloudData.getRadiusPerTick() != null) {
+            this.setRadiusPerTick(cloudData.getRadiusPerTick());
+        }
+        if (cloudData.getWaitTime() != null) {
+            this.setWaitTime(cloudData.getWaitTime());
+        }
+        if (cloudData.getPotionDurationScale() != null) {
+            this.setPotionDurationScale(cloudData.getPotionDurationScale());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        AreaEffectCloudData cloudData = (AreaEffectCloudData) data;
         List<NbtMap> effects = new ArrayList<>();
         for (PotionEffect effect : this.customEffects) {
             effects.add(PotionEffectDataSerializer.serialize(effect));
         }
-        tag.putList(TAG_MOB_EFFECTS, NbtType.COMPOUND, effects);
-        tag.putInt(TAG_PARTICLE_COLOR, getPotionColor());
-        tag.putShort(TAG_POTION_ID, NetworkUtils.potionToNetwork(getPotionType()));
-        tag.putInt(TAG_DURATION, getDuration());
-        tag.putInt(TAG_DURATION_ON_USE, durationOnUse);
-        tag.putInt(TAG_REAPPLICATION_DELAY, reapplicationDelay);
-        tag.putFloat(TAG_RADIUS, getRadius());
-        tag.putFloat(TAG_RADIUS_ON_USE, radiusOnUse);
-        tag.putFloat(TAG_RADIUS_PER_TICK, getRadiusPerTick());
-        tag.putInt(TAG_WAIT_TIME, getWaitTime());
-        if (this.potionDurationScale != 1.0F) {
-            tag.putFloat(TAG_POTION_DURATION_SCALE, this.potionDurationScale);
-        }
+        cloudData.setMobEffects(effects);
+        cloudData.setPotionId(NetworkUtils.potionToNetwork(getPotionType()));
+        cloudData.setParticleColor(getPotionColor());
+        cloudData.setDuration(getDuration());
+        cloudData.setDurationOnUse(durationOnUse);
+        cloudData.setReapplicationDelay(reapplicationDelay);
+        cloudData.setRadius(getRadius());
+        cloudData.setRadiusOnUse(radiusOnUse);
+        cloudData.setRadiusPerTick(getRadiusPerTick());
+        cloudData.setWaitTime(getWaitTime());
+        cloudData.setPotionDurationScale(this.potionDurationScale != 1.0F ? this.potionDurationScale : null);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.entity.vehicle;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.ChestBoatData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.vehicle.ChestBoat;
 import org.cloudburstmc.api.event.inventory.InventoryCloseEvent;
 import org.cloudburstmc.api.inventory.view.StorageView;
@@ -10,18 +12,17 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
@@ -40,25 +41,33 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        ChestBoatData boatData = (ChestBoatData) data;
         this.container.clear();
-        tag.listenForList("Items", NbtType.COMPOUND, items -> {
-            for (NbtMap item : items) {
-                int slot = Byte.toUnsignedInt(item.getByte("Slot"));
+        if (boatData.getItems() != null) {
+            for (SlottedItem item : boatData.getItems()) {
+                int slot = item.slot();
                 if (slot >= this.container.size()) {
                     throw new IllegalArgumentException("Invalid chest boat inventory slot " + slot);
                 }
 
-                this.container.setItem(slot, ItemUtils.deserializeItem(item));
+                this.container.setItem(slot, item.item());
             }
-        });
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putList("Items", NbtType.COMPOUND, this.container.toNbt());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        List<SlottedItem> items = new ArrayList<>();
+        for (int slot = 0; slot < this.container.size(); slot++) {
+            ItemStack item = this.container.getItem(slot);
+            if (!item.isEmpty()) {
+                items.add(new SlottedItem(slot, item));
+            }
+        }
+        ((ChestBoatData) data).setItems(items);
     }
 
     @Override

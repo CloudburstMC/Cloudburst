@@ -2,13 +2,13 @@ package org.cloudburstmc.server.entity.misc;
 
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.PaintingData;
 import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.server.entity.HangingEntity;
@@ -38,17 +38,18 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForString("Motive", this::setMotive);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        PaintingData paintingData = (PaintingData) data;
+        if (paintingData.getMotive() != null) {
+            this.setMotive(paintingData.getMotive());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putString("Motive", this.motive.title);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((PaintingData) data).setMotive(this.motive.title);
     }
 
     @Override
