@@ -147,6 +147,64 @@ class CloudPlayerHookTest {
     }
 
     @Test
+    void loneSpawnCoordinateWritesBack() {
+        PersistenceFixtures.ensureInitialized();
+        ServerNbt.ensureInitialized();
+
+        // A lone SpawnX was kept and rewritten at 62b3ea0b0: the three spawn
+        // coordinates were independent Integer fields, so a partial tag kept
+        // the good ones when the holder condition failed.
+        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        PlayerData holder = new PlayerData();
+        CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(
+                NbtMap.builder().putInt("SpawnX", 5).build(), holder, data);
+        NbtMap saved = save(data, holder, food);
+        assertTrue(saved.get("SpawnX") instanceof Integer, "SpawnX must be an int");
+        assertEquals(5, saved.getInt("SpawnX"));
+        assertFalse(saved.containsKey("SpawnY"));
+        assertFalse(saved.containsKey("SpawnZ"));
+    }
+
+    @Test
+    void twoSpawnCoordinatesWriteBack() {
+        PersistenceFixtures.ensureInitialized();
+        ServerNbt.ensureInitialized();
+
+        // SpawnX + SpawnY without SpawnZ are both written back.
+        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        PlayerData holder = new PlayerData();
+        CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
+                .putInt("SpawnX", 1)
+                .putInt("SpawnY", 64)
+                .build(), holder, data);
+        NbtMap saved = save(data, holder, food);
+        assertTrue(saved.get("SpawnX") instanceof Integer, "SpawnX must be an int");
+        assertEquals(1, saved.getInt("SpawnX"));
+        assertTrue(saved.get("SpawnY") instanceof Integer, "SpawnY must be an int");
+        assertEquals(64, saved.getInt("SpawnY"));
+        assertFalse(saved.containsKey("SpawnZ"));
+    }
+
+    @Test
+    void mistypedSpawnZKeepsGoodCoordinates() {
+        PersistenceFixtures.ensureInitialized();
+        ServerNbt.ensureInitialized();
+
+        // A mistyped SpawnZ next to good X/Y keeps the good coordinates.
+        org.cloudburstmc.api.entity.data.PlayerData data = newData();
+        PlayerData holder = new PlayerData();
+        CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
+                .putInt("SpawnX", 1)
+                .putInt("SpawnY", 64)
+                .putString("SpawnZ", "high")
+                .build(), holder, data);
+        NbtMap saved = save(data, holder, food);
+        assertEquals(1, saved.getInt("SpawnX"));
+        assertEquals(64, saved.getInt("SpawnY"));
+        assertFalse(saved.containsKey("SpawnZ"));
+    }
+
+    @Test
     void savedBaselineRefreshesWriteBack() {
         PersistenceFixtures.ensureInitialized();
         ServerNbt.ensureInitialized();

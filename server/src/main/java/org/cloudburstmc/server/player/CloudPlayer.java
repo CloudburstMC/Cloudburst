@@ -3391,7 +3391,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      * the data instance, and the food values into the returned carrier for the
      * caller to load into the live food state. A key the tag holds with a fitting
      * kind is remembered as loaded so the save hook can write it back when the
-     * holder condition fails; anything else keeps the current value.
+     * holder condition fails; anything else keeps the current value. Each spawn
+     * coordinate is remembered on its own; only the holder's spawn location
+     * needs all three coordinates at once.
      *
      * @param tag    the stored tag
      * @param holder the server player-data to fill
@@ -3418,11 +3420,17 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         Object spawnX = tag.get("SpawnX");
         Object spawnY = tag.get("SpawnY");
         Object spawnZ = tag.get("SpawnZ");
+        if (spawnX instanceof Number x) {
+            holder.setLoadedSpawnX(x.intValue());
+        }
+        if (spawnY instanceof Number y) {
+            holder.setLoadedSpawnY(y.intValue());
+        }
+        if (spawnZ instanceof Number z) {
+            holder.setLoadedSpawnZ(z.intValue());
+        }
         if (spawnX instanceof Number x && spawnY instanceof Number y && spawnZ instanceof Number z) {
             holder.setSpawnLocation(Vector3i.from(x.intValue(), y.intValue(), z.intValue()));
-            holder.setLoadedSpawnX(x.intValue());
-            holder.setLoadedSpawnY(y.intValue());
-            holder.setLoadedSpawnZ(z.intValue());
         }
         if (tag.get("SpawnYaw") instanceof Number spawnYaw) {
             holder.setSpawnYaw(spawnYaw.floatValue());
