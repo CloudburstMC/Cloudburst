@@ -28,6 +28,11 @@ public abstract class EntityTameable extends Animal implements Ownable {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return TameableData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         TameableData tameableData = (TameableData) data;

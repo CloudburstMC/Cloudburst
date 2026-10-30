@@ -138,6 +138,11 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return SplashPotionData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         SplashPotionData potionData = (SplashPotionData) data;

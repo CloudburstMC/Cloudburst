@@ -48,6 +48,11 @@ public class CrafterBlockEntity extends ContainerBlockEntity implements Crafter,
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return CrafterData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         CrafterData crafter = (CrafterData) data;

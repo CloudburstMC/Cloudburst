@@ -75,6 +75,11 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return LivingData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         this.setHealth(((LivingData) data).getHealth());

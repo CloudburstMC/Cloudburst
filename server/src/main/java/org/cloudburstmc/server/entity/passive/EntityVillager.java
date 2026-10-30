@@ -56,6 +56,11 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return VillagerData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         VillagerData villagerData = (VillagerData) data;

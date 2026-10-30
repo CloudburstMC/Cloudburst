@@ -1,19 +1,28 @@
 package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.testutil.TestBlockEntities.LegacyBlockEntity;
 import org.cloudburstmc.server.testutil.TestBlockEntities.MigratedBlockEntity;
+import org.cloudburstmc.server.testutil.TestBlockEntities.PluginChestBlockEntity;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.cloudburstmc.server.testutil.TestBlockEntities.LEGACY_TYPE;
 import static org.cloudburstmc.server.testutil.TestBlockEntities.MIGRATED_TYPE;
+import static org.cloudburstmc.server.testutil.TestBlockEntities.PLUGIN_CHEST_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -116,6 +125,25 @@ class BlockEntityPersistenceTest {
     }
 
     @Test
+    void pluginDataMarksChunkDirty() {
+        MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "TestMigrated")
+                .putInt("x", 1)
+                .putInt("y", 2)
+                .putInt("z", 3)
+                .build());
+
+        long revision = entity.getChunk().captureSaveRevision();
+        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        assertNotEquals(revision, entity.getChunk().captureSaveRevision());
+
+        revision = entity.getChunk().captureSaveRevision();
+        entity.removePluginData("myplugin");
+        assertNotEquals(revision, entity.getChunk().captureSaveRevision());
+    }
+
+    @Test
     void legacyRegistrationUsesBaseDataAndKeepsRawKeys() {
         assertEquals(BlockEntityData.class,
                 CloudBlockEntityRegistry.get().getDataClass(LEGACY_TYPE));
@@ -134,5 +162,29 @@ class BlockEntityPersistenceTest {
 
         assertEquals("v", saved.getString("Custom"));
         assertFalse(saved.getBoolean("isMovable"));
+    }
+
+    @Test
+    void legacyChestRegistrationUsesChestData() {
+        assertEquals(BlockEntityData.class,
+                CloudBlockEntityRegistry.get().getDataClass(PLUGIN_CHEST_TYPE));
+
+        PluginChestBlockEntity entity = PersistenceFixtures.blockEntity(PLUGIN_CHEST_TYPE, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "TestPluginChest")
+                .putInt("x", 1)
+                .putInt("y", 2)
+                .putInt("z", 3)
+                .putList("Items", NbtType.COMPOUND, List.of(
+                        ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), 0)))
+                .build());
+
+        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 5), entity.getItem(0));
+
+        NbtMap saved = entity.getServerTag();
+
+        PluginChestBlockEntity reloaded = PersistenceFixtures.blockEntity(PLUGIN_CHEST_TYPE, POSITION);
+        reloaded.loadAdditionalData(saved);
+        assertEquals(ItemStack.from(ItemTypes.DIAMOND, 5), reloaded.getItem(0));
     }
 }

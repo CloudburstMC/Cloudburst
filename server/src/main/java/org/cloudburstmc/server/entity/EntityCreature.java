@@ -45,6 +45,11 @@ public abstract class EntityCreature extends EntityLiving implements Creature {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return CreatureData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         CreatureData creatureData = (CreatureData) data;

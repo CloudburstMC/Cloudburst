@@ -45,7 +45,7 @@ class PlayerPersistenceTest {
         PersistenceFixtures.ensureInitialized();
         // Non-player humans save through the shared human data, so no
         // player-only key is ever written for them; live players resolve the
-        // player data through CloudPlayer.dataClass().
+        // player data through CloudPlayer.minimumDataClass().
         assertEquals(HumanData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
         assertTrue(new PlayerData() instanceof HumanData);
     }
@@ -53,7 +53,10 @@ class PlayerPersistenceTest {
     @Test
     void cloudPlayerResolvesPlayerData() throws Exception {
         assertEquals(CloudPlayer.class,
-                CloudPlayer.class.getDeclaredMethod("dataClass").getDeclaringClass());
+                CloudPlayer.class.getDeclaredMethod("minimumDataClass").getDeclaringClass());
+        // Non-player humans save through the shared human data.
+        assertEquals(HumanData.class,
+                ((CloudEntity) PersistenceFixtures.entity(EntityTypes.PLAYER)).minimumDataClass());
     }
 
     @Test

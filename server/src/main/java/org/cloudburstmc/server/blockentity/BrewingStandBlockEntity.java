@@ -69,6 +69,11 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BrewingStandData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         BrewingStandData brewing = (BrewingStandData) data;

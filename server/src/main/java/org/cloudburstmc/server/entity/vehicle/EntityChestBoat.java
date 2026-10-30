@@ -41,6 +41,11 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ChestBoatData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         ChestBoatData boatData = (ChestBoatData) data;

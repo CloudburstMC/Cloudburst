@@ -42,6 +42,11 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return TntMinecartData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         TntMinecartData minecartData = (TntMinecartData) data;

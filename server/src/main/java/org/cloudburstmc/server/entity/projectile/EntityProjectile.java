@@ -66,6 +66,11 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ProjectileData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         ProjectileData projectileData = (ProjectileData) data;

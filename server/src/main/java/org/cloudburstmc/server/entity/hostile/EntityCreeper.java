@@ -41,6 +41,11 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return CreeperData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         CreeperData creeperData = (CreeperData) data;

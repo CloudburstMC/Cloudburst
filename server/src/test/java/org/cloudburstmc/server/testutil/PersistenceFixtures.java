@@ -127,6 +127,7 @@ public class PersistenceFixtures {
         // and creation plus data-class lookups need it closed. Closing twice throws,
         // so ignore the already-closed state to stay order-independent.
         try {
+            TestEntities.registerAll(CloudEntityRegistry.get());
             CloudEntityRegistry.get().close();
         } catch (IllegalStateException | org.cloudburstmc.api.registry.RegistryException ignored) {
         }

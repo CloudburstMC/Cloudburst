@@ -29,6 +29,11 @@ public abstract class HangingEntity extends CloudEntity {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return HangingData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         HangingData hangingData = (HangingData) data;

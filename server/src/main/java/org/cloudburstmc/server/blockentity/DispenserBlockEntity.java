@@ -42,6 +42,11 @@ public class DispenserBlockEntity extends ContainerBlockEntity implements Dispen
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return DispenserData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         DispenserData dispenser = (DispenserData) data;

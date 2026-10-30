@@ -18,6 +18,11 @@ public class SkullBlockEntity extends BaseBlockEntity implements Skull {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return SkullData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         SkullData skull = (SkullData) data;

@@ -29,6 +29,11 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return MovingBlockData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         MovingBlockData moving = (MovingBlockData) data;

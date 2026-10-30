@@ -118,6 +118,11 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return EnderDragonData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         EnderDragonData dragonData = (EnderDragonData) data;

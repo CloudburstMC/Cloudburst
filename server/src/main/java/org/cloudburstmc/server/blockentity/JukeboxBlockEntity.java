@@ -44,6 +44,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return JukeboxData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         ItemStack loaded = ((JukeboxData) data).getRecordItem();

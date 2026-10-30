@@ -56,6 +56,11 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return ShulkerBoxData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         ShulkerBoxData shulker = (ShulkerBoxData) data;

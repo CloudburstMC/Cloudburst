@@ -82,6 +82,14 @@ public abstract class CloudEntity implements Entity {
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
     private static final int MAX_SCOREBOARD_TAGS = 1024;
 
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends EntityData>> EFFECTIVE_DATA_CLASSES =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
+            new ConcurrentHashMap<>();
+
+    private record DataClassKey(Class<?> runtimeClass, EntityType<?> type) {
+    }
+
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
@@ -254,15 +262,16 @@ public abstract class CloudEntity implements Entity {
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
         Class<? extends EntityData> dataClass = this.dataClass();
-        Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
-        excluded.addAll(this.customKeys());
-        excluded.add("identifier");
+        Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
+        Set<String> custom = this.customKeys();
 
         if (this.tag != null && !this.tag.isEmpty()) {
             for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
-                if (!excluded.contains(entry.getKey())) {
-                    tag.put(entry.getKey(), entry.getValue());
+                String key = entry.getKey();
+                if (key.equals("identifier") || owned.contains(key) || custom.contains(key)) {
+                    continue;
                 }
+                tag.put(key, entry.getValue());
             }
         }
 
@@ -300,6 +309,7 @@ public abstract class CloudEntity implements Entity {
         NbtMapBuilder builder = tag.toBuilder();
         builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
         this.tag = builder.build();
+        this.markChunkDirty();
     }
 
     @Override
@@ -320,6 +330,18 @@ public abstract class CloudEntity implements Entity {
             builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
         }
         this.tag = builder.build();
+        this.markChunkDirty();
+    }
+
+    /**
+     * Marks the chunk holding this entity dirty so plugin data changes are
+     * saved with the next chunk save. Tolerates entities without a chunk,
+     * such as test fixtures that never ran {@code initialize}.
+     */
+    private void markChunkDirty() {
+        if (this.chunk != null) {
+            this.chunk.markDirty();
+        }
     }
 
     /**
@@ -435,14 +457,31 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
-     * Resolves the data class for this instance. By default the class registered
-     * for the entity type; players override this to use the player data class
-     * while the type registration stays on the shared human data.
+     * The narrowest data class this runtime class can apply and fill. Subclasses
+     * that cast the data to their own type override this to return that type.
+     *
+     * @return the minimum data class of this runtime class
+     */
+    protected Class<? extends EntityData> minimumDataClass() {
+        return EntityData.class;
+    }
+
+    /**
+     * Resolves the data class for this instance: the class registered for the
+     * entity type when this runtime class can apply it, otherwise this runtime
+     * class's minimum data class. Both the resolution and the data constructors
+     * are cached; registration is closed before instances load or save.
      *
      * @return the data class for load, save and fresh instances
      */
     protected Class<? extends EntityData> dataClass() {
-        return CloudEntityRegistry.get().getDataClass(this.type);
+        Class<?> runtimeClass = this.getClass();
+        EntityType<?> type = this.type;
+        Class<? extends EntityData> minimum = this.minimumDataClass();
+        return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
+            Class<? extends EntityData> registered = CloudEntityRegistry.get().getDataClass(key.type());
+            return minimum.isAssignableFrom(registered) ? registered : minimum;
+        });
     }
 
     /**
@@ -453,7 +492,16 @@ public abstract class CloudEntity implements Entity {
     protected final EntityData newData() {
         Class<? extends EntityData> dataClass = this.dataClass();
         try {
-            return dataClass.getDeclaredConstructor().newInstance();
+            java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
+                try {
+                    java.lang.reflect.Constructor<?> found = key.getDeclaredConstructor();
+                    found.setAccessible(true);
+                    return found;
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
+                }
+            });
+            return (EntityData) constructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
         }

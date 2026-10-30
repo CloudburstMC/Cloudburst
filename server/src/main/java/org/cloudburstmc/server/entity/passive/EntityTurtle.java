@@ -45,6 +45,11 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return TurtleData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         TurtleData turtleData = (TurtleData) data;

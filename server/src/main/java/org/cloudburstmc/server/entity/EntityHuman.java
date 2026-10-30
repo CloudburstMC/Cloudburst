@@ -81,6 +81,11 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return HumanData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         HumanData humanData = (HumanData) data;

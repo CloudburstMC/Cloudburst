@@ -46,6 +46,11 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return LecternData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         LecternData lectern = (LecternData) data;

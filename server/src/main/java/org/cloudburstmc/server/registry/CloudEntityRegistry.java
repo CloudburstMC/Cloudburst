@@ -206,6 +206,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkClosed();
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
+        checkNotNull(dataClass, "dataClass");
         EntityType<?> existingType = this.identifierTypeMap.get(type.getId());
 
         if (existingType == null) { // new entity

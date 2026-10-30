@@ -17,6 +17,11 @@ public class BedBlockEntity extends BaseBlockEntity implements Bed {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BedData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         this.color = DyeColor.getByWoolData(((BedData) data).getColor());

@@ -31,6 +31,11 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return EndGatewayData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         EndGatewayData gateway = (EndGatewayData) data;

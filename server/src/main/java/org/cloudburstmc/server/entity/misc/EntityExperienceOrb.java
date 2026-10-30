@@ -72,6 +72,11 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ExperienceOrbData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         ExperienceOrbData orbData = (ExperienceOrbData) data;

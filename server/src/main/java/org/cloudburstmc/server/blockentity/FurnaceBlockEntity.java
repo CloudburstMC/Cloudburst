@@ -66,6 +66,11 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return FurnaceData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         FurnaceData furnace = (FurnaceData) data;

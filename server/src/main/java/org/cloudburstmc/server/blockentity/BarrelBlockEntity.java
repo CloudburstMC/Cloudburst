@@ -36,6 +36,11 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BarrelData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         BarrelData barrel = (BarrelData) data;

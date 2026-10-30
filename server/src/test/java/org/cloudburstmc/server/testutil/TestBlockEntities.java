@@ -14,6 +14,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
+import org.cloudburstmc.server.blockentity.ChestBlockEntity;
 
 import java.util.Set;
 
@@ -32,6 +33,8 @@ public final class TestBlockEntities {
             BlockEntityType.from("test:migrated", MigratedBlockEntity.class);
     public static final BlockEntityType<LegacyBlockEntity> LEGACY_TYPE =
             BlockEntityType.from("test:legacy", LegacyBlockEntity.class);
+    public static final BlockEntityType<PluginChestBlockEntity> PLUGIN_CHEST_TYPE =
+            BlockEntityType.from("test:plugin_chest", PluginChestBlockEntity.class);
 
     private TestBlockEntities() {
     }
@@ -40,6 +43,10 @@ public final class TestBlockEntities {
         registry.register(MIGRATED_TYPE, MigratedBlockEntity::new, "TestMigrated",
                 Set.of(BlockTypes.CHEST), MigratedData.class);
         registry.register(LEGACY_TYPE, LegacyBlockEntity::new, "TestLegacy",
+                Set.of(BlockTypes.CHEST));
+        // The old four-argument overload defaults to the base data class; the
+        // runtime class's minimum resolves the effective class to ChestData.
+        registry.register(PLUGIN_CHEST_TYPE, PluginChestBlockEntity::new, "TestPluginChest",
                 Set.of(BlockTypes.CHEST));
     }
 
@@ -103,6 +110,13 @@ public final class TestBlockEntities {
     public static class LegacyBlockEntity extends BaseBlockEntity {
 
         public LegacyBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
+            super(type, chunk, position);
+        }
+    }
+
+    public static class PluginChestBlockEntity extends ChestBlockEntity {
+
+        public PluginChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
             super(type, chunk, position);
         }
     }

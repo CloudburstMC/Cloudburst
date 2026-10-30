@@ -27,6 +27,11 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return CauldronData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         CauldronData cauldron = (CauldronData) data;

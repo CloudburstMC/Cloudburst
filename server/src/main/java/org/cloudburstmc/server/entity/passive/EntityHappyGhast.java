@@ -43,6 +43,11 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return HappyGhastData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         this.setAge(((HappyGhastData) data).getAge());

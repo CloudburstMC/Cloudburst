@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -119,6 +120,28 @@ class ChestPersistenceTest {
         for (int slot = 0; slot < SIZE; slot++) {
             assertTrue(entity.getItem(slot).isEmpty(), "slot " + slot);
         }
+    }
+
+    @Test
+    void badItemFailsLoadInsteadOfEmptyingChest() {
+        ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        // A suspicious stew with an out-of-range variant has no effects list,
+        // so ItemUtils.deserializeItem rejects it.
+        NbtMap badStew = NbtMap.builder()
+                .putString("Name", "minecraft:suspicious_stew")
+                .putShort("Damage", (short) 99)
+                .putByte("Count", (byte) 1)
+                .putByte("Slot", (byte) 0)
+                .build();
+        NbtMap tag = NbtMap.builder()
+                .putString("id", "Chest")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Items", NbtType.COMPOUND, List.of(badStew))
+                .build();
+
+        assertThrows(Exception.class, () -> entity.loadAdditionalData(tag));
     }
 
     @Test

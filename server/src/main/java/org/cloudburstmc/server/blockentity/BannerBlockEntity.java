@@ -30,6 +30,11 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BannerData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         BannerData banner = (BannerData) data;

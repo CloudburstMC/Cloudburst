@@ -67,6 +67,11 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ThrownTridentData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         ThrownTridentData tridentData = (ThrownTridentData) data;

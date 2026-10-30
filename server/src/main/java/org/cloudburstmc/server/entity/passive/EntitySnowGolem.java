@@ -45,6 +45,11 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return SnowGolemData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         SnowGolemData golemData = (SnowGolemData) data;

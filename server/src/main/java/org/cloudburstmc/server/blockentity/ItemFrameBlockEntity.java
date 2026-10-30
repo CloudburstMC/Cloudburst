@@ -30,6 +30,11 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return ItemFrameData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         ItemFrameData frame = (ItemFrameData) data;

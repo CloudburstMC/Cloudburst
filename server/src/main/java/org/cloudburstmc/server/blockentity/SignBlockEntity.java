@@ -36,6 +36,11 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return SignData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         SignData sign = (SignData) data;

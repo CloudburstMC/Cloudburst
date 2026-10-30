@@ -70,6 +70,11 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return AbstractMinecartData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         AbstractMinecartData minecartData = (AbstractMinecartData) data;

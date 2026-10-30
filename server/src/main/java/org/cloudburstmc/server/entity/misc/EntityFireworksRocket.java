@@ -74,6 +74,11 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return FireworksRocketData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         FireworksRocketData rocketData = (FireworksRocketData) data;

@@ -38,6 +38,11 @@ public class EntityPainting extends HangingEntity implements Painting {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return PaintingData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         PaintingData paintingData = (PaintingData) data;

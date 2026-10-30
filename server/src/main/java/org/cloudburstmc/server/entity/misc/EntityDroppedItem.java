@@ -88,6 +88,11 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return DroppedItemData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         DroppedItemData itemData = (DroppedItemData) data;

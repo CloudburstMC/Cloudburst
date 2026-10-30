@@ -70,6 +70,11 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return AbstractArrowData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         AbstractArrowData arrowData = (AbstractArrowData) data;

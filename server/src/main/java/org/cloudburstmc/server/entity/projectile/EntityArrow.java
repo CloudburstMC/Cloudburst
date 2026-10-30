@@ -39,6 +39,11 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ArrowData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         ArrowData arrowData = (ArrowData) data;

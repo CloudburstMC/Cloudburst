@@ -3364,14 +3364,22 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected Class<? extends EntityData> dataClass() {
+    protected Class<? extends EntityData> minimumDataClass() {
         return org.cloudburstmc.api.entity.data.PlayerData.class;
     }
 
     @Override
     protected void applyData(EntityData data) {
+        // The base path checks ground support against this.level, so the saved
+        // level is assigned before it runs; loadCustom keeps the rest as now.
+        org.cloudburstmc.api.entity.data.PlayerData saved =
+                (org.cloudburstmc.api.entity.data.PlayerData) data;
+        if (saved.getLevel() != null && this.server != null) {
+            CloudLevel savedLevel = this.server.getLevel(saved.getLevel());
+            this.level = savedLevel != null ? savedLevel : this.server.getDefaultLevel();
+        }
         super.applyData(data);
-        org.cloudburstmc.api.entity.data.PlayerData player = (org.cloudburstmc.api.entity.data.PlayerData) data;
+        org.cloudburstmc.api.entity.data.PlayerData player = saved;
 
         if (player.getFirstPlayed() != null) {
             this.playerData.setFirstPlayed(player.getFirstPlayed());

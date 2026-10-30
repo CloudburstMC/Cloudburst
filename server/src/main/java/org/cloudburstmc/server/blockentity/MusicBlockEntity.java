@@ -17,6 +17,11 @@ public class MusicBlockEntity extends BaseBlockEntity implements Noteblock {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return MusicData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         MusicData music = (MusicData) data;

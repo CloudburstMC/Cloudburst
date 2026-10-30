@@ -3,6 +3,7 @@ package org.cloudburstmc.server.entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -10,8 +11,11 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
+import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
+import org.cloudburstmc.server.testutil.TestEntities;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -19,6 +23,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -109,6 +114,33 @@ class EntityPersistenceTest {
     }
 
     @Test
+    void pluginDataMarksChunkDirty() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.EMPTY);
+
+        // Fixture entities never run initialize, so they have no chunk; attach a
+        // stub-backed chunk the way the block-entity fixture builds one.
+        entity.chunk = new CloudChunk(0, 0, InterfaceProxy.create(Level.class));
+
+        long revision = entity.chunk.captureSaveRevision();
+        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        assertNotEquals(revision, entity.chunk.captureSaveRevision());
+
+        revision = entity.chunk.captureSaveRevision();
+        entity.removePluginData("myplugin");
+        assertNotEquals(revision, entity.chunk.captureSaveRevision());
+    }
+
+    @Test
+    void pluginDataWithoutChunkDoesNotThrow() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.loadAdditionalData(NbtMap.EMPTY);
+
+        entity.setPluginData("myplugin", NbtMap.builder().putInt("a", 1).build());
+        entity.removePluginData("myplugin");
+    }
+
+    @Test
     void posIsWrittenAsFloatList() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);
@@ -144,6 +176,34 @@ class EntityPersistenceTest {
     }
 
     @Test
+    void legacyCreatureRegistrationRoundTripsWithCreatureData() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(TestEntities.LEGACY_CREATURE_TYPE);
+
+        // The old overload registered the base data class; the runtime class's
+        // minimum resolves the effective class so the creature cast cannot fail.
+        assertEquals(EntityData.class,
+                CloudEntityRegistry.get().getDataClass(TestEntities.LEGACY_CREATURE_TYPE));
+        assertEquals(org.cloudburstmc.api.entity.data.CreatureData.class, entity.dataClass());
+
+        entity.loadAdditionalData(NbtMap.builder()
+                .putList("Pos", NbtType.FLOAT, List.of(1f, 2f, 3f))
+                .putList("Motion", NbtType.FLOAT, List.of(0f, 0f, 0f))
+                .putList("Rotation", NbtType.FLOAT, List.of(0f, 0f))
+                .build());
+
+        NbtMapBuilder builder = NbtMap.builder();
+        entity.saveAdditionalData(builder);
+        NbtMap saved = builder.build();
+
+        CloudEntity second = (CloudEntity) PersistenceFixtures.entity(TestEntities.LEGACY_CREATURE_TYPE);
+        second.loadAdditionalData(saved);
+
+        NbtMapBuilder again = NbtMap.builder();
+        second.saveAdditionalData(again);
+        assertEquals(saved, again.build());
+    }
+
+    @Test
     void allRegisteredEntityTypesBuildAndRoundTrip() {
         List<String> failures = new ArrayList<>();
         for (EntityType<?> type : CloudEntityRegistry.get().values()) {
@@ -158,6 +218,12 @@ class EntityPersistenceTest {
                 entity = (CloudEntity) PersistenceFixtures.entity(type);
             } catch (Exception e) {
                 failures.add(type.getId() + ": construction failed (" + e + ")");
+                continue;
+            }
+            if ("minecraft".equals(type.getId().getNamespace())
+                    && !entity.minimumDataClass().isAssignableFrom(CloudEntityRegistry.get().getDataClass(type))) {
+                failures.add(type.getId() + ": registered " + CloudEntityRegistry.get().getDataClass(type).getName()
+                        + " is not usable by runtime minimum " + entity.minimumDataClass().getName());
                 continue;
             }
             NbtMap saved;

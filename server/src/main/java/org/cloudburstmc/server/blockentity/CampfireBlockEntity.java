@@ -22,6 +22,11 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return CampfireData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         CampfireData campfire = (CampfireData) data;

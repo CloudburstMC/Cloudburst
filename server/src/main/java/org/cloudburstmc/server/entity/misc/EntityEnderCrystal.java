@@ -111,6 +111,11 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return EnderCrystalData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         EnderCrystalData crystalData = (EnderCrystalData) data;

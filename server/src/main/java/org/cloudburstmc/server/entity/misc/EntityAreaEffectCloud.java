@@ -271,6 +271,11 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return AreaEffectCloudData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         AreaEffectCloudData cloudData = (AreaEffectCloudData) data;

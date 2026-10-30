@@ -76,6 +76,11 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return PrimedTntData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         PrimedTntData tntData = (PrimedTntData) data;

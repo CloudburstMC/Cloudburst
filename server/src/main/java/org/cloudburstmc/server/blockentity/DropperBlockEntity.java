@@ -42,6 +42,11 @@ public class DropperBlockEntity extends ContainerBlockEntity implements Dropper,
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return DropperData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         DropperData dropper = (DropperData) data;

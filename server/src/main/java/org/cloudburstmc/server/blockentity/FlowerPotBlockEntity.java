@@ -20,6 +20,11 @@ public class FlowerPotBlockEntity extends BaseBlockEntity implements FlowerPot {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return FlowerPotData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         this.plant = ((FlowerPotData) data).getPlant();

@@ -57,6 +57,11 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return HopperData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         HopperData hopper = (HopperData) data;

@@ -16,6 +16,11 @@ public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return ComparatorData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         this.outputSignal = ((ComparatorData) data).getOutputSignal();

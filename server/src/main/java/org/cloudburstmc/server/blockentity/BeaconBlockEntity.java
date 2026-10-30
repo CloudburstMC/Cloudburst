@@ -43,6 +43,11 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BeaconData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         BeaconData beacon = (BeaconData) data;

@@ -46,6 +46,11 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     @Override
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return ChestData.class;
+    }
+
+    @Override
     protected void applyData(BlockEntityData data) {
         super.applyData(data);
         ChestData chest = (ChestData) data;

@@ -96,6 +96,11 @@ public class EntityBoat extends EntityVehicle implements Boat {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return BoatData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         BoatData boatData = (BoatData) data;

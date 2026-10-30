@@ -59,6 +59,11 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return SheepData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         SheepData sheepData = (SheepData) data;

@@ -121,6 +121,11 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     }
 
     @Override
+    protected Class<? extends EntityData> minimumDataClass() {
+        return FallingBlockData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         FallingBlockData fallingData = (FallingBlockData) data;

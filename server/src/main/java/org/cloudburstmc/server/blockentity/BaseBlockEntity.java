@@ -26,13 +26,13 @@ import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,6 +41,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class BaseBlockEntity implements BlockEntity {
 
     private static final Map<BlockEntityType<?>, NbtMap> tags = new HashMap<>();
+
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends BlockEntityData>> EFFECTIVE_DATA_CLASSES =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
+            new ConcurrentHashMap<>();
+
+    private record DataClassKey(Class<?> runtimeClass, BlockEntityType<?> type) {
+    }
 
     public static AtomicLong ID_ALLOCATOR = new AtomicLong(1);
     public final long id;
@@ -109,24 +117,23 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.tag = tag;
         tags.putIfAbsent(this.getType(), tag);
 
-        this.applyData(ServerNbt.MAPPER.read(tag, CloudBlockEntityRegistry.get().getDataClass(this.type)));
+        this.applyData(ServerNbt.MAPPER.read(tag, this.dataClass()));
         this.loadCustom(tag);
     }
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
-        Class<? extends BlockEntityData> dataClass = CloudBlockEntityRegistry.get().getDataClass(this.type);
-        Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
-        excluded.addAll(this.customKeys());
-        excluded.add("id");
-        excluded.add("x");
-        excluded.add("y");
-        excluded.add("z");
+        Class<? extends BlockEntityData> dataClass = this.dataClass();
+        Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
+        Set<String> custom = this.customKeys();
 
         if (this.tag != null && !this.tag.isEmpty()) {
             for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
-                if (!excluded.contains(entry.getKey())) {
-                    tag.put(entry.getKey(), entry.getValue());
+                String key = entry.getKey();
+                if (key.equals("id") || key.equals("x") || key.equals("y") || key.equals("z")
+                        || owned.contains(key) || custom.contains(key)) {
+                    continue;
                 }
+                tag.put(key, entry.getValue());
             }
         }
 
@@ -178,6 +185,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
         NbtMapBuilder builder = tag.toBuilder();
         builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
         this.tag = builder.build();
+        this.setDirty();
     }
 
     @Override
@@ -198,6 +206,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
             builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
         }
         this.tag = builder.build();
+        this.setDirty();
     }
 
     /**
@@ -228,12 +237,52 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * @return a new data object
      */
     protected final BlockEntityData newData() {
-        Class<? extends BlockEntityData> dataClass = CloudBlockEntityRegistry.get().getDataClass(this.type);
+        return newDataInstance(this.dataClass());
+    }
+
+    private static BlockEntityData newDataInstance(Class<? extends BlockEntityData> dataClass) {
         try {
-            return dataClass.getDeclaredConstructor().newInstance();
+            java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
+                try {
+                    java.lang.reflect.Constructor<?> found = key.getDeclaredConstructor();
+                    found.setAccessible(true);
+                    return found;
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
+                }
+            });
+            return (BlockEntityData) constructor.newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
         }
+    }
+
+    /**
+     * The narrowest data class this runtime class can apply and fill. Subclasses
+     * that cast the data to their own type override this to return that type.
+     *
+     * @return the minimum data class of this runtime class
+     */
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BlockEntityData.class;
+    }
+
+    /**
+     * Resolves the data class for load, save and fresh instances: the class
+     * registered for the block-entity type when this runtime class can apply it,
+     * otherwise this runtime class's minimum data class.
+     *
+     * @return the data class for load, save and fresh instances
+     */
+    protected final Class<? extends BlockEntityData> dataClass() {
+        Class<?> runtimeClass = this.getClass();
+        BlockEntityType<?> type = this.type;
+        Class<? extends BlockEntityData> minimum = this.minimumDataClass();
+        return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
+            Class<? extends BlockEntityData> registered =
+                    CloudBlockEntityRegistry.get().getDataClass(key.type());
+            return minimum.isAssignableFrom(registered) ? registered : minimum;
+        });
     }
 
     /**
@@ -485,7 +534,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public void setDirty() {
-        chunk.markDirty();
+        if (chunk != null) {
+            chunk.markDirty();
+        }
     }
 
     @Override
