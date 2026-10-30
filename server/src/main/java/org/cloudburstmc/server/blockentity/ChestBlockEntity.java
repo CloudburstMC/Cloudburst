@@ -161,6 +161,11 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
         ChestBlockEntity pair = this.getPair();
 
         if (pair != null) {
+            if (!pair.isPaired()) {
+                pair.createPair(this);
+                pair.checkPairing();
+            }
+
             createCombinedContainer(pair);
         } else {
             Vector3i pairPosition = data().getPairPosition();

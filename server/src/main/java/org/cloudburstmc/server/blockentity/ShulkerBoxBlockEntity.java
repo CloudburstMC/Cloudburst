@@ -18,6 +18,7 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.container.ContainerListener;
@@ -63,6 +64,16 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     @Override
     protected ItemContainer items() {
         return data().getItems();
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (!tag.containsKey("facing")) {
+            // Tags stored before the facing key existed default to DOWN,
+            // matching the previous byte default of 0. Freshly created
+            // shulkers keep the UP data default; placement sets facing anyway.
+            data().setFacing(Direction.DOWN);
+        }
     }
 
     public String getLootTable() {

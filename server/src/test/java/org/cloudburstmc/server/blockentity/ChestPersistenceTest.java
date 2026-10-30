@@ -290,6 +290,47 @@ class ChestPersistenceTest {
     }
 
     @Test
+    void unpairedPartnerIsRepairedBeforeCombining() {
+        // The partner half sits in the world unpaired (its pairPosition is null),
+        // e.g. placed but never paired back. checkPairing must repair it through
+        // the production path instead of throwing on the null pair position.
+        final ChestBlockEntity[] leftRef = new ChestBlockEntity[1];
+        final ChestBlockEntity[] rightRef = new ChestBlockEntity[1];
+        ChestBlockEntity seed = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST,
+                Vector3i.from(10, 64, -5));
+        org.cloudburstmc.server.level.chunk.CloudChunk chunk = seed.getChunk();
+        seed.close();
+        ChestBlockEntity left = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk,
+                Vector3i.from(10, 64, -5)) {
+            @Override
+            public ChestBlockEntity getPair() {
+                return rightRef[0];
+            }
+        };
+        ChestBlockEntity right = new ChestBlockEntity(BlockEntityTypes.CHEST, chunk,
+                Vector3i.from(11, 64, -5)) {
+            @Override
+            public ChestBlockEntity getPair() {
+                return leftRef[0];
+            }
+        };
+        leftRef[0] = left;
+        rightRef[0] = right;
+
+        left.data().setPairPosition(right.getPosition());
+        assertFalse(right.isPaired(), "partner starts unpaired");
+
+        left.checkPairing();
+
+        assertEquals(right.getPosition(), left.data().getPairPosition());
+        assertEquals(left.getPosition(), right.data().getPairPosition());
+        assertTrue(left.isPaired());
+        assertTrue(right.isPaired());
+        assertEquals(54, left.getContainer().size());
+        assertEquals(54, right.getContainer().size());
+    }
+
+    @Test
     void chestBlockEntityKeepsNoDuplicateState() {
         // Retained fields and why they hold no DTO state: combinedContainer is the transient
         // paired view built over the two chests' DTO containers; pairlead is hook-persisted

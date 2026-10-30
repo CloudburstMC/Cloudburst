@@ -126,6 +126,34 @@ class ShulkerBoxPersistenceTest {
     }
 
     @Test
+    void shulkerLoadedWithoutFacingIsDown() {
+        // Fresh shulkers keep the UP data default; placement sets facing anyway.
+        ShulkerBoxBlockEntity fresh =
+                (ShulkerBoxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SHULKER_BOX, POSITION);
+        assertEquals(Direction.UP, fresh.getFacing());
+        fresh.close();
+
+        // A stored tag without the facing key loads with today's default (DOWN,
+        // the old byte default of 0) on both the server and the client tag.
+        ShulkerBoxBlockEntity entity =
+                (ShulkerBoxBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.SHULKER_BOX, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "ShulkerBox")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        assertEquals(Direction.DOWN, entity.getFacing());
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals((byte) 0, saved.getByte("facing"));
+
+        NbtMap client = entity.getClientTag();
+        assertEquals((byte) 0, client.getByte("facing"));
+    }
+
+    @Test
     void shulkerBoxBlockEntityKeepsNoDuplicateState() {
         // Retained fields and why they hold no DTO state: animationState, openProgress,
         // previousOpenProgress and viewerCount are live lid-animation state, never persisted.
