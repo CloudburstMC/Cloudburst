@@ -26,13 +26,15 @@ public interface NbtValueCodec<V> {
     /**
      * Converts the NBT value stored under the property's key back.
      * <p>
-     * The value is passed as stored, so a codec that accepts several numeric widths casts
-     * to {@link Number}. A {@link ClassCastException} means the value has the wrong kind:
-     * the property keeps its current value and the mismatch is logged at warn level. Any
-     * other exception fails the read.
+     * The value is passed as stored, so a codec that accepts several numeric widths checks
+     * for {@link Number}. When the value has the wrong kind or shape, the codec throws
+     * {@link NbtKindMismatchException}: the property keeps its current value and the
+     * mismatch is logged at warn level. Any other exception, a {@link ClassCastException}
+     * included, fails the read.
      *
      * @param nbt the stored value, never {@code null}
      * @return the runtime value
+     * @throws NbtKindMismatchException if the value has the wrong kind or shape
      */
     V fromNbt(Object nbt);
 }

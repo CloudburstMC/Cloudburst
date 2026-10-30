@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.nbt.internal;
 
 import org.cloudburstmc.api.nbt.NbtCodec;
+import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
@@ -10,6 +11,7 @@ import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.ValueSerializer;
 import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.exc.MismatchedInputException;
 import tools.jackson.databind.ser.std.StdSerializer;
 
 import java.lang.reflect.Constructor;
@@ -112,10 +114,14 @@ public final class NbtCodecs {
             }
             try {
                 return codec.fromNbt(tag);
-            } catch (ClassCastException e) {
-                // Reported without the cause, so the property treats it as a shape mismatch
-                return ctxt.reportInputMismatch(this, "NBT %s does not fit codec %s: %s",
-                        tag.getClass().getSimpleName(), codec.getClass().getName(), e.getMessage());
+            } catch (NbtKindMismatchException e) {
+                // A binding mismatch: the property keeps its current value. Every other
+                // exception propagates and fails the read.
+                MismatchedInputException mismatch = MismatchedInputException.from(p, handledType(),
+                        String.format("NBT %s does not fit codec %s: %s", tag.getClass().getSimpleName(),
+                                codec.getClass().getName(), e.getMessage()));
+                mismatch.initCause(e);
+                throw mismatch;
             }
         }
     }

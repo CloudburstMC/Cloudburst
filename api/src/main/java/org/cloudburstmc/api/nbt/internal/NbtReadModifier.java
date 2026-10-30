@@ -1,6 +1,7 @@
 package org.cloudburstmc.api.nbt.internal;
 
 import org.cloudburstmc.api.nbt.NbtCodec;
+import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -37,7 +38,7 @@ import java.util.Map;
  * Adapts Jackson deserializers to {@link NbtParser}:
  * <ul>
  * <li>a bean property whose tag cannot be bound keeps its current value instead of
- * failing the read;</li>
+ * failing the read, including when its codec throws {@link NbtKindMismatchException};</li>
  * <li>a bean property whose current value can be updated is filled in place;</li>
  * <li>an {@link NbtCodec} property is read by its codec;</li>
  * <li>{@link NbtMap} and {@link NbtList} properties take the tag unchanged.</li>
@@ -228,7 +229,9 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
          * Whether a binding failure was caused by something other than the tag's
          * shape. A non-Jackson exception in the cause chain means element or
          * property code rejected the value, so the read must fail instead of
-         * silently keeping the default.
+         * silently keeping the current value. The one exception is
+         * {@link NbtKindMismatchException}, which code throws to report a shape
+         * mismatch itself.
          *
          * @param e the binding failure
          * @return true when user code caused the failure
@@ -236,6 +239,10 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
         private static boolean hasNonJacksonCause(JacksonException e) {
             Throwable cause = e.getCause();
             while (cause != null) {
+                if (cause instanceof NbtKindMismatchException) {
+                    // A codec reporting a value of the wrong kind is a shape mismatch too
+                    return false;
+                }
                 if (!(cause instanceof JacksonException)) {
                     return true;
                 }
@@ -245,8 +252,14 @@ public final class NbtReadModifier extends ValueDeserializerModifier {
         }
 
         private void skipped(JsonParser p, JsonToken start, int depth, JacksonException e) {
-            log.warn("NBT key {} does not fit {}, keeping its current value: {}",
-                    getName(), getDeclaringClass().getName(), e.getOriginalMessage());
+            if (e.getCause() instanceof NbtKindMismatchException) {
+                // Logged with the codec's exception, so its own cause is kept
+                log.warn("NBT key {} does not fit {}, keeping its current value: {}",
+                        getName(), getDeclaringClass().getName(), e.getOriginalMessage(), e.getCause());
+            } else {
+                log.warn("NBT key {} does not fit {}, keeping its current value: {}",
+                        getName(), getDeclaringClass().getName(), e.getOriginalMessage());
+            }
             skipValue(p, start, depth);
         }
     }

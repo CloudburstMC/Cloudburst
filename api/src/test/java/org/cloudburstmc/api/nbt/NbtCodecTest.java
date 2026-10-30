@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,6 +75,20 @@ class NbtCodecTest {
         assertEquals(Color.ORANGE, dto.color);
         assertEquals(Color.WHITE, dto.base);
         assertEquals(4, dto.count);
+    }
+
+    @Test
+    void codecClassCastExceptionPropagates() {
+        Buggy dto = new Buggy();
+        dto.color = Color.MAGENTA;
+        NbtMap tag = NbtMap.builder().putByte("Color", (byte) 1).build();
+
+        // A cast bug in the codec is not a kind mismatch: the read fails instead of
+        // keeping a value that the next save would write over the stored one
+        JacksonException thrown = assertThrows(JacksonException.class, () -> mapper.readInto(tag, dto));
+        assertTrue(hasCause(thrown, ClassCastException.class));
+        assertFalse(hasCause(thrown, NbtKindMismatchException.class));
+        assertEquals(Color.MAGENTA, dto.color);
     }
 
     @Test
@@ -164,7 +179,10 @@ class NbtCodecTest {
 
         @Override
         public Color fromNbt(Object nbt) {
-            int ordinal = ((Number) nbt).intValue();
+            if (!(nbt instanceof Number number)) {
+                throw new NbtKindMismatchException("Expected a number, got " + nbt.getClass().getSimpleName());
+            }
+            int ordinal = number.intValue();
             if (ordinal < 0 || ordinal >= Color.values().length) {
                 throw new IllegalArgumentException("No colour " + ordinal);
             }
@@ -183,7 +201,29 @@ class NbtCodecTest {
 
         @Override
         public Color fromNbt(Object nbt) {
-            return Color.values()[(Integer) nbt];
+            if (!(nbt instanceof Integer ordinal)) {
+                throw new NbtKindMismatchException("Expected an int, got " + nbt.getClass().getSimpleName());
+            }
+            return Color.values()[ordinal];
+        }
+    }
+
+    /**
+     * Reads a byte correctly typed but casts it wrongly: a bug, not a stored value of the
+     * wrong kind.
+     */
+    static final class BuggyCastCodec implements NbtValueCodec<Color> {
+        @Override
+        public Object toNbt(Color value) {
+            return (byte) value.ordinal();
+        }
+
+        @Override
+        public Color fromNbt(Object nbt) {
+            if (!(nbt instanceof Byte)) {
+                throw new NbtKindMismatchException("Expected a byte");
+            }
+            return Color.valueOf((String) nbt);
         }
     }
 
@@ -253,6 +293,13 @@ class NbtCodecTest {
         @JsonProperty("At")
         @NbtCodec(PointCodec.class)
         Point at;
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class Buggy {
+        @JsonProperty("Color")
+        @NbtCodec(BuggyCastCodec.class)
+        Color color = Color.WHITE;
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
