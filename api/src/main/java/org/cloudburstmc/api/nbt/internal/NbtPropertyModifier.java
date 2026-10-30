@@ -4,6 +4,7 @@ import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.databind.BeanDescription;
 import tools.jackson.databind.SerializationConfig;
@@ -58,12 +59,16 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
         private static final long serialVersionUID = 1L;
 
         private final NbtTagType value;
-        private final NbtTagType element;
+        /**
+         * The element type, or {@code null} until it is resolved against the serializers on
+         * first use.
+         */
+        private volatile @Nullable NbtTagType element;
 
         TypedPropertyWriter(BeanPropertyWriter base, NbtTypeResolver.Resolution resolution) {
             super(base);
             this.value = resolution.value();
-            this.element = resolution.element();
+            this.element = resolution.element() != NbtTagType.AUTO ? resolution.element() : null;
         }
 
         @Override
@@ -71,6 +76,10 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
             if (!(g instanceof NbtGenerator generator)) {
                 super.serializeAsProperty(bean, g, ctxt);
                 return;
+            }
+            NbtTagType element = this.element;
+            if (element == null) {
+                this.element = element = NbtTypeResolver.elementType(getType(), ctxt);
             }
             generator.expect(value, element);
             try {

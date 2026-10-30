@@ -77,6 +77,19 @@ class NbtMapperWriteTest {
     }
 
     @Test
+    void emptyListOfDataObjectsIsCompoundList() {
+        NbtMap tag = mapper.write(new UnannotatedEmptyList());
+
+        NbtList<?> items = assertInstanceOf(NbtList.class, tag.get("items"));
+        assertSame(NbtType.COMPOUND, items.getType());
+        assertEquals(0, items.size());
+
+        // Elements with their own serializer form are not assumed to be compounds
+        NbtList<?> facings = assertInstanceOf(NbtList.class, tag.get("facings"));
+        assertSame(NbtType.END, facings.getType());
+    }
+
+    @Test
     void nbtMapPassesThrough() {
         NbtMap extra = NbtMap.builder()
                 .putShort("k", (short) 3)
@@ -166,6 +179,14 @@ class NbtMapperWriteTest {
         @JsonProperty("items")
         @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
         List<Nested> items = List.of();
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class UnannotatedEmptyList {
+        @JsonProperty("items")
+        List<Nested> items = List.of();
+        @JsonProperty("facings")
+        List<Facing> facings = List.of();
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

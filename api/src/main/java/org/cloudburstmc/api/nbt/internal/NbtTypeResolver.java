@@ -6,6 +6,8 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.databind.JavaType;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.bean.BeanSerializerBase;
 
 /**
  * Resolves the NBT type of a property from its {@link NbtTag} annotation, falling back to
@@ -17,11 +19,13 @@ public final class NbtTypeResolver {
     }
 
     /**
-     * Resolves the tag type of a property and of its elements.
+     * Resolves the tag type of a property and of its elements from the annotation and the
+     * Java type alone.
      *
      * @param type the declared Java type of the property
      * @param tag  the property's annotation, if any
-     * @return the resolved types; {@link NbtTagType#AUTO} where the type is left to the runtime value
+     * @return the resolved types; {@link NbtTagType#AUTO} where the Java type alone does not decide
+     * @see #elementType(JavaType, SerializationContext)
      */
     public static Resolution resolve(JavaType type, @Nullable NbtTag tag) {
         NbtTagType value = tag != null && tag.value() != NbtTagType.AUTO ? tag.value() : valueType(type);
@@ -32,7 +36,8 @@ public final class NbtTypeResolver {
     /**
      * Maps a Java type to the tag type it is written as. Types without a fixed mapping,
      * such as nested objects, enums and values with custom serializers, resolve to
-     * {@link NbtTagType#AUTO} so the written value decides.
+     * {@link NbtTagType#AUTO} so the written value decides. A nested data object is then
+     * written as a compound.
      */
     public static NbtTagType valueType(JavaType type) {
         Class<?> raw = type.getRawClass();
@@ -77,6 +82,25 @@ public final class NbtTypeResolver {
             return valueType(type.getContentType());
         }
         return NbtTagType.AUTO;
+    }
+
+    /**
+     * Resolves the element type of a list, array or map once serializers are known. Where
+     * the Java type gives no fixed mapping, elements that serialize as plain data objects
+     * resolve to {@link NbtTagType#COMPOUND}, so an empty list of them keeps that type.
+     */
+    public static NbtTagType elementType(JavaType type, SerializationContext ctxt) {
+        NbtTagType element = elementType(type);
+        if (element != NbtTagType.AUTO || isPassthrough(type.getRawClass())
+                || !(type.isCollectionLikeType() || type.isArrayType() || type.isMapLikeType())) {
+            return element;
+        }
+        JavaType content = type.getContentType();
+        if (content == null || content.hasRawClass(Object.class)) {
+            return NbtTagType.AUTO;
+        }
+        return ctxt.findValueSerializer(content) instanceof BeanSerializerBase
+                ? NbtTagType.COMPOUND : NbtTagType.AUTO;
     }
 
     private static boolean isPassthrough(Class<?> raw) {
