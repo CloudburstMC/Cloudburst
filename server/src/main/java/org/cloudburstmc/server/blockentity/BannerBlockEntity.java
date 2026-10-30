@@ -59,7 +59,12 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
         BannerData banner = (BannerData) data;
         banner.setBase(this.base.getDyeData());
         banner.setType(this.type);
-        if (!this.patterns.isEmpty()) {
+        if (this.patterns.isEmpty()) {
+            // The DTO instance is held across loads, so an explicitly loaded
+            // empty list must be cleared for the client tag; the server tag
+            // restores it through saveCustom when it was explicitly loaded.
+            banner.setPatterns(null);
+        } else {
             List<BannerPatternData> patternTags = new ArrayList<>();
             for (BannerPattern pattern : this.patterns) {
                 BannerPatternData patternTag = new BannerPatternData();

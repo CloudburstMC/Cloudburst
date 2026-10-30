@@ -23,6 +23,7 @@ import static org.cloudburstmc.server.testutil.TestBlockEntities.PLUGIN_CHEST_TY
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -141,6 +142,41 @@ class BlockEntityPersistenceTest {
         revision = entity.getChunk().captureSaveRevision();
         entity.removePluginData("myplugin");
         assertNotEquals(revision, entity.getChunk().captureSaveRevision());
+    }
+
+    @Test
+    void dataInstanceIsStable() {
+        MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
+        BlockEntityData before = entity.data();
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "TestMigrated")
+                .putInt("x", 1)
+                .putInt("y", 2)
+                .putInt("z", 3)
+                .putInt("Count", 3)
+                .build());
+        assertSame(before, entity.data());
+    }
+
+    @Test
+    void absentKeyKeepsCurrentValue() {
+        MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
+        entity.setCustomName("A");
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "TestMigrated")
+                .putInt("x", 1)
+                .putInt("y", 2)
+                .putInt("z", 3)
+                .build());
+        assertEquals("A", entity.getCustomName());
+    }
+
+    @Test
+    void saveReadsFromData() {
+        MigratedBlockEntity entity = PersistenceFixtures.blockEntity(MIGRATED_TYPE, POSITION);
+        entity.setCustomName("B");
+        NbtMap saved = entity.getServerTag();
+        assertEquals("B", saved.getString("CustomName"));
     }
 
     @Test

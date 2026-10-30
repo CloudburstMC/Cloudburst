@@ -57,7 +57,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
     private final CloudChunk chunk;
     private final CloudLevel level;
 
-    public boolean movable = true;
+    private final BlockEntityData data;
     public boolean closed = false;
 
     protected long lastUpdate;
@@ -65,7 +65,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
     protected Timing timing;
     private NbtMap tag;
 
-    private String customName;
     private boolean justCreated = true;
 
     public BaseBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -81,6 +80,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.level = chunk.getLevel() instanceof CloudLevel cloudLevel ? cloudLevel : null;
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
+
+        ServerNbt.ensureInitialized();
+        this.data = this.newData();
 
         if (this.chunk != null) {
             this.chunk.registerBlockEntity(this);
@@ -117,7 +119,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.tag = tag;
         tags.putIfAbsent(this.getType(), tag);
 
-        this.applyData(ServerNbt.MAPPER.read(tag, this.dataClass()));
+        ServerNbt.MAPPER.readInto(tag, this.data);
+        this.applyData(this.data);
         this.loadCustom(tag);
     }
 
@@ -137,7 +140,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
             }
         }
 
-        BlockEntityData data = this.newData();
+        BlockEntityData data = this.data;
         this.fillData(data);
         tag.putAll(ServerNbt.MAPPER.write(data));
 
@@ -214,10 +217,12 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * call {@code super}, then cast the data to their own type.
      *
      * @param data the read data
+     * @deprecated The data instance is the runtime state now; the base state is
+     * read in place and subclasses copy their own state in later tasks. Kept as
+     * a no-op so unmigrated subclasses keep working.
      */
+    @Deprecated
     protected void applyData(BlockEntityData data) {
-        this.movable = data.isMovable();
-        this.customName = data.getCustomName();
     }
 
     /**
@@ -225,10 +230,22 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * call {@code super}, then cast the data to their own type.
      *
      * @param data the data to fill
+     * @deprecated The data instance is the runtime state now; the base state is
+     * written from it and subclasses copy their own state in later tasks. Kept
+     * as a no-op so unmigrated subclasses keep working.
      */
+    @Deprecated
     protected void fillData(BlockEntityData data) {
-        data.setMovable(this.movable);
-        data.setCustomName(this.customName);
+    }
+
+    /**
+     * Returns the data instance holding this block entity's state. Subclasses
+     * override this with a covariant return for their own data type.
+     *
+     * @return the held data instance
+     */
+    protected BlockEntityData data() {
+        return this.data;
     }
 
     /**
@@ -363,9 +380,8 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //            log.info(NbtUtils.toString(tag.build()));
 //            log.info("\n\n\n");
         } else {
-            BlockEntityData data = this.newData();
-            this.fillData(data);
-            tag.putAll(ServerNbt.MAPPER.writeClient(data));
+            this.fillData(this.data);
+            tag.putAll(ServerNbt.MAPPER.writeClient(this.data));
             this.saveCustomClient(tag);
         }
 
@@ -541,12 +557,12 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     @Override
     public boolean isMovable() {
-        return movable;
+        return this.data().isMovable();
     }
 
     @Override
     public void setMovable(boolean moveble) {
-        this.movable = moveble;
+        this.data().setMovable(moveble);
     }
 
     /**
@@ -557,7 +573,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      */
     @Nullable
     public final String getCustomName() {
-        return customName;
+        return this.data().getCustomName();
     }
 
     /**
@@ -567,7 +583,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
     public final void setCustomName(@Nullable String customName) {
-        this.customName = customName;
+        this.data().setCustomName(customName);
     }
 
     /**
@@ -577,7 +593,7 @@ public abstract class BaseBlockEntity implements BlockEntity {
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
     public final boolean hasCustomName() {
-        return this.customName != null;
+        return this.data().getCustomName() != null;
     }
 
     public void spawnTo(Player player) {
