@@ -68,6 +68,20 @@ class EntityPersistenceTest {
     }
 
     @Test
+    void absentCustomNameKeepsExistingNameTag() {
+        CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
+        entity.setNameTag("Steve");
+        entity.setNameTagVisible(true);
+        entity.setNameTagAlwaysVisible(true);
+
+        entity.loadAdditionalData(NbtMap.EMPTY);
+
+        assertEquals("Steve", entity.getNameTag());
+        assertTrue(entity.isNameTagVisible());
+        assertTrue(entity.isNameTagAlwaysVisible());
+    }
+
+    @Test
     void entityPluginDataSurvives() {
         CloudEntity entity = (CloudEntity) PersistenceFixtures.entity(EntityTypes.PIG);
         entity.loadAdditionalData(NbtMap.EMPTY);

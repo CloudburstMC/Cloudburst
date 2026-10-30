@@ -368,8 +368,6 @@ public abstract class CloudEntity implements Entity {
 
         if (data.getCustomName() != null) {
             this.setNameTag(data.getCustomName());
-        } else {
-            this.setNameTag("");
         }
         if (data.getCustomNameVisible() != null) {
             this.setNameTagVisible(data.getCustomNameVisible());
