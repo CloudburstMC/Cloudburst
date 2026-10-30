@@ -62,7 +62,9 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private static final List<NbtMap> VANILLA_ENTITIES;
 
     private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
-            new EntityData<>(false, new RegistryProvider<>(UnknownEntity::new, null, 0));
+            new EntityData<>(false, new RegistryProvider<>(
+                    new EntityFactoryData<>(UnknownEntity::new,
+                            org.cloudburstmc.api.entity.data.EntityData.class), null, 0));
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -134,20 +136,46 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     @Override
     public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.register(type, factory, priority, hasSpawnEgg, org.cloudburstmc.api.entity.data.EntityData.class);
+    }
+
+    @Override
+    public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
+                                                         int priority, boolean hasSpawnEgg,
+                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
     }
 
     public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.register(plugin, type, factory, priority, hasSpawnEgg,
+                org.cloudburstmc.api.entity.data.EntityData.class);
+    }
+
+    public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
+                                                         int priority, boolean hasSpawnEgg,
+                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
+    }
+
+    @Override
+    public Class<? extends org.cloudburstmc.api.entity.data.EntityData> getDataClass(EntityType<?> type) {
+        checkNotNull(type, "type");
+        EntityData<?> data = this.dataMap.get(type);
+        if (data == null) {
+            return org.cloudburstmc.api.entity.data.EntityData.class;
+        }
+        return data.serviceProvider().getProvider().getValue().dataClass();
     }
 
     private <T extends Entity> void registerVanilla(EntityType<T> type, EntityFactory<T> factory, int legacyId) {
-        this.registerInternal(null, type, factory, legacyId, 1000, false);
+        this.registerInternal(null, type, factory, legacyId, 1000, false,
+                org.cloudburstmc.api.entity.data.EntityData.class);
     }
 
     private synchronized <T extends Entity> void registerInternal(Object plugin, EntityType<T> type, EntityFactory<T> factory,
-                                                                  int runtimeType, int priority, boolean hasSpawnEgg)
+                                                                  int runtimeType, int priority, boolean hasSpawnEgg,
+                                                                  Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass)
             throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
@@ -163,13 +191,15 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
             this.typeToRuntimeMap.put(type, runtimeType);
             this.identifierTypeMap.put(type.getId(), type);
 
-            EntityData<T> entityData = new EntityData<>(hasSpawnEgg, new RegistryProvider<>(factory, plugin, priority));
+            EntityData<T> entityData = new EntityData<>(hasSpawnEgg,
+                    new RegistryProvider<>(new EntityFactoryData<>(factory, dataClass), plugin, priority));
             this.dataMap.put(type, entityData);
 
             CloudComponentMap map = new CloudComponentMap(this);
             putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
-            RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
+            RegistryProvider<EntityFactoryData<T>> provider =
+                    new RegistryProvider<>(new EntityFactoryData<>(factory, dataClass), plugin, priority);
             getServiceProvider(type).add(provider);
         } else { // invalid - registering EntityType with used identifier.
             throw new RegistryException(type.getId() + " is already registered");
@@ -211,7 +241,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(location, "location");
-        EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue();
+        EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue().factory();
         return this.create(factory, type, location);
     }
 
@@ -233,12 +263,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkNotNull(plugin, "plugin");
         checkNotNull(location, "location");
 
-        RegistryProvider<EntityFactory<T>> provider = getServiceProvider(type).getProvider(plugin);
+        RegistryProvider<EntityFactoryData<T>> provider = getServiceProvider(type).getProvider(plugin);
         if (provider == null) {
             throw new RegistryException("Plugin has no registered provider for " + type.getId());
         }
 
-        return this.create(provider.getValue(), type, location);
+        return this.create(provider.getValue().factory(), type, location);
     }
 
     private <T extends Entity> T create(EntityFactory<T> factory, EntityType<T> type, Location location) {
@@ -298,7 +328,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Entity> RegistryServiceProvider<EntityFactory<T>> getServiceProvider(EntityType<T> type) {
+    private <T extends Entity> RegistryServiceProvider<EntityFactoryData<T>> getServiceProvider(EntityType<T> type) {
         EntityData<T> entityData = (EntityData<T>) this.dataMap.get(type);
         if (entityData == null) {
             if (type.getEntityClass() != UnknownEntity.class) {
@@ -576,8 +606,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
     }
 
-    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {
-        private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactory<T>> provider) {
+    private record EntityFactoryData<T extends Entity>(EntityFactory<T> factory,
+                                                       Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+    }
+
+    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactoryData<T>> serviceProvider) {
+        private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactoryData<T>> provider) {
             this(hasSpawnEgg, new RegistryServiceProvider<>(provider));
         }
     }

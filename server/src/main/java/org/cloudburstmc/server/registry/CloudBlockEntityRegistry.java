@@ -10,6 +10,7 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -34,6 +35,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
     private final Map<BlockEntityType<?>, RegistryServiceProvider<BlockEntityFactory<?>>> providers = new IdentityHashMap<>();
     private final BiMap<BlockEntityType<?>, String> persistentMap = HashBiMap.create();
     private final Map<BlockEntityType<?>, Set<BlockType>> validBlocks = new IdentityHashMap<>();
+    private final Map<BlockEntityType<?>, Class<? extends BlockEntityData>> dataClasses = new IdentityHashMap<>();
     private final Map<String, BlockEntityType<?>> unknownTypes = new java.util.HashMap<>();
     private final Map<BlockEntityType<?>, String> unknownPersistentIds = new IdentityHashMap<>();
     private final AtomicLong unknownTypeIds = new AtomicLong();
@@ -56,18 +58,21 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 1000)));
         this.validBlocks.put(type, VanillaBlockEntityBlocks.get(type));
+        this.dataClasses.put(type, BlockEntityData.class);
     }
 
     @Override
     public synchronized <T extends BlockEntity> void register(BlockEntityType<T> type,
                                                               BlockEntityFactory<T> factory,
                                                               String persistentId,
-                                                              Set<BlockType> validBlocks) throws RegistryException {
+                                                              Set<BlockType> validBlocks,
+                                                              Class<? extends BlockEntityData> dataClass) throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
         checkNotNull(validBlocks, "validBlocks");
+        checkNotNull(dataClass, "dataClass");
         checkArgument(!type.getId().getNamespace().equals("minecraft"),
                 "Custom block entity types must use a non-minecraft namespace: %s", type.getId());
         checkArgument(!persistentId.isBlank(), "persistentId cannot be blank");
@@ -78,6 +83,13 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 0)));
         this.validBlocks.put(type, Set.copyOf(validBlocks));
+        this.dataClasses.put(type, dataClass);
+    }
+
+    @Override
+    public Class<? extends BlockEntityData> getDataClass(BlockEntityType<?> type) {
+        checkNotNull(type, "type");
+        return this.dataClasses.getOrDefault(type, BlockEntityData.class);
     }
 
     public String getPersistentId(BlockEntityType<?> type) {

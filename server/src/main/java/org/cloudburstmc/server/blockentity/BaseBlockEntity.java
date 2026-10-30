@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -132,6 +133,21 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //                log.info("Incompatible types for '" + key + "' vanilla: " + vanillaType.getTypeName() + "  local: " + type.getTypeName());
 //            }
 //        });
+    }
+
+    @Override
+    public Optional<NbtMap> getPluginData(String pluginId) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    }
+
+    @Override
+    public void setPluginData(String pluginId, NbtMap data) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    }
+
+    @Override
+    public void removePluginData(String pluginId) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
     }
 
     /**

@@ -355,6 +355,21 @@ public abstract class CloudEntity implements Entity {
     }
 
     @Override
+    public Optional<NbtMap> getPluginData(String pluginId) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    }
+
+    @Override
+    public void setPluginData(String pluginId, NbtMap data) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    }
+
+    @Override
+    public void removePluginData(String pluginId) {
+        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    }
+
+    @Override
     public Optional<EntitySnapshot> createSnapshot() {
         if (this instanceof CloudPlayer || this.type == EntityTypes.PLAYER || Player.class.isAssignableFrom(this.type.getEntityClass())) {
             return Optional.empty();
