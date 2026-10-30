@@ -8,6 +8,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -68,6 +69,8 @@ class ChestBoatPersistenceTest {
 
         // Today's save always writes the item list, empty for a fresh boat.
         assertEquals(List.of(), written.getList("Items", NbtType.COMPOUND));
+        assertEquals(NbtType.COMPOUND, ((NbtList<?>) written.get("Items")).getType(),
+                "empty Items must keep today's COMPOUND element type");
     }
 
     @Test

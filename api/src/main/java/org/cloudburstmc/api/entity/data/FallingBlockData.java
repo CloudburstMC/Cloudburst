@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.nbt.NbtMap;
 
 /**
  * Persistent data of a falling block: everything shared plus its state, timers,
@@ -16,7 +16,7 @@ import org.cloudburstmc.api.block.BlockState;
 public class FallingBlockData extends EntityData {
 
     @JsonProperty("BlockState")
-    private BlockState blockState;
+    private NbtMap blockState;
 
     @JsonProperty("Time")
     private int time;

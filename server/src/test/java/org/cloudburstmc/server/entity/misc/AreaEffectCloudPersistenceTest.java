@@ -5,6 +5,7 @@ import org.cloudburstmc.api.entity.data.AreaEffectCloudData;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionTypes;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -100,6 +101,8 @@ class AreaEffectCloudPersistenceTest {
         // Today's save always writes the initialized timers and radius, the water potion,
         // no custom effects and the derived color, and omits the default duration scale.
         assertEquals(List.of(), saved.getList("mobEffects", NbtType.COMPOUND));
+        assertEquals(NbtType.COMPOUND, ((NbtList<?>) saved.get("mobEffects")).getType(),
+                "empty mobEffects must keep today's COMPOUND element type");
         assertTrue(saved.get("PotionId") instanceof Short, "PotionId must be a short");
         assertEquals(NetworkUtils.potionToNetwork(PotionTypes.WATER), saved.getShort("PotionId"));
         assertTrue(saved.get("ParticleColor") instanceof Integer, "ParticleColor must be an int");

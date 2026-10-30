@@ -7,7 +7,7 @@ import org.cloudburstmc.api.entity.data.FallingBlockData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.block.BlockStateCodec;
+import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
@@ -30,6 +30,12 @@ class FallingBlockPersistenceTest {
             "Pos", "Motion", "Rotation", "FallDistance", "Fire", "Air",
             "OnGround", "Invulnerable", "Scale", "Tags");
 
+    private static NbtMap stateTag(BlockState state) {
+        // Today's save writes the definition's state compound ({name, states}), not the
+        // full serialized form (which carries a version int).
+        return BlockPalette.INSTANCE.getDefinition(state).getState();
+    }
+
     private static NbtMap save(CloudEntity entity) {
         NbtMapBuilder builder = NbtMap.builder();
         entity.saveAdditionalData(builder);
@@ -41,7 +47,7 @@ class FallingBlockPersistenceTest {
         assertEquals(FallingBlockData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.FALLING_BLOCK));
 
         EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
-        NbtMap state = BlockStateCodec.write(BlockStates.SAND);
+        NbtMap state = stateTag(BlockStates.SAND);
         NbtMap input = NbtMap.builder()
                 .putCompound("BlockState", state)
                 .putInt("Time", 5)
@@ -77,6 +83,8 @@ class FallingBlockPersistenceTest {
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
+        assertFalse(saved.getCompound("BlockState").containsKey("version"),
+                "BlockState must keep today's {name, states} form with no version");
     }
 
     @Test
@@ -92,7 +100,9 @@ class FallingBlockPersistenceTest {
 
         // Today's save always writes sand, zero time and damage, drops and expiry on,
         // a 40-point cap, and no sounds.
-        assertEquals(BlockStateCodec.write(BlockStates.SAND), saved.getCompound("BlockState"));
+        assertEquals(stateTag(BlockStates.SAND), saved.getCompound("BlockState"));
+        assertFalse(saved.getCompound("BlockState").containsKey("version"),
+                "BlockState must keep today's {name, states} form with no version");
         assertTrue(saved.get("Time") instanceof Integer, "Time must be an int");
         assertEquals(0, saved.getInt("Time"));
         assertEquals(NbtType.BYTE, NbtType.byClass(saved.get("DropItem").getClass()), "DropItem must be a byte");
@@ -121,11 +131,13 @@ class FallingBlockPersistenceTest {
         // defaults, exactly as the get-with-default loads do. Only the sounds
         // keep state when absent.
         block.loadAdditionalData(NbtMap.builder()
-                .putCompound("BlockState", BlockStateCodec.write(custom))
+                .putCompound("BlockState", stateTag(custom))
                 .build());
 
         NbtMap saved = save(block);
-        assertEquals(BlockStateCodec.write(custom), saved.getCompound("BlockState"));
+        assertEquals(stateTag(custom), saved.getCompound("BlockState"));
+        assertFalse(saved.getCompound("BlockState").containsKey("version"),
+                "BlockState must keep today's {name, states} form with no version");
         assertTrue(saved.getBoolean("DropItem"));
         assertFalse(saved.getBoolean("CancelDrop"));
         assertFalse(saved.getBoolean("HurtEntities"));
@@ -138,13 +150,13 @@ class FallingBlockPersistenceTest {
     void absentSoundsLeaveStateUnchanged() {
         EntityFallingBlock block = (EntityFallingBlock) PersistenceFixtures.entity(EntityTypes.FALLING_BLOCK);
         block.loadAdditionalData(NbtMap.builder()
-                .putCompound("BlockState", BlockStateCodec.write(BlockStates.SAND))
+                .putCompound("BlockState", stateTag(BlockStates.SAND))
                 .putString("LandingSound", "minecraft:random.fizz")
                 .putString("BreakSound", "minecraft:random.fizz")
                 .build());
 
         block.loadAdditionalData(NbtMap.builder()
-                .putCompound("BlockState", BlockStateCodec.write(BlockStates.SAND))
+                .putCompound("BlockState", stateTag(BlockStates.SAND))
                 .build());
 
         NbtMap saved = save(block);

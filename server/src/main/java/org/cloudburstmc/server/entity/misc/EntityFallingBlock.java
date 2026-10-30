@@ -22,6 +22,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -128,7 +129,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        this.setBlockState(fallingData.getBlockState());
+        this.setBlockState(BlockStateCodec.read(fallingData.getBlockState()));
         this.time = fallingData.getTime();
         this.dropItem = fallingData.getDropItem() == null || fallingData.getDropItem();
         this.cancelDrop = fallingData.isCancelDrop();
@@ -150,7 +151,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
     protected void fillData(EntityData data) {
         super.fillData(data);
         FallingBlockData fallingData = (FallingBlockData) data;
-        fallingData.setBlockState(this.blockState);
+        fallingData.setBlockState(BlockPalette.INSTANCE.getDefinition(this.blockState).getState());
         fallingData.setTime(this.time);
         fallingData.setDropItem(this.dropItem);
         fallingData.setCancelDrop(this.cancelDrop);
