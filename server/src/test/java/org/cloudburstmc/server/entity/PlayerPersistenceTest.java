@@ -147,7 +147,7 @@ class PlayerPersistenceTest {
 
         assertEquals(7, reloaded.getExp());
         assertEquals(3, reloaded.getExpLevel());
-        assertEquals(Boolean.TRUE, reloaded.getSeenCredits());
+        assertTrue(reloaded.isSeenCredits());
         assertEquals(36, reloaded.getInventory().size());
         assertEquals(diamond, reloaded.getInventory().getItem(0));
         assertTrue(reloaded.getInventory().getItem(1).isEmpty());
@@ -179,8 +179,11 @@ class PlayerPersistenceTest {
         // unfilled data object omits them like any other conditional key.
         assertFalse(written.containsKey("Inventory"));
         assertFalse(written.containsKey("EnderChestInventory"));
-        // Conditional keys stay absent until filled from live state.
-        assertFalse(written.containsKey("seenCredits"));
+        // The credit flag is a primitive, so even an unfilled data object writes
+        // today's fresh-player byte 0; the hook-owned conditional keys below stay
+        // absent until filled from live state.
+        assertTrue(written.get("seenCredits") instanceof Byte, "seenCredits must be a byte");
+        assertEquals((byte) 0, written.get("seenCredits"));
         assertFalse(written.containsKey("firstPlayed"));
         assertFalse(written.containsKey("lastPlayed"));
         assertFalse(written.containsKey("Level"));
@@ -217,7 +220,7 @@ class PlayerPersistenceTest {
         // presence-sensitive keys stay null so the load leaves live state alone.
         assertEquals(0, data.getExp());
         assertEquals(0, data.getExpLevel());
-        assertNull(data.getSeenCredits());
+        assertFalse(data.isSeenCredits());
         assertNull(data.getInventory());
         assertNull(data.getEnderChest());
         assertNull(data.getSkin());
@@ -235,7 +238,7 @@ class PlayerPersistenceTest {
     void absentKeysStayAbsent() {
         PlayerData data = read(NbtMap.EMPTY);
 
-        assertNull(data.getSeenCredits());
+        assertFalse(data.isSeenCredits());
         assertNull(data.getSkin());
         assertNull(data.getInventory());
         assertNull(data.getEnderChest());

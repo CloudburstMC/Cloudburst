@@ -1,5 +1,7 @@
 package org.cloudburstmc.server.player;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.math.vector.Vector3i;
 
@@ -19,6 +21,39 @@ public class PlayerData {
     private float spawnYaw;
     private GameMode gamemode;
     private InetAddress lastAddress;
+
+    /**
+     * The values the stored tag held for the conditionally written keys. A key the
+     * tag held is written back with its loaded value when the holder condition
+     * fails at save time, and a condition that holds refreshes them from the
+     * holder, exactly as the previous persistent data object kept and rewrote
+     * its properties. A key never loaded nor saved stays {@code null} and is
+     * omitted, following the save condition.
+     */
+    @Getter
+    @Setter
+    private Long loadedFirstPlayed;
+    @Getter
+    @Setter
+    private Long loadedLastPlayed;
+    @Getter
+    @Setter
+    private String loadedSpawnLevel;
+    @Getter
+    @Setter
+    private Integer loadedSpawnX;
+    @Getter
+    @Setter
+    private Integer loadedSpawnY;
+    @Getter
+    @Setter
+    private Integer loadedSpawnZ;
+    @Getter
+    @Setter
+    private Float loadedSpawnYaw;
+    @Getter
+    @Setter
+    private Integer loadedPlayerGameType;
 
     public OptionalLong getFirstPlayed() {
         return OptionalLong.of(firstPlayed);

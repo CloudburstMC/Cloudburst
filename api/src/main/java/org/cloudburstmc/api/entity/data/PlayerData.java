@@ -41,7 +41,9 @@ public class PlayerData extends HumanData {
     private int expLevel;
 
     @JsonProperty("seenCredits")
-    private Boolean seenCredits;
+    // A primitive on purpose: every player save writes the flag, including a
+    // fresh player's false, exactly as players are stored today.
+    private boolean seenCredits;
 
     // The live player containers, wired by the player itself; null until then.
     @JsonProperty("Inventory")

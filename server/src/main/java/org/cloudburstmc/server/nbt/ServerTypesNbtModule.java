@@ -335,7 +335,9 @@ public class ServerTypesNbtModule extends SimpleModule {
                     throw mismatch(p, entry);
                 }
                 Object slot = item.get("Slot");
-                int index = slot == null ? 0 : ((Number) slot).intValue();
+                // Only a byte tag binds, as the old byte read did: anything else,
+                // including a missing tag, binds slot 0.
+                int index = slot instanceof Byte b ? b : 0;
                 if (index < 0 || index >= size) {
                     throw new IndexOutOfBoundsException(
                             "Slot " + index + " is out of range for a container of size " + size);

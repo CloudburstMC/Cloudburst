@@ -1516,7 +1516,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     private boolean hasSeenCredits() {
-        return Boolean.TRUE.equals(this.data().getSeenCredits());
+        return this.data().isSeenCredits();
     }
 
     public boolean beginEndCredits() {
@@ -3377,6 +3377,147 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         return (org.cloudburstmc.api.entity.data.PlayerData) super.data();
     }
 
+    /**
+     * The hook-owned food values carried between the stored tag and the live food
+     * state. The transfer is plain tag math so tests can drive it without a player;
+     * only applying it to the live objects needs the player itself.
+     */
+    static record FoodHookState(int level, float saturation, float exhaustion, int tickTimer) {
+    }
+
+    /**
+     * Reads the hook-owned player keys: the play timestamps, the saved level and
+     * spawn, and the game type into the server player-data, the experience into
+     * the data instance, and the food values into the returned carrier for the
+     * caller to load into the live food state. A key the tag holds with a fitting
+     * kind is remembered as loaded so the save hook can write it back when the
+     * holder condition fails; anything else keeps the current value.
+     *
+     * @param tag    the stored tag
+     * @param holder the server player-data to fill
+     * @param data   the data instance holding the experience
+     * @return the food values with today's defaults for absent or mistyped keys
+     */
+    static FoodHookState loadHookKeys(NbtMap tag, PlayerData holder,
+                                      org.cloudburstmc.api.entity.data.PlayerData data) {
+        if (tag.get("firstPlayed") instanceof Number firstPlayed) {
+            holder.setFirstPlayed(firstPlayed.longValue());
+            holder.setLoadedFirstPlayed(firstPlayed.longValue());
+        }
+        if (tag.get("lastPlayed") instanceof Number lastPlayed) {
+            holder.setLastPlayed(lastPlayed.longValue());
+            holder.setLoadedLastPlayed(lastPlayed.longValue());
+        }
+        if (tag.get("Level") instanceof String level) {
+            holder.setLevel(level);
+        }
+        if (tag.get("SpawnLevel") instanceof String spawnLevel) {
+            holder.setSpawnLevel(spawnLevel);
+            holder.setLoadedSpawnLevel(spawnLevel);
+        }
+        Object spawnX = tag.get("SpawnX");
+        Object spawnY = tag.get("SpawnY");
+        Object spawnZ = tag.get("SpawnZ");
+        if (spawnX instanceof Number x && spawnY instanceof Number y && spawnZ instanceof Number z) {
+            holder.setSpawnLocation(Vector3i.from(x.intValue(), y.intValue(), z.intValue()));
+            holder.setLoadedSpawnX(x.intValue());
+            holder.setLoadedSpawnY(y.intValue());
+            holder.setLoadedSpawnZ(z.intValue());
+        }
+        if (tag.get("SpawnYaw") instanceof Number spawnYaw) {
+            holder.setSpawnYaw(spawnYaw.floatValue());
+            holder.setLoadedSpawnYaw(spawnYaw.floatValue());
+        }
+        if (tag.get("playerGameType") instanceof Number gameType) {
+            holder.setGamemode(GameMode.from(gameType.intValue()));
+            holder.setLoadedPlayerGameType(gameType.intValue());
+        }
+
+        data.setExp(getInt(tag, "EXP", data.getExp()));
+        data.setExpLevel(getInt(tag, "expLevel", data.getExpLevel()));
+
+        return new FoodHookState(getInt(tag, "foodLevel", 20), getFloat(tag, "foodSaturationLevel", 5.0f),
+                getFloat(tag, "foodExhaustionLevel", 0.0f), getInt(tag, "foodTickTimer", 0));
+    }
+
+    /**
+     * Writes the hook-owned player keys with today's keys, NBT types and presence
+     * rules: food is always written, the rest only when set. A key the stored tag
+     * held is written back with its loaded value when the holder condition fails,
+     * as the previous persistent data object kept and rewrote it; a condition that
+     * holds refreshes the remembered values from the holder. A key never loaded
+     * nor set stays absent.
+     *
+     * @param tag    the tag to write to
+     * @param holder the server player-data to write from
+     * @param food   the live food values to write
+     * @param skin   the live skin to write, or {@code null} to omit
+     */
+    static void saveHookKeys(NbtMapBuilder tag, PlayerData holder, FoodHookState food, @Nullable Skin skin) {
+        tag.putInt("foodLevel", food.level());
+        tag.putFloat("foodSaturationLevel", food.saturation());
+        tag.putFloat("foodExhaustionLevel", food.exhaustion());
+        tag.putInt("foodTickTimer", food.tickTimer());
+
+        long firstPlayed = holder.getFirstPlayed().getAsLong();
+        long lastPlayed = holder.getLastPlayed().getAsLong();
+        if (firstPlayed > 0 && lastPlayed > 0) {
+            tag.putLong("firstPlayed", firstPlayed);
+            tag.putLong("lastPlayed", lastPlayed);
+            holder.setLoadedFirstPlayed(firstPlayed);
+            holder.setLoadedLastPlayed(lastPlayed);
+        } else {
+            if (holder.getLoadedFirstPlayed() != null) {
+                tag.putLong("firstPlayed", holder.getLoadedFirstPlayed());
+            }
+            if (holder.getLoadedLastPlayed() != null) {
+                tag.putLong("lastPlayed", holder.getLoadedLastPlayed());
+            }
+        }
+        if (holder.getLevel() != null) {
+            tag.putString("Level", holder.getLevel());
+        }
+        if (holder.getSpawnLevel() != null && holder.getSpawnLocation() != null) {
+            tag.putString("SpawnLevel", holder.getSpawnLevel());
+            tag.putInt("SpawnX", holder.getSpawnLocation().getX());
+            tag.putInt("SpawnY", holder.getSpawnLocation().getY());
+            tag.putInt("SpawnZ", holder.getSpawnLocation().getZ());
+            tag.putFloat("SpawnYaw", holder.getSpawnYaw());
+            holder.setLoadedSpawnLevel(holder.getSpawnLevel());
+            holder.setLoadedSpawnX(holder.getSpawnLocation().getX());
+            holder.setLoadedSpawnY(holder.getSpawnLocation().getY());
+            holder.setLoadedSpawnZ(holder.getSpawnLocation().getZ());
+            holder.setLoadedSpawnYaw(holder.getSpawnYaw());
+        } else {
+            if (holder.getLoadedSpawnLevel() != null) {
+                tag.putString("SpawnLevel", holder.getLoadedSpawnLevel());
+            }
+            if (holder.getLoadedSpawnX() != null) {
+                tag.putInt("SpawnX", holder.getLoadedSpawnX());
+            }
+            if (holder.getLoadedSpawnY() != null) {
+                tag.putInt("SpawnY", holder.getLoadedSpawnY());
+            }
+            if (holder.getLoadedSpawnZ() != null) {
+                tag.putInt("SpawnZ", holder.getLoadedSpawnZ());
+            }
+            if (holder.getLoadedSpawnYaw() != null) {
+                tag.putFloat("SpawnYaw", holder.getLoadedSpawnYaw());
+            }
+        }
+        if (holder.getGamemode() != null) {
+            tag.putInt("playerGameType", holder.getGamemode().getVanillaId());
+            holder.setLoadedPlayerGameType(holder.getGamemode().getVanillaId());
+        } else if (holder.getLoadedPlayerGameType() != null) {
+            tag.putInt("playerGameType", holder.getLoadedPlayerGameType());
+        }
+
+        // The stored skin is ignored on load, so the live skin is written here.
+        if (skin != null) {
+            tag.putCompound("Skin", SkinNbt.toNbt(skin));
+        }
+    }
+
     @Override
     protected void loadCustom(NbtMap tag) {
         // The holder-backed state below used to load in the data hook, which ran before
@@ -3392,35 +3533,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.level = level != null ? level : this.server.getDefaultLevel();
         }
 
-        if (tag.containsKey("firstPlayed")) {
-            this.playerData.setFirstPlayed(getLong(tag, "firstPlayed", this.playerData.getFirstPlayed().getAsLong()));
-        }
-        if (tag.containsKey("lastPlayed")) {
-            this.playerData.setLastPlayed(getLong(tag, "lastPlayed", this.playerData.getLastPlayed().getAsLong()));
-        }
-        if (tag.get("Level") instanceof String level) {
-            this.playerData.setLevel(level);
-        }
-        if (tag.get("SpawnLevel") instanceof String spawnLevel) {
-            this.playerData.setSpawnLevel(spawnLevel);
-        }
-        Object spawnX = tag.get("SpawnX");
-        Object spawnY = tag.get("SpawnY");
-        Object spawnZ = tag.get("SpawnZ");
-        if (spawnX instanceof Number x && spawnY instanceof Number y && spawnZ instanceof Number z) {
-            this.playerData.setSpawnLocation(Vector3i.from(x.intValue(), y.intValue(), z.intValue()));
-        }
-        if (tag.get("SpawnYaw") instanceof Number spawnYaw) {
-            this.playerData.setSpawnYaw(spawnYaw.floatValue());
-        }
-        if (tag.get("playerGameType") instanceof Number gameType) {
-            this.playerData.setGamemode(GameMode.from(gameType.intValue()));
-        }
-
-        this.setExperience(getInt(tag, "EXP", this.data().getExp()), getInt(tag, "expLevel", this.data().getExpLevel()));
-
-        this.foodData.load(getInt(tag, "foodLevel", 20), getFloat(tag, "foodSaturationLevel", 5.0f),
-                getFloat(tag, "foodExhaustionLevel", 0.0f), getInt(tag, "foodTickTimer", 0));
+        FoodHookState food = loadHookKeys(tag, this.playerData, this.data());
+        this.setExperience(this.data().getExp(), this.data().getExpLevel());
+        this.foodData.load(food.level(), food.saturation(), food.exhaustion(), food.tickTimer());
 
         super.loadCustom(tag);
         tag.listenForString("lastIP", this.playerData::setLastAddress);
@@ -3464,35 +3579,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         // which the base wrote before these hooks ran. The keys below are hook-owned:
         // none of them is DTO-owned, so nothing here can clash with what the base
         // wrote and no second DTO write is needed. Presence matches the previous save
-        // path exactly: food is always written, the rest only when set.
-        tag.putInt("foodLevel", this.getFoodData().getLevel());
-        tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());
-        tag.putFloat("foodExhaustionLevel", this.foodData.getExhaustion());
-        tag.putInt("foodTickTimer", this.foodData.getTickTimer());
-
-        if (this.playerData.getFirstPlayed().getAsLong() > 0 && this.playerData.getLastPlayed().getAsLong() > 0) {
-            tag.putLong("firstPlayed", this.playerData.getFirstPlayed().getAsLong());
-            tag.putLong("lastPlayed", this.playerData.getLastPlayed().getAsLong());
-        }
-        if (this.playerData.getLevel() != null) {
-            tag.putString("Level", this.playerData.getLevel());
-        }
-        if (this.playerData.getSpawnLevel() != null && this.playerData.getSpawnLocation() != null) {
-            tag.putString("SpawnLevel", this.playerData.getSpawnLevel());
-            tag.putInt("SpawnX", this.playerData.getSpawnLocation().getX());
-            tag.putInt("SpawnY", this.playerData.getSpawnLocation().getY());
-            tag.putInt("SpawnZ", this.playerData.getSpawnLocation().getZ());
-            tag.putFloat("SpawnYaw", this.playerData.getSpawnYaw());
-        }
-        if (this.playerData.getGamemode() != null) {
-            tag.putInt("playerGameType", this.playerData.getGamemode().getVanillaId());
-        }
-
-        // The stored skin is ignored on load, so the live skin is written here.
-        Skin skin = this.getSkin();
-        if (skin != null) {
-            tag.putCompound("Skin", SkinNbt.toNbt(skin));
-        }
+        // path exactly: food is always written, the rest only when set, and a key the
+        // stored tag held is written back with its loaded value.
+        saveHookKeys(tag, this.playerData,
+                new FoodHookState(this.getFoodData().getLevel(), this.foodData.getSaturation(),
+                        this.foodData.getExhaustion(), this.foodData.getTickTimer()),
+                this.getSkin());
     }
 
     @Override
