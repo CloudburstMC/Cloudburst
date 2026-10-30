@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -335,12 +336,16 @@ class ChestPersistenceTest {
         // Retained fields and why they hold no DTO state: combinedContainer is the transient
         // paired view built over the two chests' DTO containers; pairlead is hook-persisted
         // pairing state with no DTO property of its own.
-        DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, ChestData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(ChestBlockEntity.class, ChestData.class,
+                Map.of("combinedContainer",
+                        "derived double-chest view over the two chests' DTO containers, not persisted state"));
     }
 
     @Test
     void enderChestBlockEntityKeepsNoDuplicateState() {
-        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, ChestData.class);
+        DtoStateChecks.assertKeepsNoDuplicateState(EnderChestBlockEntity.class, ChestData.class,
+                Map.of("combinedContainer",
+                        "inherited from ChestBlockEntity: derived double-chest view over the two chests' DTO containers, not persisted state"));
     }
 
     @Test

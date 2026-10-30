@@ -18,6 +18,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -170,5 +171,25 @@ class CampfirePersistenceTest {
     void campfireBlockEntityKeepsNoDuplicateState() {
         // No retained fields: every slot and its time live in CampfireData.
         DtoStateChecks.assertKeepsNoDuplicateState(CampfireBlockEntity.class, CampfireData.class);
+    }
+
+    /**
+     * The pre-migration campfire class shape: the old duplicates were
+     * {@code ItemStack[] items} plus {@code int[] itemTimes}, whose names match no
+     * {@code CampfireData} property, so the name check stays blind to them.
+     */
+    static final class PreMigrationCampfireShape {
+        @SuppressWarnings("unused")
+        ItemStack[] items = new ItemStack[4];
+        @SuppressWarnings("unused")
+        int[] itemTimes = new int[4];
+    }
+
+    @Test
+    void duplicateStateTypeCheckCatchesPreMigrationShape() {
+        // The name check passes this shape (no DTO property is named items or
+        // itemTimes); the type check must still fail it, or the whole check is vacuous.
+        assertThrows(AssertionError.class, () -> DtoStateChecks.assertKeepsNoDuplicateState(
+                PreMigrationCampfireShape.class, CampfireData.class));
     }
 }

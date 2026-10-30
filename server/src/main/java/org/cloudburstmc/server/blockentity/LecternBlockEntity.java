@@ -139,8 +139,10 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
     @Override
     public void setPage(@Nonnegative int page) {
-        data().setPage(GenericMath.clamp(page, 0, getTotalPages()));
-        this.getLevel().updateAround(this.getPosition());
+        data().setPage(hasBook() ? GenericMath.clamp(page, 0, getTotalPages()) : null);
+        if (this.getLevel() != null) {
+            this.getLevel().updateAround(this.getPosition());
+        }
     }
 
     private void updateTotalPages(boolean updateRedstone) {

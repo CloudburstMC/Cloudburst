@@ -114,6 +114,35 @@ class LecternPersistenceTest {
     }
 
     @Test
+    void setPageOnEmptyLecternWritesNoPageKey() {
+        LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Lectern")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .build());
+
+        assertFalse(entity.hasBook());
+
+        // A client packet can drive setPage while no book is present; the page must
+        // stay pageless instead of writing page: 0 to the tags.
+        entity.setPage(3);
+
+        assertFalse(entity.hasBook());
+        assertEquals(0, entity.getPage());
+        assertEquals(0, entity.getTotalPages());
+
+        NbtMap saved = entity.getServerTag();
+        assertFalse(saved.containsKey("page"), "server tag gained page");
+        assertFalse(saved.containsKey("totalPages"), "server tag gained totalPages");
+
+        NbtMap client = entity.getClientTag();
+        assertFalse(client.containsKey("page"), "client tag gained page");
+        assertFalse(client.containsKey("totalPages"), "client tag gained totalPages");
+    }
+
+    @Test
     void explicitFalseHasBookIsNotWritten() {
         LecternBlockEntity entity = (LecternBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.LECTERN, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
