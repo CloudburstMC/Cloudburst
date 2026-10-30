@@ -1,8 +1,10 @@
 package org.cloudburstmc.api.nbt.internal;
 
 import org.cloudburstmc.api.nbt.NbtClient;
+import org.cloudburstmc.api.nbt.NbtCodec;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +26,8 @@ import java.util.List;
 /**
  * Adapts Jackson serializers to {@link NbtGenerator}: bean properties announce their
  * resolved tag type before writing, non-client properties are left out of the client
- * view, and {@link NbtMap} and {@link NbtList} values are written unchanged.
+ * view, {@link NbtCodec} properties are written by their codec, and {@link NbtMap} and
+ * {@link NbtList} values are written unchanged.
  */
 public final class NbtPropertyModifier extends ValueSerializerModifier {
 
@@ -36,8 +39,18 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
                                                      List<BeanPropertyWriter> beanProperties) {
         List<BeanPropertyWriter> typed = new ArrayList<>(beanProperties.size());
         for (BeanPropertyWriter writer : beanProperties) {
-            typed.add(new TypedPropertyWriter(writer,
-                    NbtTypeResolver.resolve(writer.getType(), writer.getAnnotation(NbtTag.class))));
+            NbtValueCodec<Object> codec = NbtCodecs.codec(writer.getAnnotation(NbtCodec.class));
+            if (codec != null) {
+                // The codec returns exact NBT values, so nothing is expected of them
+                TypedPropertyWriter coded = new TypedPropertyWriter(writer, NbtTagType.AUTO, NbtTagType.AUTO);
+                coded.assignSerializer(NbtCodecs.serializer(codec));
+                typed.add(coded);
+                continue;
+            }
+            NbtTypeResolver.Resolution resolution =
+                    NbtTypeResolver.resolve(writer.getType(), writer.getAnnotation(NbtTag.class));
+            typed.add(new TypedPropertyWriter(writer, resolution.value(),
+                    resolution.element() != NbtTagType.AUTO ? resolution.element() : null));
         }
         return typed;
     }
@@ -67,11 +80,15 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
          */
         private volatile @Nullable NbtTagType element;
 
-        TypedPropertyWriter(BeanPropertyWriter base, NbtTypeResolver.Resolution resolution) {
+        /**
+         * @param value   the tag type of the property
+         * @param element the tag type of its elements, or {@code null} to resolve it on first use
+         */
+        TypedPropertyWriter(BeanPropertyWriter base, NbtTagType value, @Nullable NbtTagType element) {
             super(base);
-            this.value = resolution.value();
+            this.value = value;
             this.client = base.getAnnotation(NbtClient.class) != null;
-            this.element = resolution.element() != NbtTagType.AUTO ? resolution.element() : null;
+            this.element = element;
         }
 
         @Override

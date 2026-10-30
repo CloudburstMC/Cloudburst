@@ -338,7 +338,9 @@ public final class NbtGenerator extends GeneratorBase {
     }
 
     /**
-     * Writes an {@link NbtMap} or {@link NbtList} unchanged.
+     * Writes an NBT value unchanged: an {@link NbtMap} or {@link NbtList}, or a scalar or
+     * array tag value such as a {@link Byte} or an {@code int[]}. A scalar or array must
+     * match the tag type expected for it, if any.
      */
     @Override
     public JsonGenerator writeEmbeddedObject(Object object) throws JacksonException {
@@ -346,7 +348,7 @@ public final class NbtGenerator extends GeneratorBase {
             return writeNull();
         }
         if (!(object instanceof NbtMap) && !(object instanceof NbtList<?>)) {
-            return super.writeEmbeddedObject(object);
+            return writeTagValue(object);
         }
         _verifyValueWrite("write an NBT value");
         takeExpected();
@@ -356,6 +358,40 @@ public final class NbtGenerator extends GeneratorBase {
             return this;
         }
         container.add(object);
+        return this;
+    }
+
+    private JsonGenerator writeTagValue(Object value) {
+        NbtTagType kind = switch (value) {
+            case Byte ignored -> NbtTagType.BYTE;
+            case Short ignored -> NbtTagType.SHORT;
+            case Integer ignored -> NbtTagType.INT;
+            case Long ignored -> NbtTagType.LONG;
+            case Float ignored -> NbtTagType.FLOAT;
+            case Double ignored -> NbtTagType.DOUBLE;
+            case String ignored -> NbtTagType.STRING;
+            case byte[] ignored -> NbtTagType.BYTE_ARRAY;
+            case int[] ignored -> NbtTagType.INT_ARRAY;
+            case long[] ignored -> NbtTagType.LONG_ARRAY;
+            default -> null;
+        };
+        if (kind == null) {
+            String name = writeContext.currentName();
+            throw _constructWriteException(String.format("NBT cannot hold a %s%s", value.getClass().getName(),
+                    name == null ? "" : " (property '" + name + "')"));
+        }
+        _verifyValueWrite("write an NBT value");
+        NbtTagType expected = takeExpected();
+        if (expected != NbtTagType.AUTO && expected != kind) {
+            throw mismatch("an NBT " + kind, expected);
+        }
+        // Arrays are copied, as the other array writes do
+        container.add(switch (value) {
+            case byte[] array -> array.clone();
+            case int[] array -> array.clone();
+            case long[] array -> array.clone();
+            default -> value;
+        });
         return this;
     }
 

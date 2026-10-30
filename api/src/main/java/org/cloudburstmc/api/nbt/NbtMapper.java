@@ -35,11 +35,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@link NbtTag} annotation if present, else the type that follows from the property's
  * Java type. {@code null} properties are not written.
  * <p>
- * Reading is lenient: any numeric tag binds to any numeric property, and a byte binds to
- * a {@code boolean}. A property whose tag has another kind, for example a string for an
- * {@code int}, keeps its default and the mismatch is logged at warn level. A failure
- * caused by element or property code itself (a non-Jackson exception in the cause
- * chain) is rethrown instead. Absent and unknown keys are ignored.
+ * Reading updates an object in place, see {@link #readInto}. It is lenient: any numeric
+ * tag binds to any numeric property, and a byte binds to a {@code boolean}. A property
+ * whose tag has another kind, for example a string for an {@code int}, keeps its current
+ * value and the mismatch is logged at warn level. A failure caused by element or property
+ * code itself (a non-Jackson exception in the cause chain) is rethrown instead. Absent
+ * and unknown keys are ignored.
+ * <p>
+ * A property annotated with {@link NbtCodec} is written and read by its codec instead.
  * <p>
  * {@link NbtMap} and {@link org.cloudburstmc.nbt.NbtList} values pass through unchanged
  * in both directions.
@@ -133,10 +136,11 @@ public final class NbtMapper {
     }
 
     /**
-     * Reads a compound tag into a new object of the given type.
+     * Reads a compound tag into a new object of the given type: {@link #readInto} on an
+     * instance created by the type's no-arg constructor.
      * <p>
      * Properties whose key is absent, or whose tag does not fit them, keep the value the
-     * type's no-arg constructor gives them.
+     * constructor gives them.
      *
      * @param tag  the compound to read
      * @param type the type to create
@@ -145,8 +149,37 @@ public final class NbtMapper {
     public <T> T read(NbtMap tag, Class<T> type) {
         Objects.requireNonNull(tag, "tag");
         Objects.requireNonNull(type, "type");
+        T target;
+        // Reading no keys creates the instance as Jackson does, through its no-arg constructor
+        try (NbtParser parser = new NbtParser(NbtMap.EMPTY)) {
+            target = mapper.readValue(parser, type);
+        }
+        return readInto(tag, target);
+    }
+
+    /**
+     * Reads a compound tag into an existing object.
+     * <p>
+     * Each key present in the tag sets its property; a property whose key is absent keeps
+     * its current value. A property whose tag does not fit it keeps its current value too,
+     * and the mismatch is logged at warn level. A non-Jackson failure in element or
+     * property code is rethrown.
+     * <p>
+     * A mutable property value is filled in place instead of replaced when it is not
+     * {@code null} and its deserializer supports updating
+     * ({@link tools.jackson.databind.ValueDeserializer#supportsUpdate}), for example an
+     * item container a module registers. Lists, maps, arrays and nested data objects are
+     * replaced whole.
+     *
+     * @param tag    the compound to read
+     * @param target the object to update
+     * @return the updated object, normally {@code target}
+     */
+    public <T> T readInto(NbtMap tag, T target) {
+        Objects.requireNonNull(tag, "tag");
+        Objects.requireNonNull(target, "target");
         try (NbtParser parser = new NbtParser(tag)) {
-            return mapper.readValue(parser, type);
+            return mapper.readerForUpdating(target).readValue(parser);
         }
     }
 
