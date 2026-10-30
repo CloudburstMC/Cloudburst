@@ -68,6 +68,29 @@ class FlowerPotPersistenceTest {
     }
 
     @Test
+    void airPlantIsKept() {
+        BlockState air = BlockTestRegistry.get().getBlock(BlockTypes.AIR);
+        NbtMap input = NbtMap.builder()
+                .putString("id", "FlowerPot")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putCompound("PlantBlock", BlockPalette.INSTANCE.getSerialized(air))
+                .build();
+
+        FlowerPotBlockEntity entity = (FlowerPotBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FLOWER_POT, POSITION);
+        entity.loadAdditionalData(input);
+
+        assertEquals(air, entity.getPlant());
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals(input.getCompound("PlantBlock"), saved.getCompound("PlantBlock"));
+        assertEquals(NbtType.COMPOUND, NbtType.byClass(saved.get("PlantBlock").getClass()));
+
+        assertEquals(Set.of("id"), entity.getClientTag().keySet());
+    }
+
+    @Test
     void emptyPotOmitsPlantBlock() {
         FlowerPotBlockEntity entity = (FlowerPotBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.FLOWER_POT, POSITION);
         entity.loadAdditionalData(NbtMap.builder()

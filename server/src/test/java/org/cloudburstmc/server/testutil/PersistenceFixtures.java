@@ -41,6 +41,10 @@ public class PersistenceFixtures {
         if (initialized) {
             return;
         }
+        // The block palette is identity-keyed: air and every other state only
+        // resolve once a block registry has registered them, so persistence tests
+        // run on the production codec path.
+        BlockTestRegistry.get();
         CloudBlockEntityRegistry registry = CloudBlockEntityRegistry.get();
         // Test ids stay in the singleton for the JVM's lifetime; registering them in
         // exactly this one place keeps every test order safe.

@@ -79,6 +79,30 @@ class BannerPersistenceTest {
     }
 
     @Test
+    void emptyPatternsListIsKept() {
+        BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Banner")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putInt("Base", 1)
+                .putInt("Type", 0)
+                .putList("Patterns", NbtType.COMPOUND, List.of())
+                .build());
+
+        assertTrue(entity.getPatterns().isEmpty());
+
+        NbtMap saved = entity.getServerTag();
+        assertTrue(saved.containsKey("Patterns"), "explicitly loaded empty list is kept");
+        assertEquals(List.of(), saved.getList("Patterns", NbtType.COMPOUND));
+        assertEquals(NbtType.LIST, NbtType.byClass(saved.get("Patterns").getClass()));
+
+        NbtMap client = entity.getClientTag();
+        assertEquals(Set.of("id", "Base", "Type"), client.keySet());
+    }
+
+    @Test
     void emptyBannerWritesBaseAndTypeWithoutPatterns() {
         BannerBlockEntity entity = (BannerBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.BANNER, POSITION);
         entity.loadAdditionalData(NbtMap.builder()

@@ -10,6 +10,8 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.BannerPattern;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
     private final List<BannerPattern> patterns = new ArrayList<>();
+    private boolean patternsPresent;
     private DyeColor base = DyeColor.WHITE;
     private int type;
 
@@ -33,6 +36,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
         this.base = DyeColor.getByDyeData(banner.getBase());
         this.type = banner.getType();
         this.patterns.clear();
+        this.patternsPresent = banner.getPatterns() != null;
         if (banner.getPatterns() != null) {
             for (BannerPatternData patternTag : banner.getPatterns()) {
                 BannerPattern.Type patternType = BannerPattern.Type.getByName(patternTag.getPattern());
@@ -59,6 +63,15 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
                 patternTags.add(patternTag);
             }
             banner.setPatterns(patternTags);
+        }
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        // An explicitly loaded empty list round-trips as an empty list. The DTO
+        // only carries non-empty layers, so the client tag stays as today.
+        if (this.patternsPresent && this.patterns.isEmpty()) {
+            tag.putList("Patterns", NbtType.COMPOUND, List.of());
         }
     }
 

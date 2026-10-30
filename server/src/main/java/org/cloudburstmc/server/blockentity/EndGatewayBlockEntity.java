@@ -57,9 +57,8 @@ public class EndGatewayBlockEntity extends BaseBlockEntity implements EndGateway
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
-        if (this.exitPosition != null) {
-            tag.putList("ExitPortal", NbtType.INT, List.of(this.exitPosition.getX(), this.exitPosition.getY(), this.exitPosition.getZ()));
-        }
+        Vector3i exit = this.exitPosition == null ? Vector3i.ZERO : this.exitPosition;
+        tag.putList("ExitPortal", NbtType.INT, List.of(exit.getX(), exit.getY(), exit.getZ()));
     }
 
     @Override

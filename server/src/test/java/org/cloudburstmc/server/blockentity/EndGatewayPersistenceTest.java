@@ -71,7 +71,7 @@ class EndGatewayPersistenceTest {
     }
 
     @Test
-    void defaultGatewayOmitsExitPortalFromServerTag() {
+    void defaultGatewayWritesZeroExitPortalToServerTag() {
         EndGatewayBlockEntity entity = (EndGatewayBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.END_GATEWAY, POSITION);
         entity.loadAdditionalData(NbtMap.builder()
                 .putString("id", "EndGateway")
@@ -83,9 +83,11 @@ class EndGatewayPersistenceTest {
         assertNull(entity.getExitLocation());
 
         NbtMap saved = entity.getServerTag();
-        assertEquals(Set.of("id", "x", "y", "z", "isMovable", "Age", "ExactTeleport"), saved.keySet());
+        assertEquals(Set.of("id", "x", "y", "z", "isMovable", "Age", "ExactTeleport", "ExitPortal"), saved.keySet());
         assertEquals(0L, saved.getLong("Age"));
         assertEquals(NbtType.LONG, NbtType.byClass(saved.get("Age").getClass()));
+        assertEquals(List.of(0, 0, 0), saved.getList("ExitPortal", NbtType.INT));
+        assertEquals(NbtType.LIST, NbtType.byClass(saved.get("ExitPortal").getClass()));
 
         NbtMap client = entity.getClientTag();
         assertEquals(Set.of("id", "Age", "ExitPortal"), client.keySet());

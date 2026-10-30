@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.MovingBlock;
@@ -52,11 +51,10 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     protected void fillData(BlockEntityData data) {
         super.fillData(data);
         MovingBlockData moving = (MovingBlockData) data;
-        // Air has no palette entry, and today's save throws on it, so it is omitted:
-        // only a fresh, never-loaded entity still holds air, and the mandated
-        // save-and-load probe needs no-throw. Anything else writes as usual.
-        moving.setMovingBlock(isAir(this.blockState) ? null : this.blockState);
-        moving.setMovingBlockExtra(isAir(this.extraBlockState) ? null : this.extraBlockState);
+        // Both states always persist, air included: air is a registered palette
+        // entry, so the codec writes it like any other state.
+        moving.setMovingBlock(this.blockState);
+        moving.setMovingBlockExtra(this.extraBlockState);
 
         // A freshly created moving block has no piston yet; today's save throws on it.
         // Omitting the keys keeps the mandated save-and-load probe from throwing.
@@ -80,10 +78,6 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
 
     public BlockState getMovingBlock() {
         return this.blockState;
-    }
-
-    private static boolean isAir(BlockState state) {
-        return state == null || state == BlockStates.AIR || state.getType() == BlockTypes.AIR;
     }
 
     public void setBlock(BlockState blockState) {

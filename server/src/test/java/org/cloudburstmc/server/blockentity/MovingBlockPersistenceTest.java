@@ -87,6 +87,31 @@ class MovingBlockPersistenceTest {
     }
 
     @Test
+    void airExtraStateRoundTripsAsCompound() {
+        BlockState air = BlockTestRegistry.get().getBlock(BlockTypes.AIR);
+        NbtMap input = NbtMap.builder()
+                .putString("id", "MovingBlock")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putCompound("movingBlock", BlockPalette.INSTANCE.getSerialized(POPPY))
+                .putCompound("movingBlockExtra", BlockPalette.INSTANCE.getSerialized(air))
+                .putInt("pistonPosX", 10)
+                .putInt("pistonPosY", 63)
+                .putInt("pistonPosZ", -5)
+                .build();
+
+        MovingBlockEntity entity = (MovingBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.MOVING_BLOCK, POSITION);
+        entity.loadAdditionalData(input);
+
+        assertEquals(air, entity.getExtraBlock());
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals(input.getCompound("movingBlockExtra"), saved.getCompound("movingBlockExtra"));
+        assertEquals(NbtType.COMPOUND, NbtType.byClass(saved.get("movingBlockExtra").getClass()));
+    }
+
+    @Test
     void defaultMovingBlockOmitsNestedEntity() {
         MovingBlockEntity entity = (MovingBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.MOVING_BLOCK, POSITION);
         entity.setBlock(POPPY);
