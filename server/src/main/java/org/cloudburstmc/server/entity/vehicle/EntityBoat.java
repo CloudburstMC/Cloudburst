@@ -107,8 +107,8 @@ public class EntityBoat extends EntityVehicle implements Boat {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the hull runs before the vehicle load below, matching the
-        // old applyData-before-loadCustom order. The wood type has no presence bit, so it
+        // The hull runs before the vehicle load below, matching the
+        // historical load order. The wood type has no presence bit, so it
         // always falls back to oak, exactly as the old getInt-with-default load did. The
         // setter re-runs to keep the metadata sync.
         BoatType boatType = this.data().getWoodType();

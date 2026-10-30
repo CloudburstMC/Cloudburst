@@ -6,7 +6,7 @@ import org.cloudburstmc.server.container.CloudContainer;
 
 /**
  * The server's NBT mapper, able to write the runtime types data objects hold:
- * item stacks, slotted items, item containers and block states.
+ * item stacks, item containers, skins and block states.
  */
 public final class ServerNbt {
 

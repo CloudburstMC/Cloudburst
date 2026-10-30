@@ -86,11 +86,11 @@ public class EntityExperienceOrb extends CloudEntity implements ExperienceOrb {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: age and the metadata-backed value run before the
-        // base load below, matching the old applyData-before-loadCustom order, and keep
+        // Age and the metadata-backed value run before the
+        // base load below, matching the historical load order, and keep
         // their current values when absent. The count and pickup delay already sit in
         // the data instance; the setters re-run here to keep their validation, exactly
-        // as the old applyData did.
+        // as the previous load did.
         if (tag.containsKey("Age")) {
             this.age = getShort(tag, "Age", (short) this.age);
         }

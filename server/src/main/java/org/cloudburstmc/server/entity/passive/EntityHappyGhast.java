@@ -54,9 +54,8 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     @Override
     protected void loadCustom(NbtMap tag) {
         // Age is a DTO int, but setting it syncs the baby metadata and the
-        // baby scale, exactly as the old applyData did: it runs before the
-        // living-state load below, matching the old applyData-before-loadCustom
-        // order. An absent key resets to today's default of 0. The base Scale
+        // baby scale, as the previous load did: it runs before the
+        // living-state load below, matching the historical load order. An absent key resets to today's default of 0. The base Scale
         // hook already ran in loadBaseCustom, so a baby's derived scale still
         // wins over an explicit tag scale.
         this.setAge(getInt(tag, "Age", 0));

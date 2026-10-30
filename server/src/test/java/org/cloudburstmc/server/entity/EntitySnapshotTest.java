@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -83,11 +82,6 @@ class EntitySnapshotTest {
     private static class SnapshotPig extends CloudEntity {
         private SnapshotPig() {
             super(EntityTypes.PIG, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-        }
-
-        @Override
-        protected void fillData(EntityData data) {
-            super.fillData(data);
             this.setNameTag("Picked pig");
         }
     }

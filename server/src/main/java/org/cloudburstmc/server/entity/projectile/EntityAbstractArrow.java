@@ -79,10 +79,9 @@ public abstract class EntityAbstractArrow extends EntityProjectile implements Ab
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the pierce level, pickup rule and embedded position run
-        // before the projectile load below, matching the old applyData-before-loadCustom
-        // order. The setters re-run to keep their validation, exactly as the old applyData
-        // did. The pickup rule has no presence bit, so it always falls back to open pickup.
+        // The pierce level, pickup rule and embedded position run
+        // before the projectile load below, matching the historical load order. The setters
+        // re-run to keep their validation, as the previous load did. The pickup rule has no presence bit, so it always falls back to open pickup.
         // The embedded position only changes when all three keys are present.
         if (tag.containsKey("PierceLevel")) {
             this.setPierceLevel(this.data().getPierceLevel());

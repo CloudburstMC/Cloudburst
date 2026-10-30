@@ -53,9 +53,9 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the fuse runs before the minecart load below, matching
-        // the old applyData-before-loadCustom order. The setter re-runs to keep its
-        // validation and metadata sync, exactly as the old applyData did; an absent key
+        // The fuse runs before the minecart load below, matching
+        // the historical load order. The setter re-runs to keep its
+        // validation and metadata sync, as the previous load did; an absent key
         // keeps the current value.
         if (tag.containsKey("Fuse")) {
             this.setFuse(this.data().getFuse());

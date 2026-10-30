@@ -60,8 +60,8 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: runs before the living-state load below,
-        // matching the old applyData-before-loadCustom order.
+        // Runs before the living-state load below,
+        // matching the historical load order.
         if (tag.containsKey("Profession")) {
             this.setProfession(getInt(tag, "Profession", this.getProfession()));
         }

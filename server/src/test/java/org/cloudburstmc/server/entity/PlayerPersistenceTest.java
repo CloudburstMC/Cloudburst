@@ -1,13 +1,15 @@
 package org.cloudburstmc.server.entity;
 
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.entity.data.HumanData;
 import org.cloudburstmc.api.entity.data.PlayerData;
+import org.cloudburstmc.api.inventory.ItemContainer;
+import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
@@ -15,8 +17,12 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,6 +68,7 @@ class PlayerPersistenceTest {
     @Test
     void roundTripPreservesKeysAndTypes() {
         PersistenceFixtures.ensureInitialized();
+        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
 
@@ -73,8 +80,12 @@ class PlayerPersistenceTest {
         data.setFoodExhaustion(1.25f);
         data.setFoodTickTimer(9);
         data.setSeenCredits(true);
-        data.setInventory(List.of(new SlottedItem(0, diamond)));
-        data.setEnderChest(List.of(new SlottedItem(4, ingot)));
+        ItemContainer inventory = ItemContainers.detached(36);
+        inventory.setItem(0, diamond);
+        data.setInventory(inventory);
+        ItemContainer enderChest = ItemContainers.detached(27);
+        enderChest.setItem(4, ingot);
+        data.setEnderChest(enderChest);
         data.setFirstPlayed(1000L);
         data.setLastPlayed(2000L);
         data.setLevel("world");
@@ -127,11 +138,12 @@ class PlayerPersistenceTest {
         assertEquals(1.25f, reloaded.getFoodExhaustion());
         assertEquals(9, reloaded.getFoodTickTimer());
         assertEquals(Boolean.TRUE, reloaded.getSeenCredits());
-        assertEquals(1, reloaded.getInventory().size());
-        assertEquals(0, reloaded.getInventory().get(0).slot());
-        assertEquals(diamond, reloaded.getInventory().get(0).item());
-        assertEquals(4, reloaded.getEnderChest().get(0).slot());
-        assertEquals(ingot, reloaded.getEnderChest().get(0).item());
+        assertEquals(36, reloaded.getInventory().size());
+        assertEquals(diamond, reloaded.getInventory().getItem(0));
+        assertTrue(reloaded.getInventory().getItem(1).isEmpty());
+        assertEquals(27, reloaded.getEnderChest().size());
+        assertEquals(ingot, reloaded.getEnderChest().getItem(4));
+        assertTrue(reloaded.getEnderChest().getItem(0).isEmpty());
         assertEquals(1000L, reloaded.getFirstPlayed());
         assertEquals(2000L, reloaded.getLastPlayed());
         assertEquals("world", reloaded.getLevel());
@@ -154,7 +166,7 @@ class PlayerPersistenceTest {
         assertEquals(5.0f, written.getFloat("foodSaturationLevel"));
         assertEquals(0.0f, written.getFloat("foodExhaustionLevel"));
         assertEquals(0, written.getInt("foodTickTimer"));
-        // The lists are always filled from live state by CloudPlayer.fillData, so an
+        // The lists are always filled from live state by the player save hook, so an
         // unfilled data object omits them like any other conditional key.
         assertFalse(written.containsKey("Inventory"));
         assertFalse(written.containsKey("EnderChestInventory"));
@@ -229,5 +241,30 @@ class PlayerPersistenceTest {
         assertEquals(0, data.getExp());
         assertEquals(20, data.getFoodLevel());
         assertEquals(5.0f, data.getFoodSaturation());
+    }
+
+    @Test
+    void cloudPlayerKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                CloudPlayer.class, PlayerData.class,
+                Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()",
+                        "container", "the live player-inventory container held by data().getInventory()",
+                        "enderChestContainer", "the live ender-chest container held by data().getEnderChest()",
+                        "inventory", "a view over the live container in data().getInventory()",
+                        "hotbar", "a hotbar view over the live container in data().getInventory()",
+                        "enderChest", "a view over the live container in data().getEnderChest()",
+                        "uiContainer", "the transient currently-open container, never persisted",
+                        "activeUseStack", "the transient in-use item, never persisted",
+                        "level", "the current level reference, not the saved level id in data().getLevel()"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : CloudPlayer.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("exp", "expLevel", "seenCredits")) {
+            assertFalse(fields.contains(removed),
+                    "CloudPlayer keeps " + removed + "; state must live in PlayerData only");
+        }
     }
 }

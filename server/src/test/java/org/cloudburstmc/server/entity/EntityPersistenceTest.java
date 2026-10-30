@@ -304,7 +304,7 @@ class EntityPersistenceTest {
                 .build());
 
         assertSame(before, entity.data(), "load must fill the held instance in place");
-        // Fire loads as seconds into the live countdown, exactly as today's applyData did.
+        // Fire loads as seconds into the live countdown, as it always has.
         assertEquals(100, entity.getFireTicks());
         // Fire is hook-owned now; no DTO may declare it.
         assertFalse(ServerNbt.MAPPER.ownedKeys(EntityData.class).contains("Fire"));

@@ -66,7 +66,6 @@ public final class TestBlockEntities {
 
     public static class MigratedBlockEntity extends BaseBlockEntity {
 
-        private int count;
         private boolean flag;
 
         public MigratedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
@@ -74,15 +73,8 @@ public final class TestBlockEntities {
         }
 
         @Override
-        protected void applyData(BlockEntityData data) {
-            super.applyData(data);
-            this.count = ((MigratedData) data).getCount();
-        }
-
-        @Override
-        protected void fillData(BlockEntityData data) {
-            super.fillData(data);
-            ((MigratedData) data).setCount(this.count);
+        public MigratedData data() {
+            return (MigratedData) super.data();
         }
 
         @Override

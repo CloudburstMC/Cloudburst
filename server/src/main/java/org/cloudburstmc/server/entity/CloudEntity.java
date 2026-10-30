@@ -259,7 +259,6 @@ public abstract class CloudEntity implements Entity {
         ServerNbt.MAPPER.readInto(tag, this.data());
         this.normalizeData();
         this.loadBaseCustom(tag);
-        this.applyData(this.data());
         this.loadCustom(tag);
     }
 
@@ -279,7 +278,6 @@ public abstract class CloudEntity implements Entity {
         }
 
         EntityData data = this.data();
-        this.fillData(data);
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         if (!(this instanceof CloudPlayer)) {
@@ -345,32 +343,6 @@ public abstract class CloudEntity implements Entity {
         if (this.chunk != null) {
             this.chunk.markDirty();
         }
-    }
-
-    /**
-     * Applies persistent data to this entity. Subclasses override this,
-     * call {@code super}, then cast the data to their own type.
-     *
-     * @param data the read data
-     * @deprecated The data instance is the runtime state now; the base state is
-     * read in place and subclasses copy their own state in later tasks. Kept as
-     * a no-op so unmigrated subclasses keep working.
-     */
-    @Deprecated
-    protected void applyData(EntityData data) {
-    }
-
-    /**
-     * Fills persistent data from this entity. Subclasses override this,
-     * call {@code super}, then cast the data to their own type.
-     *
-     * @param data the data to fill
-     * @deprecated The data instance is the runtime state now; the base state is
-     * written from it and subclasses copy their own state in later tasks. Kept
-     * as a no-op so unmigrated subclasses keep working.
-     */
-    @Deprecated
-    protected void fillData(EntityData data) {
     }
 
     /**
@@ -471,7 +443,7 @@ public abstract class CloudEntity implements Entity {
      * Reads the base exception keys: the movement and physics state, the fire
      * countdown, the air supply, the scale, the name tag and the active
      * effects, with today's keys, types and presence semantics. It runs once
-     * before the deprecated transition hook so subclass state derived from it
+     * before the subclass load chain, so subclass state derived from it
      * (a baby ghast's scale, a turtle's home) still wins. A key the tag does
      * not hold leaves the current value alone, except for the keys today's
      * load always wrote. Every read is lenient like the mapper: any number
@@ -497,8 +469,8 @@ public abstract class CloudEntity implements Entity {
         this.highestPosition = this.getY();
 
         this.setFallDistance(getFloat(tag, "FallDistance", 0f));
-        // Fire loads exactly as the old applyData did: the tagged seconds ran
-        // through setOnFire before the creature's armor was loaded, so no
+        // Fire loads as it long has: the tagged seconds ran through the fire
+        // countdown before the creature's armor was loaded, so no
         // Fire Protection reduction applied. Assign the countdown directly
         // instead of going through the armor-aware setter.
         short fireSeconds = getShort(tag, "Fire", (short) 0);
@@ -540,7 +512,7 @@ public abstract class CloudEntity implements Entity {
     /**
      * Reads data that subclasses handle outside their data class. The base
      * exception keys load exactly once, in {@link #loadBaseCustom} before the
-     * deprecated transition hook, so this stays a no-op for the base: every
+     * subclass load chain, so this stays a no-op for the base: every
      * subclass {@code super.loadCustom} call in the chain still resolves here.
      *
      * @param tag the stored tag

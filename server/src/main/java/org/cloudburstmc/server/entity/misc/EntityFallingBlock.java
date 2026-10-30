@@ -119,8 +119,8 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the block state, timers and behavior flags run before
-        // the base load below, matching the old applyData-before-loadCustom order. The block
+        // The block state, timers and behavior flags run before
+        // the base load below, matching the historical load order. The block
         // state key is required, so a tag without it closes the entity, exactly as the old
         // null check did. The state is read only here: the mapper leaves it alone so a bad
         // state fails with the bare error, as before. Keys with a load default reset when

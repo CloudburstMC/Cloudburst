@@ -1,15 +1,16 @@
 package org.cloudburstmc.server.nbt;
 
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
+import org.cloudburstmc.api.nbt.NbtKeepUnlisted;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtPositional;
 import org.cloudburstmc.api.nbt.NbtSkipEmpty;
 import org.cloudburstmc.api.nbt.internal.NbtParser;
+import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.api.potion.EffectType;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.potion.PotionType;
@@ -37,7 +38,7 @@ import java.util.List;
 
 /**
  * Maps the runtime types data objects hold to their persisted NBT form: item stacks,
- * slotted items, item containers and, through per-field codecs, colours and positions.
+ * item containers, skins and, through per-field codecs, colours and positions.
  * <p>
  * The container format is whatever {@code ItemUtils} writes today: a list with one
  * compound per slot holding the item's fields, plus a byte {@code Slot} tag. Empty
@@ -49,8 +50,8 @@ public class ServerTypesNbtModule extends SimpleModule {
         super("cloudburst-server-types");
         addSerializer(ItemStack.class, new ItemStackSerializer());
         addDeserializer(ItemStack.class, new ItemStackDeserializer());
-        addSerializer(SlottedItem.class, new SlottedItemSerializer());
-        addDeserializer(SlottedItem.class, new SlottedItemDeserializer());
+        addSerializer(Skin.class, new SkinSerializer());
+        addDeserializer(Skin.class, new SkinDeserializer());
         addSerializer(ItemContainer.class, new ItemContainerSerializer());
         addDeserializer(ItemContainer.class, new ItemContainerDeserializer());
         addSerializer(EffectType.class, new EffectTypeSerializer());
@@ -135,30 +136,31 @@ public class ServerTypesNbtModule extends SimpleModule {
         }
     }
 
-    private static final class SlottedItemSerializer extends StdSerializer<SlottedItem> {
+    /**
+     * Stores a human skin as today's {@code Skin} compound, quirks included; see
+     * {@link SkinNbt}.
+     */
+    private static final class SkinSerializer extends StdSerializer<Skin> {
 
-        SlottedItemSerializer() {
-            super(SlottedItem.class);
+        SkinSerializer() {
+            super(Skin.class);
         }
 
         @Override
-        public void serialize(SlottedItem value, JsonGenerator gen, SerializationContext provider) {
-            gen.writeEmbeddedObject(
-                    org.cloudburstmc.server.item.ItemUtils.serializeItem(value.item(), value.slot()));
+        public void serialize(Skin value, JsonGenerator gen, SerializationContext provider) {
+            gen.writeEmbeddedObject(SkinNbt.toNbt(value));
         }
     }
 
-    private static final class SlottedItemDeserializer extends StdDeserializer<SlottedItem> {
+    private static final class SkinDeserializer extends StdDeserializer<Skin> {
 
-        SlottedItemDeserializer() {
-            super(SlottedItem.class);
+        SkinDeserializer() {
+            super(Skin.class);
         }
 
         @Override
-        public SlottedItem deserialize(JsonParser p, DeserializationContext ctxt) {
-            NbtMap tag = readTag(p, ctxt);
-            return new SlottedItem(tag.getByte("Slot"),
-                    org.cloudburstmc.server.item.ItemUtils.deserializeItem(tag));
+        public Skin deserialize(JsonParser p, DeserializationContext ctxt) {
+            return SkinNbt.fromNbt(readTag(p, ctxt));
         }
     }
 
@@ -210,14 +212,22 @@ public class ServerTypesNbtModule extends SimpleModule {
          */
         private final boolean positional;
 
+        /**
+         * Whether an in-place read keeps unlisted slots ({@link NbtKeepUnlisted}):
+         * entries bind by their {@code Slot} tag and slots the list omits keep
+         * their current item instead of being cleared.
+         */
+        private final boolean keepUnlisted;
+
         ItemContainerDeserializer() {
-            this(-1, false);
+            this(-1, false, false);
         }
 
-        private ItemContainerDeserializer(int size, boolean positional) {
+        private ItemContainerDeserializer(int size, boolean positional, boolean keepUnlisted) {
             super(ItemContainer.class);
             this.size = size;
             this.positional = positional;
+            this.keepUnlisted = keepUnlisted;
         }
 
         @Override
@@ -225,7 +235,10 @@ public class ServerTypesNbtModule extends SimpleModule {
             NbtContainerSize annotation =
                     property == null ? null : property.getAnnotation(NbtContainerSize.class);
             boolean positional = property != null && property.getAnnotation(NbtPositional.class) != null;
-            return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value(), positional);
+            boolean keepUnlisted =
+                    property != null && property.getAnnotation(NbtKeepUnlisted.class) != null;
+            return new ItemContainerDeserializer(annotation == null ? -1 : annotation.value(), positional,
+                    keepUnlisted);
         }
 
         @Override
@@ -270,9 +283,13 @@ public class ServerTypesNbtModule extends SimpleModule {
                 return into;
             }
             // Stage every entry before the container is touched, so a failed
-            // read never leaves a partially updated container behind.
+            // read never leaves a partially updated container behind. Sparse
+            // player inventories keep the slots the list omits; every other
+            // container is cleared first, as its load always was.
             List<StagedEntry> staged = stage(p, list, into.size());
-            into.clear();
+            if (!keepUnlisted) {
+                into.clear();
+            }
             for (StagedEntry entry : staged) {
                 into.setItem(entry.slot(), entry.item());
             }

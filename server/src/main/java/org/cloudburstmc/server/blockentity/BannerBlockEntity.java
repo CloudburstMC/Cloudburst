@@ -36,8 +36,7 @@ public class BannerBlockEntity extends BaseBlockEntity implements Banner {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The presence flag follows the merged DTO, exactly like the previous
-        // applyData: a tag that carries Patterns (even an empty one) marks the
+        // A tag that carries Patterns (even an empty one) marks the
         // list present, so the server tag keeps an explicitly loaded empty list.
         // An empty list is stored as absent so the client tag stays as today.
         data().setPatternsPresent(data().getPatterns() != null);

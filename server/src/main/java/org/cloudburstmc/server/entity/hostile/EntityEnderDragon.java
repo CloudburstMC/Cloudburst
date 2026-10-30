@@ -129,9 +129,8 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     @Override
     protected void loadCustom(NbtMap tag) {
         // Death progress lives in the DTO; the dying flag derives from it,
-        // exactly as the old applyData derived it. It runs before the
-        // living-state load below, matching the old applyData-before-loadCustom
-        // order: a dying dragon saved with Health 0 reloads with dying already
+        // Exactly as the previous load derived it. It runs before the
+        // living-state load below, matching the historical load order: a dying dragon saved with Health 0 reloads with dying already
         // true, so setHealth(0) cannot begin death a second time. An absent
         // death-time key leaves the current progress alone; an absent
         // experience key falls back to today's reward lookup.

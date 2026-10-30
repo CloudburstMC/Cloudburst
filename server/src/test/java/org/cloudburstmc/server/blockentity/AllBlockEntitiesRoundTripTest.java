@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Every registered block-entity type survives a save followed by a load without
  * throwing. This catches a DTO class registered to the wrong runtime class through
- * the cast in {@code applyData}.
+ * the data-class resolution.
  */
 class AllBlockEntitiesRoundTripTest {
 

@@ -126,8 +126,8 @@ public class EntityEnderCrystal extends CloudEntity implements EnderCrystal, Exp
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the base flag and beam target run before the base
-        // load below, matching the old applyData-before-loadCustom order, and keep
+        // The base flag and beam target run before the base
+        // load below, matching the historical load order, and keep
         // their current values when absent. The beam is read leniently from its
         // compound, exactly as the old pass-through did.
         if (tag.containsKey("ShowBottom")) {

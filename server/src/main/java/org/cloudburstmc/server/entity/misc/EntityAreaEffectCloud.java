@@ -281,8 +281,8 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: every key runs before the base load below, matching the
-        // old applyData-before-loadCustom order. Radius, wait time and particle color are
+        // Every key runs before the base load below, matching the
+        // historical load order. Radius, wait time and particle color are
         // metadata-backed, so they are read leniently from the tag and keep their current
         // values when absent, exactly as the old null checks did. The color is applied
         // after the potion so the potion's recalculation does not clobber it.

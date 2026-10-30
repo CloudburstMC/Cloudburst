@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.nbt.NbtMapper;
@@ -49,21 +48,6 @@ class ServerNbtTest {
     }
 
     @Test
-    void slottedItemMatchesItemUtils() {
-        ItemStack stack = ItemStack.from(ItemTypes.DIAMOND, 5);
-
-        NbtMap tag = mapper.write(new SlottedHolder(List.of(new SlottedItem(3, stack))));
-
-        NbtList<?> written = assertInstanceOf(NbtList.class, tag.get("items"));
-        assertEquals(List.of(ItemUtils.serializeItem(stack, 3)), written);
-
-        SlottedHolder read = mapper.read(tag, SlottedHolder.class);
-        assertEquals(1, read.items.size());
-        assertEquals(3, read.items.get(0).slot());
-        assertEquals(stack, read.items.get(0).item());
-    }
-
-    @Test
     void blockStateRoundTrips() {
         BlockState poppy = REGISTRY.getBlock(BlockTypes.POPPY);
 
@@ -83,20 +67,6 @@ class ServerNbtTest {
         }
 
         ItemHolder(List<ItemStack> items) {
-            this.items = items;
-        }
-    }
-
-    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
-    static class SlottedHolder {
-        @JsonProperty("items")
-        @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
-        List<SlottedItem> items = List.of();
-
-        SlottedHolder() {
-        }
-
-        SlottedHolder(List<SlottedItem> items) {
             this.items = items;
         }
     }

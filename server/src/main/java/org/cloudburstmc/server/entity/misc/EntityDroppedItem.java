@@ -102,8 +102,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: health, age and owner run before the base load below,
-        // matching the old applyData-before-loadCustom order. Each keeps its current value
+        // Health, age and owner run before the base load below,
+        // matching the historical load order. Each keeps its current value
         // when its key is absent, exactly as the old null checks did.
         if (tag.containsKey("Health")) {
             this.setHealth(getShort(tag, "Health", (short) this.getHealth()));

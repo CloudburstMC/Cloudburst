@@ -20,7 +20,7 @@ public class MovingBlockEntity extends BaseBlockEntity implements MovingBlock {
     /**
      * The live nested block entity deserialized from the DTO's tag. It is a runtime
      * view, not a second copy of state: the tag in the DTO is re-serialized from it
-     * on every save, like the previous fillData did.
+     * on every save, as before.
      */
     private BaseBlockEntity blockEntity;
 

@@ -32,8 +32,8 @@ public abstract class EntityTameable extends Animal implements Ownable {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: runs before the living-state load below,
-        // matching the old applyData-before-loadCustom order. Only a numeric
+        // Runs before the living-state load below,
+        // matching the historical load order. Only a numeric
         // value tames, exactly as the old DTO null-check did: a non-numeric
         // value bound to null and left everything alone.
         if (tag.get("OwnerID") instanceof Number) {

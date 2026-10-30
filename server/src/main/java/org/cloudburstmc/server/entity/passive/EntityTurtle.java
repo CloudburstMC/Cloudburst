@@ -59,9 +59,8 @@ public class EntityTurtle extends Animal implements Turtle {
     @Override
     protected void loadCustom(NbtMap tag) {
         // Age is a DTO int, but setting it syncs the baby metadata and the
-        // collision box, exactly as the old applyData did: it runs before the
-        // living-state load below, matching the old applyData-before-loadCustom
-        // order. An absent key resets to today's default of 0.
+        // collision box, as the previous load did: it runs before the
+        // living-state load below, matching the historical load order. An absent key resets to today's default of 0.
         this.setAge(getInt(tag, "Age", 0));
         super.loadCustom(tag);
         // Home spans three keys with a per-axis fallback to the loaded

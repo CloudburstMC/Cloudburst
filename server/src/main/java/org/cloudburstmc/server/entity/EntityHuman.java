@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.entity;
 
 import lombok.Getter;
-import lombok.Setter;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Human;
@@ -18,16 +17,12 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.player.skin.Skin;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
-import org.cloudburstmc.protocol.bedrock.data.skin.AnimatedTextureType;
-import org.cloudburstmc.protocol.bedrock.data.skin.AnimationData;
-import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.container.CloudContainer;
@@ -64,9 +59,6 @@ public class EntityHuman extends EntityCreature implements Human {
 
     protected final CloudContainer container = new CloudContainer(36);
     protected UUID identity;
-    @Getter
-    @Setter
-    protected Skin skin;
 
     public EntityHuman(EntityType<Human> type, Location location) {
         super(type, location);
@@ -86,65 +78,16 @@ public class EntityHuman extends EntityCreature implements Human {
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        HumanData humanData = (HumanData) data;
+    protected HumanData data() {
+        return (HumanData) super.data();
+    }
 
-        if (humanData.getSkin() != null && !(this instanceof CloudPlayer)) {
-            NbtMap skinTag = humanData.getSkin();
+    public Skin getSkin() {
+        return this.data().getSkin();
+    }
 
-            SerializedSkin.Builder skin = SerializedSkin.builder();
-
-            skinTag.listenForString("ModelId", skin::skinId);
-            if (skinTag.containsKey("Data")) {
-                byte[] image = skinTag.getByteArray("Data");
-                if (skinTag.containsKey("SkinImageWidth") && skinTag.containsKey("SkinImageHeight")) {
-                    int width = skinTag.getInt("SkinImageWidth");
-                    int height = skinTag.getInt("SkinImageHeight");
-                    skin.skinData(ImageData.of(width, height, image));
-                } else {
-                    skin.skinData(ImageData.of(image));
-                }
-            }
-
-            skinTag.listenForString("CapeId", skin::capeId);
-            if (skinTag.containsKey("CapeData")) {
-                byte[] capeImage = skinTag.getByteArray("CapeData");
-                if (skinTag.containsKey("CapeImageWidth") && skinTag.containsKey("CapeImageHeight")) {
-                    int width = skinTag.getInt("CapeImageWidth");
-                    int height = skinTag.getInt("CapeImageHeight");
-                    skin.capeData(ImageData.of(width, height, capeImage));
-                } else {
-                    skin.capeData(ImageData.of(capeImage));
-                }
-            }
-            skinTag.listenForString("GeometryName", skin::geometryName);
-            skinTag.listenForString("PlayFabId", skin::playFabId);
-            skinTag.listenForString("SkinResourcePatch", skin::skinResourcePatch);
-            skinTag.listenForByteArray("GeometryData", bytes -> skin.geometryData(new String(bytes, UTF_8)));
-            skinTag.listenForString("GeometryDataEngineVersion", skin::geometryDataEngineVersion);
-            skinTag.listenForByteArray("SkinAnimationData", bytes -> skin.animationData(new String(bytes, UTF_8)));
-            skinTag.listenForBoolean("PremiumSkin", skin::premium);
-            skinTag.listenForBoolean("PersonaSkin", skin::persona);
-            skinTag.listenForBoolean("CapeOnClassicSkin", skin::capeOnClassic);
-            skinTag.listenForBoolean("TrustedSkin", skin::trusted);
-            skinTag.listenForBoolean("OverrideSkin", skin::overridingPlayerAppearance);
-            skinTag.listenForString("ProfileHash", skin::profileHash);
-            if (skinTag.containsKey("AnimatedImageData")) {
-                List<NbtMap> list = skinTag.getList("AnimatedImageData", NbtType.COMPOUND);
-                List<AnimationData> animations = new ArrayList<>();
-                for (NbtMap animationTag : list) {
-                    float frames = animationTag.getFloat("Frames");
-                    AnimatedTextureType type = AnimatedTextureType.values()[animationTag.getInt("Type")];
-                    byte[] image = animationTag.getByteArray("Image");
-                    int width = animationTag.getInt("ImageWidth");
-                    int height = animationTag.getInt("ImageHeight");
-                    animations.add(new AnimationData(ImageData.of(width, height, image), type, frames));
-                }
-                skin.animations(animations);
-            }
-            this.setSkin(SkinUtils.fromSerialized(skin.build()));
-        }
+    public void setSkin(Skin skin) {
+        this.data().setSkin(skin);
     }
 
     @Override
@@ -165,54 +108,6 @@ public class EntityHuman extends EntityCreature implements Human {
 
         this.identity = Utils.dataToUUID(String.valueOf(this.getUniqueId()).getBytes(UTF_8), this.getSkin()
                 .getSkinData().getImage(), this.getNameTag().getBytes(UTF_8));
-    }
-
-    @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        HumanData humanData = (HumanData) data;
-
-        Skin currentSkin = this.getSkin();
-        if (currentSkin != null) {
-            SerializedSkin nbtSkin = SkinUtils.toSerialized(currentSkin);
-            NbtMapBuilder skinTag = NbtMap.builder()
-                    .putByteArray("Data", nbtSkin.getSkinData().getImage())
-                    .putInt("SkinImageWidth", nbtSkin.getSkinData().getWidth())
-                    .putInt("SkinImageHeight", nbtSkin.getSkinData().getHeight())
-                    .putString("ModelId", nbtSkin.getSkinId())
-                    .putString("PlayFabId", nbtSkin.getPlayFabId())
-                    .putString("CapeId", nbtSkin.getCapeId())
-                    .putByteArray("CapeData", nbtSkin.getCapeData().getImage())
-                    .putInt("CapeImageWidth", nbtSkin.getCapeData().getWidth())
-                    .putInt("CapeImageHeight", nbtSkin.getCapeData().getHeight())
-                    .putByteArray("SkinResourcePatch", nbtSkin.getSkinResourcePatch().getBytes(UTF_8))
-                    .putByteArray("GeometryData", nbtSkin.getGeometryData().getBytes(UTF_8))
-                    .putString("GeometryDataEngineVersion", nbtSkin.getGeometryDataEngineVersion())
-                    .putByteArray("SkinAnimationData", nbtSkin.getAnimationData().getBytes(UTF_8))
-                    .putBoolean("PremiumSkin", nbtSkin.isPremium())
-                    .putBoolean("PersonaSkin", nbtSkin.isPersona())
-                    .putBoolean("CapeOnClassicSkin", nbtSkin.isCapeOnClassic())
-                    .putBoolean("TrustedSkin", nbtSkin.isTrusted())
-                    .putBoolean("OverrideSkin", nbtSkin.isOverridingPlayerAppearance())
-                    .putString("ProfileHash", nbtSkin.getProfileHash());
-            List<AnimationData> animations = nbtSkin.getAnimations();
-            if (!animations.isEmpty()) {
-                List<NbtMap> animationsTag = new ArrayList<>();
-                for (AnimationData animation : animations) {
-                    animationsTag.add(NbtMap.builder()
-                            .putFloat("Frames", animation.getFrames())
-                            .putInt("Type", animation.getTextureType().ordinal())
-                            .putInt("ImageWidth", animation.getImage().getWidth())
-                            .putInt("ImageHeight", animation.getImage().getHeight())
-                            .putByteArray("Image", animation.getImage().getImage())
-                            .build());
-                }
-                skinTag.putList("AnimatedImageData", NbtType.COMPOUND, animationsTag);
-            }
-            humanData.setSkin(skinTag.build());
-        } else {
-            humanData.setSkin(null);
-        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.data.HumanData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.player.skin.data.ImageData;
@@ -8,14 +9,17 @@ import org.cloudburstmc.api.player.skin.data.SkinAnimation;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.server.blockentity.DtoStateChecks;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.utils.Utils;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -243,5 +247,23 @@ class HumanPersistenceTest {
 
         NbtMap saved = save(human);
         assertFalse(saved.containsKey("Skin"), "saved tag still has Skin");
+    }
+
+    @Test
+    void humanKeepsNoDuplicateState() {
+        DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityHuman.class, HumanData.class,
+                Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()",
+                        "container", "the live 36-slot inventory: a non-player human fills it in place on load and saves it through the raw-tag merge, so it is not DTO state"));
+        Set<String> fields = new HashSet<>();
+        for (Field field : EntityHuman.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : Set.of("skin")) {
+            assertFalse(fields.contains(removed),
+                    "EntityHuman keeps " + removed + "; state must live in HumanData only");
+        }
     }
 }

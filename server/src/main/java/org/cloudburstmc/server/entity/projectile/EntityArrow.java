@@ -49,9 +49,9 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the item and ground ticks run before the abstract-arrow
-        // load below, matching the old applyData-before-loadCustom order. The item setter
-        // re-runs to keep its validation, exactly as the old applyData did; the ground ticks
+        // The item and ground ticks run before the abstract-arrow
+        // load below, matching the historical load order. The item setter
+        // re-runs to keep its validation, as the previous load did; the ground ticks
         // have a load default of zero, so they reset when absent.
         if (tag.containsKey("Item")) {
             ItemStack item = this.data().getItem();

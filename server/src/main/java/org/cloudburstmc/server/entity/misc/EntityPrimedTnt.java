@@ -87,9 +87,9 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the fuse runs before the base load below, matching the
-        // old applyData-before-loadCustom order, and keeps its current value when absent.
-        // The setter re-runs to keep its validation, exactly as the old applyData did.
+        // The fuse runs before the base load below, matching the
+        // historical load order, and keeps its current value when absent.
+        // The setter re-runs to keep its validation, as the previous load did.
         if (tag.containsKey("Fuse")) {
             this.setFuse(this.data().getFuse());
         }

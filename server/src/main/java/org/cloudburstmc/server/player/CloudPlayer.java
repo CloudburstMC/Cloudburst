@@ -24,7 +24,6 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
-import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.data.EntityData;
@@ -103,6 +102,8 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
+import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.nbt.SkinNbt;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
 import org.cloudburstmc.server.network.LevelTimePacketFactory;
@@ -238,12 +239,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected Vector3i sleeping = null;
     private long sleepStartedAt;
     private @Nullable Location respawnTarget;
-    private boolean seenCredits;
     private boolean showingCredits;
 
     public int pickedXPOrb = 0;
-    private int exp = 0;
-    private int expLevel = 0;
     private Entity killer = null;
     private boolean foodEnabled = true;
     private boolean wasUnderwater;
@@ -307,6 +305,12 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.enderChestContainer.addContainerListener(this);
         this.armor.getContainer().addContainerListener(this);
         this.offhand.getContainer().addContainerListener(this);
+
+        // The data instance holds the live containers: the inventory view, the hotbar
+        // and every listener keep working on the same instances, and a read fills them
+        // in place.
+        this.data().setInventory(this.container);
+        this.data().setEnderChest(this.enderChestContainer);
     }
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
@@ -1515,15 +1519,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.changingDimension = changingDimension;
     }
 
+    private boolean hasSeenCredits() {
+        return Boolean.TRUE.equals(this.data().getSeenCredits());
+    }
+
     public boolean beginEndCredits() {
         if (this.showingCredits) {
             return true;
         }
-        if (this.seenCredits) {
+        if (this.hasSeenCredits()) {
             return false;
         }
 
-        this.seenCredits = true;
+        this.data().setSeenCredits(true);
         this.showingCredits = true;
         ShowCreditsPacket packet = new ShowCreditsPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
@@ -2976,7 +2984,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public int getExperience() {
-        return this.exp;
+        return this.data().getExp();
     }
 
     public void setExperience(int exp) {
@@ -2985,7 +2993,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     public int getExperienceLevel() {
-        return this.expLevel;
+        return this.data().getExpLevel();
     }
 
     // TODO: something on performance, lots of exp orbs then lots of packets, could crash client
@@ -3005,8 +3013,8 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void setExperience(int exp, int level) {
-        this.exp = exp;
-        this.expLevel = level;
+        this.data().setExp(exp);
+        this.data().setExpLevel(level);
 
         this.sendExperienceLevel(level);
         this.sendExperience(exp);
@@ -3369,17 +3377,24 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        // The player-data hooks in loadCustom need the saved level, so it is
-        // assigned before the deprecated transition hook runs.
-        org.cloudburstmc.api.entity.data.PlayerData saved =
-                (org.cloudburstmc.api.entity.data.PlayerData) data;
-        if (saved.getLevel() != null && this.server != null) {
-            CloudLevel savedLevel = this.server.getLevel(saved.getLevel());
+    protected org.cloudburstmc.api.entity.data.PlayerData data() {
+        return (org.cloudburstmc.api.entity.data.PlayerData) super.data();
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // The state below used to load in the data hook, which ran before the whole
+        // loadCustom chain including the living-state Health key, so it runs here before
+        // the superclass chain for the same reason. The inventory and ender chest need
+        // no code: the read already filled the live containers in place, keeping the
+        // slots a stored list omits, and the seen-credits flag lives in the data
+        // instance directly.
+        org.cloudburstmc.api.entity.data.PlayerData player = this.data();
+        // The player-data hooks below need the saved level, so it is assigned first.
+        if (player.getLevel() != null && this.server != null) {
+            CloudLevel savedLevel = this.server.getLevel(player.getLevel());
             this.level = savedLevel != null ? savedLevel : this.server.getDefaultLevel();
         }
-        super.applyData(data);
-        org.cloudburstmc.api.entity.data.PlayerData player = saved;
 
         if (player.getFirstPlayed() != null) {
             this.playerData.setFirstPlayed(player.getFirstPlayed());
@@ -3408,23 +3423,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.foodData.load(player.getFoodLevel(), player.getFoodSaturation(),
                 player.getFoodExhaustion(), player.getFoodTickTimer());
-        if (player.getSeenCredits() != null) {
-            this.seenCredits = player.getSeenCredits();
-        }
-        if (player.getInventory() != null) {
-            for (SlottedItem item : player.getInventory()) {
-                this.container.setItem(item.slot(), item.item());
-            }
-        }
-        if (player.getEnderChest() != null) {
-            for (SlottedItem item : player.getEnderChest()) {
-                this.enderChestContainer.setItem(item.slot(), item.item());
-            }
-        }
-    }
 
-    @Override
-    protected void loadCustom(NbtMap tag) {
         super.loadCustom(tag);
         tag.listenForString("lastIP", this.playerData::setLastAddress);
 
@@ -3453,9 +3452,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        org.cloudburstmc.api.entity.data.PlayerData player = (org.cloudburstmc.api.entity.data.PlayerData) data;
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        org.cloudburstmc.api.entity.data.PlayerData player = this.data();
 
         this.playerData.setLevel(this.level.getId());
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
@@ -3464,32 +3463,15 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.playerData.setSpawnYaw(this.spawnLocation.getYaw());
         }
 
-        player.setExp(this.getExperience());
-        player.setExpLevel(this.getExperienceLevel());
-
+        // Experience and the containers are already live in the data instance; the
+        // holder values below are synced back onto it before it is written, exactly
+        // as the previous save path did. The base save already wrote the data once,
+        // so it is written again with the synced values.
         player.setFoodLevel(this.getFoodData().getLevel());
         player.setFoodSaturation(this.foodData.getSaturation());
         player.setFoodExhaustion(this.foodData.getExhaustion());
         player.setFoodTickTimer(this.foodData.getTickTimer());
-        player.setSeenCredits(this.seenCredits);
-
-        List<SlottedItem> inventory = new ArrayList<>();
-        for (int slot = 0; slot < this.getContainer().size(); slot++) {
-            ItemStack item = this.getContainer().getItem(slot);
-            if (!item.isEmpty()) {
-                inventory.add(new SlottedItem(slot, item));
-            }
-        }
-        player.setInventory(inventory);
-
-        List<SlottedItem> enderChest = new ArrayList<>();
-        for (int slot = 0; slot < this.enderChestContainer.size(); slot++) {
-            ItemStack item = this.enderChestContainer.getItem(slot);
-            if (!item.isEmpty()) {
-                enderChest.add(new SlottedItem(slot, item));
-            }
-        }
-        player.setEnderChest(enderChest);
+        player.setSeenCredits(this.hasSeenCredits());
 
         if (this.playerData.getFirstPlayed().getAsLong() > 0 && this.playerData.getLastPlayed().getAsLong() > 0) {
             player.setFirstPlayed(this.playerData.getFirstPlayed().getAsLong());
@@ -3508,6 +3490,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (this.playerData.getGamemode() != null) {
             player.setPlayerGameType(this.playerData.getGamemode().getVanillaId());
         }
+        tag.putAll(ServerNbt.MAPPER.write(player));
+
+        // The stored skin is ignored on load, so the live skin is written here.
+        Skin skin = this.getSkin();
+        if (skin != null) {
+            tag.putCompound("Skin", SkinNbt.toNbt(skin));
+        }
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Skin");
+        return Set.copyOf(keys);
     }
 
     public void save(boolean async) {

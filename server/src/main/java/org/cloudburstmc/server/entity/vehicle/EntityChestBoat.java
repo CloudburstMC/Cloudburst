@@ -59,10 +59,10 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the inventory runs before the boat load below, matching
-        // the old applyData-before-loadCustom order. The inventory is always cleared before
-        // the stored items are read, exactly as the old load did. A stored slot outside the
-        // inventory fails the read, exactly as the old load did when it indexed the
+        // The inventory runs before the boat load below, matching
+        // the historical load order. The inventory is always cleared before
+        // the stored items are read. A stored slot outside the
+        // inventory fails the read, as before when it indexed the
         // container; the mapper keeps the current contents for such a tag, so the range is
         // re-checked here, outside the mapper, to fail with the same error as before.
         if (!tag.containsKey("Items")) {

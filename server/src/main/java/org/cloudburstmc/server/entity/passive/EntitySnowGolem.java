@@ -48,8 +48,8 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: runs before the living-state load below,
-        // matching the old applyData-before-loadCustom order.
+        // Runs before the living-state load below,
+        // matching the historical load order.
         if (tag.containsKey("Pumpkin")) {
             this.setDerp(!getBoolean(tag, "Pumpkin", !this.isDerp()));
         }

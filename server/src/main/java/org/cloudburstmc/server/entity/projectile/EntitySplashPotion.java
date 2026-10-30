@@ -151,9 +151,9 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the potion runs before the projectile load below,
-        // matching the old applyData-before-loadCustom order. The setter re-runs to keep
-        // the metadata sync, exactly as the old applyData did; an absent key keeps the
+        // The potion runs before the projectile load below,
+        // matching the historical load order. The setter re-runs to keep
+        // the metadata sync, as the previous load did; an absent key keeps the
         // current value.
         if (tag.containsKey("PotionId")) {
             PotionType potionId = this.data().getPotionId();

@@ -62,8 +62,8 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: runs before the living-state load below,
-        // matching the old applyData-before-loadCustom order. The raw byte
+        // Runs before the living-state load below,
+        // matching the historical load order. The raw byte
         // reaches the client metadata exactly as the old setColor(int) path
         // wrote it; out-of-range values stay unnormalised there, while the
         // save still normalises through getColor().getWoolData() as before.

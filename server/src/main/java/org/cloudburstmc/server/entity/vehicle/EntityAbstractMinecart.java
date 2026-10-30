@@ -85,8 +85,8 @@ public abstract class EntityAbstractMinecart extends EntityVehicle {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the display offset and custom block run before the
-        // vehicle load below, matching the old applyData-before-loadCustom order. The
+        // The display offset and custom block run before the
+        // vehicle load below, matching the historical load order. The
         // offset has a load default, so it resets when absent; the custom block keeps its
         // current values when absent, exactly as the old null checks did. The block is
         // decoded whenever its key is present, as the mapper did before, and failures

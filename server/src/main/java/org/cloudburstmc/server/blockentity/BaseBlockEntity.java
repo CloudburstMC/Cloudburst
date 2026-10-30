@@ -120,7 +120,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         tags.putIfAbsent(this.getType(), tag);
 
         ServerNbt.MAPPER.readInto(tag, this.data);
-        this.applyData(this.data);
         this.loadCustom(tag);
     }
 
@@ -141,7 +140,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         }
 
         BlockEntityData data = this.data;
-        this.fillData(data);
         tag.putAll(ServerNbt.MAPPER.write(data));
 
         this.saveCustom(tag);
@@ -210,32 +208,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         }
         this.tag = builder.build();
         this.setDirty();
-    }
-
-    /**
-     * Applies persistent data to this block entity. Subclasses override this,
-     * call {@code super}, then cast the data to their own type.
-     *
-     * @param data the read data
-     * @deprecated The data instance is the runtime state now; the base state is
-     * read in place and subclasses copy their own state in later tasks. Kept as
-     * a no-op so unmigrated subclasses keep working.
-     */
-    @Deprecated
-    protected void applyData(BlockEntityData data) {
-    }
-
-    /**
-     * Fills persistent data from this block entity. Subclasses override this,
-     * call {@code super}, then cast the data to their own type.
-     *
-     * @param data the data to fill
-     * @deprecated The data instance is the runtime state now; the base state is
-     * written from it and subclasses copy their own state in later tasks. Kept
-     * as a no-op so unmigrated subclasses keep working.
-     */
-    @Deprecated
-    protected void fillData(BlockEntityData data) {
     }
 
     /**
@@ -380,7 +352,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //            log.info(NbtUtils.toString(tag.build()));
 //            log.info("\n\n\n");
         } else {
-            this.fillData(this.data);
             tag.putAll(ServerNbt.MAPPER.writeClient(this.data));
             this.saveCustomClient(tag);
         }

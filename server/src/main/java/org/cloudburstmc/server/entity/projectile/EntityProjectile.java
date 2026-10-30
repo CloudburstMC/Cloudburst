@@ -75,9 +75,9 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // Migrated from applyData: the damage runs before the base load below, matching the
-        // old applyData-before-loadCustom order. The setter re-runs to keep its validation,
-        // exactly as the old applyData did; an absent key keeps the current value.
+        // The damage runs before the base load below, matching the
+        // historical load order. The setter re-runs to keep its validation,
+        // as the previous load did; an absent key keeps the current value.
         if (tag.containsKey("damage")) {
             this.setDamage(this.data().getDamage());
         }
