@@ -1,4 +1,4 @@
-package org.cloudburstmc.server.nbt.codec;
+package org.cloudburstmc.api.nbt.codec;
 
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
