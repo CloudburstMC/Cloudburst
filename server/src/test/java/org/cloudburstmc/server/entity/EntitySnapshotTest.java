@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -8,7 +9,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -86,8 +86,9 @@ class EntitySnapshotTest {
         }
 
         @Override
-        public void saveAdditionalData(NbtMapBuilder tag) {
-            tag.putString("CustomName", "Picked pig");
+        protected void fillData(EntityData data) {
+            super.fillData(data);
+            data.setCustomName("Picked pig");
         }
     }
 }

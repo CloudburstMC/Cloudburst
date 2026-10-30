@@ -245,14 +245,14 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public void loadAdditionalData(NbtMap tag) {
+    public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
         this.applyData(ServerNbt.MAPPER.read(tag, CloudEntityRegistry.get().getDataClass(this.type)));
         this.loadCustom(tag);
     }
 
-    public void saveAdditionalData(NbtMapBuilder tag) {
+    public final void saveAdditionalData(NbtMapBuilder tag) {
         Class<? extends EntityData> dataClass = CloudEntityRegistry.get().getDataClass(this.type);
         Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
         excluded.addAll(this.customKeys());

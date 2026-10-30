@@ -186,9 +186,10 @@ class EntityPersistenceTest {
             try {
                 NbtMapBuilder second = NbtMap.builder();
                 reloaded.saveAdditionalData(second);
-                // No assertion on equality: subclasses still own unmigrated keys, so the
-                // second save only has to complete without throwing.
-                second.build();
+                // Every type is migrated now, so a reload must save identically.
+                assertEquals(saved, second.build(), type.getId() + " must save identically after a reload");
+            } catch (AssertionError e) {
+                failures.add(type.getId() + ": resave differs (" + e.getMessage() + ")");
             } catch (Exception e) {
                 failures.add(type.getId() + ": resave failed (" + e + ")");
             }
@@ -205,9 +206,9 @@ class EntityPersistenceTest {
     }
 
     /**
-     * Types whose unmigrated load/save paths need a live world (server/level) and
-     * cannot run in the stub fixture. They are excluded from the round-trip sweep
-     * until Tasks 10-12 migrate them.
+     * Types whose load or init paths need a live world (server, level or game rules)
+     * and cannot run in the stub fixture. Loading a creeper fires its power event
+     * through the server; the others touch the level during initialization.
      */
     private static final java.util.Set<String> KNOWN_UNSTABLE_TYPES = java.util.Set.of(
             // load fires CreeperPowerEvent via server

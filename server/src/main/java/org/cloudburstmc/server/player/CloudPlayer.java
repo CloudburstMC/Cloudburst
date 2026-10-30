@@ -24,8 +24,10 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.EnderChest;
 import org.cloudburstmc.api.blockentity.Sign;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.damage.*;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.entity.projectile.*;
@@ -58,7 +60,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.adventure.BedrockComponent;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
@@ -3363,29 +3364,61 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        this.playerData.loadData(tag);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        org.cloudburstmc.api.entity.data.PlayerData player = (org.cloudburstmc.api.entity.data.PlayerData) data;
+
+        if (player.getFirstPlayed() != null) {
+            this.playerData.setFirstPlayed(player.getFirstPlayed());
+        }
+        if (player.getLastPlayed() != null) {
+            this.playerData.setLastPlayed(player.getLastPlayed());
+        }
+        if (player.getLevel() != null) {
+            this.playerData.setLevel(player.getLevel());
+        }
+        if (player.getSpawnLevel() != null) {
+            this.playerData.setSpawnLevel(player.getSpawnLevel());
+        }
+        if (player.getSpawnX() != null && player.getSpawnY() != null && player.getSpawnZ() != null) {
+            this.playerData.setSpawnLocation(Vector3i.from(
+                    player.getSpawnX(), player.getSpawnY(), player.getSpawnZ()));
+        }
+        if (player.getSpawnYaw() != null) {
+            this.playerData.setSpawnYaw(player.getSpawnYaw());
+        }
+        if (player.getPlayerGameType() != null) {
+            this.playerData.setGamemode(GameMode.from(player.getPlayerGameType()));
+        }
+
+        this.setExperience(player.getExp(), player.getExpLevel());
+
+        this.foodData.load(player.getFoodLevel(), player.getFoodSaturation(),
+                player.getFoodExhaustion(), player.getFoodTickTimer());
+        if (player.getSeenCredits() != null) {
+            this.seenCredits = player.getSeenCredits();
+        }
+        if (player.getInventory() != null) {
+            for (SlottedItem item : player.getInventory()) {
+                this.container.setItem(item.slot(), item.item());
+            }
+        }
+        if (player.getEnderChest() != null) {
+            for (SlottedItem item : player.getEnderChest()) {
+                this.enderChestContainer.setItem(item.slot(), item.item());
+            }
+        }
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        tag.listenForString("lastIP", this.playerData::setLastAddress);
 
         String level = this.playerData.getLevel();
         this.level = this.server.getLevel(level);
         if (this.level == null) {
             this.level = this.server.getDefaultLevel();
         }
-
-        super.loadAdditionalData(tag);
-
-        int exp = tag.getInt("EXP");
-        int expLevel = tag.getInt("expLevel");
-        this.setExperience(exp, expLevel);
-
-        this.foodData.load(tag.getInt("foodLevel", 20), tag.getFloat("foodSaturationLevel", 5.0f),
-                tag.getFloat("foodExhaustionLevel", 0.0f), tag.getInt("foodTickTimer", 0));
-        tag.listenForBoolean("seenCredits", value -> this.seenCredits = value);
-        tag.listenForList("EnderChestInventory", NbtType.COMPOUND, items -> {
-            for (NbtMap itemTag : items) {
-                this.getEnderChestContainer().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-            }
-        });
 
         String spawnLevelId = this.playerData.getSpawnLevel();
         Vector3i spawnPos = this.playerData.getSpawnLocation();
@@ -3406,8 +3439,9 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        org.cloudburstmc.api.entity.data.PlayerData player = (org.cloudburstmc.api.entity.data.PlayerData) data;
 
         this.playerData.setLevel(this.level.getId());
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
@@ -3416,19 +3450,50 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.playerData.setSpawnYaw(this.spawnLocation.getYaw());
         }
 
-        this.playerData.saveData(tag);
+        player.setExp(this.getExperience());
+        player.setExpLevel(this.getExperienceLevel());
 
-        tag.putInt("EXP", this.getExperience());
-        tag.putInt("expLevel", this.getExperienceLevel());
+        player.setFoodLevel(this.getFoodData().getLevel());
+        player.setFoodSaturation(this.foodData.getSaturation());
+        player.setFoodExhaustion(this.foodData.getExhaustion());
+        player.setFoodTickTimer(this.foodData.getTickTimer());
+        player.setSeenCredits(this.seenCredits);
 
-        tag.putInt("foodLevel", this.getFoodData().getLevel());
-        tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());
-        tag.putFloat("foodExhaustionLevel", this.foodData.getExhaustion());
-        tag.putInt("foodTickTimer", this.foodData.getTickTimer());
-        tag.putBoolean("seenCredits", this.seenCredits);
+        List<SlottedItem> inventory = new ArrayList<>();
+        for (int slot = 0; slot < this.getContainer().size(); slot++) {
+            ItemStack item = this.getContainer().getItem(slot);
+            if (!item.isEmpty()) {
+                inventory.add(new SlottedItem(slot, item));
+            }
+        }
+        player.setInventory(inventory);
 
-        tag.putList("Inventory", NbtType.COMPOUND, this.getContainer().toNbt());
-        tag.putList("EnderChestInventory", NbtType.COMPOUND, this.enderChestContainer.toNbt());
+        List<SlottedItem> enderChest = new ArrayList<>();
+        for (int slot = 0; slot < this.enderChestContainer.size(); slot++) {
+            ItemStack item = this.enderChestContainer.getItem(slot);
+            if (!item.isEmpty()) {
+                enderChest.add(new SlottedItem(slot, item));
+            }
+        }
+        player.setEnderChest(enderChest);
+
+        if (this.playerData.getFirstPlayed().getAsLong() > 0 && this.playerData.getLastPlayed().getAsLong() > 0) {
+            player.setFirstPlayed(this.playerData.getFirstPlayed().getAsLong());
+            player.setLastPlayed(this.playerData.getLastPlayed().getAsLong());
+        }
+        if (this.playerData.getLevel() != null) {
+            player.setLevel(this.playerData.getLevel());
+        }
+        if (this.playerData.getSpawnLevel() != null && this.playerData.getSpawnLocation() != null) {
+            player.setSpawnLevel(this.playerData.getSpawnLevel());
+            player.setSpawnX(this.playerData.getSpawnLocation().getX());
+            player.setSpawnY(this.playerData.getSpawnLocation().getY());
+            player.setSpawnZ(this.playerData.getSpawnLocation().getZ());
+            player.setSpawnYaw(this.playerData.getSpawnYaw());
+        }
+        if (this.playerData.getGamemode() != null) {
+            player.setPlayerGameType(this.playerData.getGamemode().getVanillaId());
+        }
     }
 
     public void save(boolean async) {
