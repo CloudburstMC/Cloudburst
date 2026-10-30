@@ -3364,6 +3364,11 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
+    protected Class<? extends EntityData> dataClass() {
+        return org.cloudburstmc.api.entity.data.PlayerData.class;
+    }
+
+    @Override
     protected void applyData(EntityData data) {
         super.applyData(data);
         org.cloudburstmc.api.entity.data.PlayerData player = (org.cloudburstmc.api.entity.data.PlayerData) data;

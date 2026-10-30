@@ -10,6 +10,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.nbt.ServerNbt;
+import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,17 @@ class PlayerPersistenceTest {
     @Test
     void playerUsesPlayerData() {
         PersistenceFixtures.ensureInitialized();
-        assertEquals(PlayerData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
+        // Non-player humans save through the shared human data, so no
+        // player-only key is ever written for them; live players resolve the
+        // player data through CloudPlayer.dataClass().
+        assertEquals(HumanData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.PLAYER));
         assertTrue(new PlayerData() instanceof HumanData);
+    }
+
+    @Test
+    void cloudPlayerResolvesPlayerData() throws Exception {
+        assertEquals(CloudPlayer.class,
+                CloudPlayer.class.getDeclaredMethod("dataClass").getDeclaringClass());
     }
 
     @Test

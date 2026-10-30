@@ -14,13 +14,16 @@ import org.cloudburstmc.server.testutil.PersistenceFixtures;
 import org.cloudburstmc.server.utils.Utils;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -80,18 +83,25 @@ class HumanPersistenceTest {
     void roundTripPreservesKeysAndTypes() {
         EntityHuman human = human();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
+        ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
         NbtMap skin = skinTag();
         // An explicit air slot: today's load stores empty, today's save keeps the raw entry.
         NbtMap airSlot = ItemUtils.serializeItem(ItemStack.EMPTY, 5);
+        NbtMap enderSlot = ItemUtils.serializeItem(ingot, 4);
 
-        human.loadAdditionalData(NbtMap.builder()
+        NbtMap input = NbtMap.builder()
                 .putList("Inventory", NbtType.COMPOUND, List.of(
                         ItemUtils.serializeItem(diamond, 0),
                         airSlot))
                 .putString("NameTag", "Steve")
                 .putCompound("Skin", skin)
+                // Player-only keys a non-player tag can carry: not owned by the
+                // human data, so today's save passes them through untouched.
+                .putList("EnderChestInventory", NbtType.COMPOUND, List.of(enderSlot))
+                .putInt("SpawnX", 11)
                 .putInt("Mystery", 7)
-                .build());
+                .build();
+        human.loadAdditionalData(input);
 
         assertEquals(diamond, human.container.getItem(0));
         assertTrue(human.container.getItem(5).isEmpty());
@@ -112,6 +122,10 @@ class HumanPersistenceTest {
         // Inventory is preserved from the raw tag; empty slots keep their air entry.
         assertEquals(List.of(ItemUtils.serializeItem(diamond, 0), airSlot),
                 saved.getList("Inventory", NbtType.COMPOUND));
+        // Player-only keys pass through byte-exact, with the same element types.
+        assertEquals(List.of(enderSlot), saved.getList("EnderChestInventory", NbtType.COMPOUND));
+        assertTrue(saved.get("SpawnX") instanceof Integer, "SpawnX must stay an int");
+        assertEquals(11, saved.getInt("SpawnX"));
         // The legacy name tag alias survives through the raw-tag merge, untouched.
         assertEquals("Steve", saved.getString("NameTag"));
         // The base path writes the current name tag as CustomName.
@@ -133,6 +147,18 @@ class HumanPersistenceTest {
         // No animations survive the load, so none are written back.
         assertTrue(animations.isEmpty());
         assertFalse(savedSkin.containsKey("AnimatedImageData"));
+
+        // The saved key set is exactly today's: every input key plus the keys
+        // today's save always writes (a default save), plus the name-tag
+        // aliases written because a name tag was loaded. No player-only key
+        // (EXP, food, seenCredits, firstPlayed, Level, Spawn*, playerGameType)
+        // may appear: the human data does not own them.
+        Set<String> expectedKeys = new HashSet<>(save(human()).keySet());
+        expectedKeys.addAll(input.keySet());
+        expectedKeys.add("CustomName");
+        expectedKeys.add("CustomNameVisible");
+        expectedKeys.add("CustomNameAlwaysVisible");
+        assertEquals(expectedKeys, saved.keySet());
     }
 
     @Test
@@ -166,6 +192,13 @@ class HumanPersistenceTest {
         assertFalse(saved.containsKey("Skin"));
         assertFalse(saved.containsKey("NameTag"));
         assertFalse(saved.containsKey("CustomName"));
+        // Player-only keys belong to the player data, never to a non-player human.
+        assertFalse(saved.containsKey("EXP"));
+        assertFalse(saved.containsKey("expLevel"));
+        assertFalse(saved.containsKey("foodLevel"));
+        assertFalse(saved.containsKey("foodSaturationLevel"));
+        assertFalse(saved.containsKey("foodExhaustionLevel"));
+        assertFalse(saved.containsKey("foodTickTimer"));
         // Base and creature data still write their usual keys.
         assertTrue(saved.containsKey("Pos"));
         assertTrue(saved.containsKey("Offhand"));
@@ -174,20 +207,13 @@ class HumanPersistenceTest {
     }
 
     @Test
-    void absentKeysLeaveStateUnchanged() {
+    void missingSkinThrowsOnLoad() {
         EntityHuman human = human();
-        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
-        human.container.setItem(3, diamond);
-        human.setNameTag("Steve");
 
-        // Must not throw and must keep every constructor-set or preset value,
-        // even though today's code crashed here when no skin was present.
-        human.loadAdditionalData(NbtMap.EMPTY);
-
-        assertEquals(diamond, human.container.getItem(3));
-        assertEquals("Steve", human.getNameTag());
+        // Today's load recomputed the identity unconditionally and threw when a
+        // non-player human tag carried no skin; the serializer dropped the NPC.
+        assertThrows(NullPointerException.class, () -> human.loadAdditionalData(NbtMap.EMPTY));
         assertNull(human.getSkin());
-        assertNull(human.getServerId());
     }
 
     @Test

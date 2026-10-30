@@ -157,29 +157,8 @@ public class EntityHuman extends EntityCreature implements Human {
 
         tag.listenForString("NameTag", this::setNameTag);
 
-        // The identity is recomputed on every load that leaves a skin behind.
-        // A missing skin keeps the previous identity instead of throwing.
-        if (this.getSkin() != null) {
-            this.identity = Utils.dataToUUID(String.valueOf(this.getUniqueId()).getBytes(UTF_8), this.getSkin()
-                    .getSkinData().getImage(), this.getNameTag().getBytes(UTF_8));
-        }
-    }
-
-    @Override
-    protected void saveCustom(NbtMapBuilder tag) {
-        if (this instanceof CloudPlayer || this.tag == null) {
-            // Players write both lists fresh through their data class.
-            return;
-        }
-        // Non-player humans never refresh these lists: the data-class merge drops
-        // them as owned keys, so the raw entries are restored verbatim, exactly as
-        // today's save kept them through the merge.
-        if (this.tag.containsKey("Inventory")) {
-            tag.putList("Inventory", NbtType.COMPOUND, this.tag.getList("Inventory", NbtType.COMPOUND));
-        }
-        if (this.tag.containsKey("EnderChestInventory")) {
-            tag.putList("EnderChestInventory", NbtType.COMPOUND, this.tag.getList("EnderChestInventory", NbtType.COMPOUND));
-        }
+        this.identity = Utils.dataToUUID(String.valueOf(this.getUniqueId()).getBytes(UTF_8), this.getSkin()
+                .getSkinData().getImage(), this.getNameTag().getBytes(UTF_8));
     }
 
     @Override

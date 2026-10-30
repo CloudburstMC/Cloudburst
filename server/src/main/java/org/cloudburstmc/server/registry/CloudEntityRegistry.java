@@ -29,7 +29,7 @@ import org.cloudburstmc.api.entity.data.FallingBlockData;
 import org.cloudburstmc.api.entity.data.FireworksRocketData;
 import org.cloudburstmc.api.entity.data.HappyGhastData;
 import org.cloudburstmc.api.entity.data.PaintingData;
-import org.cloudburstmc.api.entity.data.PlayerData;
+import org.cloudburstmc.api.entity.data.HumanData;
 import org.cloudburstmc.api.entity.data.PrimedTntData;
 import org.cloudburstmc.api.entity.data.ProjectileData;
 import org.cloudburstmc.api.entity.data.SheepData;
@@ -582,7 +582,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(SULFUR_CUBE, EntitySulfurCube::new, 153, CreatureData.class);
         registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157, CreatureData.class);
         registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218, ChestBoatData.class);
-        registerVanilla(PLAYER, EntityHuman::new, 257, PlayerData.class);
+        registerVanilla(PLAYER, EntityHuman::new, 257, HumanData.class);
     }
 
     private void registerProjectileDamageComponents() {

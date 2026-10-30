@@ -248,12 +248,12 @@ public abstract class CloudEntity implements Entity {
     public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
-        this.applyData(ServerNbt.MAPPER.read(tag, CloudEntityRegistry.get().getDataClass(this.type)));
+        this.applyData(ServerNbt.MAPPER.read(tag, this.dataClass()));
         this.loadCustom(tag);
     }
 
     public final void saveAdditionalData(NbtMapBuilder tag) {
-        Class<? extends EntityData> dataClass = CloudEntityRegistry.get().getDataClass(this.type);
+        Class<? extends EntityData> dataClass = this.dataClass();
         Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
         excluded.addAll(this.customKeys());
         excluded.add("identifier");
@@ -435,12 +435,23 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
+     * Resolves the data class for this instance. By default the class registered
+     * for the entity type; players override this to use the player data class
+     * while the type registration stays on the shared human data.
+     *
+     * @return the data class for load, save and fresh instances
+     */
+    protected Class<? extends EntityData> dataClass() {
+        return CloudEntityRegistry.get().getDataClass(this.type);
+    }
+
+    /**
      * Creates a fresh data object of the type registered for this entity.
      *
      * @return a new data object
      */
     protected final EntityData newData() {
-        Class<? extends EntityData> dataClass = CloudEntityRegistry.get().getDataClass(this.type);
+        Class<? extends EntityData> dataClass = this.dataClass();
         try {
             return dataClass.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
