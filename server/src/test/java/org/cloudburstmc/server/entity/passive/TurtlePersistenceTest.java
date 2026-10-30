@@ -89,4 +89,36 @@ class TurtlePersistenceTest {
         assertEquals(6, saved.getInt("HomePosY"));
         assertEquals(7, saved.getInt("HomePosZ"));
     }
+
+    @Test
+    void absentAgeResetsToTodayDefault() {
+        EntityTurtle turtle = (EntityTurtle) PersistenceFixtures.entity(EntityTypes.TURTLE);
+        turtle.setAge(100);
+
+        turtle.loadAdditionalData(NbtMap.builder()
+                .putInt("HomePosX", 1)
+                .putInt("HomePosY", 2)
+                .putInt("HomePosZ", 3)
+                .build());
+
+        assertEquals(0, turtle.getAge());
+    }
+
+    @Test
+    void turtleKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityTurtle.class, TurtleData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()",
+                        "age", "the base tick counter, not the persisted Age"));
+        java.util.Set<String> fields = new java.util.HashSet<>();
+        for (java.lang.reflect.Field field : EntityTurtle.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : java.util.Set.of("growingAge", "homePosition")) {
+            assertTrue(!fields.contains(removed),
+                    "EntityTurtle keeps " + removed + "; state must live in TurtleData only");
+        }
+    }
 }

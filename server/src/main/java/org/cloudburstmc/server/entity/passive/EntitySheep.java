@@ -3,8 +3,7 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.SheepData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -13,7 +12,11 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.COLOR;
@@ -40,7 +43,7 @@ public class EntitySheep extends Animal implements Sheep {
 
     @Override
     public float getHeight() {
-        if (isBaby()) {
+        if (this.isBaby()) {
             return 0.65f;
         }
         return 1.3f;
@@ -59,29 +62,34 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return SheepData.class;
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        SheepData sheepData = (SheepData) data;
-        //TODO: Kinda hacky but works for now
-        if (sheepData.getColor() != null) {
-            this.setColor(sheepData.getColor());
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        if (tag.containsKey("Color")) {
+            this.setColor(DyeColor.getByWoolData(Byte.toUnsignedInt(getByte(tag, "Color", (byte) this.getColor().getWoolData()))));
         }
-        if (sheepData.getSheared() != null) {
-            this.setSheared(sheepData.getSheared());
+        if (tag.containsKey("Sheared")) {
+            this.setSheared(getBoolean(tag, "Sheared", this.isSheared()));
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        SheepData sheepData = (SheepData) data;
-        sheepData.setColor(this.getColor().getWoolData());
-        sheepData.setSheared(this.isSheared());
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putByte("Color", (byte) this.getColor().getWoolData());
+        tag.putBoolean("Sheared", this.isSheared());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Color");
+        keys.add("Sheared");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -156,10 +164,6 @@ public class EntitySheep extends Animal implements Sheep {
 
     public void setColor(DyeColor color) {
         this.data.set(COLOR, (byte) color.getWoolData());
-    }
-
-    private void setColor(int color) {
-        this.data.set(COLOR, (byte) color);
     }
 
     private int randomColor() {

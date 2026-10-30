@@ -576,6 +576,15 @@ public abstract class CloudEntity implements Entity {
     }
 
     /**
+     * Reads a long property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static long getLong(NbtMap tag, String key, long defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.longValue() : defaultValue;
+    }
+
+    /**
      * Reads a byte property leniently, like the mapper: any number binds,
      * anything else keeps the default.
      */

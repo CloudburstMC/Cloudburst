@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.VillagerData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -26,7 +26,7 @@ class VillagerPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(VillagerData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.VILLAGER));
+        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.VILLAGER));
 
         EntityVillager villager = (EntityVillager) PersistenceFixtures.entity(EntityTypes.VILLAGER);
         villager.loadAdditionalData(NbtMap.builder()
@@ -62,5 +62,14 @@ class VillagerPersistenceTest {
         villager.loadAdditionalData(NbtMap.EMPTY);
 
         assertEquals(3, villager.getProfession());
+    }
+
+    @Test
+    void villagerKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityVillager.class, CreatureData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 }

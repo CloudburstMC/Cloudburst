@@ -90,4 +90,21 @@ class EnderDragonPersistenceTest {
         assertEquals(400, saved.getInt("DragonDeathExperience"));
         assertTrue(dragon.isInDeathSequence());
     }
+
+    @Test
+    void enderDragonKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityEnderDragon.class, EnderDragonData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
+        java.util.Set<String> fields = new java.util.HashSet<>();
+        for (java.lang.reflect.Field field : EntityEnderDragon.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : java.util.Set.of("dragonDeathTime", "deathExperience")) {
+            assertTrue(!fields.contains(removed),
+                    "EntityEnderDragon keeps " + removed + "; state must live in EnderDragonData only");
+        }
+    }
 }

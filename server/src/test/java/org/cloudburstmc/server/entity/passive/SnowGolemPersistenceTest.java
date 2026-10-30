@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.SnowGolemData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -27,7 +27,7 @@ class SnowGolemPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(SnowGolemData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SNOW_GOLEM));
+        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SNOW_GOLEM));
 
         EntitySnowGolem golem = (EntitySnowGolem) PersistenceFixtures.entity(EntityTypes.SNOW_GOLEM);
         golem.loadAdditionalData(NbtMap.builder()
@@ -63,5 +63,14 @@ class SnowGolemPersistenceTest {
         golem.loadAdditionalData(NbtMap.EMPTY);
 
         assertTrue(golem.isDerp());
+    }
+
+    @Test
+    void snowGolemKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntitySnowGolem.class, CreatureData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 }

@@ -2,11 +2,15 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.VillagerData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.Villager;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityCreature;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
@@ -50,29 +54,35 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
-    public void initEntity() {
+    protected void initEntity() {
         super.initEntity();
         this.setMaxHealth(20);
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return VillagerData.class;
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        VillagerData villagerData = (VillagerData) data;
-        if (villagerData.getProfession() != null) {
-            this.setProfession(villagerData.getProfession());
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        if (tag.containsKey("Profession")) {
+            this.setProfession(getInt(tag, "Profession", this.getProfession()));
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((VillagerData) data).setProfession(this.getProfession());
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putInt("Profession", this.getProfession());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Profession");
+        return Set.copyOf(keys);
     }
 
     public int getProfession() {

@@ -2,9 +2,13 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Ownable;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.TameableData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SITTING;
@@ -28,29 +32,35 @@ public abstract class EntityTameable extends Animal implements Ownable {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return TameableData.class;
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        TameableData tameableData = (TameableData) data;
-        if (tameableData.getOwnerId() != null) {
-            this.setOwnerId(tameableData.getOwnerId());
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        if (tag.containsKey("OwnerID")) {
+            this.setOwnerId(getLong(tag, "OwnerID", this.getOwnerId()));
             this.setTamed(true);
         }
-        if (tameableData.getSitting() != null) {
-            this.setSitting(tameableData.getSitting());
+        if (tag.containsKey("Sitting")) {
+            this.setSitting(getBoolean(tag, "Sitting", this.isSitting()));
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        TameableData tameableData = (TameableData) data;
-        tameableData.setOwnerId(this.getOwnerId());
-        tameableData.setSitting(this.isSitting());
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putLong("OwnerID", this.getOwnerId());
+        tag.putBoolean("Sitting", this.isSitting());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("OwnerID");
+        keys.add("Sitting");
+        return Set.copyOf(keys);
     }
 
     @Override

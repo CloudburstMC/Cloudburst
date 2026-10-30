@@ -14,10 +14,10 @@ import lombok.Setter;
 public class EnderDragonData extends CreatureData {
 
     @JsonProperty("DragonDeathTime")
-    private Integer dragonDeathTime;
+    private int dragonDeathTime;
 
     @JsonProperty("DragonDeathExperience")
-    private Integer dragonDeathExperience;
+    private int dragonDeathExperience;
 
     public EnderDragonData() {
     }

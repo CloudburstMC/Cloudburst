@@ -2,8 +2,7 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.EntityData;
-import org.cloudburstmc.api.entity.data.SnowGolemData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.passive.SnowGolem;
 import org.cloudburstmc.api.event.player.PlayerShearEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -11,12 +10,16 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SHEARED;
@@ -45,23 +48,29 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return SnowGolemData.class;
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        SnowGolemData golemData = (SnowGolemData) data;
-        if (golemData.getPumpkin() != null) {
-            this.setDerp(!golemData.getPumpkin());
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        if (tag.containsKey("Pumpkin")) {
+            this.setDerp(!getBoolean(tag, "Pumpkin", !this.isDerp()));
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((SnowGolemData) data).setPumpkin(!this.isDerp());
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putBoolean("Pumpkin", !this.isDerp());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Pumpkin");
+        return Set.copyOf(keys);
     }
 
     @Override

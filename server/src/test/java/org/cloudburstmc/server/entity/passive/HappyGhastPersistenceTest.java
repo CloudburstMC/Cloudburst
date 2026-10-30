@@ -64,4 +64,22 @@ class HappyGhastPersistenceTest {
 
         assertEquals(0, ghast.getAge());
     }
+
+    @Test
+    void happyGhastKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityHappyGhast.class, HappyGhastData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()",
+                        "age", "the base tick counter, not the persisted Age"));
+        java.util.Set<String> fields = new java.util.HashSet<>();
+        for (java.lang.reflect.Field field : EntityHappyGhast.class.getDeclaredFields()) {
+            fields.add(field.getName());
+        }
+        for (String removed : java.util.Set.of("growingAge")) {
+            assertTrue(!fields.contains(removed),
+                    "EntityHappyGhast keeps " + removed + "; state must live in HappyGhastData only");
+        }
+    }
 }

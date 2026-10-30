@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.SheepData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -29,7 +29,7 @@ class SheepPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(SheepData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SHEEP));
+        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.SHEEP));
 
         EntitySheep sheep = (EntitySheep) PersistenceFixtures.entity(EntityTypes.SHEEP);
         sheep.loadAdditionalData(NbtMap.builder()
@@ -73,5 +73,14 @@ class SheepPersistenceTest {
 
         assertEquals(DyeColor.BLUE, sheep.getColor());
         assertTrue(sheep.isSheared());
+    }
+
+    @Test
+    void sheepKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntitySheep.class, CreatureData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 }

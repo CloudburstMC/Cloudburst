@@ -2,7 +2,7 @@ package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.EntityTypes;
-import org.cloudburstmc.api.entity.data.CreeperData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
@@ -56,7 +56,7 @@ class CreeperPersistenceTest {
 
     @Test
     void roundTripPreservesKeysAndTypes() {
-        assertEquals(CreeperData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CREEPER));
+        assertEquals(CreatureData.class, CloudEntityRegistry.get().getDataClass(EntityTypes.CREEPER));
 
         LoadableCreeper creeper = loadable();
         creeper.loadAdditionalData(NbtMap.builder()
@@ -92,5 +92,14 @@ class CreeperPersistenceTest {
         creeper.loadAdditionalData(NbtMap.EMPTY);
 
         assertTrue(creeper.isPowered());
+    }
+
+    @Test
+    void creeperKeepsNoDuplicateState() {
+        org.cloudburstmc.server.blockentity.DtoStateChecks.assertEntityKeepsNoDuplicateState(
+                EntityCreeper.class, CreatureData.class,
+                java.util.Map.of(
+                        "armor", "an armor view over the live container in data().getArmor()",
+                        "offhand", "an offhand view over the live container in data().getOffhand()"));
     }
 }

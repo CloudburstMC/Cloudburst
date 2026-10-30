@@ -1,15 +1,18 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.data.CreeperData;
-import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.CreatureData;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.POWERED;
@@ -41,23 +44,29 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     }
 
     @Override
-    protected Class<? extends EntityData> minimumDataClass() {
-        return CreeperData.class;
+    protected CreatureData data() {
+        return (CreatureData) super.data();
     }
 
     @Override
-    protected void applyData(EntityData data) {
-        super.applyData(data);
-        CreeperData creeperData = (CreeperData) data;
-        if (creeperData.getPowered() != null) {
-            this.setPowered(creeperData.getPowered());
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        if (tag.containsKey("powered")) {
+            this.setPowered(getBoolean(tag, "powered", this.isPowered()));
         }
     }
 
     @Override
-    protected void fillData(EntityData data) {
-        super.fillData(data);
-        ((CreeperData) data).setPowered(this.isPowered());
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
+        tag.putBoolean("powered", this.isPowered());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("powered");
+        return Set.copyOf(keys);
     }
 
     public boolean isPowered() {
