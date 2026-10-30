@@ -40,16 +40,42 @@ import java.util.List;
  */
 public final class NbtGenerator extends GeneratorBase {
 
+    private final boolean clientView;
     private SimpleStreamWriteContext writeContext = SimpleStreamWriteContext.createRootContext(null);
     private Container container = new Root();
     private @Nullable NbtTagType expectedValue;
     private NbtTagType expectedElement = NbtTagType.AUTO;
 
+    /**
+     * Creates a generator that writes every property.
+     */
     public NbtGenerator() {
+        this(false);
+    }
+
+    /**
+     * Creates a generator.
+     *
+     * @param clientView whether to write only the client properties of the root object
+     */
+    public NbtGenerator(boolean clientView) {
         super(ObjectWriteContext.empty(), new IOContext(StreamReadConstraints.defaults(),
                 StreamWriteConstraints.defaults(), ErrorReportConfiguration.defaults(), null,
                 ContentReference.unknown(), false, null).markBufferRecyclerReleased(),
                 StreamWriteFeature.collectDefaults());
+        this.clientView = clientView;
+    }
+
+    /**
+     * Returns whether a property about to be written is left out: in the client view,
+     * a property of the root object that is not a client property. Nested values are
+     * written whole.
+     *
+     * @param clientProperty whether the property is a client property
+     */
+    public boolean omits(boolean clientProperty) {
+        return clientView && !clientProperty && container instanceof Compound compound
+                && compound.parent instanceof Root;
     }
 
     /**

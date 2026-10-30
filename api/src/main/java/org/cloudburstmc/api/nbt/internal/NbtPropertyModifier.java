@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.internal;
 
+import org.cloudburstmc.api.nbt.NbtClient;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
 import org.cloudburstmc.nbt.NbtList;
@@ -22,8 +23,8 @@ import java.util.List;
 
 /**
  * Adapts Jackson serializers to {@link NbtGenerator}: bean properties announce their
- * resolved tag type before writing, and {@link NbtMap} and {@link NbtList} values are
- * written unchanged.
+ * resolved tag type before writing, non-client properties are left out of the client
+ * view, and {@link NbtMap} and {@link NbtList} values are written unchanged.
  */
 public final class NbtPropertyModifier extends ValueSerializerModifier {
 
@@ -59,6 +60,7 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
         private static final long serialVersionUID = 1L;
 
         private final NbtTagType value;
+        private final boolean client;
         /**
          * The element type, or {@code null} until it is resolved against the serializers on
          * first use.
@@ -68,6 +70,7 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
         TypedPropertyWriter(BeanPropertyWriter base, NbtTypeResolver.Resolution resolution) {
             super(base);
             this.value = resolution.value();
+            this.client = base.getAnnotation(NbtClient.class) != null;
             this.element = resolution.element() != NbtTagType.AUTO ? resolution.element() : null;
         }
 
@@ -75,6 +78,9 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
         public void serializeAsProperty(Object bean, JsonGenerator g, SerializationContext ctxt) throws Exception {
             if (!(g instanceof NbtGenerator generator)) {
                 super.serializeAsProperty(bean, g, ctxt);
+                return;
+            }
+            if (generator.omits(client)) {
                 return;
             }
             NbtTagType element = this.element;
