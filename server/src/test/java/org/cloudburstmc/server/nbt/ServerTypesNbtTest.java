@@ -110,6 +110,48 @@ class ServerTypesNbtTest {
     }
 
     @Test
+    void outOfRangeSlotLeavesContainerUnchanged() {
+        Chest dto = new Chest();
+        dto.items.setItem(0, ItemStack.from(ItemTypes.DIRT, 32));
+        dto.items.setItem(5, ItemStack.from(ItemTypes.DIRT, 32));
+        NbtMap tag = NbtMap.builder()
+                .putList("Items", NbtType.COMPOUND,
+                        List.of(ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), SIZE)))
+                .build();
+
+        mapper.readInto(tag, dto);
+
+        assertEquals(ItemStack.from(ItemTypes.DIRT, 32), dto.items.getItem(0));
+        assertEquals(ItemStack.from(ItemTypes.DIRT, 32), dto.items.getItem(5));
+        for (int slot = 0; slot < SIZE; slot++) {
+            if (slot != 0 && slot != 5) {
+                assertTrue(dto.items.getItem(slot).isEmpty(), "slot " + slot);
+            }
+        }
+    }
+
+    @Test
+    void unreadableItemLeavesContainerUnchanged() {
+        Chest dto = new Chest();
+        dto.items.setItem(0, ItemStack.from(ItemTypes.DIRT, 32));
+        NbtMap bad = NbtMap.builder()
+                .putString("Name", "!!! not an identifier !!!")
+                .putByte("Count", (byte) 1)
+                .putByte("Slot", (byte) 2)
+                .build();
+        NbtMap tag = NbtMap.builder()
+                .putList("Items", NbtType.COMPOUND, List.of(bad))
+                .build();
+
+        assertThrows(Exception.class, () -> mapper.readInto(tag, dto));
+
+        assertEquals(ItemStack.from(ItemTypes.DIRT, 32), dto.items.getItem(0));
+        for (int slot = 1; slot < SIZE; slot++) {
+            assertTrue(dto.items.getItem(slot).isEmpty(), "slot " + slot);
+        }
+    }
+
+    @Test
     void readWithoutSizeAnnotationFails() {
         NbtMap tag = NbtMap.builder()
                 .putList("Items", NbtType.COMPOUND,

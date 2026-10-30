@@ -147,7 +147,18 @@ public class ServerTypesNbtModule extends SimpleModule {
                 throw new IllegalArgumentException("Cannot read an item container with no instance to fill;"
                         + " declare its slot count with @NbtContainerSize on the property");
             }
-            return deserialize(p, ctxt, ItemContainers.detached(size));
+            if (!(p instanceof NbtParser parser) || !(parser.currentTag() instanceof List<?> list)) {
+                return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
+            }
+            p.skipChildren();
+            // Stage every entry before the container is created, so a failed
+            // read never leaves a partially filled container behind.
+            List<StagedEntry> staged = stage(p, list, size);
+            ItemContainer created = ItemContainers.detached(size);
+            for (StagedEntry entry : staged) {
+                created.setItem(entry.slot(), entry.item());
+            }
+            return created;
         }
 
         @Override
@@ -156,20 +167,39 @@ public class ServerTypesNbtModule extends SimpleModule {
                 return (ItemContainer) ctxt.handleUnexpectedToken(ItemContainer.class, p);
             }
             p.skipChildren();
-            // The whole tag's shape is validated before the container is touched, so a
-            // mismatch never leaves a partially updated container behind.
-            for (Object entry : list) {
-                if (!(entry instanceof NbtMap item) || !(item.get("Slot") instanceof Number)) {
-                    throw mismatch(p, entry);
-                }
-            }
+            // Stage every entry before the container is touched, so a failed
+            // read never leaves a partially updated container behind.
+            List<StagedEntry> staged = stage(p, list, into.size());
             into.clear();
-            for (Object entry : list) {
-                NbtMap item = (NbtMap) entry;
-                into.setItem(((Number) item.get("Slot")).intValue(),
-                        org.cloudburstmc.server.item.ItemUtils.deserializeItem(item));
+            for (StagedEntry entry : staged) {
+                into.setItem(entry.slot(), entry.item());
             }
             return into;
+        }
+
+        /**
+         * Reads every entry of a container list without touching any container, so the
+         * caller can fill or replace contents only after the whole tag proved usable.
+         * A shape problem throws a mismatch (the read keeps the current value); an item
+         * the registry rejects throws its own failure, before anything was applied.
+         */
+        private static List<StagedEntry> stage(JsonParser p, List<?> list, int size) {
+            List<StagedEntry> staged = new ArrayList<>(list.size());
+            for (Object entry : list) {
+                if (!(entry instanceof NbtMap item) || !(item.get("Slot") instanceof Number slot)) {
+                    throw mismatch(p, entry);
+                }
+                int index = slot.intValue();
+                if (index < 0 || index >= size) {
+                    throw rangeMismatch(p, entry, size);
+                }
+                staged.add(new StagedEntry(index,
+                        org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+            }
+            return staged;
+        }
+
+        private record StagedEntry(int slot, ItemStack item) {
         }
 
         private static MismatchedInputException mismatch(JsonParser p, Object entry) {
@@ -178,6 +208,15 @@ public class ServerTypesNbtModule extends SimpleModule {
                             + "; expected an item compound with a numeric Slot");
             mismatch.initCause(new NbtKindMismatchException(
                     "Item container entries need an item compound with a numeric Slot"));
+            return mismatch;
+        }
+
+        private static MismatchedInputException rangeMismatch(JsonParser p, Object entry, int size) {
+            MismatchedInputException mismatch = MismatchedInputException.from(p, ItemContainer.class,
+                    "Cannot read an item container entry " + describe(entry)
+                            + "; expected a Slot between 0 and " + (size - 1));
+            mismatch.initCause(new NbtKindMismatchException(
+                    "Item container slots must be between 0 and " + (size - 1)));
             return mismatch;
         }
 
