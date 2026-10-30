@@ -3,33 +3,30 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.ShulkerBox;
 import org.cloudburstmc.api.blockentity.ShulkerBoxAnimationState;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.ShulkerBoxData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.PushReaction;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
-import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.MovementType;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEventPacket;
 import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -46,6 +43,8 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     private float openProgress;
     private float previousOpenProgress;
     private int viewerCount;
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public ShulkerBoxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(27));
@@ -57,36 +56,41 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.container.setItem(itemTag.getByte("Slot"), item);
-            }
-        });
-        this.facing = Direction.fromIndex(tag.getByte("facing"));
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        ShulkerBoxData shulker = (ShulkerBoxData) data;
+        for (SlottedItem entry : shulker.getItems()) {
+            this.container.setItem(entry.slot(), entry.item());
+        }
+        this.facing = Direction.fromIndex(shulker.getFacing());
+        this.lootTable = shulker.getLootTable();
+        this.lootTableSeed = shulker.getLootTableSeed();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
-        this.saveFacing(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        ShulkerBoxData shulker = (ShulkerBoxData) data;
+        shulker.setItems(ContainerData.slotted(this.container.getContents()));
+        shulker.setFacing((byte) this.facing.getIndex());
+        shulker.setLootTable(this.lootTable);
+        shulker.setLootTableSeed(this.lootTableSeed);
     }
 
-    @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
-        this.saveFacing(tag);
+    public String getLootTable() {
+        return lootTable;
     }
 
-    private void saveFacing(NbtMapBuilder tag) {
-        tag.putByte("facing", (byte) this.facing.getIndex());
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     @Override

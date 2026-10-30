@@ -3,6 +3,10 @@ package org.cloudburstmc.server.blockentity;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Chest;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ChestData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -13,14 +17,11 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Block entity implementation for a chest: a 27-slot storage container. Two adjacent chests can be
@@ -32,6 +33,8 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     private Vector3i pairPosition;
     private boolean pairlead;
     private boolean findable;
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public ChestBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(27));
@@ -43,25 +46,51 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        ChestData chest = (ChestData) data;
+        for (SlottedItem entry : chest.getItems()) {
+            this.setItem(entry.slot(), entry.item());
+        }
+        this.findable = chest.isFindable();
+        this.lootTable = chest.getLootTable();
+        this.lootTableSeed = chest.getLootTableSeed();
+    }
 
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.setItem(itemTag.getByte("Slot"), item);
-            }
-        });
+    @Override
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        ChestData chest = (ChestData) data;
+        chest.setItems(ContainerData.slotted(this.container.getContents()));
+        chest.setFindable(this.findable);
+        chest.setLootTable(this.lootTable);
+        chest.setLootTableSeed(this.lootTableSeed);
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
         if (tag.containsKey("pairx") && tag.containsKey("pairz")) {
             this.pairPosition = Vector3i.from(tag.getInt("pairx"), this.getPosition().getY(), tag.getInt("pairz"));
         }
         tag.listenForBoolean("pairlead", this::setPairlead);
-        tag.listenForBoolean("Findable", this::setFindable);
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    protected void saveCustom(NbtMapBuilder tag) {
+        writePair(tag);
+    }
+
+    @Override
+    protected void saveCustomClient(NbtMapBuilder tag) {
+        writePair(tag);
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        return Set.of("pairx", "pairz", "pairlead");
+    }
+
+    private void writePair(NbtMapBuilder tag) {
         if (this.pairPosition != null && this.pairlead) {
             tag.putInt("pairx", this.pairPosition.getX());
             tag.putInt("pairz", this.pairPosition.getZ());
@@ -69,14 +98,20 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
         }
     }
 
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    public String getLootTable() {
+        return lootTable;
+    }
 
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
-        tag.putBoolean("Findable", this.findable);
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     public void setPairlead(boolean pairlead) {
@@ -160,7 +195,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
     }
 
     public ChestBlockEntity getPair() {
-        if (this.isPaired()) {
+        if (this.isPaired() && this.getLevel() != null) {
             BlockEntity blockEntity = this.getLevel().getLoadedBlockEntity(this.pairPosition);
             if (blockEntity instanceof ChestBlockEntity) {
                 return (ChestBlockEntity) blockEntity;

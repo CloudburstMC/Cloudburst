@@ -4,6 +4,10 @@ import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Hopper;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.HopperData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.entity.Entity;
@@ -19,17 +23,11 @@ import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import static org.cloudburstmc.math.vector.Vector3i.UP;
 
@@ -41,6 +39,8 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
     private final BoundingBox pickupArea = new BoundingBox(this.getPosition(), this.getPosition().add(1, 2, 1));
     private int transferCooldown = 8;
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public HopperBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(5));
@@ -57,32 +57,51 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-            }
-        });
-        tag.listenForInt("TransferCooldown", this::setTransferCooldown);
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        HopperData hopper = (HopperData) data;
+        for (SlottedItem entry : hopper.getItems()) {
+            this.container.setItem(entry.slot(), entry.item());
+        }
+        this.transferCooldown = hopper.getTransferCooldown();
+        this.lootTable = hopper.getLootTable();
+        this.lootTableSeed = hopper.getLootTableSeed();
 
         this.scheduleUpdate();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        HopperData hopper = (HopperData) data;
+        hopper.setItems(ContainerData.slotted(this.container.getContents()));
+        hopper.setTransferCooldown(this.transferCooldown);
+        hopper.setLootTable(this.lootTable);
+        hopper.setLootTableSeed(this.lootTableSeed);
+    }
 
-        List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
-        tag.putList("Items", NbtType.COMPOUND, items);
+    public String getLootTable() {
+        return lootTable;
+    }
 
-        tag.putInt("TransferCooldown", this.transferCooldown);
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     public boolean isOnTransferCooldown() {
         return this.transferCooldown > 0;
+    }
+
+    public int getTransferCooldown() {
+        return transferCooldown;
     }
 
     public void setTransferCooldown(int transferCooldown) {

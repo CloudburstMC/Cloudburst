@@ -2,6 +2,10 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.Barrel;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BarrelData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ContainerData;
+import org.cloudburstmc.api.blockentity.data.SlottedItem;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.api.inventory.view.BlockStorageView;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
@@ -10,20 +14,17 @@ import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Block entity implementation for a barrel: a 27-slot storage container.
  */
 public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, BlockStorageView {
+
+    private String lootTable;
+    private Integer lootTableSeed;
 
     public BarrelBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(27));
@@ -35,27 +36,39 @@ public class BarrelBlockEntity extends ContainerBlockEntity implements Barrel, B
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
-                this.container.setItem(itemTag.getByte("Slot"), item);
-            }
-        });
+    protected void applyData(BlockEntityData data) {
+        super.applyData(data);
+        BarrelData barrel = (BarrelData) data;
+        for (SlottedItem entry : barrel.getItems()) {
+            this.container.setItem(entry.slot(), entry.item());
+        }
+        this.lootTable = barrel.getLootTable();
+        this.lootTableSeed = barrel.getLootTableSeed();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected void fillData(BlockEntityData data) {
+        super.fillData(data);
+        BarrelData barrel = (BarrelData) data;
+        barrel.setItems(ContainerData.slotted(this.container.getContents()));
+        barrel.setLootTable(this.lootTable);
+        barrel.setLootTableSeed(this.lootTableSeed);
+    }
 
-        List<NbtMap> items = new ArrayList<>();
-        ItemStack[] contents = this.container.getContents();
-        for (int i = 0; i < this.container.size(); i++) {
-            items.add(ItemUtils.serializeItem(contents[i], i));
-        }
-        tag.putList("Items", NbtType.COMPOUND, items);
+    public String getLootTable() {
+        return lootTable;
+    }
+
+    public void setLootTable(String lootTable) {
+        this.lootTable = lootTable;
+    }
+
+    public Integer getLootTableSeed() {
+        return lootTableSeed;
+    }
+
+    public void setLootTableSeed(Integer lootTableSeed) {
+        this.lootTableSeed = lootTableSeed;
     }
 
     @Override
