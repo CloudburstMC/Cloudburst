@@ -300,23 +300,37 @@ public class ServerTypesNbtModule extends SimpleModule {
         /**
          * Reads every entry of a container list without touching any container, so the
          * caller can fill or replace contents only after the whole tag proved usable.
-         * A shape problem throws a mismatch (the read keeps the current value); an item
-         * the registry rejects throws its own failure, before anything was applied.
+         * A non-compound entry throws a mismatch (the read keeps the current value);
+         * an item the registry rejects throws its own failure, before anything was
+         * applied. The slot binds like the old byte read: only a byte tag binds, so a
+         * missing or non-byte {@code Slot} binds slot 0; an index outside the
+         * container fails the read with a bare exception, as the old bounds check
+         * did, failing the load instead of keeping the current contents with a
+         * warning (which would lose the stored items on the next save).
          */
         private static List<StagedEntry> stage(JsonParser p, List<?> list, int size) {
             List<StagedEntry> staged = new ArrayList<>(list.size());
             for (Object entry : list) {
-                if (!(entry instanceof NbtMap item) || !(item.get("Slot") instanceof Number slot)) {
+                if (!(entry instanceof NbtMap item)) {
                     throw mismatch(p, entry);
                 }
-                int index = slot.intValue();
+                int index = slotIndex(item.get("Slot"));
                 if (index < 0 || index >= size) {
-                    throw rangeMismatch(p, entry, size);
+                    throw new IndexOutOfBoundsException(
+                            "Slot " + index + " is out of range for a container of size " + size);
                 }
                 staged.add(new StagedEntry(index,
                         org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
             }
             return staged;
+        }
+
+        /**
+         * Reads the slot the way the old byte read did: a byte tag binds its signed
+         * value, anything else, including a missing tag, binds slot 0.
+         */
+        private static int slotIndex(Object slot) {
+            return slot instanceof Byte b ? b : 0;
         }
 
         /**
@@ -337,7 +351,7 @@ public class ServerTypesNbtModule extends SimpleModule {
                 Object slot = item.get("Slot");
                 // Only a byte tag binds, as the old byte read did: anything else,
                 // including a missing tag, binds slot 0.
-                int index = slot instanceof Byte b ? b : 0;
+                int index = slotIndex(slot);
                 if (index < 0 || index >= size) {
                     throw new IndexOutOfBoundsException(
                             "Slot " + index + " is out of range for a container of size " + size);
@@ -373,18 +387,9 @@ public class ServerTypesNbtModule extends SimpleModule {
         private static MismatchedInputException mismatch(JsonParser p, Object entry) {
             MismatchedInputException mismatch = MismatchedInputException.from(p, ItemContainer.class,
                     "Cannot read an item container entry " + describe(entry)
-                            + "; expected an item compound with a numeric Slot");
+                            + "; expected an item compound");
             mismatch.initCause(new NbtKindMismatchException(
-                    "Item container entries need an item compound with a numeric Slot"));
-            return mismatch;
-        }
-
-        private static MismatchedInputException rangeMismatch(JsonParser p, Object entry, int size) {
-            MismatchedInputException mismatch = MismatchedInputException.from(p, ItemContainer.class,
-                    "Cannot read an item container entry " + describe(entry)
-                            + "; expected a Slot between 0 and " + (size - 1));
-            mismatch.initCause(new NbtKindMismatchException(
-                    "Item container slots must be between 0 and " + (size - 1)));
+                    "Item container entries need an item compound"));
             return mismatch;
         }
     }

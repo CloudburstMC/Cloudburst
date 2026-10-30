@@ -3527,6 +3527,18 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     @Override
+    protected void loadBaseCustom(NbtMap tag) {
+        // The saved level used to load before the whole data hook, and the base keys'
+        // ground-support check needs it, so it is assigned here before the base keys run
+        // instead of in loadCustom after them.
+        if (tag.get("Level") instanceof String savedLevel && this.server != null) {
+            CloudLevel level = this.server.getLevel(savedLevel);
+            this.level = level != null ? level : this.server.getDefaultLevel();
+        }
+        super.loadBaseCustom(tag);
+    }
+
+    @Override
     protected void loadCustom(NbtMap tag) {
         // The holder-backed state below used to load in the data hook, which ran before
         // the whole loadCustom chain including the living-state Health key, so it runs

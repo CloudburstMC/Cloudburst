@@ -8,6 +8,7 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -145,6 +146,77 @@ class ChestPersistenceTest {
                 .build();
 
         assertThrows(Exception.class, () -> entity.loadAdditionalData(tag));
+    }
+
+    @Test
+    void missingSlotBindsSlotZero() {
+        ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
+
+        // An entry without a Slot binds slot 0, as the old byte read defaulted to.
+        NbtMapBuilder entryBuilder = NbtMap.builder();
+        entryBuilder.putAll(ItemUtils.serializeItem(diamond));
+        NbtMap entry = entryBuilder.build();
+        assertFalse(entry.containsKey("Slot"));
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Chest")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Items", NbtType.COMPOUND, List.of(entry))
+                .build());
+
+        assertEquals(diamond, entity.getItem(0));
+    }
+
+    @Test
+    void shortSlotBindsSlotZero() {
+        ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
+
+        // Only a byte Slot binds, as the old byte read did: a short Slot binds slot 0.
+        NbtMapBuilder entryBuilder = ItemUtils.serializeItem(diamond, 5).toBuilder();
+        entryBuilder.putShort("Slot", (short) 5);
+        NbtMap entry = entryBuilder.build();
+        assertTrue(entry.get("Slot") instanceof Short);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Chest")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Items", NbtType.COMPOUND, List.of(entry))
+                .build());
+
+        assertEquals(diamond, entity.getItem(0));
+    }
+
+    @Test
+    void outOfRangeSlotFailsLoadWithoutTouchingContainer() {
+        ChestBlockEntity entity = (ChestBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CHEST, POSITION);
+        ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 5);
+        entity.setItem(1, diamond);
+
+        // An out-of-range Slot fails the load with a bare exception, as the old bounds
+        // check did, instead of keeping the current contents with a warning (which would
+        // lose the stored items on the next save). The live container is untouched.
+        NbtMap tag = NbtMap.builder()
+                .putString("id", "Chest")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putList("Items", NbtType.COMPOUND, List.of(ItemUtils.serializeItem(diamond, SIZE)))
+                .build();
+
+        tools.jackson.core.JacksonException thrown =
+                assertThrows(tools.jackson.core.JacksonException.class, () -> entity.loadAdditionalData(tag));
+        boolean bare = false;
+        for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IndexOutOfBoundsException) {
+                bare = true;
+            }
+        }
+        assertTrue(bare, "out-of-range slot must fail with a bare exception, not a kind mismatch");
+        assertEquals(diamond, entity.getItem(1));
     }
 
     @Test

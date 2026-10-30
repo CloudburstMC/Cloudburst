@@ -107,7 +107,7 @@ class ServerTypesNbtTest {
     }
 
     @Test
-    void outOfRangeSlotLeavesContainerUnchanged() {
+    void outOfRangeSlotFailsReadWithoutTouchingContainer() {
         Chest dto = new Chest();
         dto.items.setItem(0, ItemStack.from(ItemTypes.DIRT, 32));
         dto.items.setItem(5, ItemStack.from(ItemTypes.DIRT, 32));
@@ -116,7 +116,19 @@ class ServerTypesNbtTest {
                         List.of(ItemUtils.serializeItem(ItemStack.from(ItemTypes.DIAMOND, 5), SIZE)))
                 .build();
 
-        mapper.readInto(tag, dto);
+        // An out-of-range Slot fails the read with a bare exception, as the old bounds
+        // check did, instead of keeping the current contents with a warning (which would
+        // lose the stored items on the next save). Staging validates before mutating,
+        // so the live container is untouched.
+        tools.jackson.core.JacksonException thrown =
+                assertThrows(tools.jackson.core.JacksonException.class, () -> mapper.readInto(tag, dto));
+        boolean bare = false;
+        for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IndexOutOfBoundsException) {
+                bare = true;
+            }
+        }
+        assertTrue(bare, "out-of-range slot must fail with a bare exception, not a kind mismatch");
 
         assertEquals(ItemStack.from(ItemTypes.DIRT, 32), dto.items.getItem(0));
         assertEquals(ItemStack.from(ItemTypes.DIRT, 32), dto.items.getItem(5));

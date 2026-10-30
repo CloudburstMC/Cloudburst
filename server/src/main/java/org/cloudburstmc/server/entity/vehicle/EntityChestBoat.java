@@ -19,10 +19,8 @@ import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.*;
@@ -61,22 +59,11 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
     protected void loadCustom(NbtMap tag) {
         // The inventory runs before the boat load below, matching
         // the historical load order. The inventory is always cleared before
-        // the stored items are read. A stored slot outside the
-        // inventory fails the read, as before when it indexed the
-        // container; the mapper keeps the current contents for such a tag, so the range is
-        // re-checked here, outside the mapper, to fail with the same error as before.
+        // the stored items are read; the default container read already fails
+        // a stored slot outside the inventory with the same bare error as
+        // before, when it indexed the container, so no re-check is needed here.
         if (!tag.containsKey("Items")) {
             this.data().getItems().clear();
-        } else {
-            int size = this.data().getItems().size();
-            for (NbtMap item : tag.getList("Items", NbtType.COMPOUND, List.of())) {
-                if (item.get("Slot") instanceof Number slot) {
-                    int index = slot.intValue();
-                    if (index < 0 || index >= size) {
-                        throw new IllegalArgumentException("Invalid chest boat inventory slot " + index);
-                    }
-                }
-            }
         }
         super.loadCustom(tag);
     }

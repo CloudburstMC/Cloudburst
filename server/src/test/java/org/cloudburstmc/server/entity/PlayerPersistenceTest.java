@@ -75,6 +75,17 @@ class PlayerPersistenceTest {
     }
 
     @Test
+    void cloudPlayerAssignsLevelBeforeBaseKeys() throws Exception {
+        // The saved level must be assigned before the base keys run, because the
+        // ground-support check in setOnGround needs it. A CloudPlayer cannot be
+        // constructed server-free (its constructor needs a live CloudServer and a
+        // session), so no test can run the load itself; this pins the override that
+        // assigns the level before delegating to the base keys.
+        assertEquals(CloudPlayer.class,
+                CloudPlayer.class.getDeclaredMethod("loadBaseCustom", NbtMap.class).getDeclaringClass());
+    }
+
+    @Test
     void roundTripPreservesKeysAndTypes() {
         PersistenceFixtures.ensureInitialized();
         ServerNbt.ensureInitialized();

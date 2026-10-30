@@ -50,8 +50,18 @@ class ChestBoatStorageTest {
     @Test
     void rejectsStorageSlotsOutsideTheBoatInventory() {
         NbtMap invalid = NbtMap.builder().putByte("Slot", (byte) 27).build();
-        assertThrows(IllegalArgumentException.class, () -> boat().loadAdditionalData(NbtMap.builder()
-                .putList("Items", NbtType.COMPOUND, invalid).build()));
+        // The default container read fails an out-of-range slot with a bare exception,
+        // as the old bounds check did; the explicit re-check is gone.
+        tools.jackson.core.JacksonException thrown =
+                assertThrows(tools.jackson.core.JacksonException.class, () -> boat().loadAdditionalData(NbtMap.builder()
+                        .putList("Items", NbtType.COMPOUND, invalid).build()));
+        boolean bare = false;
+        for (Throwable cause = thrown; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IndexOutOfBoundsException) {
+                bare = true;
+            }
+        }
+        assertTrue(bare, "out-of-range slot must fail with a bare exception, not a kind mismatch");
     }
 
     private static EntityChestBoat boat() {

@@ -43,7 +43,7 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         this.data.set(AREA_EFFECT_CLOUD_WAITING, 10);
         this.data.set(AREA_EFFECT_CLOUD_PARTICLE, NetworkUtils.particleToNetwork(ParticleTypes.MOB_SPELL_AMBIENT));
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(PotionTypes.WATER));
-        this.data().setPotionId(NetworkUtils.potionToNetwork(PotionTypes.WATER));
+        this.data().setPotionId(PotionTypes.WATER);
         this.recalculatePotionColor();
     }
 
@@ -60,14 +60,14 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
 
     @Override
     public PotionType getPotionType() {
-        Short potionId = this.data().getPotionId();
-        return potionId == null ? PotionTypes.WATER : NetworkUtils.potionFromNetwork(potionId);
+        PotionType potionId = this.data().getPotionId();
+        return potionId == null ? PotionTypes.WATER : potionId;
     }
 
     @Override
     public void setPotionType(PotionType potionType) {
         requireNonNull(potionType, "potionType");
-        this.data().setPotionId(NetworkUtils.potionToNetwork(potionType));
+        this.data().setPotionId(potionType);
         this.data.set(AUX_VALUE_DATA, NetworkUtils.potionToNetwork(potionType));
         this.recalculatePotionColor();
     }
@@ -287,9 +287,9 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         // values when absent, exactly as the old null checks did. The color is applied
         // after the potion so the potion's recalculation does not clobber it.
         if (tag.containsKey("PotionId")) {
-            Short potionId = this.data().getPotionId();
+            PotionType potionId = this.data().getPotionId();
             if (potionId != null) {
-                this.setPotionType(NetworkUtils.potionFromNetwork(potionId));
+                this.setPotionType(potionId);
             }
         }
         if (tag.containsKey("Duration")) {

@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
 import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.potion.PotionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,8 @@ public class AreaEffectCloudData extends EntityData {
     private List<PotionEffect> mobEffects = new ArrayList<>();
 
     @JsonProperty("PotionId")
-    private Short potionId;
+    @NbtTag(NbtTagType.SHORT)
+    private PotionType potionId;
 
     @JsonProperty("Duration")
     private int duration;
