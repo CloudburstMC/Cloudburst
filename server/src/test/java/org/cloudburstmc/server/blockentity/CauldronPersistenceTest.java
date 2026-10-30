@@ -118,6 +118,34 @@ class CauldronPersistenceTest {
     }
 
     @Test
+    void dyedCauldronRoundTrip() {
+        CauldronBlockEntity entity = (CauldronBlockEntity) PersistenceFixtures.blockEntity(BlockEntityTypes.CAULDRON, POSITION);
+        entity.loadAdditionalData(NbtMap.builder()
+                .putString("id", "Cauldron")
+                .putInt("x", 10)
+                .putInt("y", 64)
+                .putInt("z", -5)
+                .putShort("PotionId", (short) -1)
+                .putShort("PotionType", (short) -1)
+                .putInt("CustomColor", 0xFF00FF00)
+                .build());
+
+        assertEquals(new CauldronContents(null, PotionForm.DRINKABLE, 0x00FF00), entity.getContents());
+
+        NbtMap saved = entity.getServerTag();
+        assertEquals((short) -1, saved.getShort("PotionId"));
+        assertEquals((short) -1, saved.getShort("PotionType"));
+        assertEquals(NbtType.SHORT, NbtType.byClass(saved.get("PotionId").getClass()));
+        assertEquals(0xFF00FF00, saved.getInt("CustomColor"));
+        assertEquals(NbtType.INT, NbtType.byClass(saved.get("CustomColor").getClass()));
+        assertEquals(List.of(), saved.get("Items"));
+
+        NbtMap client = entity.getClientTag();
+        assertEquals(Set.of("id", "PotionId", "PotionType", "Items", "CustomColor"), client.keySet());
+        assertEquals(0xFF00FF00, client.getInt("CustomColor"));
+    }
+
+    @Test
     void cauldronBlockEntityKeepsNoDuplicateState() {
         DtoStateChecks.assertKeepsNoDuplicateState(CauldronBlockEntity.class, CauldronData.class);
     }

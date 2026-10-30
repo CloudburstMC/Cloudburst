@@ -33,8 +33,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
     private static final int POWER_LEVEL_MAX = 4;
 
-    private EffectType primaryEffect;
-    private EffectType secondaryEffect;
     private int powerLevel;
     private long currentTick = 0;
 
@@ -48,33 +46,8 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    protected void applyData(BlockEntityData data) {
-        super.applyData(data);
-        BeaconData beacon = (BeaconData) data;
-        // Set the fields directly: the public setters spawn and dirty, which the
-        // stub level in tests cannot handle, and a chunk load needs neither.
-        if (beacon.getPrimary() != null) {
-            this.primaryEffect = NetworkUtils.effectFromNetwork(beacon.getPrimary().byteValue());
-        }
-        if (beacon.getSecondary() != null) {
-            this.secondaryEffect = NetworkUtils.effectFromNetwork(beacon.getSecondary().byteValue());
-        }
-    }
-
-    @Override
-    protected void fillData(BlockEntityData data) {
-        super.fillData(data);
-        BeaconData beacon = (BeaconData) data;
-        if (this.primaryEffect != null) {
-            beacon.setPrimary((int) NetworkUtils.effectToNetwork(this.primaryEffect));
-        } else {
-            beacon.setPrimary(null);
-        }
-        if (this.secondaryEffect != null) {
-            beacon.setSecondary((int) NetworkUtils.effectToNetwork(this.secondaryEffect));
-        } else {
-            beacon.setSecondary(null);
-        }
+    protected BeaconData data() {
+        return (BeaconData) super.data();
     }
 
     @Override
@@ -171,12 +144,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public EffectType getPrimaryEffect() {
-        return primaryEffect;
+        return data().getPrimary();
     }
 
     public void setPrimaryEffect(EffectType primaryEfect) {
-        if (primaryEfect != this.primaryEffect) {
-            this.primaryEffect = primaryEfect;
+        if (primaryEfect != data().getPrimary()) {
+            data().setPrimary(primaryEfect);
             setDirty();
             this.spawnToAll();
         }
@@ -187,12 +160,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public EffectType getSecondaryEffect() {
-        return secondaryEffect;
+        return data().getSecondary();
     }
 
     public void setSecondaryEffect(EffectType secondaryEffect) {
-        if (secondaryEffect != this.secondaryEffect) {
-            this.secondaryEffect = secondaryEffect;
+        if (secondaryEffect != data().getSecondary()) {
+            data().setSecondary(secondaryEffect);
             setDirty();
             this.spawnToAll();
         }

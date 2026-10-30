@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.api.nbt.NbtClient;
+import org.cloudburstmc.api.potion.EffectType;
 
 /**
- * Persistent data of a beacon: the network ids of its primary and secondary effects.
- * Either is absent while the beacon has no effect set, which today's save code cannot write.
+ * Persistent data of a beacon: its primary and secondary effects.
+ * Either is absent while the beacon has no effect set.
  */
 @Getter
 @Setter
@@ -16,10 +16,10 @@ import org.cloudburstmc.api.nbt.NbtClient;
 public class BeaconData extends BlockEntityData {
 
     @JsonProperty("primary")
-    private Integer primary;
+    private EffectType primary;
 
     @JsonProperty("secondary")
-    private Integer secondary;
+    private EffectType secondary;
 
     public BeaconData() {
     }

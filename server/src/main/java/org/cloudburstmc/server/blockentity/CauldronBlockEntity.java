@@ -37,31 +37,75 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The custom color is derived at save time: a potion always carries the
-        // color of its effects, dye is stored masked. Normalizing on load keeps
-        // the DTO save-ready, exactly like the previous fillData did.
-        CauldronData cauldron = data();
-        PotionType potion = cauldron.getPotionId() < 0 ? null : NetworkUtils.potionFromNetwork(cauldron.getPotionId());
+        // The potion and form ids plus the custom color are hook-owned: they are
+        // NBT-shaped network ids, not the runtime contents this DTO holds. Absent
+        // keys default as the DTO fields did (potion and form -1, no color): a
+        // potion always carries the color of its effects, dye is stored masked.
+        short potionId = numberOr(tag, "PotionId", (short) -1).shortValue();
+        short potionType = numberOr(tag, "PotionType", (short) -1).shortValue();
+        Integer customColor = tag.get("CustomColor") instanceof Number number ? number.intValue() : null;
+        PotionType potion = potionId < 0 ? null : NetworkUtils.potionFromNetwork(potionId);
+        PotionForm form = potion == null ? PotionForm.DRINKABLE : switch (potionType) {
+            case 1 -> PotionForm.SPLASH;
+            case 2 -> PotionForm.LINGERING;
+            default -> PotionForm.DRINKABLE;
+        };
+        Integer color;
         if (potion != null) {
-            cauldron.setCustomColor(0xFF000000 | CloudPotionColor.calculateEffects(potion.getEffects()).orElse(0x2828FF));
-        } else if (cauldron.getCustomColor() != null) {
-            cauldron.setCustomColor(0xFF000000 | (cauldron.getCustomColor() & 0xFFFFFF));
+            color = null;
+        } else if (customColor != null) {
+            color = customColor & 0xFFFFFF;
+        } else {
+            color = null;
         }
+        data().setContents(new CauldronContents(potion, form, color));
     }
 
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
+        writeContents(tag);
         writeItems(tag);
     }
 
     @Override
     protected void saveCustomClient(NbtMapBuilder tag) {
+        writeContents(tag);
         writeItems(tag);
     }
 
     @Override
     protected Set<String> customKeys() {
-        return Set.of("Items", "IsSplash");
+        return Set.of("PotionId", "PotionType", "CustomColor", "Items", "IsSplash");
+    }
+
+    private void writeContents(NbtMapBuilder tag) {
+        CauldronContents contents = data().getContents();
+        PotionType potion = contents.potion();
+        tag.putShort("PotionId", potion == null ? (short) -1 : NetworkUtils.potionToNetwork(potion));
+        short formId;
+        if (potion == null) {
+            formId = -1;
+        } else {
+            formId = switch (contents.form()) {
+                case DRINKABLE -> (short) 0;
+                case SPLASH -> (short) 1;
+                case LINGERING -> (short) 2;
+            };
+        }
+        tag.putShort("PotionType", formId);
+        Integer color;
+        if (potion != null) {
+            color = CloudPotionColor.calculateEffects(potion.getEffects()).orElse(0x2828FF);
+        } else {
+            color = contents.color();
+        }
+        if (color != null) {
+            tag.putInt("CustomColor", 0xFF000000 | color);
+        }
+    }
+
+    private static Number numberOr(NbtMap tag, String key, Number fallback) {
+        return tag.get(key) instanceof Number number ? number : fallback;
     }
 
     private void writeItems(NbtMapBuilder tag) {
@@ -71,18 +115,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
 
     @Override
     public CauldronContents getContents() {
-        CauldronData cauldron = data();
-        short potionId = cauldron.getPotionId();
-        PotionType potion = potionId < 0 ? null : NetworkUtils.potionFromNetwork(potionId);
-        PotionForm form = potion == null ? PotionForm.DRINKABLE : switch (cauldron.getPotionType()) {
-            case 1 -> PotionForm.SPLASH;
-            case 2 -> PotionForm.LINGERING;
-            default -> PotionForm.DRINKABLE;
-        };
-
-        Integer color = potion == null && cauldron.getCustomColor() != null
-                ? cauldron.getCustomColor() & 0xFFFFFF : null;
-        return new CauldronContents(potion, form, color);
+        return data().getContents();
     }
 
     @Override
@@ -90,25 +123,7 @@ public class CauldronBlockEntity extends BaseBlockEntity implements Cauldron {
         Objects.requireNonNull(contents, "contents");
 
         if (!contents.equals(getContents())) {
-            CauldronData cauldron = data();
-            PotionType potion = contents.potion();
-            short potionId = potion == null ? (short) -1 : NetworkUtils.potionToNetwork(potion);
-            short formId = -1;
-            if (potion != null) {
-                formId = (short) switch (contents.form()) {
-                    case DRINKABLE -> 0;
-                    case SPLASH -> 1;
-                    case LINGERING -> 2;
-                };
-            }
-            cauldron.setPotionId(potionId);
-            cauldron.setPotionType(formId);
-
-            Integer color = contents.color();
-            if (potion != null) {
-                color = CloudPotionColor.calculateEffects(potion.getEffects()).orElse(0x2828FF);
-            }
-            cauldron.setCustomColor(color == null ? null : 0xFF000000 | color);
+            data().setContents(contents);
             this.setDirty();
             this.spawnToAll();
         }

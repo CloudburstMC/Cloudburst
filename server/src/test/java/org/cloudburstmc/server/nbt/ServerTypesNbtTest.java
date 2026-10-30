@@ -10,10 +10,13 @@ import org.cloudburstmc.api.nbt.NbtContainerSize;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -153,6 +156,46 @@ class ServerTypesNbtTest {
                 .build();
 
         assertThrows(Exception.class, () -> mapper.read(tag, Unsized.class));
+    }
+
+    @Test
+    void effectTypeWritesNetworkIdAsInt() {
+        Effects dto = new Effects();
+        dto.primary = EffectTypes.SPEED;
+
+        NbtMap tag = mapper.write(dto);
+
+        assertEquals((int) NetworkUtils.effectToNetwork(EffectTypes.SPEED), ((Number) tag.get("primary")).intValue());
+        assertEquals(NbtType.INT, NbtType.byClass(tag.get("primary").getClass()));
+    }
+
+    @Test
+    void effectTypeRoundTrip() {
+        Effects dto = new Effects();
+        NbtMap tag = NbtMap.builder()
+                .putInt("primary", NetworkUtils.effectToNetwork(EffectTypes.REGENERATION))
+                .build();
+
+        mapper.readInto(tag, dto);
+
+        assertEquals(EffectTypes.REGENERATION, dto.primary);
+    }
+
+    @Test
+    void effectTypeWrongKindKeepsCurrent() {
+        Effects dto = new Effects();
+        dto.primary = EffectTypes.SPEED;
+        NbtMap tag = NbtMap.builder().putString("primary", "speed").build();
+
+        mapper.readInto(tag, dto);
+
+        assertEquals(EffectTypes.SPEED, dto.primary);
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class Effects {
+        @JsonProperty("primary")
+        EffectType primary;
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)

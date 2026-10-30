@@ -7,6 +7,8 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.internal.NbtParser;
+import org.cloudburstmc.api.potion.EffectType;
+import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -43,6 +45,56 @@ public class ServerTypesNbtModule extends SimpleModule {
         addDeserializer(SlottedItem.class, new SlottedItemDeserializer());
         addSerializer(ItemContainer.class, new ItemContainerSerializer());
         addDeserializer(ItemContainer.class, new ItemContainerDeserializer());
+        addSerializer(EffectType.class, new EffectTypeSerializer());
+        addDeserializer(EffectType.class, new EffectTypeDeserializer());
+    }
+
+    /**
+     * Stores an effect type as its network id in an int, as beacon effects are stored today.
+     * An id the mapping does not know fails the read with the mapping's own error, exactly
+     * like the previous load path, which converted the stored int after reading it.
+     */
+    private static final class EffectTypeSerializer extends StdSerializer<EffectType> {
+
+        EffectTypeSerializer() {
+            super(EffectType.class);
+        }
+
+        @Override
+        public void serialize(EffectType value, JsonGenerator gen, SerializationContext provider) {
+            gen.writeNumber((int) NetworkUtils.effectToNetwork(value));
+        }
+    }
+
+    private static final class EffectTypeDeserializer extends StdDeserializer<EffectType> {
+
+        EffectTypeDeserializer() {
+            super(EffectType.class);
+        }
+
+        @Override
+        public EffectType deserialize(JsonParser p, DeserializationContext ctxt) {
+            Object tag = p instanceof NbtParser parser ? parser.currentTag() : null;
+            if (!(tag instanceof Number number)) {
+                MismatchedInputException mismatch = MismatchedInputException.from(p, EffectType.class,
+                        "Cannot read an effect type from " + describe(tag) + "; expected an int effect id");
+                mismatch.initCause(new NbtKindMismatchException("Effect types are stored as int effect ids"));
+                throw mismatch;
+            }
+            p.skipChildren();
+            return NetworkUtils.effectFromNetwork(number.byteValue());
+        }
+
+        private static String describe(Object tag) {
+            return switch (tag) {
+                case List<?> list -> "a list of " + list.size() + " values";
+                case NbtMap ignored -> "a compound";
+                case Number ignored -> "a number";
+                case String value -> "\"" + value + "\"";
+                case null -> "nothing";
+                default -> "an NBT " + tag.getClass().getSimpleName();
+            };
+        }
     }
 
     private static final class ItemStackSerializer extends StdSerializer<ItemStack> {
