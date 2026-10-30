@@ -88,10 +88,14 @@ public final class NbtPropertyModifier extends ValueSerializerModifier {
                 this.element = element = NbtTypeResolver.elementType(getType(), ctxt);
             }
             generator.expect(value, element);
+            if (client) {
+                generator.approveName();
+            }
             try {
                 super.serializeAsProperty(bean, g, ctxt);
             } finally {
                 generator.clearExpectation();
+                generator.clearApproval();
             }
         }
     }

@@ -45,6 +45,10 @@ public final class NbtGenerator extends GeneratorBase {
     private Container container = new Root();
     private @Nullable NbtTagType expectedValue;
     private NbtTagType expectedElement = NbtTagType.AUTO;
+    /**
+     * Whether a client property approved the next root name in the client view.
+     */
+    private boolean nameApproved;
 
     /**
      * Creates a generator that writes every property.
@@ -70,12 +74,34 @@ public final class NbtGenerator extends GeneratorBase {
      * Returns whether a property about to be written is left out: in the client view,
      * a property of the root object that is not a client property. Nested values are
      * written whole.
+     * <p>
+     * This only saves work. The client view fails closed regardless: a root name that
+     * {@link #approveName} did not approve is dropped with its value.
      *
      * @param clientProperty whether the property is a client property
      */
     public boolean omits(boolean clientProperty) {
-        return clientView && !clientProperty && container instanceof Compound compound
-                && compound.parent instanceof Root;
+        return clientView && !clientProperty && atRootCompound();
+    }
+
+    /**
+     * Approves the next root name for the client view. Only a client property calls this,
+     * just before it writes itself; {@link #clearApproval} withdraws an approval it did
+     * not use.
+     */
+    public void approveName() {
+        this.nameApproved = true;
+    }
+
+    /**
+     * Withdraws an unused approval, for example because the client property was null.
+     */
+    public void clearApproval() {
+        this.nameApproved = false;
+    }
+
+    private boolean atRootCompound() {
+        return container instanceof Compound compound && compound.parent instanceof Root;
     }
 
     /**
@@ -173,7 +199,13 @@ public final class NbtGenerator extends GeneratorBase {
         if (!writeContext.writeName(name)) {
             throw _constructWriteException("Cannot write a property name, expecting a value");
         }
-        ((Compound) container).name = name;
+        Compound compound = (Compound) container;
+        compound.name = name;
+        if (clientView && compound.parent instanceof Root) {
+            // Fail closed: only a client property may put a name in the client view
+            compound.discard = !nameApproved;
+            nameApproved = false;
+        }
         return this;
     }
 
@@ -301,6 +333,7 @@ public final class NbtGenerator extends GeneratorBase {
             throw _constructWriteException("NBT cannot hold null outside a compound");
         }
         compound.name = null;
+        compound.discard = false;
         return this;
     }
 
@@ -317,6 +350,11 @@ public final class NbtGenerator extends GeneratorBase {
         }
         _verifyValueWrite("write an NBT value");
         takeExpected();
+        if (clientView && container instanceof Root) {
+            // A tag written as the root carries no client marks, so none of it is shown
+            container.add(object instanceof NbtMap ? NbtMap.EMPTY : object);
+            return this;
+        }
         container.add(object);
         return this;
     }
@@ -416,6 +454,10 @@ public final class NbtGenerator extends GeneratorBase {
     private static final class Compound extends Container {
         final NbtMapBuilder builder = NbtMap.builder();
         String name;
+        /**
+         * Whether the value of the current name is dropped instead of added.
+         */
+        boolean discard;
 
         Compound(Container parent, NbtTagType element) {
             super(parent, element);
@@ -423,8 +465,11 @@ public final class NbtGenerator extends GeneratorBase {
 
         @Override
         void add(Object value) {
-            builder.put(name, value);
+            if (!discard) {
+                builder.put(name, value);
+            }
             name = null;
+            discard = false;
         }
     }
 

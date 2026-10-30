@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -10,7 +11,9 @@ import org.cloudburstmc.nbt.NbtType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -159,6 +162,41 @@ class NbtMapperReadTest {
         assertEquals(Set.of("Shown", "Hidden", "Patterns"), mapper.write(new ClientView()).keySet());
     }
 
+    @Test
+    void writeClientDropsNamesNoClientPropertyApproved() {
+        AnyGetter dto = new AnyGetter();
+
+        assertEquals(Set.of("Shown"), mapper.writeClient(dto).keySet());
+        // The full view writes the extra keys, so the client view really drops them
+        assertEquals(Set.of("Shown", "Secret", "Other"), mapper.write(dto).keySet());
+    }
+
+    @Test
+    void writeClientOfMapRootIsEmpty() {
+        Map<String, Object> secrets = new LinkedHashMap<>();
+        secrets.put("Secret", 1);
+        secrets.put("Nested", Map.of("a", "b"));
+
+        assertEquals(NbtMap.EMPTY, mapper.writeClient(secrets));
+        assertEquals(Set.of("Secret", "Nested"), mapper.write(secrets).keySet());
+    }
+
+    @Test
+    void writeClientOfNbtMapRootIsEmpty() {
+        NbtMap secrets = NbtMap.builder().putInt("Secret", 1).build();
+
+        assertEquals(NbtMap.EMPTY, mapper.writeClient(secrets));
+        assertEquals(secrets, mapper.write(secrets));
+    }
+
+    @Test
+    void writeClientOfJsonValueRootIsEmpty() {
+        ValueRoot dto = new ValueRoot();
+
+        assertEquals(NbtMap.EMPTY, mapper.writeClient(dto));
+        assertEquals(Set.of("Secret"), mapper.write(dto).keySet());
+    }
+
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
     @EqualsAndHashCode
     static class Nested {
@@ -271,6 +309,40 @@ class NbtMapperReadTest {
     static class Sub extends Base {
         @JsonProperty("SubKey")
         int sub;
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class AnyGetter {
+        @JsonProperty("Shown")
+        @NbtClient
+        int shown = 1;
+        /**
+         * A client property that writes nothing must not let the next name through. Its
+         * key sorts last, so the any-getter's names come right after it.
+         */
+        @JsonProperty("Unset")
+        @NbtClient
+        Integer unset;
+
+        @JsonAnyGetter
+        Map<String, Object> extras() {
+            Map<String, Object> extras = new LinkedHashMap<>();
+            extras.put("Secret", 7);
+            extras.put("Other", "server only");
+            return extras;
+        }
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
+    static class ValueRoot {
+        @JsonProperty("Shown")
+        @NbtClient
+        int shown = 1;
+
+        @JsonValue
+        Map<String, Object> value() {
+            return Map.of("Secret", 5);
+        }
     }
 
     @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
