@@ -258,7 +258,8 @@ public class ServerTypesNbtModule extends SimpleModule {
             p.skipChildren();
             // Stage every entry before the container is created, so a failed
             // read never leaves a partially filled container behind.
-            List<StagedEntry> staged = positional ? stagePositional(p, list, size) : stage(p, list, size);
+            List<StagedEntry> staged = positional ? stagePositional(p, list, size)
+                    : keepUnlisted ? stageKeepUnlisted(p, list, size) : stage(p, list, size);
             ItemContainer created = ItemContainers.detached(size);
             for (StagedEntry entry : staged) {
                 created.setItem(entry.slot(), entry.item());
@@ -286,7 +287,7 @@ public class ServerTypesNbtModule extends SimpleModule {
             // read never leaves a partially updated container behind. Sparse
             // player inventories keep the slots the list omits; every other
             // container is cleared first, as its load always was.
-            List<StagedEntry> staged = stage(p, list, into.size());
+            List<StagedEntry> staged = keepUnlisted ? stageKeepUnlisted(p, list, size) : stage(p, list, into.size());
             if (!keepUnlisted) {
                 into.clear();
             }
@@ -311,6 +312,33 @@ public class ServerTypesNbtModule extends SimpleModule {
                 int index = slot.intValue();
                 if (index < 0 || index >= size) {
                     throw rangeMismatch(p, entry, size);
+                }
+                staged.add(new StagedEntry(index,
+                        org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));
+            }
+            return staged;
+        }
+
+        /**
+         * Reads every entry of a sparse keep-unlisted container list (a player
+         * inventory or ender chest) without touching any container, so the caller
+         * can fill or replace contents only after the whole tag proved usable. An
+         * entry without a {@code Slot} binds slot 0, as today's player load read
+         * the slot with a default of zero; an index outside the container fails
+         * the read with a bare exception, as the old bounds check did, failing
+         * the load instead of keeping the current contents with a warning.
+         */
+        private static List<StagedEntry> stageKeepUnlisted(JsonParser p, List<?> list, int size) {
+            List<StagedEntry> staged = new ArrayList<>(list.size());
+            for (Object entry : list) {
+                if (!(entry instanceof NbtMap item)) {
+                    throw mismatch(p, entry);
+                }
+                Object slot = item.get("Slot");
+                int index = slot == null ? 0 : ((Number) slot).intValue();
+                if (index < 0 || index >= size) {
+                    throw new IndexOutOfBoundsException(
+                            "Slot " + index + " is out of range for a container of size " + size);
                 }
                 staged.add(new StagedEntry(index,
                         org.cloudburstmc.server.item.ItemUtils.deserializeItem(item)));

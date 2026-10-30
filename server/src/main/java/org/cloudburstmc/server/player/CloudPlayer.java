@@ -102,7 +102,6 @@ import org.cloudburstmc.server.form.Form;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.nbt.SkinNbt;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
@@ -288,7 +287,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.connectionData = connectionData;
         this.locale.set(connectionData.getLocale());
-        super.setSkin(connectionData.getSkin());
 
         this.randomClientId = connectionData.getClientId();
         this.identity = connectionData.getUniqueId();
@@ -806,7 +804,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Override
     public void setSkin(Skin skin) {
         this.connectionData.setSkin(skin);
-        super.setSkin(skin);
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
         }
@@ -814,7 +811,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     public void setSkin(SerializedSkin skin) {
         this.connectionData.setSkin(skin);
-        super.setSkin(this.getSkin());
         if (this.spawned) {
             this.getServer().updatePlayerListData(this.getServerId(), this.getUniqueId(), BedrockLegacyTextSerializer.getInstance().serialize(this.displayName()), this.getSerializedSkin(), this.getXuid());
         }
@@ -3383,46 +3379,48 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Override
     protected void loadCustom(NbtMap tag) {
-        // The state below used to load in the data hook, which ran before the whole
-        // loadCustom chain including the living-state Health key, so it runs here before
-        // the superclass chain for the same reason. The inventory and ender chest need
-        // no code: the read already filled the live containers in place, keeping the
-        // slots a stored list omits, and the seen-credits flag lives in the data
-        // instance directly.
-        org.cloudburstmc.api.entity.data.PlayerData player = this.data();
-        // The player-data hooks below need the saved level, so it is assigned first.
-        if (player.getLevel() != null && this.server != null) {
-            CloudLevel savedLevel = this.server.getLevel(player.getLevel());
-            this.level = savedLevel != null ? savedLevel : this.server.getDefaultLevel();
+        // The holder-backed state below used to load in the data hook, which ran before
+        // the whole loadCustom chain including the living-state Health key, so it runs
+        // here before the superclass chain for the same reason. The inventory and ender
+        // chest need no code: the read already filled the live containers in place,
+        // keeping the slots a stored list omits, and the seen-credits flag and
+        // experience live in the data instance directly. Every read is lenient: a key
+        // of another kind keeps the holder's current value, except food, whose absent
+        // or mistyped keys reset to today's defaults, as the data defaults did.
+        if (tag.get("Level") instanceof String savedLevel && this.server != null) {
+            CloudLevel level = this.server.getLevel(savedLevel);
+            this.level = level != null ? level : this.server.getDefaultLevel();
         }
 
-        if (player.getFirstPlayed() != null) {
-            this.playerData.setFirstPlayed(player.getFirstPlayed());
+        if (tag.containsKey("firstPlayed")) {
+            this.playerData.setFirstPlayed(getLong(tag, "firstPlayed", this.playerData.getFirstPlayed().getAsLong()));
         }
-        if (player.getLastPlayed() != null) {
-            this.playerData.setLastPlayed(player.getLastPlayed());
+        if (tag.containsKey("lastPlayed")) {
+            this.playerData.setLastPlayed(getLong(tag, "lastPlayed", this.playerData.getLastPlayed().getAsLong()));
         }
-        if (player.getLevel() != null) {
-            this.playerData.setLevel(player.getLevel());
+        if (tag.get("Level") instanceof String level) {
+            this.playerData.setLevel(level);
         }
-        if (player.getSpawnLevel() != null) {
-            this.playerData.setSpawnLevel(player.getSpawnLevel());
+        if (tag.get("SpawnLevel") instanceof String spawnLevel) {
+            this.playerData.setSpawnLevel(spawnLevel);
         }
-        if (player.getSpawnX() != null && player.getSpawnY() != null && player.getSpawnZ() != null) {
-            this.playerData.setSpawnLocation(Vector3i.from(
-                    player.getSpawnX(), player.getSpawnY(), player.getSpawnZ()));
+        Object spawnX = tag.get("SpawnX");
+        Object spawnY = tag.get("SpawnY");
+        Object spawnZ = tag.get("SpawnZ");
+        if (spawnX instanceof Number x && spawnY instanceof Number y && spawnZ instanceof Number z) {
+            this.playerData.setSpawnLocation(Vector3i.from(x.intValue(), y.intValue(), z.intValue()));
         }
-        if (player.getSpawnYaw() != null) {
-            this.playerData.setSpawnYaw(player.getSpawnYaw());
+        if (tag.get("SpawnYaw") instanceof Number spawnYaw) {
+            this.playerData.setSpawnYaw(spawnYaw.floatValue());
         }
-        if (player.getPlayerGameType() != null) {
-            this.playerData.setGamemode(GameMode.from(player.getPlayerGameType()));
+        if (tag.get("playerGameType") instanceof Number gameType) {
+            this.playerData.setGamemode(GameMode.from(gameType.intValue()));
         }
 
-        this.setExperience(player.getExp(), player.getExpLevel());
+        this.setExperience(getInt(tag, "EXP", this.data().getExp()), getInt(tag, "expLevel", this.data().getExpLevel()));
 
-        this.foodData.load(player.getFoodLevel(), player.getFoodSaturation(),
-                player.getFoodExhaustion(), player.getFoodTickTimer());
+        this.foodData.load(getInt(tag, "foodLevel", 20), getFloat(tag, "foodSaturationLevel", 5.0f),
+                getFloat(tag, "foodExhaustionLevel", 0.0f), getInt(tag, "foodTickTimer", 0));
 
         super.loadCustom(tag);
         tag.listenForString("lastIP", this.playerData::setLastAddress);
@@ -3454,7 +3452,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Override
     protected void saveCustom(NbtMapBuilder tag) {
         super.saveCustom(tag);
-        org.cloudburstmc.api.entity.data.PlayerData player = this.data();
 
         this.playerData.setLevel(this.level.getId());
         if (this.spawnLocation != null && this.spawnLocation.getLevel() != null) {
@@ -3463,34 +3460,33 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.playerData.setSpawnYaw(this.spawnLocation.getYaw());
         }
 
-        // Experience and the containers are already live in the data instance; the
-        // holder values below are synced back onto it before it is written, exactly
-        // as the previous save path did. The base save already wrote the data once,
-        // so it is written again with the synced values.
-        player.setFoodLevel(this.getFoodData().getLevel());
-        player.setFoodSaturation(this.foodData.getSaturation());
-        player.setFoodExhaustion(this.foodData.getExhaustion());
-        player.setFoodTickTimer(this.foodData.getTickTimer());
-        player.setSeenCredits(this.hasSeenCredits());
+        // Experience, credits and the containers are already live in the data instance,
+        // which the base wrote before these hooks ran. The keys below are hook-owned:
+        // none of them is DTO-owned, so nothing here can clash with what the base
+        // wrote and no second DTO write is needed. Presence matches the previous save
+        // path exactly: food is always written, the rest only when set.
+        tag.putInt("foodLevel", this.getFoodData().getLevel());
+        tag.putFloat("foodSaturationLevel", this.foodData.getSaturation());
+        tag.putFloat("foodExhaustionLevel", this.foodData.getExhaustion());
+        tag.putInt("foodTickTimer", this.foodData.getTickTimer());
 
         if (this.playerData.getFirstPlayed().getAsLong() > 0 && this.playerData.getLastPlayed().getAsLong() > 0) {
-            player.setFirstPlayed(this.playerData.getFirstPlayed().getAsLong());
-            player.setLastPlayed(this.playerData.getLastPlayed().getAsLong());
+            tag.putLong("firstPlayed", this.playerData.getFirstPlayed().getAsLong());
+            tag.putLong("lastPlayed", this.playerData.getLastPlayed().getAsLong());
         }
         if (this.playerData.getLevel() != null) {
-            player.setLevel(this.playerData.getLevel());
+            tag.putString("Level", this.playerData.getLevel());
         }
         if (this.playerData.getSpawnLevel() != null && this.playerData.getSpawnLocation() != null) {
-            player.setSpawnLevel(this.playerData.getSpawnLevel());
-            player.setSpawnX(this.playerData.getSpawnLocation().getX());
-            player.setSpawnY(this.playerData.getSpawnLocation().getY());
-            player.setSpawnZ(this.playerData.getSpawnLocation().getZ());
-            player.setSpawnYaw(this.playerData.getSpawnYaw());
+            tag.putString("SpawnLevel", this.playerData.getSpawnLevel());
+            tag.putInt("SpawnX", this.playerData.getSpawnLocation().getX());
+            tag.putInt("SpawnY", this.playerData.getSpawnLocation().getY());
+            tag.putInt("SpawnZ", this.playerData.getSpawnLocation().getZ());
+            tag.putFloat("SpawnYaw", this.playerData.getSpawnYaw());
         }
         if (this.playerData.getGamemode() != null) {
-            player.setPlayerGameType(this.playerData.getGamemode().getVanillaId());
+            tag.putInt("playerGameType", this.playerData.getGamemode().getVanillaId());
         }
-        tag.putAll(ServerNbt.MAPPER.write(player));
 
         // The stored skin is ignored on load, so the live skin is written here.
         Skin skin = this.getSkin();
@@ -3503,6 +3499,19 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected Set<String> customKeys() {
         Set<String> keys = new HashSet<>(super.customKeys());
         keys.add("Skin");
+        keys.add("foodLevel");
+        keys.add("foodSaturationLevel");
+        keys.add("foodExhaustionLevel");
+        keys.add("foodTickTimer");
+        keys.add("firstPlayed");
+        keys.add("lastPlayed");
+        keys.add("Level");
+        keys.add("SpawnLevel");
+        keys.add("SpawnX");
+        keys.add("SpawnY");
+        keys.add("SpawnZ");
+        keys.add("SpawnYaw");
+        keys.add("playerGameType");
         return Set.copyOf(keys);
     }
 
