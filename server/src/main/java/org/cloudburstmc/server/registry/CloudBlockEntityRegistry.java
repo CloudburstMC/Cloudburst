@@ -180,6 +180,16 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.closed = true;
     }
 
+    /**
+     * Returns whether registration is closed. Test fixtures use this to close
+     * the shared registry exactly once, regardless of test execution order.
+     *
+     * @return true if {@link #close()} has completed
+     */
+    public boolean isClosed() {
+        return closed;
+    }
+
     private void checkClosed() {
         checkState(!closed, "Registration is already closed");
     }

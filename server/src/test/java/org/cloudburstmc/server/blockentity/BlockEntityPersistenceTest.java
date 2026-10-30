@@ -1,28 +1,17 @@
 package org.cloudburstmc.server.blockentity;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.data.BlockEntityData;
-import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.nbt.NbtClient;
 import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 import org.cloudburstmc.server.testutil.PersistenceFixtures;
-import org.junit.jupiter.api.BeforeAll;
+import org.cloudburstmc.server.testutil.TestBlockEntities.LegacyBlockEntity;
+import org.cloudburstmc.server.testutil.TestBlockEntities.MigratedBlockEntity;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
+import static org.cloudburstmc.server.testutil.TestBlockEntities.LEGACY_TYPE;
+import static org.cloudburstmc.server.testutil.TestBlockEntities.MIGRATED_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,21 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BlockEntityPersistenceTest {
 
     private static final Vector3i POSITION = Vector3i.from(1, 2, 3);
-
-    private static final BlockEntityType<MigratedBlockEntity> MIGRATED_TYPE =
-            BlockEntityType.from("test:migrated", MigratedBlockEntity.class);
-    private static final BlockEntityType<LegacyBlockEntity> LEGACY_TYPE =
-            BlockEntityType.from("test:legacy", LegacyBlockEntity.class);
-
-    @BeforeAll
-    static void registerTestTypes() {
-        CloudBlockEntityRegistry registry = CloudBlockEntityRegistry.get();
-        registry.register(MIGRATED_TYPE, MigratedBlockEntity::new, "TestMigrated",
-                Set.of(BlockTypes.CHEST), MigratedData.class);
-        registry.register(LEGACY_TYPE, LegacyBlockEntity::new, "TestLegacy",
-                Set.of(BlockTypes.CHEST));
-        registry.close();
-    }
 
     @Test
     void unknownKeysSurviveSave() {
@@ -160,69 +134,5 @@ class BlockEntityPersistenceTest {
 
         assertEquals("v", saved.getString("Custom"));
         assertFalse(saved.getBoolean("isMovable"));
-    }
-
-    @Getter
-    @Setter
-    @EqualsAndHashCode(callSuper = true)
-    @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, isGetterVisibility = NONE, setterVisibility = NONE)
-    public static class MigratedData extends BlockEntityData {
-
-        @NbtClient
-        @JsonProperty("Count")
-        private int count;
-
-        public MigratedData() {
-        }
-    }
-
-    public static class MigratedBlockEntity extends BaseBlockEntity {
-
-        private int count;
-        private boolean flag;
-
-        public MigratedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-            super(type, chunk, position);
-        }
-
-        @Override
-        protected void applyData(BlockEntityData data) {
-            super.applyData(data);
-            this.count = ((MigratedData) data).getCount();
-        }
-
-        @Override
-        protected void fillData(BlockEntityData data) {
-            super.fillData(data);
-            ((MigratedData) data).setCount(this.count);
-        }
-
-        @Override
-        protected void loadCustom(NbtMap tag) {
-            tag.listenForBoolean("Flag", value -> this.flag = value);
-        }
-
-        @Override
-        protected void saveCustom(NbtMapBuilder tag) {
-            if (this.flag) {
-                tag.putBoolean("Flag", true);
-            }
-        }
-
-        @Override
-        protected Set<String> customKeys() {
-            return Set.of("Flag");
-        }
-
-        public void setFlag(boolean flag) {
-            this.flag = flag;
-        }
-    }
-
-    public static class LegacyBlockEntity extends BaseBlockEntity {
-
-        public LegacyBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-            super(type, chunk, position);
-        }
     }
 }
