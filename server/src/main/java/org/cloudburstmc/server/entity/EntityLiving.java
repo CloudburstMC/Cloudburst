@@ -28,10 +28,10 @@ import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.LivingData;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -75,17 +75,15 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForFloat("Health", this::setHealth);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        this.setHealth(((LivingData) data).getHealth());
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putFloat("Health", this.getHealth());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((LivingData) data).setHealth(this.getHealth());
     }
 
     @Override

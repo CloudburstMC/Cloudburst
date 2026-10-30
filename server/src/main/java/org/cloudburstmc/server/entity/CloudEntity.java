@@ -26,7 +26,9 @@ import org.cloudburstmc.api.event.vehicle.VehicleEnterEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleExitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
@@ -43,7 +45,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
@@ -60,7 +61,7 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.ActivePotionEffect;
-import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
+import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -247,126 +248,232 @@ public abstract class CloudEntity implements Entity {
     public void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
-        tag.listenForList("Pos", NbtType.FLOAT, list -> {
-            this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
-        });
+        this.applyData(ServerNbt.MAPPER.read(tag, CloudEntityRegistry.get().getDataClass(this.type)));
+        this.loadCustom(tag);
+    }
 
-        tag.listenForList("Rotation", NbtType.FLOAT, list -> {
-            this.setRotation(list.get(0), list.get(1));
-        });
+    public void saveAdditionalData(NbtMapBuilder tag) {
+        Class<? extends EntityData> dataClass = CloudEntityRegistry.get().getDataClass(this.type);
+        Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
+        excluded.addAll(this.customKeys());
+        excluded.add("identifier");
 
-        tag.listenForList("Motion", NbtType.FLOAT, list -> {
-            this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
-        });
-
-        this.highestPosition = this.getY();
-
-        tag.listenForFloat("FallDistance", this::setFallDistance);
-        tag.listenForShort("Fire", this::setOnFire);
-        tag.listenForShort("Air", this::setAirTicks);
-        tag.listenForBoolean("OnGround", this::setOnGround);
-        tag.listenForBoolean("Invulnerable", this::setInvulnerable);
-        tag.listenForInt("TicksFrozen", this::setFreezeTicks);
-
-        if (this instanceof Bucketable) {
-            tag.listenForBoolean("FromBucket", this::setFromBucket);
-        }
-
-        tag.listenForFloat("Scale", this::setScale);
-
-        if (tag.containsKey("ActiveEffects")) {
-            List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
-            for (NbtMap e : effects) {
-                this.restorePotionEffect(PotionEffectDataSerializer.deserialize(e));
+        if (this.tag != null && !this.tag.isEmpty()) {
+            for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
+                if (!excluded.contains(entry.getKey())) {
+                    tag.put(entry.getKey(), entry.getValue());
+                }
             }
         }
 
-        tag.listenForString("CustomName", this::setNameTag);
-        tag.listenForBoolean("CustomNameVisible", this::setNameTagVisible);
-        tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
+        EntityData data = this.newData();
+        this.fillData(data);
+        tag.putAll(ServerNbt.MAPPER.write(data));
+
+        if (!(this instanceof CloudPlayer)) {
+            tag.putString("identifier", this.type.getId().toString());
+        }
+
+        this.saveCustom(tag);
+    }
+
+    @Override
+    public Optional<NbtMap> getPluginData(String pluginId) {
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return Optional.empty();
+        }
+        NbtMap root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, null);
+        if (root == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(root.getCompound(pluginId, null));
+    }
+
+    @Override
+    public void setPluginData(String pluginId, NbtMap data) {
+        checkNotNull(pluginId, "pluginId");
+        checkNotNull(data, "data");
+        NbtMap tag = this.tag == null ? NbtMap.EMPTY : this.tag;
+        NbtMapBuilder root = tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).toBuilder();
+        root.putCompound(pluginId, data);
+        NbtMapBuilder builder = tag.toBuilder();
+        builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        this.tag = builder.build();
+    }
+
+    @Override
+    public void removePluginData(String pluginId) {
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return;
+        }
+        if (!this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).containsKey(pluginId)) {
+            return;
+        }
+        NbtMapBuilder root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY).toBuilder();
+        root.remove(pluginId);
+        NbtMapBuilder builder = this.tag.toBuilder();
+        if (root.isEmpty()) {
+            builder.remove(NbtMapper.PLUGIN_DATA_KEY);
+        } else {
+            builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        }
+        this.tag = builder.build();
+    }
+
+    /**
+     * Applies persistent data to this entity. Subclasses override this,
+     * call {@code super}, then cast the data to their own type.
+     *
+     * @param data the read data
+     */
+    protected void applyData(EntityData data) {
+        if (data.getPos() != null && data.getPos().size() == 3) {
+            this.setPosition(Vector3f.from(data.getPos().get(0), data.getPos().get(1), data.getPos().get(2)));
+        }
+        if (data.getRotation() != null && data.getRotation().size() == 2) {
+            this.setRotation(data.getRotation().get(0), data.getRotation().get(1));
+        }
+        if (data.getMotion() != null && data.getMotion().size() == 3) {
+            this.setMotion(Vector3f.from(data.getMotion().get(0), data.getMotion().get(1), data.getMotion().get(2)));
+        }
+
+        this.highestPosition = this.getY();
+
+        this.setFallDistance(data.getFallDistance());
+        this.setOnFire(data.getFire());
+        this.setAirTicks(data.getAir());
+        this.setOnGround(data.isOnGround());
+        this.setInvulnerable(data.isInvulnerable());
+        if (data.getTicksFrozen() != null) {
+            this.setFreezeTicks(data.getTicksFrozen());
+        }
+        if (this instanceof Bucketable && data.getFromBucket() != null) {
+            this.setFromBucket(data.getFromBucket());
+        }
+        this.setScale(data.getScale());
+
+        this.effects.clear();
+        if (data.getActiveEffects() != null) {
+            for (EntityData.Effect effect : data.getActiveEffects()) {
+                this.restorePotionEffect(new PotionEffect(
+                        NetworkUtils.effectFromNetwork(effect.getId()),
+                        effect.getDuration(),
+                        Byte.toUnsignedInt(effect.getAmplifier()),
+                        effect.isAmbient(),
+                        effect.isShowParticles()));
+            }
+        }
+
+        if (data.getCustomName() != null) {
+            this.setNameTag(data.getCustomName());
+        } else {
+            this.setNameTag("");
+        }
+        if (data.getCustomNameVisible() != null) {
+            this.setNameTagVisible(data.getCustomNameVisible());
+        }
+        if (data.getCustomNameAlwaysVisible() != null) {
+            this.setNameTagAlwaysVisible(data.getCustomNameAlwaysVisible());
+        }
         this.tags.clear();
-        if (tag.containsKey("Tags")) {
-            for (String entityTag : tag.getList("Tags", NbtType.STRING)) {
-                if (!entityTag.isBlank() && this.tags.size() < MAX_SCOREBOARD_TAGS) {
+        if (data.getTags() != null) {
+            for (String entityTag : data.getTags()) {
+                if (entityTag != null && !entityTag.isBlank() && this.tags.size() < MAX_SCOREBOARD_TAGS) {
                     this.tags.add(entityTag);
                 }
             }
         }
     }
 
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        if (this.tag != null && !this.tag.isEmpty()) {
-            tag.putAll(this.tag);
-        }
-
-        if (this.hasNameTag()) {
-            tag.putString("CustomName", this.getNameTag());
-            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
-            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
-        }
-
-        tag.putList("Tags", NbtType.STRING, List.copyOf(this.tags));
-
-        if (!(this instanceof CloudPlayer)) {
-            tag.putString("identifier", this.type.getId().toString());
-        }
-
-        tag.putList("Pos", NbtType.FLOAT, Arrays.asList(
-                this.position.getX(),
-                this.position.getY(),
-                this.position.getZ())
-        );
-
-        tag.putList("Motion", NbtType.FLOAT, Arrays.asList(
-                this.motion.getX(),
-                this.motion.getY(),
-                this.motion.getZ())
-        );
-
-        tag.putList("Rotation", NbtType.FLOAT, Arrays.asList(
-                this.yaw,
-                this.pitch)
-        );
-
-        tag.putFloat("FallDistance", this.fallDistance);
-        tag.putShort("Fire", (short) this.fireTicks);
-        tag.putShort("Air", this.data.require(AIR_SUPPLY));
-        tag.putBoolean("OnGround", this.onGround);
-        tag.putBoolean("Invulnerable", this.invulnerable);
-
-        if (this.freezeTicks > 0) {
-            tag.putInt("TicksFrozen", this.freezeTicks);
-        }
-
-        if (this instanceof Bucketable) {
-            tag.putBoolean("FromBucket", this.fromBucket);
-        }
-
-        tag.putFloat("Scale", this.scale);
-
-        if (!this.effects.isEmpty()) {
-            List<NbtMap> list = new ArrayList<>();
+    /**
+     * Fills persistent data from this entity. Subclasses override this,
+     * call {@code super}, then cast the data to their own type.
+     *
+     * @param data the data to fill
+     */
+    protected void fillData(EntityData data) {
+        data.setPos(List.of(this.position.getX(), this.position.getY(), this.position.getZ()));
+        data.setRotation(List.of(this.yaw, this.pitch));
+        data.setMotion(List.of(this.motion.getX(), this.motion.getY(), this.motion.getZ()));
+        data.setFallDistance(this.fallDistance);
+        data.setFire((short) this.fireTicks);
+        data.setAir(this.data.require(AIR_SUPPLY));
+        data.setOnGround(this.onGround);
+        data.setInvulnerable(this.invulnerable);
+        data.setTicksFrozen(this.freezeTicks > 0 ? this.freezeTicks : null);
+        data.setFromBucket(this instanceof Bucketable ? this.fromBucket : null);
+        data.setScale(this.scale);
+        if (this.effects.isEmpty()) {
+            data.setActiveEffects(null);
+        } else {
+            List<EntityData.Effect> effects = new ArrayList<>();
             for (ActivePotionEffect effect : this.effects.values()) {
-                list.add(PotionEffectDataSerializer.serialize(effect.snapshot()));
+                PotionEffect snapshot = effect.snapshot();
+                EntityData.Effect dto = new EntityData.Effect();
+                dto.setId(NetworkUtils.effectToNetwork(snapshot.getType()));
+                dto.setAmplifier((byte) snapshot.getAmplifier());
+                dto.setDuration(snapshot.getDuration());
+                dto.setAmbient(snapshot.isAmbient());
+                dto.setShowParticles(snapshot.hasParticles());
+                effects.add(dto);
             }
-
-            tag.putList("ActiveEffects", NbtType.COMPOUND, list);
+            data.setActiveEffects(effects);
+        }
+        if (this.hasNameTag()) {
+            data.setCustomName(this.getNameTag());
+            data.setCustomNameVisible(this.isNameTagVisible());
+            data.setCustomNameAlwaysVisible(this.isNameTagAlwaysVisible());
+        } else {
+            data.setCustomName(null);
+            data.setCustomNameVisible(null);
+            data.setCustomNameAlwaysVisible(null);
+        }
+        data.setTags(List.copyOf(this.tags));
+        if (!(this instanceof CloudPlayer)) {
+            // identifier is written by saveAdditionalData below, never a DTO property.
         }
     }
 
-    @Override
-    public Optional<NbtMap> getPluginData(String pluginId) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    /**
+     * Creates a fresh data object of the type registered for this entity.
+     *
+     * @return a new data object
+     */
+    protected final EntityData newData() {
+        Class<? extends EntityData> dataClass = CloudEntityRegistry.get().getDataClass(this.type);
+        try {
+            return dataClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
+        }
     }
 
-    @Override
-    public void setPluginData(String pluginId, NbtMap data) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    /**
+     * Reads data that subclasses handle outside their data class.
+     *
+     * @param tag the stored tag
+     */
+    protected void loadCustom(NbtMap tag) {
     }
 
-    @Override
-    public void removePluginData(String pluginId) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+    /**
+     * Writes data that subclasses handle outside their data class.
+     *
+     * @param tag tag to write data to
+     */
+    protected void saveCustom(NbtMapBuilder tag) {
+    }
+
+    /**
+     * Returns the keys a subclass reads or writes through the custom hooks.
+     * They are removed from the raw tag before saving, like owned keys.
+     *
+     * @return the custom keys
+     */
+    protected Set<String> customKeys() {
+        return Set.of();
     }
 
     @Override
