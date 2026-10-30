@@ -57,8 +57,6 @@ class BrewingStandPersistenceTest {
                 .putInt("CookTime", 350)
                 .putInt("FuelAmount", 15)
                 .putShort("FuelTotal", (short) 20)
-                .putString("LootTable", "minecraft:chests/simple_dungeon")
-                .putInt("LootTableSeed", 12345)
                 .putInt("Mystery", 7)
                 .build();
     }
@@ -78,8 +76,6 @@ class BrewingStandPersistenceTest {
         assertEquals(350, entity.getCookTime());
         assertEquals(15, entity.getFuelAmount());
         assertEquals(20, entity.getFuelTotal());
-        assertEquals("minecraft:chests/simple_dungeon", entity.getLootTable());
-        assertEquals(12345, entity.getLootTableSeed());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());

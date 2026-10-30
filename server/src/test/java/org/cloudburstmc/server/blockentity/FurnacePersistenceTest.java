@@ -60,7 +60,6 @@ class FurnacePersistenceTest {
                 .putShort("BurnTime", (short) 200)
                 .putShort("BurnDuration", (short) 300)
                 .putString("LootTable", "minecraft:chests/simple_dungeon")
-                .putInt("LootTableSeed", 12345)
                 .putInt("Mystery", 7)
                 .build();
     }
@@ -80,8 +79,6 @@ class FurnacePersistenceTest {
         assertEquals(100, entity.getCookProgress());
         assertEquals(200, entity.getBurnProgress());
         assertEquals(300, entity.getBurnDuration());
-        assertEquals("minecraft:chests/simple_dungeon", entity.getLootTable());
-        assertEquals(12345, entity.getLootTableSeed());
 
         NbtMap saved = entity.getServerTag();
         Set<String> expectedKeys = new HashSet<>(input.keySet());
@@ -92,6 +89,9 @@ class FurnacePersistenceTest {
             assertEquals(NbtType.byClass(input.get(key).getClass()),
                     NbtType.byClass(saved.get(key).getClass()), "type of " + key);
         }
+
+        // LootTable is not a declared furnace key; it passes through the raw-tag merge unchanged.
+        assertEquals("minecraft:chests/simple_dungeon", saved.getString("LootTable"));
 
         assertEquals(Set.of("id"), entity.getClientTag().keySet());
     }

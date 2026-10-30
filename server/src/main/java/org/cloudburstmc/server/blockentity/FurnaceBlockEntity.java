@@ -50,8 +50,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     protected short cookTime = 0;
     protected short burnDuration = 0;
     protected int currentCookDuration;
-    private String lootTable;
-    private Integer lootTableSeed;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(3));
@@ -77,8 +75,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         this.setCookTime(furnace.getCookTime());
         this.setBurnTime(furnace.getBurnTime());
         this.setBurnDuration(furnace.getBurnDuration());
-        this.lootTable = furnace.getLootTable();
-        this.lootTableSeed = furnace.getLootTableSeed();
     }
 
     @Override
@@ -89,24 +85,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         furnace.setCookTime(this.cookTime);
         furnace.setBurnTime(this.burnTime);
         furnace.setBurnDuration(this.burnDuration);
-        furnace.setLootTable(this.lootTable);
-        furnace.setLootTableSeed(this.lootTableSeed);
-    }
-
-    public String getLootTable() {
-        return lootTable;
-    }
-
-    public void setLootTable(String lootTable) {
-        this.lootTable = lootTable;
-    }
-
-    public Integer getLootTableSeed() {
-        return lootTableSeed;
-    }
-
-    public void setLootTableSeed(Integer lootTableSeed) {
-        this.lootTableSeed = lootTableSeed;
     }
 
     @Override

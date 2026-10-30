@@ -53,8 +53,6 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     private int cookTime = MAX_COOK_TIME;
     private short fuelTotal;
     private int fuelAmount;
-    private String lootTable;
-    private Integer lootTableSeed;
 
     public BrewingStandBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position, new CloudContainer(5));
@@ -80,8 +78,6 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         this.setCookTime(brewing.getCookTime());
         this.setFuelAmount(brewing.getFuelAmount());
         this.setFuelTotal(brewing.getFuelTotal());
-        this.lootTable = brewing.getLootTable();
-        this.lootTableSeed = brewing.getLootTableSeed();
     }
 
     @Override
@@ -92,24 +88,6 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         brewing.setCookTime(this.cookTime);
         brewing.setFuelAmount(this.fuelAmount);
         brewing.setFuelTotal(this.fuelTotal);
-        brewing.setLootTable(this.lootTable);
-        brewing.setLootTableSeed(this.lootTableSeed);
-    }
-
-    public String getLootTable() {
-        return lootTable;
-    }
-
-    public void setLootTable(String lootTable) {
-        this.lootTable = lootTable;
-    }
-
-    public Integer getLootTableSeed() {
-        return lootTableSeed;
-    }
-
-    public void setLootTableSeed(Integer lootTableSeed) {
-        this.lootTableSeed = lootTableSeed;
     }
 
     @Override
