@@ -8,8 +8,10 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
+import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -19,15 +21,18 @@ import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudBlockEntityRegistry;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,15 +67,19 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         this.type = type;
         this.timing = Timings.getBlockEntityTiming(this);
-        this.server = (CloudServer) chunk.getLevel().getServer();
+        this.server = chunk.getLevel().getServer() instanceof CloudServer server ? server : null;
         this.position = position;
-        this.chunk = (CloudChunk) chunk;
-        this.level = (CloudLevel) chunk.getLevel();
+        this.chunk = chunk instanceof CloudChunk cloudChunk ? cloudChunk : null;
+        this.level = chunk.getLevel() instanceof CloudLevel cloudLevel ? cloudLevel : null;
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
 
-        this.chunk.registerBlockEntity(this);
-        this.level.registerBlockEntity(this);
+        if (this.chunk != null) {
+            this.chunk.registerBlockEntity(this);
+        }
+        if (this.level != null) {
+            this.level.registerBlockEntity(this);
+        }
 
         this.init();
 
@@ -100,19 +109,32 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.tag = tag;
         tags.putIfAbsent(this.getType(), tag);
 
-        tag.listenForBoolean("isMovable", this::setMovable);
-        tag.listenForString("CustomName", this::setCustomName);
+        this.applyData(ServerNbt.MAPPER.read(tag, CloudBlockEntityRegistry.get().getDataClass(this.type)));
+        this.loadCustom(tag);
     }
 
     public void saveAdditionalData(NbtMapBuilder tag) {
+        Class<? extends BlockEntityData> dataClass = CloudBlockEntityRegistry.get().getDataClass(this.type);
+        Set<String> excluded = new HashSet<>(ServerNbt.MAPPER.ownedKeys(dataClass));
+        excluded.addAll(this.customKeys());
+        excluded.add("id");
+        excluded.add("x");
+        excluded.add("y");
+        excluded.add("z");
+
         if (this.tag != null && !this.tag.isEmpty()) {
-            tag.putAll(this.tag);
+            for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
+                if (!excluded.contains(entry.getKey())) {
+                    tag.put(entry.getKey(), entry.getValue());
+                }
+            }
         }
 
-        tag.putBoolean("isMovable", this.movable);
-        if (this.customName != null) {
-            tag.putString("CustomName", this.customName);
-        }
+        BlockEntityData data = this.newData();
+        this.fillData(data);
+        tag.putAll(ServerNbt.MAPPER.write(data));
+
+        this.saveCustom(tag);
 
         this.saveClientData(tag);
 
@@ -137,24 +159,127 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     @Override
     public Optional<NbtMap> getPluginData(String pluginId) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return Optional.empty();
+        }
+        NbtMap root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, null);
+        if (root == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(root.getCompound(pluginId, null));
     }
 
     @Override
     public void setPluginData(String pluginId, NbtMap data) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+        checkNotNull(pluginId, "pluginId");
+        checkNotNull(data, "data");
+        NbtMap tag = this.tag == null ? NbtMap.EMPTY : this.tag;
+        NbtMapBuilder root = tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).toBuilder();
+        root.putCompound(pluginId, data);
+        NbtMapBuilder builder = tag.toBuilder();
+        builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        this.tag = builder.build();
     }
 
     @Override
     public void removePluginData(String pluginId) {
-        throw new UnsupportedOperationException("Plugin data is not supported yet");
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return;
+        }
+        if (!this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).containsKey(pluginId)) {
+            return;
+        }
+        NbtMapBuilder root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY).toBuilder();
+        root.remove(pluginId);
+        NbtMapBuilder builder = this.tag.toBuilder();
+        if (root.isEmpty()) {
+            builder.remove(NbtMapper.PLUGIN_DATA_KEY);
+        } else {
+            builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        }
+        this.tag = builder.build();
+    }
+
+    /**
+     * Applies persistent data to this block entity. Subclasses override this,
+     * call {@code super}, then cast the data to their own type.
+     *
+     * @param data the read data
+     */
+    protected void applyData(BlockEntityData data) {
+        this.movable = data.isMovable();
+        this.customName = data.getCustomName();
+    }
+
+    /**
+     * Fills persistent data from this block entity. Subclasses override this,
+     * call {@code super}, then cast the data to their own type.
+     *
+     * @param data the data to fill
+     */
+    protected void fillData(BlockEntityData data) {
+        data.setMovable(this.movable);
+        data.setCustomName(this.customName);
+    }
+
+    /**
+     * Creates a fresh data object of the type registered for this entity.
+     *
+     * @return a new data object
+     */
+    protected final BlockEntityData newData() {
+        Class<? extends BlockEntityData> dataClass = CloudBlockEntityRegistry.get().getDataClass(this.type);
+        try {
+            return dataClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
+        }
+    }
+
+    /**
+     * Reads data that subclasses handle outside their data class.
+     *
+     * @param tag the stored tag
+     */
+    protected void loadCustom(NbtMap tag) {
+    }
+
+    /**
+     * Writes data that subclasses handle outside their data class.
+     *
+     * @param tag tag to write data to
+     */
+    protected void saveCustom(NbtMapBuilder tag) {
+    }
+
+    /**
+     * Writes client data that subclasses handle outside their data class.
+     *
+     * @param tag tag to write data to
+     */
+    protected void saveCustomClient(NbtMapBuilder tag) {
+    }
+
+    /**
+     * Returns the keys a subclass reads or writes through the custom hooks.
+     * They are removed from the raw tag before saving, like owned keys.
+     *
+     * @return the custom keys
+     */
+    protected Set<String> customKeys() {
+        return Set.of();
     }
 
     /**
      * NBT data that is specifically sent to the client
      *
      * @param tag tag to write data to
+     * @deprecated subclasses are migrated to {@link #saveCustomClient(NbtMapBuilder)};
+     * this hook stays until every subclass is migrated.
      */
+    @Deprecated
     protected void saveClientData(NbtMapBuilder tag) {
 
     }
@@ -190,7 +315,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
         if (server) {
             this.saveAdditionalData(tag);
-
 //            log.info("saving: " + this.type);
 //            if (!nbtEquals(this.tag, tag.build())) {
 //                log.info("not equal NBT: " + this.type);
@@ -204,6 +328,10 @@ public abstract class BaseBlockEntity implements BlockEntity {
 //            log.info(NbtUtils.toString(tag.build()));
 //            log.info("\n\n\n");
         } else {
+            BlockEntityData data = this.newData();
+            this.fillData(data);
+            tag.putAll(ServerNbt.MAPPER.writeClient(data));
+            this.saveCustomClient(tag);
             this.saveClientData(tag);
         }
 
@@ -340,7 +468,9 @@ public abstract class BaseBlockEntity implements BlockEntity {
     }
 
     public final void scheduleUpdate() {
-        this.level.scheduleBlockEntityUpdate(this);
+        if (this.level != null) {
+            this.level.scheduleBlockEntityUpdate(this);
+        }
     }
 
     public void close() {
