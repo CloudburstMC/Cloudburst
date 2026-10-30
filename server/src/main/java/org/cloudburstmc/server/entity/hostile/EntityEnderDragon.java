@@ -6,6 +6,8 @@ import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EnderDragonData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Location;
@@ -14,8 +16,6 @@ import org.cloudburstmc.api.level.particle.ParticleEmitter;
 import org.cloudburstmc.api.level.particle.ParticleEmitterTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -35,9 +35,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.STRUCTURAL_INTEGRITY;
 
 public class EntityEnderDragon extends EntityHostile implements EnderDragon {
-
-    private static final String TAG_DRAGON_DEATH_TIME = "DragonDeathTime";
-    private static final String TAG_DRAGON_DEATH_EXPERIENCE = "DragonDeathExperience";
 
     private static final float BOSS_BAR_RANGE = 192;
 
@@ -121,20 +118,26 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForInt(TAG_DRAGON_DEATH_TIME, dragonDeathTime -> {
-            this.dragonDeathTime = dragonDeathTime;
-            this.dying = dragonDeathTime > 0;
-        });
-        this.deathExperience = tag.getInt(TAG_DRAGON_DEATH_EXPERIENCE, this.getExperienceReward());
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        EnderDragonData dragonData = (EnderDragonData) data;
+        if (dragonData.getDragonDeathTime() != null) {
+            this.dragonDeathTime = dragonData.getDragonDeathTime();
+            this.dying = this.dragonDeathTime > 0;
+        }
+        if (dragonData.getDragonDeathExperience() != null) {
+            this.deathExperience = dragonData.getDragonDeathExperience();
+        } else {
+            this.deathExperience = this.getExperienceReward();
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt(TAG_DRAGON_DEATH_TIME, this.dragonDeathTime);
-        tag.putInt(TAG_DRAGON_DEATH_EXPERIENCE, this.deathExperience);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        EnderDragonData dragonData = (EnderDragonData) data;
+        dragonData.setDragonDeathTime(this.dragonDeathTime);
+        dragonData.setDragonDeathExperience(this.deathExperience);
     }
 
     @Override

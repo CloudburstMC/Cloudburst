@@ -2,6 +2,8 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.SnowGolemData;
 import org.cloudburstmc.api.entity.passive.SnowGolem;
 import org.cloudburstmc.api.event.player.PlayerShearEntityEvent;
 import org.cloudburstmc.api.item.ItemStack;
@@ -9,8 +11,6 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.entity.EntityCreature;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -45,15 +45,18 @@ public class EntitySnowGolem extends EntityCreature implements SnowGolem {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForBoolean("Pumpkin", pumpkin -> this.setDerp(!pumpkin));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        SnowGolemData golemData = (SnowGolemData) data;
+        if (golemData.getPumpkin() != null) {
+            this.setDerp(!golemData.getPumpkin());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putBoolean("Pumpkin", !this.isDerp());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((SnowGolemData) data).setPumpkin(!this.isDerp());
     }
 
     @Override

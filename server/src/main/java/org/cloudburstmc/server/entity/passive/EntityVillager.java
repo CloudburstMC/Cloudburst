@@ -2,10 +2,10 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityAgeable;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.VillagerData;
 import org.cloudburstmc.api.entity.passive.Villager;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityCreature;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
@@ -56,17 +56,18 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("Profession", this::setProfession);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        VillagerData villagerData = (VillagerData) data;
+        if (villagerData.getProfession() != null) {
+            this.setProfession(villagerData.getProfession());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("Profession", this.getProfession());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((VillagerData) data).setProfession(this.getProfession());
     }
 
     public int getProfession() {

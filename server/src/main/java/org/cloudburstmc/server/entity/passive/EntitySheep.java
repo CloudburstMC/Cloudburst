@@ -3,6 +3,8 @@ package org.cloudburstmc.server.entity.passive;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.SheepData;
 import org.cloudburstmc.api.entity.passive.Sheep;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
@@ -11,8 +13,6 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.DyeColor;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -59,20 +59,24 @@ public class EntitySheep extends Animal implements Sheep {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        SheepData sheepData = (SheepData) data;
         //TODO: Kinda hacky but works for now
-        tag.listenForByte("Color", this::setColor);
-        tag.listenForBoolean("Sheared", this::setSheared);
+        if (sheepData.getColor() != null) {
+            this.setColor(sheepData.getColor());
+        }
+        if (sheepData.getSheared() != null) {
+            this.setSheared(sheepData.getSheared());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("Color", (byte) this.getColor().getWoolData());
-        tag.putBoolean("Sheared", this.isSheared());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        SheepData sheepData = (SheepData) data;
+        sheepData.setColor(this.getColor().getWoolData());
+        sheepData.setSheared(this.isSheared());
     }
 
     @Override

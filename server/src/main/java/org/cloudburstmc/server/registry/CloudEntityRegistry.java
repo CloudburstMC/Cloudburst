@@ -13,7 +13,14 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.data.CreeperData;
 import org.cloudburstmc.api.entity.data.CreatureData;
+import org.cloudburstmc.api.entity.data.EnderDragonData;
+import org.cloudburstmc.api.entity.data.HappyGhastData;
+import org.cloudburstmc.api.entity.data.SheepData;
+import org.cloudburstmc.api.entity.data.SnowGolemData;
+import org.cloudburstmc.api.entity.data.TurtleData;
+import org.cloudburstmc.api.entity.data.VillagerData;
 import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -425,7 +432,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(CHICKEN, EntityChicken::new, 10, CreatureData.class);
         registerVanilla(COW, EntityCow::new, 11, CreatureData.class);
         registerVanilla(PIG, EntityPig::new, 12, CreatureData.class);
-        registerVanilla(SHEEP, EntitySheep::new, 13, CreatureData.class);
+        registerVanilla(SHEEP, EntitySheep::new, 13, SheepData.class);
         registerVanilla(WOLF, EntityWolf::new, 14, CreatureData.class);
         registerVanilla(DEPRECATED_VILLAGER, EntityDeprecatedVillager::new, 15, CreatureData.class);
         registerVanilla(MOOSHROOM, EntityMooshroom::new, 16, CreatureData.class);
@@ -433,7 +440,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(RABBIT, EntityRabbit::new, 18, CreatureData.class);
         registerVanilla(BAT, EntityBat::new, 19, CreatureData.class);
         registerVanilla(IRON_GOLEM, EntityIronGolem::new, 20, org.cloudburstmc.api.entity.data.EntityData.class);
-        registerVanilla(SNOW_GOLEM, EntitySnowGolem::new, 21, CreatureData.class);
+        registerVanilla(SNOW_GOLEM, EntitySnowGolem::new, 21, SnowGolemData.class);
         registerVanilla(OCELOT, EntityOcelot::new, 22, CreatureData.class);
         registerVanilla(HORSE, EntityHorse::new, 23, CreatureData.class);
         registerVanilla(DONKEY, EntityDonkey::new, 24, CreatureData.class);
@@ -445,7 +452,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(PARROT, EntityParrot::new, 30, CreatureData.class);
         registerVanilla(DOLPHIN, EntityDolphin::new, 31, CreatureData.class);
         registerVanilla(ZOMBIE, EntityZombie::new, 32, CreatureData.class);
-        registerVanilla(CREEPER, EntityCreeper::new, 33, CreatureData.class);
+        registerVanilla(CREEPER, EntityCreeper::new, 33, CreeperData.class);
         registerVanilla(SKELETON, EntitySkeleton::new, 34, CreatureData.class);
         registerVanilla(SPIDER, EntitySpider::new, 35, CreatureData.class);
         registerVanilla(ZOMBIE_PIGMAN, EntityZombiePigman::new, 36, CreatureData.class);
@@ -465,7 +472,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(ELDER_GUARDIAN, EntityElderGuardian::new, 50, CreatureData.class);
         registerVanilla(NPC, EntityNpc::new, 51, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(WITHER, EntityWither::new, 52, CreatureData.class);
-        registerVanilla(ENDER_DRAGON, EntityEnderDragon::new, 53, CreatureData.class);
+        registerVanilla(ENDER_DRAGON, EntityEnderDragon::new, 53, EnderDragonData.class);
         registerVanilla(SHULKER, EntityShulker::new, 54, CreatureData.class);
         registerVanilla(ENDERMITE, EntityEndermite::new, 55, CreatureData.class);
         registerVanilla(AGENT, EntityAgent::new, 56, CreatureData.class);
@@ -483,7 +490,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(ENDER_CRYSTAL, EntityEnderCrystal::new, 71, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(FIREWORKS_ROCKET, EntityFireworksRocket::new, 72, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(THROWN_TRIDENT, EntityThrownTrident::new, 73, org.cloudburstmc.api.entity.data.EntityData.class);
-        registerVanilla(TURTLE, EntityTurtle::new, 74, CreatureData.class);
+        registerVanilla(TURTLE, EntityTurtle::new, 74, TurtleData.class);
         registerVanilla(CAT, EntityCat::new, 75, CreatureData.class);
         registerVanilla(SHULKER_BULLET, EntityShulkerBullet::new, 76, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(FISHING_HOOK, EntityFishingHook::new, 77, org.cloudburstmc.api.entity.data.EntityData.class);
@@ -521,7 +528,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(COD, EntityCod::new, 112, CreatureData.class);
         registerVanilla(PANDA, EntityPanda::new, 113, CreatureData.class);
         registerVanilla(PILLAGER, EntityPillager::new, 114, CreatureData.class);
-        registerVanilla(VILLAGER, EntityVillager::new, 115, CreatureData.class);
+        registerVanilla(VILLAGER, EntityVillager::new, 115, VillagerData.class);
         registerVanilla(ZOMBIE_VILLAGER, EntityZombieVillager::new, 116, CreatureData.class);
         registerVanilla(WANDERING_TRADER, EntityWanderingTrader::new, 118, CreatureData.class);
         registerVanilla(ELDER_GUARDIAN_GHOST, EntityElderGuardianGhost::new, 120, CreatureData.class);
@@ -548,7 +555,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         registerVanilla(BOGGED, EntityBogged::new, 144, CreatureData.class);
         registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145, org.cloudburstmc.api.entity.data.EntityData.class);
         registerVanilla(CREAKING, EntityCreaking::new, 146, CreatureData.class);
-        registerVanilla(HAPPY_GHAST, EntityHappyGhast::new, 147, CreatureData.class);
+        registerVanilla(HAPPY_GHAST, EntityHappyGhast::new, 147, HappyGhastData.class);
         registerVanilla(COPPER_GOLEM, EntityCopperGolem::new, 148, CreatureData.class);
         registerVanilla(NAUTILUS, EntityNautilus::new, 149, CreatureData.class);
         registerVanilla(ZOMBIE_NAUTILUS, EntityZombieNautilus::new, 150, CreatureData.class);

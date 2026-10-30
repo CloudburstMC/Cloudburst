@@ -1,10 +1,10 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.HappyGhastData;
 import org.cloudburstmc.api.entity.passive.HappyGhast;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
@@ -43,15 +43,15 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setAge(tag.getInt("Age"));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        this.setAge(((HappyGhastData) data).getAge());
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("Age", this.growingAge);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((HappyGhastData) data).setAge(this.growingAge);
     }
 
     @Override

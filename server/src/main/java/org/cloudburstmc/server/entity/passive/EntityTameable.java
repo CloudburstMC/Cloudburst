@@ -2,9 +2,9 @@ package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Ownable;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.TameableData;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SITTING;
@@ -28,22 +28,24 @@ public abstract class EntityTameable extends Animal implements Ownable {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForLong("OwnerID", v -> {
-            this.setOwnerId(v);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        TameableData tameableData = (TameableData) data;
+        if (tameableData.getOwnerId() != null) {
+            this.setOwnerId(tameableData.getOwnerId());
             this.setTamed(true);
-        });
-        tag.listenForBoolean("Sitting", this::setSitting);
+        }
+        if (tameableData.getSitting() != null) {
+            this.setSitting(tameableData.getSitting());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putLong("OwnerID", this.getOwnerId());
-        tag.putBoolean("Sitting", this.isSitting());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        TameableData tameableData = (TameableData) data;
+        tameableData.setOwnerId(this.getOwnerId());
+        tameableData.setSitting(this.isSitting());
     }
 
     @Override

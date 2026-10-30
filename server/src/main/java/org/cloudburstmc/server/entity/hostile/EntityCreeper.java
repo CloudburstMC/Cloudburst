@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.entity.hostile;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.CreeperData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.Creeper;
 import org.cloudburstmc.api.entity.misc.LightningBolt;
 import org.cloudburstmc.api.event.entity.CreeperPowerEvent;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -41,17 +41,18 @@ public class EntityCreeper extends EntityHostile implements Creeper {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForBoolean("powered", this::setPowered);
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        CreeperData creeperData = (CreeperData) data;
+        if (creeperData.getPowered() != null) {
+            this.setPowered(creeperData.getPowered());
+        }
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putBoolean("powered", this.isPowered());
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        ((CreeperData) data).setPowered(this.isPowered());
     }
 
     public boolean isPowered() {

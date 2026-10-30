@@ -1,14 +1,14 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.TurtleData;
 import org.cloudburstmc.api.entity.passive.Turtle;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
@@ -45,24 +45,26 @@ public class EntityTurtle extends Animal implements Turtle {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setAge(tag.getInt("Age"));
+    protected void applyData(EntityData data) {
+        super.applyData(data);
+        TurtleData turtleData = (TurtleData) data;
+        this.setAge(turtleData.getAge());
         this.homePosition = Vector3i.from(
-                tag.getInt("HomePosX", this.getPosition().getFloorX()),
-                tag.getInt("HomePosY", this.getPosition().getFloorY()),
-                tag.getInt("HomePosZ", this.getPosition().getFloorZ())
+                turtleData.getHomePosX() != null ? turtleData.getHomePosX() : this.getPosition().getFloorX(),
+                turtleData.getHomePosY() != null ? turtleData.getHomePosY() : this.getPosition().getFloorY(),
+                turtleData.getHomePosZ() != null ? turtleData.getHomePosZ() : this.getPosition().getFloorZ()
         );
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("Age", this.growingAge);
+    protected void fillData(EntityData data) {
+        super.fillData(data);
+        TurtleData turtleData = (TurtleData) data;
+        turtleData.setAge(this.growingAge);
         Vector3i home = this.homePosition;
-        tag.putInt("HomePosX", home.getX());
-        tag.putInt("HomePosY", home.getY());
-        tag.putInt("HomePosZ", home.getZ());
+        turtleData.setHomePosX(home.getX());
+        turtleData.setHomePosY(home.getY());
+        turtleData.setHomePosZ(home.getZ());
     }
 
     @Override
