@@ -48,7 +48,6 @@ class CloudPlayerHookTest {
     @Test
     void newPlayerSaveWritesCreditsZero() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         // No stored tag: an empty load leaves the defaults alone.
@@ -78,7 +77,6 @@ class CloudPlayerHookTest {
     @Test
     void partialTimestampsWriteBackAsLoaded() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
 
         // firstPlayed without lastPlayed is written back with its loaded value.
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
@@ -106,7 +104,6 @@ class CloudPlayerHookTest {
     @Test
     void partialSpawnWritesBackAsLoaded() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
 
         // A spawn level without coordinates is written back on its own.
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
@@ -149,7 +146,6 @@ class CloudPlayerHookTest {
     @Test
     void loneSpawnCoordinateWritesBack() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
 
         // A lone SpawnX was kept and rewritten at 62b3ea0b0: the three spawn
         // coordinates were independent Integer fields, so a partial tag kept
@@ -168,7 +164,6 @@ class CloudPlayerHookTest {
     @Test
     void twoSpawnCoordinatesWriteBack() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
 
         // SpawnX + SpawnY without SpawnZ are both written back.
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
@@ -188,7 +183,6 @@ class CloudPlayerHookTest {
     @Test
     void mistypedSpawnZKeepsGoodCoordinates() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
 
         // A mistyped SpawnZ next to good X/Y keeps the good coordinates.
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
@@ -207,7 +201,6 @@ class CloudPlayerHookTest {
     @Test
     void savedBaselineRefreshesWriteBack() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         CloudPlayer.FoodHookState food = CloudPlayer.loadHookKeys(NbtMap.builder()
@@ -241,7 +234,6 @@ class CloudPlayerHookTest {
     @Test
     void hookRoundTripPreservesEveryKeyAndType() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         NbtMap stored = NbtMap.builder()
                 .putInt("EXP", 7)
                 .putInt("expLevel", 3)
@@ -309,7 +301,6 @@ class CloudPlayerHookTest {
     @Test
     void mistypedHookKeysStayDropped() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         org.cloudburstmc.api.entity.data.PlayerData data = newData();
         PlayerData holder = new PlayerData();
         // Keys of another kind never bind, so the save omits them instead of
@@ -332,7 +323,6 @@ class CloudPlayerHookTest {
     @Test
     void nonByteSlotBindsSlotZero() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         NbtMap base = ItemUtils.serializeItem(diamond);
         NbtMapBuilder shortBuilder = NbtMap.builder();

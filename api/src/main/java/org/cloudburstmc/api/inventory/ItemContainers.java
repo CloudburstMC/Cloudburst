@@ -1,18 +1,20 @@
 package org.cloudburstmc.api.inventory;
 
-import java.util.function.IntFunction;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 
 /**
  * Creates detached item containers.
  *
- * <p>The API declares only the container type; the server registers a factory that builds
- * its own storage implementation. Callers that build data objects holding containers must
- * ensure the server registration has run, for example by calling the server's NBT entry
- * point first.</p>
+ * <p>The API declares only the container type; the storage comes from the single
+ * {@link ItemContainerFactory} the server provides as a service. It is discovered on
+ * first use, so data objects holding containers can be built before anything else
+ * has run.</p>
  */
 public final class ItemContainers {
 
-    private static volatile IntFunction<ItemContainer> factory;
+    private static volatile ItemContainerFactory factory;
 
     private ItemContainers() {
     }
@@ -22,26 +24,42 @@ public final class ItemContainers {
      *
      * @param size the slot count
      * @return a new empty container
-     * @throws IllegalStateException if no container factory has been registered
+     * @throws IllegalStateException if no {@link ItemContainerFactory} service, or more
+     *                               than one, is available
      */
     public static ItemContainer detached(int size) {
-        IntFunction<ItemContainer> current = factory;
-        if (current == null) {
-            throw new IllegalStateException(
-                    "No item container factory registered; call ItemContainers.setFactory first");
-        }
-        return current.apply(size);
+        return factory().create(size);
     }
 
-    /**
-     * Registers the factory used by {@link #detached(int)}.
-     *
-     * <p>Passing {@code null} clears the registration; later {@code detached} calls fail
-     * until a factory is set again.</p>
-     *
-     * @param factory the container factory, or {@code null} to clear it
-     */
-    public static void setFactory(IntFunction<ItemContainer> factory) {
-        ItemContainers.factory = factory;
+    private static ItemContainerFactory factory() {
+        ItemContainerFactory current = factory;
+        if (current == null) {
+            synchronized (ItemContainers.class) {
+                current = factory;
+                if (current == null) {
+                    current = load();
+                    factory = current;
+                }
+            }
+        }
+        return current;
+    }
+
+    private static ItemContainerFactory load() {
+        List<ItemContainerFactory> found = ServiceLoader
+                .load(ItemContainerFactory.class, ItemContainers.class.getClassLoader())
+                .stream()
+                .map(ServiceLoader.Provider::get)
+                .toList();
+        if (found.size() == 1) {
+            return found.getFirst();
+        }
+        if (found.isEmpty()) {
+            throw new IllegalStateException("No ItemContainerFactory service available; the server provides it in "
+                    + "META-INF/services/" + ItemContainerFactory.class.getName());
+        }
+        throw new IllegalStateException("Expected one ItemContainerFactory service, found: " + found.stream()
+                .map(provider -> provider.getClass().getName())
+                .collect(Collectors.joining(", ")));
     }
 }

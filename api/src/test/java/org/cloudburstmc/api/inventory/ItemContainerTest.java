@@ -26,15 +26,11 @@ class ItemContainerTest {
     }
 
     @Test
-    void detachedContainerWithoutFactoryFailsClearly() {
-        ItemContainers.setFactory(null);
-        try {
-            IllegalStateException failure = assertThrows(IllegalStateException.class,
-                    () -> ItemContainers.detached(3));
-            assertTrue(failure.getMessage().contains("factory"),
-                    "Failure message must mention the factory, was: " + failure.getMessage());
-        } finally {
-            ItemContainers.setFactory(null);
-        }
+    void detachedContainerWithoutFactoryServiceFailsClearly() {
+        // The api module ships no ItemContainerFactory service; only the server provides one.
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> ItemContainers.detached(3));
+        assertTrue(failure.getMessage().contains(ItemContainerFactory.class.getName()),
+                "Failure message must name the service, was: " + failure.getMessage());
     }
 }

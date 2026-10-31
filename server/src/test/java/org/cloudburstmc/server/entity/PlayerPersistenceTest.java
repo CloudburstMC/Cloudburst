@@ -57,7 +57,6 @@ class PlayerPersistenceTest {
     @Test
     void playerUsesPlayerData() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         // Non-player humans save through the shared human data, so no
         // player-only key is ever written for them; live players resolve the
         // player data through CloudPlayer.minimumDataClass().
@@ -88,7 +87,6 @@ class PlayerPersistenceTest {
     @Test
     void roundTripPreservesKeysAndTypes() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
 
@@ -297,7 +295,6 @@ class PlayerPersistenceTest {
     @Test
     void sparseInventoryReadFillsLiveContainersInPlace() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
         ItemStack ingot = ItemStack.from(ItemTypes.GOLD_INGOT, 3);
         ItemStack kept = ItemStack.from(ItemTypes.IRON_INGOT, 1);
@@ -341,7 +338,6 @@ class PlayerPersistenceTest {
     @Test
     void missingSlotGoesToSlotZero() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
         PlayerData data = new PlayerData();
@@ -362,7 +358,6 @@ class PlayerPersistenceTest {
     @Test
     void outOfRangeSlotFailsPlayerLoad() {
         PersistenceFixtures.ensureInitialized();
-        ServerNbt.ensureInitialized();
         ItemStack diamond = ItemStack.from(ItemTypes.DIAMOND, 2);
 
         PlayerData data = new PlayerData();

@@ -59,12 +59,8 @@ class ServerNbtTest {
 
     @Test
     void detachedContainersBuildFreeStandingData() {
-        // Free-standing DTOs hold a detached container, which needs the server factory.
-        // The server registers it at bootstrap (CloudServer constructor) and every
-        // entity construction ensures it too, so building a DTO never needs an owner.
-        // JVM order cannot be isolated here: another test may have initialized the
-        // factory first, so this pins the initialized end state, not the bootstrap order.
-        ServerNbt.ensureInitialized();
+        // Free-standing DTOs hold a detached container; the server's factory is discovered
+        // as a service on first use, so building a DTO needs no owner and no prior setup.
 
         assertEquals(27, new org.cloudburstmc.api.blockentity.data.ChestData().getItems().size());
         assertEquals(27, new org.cloudburstmc.api.entity.data.ChestBoatData().getItems().size());

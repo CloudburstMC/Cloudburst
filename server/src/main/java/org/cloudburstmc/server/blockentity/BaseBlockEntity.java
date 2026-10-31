@@ -81,7 +81,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         this.lastUpdate = System.currentTimeMillis();
         this.id = ID_ALLOCATOR.getAndIncrement();
 
-        ServerNbt.ensureInitialized();
         this.data = this.newData();
 
         if (this.chunk != null) {

@@ -4,7 +4,6 @@ import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,7 +14,6 @@ class CloudContainerItemContainerTest {
 
     @Test
     void cloudContainerIsDetachedFactoryDefault() {
-        ServerNbt.ensureInitialized();
 
         ItemContainer detached = ItemContainers.detached(27);
 

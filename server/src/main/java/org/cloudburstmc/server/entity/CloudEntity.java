@@ -200,7 +200,6 @@ public abstract class CloudEntity implements Entity {
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
         this.data.set(SEAT_OFFSET, Vector3f.ZERO);
 
-        ServerNbt.ensureInitialized();
         this.entityData = this.newData();
     }
 

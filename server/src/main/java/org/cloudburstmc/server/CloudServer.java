@@ -59,7 +59,6 @@ import org.cloudburstmc.server.level.storage.StorageIds;
 import org.cloudburstmc.server.locale.LocaleManager;
 import org.cloudburstmc.server.map.CloudMapManager;
 import org.cloudburstmc.server.metrics.CloudMetrics;
-import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.network.CloudNetwork;
 import org.cloudburstmc.server.network.ProtocolInfo;
 import org.cloudburstmc.server.pack.CloudPackManager;
@@ -200,10 +199,6 @@ public class CloudServer implements Server {
         Preconditions.checkState(instance == null, "Already initialized!");
         instance = this;
         currentThread = Thread.currentThread(); // Saves the current thread instance as a reference, used in Server#isPrimaryThread()
-
-        // Register the detached-container factory before any server code builds a
-        // free-standing DTO (for example structure templates), which needs no entity.
-        ServerNbt.ensureInitialized();
 
         this.injector = Guice.createInjector(Stage.PRODUCTION, new CloudburstPrivateModule(this), new CloudburstModule(this, levelPath));
 
