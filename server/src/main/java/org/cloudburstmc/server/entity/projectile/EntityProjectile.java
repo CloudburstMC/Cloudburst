@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.entity.projectile;
 
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.entity.*;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.ProjectileData;
 import org.cloudburstmc.api.entity.misc.EnderCrystal;
 import org.cloudburstmc.api.event.entity.EntityCombustByEntityEvent;
 import org.cloudburstmc.api.event.entity.ProjectileHitEvent;
@@ -15,10 +16,9 @@ import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.RayTraceContext;
 import org.cloudburstmc.api.util.*;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
@@ -28,8 +28,6 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 public abstract class EntityProjectile extends CloudEntity implements Projectile {
 
     protected boolean hadCollision;
-    @Getter
-    protected float damage;
     private boolean leftShooter;
     private @Nullable ProjectileSource shooter;
 
@@ -66,15 +64,28 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForNumber("damage", v -> this.setDamage(v.floatValue()));
+    protected ProjectileData data() {
+        return (ProjectileData) super.data();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putFloat("damage", this.damage);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ProjectileData.class;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // The damage runs before the base load below, matching the
+        // historical load order. The setter re-runs to keep its validation,
+        // as the previous load did; an absent key keeps the current value.
+        if (tag.containsKey("damage")) {
+            this.setDamage(this.data().getDamage());
+        }
+        super.loadCustom(tag);
+    }
+
+    public float getDamage() {
+        return this.data().getDamage();
     }
 
     public int getResultDamage() {
@@ -86,7 +97,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
             throw new IllegalArgumentException("damage must be finite and nonnegative");
         }
 
-        this.damage = damage;
+        this.data().setDamage(damage);
     }
 
     protected float getBaseDamage() {
@@ -148,7 +159,7 @@ public abstract class EntityProjectile extends CloudEntity implements Projectile
     protected void initEntity() {
         super.initEntity();
 
-        this.damage = this.getBaseDamage();
+        this.data().setDamage(this.getBaseDamage());
         this.setMaxHealth(1);
         this.setHealth(1);
     }

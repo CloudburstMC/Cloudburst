@@ -1,17 +1,20 @@
 package org.cloudburstmc.server.entity;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.HangingData;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * author: MagicDroidX
  * Nukkit Project
  */
 public abstract class HangingEntity extends CloudEntity {
-    protected byte direction;
 
     public HangingEntity(EntityType<?> type, Location location) {
         super(type, location);
@@ -26,25 +29,33 @@ public abstract class HangingEntity extends CloudEntity {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("Direction", v -> this.direction = v);
+    protected HangingData data() {
+        return (HangingData) super.data();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return HangingData.class;
+    }
 
-        tag.putByte("Direction", this.direction);
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putInt("TileX", (int) this.getX());
         tag.putInt("TileY", (int) this.getY());
         tag.putInt("TileZ", (int) this.getZ());
     }
 
     @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.addAll(Set.of("TileX", "TileY", "TileZ"));
+        return Set.copyOf(keys);
+    }
+
+    @Override
     public Direction getDirection() {
-        return Direction.fromIndex(this.direction);
+        return this.data().getDirection();
     }
 
     @Override
@@ -66,7 +77,7 @@ public abstract class HangingEntity extends CloudEntity {
         if (this.lastYaw != this.getY() || !this.position.equals(this.lastPosition)) {
             this.despawnFromAll();
 
-            this.direction = (byte) (this.getYaw() / 90);
+            this.data().setDirection(Direction.fromIndex((byte) (this.getYaw() / 90)));
 
             this.lastYaw = this.getYaw();
             this.lastPosition = this.position;

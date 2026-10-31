@@ -1,16 +1,15 @@
 package org.cloudburstmc.server.entity.passive;
 
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.HappyGhastData;
 import org.cloudburstmc.api.entity.passive.HappyGhast;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
 public class EntityHappyGhast extends Animal implements HappyGhast {
-
-    private int growingAge;
 
     public EntityHappyGhast(EntityType<HappyGhast> type, Location location) {
         super(type, location);
@@ -43,26 +42,35 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        this.setAge(tag.getInt("Age"));
+    protected Class<? extends EntityData> minimumDataClass() {
+        return HappyGhastData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("Age", this.growingAge);
+    protected HappyGhastData data() {
+        return (HappyGhastData) super.data();
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // Age is a DTO int, but setting it syncs the baby metadata and the
+        // baby scale, as the previous load did: it runs before the
+        // living-state load below, matching the historical load order. An absent key resets to today's default of 0. The base Scale
+        // hook already ran in loadBaseCustom, so a baby's derived scale still
+        // wins over an explicit tag scale.
+        this.setAge(getInt(tag, "Age", 0));
+        super.loadCustom(tag);
     }
 
     @Override
     public int getAge() {
-        return this.growingAge;
+        return this.data().getAge();
     }
 
     @Override
     public void setAge(int age) {
         boolean wasBaby = this.isBaby();
-        this.growingAge = age;
+        this.data().setAge(age);
         this.data.setFlag(BABY, age < 0);
 
         if (wasBaby != this.isBaby()) {
@@ -78,13 +86,13 @@ public class EntityHappyGhast extends Animal implements HappyGhast {
     @Override
     public boolean entityBaseTick(int tickDiff) {
         boolean updated = super.entityBaseTick(tickDiff);
-        if (!this.isAlive() || tickDiff <= 0 || this.growingAge == 0) {
+        if (!this.isAlive() || tickDiff <= 0 || this.getAge() == 0) {
             return updated;
         }
 
-        this.setAge(this.growingAge < 0
-                ? (int) Math.min(0L, (long) this.growingAge + tickDiff)
-                : (int) Math.max(0L, (long) this.growingAge - tickDiff));
+        this.setAge(this.getAge() < 0
+                ? (int) Math.min(0L, (long) this.getAge() + tickDiff)
+                : (int) Math.max(0L, (long) this.getAge() - tickDiff));
         return true;
     }
 }

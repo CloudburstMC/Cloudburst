@@ -10,6 +10,31 @@ import org.cloudburstmc.api.blockentity.BlockEntity;
 import org.cloudburstmc.api.blockentity.BlockEntityFactory;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.BlockEntityTypes;
+import org.cloudburstmc.api.blockentity.data.BannerData;
+import org.cloudburstmc.api.blockentity.data.BarrelData;
+import org.cloudburstmc.api.blockentity.data.BeaconData;
+import org.cloudburstmc.api.blockentity.data.BedData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.BrewingStandData;
+import org.cloudburstmc.api.blockentity.data.CampfireData;
+import org.cloudburstmc.api.blockentity.data.CauldronData;
+import org.cloudburstmc.api.blockentity.data.ChestData;
+import org.cloudburstmc.api.blockentity.data.ComparatorData;
+import org.cloudburstmc.api.blockentity.data.CrafterData;
+import org.cloudburstmc.api.blockentity.data.DispenserData;
+import org.cloudburstmc.api.blockentity.data.DropperData;
+import org.cloudburstmc.api.blockentity.data.EndGatewayData;
+import org.cloudburstmc.api.blockentity.data.FlowerPotData;
+import org.cloudburstmc.api.blockentity.data.FurnaceData;
+import org.cloudburstmc.api.blockentity.data.HopperData;
+import org.cloudburstmc.api.blockentity.data.ItemFrameData;
+import org.cloudburstmc.api.blockentity.data.JukeboxData;
+import org.cloudburstmc.api.blockentity.data.LecternData;
+import org.cloudburstmc.api.blockentity.data.MovingBlockData;
+import org.cloudburstmc.api.blockentity.data.MusicData;
+import org.cloudburstmc.api.blockentity.data.ShulkerBoxData;
+import org.cloudburstmc.api.blockentity.data.SignData;
+import org.cloudburstmc.api.blockentity.data.SkullData;
 import org.cloudburstmc.api.registry.BlockEntityRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
@@ -34,6 +59,7 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
     private final Map<BlockEntityType<?>, RegistryServiceProvider<BlockEntityFactory<?>>> providers = new IdentityHashMap<>();
     private final BiMap<BlockEntityType<?>, String> persistentMap = HashBiMap.create();
     private final Map<BlockEntityType<?>, Set<BlockType>> validBlocks = new IdentityHashMap<>();
+    private final Map<BlockEntityType<?>, Class<? extends BlockEntityData>> dataClasses = new IdentityHashMap<>();
     private final Map<String, BlockEntityType<?>> unknownTypes = new java.util.HashMap<>();
     private final Map<BlockEntityType<?>, String> unknownPersistentIds = new IdentityHashMap<>();
     private final AtomicLong unknownTypeIds = new AtomicLong();
@@ -48,26 +74,31 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         return INSTANCE;
     }
 
-    private <T extends BlockEntity> void registerVanilla(BlockEntityType<T> type, BlockEntityFactory<? extends T> factory, String persistentId) {
+    private <T extends BlockEntity> void registerVanilla(BlockEntityType<T> type, BlockEntityFactory<? extends T> factory, String persistentId,
+                                                        Class<? extends BlockEntityData> dataClass) {
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
+        checkNotNull(dataClass, "dataClass");
 
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 1000)));
         this.validBlocks.put(type, VanillaBlockEntityBlocks.get(type));
+        this.dataClasses.put(type, dataClass);
     }
 
     @Override
     public synchronized <T extends BlockEntity> void register(BlockEntityType<T> type,
                                                               BlockEntityFactory<T> factory,
                                                               String persistentId,
-                                                              Set<BlockType> validBlocks) throws RegistryException {
+                                                              Set<BlockType> validBlocks,
+                                                              Class<? extends BlockEntityData> dataClass) throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
         checkNotNull(persistentId, "persistentId");
         checkNotNull(validBlocks, "validBlocks");
+        checkNotNull(dataClass, "dataClass");
         checkArgument(!type.getId().getNamespace().equals("minecraft"),
                 "Custom block entity types must use a non-minecraft namespace: %s", type.getId());
         checkArgument(!persistentId.isBlank(), "persistentId cannot be blank");
@@ -78,6 +109,13 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.persistentMap.put(type, persistentId);
         this.providers.put(type, new RegistryServiceProvider<>(new RegistryProvider<>(factory, null, 0)));
         this.validBlocks.put(type, Set.copyOf(validBlocks));
+        this.dataClasses.put(type, dataClass);
+    }
+
+    @Override
+    public Class<? extends BlockEntityData> getDataClass(BlockEntityType<?> type) {
+        checkNotNull(type, "type");
+        return this.dataClasses.getOrDefault(type, BlockEntityData.class);
     }
 
     public String getPersistentId(BlockEntityType<?> type) {
@@ -166,42 +204,52 @@ public final class CloudBlockEntityRegistry implements BlockEntityRegistry {
         this.closed = true;
     }
 
+    /**
+     * Returns whether registration is closed. Test fixtures use this to close
+     * the shared registry exactly once, regardless of test execution order.
+     *
+     * @return true if {@link #close()} has completed
+     */
+    public boolean isClosed() {
+        return closed;
+    }
+
     private void checkClosed() {
         checkState(!closed, "Registration is already closed");
     }
 
     private void registerVanillaEntities() {
-        registerVanilla(BlockEntityTypes.BANNER, BannerBlockEntity::new, "Banner");
-        registerVanilla(BlockEntityTypes.BARREL, BarrelBlockEntity::new, "Barrel");
-        registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon");
-        registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed");
-        registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace");
-        registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand");
-        registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire");
-        registerVanilla(BlockEntityTypes.CAULDRON, CauldronBlockEntity::new, "Cauldron");
-        registerVanilla(BlockEntityTypes.CHEST, ChestBlockEntity::new, "Chest");
-        registerVanilla(BlockEntityTypes.COMPARATOR, ComparatorBlockEntity::new, "Comparator");
-        registerVanilla(BlockEntityTypes.CONDUIT, ConduitBlockEntity::new, "Conduit");
-        registerVanilla(BlockEntityTypes.CRAFTER, CrafterBlockEntity::new, "Crafter");
-        registerVanilla(BlockEntityTypes.DAYLIGHT_DETECTOR, DaylightDetectorBlockEntity::new, "DaylightDetector");
-        registerVanilla(BlockEntityTypes.DISPENSER, DispenserBlockEntity::new, "Dispenser");
-        registerVanilla(BlockEntityTypes.DROPPER, DropperBlockEntity::new, "Dropper");
-        registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable");
-        registerVanilla(BlockEntityTypes.END_GATEWAY, EndGatewayBlockEntity::new, "EndGateway");
-        registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest");
-        registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot");
-        registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace");
-        registerVanilla(BlockEntityTypes.GLOW_ITEM_FRAME, ItemFrameBlockEntity::new, "GlowItemFrame");
-        registerVanilla(BlockEntityTypes.HOPPER, HopperBlockEntity::new, "Hopper");
-        registerVanilla(BlockEntityTypes.ITEM_FRAME, ItemFrameBlockEntity::new, "ItemFrame");
-        registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox");
-        registerVanilla(BlockEntityTypes.LECTERN, LecternBlockEntity::new, "Lectern");
-        registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock");
-        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music");
-        registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm");
-        registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox");
-        registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign");
-        registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull");
-        registerVanilla(BlockEntityTypes.SMOKER, SmokerBlockEntity::new, "Smoker");
+        registerVanilla(BlockEntityTypes.BANNER, BannerBlockEntity::new, "Banner", BannerData.class);
+        registerVanilla(BlockEntityTypes.BARREL, BarrelBlockEntity::new, "Barrel", BarrelData.class);
+        registerVanilla(BlockEntityTypes.BEACON, BeaconBlockEntity::new, "Beacon", BeaconData.class);
+        registerVanilla(BlockEntityTypes.BED, BedBlockEntity::new, "Bed", BedData.class);
+        registerVanilla(BlockEntityTypes.BLAST_FURNACE, BlastFurnaceBlockEntity::new, "BlastFurnace", FurnaceData.class);
+        registerVanilla(BlockEntityTypes.BREWING_STAND, BrewingStandBlockEntity::new, "BrewingStand", BrewingStandData.class);
+        registerVanilla(BlockEntityTypes.CAMPFIRE, CampfireBlockEntity::new, "Campfire", CampfireData.class);
+        registerVanilla(BlockEntityTypes.CAULDRON, CauldronBlockEntity::new, "Cauldron", CauldronData.class);
+        registerVanilla(BlockEntityTypes.CHEST, ChestBlockEntity::new, "Chest", ChestData.class);
+        registerVanilla(BlockEntityTypes.COMPARATOR, ComparatorBlockEntity::new, "Comparator", ComparatorData.class);
+        registerVanilla(BlockEntityTypes.CONDUIT, ConduitBlockEntity::new, "Conduit", BlockEntityData.class);
+        registerVanilla(BlockEntityTypes.CRAFTER, CrafterBlockEntity::new, "Crafter", CrafterData.class);
+        registerVanilla(BlockEntityTypes.DAYLIGHT_DETECTOR, DaylightDetectorBlockEntity::new, "DaylightDetector", BlockEntityData.class);
+        registerVanilla(BlockEntityTypes.DISPENSER, DispenserBlockEntity::new, "Dispenser", DispenserData.class);
+        registerVanilla(BlockEntityTypes.DROPPER, DropperBlockEntity::new, "Dropper", DropperData.class);
+        registerVanilla(BlockEntityTypes.ENCHANTING_TABLE, EnchantingTableBlockEntity::new, "EnchantTable", BlockEntityData.class);
+        registerVanilla(BlockEntityTypes.END_GATEWAY, EndGatewayBlockEntity::new, "EndGateway", EndGatewayData.class);
+        registerVanilla(BlockEntityTypes.ENDER_CHEST, EnderChestBlockEntity::new, "EnderChest", ChestData.class);
+        registerVanilla(BlockEntityTypes.FLOWER_POT, FlowerPotBlockEntity::new, "FlowerPot", FlowerPotData.class);
+        registerVanilla(BlockEntityTypes.FURNACE, FurnaceBlockEntity::new, "Furnace", FurnaceData.class);
+        registerVanilla(BlockEntityTypes.GLOW_ITEM_FRAME, ItemFrameBlockEntity::new, "GlowItemFrame", ItemFrameData.class);
+        registerVanilla(BlockEntityTypes.HOPPER, HopperBlockEntity::new, "Hopper", HopperData.class);
+        registerVanilla(BlockEntityTypes.ITEM_FRAME, ItemFrameBlockEntity::new, "ItemFrame", ItemFrameData.class);
+        registerVanilla(BlockEntityTypes.JUKEBOX, JukeboxBlockEntity::new, "Jukebox", JukeboxData.class);
+        registerVanilla(BlockEntityTypes.LECTERN, LecternBlockEntity::new, "Lectern", LecternData.class);
+        registerVanilla(BlockEntityTypes.MOVING_BLOCK, MovingBlockEntity::new, "MovingBlock", MovingBlockData.class);
+        registerVanilla(BlockEntityTypes.NOTEBLOCK, MusicBlockEntity::new, "Music", MusicData.class);
+        registerVanilla(BlockEntityTypes.PISTON, PistonBlockEntity::new, "PistonArm", BlockEntityData.class);
+        registerVanilla(BlockEntityTypes.SHULKER_BOX, ShulkerBoxBlockEntity::new, "ShulkerBox", ShulkerBoxData.class);
+        registerVanilla(BlockEntityTypes.SIGN, SignBlockEntity::new, "Sign", SignData.class);
+        registerVanilla(BlockEntityTypes.SKULL, SkullBlockEntity::new, "Skull", SkullData.class);
+        registerVanilla(BlockEntityTypes.SMOKER, SmokerBlockEntity::new, "Smoker", FurnaceData.class);
     }
 }

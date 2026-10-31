@@ -4,6 +4,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.ArrowData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.projectile.Arrow;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemDataComponents;
@@ -12,10 +14,9 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.potion.PotionType;
 import org.cloudburstmc.api.util.BlockHitResult;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 
@@ -26,9 +27,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.CUST
 
 public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
-    private ItemStack itemStack = ItemStack.from(ItemTypes.ARROW);
-    private int potionGroundTicks;
-
     public EntityArrow(EntityType<Arrow> type, Location location) {
         super(type, location);
     }
@@ -36,26 +34,38 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setItemStack(this.itemStack);
+        this.setItemStack(ItemStack.from(ItemTypes.ARROW));
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForCompound("Item", item -> this.setItemStack(ItemUtils.deserializeItem(item)));
-        this.potionGroundTicks = Math.max(0, tag.getInt("PotionGroundTicks"));
+    protected ArrowData data() {
+        return (ArrowData) super.data();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putCompound("Item", ItemUtils.serializeItem(this.itemStack));
-        tag.putInt("PotionGroundTicks", this.potionGroundTicks);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return ArrowData.class;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // The item and ground ticks run before the abstract-arrow
+        // load below, matching the historical load order. The item setter
+        // re-runs to keep its validation, as the previous load did; the ground ticks
+        // have a load default of zero, so they reset when absent.
+        if (tag.containsKey("Item")) {
+            ItemStack item = this.data().getItem();
+            if (item != null) {
+                this.setItemStack(item);
+            }
+        }
+        this.data().setPotionGroundTicks(Math.max(0, getInt(tag, "PotionGroundTicks", 0)));
+        super.loadCustom(tag);
     }
 
     @Override
     public ItemStack getItemStack() {
-        return this.itemStack;
+        return this.data().getItem();
     }
 
     @Override
@@ -67,8 +77,8 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
 
         PotionType potion = item.get(ItemDataComponents.POTION_TYPE);
         byte display = potion == null ? 0 : (byte) (NetworkUtils.potionToNetwork(potion) + 1);
-        this.itemStack = item.withCount(1);
-        this.potionGroundTicks = 0;
+        this.data().setItem(item.withCount(1));
+        this.data().setPotionGroundTicks(0);
         this.data.set(CUSTOM_DISPLAY, display);
     }
 
@@ -119,7 +129,7 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
             return false;
         }
 
-        PotionType potion = this.itemStack.get(ItemDataComponents.POTION_TYPE);
+        PotionType potion = this.getItemStack().get(ItemDataComponents.POTION_TYPE);
         if (potion != null) {
             Entity owner = this.getOwner();
             DamageSource.Builder source = DamageSource.builder(DamageTypes.INDIRECT_MAGIC).directEntity(this);
@@ -150,14 +160,14 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
         int tickDiff = Math.max(0, currentTick - this.lastUpdate);
         boolean hasUpdate = super.onUpdate(currentTick);
 
-        if (this.isEmbedded() && this.itemStack.has(ItemDataComponents.POTION_TYPE)) {
-            this.potionGroundTicks += tickDiff;
-            if (this.potionGroundTicks >= 600) {
+        if (this.isEmbedded() && this.getItemStack().has(ItemDataComponents.POTION_TYPE)) {
+            this.data().setPotionGroundTicks(this.data().getPotionGroundTicks() + tickDiff);
+            if (this.data().getPotionGroundTicks() >= 600) {
                 this.setItemStack(ItemStack.from(ItemTypes.ARROW));
                 hasUpdate = true;
             }
         } else {
-            this.potionGroundTicks = 0;
+            this.data().setPotionGroundTicks(0);
         }
 
         if (this.onGround || this.hadCollision) {

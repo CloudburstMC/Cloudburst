@@ -6,6 +6,8 @@ import org.cloudburstmc.api.boss.BossBarColor;
 import org.cloudburstmc.api.boss.BossBarStyle;
 import org.cloudburstmc.api.entity.Attribute;
 import org.cloudburstmc.api.entity.EntityType;
+import org.cloudburstmc.api.entity.data.EnderDragonData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.hostile.EnderDragon;
 import org.cloudburstmc.api.event.entity.EntityDeathEvent;
 import org.cloudburstmc.api.level.Location;
@@ -15,7 +17,6 @@ import org.cloudburstmc.api.level.particle.ParticleEmitterTypes;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
@@ -36,9 +37,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.STRU
 
 public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
-    private static final String TAG_DRAGON_DEATH_TIME = "DragonDeathTime";
-    private static final String TAG_DRAGON_DEATH_EXPERIENCE = "DragonDeathExperience";
-
     private static final float BOSS_BAR_RANGE = 192;
 
     private static final int DEATH_DURATION = 200;
@@ -50,8 +48,6 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     private BossBar bossBar;
     private boolean dying;
-    private int dragonDeathTime;
-    private int deathExperience;
     private int ambientSoundDelay;
 
     public EntityEnderDragon(EntityType<EnderDragon> type, Location location) {
@@ -121,20 +117,33 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForInt(TAG_DRAGON_DEATH_TIME, dragonDeathTime -> {
-            this.dragonDeathTime = dragonDeathTime;
-            this.dying = dragonDeathTime > 0;
-        });
-        this.deathExperience = tag.getInt(TAG_DRAGON_DEATH_EXPERIENCE, this.getExperienceReward());
+    protected Class<? extends EntityData> minimumDataClass() {
+        return EnderDragonData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt(TAG_DRAGON_DEATH_TIME, this.dragonDeathTime);
-        tag.putInt(TAG_DRAGON_DEATH_EXPERIENCE, this.deathExperience);
+    protected EnderDragonData data() {
+        return (EnderDragonData) super.data();
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // Death progress lives in the DTO; the dying flag derives from it,
+        // Exactly as the previous load derived it. It runs before the
+        // living-state load below, matching the historical load order: a dying dragon saved with Health 0 reloads with dying already
+        // true, so setHealth(0) cannot begin death a second time. An absent
+        // death-time key leaves the current progress alone; an absent
+        // experience key falls back to today's reward lookup.
+        if (tag.containsKey("DragonDeathTime")) {
+            this.data().setDragonDeathTime(getInt(tag, "DragonDeathTime", this.data().getDragonDeathTime()));
+            this.dying = this.data().getDragonDeathTime() > 0;
+        }
+        if (tag.containsKey("DragonDeathExperience")) {
+            this.data().setDragonDeathExperience(getInt(tag, "DragonDeathExperience", this.data().getDragonDeathExperience()));
+        } else {
+            this.data().setDragonDeathExperience(this.getExperienceReward());
+        }
+        super.loadCustom(tag);
     }
 
     @Override
@@ -190,7 +199,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
 
     @Override
     protected void dropDeathExperience(int experience) {
-        this.deathExperience = experience;
+        this.data().setDragonDeathExperience(experience);
     }
 
     private int getExperienceReward() {
@@ -204,7 +213,7 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
             return;
         }
 
-        this.deathExperience = event.getDroppedExperience();
+        this.data().setDragonDeathExperience(event.getDroppedExperience());
         this.dying = true;
         this.health = 0;
         this.data.set(STRUCTURAL_INTEGRITY, 1);
@@ -214,22 +223,24 @@ public class EntityEnderDragon extends EntityHostile implements EnderDragon {
     }
 
     private boolean tickDeath() {
-        this.dragonDeathTime++;
-        if (this.dragonDeathTime == 1) {
+        this.data().setDragonDeathTime(this.data().getDragonDeathTime() + 1);
+        int deathTime = this.data().getDragonDeathTime();
+        int deathExperience = this.data().getDragonDeathExperience();
+        if (deathTime == 1) {
             this.getLevel().addLevelSoundEvent(this.getPosition(), SoundEvent.DEATH, -1, this.getType(), false, false);
         }
 
         if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT)
-                && this.dragonDeathTime > EXPERIENCE_START_TICK
-                && this.dragonDeathTime % EXPERIENCE_INTERVAL == 0) {
-            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(this.deathExperience * 0.08));
+                && deathTime > EXPERIENCE_START_TICK
+                && deathTime % EXPERIENCE_INTERVAL == 0) {
+            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(deathExperience * 0.08));
         }
 
-        if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT) && this.dragonDeathTime == DEATH_DURATION) {
-            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(this.deathExperience * 0.2));
+        if (this.getLevel().getGameRules().get(GameRules.DO_MOB_LOOT) && deathTime == DEATH_DURATION) {
+            this.getLevel().dropExpOrb(this.getPosition(), (int) Math.floor(deathExperience * 0.2));
         }
 
-        if (this.dragonDeathTime < DEATH_DURATION) {
+        if (deathTime < DEATH_DURATION) {
             return true;
         }
 

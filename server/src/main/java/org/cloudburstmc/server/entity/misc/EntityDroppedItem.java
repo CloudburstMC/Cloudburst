@@ -9,6 +9,8 @@ import org.cloudburstmc.api.entity.Entity;
 import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.entity.data.DroppedItemData;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.entity.misc.DroppedItem;
 import org.cloudburstmc.api.event.entity.ItemDespawnEvent;
 import org.cloudburstmc.api.item.ItemBehaviors;
@@ -31,14 +33,15 @@ import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 
 public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
-    protected ItemStack item;
-    protected int pickupDelay;
     private boolean fromFishing;
 
     public EntityDroppedItem(EntityType<DroppedItem> type, Location location) {
@@ -88,25 +91,47 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForShort("Health", this::setHealth);
-        tag.listenForShort("PickupDelay", this::setPickupDelay);
-        tag.listenForShort("Age", v -> this.age = v);
-        tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
-        tag.listenForCompound("Item", itemTag -> this.item = ItemUtils.deserializeItem(itemTag));
+    protected DroppedItemData data() {
+        return (DroppedItemData) super.data();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return DroppedItemData.class;
+    }
 
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // Health, age and owner run before the base load below,
+        // matching the historical load order. Each keeps its current value
+        // when its key is absent, exactly as the old null checks did.
+        if (tag.containsKey("Health")) {
+            this.setHealth(getShort(tag, "Health", (short) this.getHealth()));
+        }
+        if (tag.containsKey("Age")) {
+            this.age = getShort(tag, "Age", (short) this.age);
+        }
+        if (tag.containsKey("OwnerID")) {
+            this.data.set(OWNER_EID, getLong(tag, "OwnerID", this.data.require(OWNER_EID)));
+        }
+        super.loadCustom(tag);
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putShort("Health", (short) this.getHealth());
-        tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
         tag.putLong("OwnerID", this.data.require(OWNER_EID));
-        tag.putCompound("Item", ItemUtils.serializeItem(this.item));
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Health");
+        keys.add("Age");
+        keys.add("OwnerID");
+        return Set.copyOf(keys);
     }
 
     @Override
@@ -115,8 +140,8 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 source.getDamageType() == DamageTypes.CACTUS ||
                 source.getDamageType() == DamageTypes.ON_FIRE ||
                 source.getDamageType().is(DamageTypeTags.IS_EXPLOSION) &&
-                        !this.isInsideOfWater() && (this.item == null ||
-                        this.item.getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
+                        !this.isInsideOfWater() && (this.getItem().isEmpty() ||
+                        this.getItem().getType() != ItemTypes.NETHER_STAR)) && super.applyDamage(source);
     }
 
     @Override
@@ -135,7 +160,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.timing.startTiming();
 
-        if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
+        if (this.age % 60 == 0 && this.onGround && !this.getItem().isEmpty() && this.isAlive()) {
             if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
                     if (entity instanceof EntityDroppedItem) {
@@ -143,7 +168,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         ItemStack closeItem = ((EntityDroppedItem) entity).getItem();
-                        if (closeItem == null || !closeItem.isStackableWith(getItem())) {
+                        if (closeItem.isEmpty() || !closeItem.isStackableWith(getItem())) {
                             continue;
                         }
 
@@ -156,7 +181,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                             continue;
                         }
                         entity.close();
-                        this.item = getItem().withCount(newAmount);
+                        this.data().setItem(getItem().withCount(newAmount));
                         EntityEventPacket packet = new EntityEventPacket();
                         packet.setRuntimeEntityId(this.getRuntimeId());
                         packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
@@ -174,10 +199,10 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         }
 
         if (this.isAlive()) {
-            if (this.pickupDelay > 0 && this.pickupDelay < 32767) {
-                this.pickupDelay -= tickDiff;
-                if (this.pickupDelay < 0) {
-                    this.pickupDelay = 0;
+            if (this.getPickupDelay() > 0 && this.getPickupDelay() < 32767) {
+                this.setPickupDelay(this.getPickupDelay() - tickDiff);
+                if (this.getPickupDelay() < 0) {
+                    this.setPickupDelay(0);
                 }
             } else {
                 for (Entity entity : this.level.getNearbyEntities(this, this.boundingBox.inflate(1, 0.5f, 1))) {
@@ -253,7 +278,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return this.getNameTag();
         }
 
-        String customName = this.item.get(ItemDataComponents.CUSTOM_NAME);
+        String customName = this.getItem().get(ItemDataComponents.CUSTOM_NAME);
         return customName != null ? customName : super.getName();
     }
 
@@ -263,18 +288,19 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
             return Component.text(this.getNameTag());
         }
 
-        return ItemDisplayNameResolver.resolve(this.item);
+        return ItemDisplayNameResolver.resolve(this.getItem());
     }
 
     public ItemStack getItem() {
-        return item;
+        ItemStack item = this.data().getItem();
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     @Override
     public void setItem(@NonNull ItemStack item) {
         checkNotNull(item, "item");
         checkArgument(!item.isEmpty(), "item must not be empty");
-        this.item = item;
+        this.data().setItem(item);
     }
 
     @Override
@@ -283,11 +309,11 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
     }
 
     public int getPickupDelay() {
-        return pickupDelay;
+        return this.data().getPickupDelay();
     }
 
     public void setPickupDelay(int pickupDelay) {
-        this.pickupDelay = pickupDelay;
+        this.data().setPickupDelay(pickupDelay);
     }
 
     public boolean isFromFishing() {

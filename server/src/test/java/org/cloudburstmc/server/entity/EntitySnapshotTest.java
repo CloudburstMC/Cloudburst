@@ -8,7 +8,6 @@ import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -83,11 +82,7 @@ class EntitySnapshotTest {
     private static class SnapshotPig extends CloudEntity {
         private SnapshotPig() {
             super(EntityTypes.PIG, Location.from(Vector3f.ZERO, InterfaceProxy.create(Level.class)));
-        }
-
-        @Override
-        public void saveAdditionalData(NbtMapBuilder tag) {
-            tag.putString("CustomName", "Picked pig");
+            this.setNameTag("Picked pig");
         }
     }
 }

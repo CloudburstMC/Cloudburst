@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.container;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.item.ItemStack;
 
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.function.ObjIntConsumer;
  * implementations should not expose {@code null} items from {@link #getItem(int)} or {@link #getContents()}.
  * Methods that search by item use {@link ItemStack#isStackableWith(ItemStack)}.</p>
  */
-public interface Container {
+public interface Container extends ItemContainer {
 
     /**
      * Default maximum stack size used by containers without a custom cap.

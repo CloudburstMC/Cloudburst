@@ -8,6 +8,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.server.entity.EntityCreature;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.VARIANT;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BABY;
 
@@ -56,17 +59,26 @@ public class EntityVillager extends EntityCreature implements Villager, EntityAg
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("Profession", this::setProfession);
+    protected void loadCustom(NbtMap tag) {
+        // Runs before the living-state load below,
+        // matching the historical load order.
+        if (tag.containsKey("Profession")) {
+            this.setProfession(getInt(tag, "Profession", this.getProfession()));
+        }
+        super.loadCustom(tag);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putInt("Profession", this.getProfession());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Profession");
+        return Set.copyOf(keys);
     }
 
     public int getProfession() {

@@ -26,7 +26,9 @@ import org.cloudburstmc.api.event.vehicle.VehicleEnterEvent;
 import org.cloudburstmc.api.event.vehicle.VehicleExitEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
+import org.cloudburstmc.api.entity.data.EntityData;
 import org.cloudburstmc.api.level.Location;
+import org.cloudburstmc.api.nbt.NbtMapper;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Player;
@@ -60,7 +62,7 @@ import org.cloudburstmc.server.math.MathHelper;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.potion.ActivePotionEffect;
-import org.cloudburstmc.server.potion.PotionEffectDataSerializer;
+import org.cloudburstmc.server.nbt.ServerNbt;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
@@ -81,6 +83,14 @@ public abstract class CloudEntity implements Entity {
     private static final int DEFAULT_MAX_FREEZE_TICKS = 140;
     private static final int MAX_SCOREBOARD_TAGS = 1024;
 
+    private static final ConcurrentHashMap<DataClassKey, Class<? extends EntityData>> EFFECTIVE_DATA_CLASSES =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, java.lang.reflect.Constructor<?>> DATA_CONSTRUCTORS =
+            new ConcurrentHashMap<>();
+
+    private record DataClassKey(Class<?> runtimeClass, EntityType<?> type) {
+    }
+
     protected final Set<CloudPlayer> hasSpawned = ConcurrentHashMap.newKeySet();
 
     protected final Reference2ObjectOpenHashMap<EffectType, ActivePotionEffect> effects = new Reference2ObjectOpenHashMap<>();
@@ -89,6 +99,12 @@ public abstract class CloudEntity implements Entity {
     private final long runtimeId = CloudEntityRegistry.get().newEntityId();
     @Getter
     protected final SyncedEntityData data = new SyncedEntityData();
+    /**
+     * The data instance holding this entity's state. The base keys the hooks
+     * own (movement, fire, air, scale, name tag, effects) live in their runtime
+     * holders instead.
+     */
+    private final EntityData entityData;
     @Getter
     private final EntityType<?> type;
     @Getter
@@ -127,8 +143,6 @@ public abstract class CloudEntity implements Entity {
     public boolean pendingPortalTransfer = false;
     public Vector3i portalEntryBlock = null;
     @Getter
-    public float scale = 1;
-    @Getter
     protected BoundingBox boundingBox;
     public boolean isCollided = false;
     public boolean isCollidedHorizontally = false;
@@ -139,9 +153,6 @@ public abstract class CloudEntity implements Entity {
     public int noDamageTicks;
     public boolean justCreated = true;
     public boolean fireProof;
-    @Setter
-    @Getter
-    public boolean invulnerable;
     protected boolean noPhysics;
     protected CloudLevel level;
     @Getter
@@ -154,7 +165,6 @@ public abstract class CloudEntity implements Entity {
     private @Nullable Entity owner;
     @Setter
     protected EntityDamageEvent lastDamageCause = null;
-    private final Set<String> tags = new LinkedHashSet<>();
     protected int age = 0;
     protected float health = 20;
     protected float absorption = 0;
@@ -163,11 +173,7 @@ public abstract class CloudEntity implements Entity {
     protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
-    private int freezeTicks;
     private boolean freezeTickingLocked;
-    @Setter
-    @Getter
-    private boolean fromBucket;
     private volatile boolean spawned;
     private volatile boolean initialized;
     private static final int MAX_MOVEMENT_SEGMENTS = 100;
@@ -193,6 +199,8 @@ public abstract class CloudEntity implements Entity {
         this.data.set(SCALE, 1f);
         this.data.set(FREEZING_EFFECT_STRENGTH, 0f);
         this.data.set(SEAT_OFFSET, Vector3f.ZERO);
+
+        this.entityData = this.newData();
     }
 
     /**
@@ -244,114 +252,393 @@ public abstract class CloudEntity implements Entity {
         }
     }
 
-    public void loadAdditionalData(NbtMap tag) {
+    public final void loadAdditionalData(NbtMap tag) {
         this.tag = tag;
 
-        tag.listenForList("Pos", NbtType.FLOAT, list -> {
-            this.setPosition(Vector3f.from(list.get(0), list.get(1), list.get(2)));
-        });
-
-        tag.listenForList("Rotation", NbtType.FLOAT, list -> {
-            this.setRotation(list.get(0), list.get(1));
-        });
-
-        tag.listenForList("Motion", NbtType.FLOAT, list -> {
-            this.setMotion(Vector3f.from(list.get(0), list.get(1), list.get(2)));
-        });
-
-        this.highestPosition = this.getY();
-
-        tag.listenForFloat("FallDistance", this::setFallDistance);
-        tag.listenForShort("Fire", this::setOnFire);
-        tag.listenForShort("Air", this::setAirTicks);
-        tag.listenForBoolean("OnGround", this::setOnGround);
-        tag.listenForBoolean("Invulnerable", this::setInvulnerable);
-        tag.listenForInt("TicksFrozen", this::setFreezeTicks);
-
-        if (this instanceof Bucketable) {
-            tag.listenForBoolean("FromBucket", this::setFromBucket);
-        }
-
-        tag.listenForFloat("Scale", this::setScale);
-
-        if (tag.containsKey("ActiveEffects")) {
-            List<NbtMap> effects = tag.getList("ActiveEffects", NbtType.COMPOUND);
-            for (NbtMap e : effects) {
-                this.restorePotionEffect(PotionEffectDataSerializer.deserialize(e));
-            }
-        }
-
-        tag.listenForString("CustomName", this::setNameTag);
-        tag.listenForBoolean("CustomNameVisible", this::setNameTagVisible);
-        tag.listenForBoolean("CustomNameAlwaysVisible", this::setNameTagAlwaysVisible);
-        this.tags.clear();
-        if (tag.containsKey("Tags")) {
-            for (String entityTag : tag.getList("Tags", NbtType.STRING)) {
-                if (!entityTag.isBlank() && this.tags.size() < MAX_SCOREBOARD_TAGS) {
-                    this.tags.add(entityTag);
-                }
-            }
-        }
+        ServerNbt.MAPPER.readInto(tag, this.data());
+        this.normalizeData();
+        this.loadBaseCustom(tag);
+        this.loadCustom(tag);
     }
 
-    public void saveAdditionalData(NbtMapBuilder tag) {
+    public final void saveAdditionalData(NbtMapBuilder tag) {
+        Class<? extends EntityData> dataClass = this.dataClass();
+        Set<String> owned = ServerNbt.MAPPER.ownedKeys(dataClass);
+        Set<String> custom = this.customKeys();
+
         if (this.tag != null && !this.tag.isEmpty()) {
-            tag.putAll(this.tag);
+            for (Map.Entry<String, Object> entry : this.tag.entrySet()) {
+                String key = entry.getKey();
+                if (key.equals("identifier") || owned.contains(key) || custom.contains(key)) {
+                    continue;
+                }
+                tag.put(key, entry.getValue());
+            }
         }
 
-        if (this.hasNameTag()) {
-            tag.putString("CustomName", this.getNameTag());
-            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
-            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
-        }
-
-        tag.putList("Tags", NbtType.STRING, List.copyOf(this.tags));
+        EntityData data = this.data();
+        tag.putAll(ServerNbt.MAPPER.write(data));
 
         if (!(this instanceof CloudPlayer)) {
             tag.putString("identifier", this.type.getId().toString());
         }
 
-        tag.putList("Pos", NbtType.FLOAT, Arrays.asList(
-                this.position.getX(),
-                this.position.getY(),
-                this.position.getZ())
-        );
+        this.saveCustom(tag);
+    }
 
-        tag.putList("Motion", NbtType.FLOAT, Arrays.asList(
-                this.motion.getX(),
-                this.motion.getY(),
-                this.motion.getZ())
-        );
+    @Override
+    public Optional<NbtMap> getPluginData(String pluginId) {
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return Optional.empty();
+        }
+        NbtMap root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, null);
+        if (root == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(root.getCompound(pluginId, null));
+    }
 
-        tag.putList("Rotation", NbtType.FLOAT, Arrays.asList(
-                this.yaw,
-                this.pitch)
-        );
+    @Override
+    public void setPluginData(String pluginId, NbtMap data) {
+        checkNotNull(pluginId, "pluginId");
+        checkNotNull(data, "data");
+        NbtMap tag = this.tag == null ? NbtMap.EMPTY : this.tag;
+        NbtMapBuilder root = tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).toBuilder();
+        root.putCompound(pluginId, data);
+        NbtMapBuilder builder = tag.toBuilder();
+        builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        this.tag = builder.build();
+        this.markChunkDirty();
+    }
 
+    @Override
+    public void removePluginData(String pluginId) {
+        checkNotNull(pluginId, "pluginId");
+        if (this.tag == null) {
+            return;
+        }
+        if (!this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY, NbtMap.EMPTY).containsKey(pluginId)) {
+            return;
+        }
+        NbtMapBuilder root = this.tag.getCompound(NbtMapper.PLUGIN_DATA_KEY).toBuilder();
+        root.remove(pluginId);
+        NbtMapBuilder builder = this.tag.toBuilder();
+        if (root.isEmpty()) {
+            builder.remove(NbtMapper.PLUGIN_DATA_KEY);
+        } else {
+            builder.putCompound(NbtMapper.PLUGIN_DATA_KEY, root.build());
+        }
+        this.tag = builder.build();
+        this.markChunkDirty();
+    }
+
+    /**
+     * Marks the chunk holding this entity dirty so plugin data changes are
+     * saved with the next chunk save. Tolerates entities without a chunk,
+     * such as test fixtures that never ran {@code initialize}.
+     */
+    private void markChunkDirty() {
+        if (this.chunk != null) {
+            this.chunk.markDirty();
+        }
+    }
+
+    /**
+     * Returns the data instance holding this entity's state. Subclasses
+     * override this with a covariant return for their own data type.
+     *
+     * @return the held data instance
+     */
+    protected EntityData data() {
+        return this.entityData;
+    }
+
+    /**
+     * The narrowest data class this runtime class can apply and fill. Subclasses
+     * that cast the data to their own type override this to return that type.
+     *
+     * @return the minimum data class of this runtime class
+     */
+    protected Class<? extends EntityData> minimumDataClass() {
+        return EntityData.class;
+    }
+
+    /**
+     * Resolves the data class for this instance: the class registered for the
+     * entity type when this runtime class can apply it, otherwise this runtime
+     * class's minimum data class. Both the resolution and the data constructors
+     * are cached; registration is closed before instances load or save.
+     *
+     * @return the data class for load, save and fresh instances
+     */
+    protected Class<? extends EntityData> dataClass() {
+        Class<?> runtimeClass = this.getClass();
+        EntityType<?> type = this.type;
+        Class<? extends EntityData> minimum = this.minimumDataClass();
+        return EFFECTIVE_DATA_CLASSES.computeIfAbsent(new DataClassKey(runtimeClass, type), key -> {
+            Class<? extends EntityData> registered = CloudEntityRegistry.get().getDataClass(key.type());
+            return minimum.isAssignableFrom(registered) ? registered : minimum;
+        });
+    }
+
+    /**
+     * Creates a fresh data object of the type registered for this entity.
+     *
+     * @return a new data object
+     */
+    protected final EntityData newData() {
+        Class<? extends EntityData> dataClass = this.dataClass();
+        try {
+            java.lang.reflect.Constructor<?> constructor = DATA_CONSTRUCTORS.computeIfAbsent(dataClass, key -> {
+                try {
+                    java.lang.reflect.Constructor<?> found = key.getDeclaredConstructor();
+                    found.setAccessible(true);
+                    return found;
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalStateException("Cannot instantiate data class " + key.getName(), e);
+                }
+            });
+            return (EntityData) constructor.newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot instantiate data class " + dataClass.getName(), e);
+        }
+    }
+
+    /**
+     * Re-applies the setter normalization the previous load path ran while
+     * copying data onto the entity, which a plain in-place read bypasses:
+     * frozen ticks are clamped and a zero result is omitted, a non-bucketable
+     * never keeps a bucket value, and tags skip blanks and stop at the cap.
+     */
+    private void normalizeData() {
+        EntityData data = this.data();
+
+        Integer frozen = data.getTicksFrozen();
+        if (frozen != null) {
+            int clamped = Math.clamp(frozen, 0, this.getMaxFreezeTicks());
+            data.setTicksFrozen(clamped == 0 ? null : clamped);
+        }
+
+        if (!(this instanceof Bucketable)) {
+            data.setFromBucket(null);
+        }
+
+        Set<String> tags = data.getTags();
+        if (tags == null) {
+            data.setTags(new LinkedHashSet<>());
+        } else {
+            List<String> kept = new ArrayList<>(tags);
+            tags.clear();
+            for (String tag : kept) {
+                if (tag != null && !tag.isBlank() && tags.size() < MAX_SCOREBOARD_TAGS) {
+                    tags.add(tag);
+                }
+            }
+        }
+    }
+
+    /**
+     * Reads the base exception keys: the movement and physics state, the fire
+     * countdown, the air supply, the scale, the name tag and the active
+     * effects, with today's keys, types and presence semantics. It runs once
+     * before the subclass load chain, so subclass state derived from it
+     * (a baby ghast's scale, a turtle's home) still wins. A key the tag does
+     * not hold leaves the current value alone, except for the keys today's
+     * load always wrote. Every read is lenient like the mapper: any number
+     * binds to a numeric property, any number binds to a boolean, and any
+     * numeric list binds to a position list.
+     *
+     * @param tag the stored tag
+     */
+    protected void loadBaseCustom(NbtMap tag) {
+        List<Float> pos = getFloatList(tag, "Pos");
+        if (pos != null && pos.size() == 3) {
+            this.setPosition(Vector3f.from(pos.get(0), pos.get(1), pos.get(2)));
+        }
+        List<Float> rotation = getFloatList(tag, "Rotation");
+        if (rotation != null && rotation.size() == 2) {
+            this.setRotation(rotation.get(0), rotation.get(1));
+        }
+        List<Float> motion = getFloatList(tag, "Motion");
+        if (motion != null && motion.size() == 3) {
+            this.setMotion(Vector3f.from(motion.get(0), motion.get(1), motion.get(2)));
+        }
+
+        this.highestPosition = this.getY();
+
+        this.setFallDistance(getFloat(tag, "FallDistance", 0f));
+        // Fire loads as it long has: the tagged seconds ran through the fire
+        // countdown before the creature's armor was loaded, so no
+        // Fire Protection reduction applied. Assign the countdown directly
+        // instead of going through the armor-aware setter.
+        short fireSeconds = getShort(tag, "Fire", (short) 0);
+        int fireTicks = fireSeconds * 20;
+        if (fireTicks > this.fireTicks) {
+            this.fireTicks = fireTicks;
+        }
+        this.setAirTicks(getShort(tag, "Air", (short) 400));
+        this.setOnGround(getBoolean(tag, "OnGround", false));
+        if (tag.containsKey("Scale")) {
+            this.setScale(getFloat(tag, "Scale", 1f));
+        }
+
+        // The DTO now holds the frozen ticks; refresh the derived freeze-strength
+        // metadata the setter would have synced on a fresh read.
+        this.data.set(FREEZING_EFFECT_STRENGTH, this.getFreezeTicks() / (float) this.getMaxFreezeTicks());
+
+        this.effects.clear();
+        tag.listenForList("ActiveEffects", NbtType.COMPOUND, effects -> {
+            for (NbtMap effect : effects) {
+                this.restorePotionEffect(new PotionEffect(
+                        NetworkUtils.effectFromNetwork(getByte(effect, "Id", (byte) 0)),
+                        getInt(effect, "Duration", 0),
+                        Byte.toUnsignedInt(getByte(effect, "Amplifier", (byte) 0)),
+                        getBoolean(effect, "Ambient", false),
+                        getBoolean(effect, "ShowParticles", false)));
+            }
+        });
+
+        tag.listenForString("CustomName", this::setNameTag);
+        if (tag.containsKey("CustomNameVisible")) {
+            this.setNameTagVisible(getBoolean(tag, "CustomNameVisible", false));
+        }
+        if (tag.containsKey("CustomNameAlwaysVisible")) {
+            this.setNameTagAlwaysVisible(getBoolean(tag, "CustomNameAlwaysVisible", false));
+        }
+    }
+
+    /**
+     * Reads data that subclasses handle outside their data class. The base
+     * exception keys load exactly once, in {@link #loadBaseCustom} before the
+     * subclass load chain, so this stays a no-op for the base: every
+     * subclass {@code super.loadCustom} call in the chain still resolves here.
+     *
+     * @param tag the stored tag
+     */
+    protected void loadCustom(NbtMap tag) {
+    }
+
+    /**
+     * Reads a numeric property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static float getFloat(NbtMap tag, String key, float defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.floatValue() : defaultValue;
+    }
+
+    /**
+     * Reads a short property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static short getShort(NbtMap tag, String key, short defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.shortValue() : defaultValue;
+    }
+
+    /**
+     * Reads an int property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static int getInt(NbtMap tag, String key, int defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.intValue() : defaultValue;
+    }
+
+    /**
+     * Reads a long property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static long getLong(NbtMap tag, String key, long defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.longValue() : defaultValue;
+    }
+
+    /**
+     * Reads a byte property leniently, like the mapper: any number binds,
+     * anything else keeps the default.
+     */
+    protected static byte getByte(NbtMap tag, String key, byte defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.byteValue() : defaultValue;
+    }
+
+    /**
+     * Reads a boolean property leniently, like the mapper: any number binds,
+     * with zero meaning false, and anything else keeps the default.
+     */
+    protected static boolean getBoolean(NbtMap tag, String key, boolean defaultValue) {
+        Object value = tag.get(key);
+        return value instanceof Number number ? number.intValue() != 0 : defaultValue;
+    }
+
+    /**
+     * Reads a position list leniently, like the mapper: any numeric element
+     * list binds, anything else (an absent key, a missing list, a non-numeric
+     * element) returns {@code null} so the caller keeps the current value.
+     */
+    protected static @Nullable List<Float> getFloatList(NbtMap tag, String key) {
+        Object value = tag.get(key);
+        if (!(value instanceof List<?> list)) {
+            return null;
+        }
+        List<Float> result = new ArrayList<>(list.size());
+        for (Object element : list) {
+            if (!(element instanceof Number number)) {
+                return null;
+            }
+            result.add(number.floatValue());
+        }
+        return result;
+    }
+
+    /**
+     * Writes data that subclasses handle outside their data class.
+     *
+     * @param tag tag to write data to
+     */
+    protected void saveCustom(NbtMapBuilder tag) {
+        Vector3f position = this.getPosition();
+        tag.putList("Pos", NbtType.FLOAT, List.of(position.getX(), position.getY(), position.getZ()));
+        tag.putList("Rotation", NbtType.FLOAT, List.of(this.yaw, this.pitch));
+        Vector3f motion = this.getMotion();
+        tag.putList("Motion", NbtType.FLOAT, List.of(motion.getX(), motion.getY(), motion.getZ()));
         tag.putFloat("FallDistance", this.fallDistance);
-        tag.putShort("Fire", (short) this.fireTicks);
+        tag.putShort("Fire", (short) this.getFireTicks());
         tag.putShort("Air", this.data.require(AIR_SUPPLY));
         tag.putBoolean("OnGround", this.onGround);
-        tag.putBoolean("Invulnerable", this.invulnerable);
-
-        if (this.freezeTicks > 0) {
-            tag.putInt("TicksFrozen", this.freezeTicks);
+        tag.putFloat("Scale", this.getScale());
+        if (this.hasNameTag()) {
+            tag.putString("CustomName", this.getNameTag());
+            tag.putBoolean("CustomNameVisible", this.isNameTagVisible());
+            tag.putBoolean("CustomNameAlwaysVisible", this.isNameTagAlwaysVisible());
         }
-
-        if (this instanceof Bucketable) {
-            tag.putBoolean("FromBucket", this.fromBucket);
-        }
-
-        tag.putFloat("Scale", this.scale);
-
         if (!this.effects.isEmpty()) {
-            List<NbtMap> list = new ArrayList<>();
+            List<NbtMap> effects = new ArrayList<>();
             for (ActivePotionEffect effect : this.effects.values()) {
-                list.add(PotionEffectDataSerializer.serialize(effect.snapshot()));
+                PotionEffect snapshot = effect.snapshot();
+                effects.add(NbtMap.builder()
+                        .putByte("Id", NetworkUtils.effectToNetwork(snapshot.getType()))
+                        .putByte("Amplifier", (byte) snapshot.getAmplifier())
+                        .putInt("Duration", snapshot.getDuration())
+                        .putBoolean("Ambient", snapshot.isAmbient())
+                        .putBoolean("ShowParticles", snapshot.hasParticles())
+                        .build());
             }
-
-            tag.putList("ActiveEffects", NbtType.COMPOUND, list);
+            tag.putList("ActiveEffects", NbtType.COMPOUND, effects);
         }
+    }
+
+    /**
+     * Returns the keys a subclass reads or writes through the custom hooks.
+     * They are removed from the raw tag before saving, like owned keys.
+     *
+     * @return the custom keys
+     */
+    protected Set<String> customKeys() {
+        return Set.of("Pos", "Motion", "Rotation", "FallDistance", "Fire", "OnGround", "Air",
+                "Scale", "CustomName", "CustomNameVisible", "CustomNameAlwaysVisible", "ActiveEffects");
     }
 
     @Override
@@ -466,12 +753,12 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public Set<String> getScoreboardTags() {
-        return Set.copyOf(this.tags);
+        return Set.copyOf(this.data().getTags());
     }
 
     @Override
     public boolean hasScoreboardTag(String tag) {
-        return this.tags.contains(tag);
+        return this.data().getTags().contains(tag);
     }
 
     @Override
@@ -480,12 +767,12 @@ public abstract class CloudEntity implements Entity {
         if (value.isBlank()) {
             throw new IllegalArgumentException("tag cannot be blank");
         }
-        return this.tags.size() < MAX_SCOREBOARD_TAGS && this.tags.add(value);
+        return this.data().getTags().size() < MAX_SCOREBOARD_TAGS && this.data().getTags().add(value);
     }
 
     @Override
     public boolean removeScoreboardTag(String tag) {
-        return this.tags.remove(Objects.requireNonNull(tag, "tag"));
+        return this.data().getTags().remove(Objects.requireNonNull(tag, "tag"));
     }
 
     @Override
@@ -514,15 +801,18 @@ public abstract class CloudEntity implements Entity {
     }
 
 
+    public float getScale() {
+        return this.data.require(SCALE);
+    }
+
     public void setScale(float scale) {
-        this.scale = scale;
-        this.data.set(SCALE, this.scale);
+        this.data.set(SCALE, scale);
         this.recalculateBoundingBox();
     }
 
     public void recalculateBoundingBox() {
-        float height = this.getHeight() * this.scale;
-        float radius = (this.getWidth() * this.scale) / 2;
+        float height = this.getHeight() * this.getScale();
+        float radius = (this.getWidth() * this.getScale()) / 2;
         this.boundingBox = new BoundingBox(this.position.getX() - radius, this.position.getY(), this.position.getZ() - radius,
                 this.position.getX() + radius, this.position.getY() + height, this.position.getZ() + radius);
 
@@ -1416,17 +1706,18 @@ public abstract class CloudEntity implements Entity {
 
     @Override
     public int getFreezeTicks() {
-        return this.freezeTicks;
+        Integer ticksFrozen = data().getTicksFrozen();
+        return ticksFrozen == null ? 0 : ticksFrozen;
     }
 
     @Override
     public void setFreezeTicks(int ticks) {
         int clampedTicks = Math.clamp(ticks, 0, this.getMaxFreezeTicks());
-        if (this.freezeTicks == clampedTicks) {
+        if (this.getFreezeTicks() == clampedTicks) {
             return;
         }
-        this.freezeTicks = clampedTicks;
-        this.data.set(FREEZING_EFFECT_STRENGTH, this.freezeTicks / (float) this.getMaxFreezeTicks());
+        data().setTicksFrozen(clampedTicks == 0 ? null : clampedTicks);
+        this.data.set(FREEZING_EFFECT_STRENGTH, this.getFreezeTicks() / (float) this.getMaxFreezeTicks());
     }
 
     @Override
@@ -1442,6 +1733,22 @@ public abstract class CloudEntity implements Entity {
     @Override
     public void lockFreezeTicks(boolean locked) {
         this.freezeTickingLocked = locked;
+    }
+
+    public boolean isInvulnerable() {
+        return data().isInvulnerable();
+    }
+
+    public void setInvulnerable(boolean invulnerable) {
+        data().setInvulnerable(invulnerable);
+    }
+
+    public boolean isFromBucket() {
+        return Boolean.TRUE.equals(data().getFromBucket());
+    }
+
+    public void setFromBucket(boolean fromBucket) {
+        data().setFromBucket(this instanceof Bucketable ? fromBucket : null);
     }
 
     public boolean teleport(Vector3f pos) {

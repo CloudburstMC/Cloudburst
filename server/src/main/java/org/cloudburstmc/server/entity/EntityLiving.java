@@ -28,6 +28,8 @@ import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.player.Ability;
 import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.LivingData;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -45,7 +47,9 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
@@ -75,17 +79,32 @@ public abstract class EntityLiving extends CloudEntity implements Living {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForFloat("Health", this::setHealth);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return LivingData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected LivingData data() {
+        return (LivingData) super.data();
+    }
 
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        super.loadCustom(tag);
+        this.setHealth(getFloat(tag, "Health", 20f));
+    }
+
+    @Override
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putFloat("Health", this.getHealth());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("Health");
+        return Set.copyOf(keys);
     }
 
     @Override

@@ -4,9 +4,12 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Furnace;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.FurnaceData;
 import org.cloudburstmc.api.event.inventory.FurnaceBurnEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceSmeltEvent;
 import org.cloudburstmc.api.event.inventory.FurnaceStartSmeltEvent;
+import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.view.SlotGroup;
 import org.cloudburstmc.api.inventory.view.SlotGroupType;
 import org.cloudburstmc.api.inventory.view.SlotGroupTypes;
@@ -17,21 +20,14 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.item.data.Bucket;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
-import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudFurnaceRecipe;
-import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 import static org.cloudburstmc.api.block.BlockTypes.FURNACE;
 import static org.cloudburstmc.api.block.BlockTypes.LIT_FURNACE;
@@ -48,13 +44,10 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     private static final int SLOT_FUEL = 1;
     private static final int SLOT_RESULT = 2;
 
-    protected short burnTime = 0;
-    protected short cookTime = 0;
-    protected short burnDuration = 0;
     protected int currentCookDuration;
 
     public FurnaceBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
-        super(type, chunk, position, new CloudContainer(3));
+        super(type, chunk, position);
     }
 
     @Override
@@ -68,31 +61,18 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForList("Items", NbtType.COMPOUND, tags -> {
-            for (NbtMap itemTag : tags) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
-            }
-        });
-        tag.listenForShort("CookTime", this::setCookTime);
-        tag.listenForShort("BurnTime", this::setBurnTime);
-        tag.listenForShort("BurnDuration", this::setBurnDuration);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return FurnaceData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected FurnaceData data() {
+        return (FurnaceData) super.data();
+    }
 
-        tag.putShort("CookTime", cookTime);
-        tag.putShort("BurnTime", burnTime);
-        tag.putShort("BurnDuration", burnDuration);
-        List<NbtMap> items = new ArrayList<>();
-        container.forEachSlot((itemStack, slot) -> {
-            items.add(ItemUtils.serializeItem(itemStack, slot));
-        });
-        tag.putList("Items", NbtType.COMPOUND, items);
+    @Override
+    protected ItemContainer items() {
+        return data().getItems();
     }
 
     @Override
@@ -109,7 +89,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public void onBreak() {
-        for (ItemStack content : container.getContents()) {
+        for (ItemStack content : getContainer().getContents()) {
             this.dropItemOnBreak(content);
         }
     }
@@ -126,16 +106,16 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             return;
         }
 
-        burnDuration = (short) (ev.getBurnTime() / getBurnRate());
-        burnTime = (short) (ev.getBurnTime() / getBurnRate());
+        data().setBurnDuration((short) (ev.getBurnTime() / getBurnRate()));
+        data().setBurnTime((short) (ev.getBurnTime() / getBurnRate()));
 
         if (getBlockState().getType() != getLitType()) {
             lightFurnace();
         }
 
-        if (burnTime > 0 && ev.isBurning()) {
-            for (ContainerListener listener : this.container.getListeners()) {
-                listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_DURATION, burnDuration);
+        if (data().getBurnTime() > 0 && ev.isBurning()) {
+            for (ContainerListener listener : this.getContainer().getListeners()) {
+                listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, data().getBurnDuration());
             }
 
             if (fuel.getCount() <= 1) {
@@ -171,29 +151,29 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
                 (product.isEmpty() || (smelt.getResult().equals(product) && product.getCount() < CloudItemRegistry.get().requireComponent(product.getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(product)));
 
         if (
-                burnTime <= 0 && canSmelt
+                data().getBurnTime() <= 0 && canSmelt
                         && CloudItemRegistry.get().requireComponent(fuel.getType(), ItemBehaviors.FUEL_DURATION).get() > 0
                         && fuel.getCount() > 0) {
             this.checkFuel(fuel);
         }
 
-        if (burnTime > 0) {
-            burnTime--;
+        if (data().getBurnTime() > 0) {
+            data().setBurnTime((short) (data().getBurnTime() - 1));
 
             if (smelt != null && canSmelt) {
-                if (cookTime == 0) {
+                if (data().getCookTime() == 0) {
                     int defaultDuration = (int) (200 / getBurnRate());
                     FurnaceStartSmeltEvent startEv = new FurnaceStartSmeltEvent(this, smelt, defaultDuration);
                     this.server.getEventManager().fire(startEv);
                     if (!startEv.isCancelled()) {
                         currentCookDuration = startEv.getCookTime();
-                        cookTime++;
+                        data().setCookTime((short) (data().getCookTime() + 1));
                     }
                 } else {
-                    cookTime++;
+                    data().setCookTime((short) (data().getCookTime() + 1));
                 }
 
-                if (cookTime > 0 && cookTime >= currentCookDuration) {
+                if (data().getCookTime() > 0 && data().getCookTime() >= currentCookDuration) {
                     product = smelt.getResult().increaseCount();
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
@@ -208,26 +188,26 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
                         this.setSmelting(raw);
                     }
 
-                    cookTime -= currentCookDuration;
+                    data().setCookTime((short) (data().getCookTime() - currentCookDuration));
                 }
-            } else if (burnTime <= 0) {
-                burnTime = 0;
-                cookTime = 0;
+            } else if (data().getBurnTime() <= 0) {
+                data().setBurnTime((short) 0);
+                data().setCookTime((short) 0);
             } else {
-                cookTime = 0;
+                data().setCookTime((short) 0);
             }
             ret = true;
         } else {
             if (state.getType() == getLitType()) {
                 extinguishFurnace();
             }
-            burnTime = 0;
-            cookTime = 0;
+            data().setBurnTime((short) 0);
+            data().setCookTime((short) 0);
         }
 
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_TICK_COUNT, cookTime);
-            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_TIME, burnTime);
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, data().getCookTime());
+            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, data().getBurnTime());
         }
 
         this.lastUpdate = System.currentTimeMillis();
@@ -258,34 +238,34 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
     }
 
     public int getBurnTime() {
-        return burnTime;
+        return data().getBurnTime();
     }
 
     public void setBurnTime(int burnTime) {
-        this.burnTime = (short) burnTime;
+        data().setBurnTime((short) burnTime);
         if (burnTime > 0) {
             this.scheduleUpdate();
         }
     }
 
     public int getCookTime() {
-        return cookTime;
+        return data().getCookTime();
     }
 
     public void setCookTime(int cookTime) {
-        this.cookTime = (short) cookTime;
+        data().setCookTime((short) cookTime);
     }
 
     @Override
     public int getCookProgress() {
-        return cookTime;
+        return data().getCookTime();
     }
 
     @Override
     public void setCookProgress(int ticks) {
-        this.cookTime = (short) Math.max(0, Math.min(ticks, getCookDuration()));
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_TICK_COUNT, this.cookTime);
+        data().setCookTime((short) Math.max(0, Math.min(ticks, getCookDuration())));
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_TICK_COUNT, data().getCookTime());
         }
     }
 
@@ -296,27 +276,27 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public int getBurnProgress() {
-        return burnTime;
+        return data().getBurnTime();
     }
 
     @Override
     public void setBurnProgress(int ticks) {
         setBurnTime(Math.max(0, ticks));
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_TIME, this.burnTime);
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_TIME, data().getBurnTime());
         }
     }
 
     @Override
     public int getBurnDuration() {
-        return burnDuration;
+        return data().getBurnDuration();
     }
 
     @Override
     public void setBurnDuration(int ticks) {
-        this.burnDuration = (short) Math.max(0, ticks);
-        for (ContainerListener listener : this.container.getListeners()) {
-            listener.onInventoryDataChange(this.container, ContainerSetDataPacket.FURNACE_LIT_DURATION, this.burnDuration);
+        data().setBurnDuration((short) Math.max(0, ticks));
+        for (ContainerListener listener : this.getContainer().getListeners()) {
+            listener.onInventoryDataChange(this.getContainer(), ContainerSetDataPacket.FURNACE_LIT_DURATION, data().getBurnDuration());
         }
     }
 
@@ -327,31 +307,31 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
 
     @Override
     public ItemStack getResult() {
-        return this.container.getItem(SLOT_RESULT);
+        return items().getItem(SLOT_RESULT);
     }
 
     @Override
     public void setResult(ItemStack item) {
-        this.container.setItem(SLOT_RESULT, item);
+        items().setItem(SLOT_RESULT, item);
     }
 
     @Override
     public ItemStack getFuel() {
-        return this.container.getItem(SLOT_FUEL);
+        return items().getItem(SLOT_FUEL);
     }
 
     @Override
     public void setFuel(ItemStack item) {
-        this.container.setItem(SLOT_FUEL, item);
+        items().setItem(SLOT_FUEL, item);
     }
 
     @Override
     public ItemStack getSmelting() {
-        return this.container.getItem(SLOT_SMELTING);
+        return items().getItem(SLOT_SMELTING);
     }
 
     @Override
     public void setSmelting(ItemStack item) {
-        this.container.setItem(SLOT_SMELTING, item);
+        items().setItem(SLOT_SMELTING, item);
     }
 }

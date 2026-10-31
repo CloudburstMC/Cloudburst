@@ -6,6 +6,8 @@ import org.cloudburstmc.api.entity.EntityType;
 import org.cloudburstmc.api.entity.Explosive;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.entity.damage.DamageTypeTags;
+import org.cloudburstmc.api.entity.data.EntityData;
+import org.cloudburstmc.api.entity.data.TntMinecartData;
 import org.cloudburstmc.api.entity.vehicle.TntMinecart;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -15,9 +17,8 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.data.MinecartType;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
@@ -27,7 +28,6 @@ import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.FUSE
 public class EntityTntMinecart extends EntityAbstractMinecart implements TntMinecart, Explosive {
 
     private static final int DEFAULT_FUSE = 80;
-    private int fuse = -1;
 
     public EntityTntMinecart(EntityType<TntMinecart> type, Location location) {
         super(type, location);
@@ -38,19 +38,29 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
         super.initEntity();
         this.setDisplayBlock(BlockStates.TNT);
         this.setDisplay(true);
-        this.data.set(FUSE_TIME, this.fuse);
+        this.data.set(FUSE_TIME, this.data().getFuse());
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-        tag.listenForInt("Fuse", this::setFuse);
+    protected TntMinecartData data() {
+        return (TntMinecartData) super.data();
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("Fuse", this.fuse);
+    protected Class<? extends EntityData> minimumDataClass() {
+        return TntMinecartData.class;
+    }
+
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        // The fuse runs before the minecart load below, matching
+        // the historical load order. The setter re-runs to keep its
+        // validation and metadata sync, as the previous load did; an absent key
+        // keeps the current value.
+        if (tag.containsKey("Fuse")) {
+            this.setFuse(this.data().getFuse());
+        }
+        super.loadCustom(tag);
     }
 
     @Override
@@ -65,7 +75,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
 
     @Override
     public int getFuse() {
-        return this.fuse;
+        return this.data().getFuse();
     }
 
     @Override
@@ -74,7 +84,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             throw new IllegalArgumentException("Fuse must be -1 or non-negative");
         }
 
-        this.fuse = fuse;
+        this.data().setFuse(fuse);
         this.data.set(FUSE_TIME, fuse);
     }
 
@@ -87,9 +97,9 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             return updated;
         }
 
-        if (this.fuse >= 0 && elapsed > 0) {
-            this.setFuse(Math.max(0, this.fuse - elapsed));
-            if (this.fuse == 0) {
+        if (this.getFuse() >= 0 && elapsed > 0) {
+            this.setFuse(Math.max(0, this.getFuse() - elapsed));
+            if (this.getFuse() == 0) {
                 this.explode();
                 return false;
             }
@@ -100,7 +110,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
             return false;
         }
 
-        return updated || this.fuse >= 0;
+        return updated || this.getFuse() >= 0;
     }
 
     @Override
@@ -111,7 +121,7 @@ public class EntityTntMinecart extends EntityAbstractMinecart implements TntMine
     }
 
     private boolean primeFuse() {
-        if (this.fuse >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
+        if (this.getFuse() >= 0 || !this.getLevel().getGameRules().get(GameRules.TNT_EXPLODES)) {
             return false;
         }
 
