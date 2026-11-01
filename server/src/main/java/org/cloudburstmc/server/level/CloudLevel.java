@@ -1326,9 +1326,15 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         LongCollection changed = new LongArrayList();
         for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
+            long chunkKey = entry.getLongKey();
+            int chunkX = CloudChunk.fromKeyX(chunkKey);
+            int chunkZ = CloudChunk.fromKeyZ(chunkKey);
             for (int blockKey : entry.getValue()) {
-                Vector3i position = CloudChunk.fromKeyLight(entry.getLongKey(), blockKey, this.getMinHeight());
-                changed.add(LightPositions.pack(position.getX(), position.getY(), position.getZ()));
+                // Matches CloudChunk.blockKeyWithLayer: bit 0 is the layer, then x, z and y.
+                int x = ((blockKey >>> 1) & 0xf) | (chunkX << 4);
+                int z = ((blockKey >>> 5) & 0xf) | (chunkZ << 4);
+                int y = ((blockKey >>> 9) & 0x1ff) + this.getMinHeight();
+                changed.add(LightPositions.pack(x, y, z));
             }
         }
 

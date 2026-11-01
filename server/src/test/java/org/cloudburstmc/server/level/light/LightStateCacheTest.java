@@ -54,7 +54,8 @@ class LightStateCacheTest {
         assertEquals(15, cache.emission(lava, BlockStates.AIR));
     }
 
-    private static List<BlockState> states() {        List<BlockState> states = new ArrayList<>(List.of(
+    private static List<BlockState> states() {
+        List<BlockState> states = new ArrayList<>(List.of(
                 BlockStates.AIR,
                 BlockTypes.STONE.getDefaultState(),
                 BlockTypes.GLASS.getDefaultState(),

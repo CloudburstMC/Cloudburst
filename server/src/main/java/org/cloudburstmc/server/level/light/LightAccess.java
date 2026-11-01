@@ -2,7 +2,14 @@ package org.cloudburstmc.server.level.light;
 
 import org.cloudburstmc.api.block.BlockState;
 
-public interface LightAccess {
+/**
+ * Block and light view over the chunks locked for one pass.
+ *
+ * <p>{@code isLoaded} takes block coordinates and is false when the chunk is
+ * absent. Callers only read and write positions in loaded chunks with y in
+ * {@code [minHeight, maxHeight)}; reads outside return air or 0.
+ */
+interface LightAccess {
 
     int minHeight();
 

@@ -20,12 +20,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ChunkLightAccessTest {
 
+    private static final int MIN_HEIGHT = DimensionHeight.OVERWORLD.getMinHeight();
+    private static final int MAX_HEIGHT = DimensionHeight.OVERWORLD.getMaxHeight();
+
     @Test
     void skyLightCreatesMissingSectionsWithoutDirtyingTheChunk() {
-        Level level = TestLevels.level(DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight());
+        Level level = TestLevels.level(MIN_HEIGHT, MAX_HEIGHT);
         CloudChunk chunk = new CloudChunk(0, 0, level);
         try (LockedChunk locked = chunk.lockForWrite()) {
-            locked.setBlockState(0, DimensionHeight.OVERWORLD.getMinHeight(), 0, BlockLayer.PRIMARY,
+            locked.setBlockState(0, MIN_HEIGHT, 0, BlockLayer.PRIMARY,
                     BlockTypes.BEDROCK.getDefaultState());
         }
         chunk.advanceGenerationStatus(ChunkGenerationStatus.GENERATED);
@@ -35,16 +38,16 @@ class ChunkLightAccessTest {
         try (LockedChunk locked = chunk.lockForWrite()) {
             LightStateCache states = new LightStateCache(BlockTestRegistry.get());
             ChunkLightAccess access = new ChunkLightAccess(LightChannel.SKY,
-                    DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight(),
+                    MIN_HEIGHT, MAX_HEIGHT,
                     states, key -> key == chunk.getKey() ? locked : null);
             LightPropagation propagation = new LightPropagation(LightChannel.SKY);
             SkyLightEngine.initialize(access, 0, 0, propagation);
-            assertTrue(propagation.run(access, Integer.MAX_VALUE));
+            assertTrue(propagation.run(access, Integer.MAX_VALUE), "sky propagation did not drain");
         }
 
         assertEquals(15, chunk.getSkyLight(0, 300, 0));
         try (LockedChunk locked = chunk.lockForRead()) {
-            assertNotNull(locked.getSection((300 - DimensionHeight.OVERWORLD.getMinHeight()) >> 4));
+            assertNotNull(locked.getSection((300 - MIN_HEIGHT) >> 4));
         }
         assertFalse(chunk.isDirty());
     }
@@ -53,8 +56,7 @@ class ChunkLightAccessTest {
     void bothLightChannelsUseAbsoluteCoordinatesAndCacheOnlyWithinThePass() {
         BlockState water = BlockTestRegistry.get().getBlock(BlockTypes.WATER);
         for (LightChannel channel : LightChannel.values()) {
-            Level level = TestLevels.level(DimensionHeight.OVERWORLD.getMinHeight(),
-                    DimensionHeight.OVERWORLD.getMaxHeight());
+            Level level = TestLevels.level(MIN_HEIGHT, MAX_HEIGHT);
             CloudChunk chunk = new CloudChunk(-2, 1, level);
             try (LockedChunk locked = chunk.lockForWrite()) {
                 locked.setBlockState(15, 64, 1, BlockLayer.PRIMARY, BlockStates.AIR);
@@ -67,7 +69,7 @@ class ChunkLightAccessTest {
                     return key == CloudChunk.key(-2, 1) ? locked : null;
                 };
                 ChunkLightAccess access = new ChunkLightAccess(channel,
-                        DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight(),
+                        MIN_HEIGHT, MAX_HEIGHT,
                         new LightStateCache(BlockTestRegistry.get()), views);
 
                 Vector3i position = Vector3i.from(-17, 64, 17);
@@ -94,7 +96,7 @@ class ChunkLightAccessTest {
                 assertEquals(2, lookups[0]);
 
                 ChunkLightAccess fresh = new ChunkLightAccess(channel,
-                        DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight(),
+                        MIN_HEIGHT, MAX_HEIGHT,
                         new LightStateCache(BlockTestRegistry.get()), views);
                 assertEquals(9, fresh.light(position.getX(), position.getY(), position.getZ()));
                 assertEquals(3, lookups[0]);

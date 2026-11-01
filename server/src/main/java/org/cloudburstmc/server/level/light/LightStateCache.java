@@ -7,6 +7,11 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 
+/**
+ * Caches dampening, emission and face shapes per block state.
+ *
+ * <p>Not thread-safe; use one instance per pass.
+ */
 public final class LightStateCache {
 
     private final BlockRegistry registry;

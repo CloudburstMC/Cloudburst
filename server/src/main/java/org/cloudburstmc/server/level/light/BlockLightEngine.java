@@ -2,10 +2,17 @@ package org.cloudburstmc.server.level.light;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Writes a chunk's block light from scratch and seeds propagation.
+ */
 @UtilityClass
-public class BlockLightEngine {
+class BlockLightEngine {
 
-    public static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
+    /**
+     * Writes every block of the chunk to its emission, sources every emitter,
+     * and sources lit neighbour cells touching the chunk border.
+     */
+    static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
         for (int x = 0; x < 16; x++) {
@@ -22,14 +29,8 @@ public class BlockLightEngine {
                 }
             }
         }
-        for (int y = access.minHeight(); y < access.maxHeight(); y++) {
-            for (int i = 0; i < 16; i++) {
-                sourceIfLit(access, into, minX - 1, y, minZ + i);
-                sourceIfLit(access, into, minX + 16, y, minZ + i);
-                sourceIfLit(access, into, minX + i, y, minZ - 1);
-                sourceIfLit(access, into, minX + i, y, minZ + 16);
-            }
-        }
+        LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
+                (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z));
     }
 
     private static void sourceIfLit(LightAccess access, LightPropagation into, int x, int y, int z) {
