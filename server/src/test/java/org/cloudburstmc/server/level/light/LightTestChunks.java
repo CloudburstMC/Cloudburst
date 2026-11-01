@@ -11,6 +11,7 @@ import org.cloudburstmc.server.level.DimensionHeight;
 import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
+import org.cloudburstmc.server.level.chunk.TestChunkCopies;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.manager.PopulationChunkManager;
@@ -114,36 +115,18 @@ public class LightTestChunks {
     }
 
     /**
-     * Deep-copies fixture chunks onto new chunks of the same level.
+     * Copies fixture chunks with independent section storage and light arrays.
      *
-     * <p>Block states of both layers are copied cell by cell; light starts at
-     * 0, as in a freshly generated fixture. The copies share the level, which
-     * tests only read. Each test copies its own fixtures, so no mutable chunk
-     * state is shared between tests.
+     * <p>Copies carry the fixture's light, which is 0 only because generation
+     * writes none, and the fixture's generation status with initialization not
+     * started. No mutable chunk state is shared with the fixture or between
+     * copies; block states are shared, as states are immutable.
      *
      * @param chunks the chunks to copy
      * @return the copies keyed by {@code CloudChunk.key}
      */
     public static Long2ObjectMap<CloudChunk> copy(Long2ObjectMap<CloudChunk> chunks) {
-        Long2ObjectMap<CloudChunk> copies = new Long2ObjectOpenHashMap<>(chunks.size());
-        for (Long2ObjectMap.Entry<CloudChunk> entry : chunks.long2ObjectEntrySet()) {
-            CloudChunk chunk = entry.getValue();
-            CloudChunk copy = new CloudChunk(chunk.getX(), chunk.getZ(), chunk.getLevel());
-            int minHeight = chunk.getLevel().getMinHeight();
-            int maxHeight = chunk.getLevel().getMaxHeight();
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    for (int y = minHeight; y < maxHeight; y++) {
-                        copy.setBlockState(x, y, z, BlockLayer.PRIMARY,
-                                chunk.getBlockState(x, y, z, BlockLayer.PRIMARY));
-                        copy.setBlockState(x, y, z, BlockLayer.SECONDARY,
-                                chunk.getBlockState(x, y, z, BlockLayer.SECONDARY));
-                    }
-                }
-            }
-            copies.put(entry.getLongKey(), copy);
-        }
-        return copies;
+        return TestChunkCopies.copy(chunks);
     }
 
     /**

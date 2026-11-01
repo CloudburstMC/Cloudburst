@@ -3,7 +3,9 @@ package org.cloudburstmc.server.level.light;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -14,8 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.IntConsumer;
-import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
@@ -44,9 +44,8 @@ import java.util.function.Supplier;
  *
  * <p>Each operation covers only the chunk's loaded 3x3 neighbourhood. While
  * some loaded chunks still have their own initialization queued, intermediate
- * light can differ from lighting every chunk at promotion, as the previous
- * engine did; once every loaded chunk's queued work has drained, the results
- * match.
+ * light can differ; once every loaded chunk's queued work has drained, the
+ * results agree.
  */
 final class LightRegion {
 
@@ -76,8 +75,7 @@ final class LightRegion {
     private final boolean skyLight;
     private final LongFunction<CloudChunk> loadedChunks;
     private final int sliceSteps;
-    private final @Nullable LongConsumer holdNanos;
-    private final @Nullable IntConsumer holdSteps;
+    private final @Nullable HoldRecorder holdRecorder;
     private volatile @Nullable Runnable afterSeedBand;
     private volatile @Nullable Runnable afterSlice;
 
@@ -85,14 +83,11 @@ final class LightRegion {
      * @param loadedChunks returns the chunk for a chunk key, or null when absent
      * @param sliceSteps   the combined propagation step budget per lock hold;
      *                     must be positive
-     * @param holdNanos    receives each lock hold duration in nanoseconds, or null
-     * @param holdSteps    receives the propagation steps each lock hold ran
-     *                     (0 for seed holds), or null. Each hold notifies the
-     *                     duration before its steps.
+     * @param holdRecorder receives each lock hold's duration with the steps it
+     *                     ran (0 for seed holds), or null
      */
     LightRegion(BlockRegistry registry, int minHeight, int maxHeight, boolean skyLight,
-            LongFunction<CloudChunk> loadedChunks, int sliceSteps, @Nullable LongConsumer holdNanos,
-            @Nullable IntConsumer holdSteps) {
+            LongFunction<CloudChunk> loadedChunks, int sliceSteps, @Nullable HoldRecorder holdRecorder) {
         Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
         this.registry = registry;
         this.minHeight = minHeight;
@@ -100,19 +95,7 @@ final class LightRegion {
         this.skyLight = skyLight;
         this.loadedChunks = loadedChunks;
         this.sliceSteps = sliceSteps;
-        this.holdNanos = holdNanos;
-        this.holdSteps = holdSteps;
-    }
-
-    /**
-     * @param loadedChunks returns the chunk for a chunk key, or null when absent
-     * @param sliceSteps   the combined propagation step budget per lock hold;
-     *                     must be positive
-     * @param holdNanos    receives each lock hold duration in nanoseconds, or null
-     */
-    LightRegion(BlockRegistry registry, int minHeight, int maxHeight, boolean skyLight,
-            LongFunction<CloudChunk> loadedChunks, int sliceSteps, @Nullable LongConsumer holdNanos) {
-        this(registry, minHeight, maxHeight, skyLight, loadedChunks, sliceSteps, holdNanos, null);
+        this.holdRecorder = holdRecorder;
     }
 
     /**
@@ -139,9 +122,9 @@ final class LightRegion {
      *
      * <p>Skipped when the chunk itself is no longer loaded. Seeding runs in
      * column bands over one hold each, so no single hold carries the
-     * whole-chunk scan. The scope is the chunk's loaded 3x3; light matches
-     * lighting every chunk at promotion, as the previous engine did, only once
-     * every loaded chunk's queued initialization has drained.
+     * whole-chunk scan. The scope is the chunk's loaded 3x3; light agrees with
+     * lighting every chunk at promotion only once every loaded chunk's queued
+     * initialization has drained.
      */
     void initialize(int chunkX, int chunkZ) {
         if (this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ)) == null) {
@@ -220,10 +203,14 @@ final class LightRegion {
      * at once.
      */
     void update(LongCollection positions) {
-        if (positions.isEmpty() || neighbourhood(positions).isEmpty()) {
+        if (positions.isEmpty()) {
             return;
         }
         long[] all = positions.toLongArray();
+        LongSet centers = centerKeys(all, 0, all.length);
+        if (resolveCenters(centers).isEmpty()) {
+            return;
+        }
         int bands = updateBands(all.length);
         runSlices(new Seeder() {
             @Override
@@ -247,7 +234,7 @@ final class LightRegion {
                     }
                 }
             }
-        }, () -> neighbourhood(all, 0, all.length));
+        }, () -> resolveCenters(centers));
     }
 
     /**
@@ -334,8 +321,7 @@ final class LightRegion {
                 seeder.seed(new Pass(states, this.minHeight, this.maxHeight, views(locked)), block, sky, band);
             } finally {
                 releaseReversed(locked);
-                notifyHold(System.nanoTime() - start);
-                notifySteps(0);
+                record(System.nanoTime() - start, 0);
             }
             notifyAfterSeedBand();
         }
@@ -353,8 +339,7 @@ final class LightRegion {
                 steps = this.sliceSteps - budget[0];
             } finally {
                 releaseReversed(locked);
-                notifyHold(System.nanoTime() - start);
-                notifySteps(steps);
+                record(System.nanoTime() - start, steps);
             }
             notifyAfterSlice();
             if (blockDrained && skyDrained) {
@@ -363,15 +348,9 @@ final class LightRegion {
         }
     }
 
-    private void notifyHold(long holdNanos) {
-        if (this.holdNanos != null) {
-            this.holdNanos.accept(holdNanos);
-        }
-    }
-
-    private void notifySteps(int steps) {
-        if (this.holdSteps != null) {
-            this.holdSteps.accept(steps);
+    private void record(long nanos, int steps) {
+        if (this.holdRecorder != null) {
+            this.holdRecorder.record(nanos, steps);
         }
     }
 
@@ -391,17 +370,38 @@ final class LightRegion {
         }
     }
 
-    private Set<CloudChunk> neighbourhood(LongCollection positions) {
-        return neighbourhood(positions.toLongArray(), 0, positions.size());
+    private Set<CloudChunk> neighbourhood(long[] packed, int from, int to) {
+        return resolveCenters(centerKeys(packed, from, to));
     }
 
-    private Set<CloudChunk> neighbourhood(long[] packed, int from, int to) {
-        Set<Long> keys = new LongOpenHashSet(to - from);
+    /**
+     * Returns the distinct chunk keys holding the packed positions.
+     *
+     * @param packed the packed positions, see {@link LightPositions#pack}
+     * @param from   the first index
+     * @param to     one past the last index
+     * @return the distinct chunk keys
+     */
+    private LongSet centerKeys(long[] packed, int from, int to) {
+        LongSet keys = new LongOpenHashSet(to - from);
         for (int i = from; i < to; i++) {
             keys.add(CloudChunk.key(LightPositions.x(packed[i]) >> 4, LightPositions.z(packed[i]) >> 4));
         }
+        return keys;
+    }
+
+    /**
+     * Resolves the loaded 3x3 around each chunk key, dropping keys whose
+     * chunks unloaded since the keys were collected.
+     *
+     * @param centers the chunk keys
+     * @return the loaded neighbourhood
+     */
+    private Set<CloudChunk> resolveCenters(LongSet centers) {
         Set<CloudChunk> neighbourhood = new TreeSet<>();
-        for (long key : keys) {
+        LongIterator keys = centers.iterator();
+        while (keys.hasNext()) {
+            long key = keys.nextLong();
             neighbourhood.addAll(surrounding(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key), true));
         }
         return neighbourhood;
@@ -413,6 +413,20 @@ final class LightRegion {
         Collection<CloudChunk> seedScope(int band);
 
         void seed(Pass pass, LightPropagation block, LightPropagation sky, int band);
+    }
+
+    /**
+     * Receives each lock hold's duration with the propagation steps it ran.
+     */
+    @FunctionalInterface
+    interface HoldRecorder {
+        /**
+         * Records one lock hold.
+         *
+         * @param nanos the hold duration in nanoseconds
+         * @param steps the propagation steps the hold ran, 0 for seed holds
+         */
+        void record(long nanos, int steps);
     }
 
     private List<CloudChunk> surrounding(int chunkX, int chunkZ, boolean includeCenter) {

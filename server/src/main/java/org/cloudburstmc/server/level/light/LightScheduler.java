@@ -66,7 +66,7 @@ public final class LightScheduler {
      * Test seam: runs once before the next lane item, without holding the
      * lane lock.
      */
-    private volatile Runnable beforeItemHook;
+    private volatile @Nullable Runnable beforeItemHook;
 
     /**
      * @param level  the level state the lane reads
@@ -93,7 +93,7 @@ public final class LightScheduler {
         Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
         this.region = new LightRegion(level.registry(), level.minHeight(), level.maxHeight(), level.hasSkyLight(),
                 key -> level.loadedChunk(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                sliceSteps, this::recordHold, this::recordSteps);
+                sliceSteps, this::recordHold);
         this.submit = submit;
     }
 
@@ -348,26 +348,17 @@ public final class LightScheduler {
         }
     }
 
-    private void recordHold(long holdNanos) {
+    /**
+     * Records one lock hold's duration with the propagation steps it ran, in
+     * the same ring slot; seed holds ran 0 steps. The region reports both
+     * together on the lane thread.
+     */
+    private void recordHold(long nanos, int steps) {
         synchronized (this.holdLock) {
-            this.holds[this.holdNext] = holdNanos;
+            this.holds[this.holdNext] = nanos;
+            this.holdSteps[this.holdNext] = steps;
             this.holdNext = (this.holdNext + 1) % HOLD_CAPACITY;
             this.holdTotal++;
-        }
-    }
-
-    /**
-     * Records the propagation steps of the hold {@link #recordHold} just
-     * recorded; seed holds ran 0. The region notifies the hold duration
-     * before its steps, on the lane thread, so this fills the same ring slot.
-     */
-    private void recordSteps(int steps) {
-        synchronized (this.holdLock) {
-            int slot = this.holdNext - 1;
-            if (slot < 0) {
-                slot += HOLD_CAPACITY;
-            }
-            this.holdSteps[slot] = steps;
         }
     }
 

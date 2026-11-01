@@ -8,6 +8,11 @@ import org.cloudburstmc.api.util.Direction;
  *
  * <p>Valid ranges are x and z within +-2^25 and y within +-2^11; packing outside
  * these ranges wraps.
+ *
+ * <p>Seeding splits a chunk's columns into bands: {@link #bandFromX} and
+ * {@link #bandToX} map a band to its local x range. {@link #forNeighbourBorder}
+ * visits the ring of cells just outside a chunk between two heights, pointing
+ * each outside cell at its inside neighbour.
  */
 @UtilityClass
 public class LightPositions {

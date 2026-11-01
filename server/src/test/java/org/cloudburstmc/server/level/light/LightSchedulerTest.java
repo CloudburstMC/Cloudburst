@@ -14,7 +14,6 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.light.oracle.OracleLight;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -39,30 +38,13 @@ class LightSchedulerTest {
     private static final int MIN_HEIGHT = DimensionHeight.OVERWORLD.getMinHeight();
     private static final int MAX_HEIGHT = DimensionHeight.OVERWORLD.getMaxHeight();
 
-    /**
-     * Each distinct fixture is generated once; tests copy their own chunks, so
-     * no mutable chunk state is shared between tests.
-     */
-    private static Long2ObjectMap<CloudChunk> fixtureE;
-    private static Long2ObjectMap<CloudChunk> fixtureF;
-    private static Long2ObjectMap<CloudChunk> fixtureG;
-    private static Long2ObjectMap<CloudChunk> fixtureH;
-
-    @BeforeAll
-    static void generateFixtures() {
-        fixtureE = LightTestChunks.overworld(9L, 0, 0, 3);
-        fixtureF = LightTestChunks.overworld(5L, 0, 0, 1);
-        fixtureG = LightTestChunks.overworld(5L, 0, 0, 5);
-        fixtureH = LightTestChunks.overworld(5L, 0, 0, 3);
-    }
-
     @Test
     void slicedRegionMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureE);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureE);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
         LongCollection holds = new LongArrayList();
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get, 64,
-                holds::add);
+                (nanos, steps) -> holds.add(nanos));
         for (long key : sortedKeys(expected)) {
             OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
                     expected.get(key));
@@ -80,7 +62,7 @@ class LightSchedulerTest {
 
     @Test
     void chunkLoadOnlySubmitsWork() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
 
@@ -97,8 +79,8 @@ class LightSchedulerTest {
 
     @Test
     void drainedLaneMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureG);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureG);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 5);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 5);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
 
@@ -130,8 +112,8 @@ class LightSchedulerTest {
 
     @Test
     void blockChangeBetweenSlicesStillDrainsToTheOracleResult() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureE);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureE);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
 
@@ -166,8 +148,8 @@ class LightSchedulerTest {
 
     @Test
     void editBetweenSeedBandsStillDrainsToTheOracleResult() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureE);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureE);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
 
@@ -202,8 +184,8 @@ class LightSchedulerTest {
 
     @Test
     void largeEditSeedsInBandsAndDrainsToTheOracleResult() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureH);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureH);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
 
@@ -243,8 +225,8 @@ class LightSchedulerTest {
 
     @Test
     void unloadBetweenSlicesSkipsTheAbsentChunk() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureE);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureE);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
         long removed = CloudChunk.key(1, 1);
         expected.remove(removed);
         List<Runnable> pending = new ArrayList<>();
@@ -286,8 +268,97 @@ class LightSchedulerTest {
     }
 
     @Test
+    void unloadBetweenUpdateSeedBandsSkipsTheAbsentChunk() {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
+
+        for (long key : sortedKeys(expected)) {
+            scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
+                    expected.get(key));
+        }
+        drain(scheduler, pending);
+
+        // More edits in one chunk than one seed band holds.
+        List<Vector3i> edits = new ArrayList<>();
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                int top = actual.get(CloudChunk.key(1, 1)).getHighestBlock(x, z);
+                edits.add(Vector3i.from(16 + x, Math.min(MAX_HEIGHT - 1, top + 1), 16 + z));
+                edits.add(Vector3i.from(16 + x, Math.min(MAX_HEIGHT - 1, top + 2), 16 + z));
+            }
+        }
+        assertTrue(edits.size() > LightRegion.UPDATE_BAND_POSITIONS);
+        setBoth(expected, actual, edits, BlockTypes.GLOWSTONE.getDefaultState());
+
+        long removed = CloudChunk.key(0, 0);
+        expected.remove(removed);
+        OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, edits);
+        scheduler.blocksChanged(packed(edits));
+
+        AtomicInteger seedBands = new AtomicInteger();
+        AtomicBoolean unloaded = new AtomicBoolean();
+        Runnable[] hook = new Runnable[1];
+        hook[0] = () -> {
+            seedBands.incrementAndGet();
+            if (unloaded.compareAndSet(false, true)) {
+                actual.remove(removed);
+            }
+            scheduler.afterSeedBandForTest(hook[0]);
+        };
+        scheduler.afterSeedBandForTest(hook[0]);
+
+        drain(scheduler, pending);
+        assertTrue(unloaded.get(), "hook did not run");
+        assertEquals(LightRegion.updateBands(edits.size()), seedBands.get());
+        LightTestChunks.assertSameLight(expected, actual);
+    }
+
+    @Test
+    void unloadBetweenUnloadSeedBandsSkipsTheAbsentChunk() {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
+
+        for (long key : sortedKeys(expected)) {
+            scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
+                    expected.get(key));
+        }
+        drain(scheduler, pending);
+
+        long unloadedChunk = CloudChunk.key(1, 1);
+        long removed = CloudChunk.key(0, 0);
+        expected.remove(unloadedChunk);
+        expected.remove(removed);
+        actual.remove(unloadedChunk);
+        scheduler.chunkUnloaded(1, 1);
+        OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(1, 1));
+
+        AtomicInteger seedBands = new AtomicInteger();
+        AtomicBoolean unloaded = new AtomicBoolean();
+        Runnable[] hook = new Runnable[1];
+        hook[0] = () -> {
+            seedBands.incrementAndGet();
+            if (unloaded.compareAndSet(false, true)) {
+                actual.remove(removed);
+            }
+            scheduler.afterSeedBandForTest(hook[0]);
+        };
+        scheduler.afterSeedBandForTest(hook[0]);
+
+        drain(scheduler, pending);
+        assertTrue(unloaded.get(), "hook did not run");
+        assertEquals(LightRegion.unloadBands(MIN_HEIGHT, MAX_HEIGHT), seedBands.get());
+        LightTestChunks.assertSameLight(expected, actual);
+    }
+
+    @Test
     void rejectedSubmissionLeavesTheLaneUsable() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         AtomicBoolean rejected = new AtomicBoolean();
         LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
@@ -309,7 +380,7 @@ class LightSchedulerTest {
 
     @Test
     void onlyOneRunnerIsInFlight() {
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureH);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
 
@@ -324,7 +395,7 @@ class LightSchedulerTest {
 
     @Test
     void rejectedResubmitLeavesLaneIdleAndUsable() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         AtomicInteger submits = new AtomicInteger();
         LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
@@ -354,8 +425,8 @@ class LightSchedulerTest {
 
     @Test
     void concurrentSubmissionsDrainToTheOracleResult() throws Exception {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureH);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureH);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
         List<Vector3i> edits = edits(expected, 10);
         setBoth(expected, actual, edits);
         LongCollection packedEdits = packed(edits);
@@ -393,7 +464,7 @@ class LightSchedulerTest {
 
     @Test
     void errorInUnitKeepsLaneUsable() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
 
@@ -413,7 +484,7 @@ class LightSchedulerTest {
 
     @Test
     void laneFailureKeepsLaneUsable() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
 
@@ -432,7 +503,7 @@ class LightSchedulerTest {
 
     @Test
     void nonRejectedSubmitFailureKeepsWorkAndRestarts() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         AtomicBoolean thrown = new AtomicBoolean();
         LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
@@ -460,7 +531,7 @@ class LightSchedulerTest {
 
     @Test
     void nonRejectedResubmitFailureKeepsWorkAndRestarts() {
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.copy(fixtureF);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         AtomicInteger submits = new AtomicInteger();
         LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
