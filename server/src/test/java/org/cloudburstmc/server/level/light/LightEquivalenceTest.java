@@ -16,12 +16,14 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.light.oracle.OracleLight;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,17 +41,33 @@ class LightEquivalenceTest {
     private static final int MIN_HEIGHT = DimensionHeight.OVERWORLD.getMinHeight();
     private static final int MAX_HEIGHT = DimensionHeight.OVERWORLD.getMaxHeight();
 
+    /**
+     * Each distinct fixture is generated once; tests copy their own chunks, so
+     * no mutable chunk state is shared between tests.
+     */
+    private static Long2ObjectMap<CloudChunk> fixtureA;
+    private static Long2ObjectMap<CloudChunk> fixtureB;
+    private static Long2ObjectMap<CloudChunk> fixtureC;
+    private static Long2ObjectMap<CloudChunk> fixtureD;
+
+    @BeforeAll
+    static void generateFixtures() {
+        fixtureA = LightTestChunks.overworld(11L, -2, -2, 5);
+        fixtureB = LightTestChunks.overworld(11L, 0, 0, 3);
+        fixtureC = LightTestChunks.overworld(11L, 1, 1, 3);
+        fixtureD = LightTestChunks.overworld(7L, 0, 0, 5);
+    }
+
     @Test
     void fixtureGeneratesDeterministicBlocks() {
-        LightTestChunks.assertSameBlocks(
-                LightTestChunks.overworld(11L, -2, -2, 5),
-                LightTestChunks.overworld(11L, -2, -2, 5));
+        LightTestChunks.assertSameBlocks(fixtureA, LightTestChunks.overworld(11L, -2, -2, 5));
+        LightTestChunks.assertSameBlocks(fixtureA, LightTestChunks.copy(fixtureA));
     }
 
     @Test
     void initializationMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, -2, -2, 5);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, -2, -2, 5);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureA);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureA);
         initializeBoth(expected, actual);
 
         LightTestChunks.assertSameLight(expected, actual);
@@ -59,8 +77,8 @@ class LightEquivalenceTest {
 
     @Test
     void removingSourcesAndRoofsMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 0, 0, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureB);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureB);
         initializeBoth(expected, actual);
 
         Vector3i center = openGroundCenter(actual, 1, 1);
@@ -109,8 +127,8 @@ class LightEquivalenceTest {
 
     @Test
     void editsMatchTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 1, 1, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 1, 1, 3);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureC);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureC);
         initializeBoth(expected, actual);
         LightTestChunks.assertSameLight(expected, actual);
 
@@ -163,8 +181,8 @@ class LightEquivalenceTest {
 
     @Test
     void unloadBoundaryMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 0, 0, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureB);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureB);
         initializeBoth(expected, actual);
         LightTestChunks.assertSameLight(expected, actual);
 
@@ -179,9 +197,34 @@ class LightEquivalenceTest {
     }
 
     @Test
+    void unloadInteriorChunkMatchesTheOracle() {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureB);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureB);
+        initializeBoth(expected, actual);
+        LightTestChunks.assertSameLight(expected, actual);
+
+        long removed = CloudChunk.key(1, 1);
+        expected.remove(removed);
+        actual.remove(removed);
+        OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(1, 1));
+        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
+                Integer.MAX_VALUE, null);
+        AtomicInteger seedBands = new AtomicInteger();
+        Runnable[] hook = new Runnable[1];
+        hook[0] = () -> {
+            seedBands.incrementAndGet();
+            region.afterSeedBandForTest(hook[0]);
+        };
+        region.afterSeedBandForTest(hook[0]);
+        region.unloaded(1, 1);
+        assertEquals(LightRegion.unloadBands(MIN_HEIGHT, MAX_HEIGHT), seedBands.get());
+        LightTestChunks.assertSameLight(expected, actual);
+    }
+
+    @Test
     void updateStaysInsideTheLockedNeighbourhood() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(7L, 0, 0, 5);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(7L, 0, 0, 5);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.copy(fixtureD);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.copy(fixtureD);
         initializeBoth(expected, actual);
 
         Vector3i center = openGroundCenter(actual, 2, 2);
