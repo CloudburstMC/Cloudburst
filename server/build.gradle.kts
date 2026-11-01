@@ -170,6 +170,10 @@ tasks.shadowJar {
     )
 }
 
+tasks.test {
+    System.getProperty("cloudburst.lightBenchmark")?.let { systemProperty("cloudburst.lightBenchmark", it) }
+}
+
 tasks.register<JavaExec>("run") {
     val runDirectory = layout.projectDirectory.dir("run").asFile
 
