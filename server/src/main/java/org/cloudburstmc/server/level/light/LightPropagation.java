@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.light;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.util.Direction;
 
 /**
  * Spreads one channel's light out from edited positions.
@@ -43,7 +45,9 @@ final class LightPropagation {
         int y = LightPositions.y(pos);
         int z = LightPositions.z(pos);
         int old = access.light(x, y, z);
-        int own = this.channel.ownValue(access, x, y, z);
+        BlockState primary = access.primary(x, y, z);
+        BlockState secondary = access.secondary(x, y, z);
+        int own = this.channel.ownValue(access.states(), primary, secondary, y, access.maxHeight());
         if (own != old) {
             access.setLight(x, y, z, own);
         }
@@ -51,9 +55,15 @@ final class LightPropagation {
             this.decreasePositions.enqueue(pos);
             this.decreaseLevels.enqueue(old);
         }
-        LightChannel.forEachNeighbour(x, y, z, (nx, ny, nz, direction) -> {
-            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
-                return;
+        int minHeight = access.minHeight();
+        int maxHeight = access.maxHeight();
+        for (int i = 0; i < LightChannel.DIRECTIONS.length; i++) {
+            Direction direction = LightChannel.DIRECTIONS[i];
+            int nx = x + direction.getStepX();
+            int ny = y + direction.getStepY();
+            int nz = z + direction.getStepZ();
+            if (ny < minHeight || ny >= maxHeight || !access.isLoaded(nx, nz)) {
+                continue;
             }
             int current = access.light(nx, ny, nz);
             int relaxed = this.channel.recompute(access, nx, ny, nz);
@@ -63,7 +73,7 @@ final class LightPropagation {
                 this.decreaseLevels.enqueue(current);
             }
             this.increasePositions.enqueue(LightPositions.pack(nx, ny, nz));
-        });
+        }
         if (own > 0) {
             this.increasePositions.enqueue(pos);
         }
@@ -105,16 +115,30 @@ final class LightPropagation {
         int x = LightPositions.x(position);
         int y = LightPositions.y(position);
         int z = LightPositions.z(position);
-        LightChannel.forEachNeighbour(x, y, z, (nx, ny, nz, direction) -> {
-            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
-                return;
+        BlockState fromPrimary = access.primary(x, y, z);
+        BlockState fromSecondary = access.secondary(x, y, z);
+        LightStateCache states = access.states();
+        int minHeight = access.minHeight();
+        int maxHeight = access.maxHeight();
+        for (int i = 0; i < LightChannel.DIRECTIONS.length; i++) {
+            Direction direction = LightChannel.DIRECTIONS[i];
+            int nx = x + direction.getStepX();
+            int ny = y + direction.getStepY();
+            int nz = z + direction.getStepZ();
+            if (ny < minHeight || ny >= maxHeight || !access.isLoaded(nx, nz)) {
+                continue;
             }
             int current = access.light(nx, ny, nz);
             if (current <= 0) {
-                return;
+                continue;
             }
-            if (current <= this.channel.arrive(access, x, y, z, direction, oldLevel)) {
-                int own = this.channel.ownValue(access, nx, ny, nz);
+            BlockState toPrimary = access.primary(nx, ny, nz);
+            BlockState toSecondary = access.secondary(nx, ny, nz);
+            // Arrivals never exceed the spread level, so a neighbour already
+            // above it keeps its light and only needs a fresh increase visit.
+            if (current <= oldLevel && current <= this.channel.arrive(states, fromPrimary, fromSecondary,
+                    toPrimary, toSecondary, direction, oldLevel)) {
+                int own = this.channel.ownValue(states, toPrimary, toSecondary, ny, maxHeight);
                 // Only a changed cell withdraws support downstream; an unchanged
                 // cell still carries the same light, and re-queueing it lets
                 // neighbouring emitters re-queue each other without bound.
@@ -129,7 +153,7 @@ final class LightPropagation {
             } else {
                 this.increasePositions.enqueue(LightPositions.pack(nx, ny, nz));
             }
-        });
+        }
     }
 
     private void increase(LightAccess access, long position) {
@@ -143,15 +167,30 @@ final class LightPropagation {
         if (level <= 0) {
             return;
         }
-        LightChannel.forEachNeighbour(x, y, z, (nx, ny, nz, direction) -> {
-            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
-                return;
+        BlockState fromPrimary = access.primary(x, y, z);
+        BlockState fromSecondary = access.secondary(x, y, z);
+        LightStateCache states = access.states();
+        int minHeight = access.minHeight();
+        int maxHeight = access.maxHeight();
+        for (int i = 0; i < LightChannel.DIRECTIONS.length; i++) {
+            Direction direction = LightChannel.DIRECTIONS[i];
+            int nx = x + direction.getStepX();
+            int ny = y + direction.getStepY();
+            int nz = z + direction.getStepZ();
+            if (ny < minHeight || ny >= maxHeight || !access.isLoaded(nx, nz)) {
+                continue;
             }
-            int arrival = this.channel.arrive(access, x, y, z, direction, level);
+            // Arrivals never exceed the source level, so a neighbour already
+            // at or above it cannot rise from here.
+            if (access.light(nx, ny, nz) >= level) {
+                continue;
+            }
+            int arrival = this.channel.arrive(states, fromPrimary, fromSecondary,
+                    access.primary(nx, ny, nz), access.secondary(nx, ny, nz), direction, level);
             if (arrival > access.light(nx, ny, nz)) {
                 access.setLight(nx, ny, nz, arrival);
                 this.increasePositions.enqueue(LightPositions.pack(nx, ny, nz));
             }
-        });
+        }
     }
 }

@@ -16,6 +16,12 @@ enum LightChannel {
     SKY;
 
     /**
+     * The six propagation directions, cached to avoid cloning the enum array
+     * on every cell visit.
+     */
+    static final Direction[] DIRECTIONS = Direction.values();
+
+    /**
      * Light reaching the neighbour of {@code (x, y, z)} in {@code direction}
      * when {@code (x, y, z)} carries {@code level}.
      *
@@ -29,20 +35,32 @@ enum LightChannel {
      * @return the arriving light, at least 0
      */
     int arrive(LightAccess access, int x, int y, int z, Direction direction, int level) {
-        LightStateCache states = access.states();
-        BlockState fromPrimary = access.primary(x, y, z);
-        BlockState fromSecondary = access.secondary(x, y, z);
-        int nx = x + direction.getStepX();
-        int ny = y + direction.getStepY();
-        int nz = z + direction.getStepZ();
-        BlockState toPrimary = access.primary(nx, ny, nz);
-        BlockState toSecondary = access.secondary(nx, ny, nz);
-        if (states.occludes(fromPrimary, fromSecondary, toPrimary, toSecondary, direction)) {
+        return arrive(access.states(), access.primary(x, y, z), access.secondary(x, y, z),
+                access.primary(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ()),
+                access.secondary(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ()),
+                direction, level);
+    }
+
+    /**
+     * Light reaching the neighbour in {@code direction} from a cell carrying
+     * {@code level}, with both cells' states already read.
+     *
+     * <p>Reads the target states once per cell instead of once per neighbour.
+     *
+     * @return the arriving light, at least 0
+     */
+    int arrive(LightStateCache states, BlockState fromPrimary, BlockState fromSecondary,
+            BlockState toPrimary, BlockState toSecondary, Direction direction, int level) {
+        LightStateCache.Entry fromPrimaryEntry = states.entryFor(fromPrimary);
+        LightStateCache.Entry fromSecondaryEntry = states.entryFor(fromSecondary);
+        LightStateCache.Entry toPrimaryEntry = states.entryFor(toPrimary);
+        LightStateCache.Entry toSecondaryEntry = states.entryFor(toSecondary);
+        if (states.occludes(fromPrimaryEntry, fromSecondaryEntry, toPrimaryEntry, toSecondaryEntry, direction)) {
             return 0;
         }
-        int opacity = states.opacity(toPrimary, toSecondary);
+        int opacity = states.opacity(toPrimaryEntry, toSecondaryEntry);
         if (this == BLOCK) {
-            if (opacity >= 15 || states.emission(toPrimary, toSecondary) >= 15) {
+            if (opacity >= 15 || states.emission(toPrimaryEntry, toSecondaryEntry) >= 15) {
                 return 0;
             }
             return Math.max(0, level - Math.max(1, opacity));
@@ -62,13 +80,19 @@ enum LightChannel {
      * otherwise 0.
      */
     int ownValue(LightAccess access, int x, int y, int z) {
+        return ownValue(access.states(), access.primary(x, y, z), access.secondary(x, y, z), y, access.maxHeight());
+    }
+
+    /**
+     * Light a cell holds without neighbours, with its states already read.
+     */
+    int ownValue(LightStateCache states, BlockState primary, BlockState secondary, int y, int maxHeight) {
         if (this == BLOCK) {
-            return access.states().emission(access.primary(x, y, z), access.secondary(x, y, z));
+            return states.emission(primary, secondary);
         }
-        if (y == access.maxHeight() - 1
-                && !access.states().occludes(BlockStates.AIR, BlockStates.AIR,
-                        access.primary(x, y, z), access.secondary(x, y, z), Direction.DOWN)) {
-            return Math.max(0, 15 - access.states().opacity(access.primary(x, y, z), access.secondary(x, y, z)));
+        if (y == maxHeight - 1
+                && !states.occludes(BlockStates.AIR, BlockStates.AIR, primary, secondary, Direction.DOWN)) {
+            return Math.max(0, 15 - states.opacity(primary, secondary));
         }
         return 0;
     }
@@ -78,22 +102,36 @@ enum LightChannel {
      * loaded in-height neighbours, matching what propagation converges to.
      */
     int recompute(LightAccess access, int x, int y, int z) {
-        return Math.clamp(Math.max(ownValue(access, x, y, z), maxArrival(access, x, y, z)), 0, 15);
+        LightStateCache states = access.states();
+        BlockState primary = access.primary(x, y, z);
+        BlockState secondary = access.secondary(x, y, z);
+        return Math.clamp(Math.max(ownValue(states, primary, secondary, y, access.maxHeight()),
+                maxArrival(access, states, primary, secondary, x, y, z)), 0, 15);
     }
 
     private int maxArrival(LightAccess access, int x, int y, int z) {
+        LightStateCache states = access.states();
+        return maxArrival(access, states, access.primary(x, y, z), access.secondary(x, y, z), x, y, z);
+    }
+
+    private int maxArrival(LightAccess access, LightStateCache states,
+            BlockState primary, BlockState secondary, int x, int y, int z) {
         int best = 0;
-        if (this == SKY && y == access.maxHeight() - 1) {
-            best = arrive(access, x, y + 1, z, Direction.DOWN, 15);
+        int minHeight = access.minHeight();
+        int maxHeight = access.maxHeight();
+        if (this == SKY && y == maxHeight - 1) {
+            best = arrive(states, BlockStates.AIR, BlockStates.AIR, primary, secondary, Direction.DOWN, 15);
         }
-        for (Direction direction : Direction.values()) {
+        for (int i = 0; i < DIRECTIONS.length; i++) {
+            Direction direction = DIRECTIONS[i];
             int nx = x + direction.getStepX();
             int ny = y + direction.getStepY();
             int nz = z + direction.getStepZ();
-            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
+            if (ny < minHeight || ny >= maxHeight || !access.isLoaded(nx, nz)) {
                 continue;
             }
-            int arrival = arrive(access, nx, ny, nz, direction.getOpposite(), access.light(nx, ny, nz));
+            int arrival = arrive(states, access.primary(nx, ny, nz), access.secondary(nx, ny, nz),
+                    primary, secondary, direction.getOpposite(), access.light(nx, ny, nz));
             if (arrival > best) {
                 best = arrival;
             }
@@ -101,19 +139,4 @@ enum LightChannel {
         return best;
     }
 
-    /**
-     * Visits the six neighbours of {@code (x, y, z)}, passing the direction
-     * from the cell to each neighbour. Callers skip unloaded and out-of-height
-     * neighbours themselves.
-     */
-    static void forEachNeighbour(int x, int y, int z, NeighbourCell cell) {
-        for (Direction direction : Direction.values()) {
-            cell.visit(x + direction.getStepX(), y + direction.getStepY(), z + direction.getStepZ(), direction);
-        }
-    }
-
-    @FunctionalInterface
-    interface NeighbourCell {
-        void visit(int x, int y, int z, Direction direction);
-    }
 }

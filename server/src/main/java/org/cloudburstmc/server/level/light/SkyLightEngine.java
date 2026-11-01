@@ -1,6 +1,8 @@
 package org.cloudburstmc.server.level.light;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.DayCycle;
 import org.cloudburstmc.api.util.Direction;
 
@@ -34,20 +36,59 @@ public class SkyLightEngine {
      * touching the chunk border.
      */
     static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
+        initializeBand(access, chunkX, chunkZ, 0, 1, into);
+        spreadBand(access, chunkX, chunkZ, 0, 1, into);
+    }
+
+    /**
+     * Writes the band's columns top-down with the channel's arrival rule. The
+     * states above each cell are carried down the column instead of reread.
+     *
+     * @param band  the column band from {@code 0} to {@code bands - 1}
+     * @param bands the number of column bands; must be positive
+     */
+    static void initializeBand(LightAccess access, int chunkX, int chunkZ, int band, int bands,
+            LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        for (int x = 0; x < 16; x++) {
+        int fromX = band * 16 / bands;
+        int toX = (band + 1) * 16 / bands;
+        LightStateCache states = access.states();
+        for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 int light = 15;
+                BlockState abovePrimary = BlockStates.AIR;
+                BlockState aboveSecondary = BlockStates.AIR;
                 for (int y = access.maxHeight() - 1; y >= access.minHeight(); y--) {
-                    light = LightChannel.SKY.arrive(access, minX + x, y + 1, minZ + z, Direction.DOWN, light);
+                    BlockState primary = access.primary(minX + x, y, minZ + z);
+                    BlockState secondary = access.secondary(minX + x, y, minZ + z);
+                    light = LightChannel.SKY.arrive(states, abovePrimary, aboveSecondary,
+                            primary, secondary, Direction.DOWN, light);
                     if (access.light(minX + x, y, minZ + z) != light) {
                         access.setLight(minX + x, y, minZ + z, light);
                     }
+                    abovePrimary = primary;
+                    aboveSecondary = secondary;
                 }
             }
         }
-        for (int x = 0; x < 16; x++) {
+    }
+
+    /**
+     * Sources the lit cells of the band's columns that could raise a
+     * neighbour. Runs once every column holds its top-down value. The border
+     * sources run with the last band.
+     *
+     * @param band  the column band from {@code 0} to {@code bands - 1}
+     * @param bands the number of column bands; must be positive
+     */
+    static void spreadBand(LightAccess access, int chunkX, int chunkZ, int band, int bands,
+            LightPropagation into) {
+        int minX = chunkX << 4;
+        int minZ = chunkZ << 4;
+        int fromX = band * 16 / bands;
+        int toX = (band + 1) * 16 / bands;
+        for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
                     int level = access.light(minX + x, y, minZ + z);
@@ -57,19 +98,29 @@ public class SkyLightEngine {
                 }
             }
         }
-        LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
-                (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z, intoChunk));
+        if (band == bands - 1) {
+            LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
+                    (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z, intoChunk));
+        }
     }
 
     private static boolean needsSpread(LightAccess access, int x, int y, int z, int level) {
-        for (Direction direction : Direction.values()) {
+        int minHeight = access.minHeight();
+        int maxHeight = access.maxHeight();
+        for (int i = 0; i < LightChannel.DIRECTIONS.length; i++) {
+            Direction direction = LightChannel.DIRECTIONS[i];
             if (direction == Direction.UP) {
                 continue;
             }
             int nx = x + direction.getStepX();
             int ny = y + direction.getStepY();
             int nz = z + direction.getStepZ();
-            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
+            if (ny < minHeight || ny >= maxHeight || !access.isLoaded(nx, nz)) {
+                continue;
+            }
+            // Arrivals never exceed the source level, so a neighbour already
+            // at or above it cannot rise from here.
+            if (access.light(nx, ny, nz) >= level) {
                 continue;
             }
             if (access.light(nx, ny, nz) < LightChannel.SKY.arrive(access, x, y, z, direction, level)) {
@@ -90,6 +141,11 @@ public class SkyLightEngine {
         }
         int toX = fromX + intoChunk.getStepX();
         int toZ = fromZ + intoChunk.getStepZ();
+        // Arrivals never exceed the source level, so an inside neighbour
+        // already at or above it cannot rise from here.
+        if (access.light(toX, fromY, toZ) >= level) {
+            return;
+        }
         if (LightChannel.SKY.arrive(access, fromX, fromY, fromZ, intoChunk, level) > access.light(toX, fromY, toZ)) {
             into.source(LightPositions.pack(fromX, fromY, fromZ));
         }

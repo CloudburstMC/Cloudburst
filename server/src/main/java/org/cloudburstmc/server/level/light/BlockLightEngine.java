@@ -13,9 +13,24 @@ class BlockLightEngine {
      * and sources lit neighbour cells touching the chunk border.
      */
     static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
+        initializeBand(access, chunkX, chunkZ, 0, 1, into);
+    }
+
+    /**
+     * Writes the emission of the band's columns and sources the band's
+     * emitters. The border sources run with the last band, once every column
+     * holds its emission.
+     *
+     * @param band  the column band from {@code 0} to {@code bands - 1}
+     * @param bands the number of column bands; must be positive
+     */
+    static void initializeBand(LightAccess access, int chunkX, int chunkZ, int band, int bands,
+            LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        for (int x = 0; x < 16; x++) {
+        int fromX = band * 16 / bands;
+        int toX = (band + 1) * 16 / bands;
+        for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
                     int emission = access.states().emission(
@@ -29,8 +44,10 @@ class BlockLightEngine {
                 }
             }
         }
-        LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
-                (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z));
+        if (band == bands - 1) {
+            LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
+                    (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z));
+        }
     }
 
     private static void sourceIfLit(LightAccess access, LightPropagation into, int x, int y, int z) {

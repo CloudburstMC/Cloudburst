@@ -22,28 +22,48 @@ final class LightStateCache {
     }
 
     int opacity(BlockState primary, BlockState secondary) {
-        return Math.max(entry(primary).dampening(), entry(secondary).dampening());
+        return opacity(entry(primary), entry(secondary));
     }
 
     int emission(BlockState primary, BlockState secondary) {
-        return Math.max(entry(primary).emission(), entry(secondary).emission());
+        return emission(entry(primary), entry(secondary));
     }
 
     boolean occludes(BlockState fromPrimary, BlockState fromSecondary, BlockState toPrimary, BlockState toSecondary, Direction direction) {
+        return occludes(entry(fromPrimary), entry(fromSecondary), entry(toPrimary), entry(toSecondary), direction);
+    }
+
+    /**
+     * Returns the cached entry for a state, for callers that reuse the same
+     * states across several lookups within one cell visit.
+     */
+    Entry entryFor(BlockState state) {
+        return entry(state);
+    }
+
+    int opacity(Entry primary, Entry secondary) {
+        return Math.max(primary.dampening(), secondary.dampening());
+    }
+
+    int emission(Entry primary, Entry secondary) {
+        return Math.max(primary.emission(), secondary.emission());
+    }
+
+    boolean occludes(Entry fromPrimary, Entry fromSecondary, Entry toPrimary, Entry toSecondary, Direction direction) {
         Direction opposite = direction.getOpposite();
-        FaceKind fromPrimaryFace = face(fromPrimary, direction);
+        FaceKind fromPrimaryFace = fromPrimary.faces()[direction.ordinal()];
         if (fromPrimaryFace == FaceKind.FULL) {
             return true;
         }
-        FaceKind fromSecondaryFace = face(fromSecondary, direction);
+        FaceKind fromSecondaryFace = fromSecondary.faces()[direction.ordinal()];
         if (fromSecondaryFace == FaceKind.FULL) {
             return true;
         }
-        FaceKind toPrimaryFace = face(toPrimary, opposite);
+        FaceKind toPrimaryFace = toPrimary.faces()[opposite.ordinal()];
         if (toPrimaryFace == FaceKind.FULL) {
             return true;
         }
-        FaceKind toSecondaryFace = face(toSecondary, opposite);
+        FaceKind toSecondaryFace = toSecondary.faces()[opposite.ordinal()];
         if (toSecondaryFace == FaceKind.FULL) {
             return true;
         }
@@ -51,7 +71,8 @@ final class LightStateCache {
                 && toPrimaryFace == FaceKind.EMPTY && toSecondaryFace == FaceKind.EMPTY) {
             return false;
         }
-        return LightOcclusion.occludes(this.registry, fromPrimary, fromSecondary, toPrimary, toSecondary, direction);
+        return LightOcclusion.occludes(this.registry, fromPrimary.state(), fromSecondary.state(),
+                toPrimary.state(), toSecondary.state(), direction);
     }
 
     private FaceKind face(BlockState state, Direction direction) {
@@ -74,7 +95,7 @@ final class LightStateCache {
             faces[direction.ordinal()] = face.isEmpty() ? FaceKind.EMPTY
                     : face.covers(CloudVoxelShapes.block()) ? FaceKind.FULL : FaceKind.PARTIAL;
         }
-        return new Entry(state.getLightDampening(), state.getLightEmission(), faces);
+        return new Entry(state, state.getLightDampening(), state.getLightEmission(), faces);
     }
 
     private enum FaceKind {
@@ -83,6 +104,6 @@ final class LightStateCache {
         PARTIAL
     }
 
-    private record Entry(int dampening, int emission, FaceKind[] faces) {
+    record Entry(BlockState state, int dampening, int emission, FaceKind[] faces) {
     }
 }
