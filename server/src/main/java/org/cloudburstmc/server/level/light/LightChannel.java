@@ -75,15 +75,6 @@ enum LightChannel {
     }
 
     /**
-     * Light a cell holds without neighbours: emission for block light, the
-     * arrival from the virtual air above for the top layer of sky light,
-     * otherwise 0.
-     */
-    int ownValue(LightAccess access, int x, int y, int z) {
-        return ownValue(access.states(), access.primary(x, y, z), access.secondary(x, y, z), y, access.maxHeight());
-    }
-
-    /**
      * Light a cell holds without neighbours, with its states already read.
      */
     int ownValue(LightStateCache states, BlockState primary, BlockState secondary, int y, int maxHeight) {

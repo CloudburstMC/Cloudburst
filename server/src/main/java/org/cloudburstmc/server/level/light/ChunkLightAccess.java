@@ -25,9 +25,10 @@ import java.util.function.LongFunction;
  * states come straight from palette storage and light values straight from
  * the nibble arrays, without level lookups or per-cell bounds checks. A null
  * snapshot entry reads as air and 0, matching a zero-filled fresh section;
- * sections created mid-pass are written back into the snapshot, so the block
- * and sky views over the same chunks stay consistent while each channel
- * writes only its own nibble.
+ * sections created mid-pass are written back into the snapshot, so later
+ * reads in the same view see them. The block and sky views keep separate
+ * snapshots and still agree, because a fresh section reads as air and 0 while
+ * each channel writes only its own nibble.
  */
 final class ChunkLightAccess implements LightAccess {
 

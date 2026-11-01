@@ -31,16 +31,6 @@ public class SkyLightEngine {
     }
 
     /**
-     * Writes each column top-down with the channel's arrival rule, sources
-     * lit cells that could raise a neighbour, and sources lit neighbour cells
-     * touching the chunk border.
-     */
-    static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
-        initializeBand(access, chunkX, chunkZ, 0, 1, into);
-        spreadBand(access, chunkX, chunkZ, 0, 1, into);
-    }
-
-    /**
      * Writes the band's columns top-down with the channel's arrival rule. The
      * states above each cell are carried down the column instead of reread.
      *
@@ -51,8 +41,8 @@ public class SkyLightEngine {
             LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        int fromX = band * 16 / bands;
-        int toX = (band + 1) * 16 / bands;
+        int fromX = LightPositions.bandFromX(band, bands);
+        int toX = LightPositions.bandToX(band, bands);
         LightStateCache states = access.states();
         for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
@@ -86,8 +76,8 @@ public class SkyLightEngine {
             LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        int fromX = band * 16 / bands;
-        int toX = (band + 1) * 16 / bands;
+        int fromX = LightPositions.bandFromX(band, bands);
+        int toX = LightPositions.bandToX(band, bands);
         for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
@@ -99,7 +89,7 @@ public class SkyLightEngine {
             }
         }
         if (band == bands - 1) {
-            LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
+            LightPositions.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
                     (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z, intoChunk));
         }
     }

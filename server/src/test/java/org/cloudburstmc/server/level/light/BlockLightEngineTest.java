@@ -180,7 +180,7 @@ class BlockLightEngineTest {
             ChunkLightAccess access = new ChunkLightAccess(LightChannel.BLOCK, 0, 16, STATES, views);
             LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
             propagation.invalidate(access, LightPositions.pack(source.getX(), source.getY(), source.getZ()));
-            assertTrue(propagation.run(access, Integer.MAX_VALUE), "block propagation did not drain");
+            LightTestGrid.drain(access, propagation);
 
             assertEquals(15, access.light(source.getX(), source.getY(), source.getZ()));
             assertEquals(14, access.light(source.getX() - 1, source.getY(), source.getZ()));

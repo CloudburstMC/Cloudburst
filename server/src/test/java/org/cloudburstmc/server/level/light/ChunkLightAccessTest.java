@@ -41,8 +41,9 @@ class ChunkLightAccessTest {
                     MIN_HEIGHT, MAX_HEIGHT,
                     states, key -> key == chunk.getKey() ? locked : null);
             LightPropagation propagation = new LightPropagation(LightChannel.SKY);
-            SkyLightEngine.initialize(access, 0, 0, propagation);
-            assertTrue(propagation.run(access, Integer.MAX_VALUE), "sky propagation did not drain");
+            SkyLightEngine.initializeBand(access, 0, 0, 0, 1, propagation);
+            SkyLightEngine.spreadBand(access, 0, 0, 0, 1, propagation);
+            LightTestGrid.drain(access, propagation);
         }
 
         assertEquals(15, chunk.getSkyLight(0, 300, 0));

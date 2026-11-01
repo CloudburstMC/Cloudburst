@@ -94,7 +94,7 @@ final class LightStateCache {
         return new Entry(state, state.getLightDampening(), state.getLightEmission(), faces);
     }
 
-    private enum FaceKind {
+    enum FaceKind {
         EMPTY,
         FULL,
         PARTIAL

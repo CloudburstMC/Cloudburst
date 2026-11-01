@@ -183,6 +183,47 @@ class LightSchedulerTest {
     }
 
     @Test
+    void largeEditSeedsInBandsAndDrainsToTheOracleResult() {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
+
+        for (long key : sortedKeys(expected)) {
+            scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
+                    expected.get(key));
+        }
+        drain(scheduler, pending);
+
+        // More edits in one chunk than one seed band holds.
+        List<Vector3i> edits = new ArrayList<>();
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                int top = actual.get(CloudChunk.key(1, 1)).getHighestBlock(x, z);
+                edits.add(Vector3i.from(16 + x, Math.min(MAX_HEIGHT - 1, top + 1), 16 + z));
+                edits.add(Vector3i.from(16 + x, Math.min(MAX_HEIGHT - 1, top + 2), 16 + z));
+            }
+        }
+        assertTrue(edits.size() > LightRegion.UPDATE_BAND_POSITIONS);
+        setBoth(expected, actual, edits, BlockTypes.GLOWSTONE.getDefaultState());
+        OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, edits);
+        scheduler.blocksChanged(packed(edits));
+
+        AtomicInteger seedBands = new AtomicInteger();
+        Runnable[] hook = new Runnable[1];
+        hook[0] = () -> {
+            seedBands.incrementAndGet();
+            scheduler.afterSeedBandForTest(hook[0]);
+        };
+        scheduler.afterSeedBandForTest(hook[0]);
+
+        drain(scheduler, pending);
+        assertEquals(LightRegion.updateBands(edits.size()), seedBands.get());
+        LightTestChunks.assertSameLight(expected, actual);
+    }
+
+    @Test
     void unloadBetweenSlicesSkipsTheAbsentChunk() {
         Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
         Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);

@@ -83,10 +83,6 @@ final class LightPropagation {
         this.increasePositions.enqueue(pos);
     }
 
-    boolean run(LightAccess access, int maxSteps) {
-        return run(access, new int[]{maxSteps});
-    }
-
     /**
      * Runs at most {@code remaining[0]} entries in total, decrements the budget,
      * and returns true once both queues are empty.

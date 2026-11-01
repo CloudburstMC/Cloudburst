@@ -172,7 +172,8 @@ class LightEquivalenceTest {
         expected.remove(removed);
         actual.remove(removed);
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(0, 0));
-        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
+        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
+                Integer.MAX_VALUE, null);
         region.unloaded(0, 0);
         LightTestChunks.assertSameLight(expected, actual);
     }
@@ -194,7 +195,8 @@ class LightEquivalenceTest {
         for (long key : sortedKeys(expected)) {
             OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, expected.get(key));
         }
-        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
+        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
+                Integer.MAX_VALUE, null);
         for (long key : sortedKeys(actual)) {
             region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
@@ -203,7 +205,8 @@ class LightEquivalenceTest {
     private static void updateBoth(Long2ObjectMap<CloudChunk> expected, Long2ObjectMap<CloudChunk> actual,
             Collection<Vector3i> changed) {
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, changed);
-        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
+        LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
+                Integer.MAX_VALUE, null);
         region.update(packed(changed));
     }
 

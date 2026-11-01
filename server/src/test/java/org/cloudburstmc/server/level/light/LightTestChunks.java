@@ -114,6 +114,39 @@ public class LightTestChunks {
     }
 
     /**
+     * Deep-copies fixture chunks onto new chunks of the same level.
+     *
+     * <p>Block states of both layers are copied cell by cell; light starts at
+     * 0, as in a freshly generated fixture. The copies share the level, which
+     * tests only read. Each test copies its own fixtures, so no mutable chunk
+     * state is shared between tests.
+     *
+     * @param chunks the chunks to copy
+     * @return the copies keyed by {@code CloudChunk.key}
+     */
+    public static Long2ObjectMap<CloudChunk> copy(Long2ObjectMap<CloudChunk> chunks) {
+        Long2ObjectMap<CloudChunk> copies = new Long2ObjectOpenHashMap<>(chunks.size());
+        for (Long2ObjectMap.Entry<CloudChunk> entry : chunks.long2ObjectEntrySet()) {
+            CloudChunk chunk = entry.getValue();
+            CloudChunk copy = new CloudChunk(chunk.getX(), chunk.getZ(), chunk.getLevel());
+            int minHeight = chunk.getLevel().getMinHeight();
+            int maxHeight = chunk.getLevel().getMaxHeight();
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int y = minHeight; y < maxHeight; y++) {
+                        copy.setBlockState(x, y, z, BlockLayer.PRIMARY,
+                                chunk.getBlockState(x, y, z, BlockLayer.PRIMARY));
+                        copy.setBlockState(x, y, z, BlockLayer.SECONDARY,
+                                chunk.getBlockState(x, y, z, BlockLayer.SECONDARY));
+                    }
+                }
+            }
+            copies.put(entry.getLongKey(), copy);
+        }
+        return copies;
+    }
+
+    /**
      * Compares primary and secondary block states for every block of every chunk.
      *
      * @param expected the expected chunks

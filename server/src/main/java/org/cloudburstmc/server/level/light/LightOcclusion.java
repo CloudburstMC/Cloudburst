@@ -12,6 +12,13 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * Answers whether light passes between two neighbouring cells.
+ *
+ * <p>Light is blocked when the face shapes of both layers of both cells
+ * together cover the shared face; complementary partial faces seal it together.
+ * Face shapes are cached per state.
+ */
 @UtilityClass
 public class LightOcclusion {
 
@@ -27,6 +34,14 @@ public class LightOcclusion {
         return remaining.isEmpty();
     }
 
+    /**
+     * Returns the face shape of a block state towards a neighbour.
+     *
+     * @param registry  the block registry
+     * @param state     the block state
+     * @param direction the direction towards the neighbour
+     * @return the face shape in that direction
+     */
     public static VoxelShape faceShape(BlockRegistry registry, BlockState state, Direction direction) {
         return faces(registry, state).shapes()[direction.ordinal()];
     }

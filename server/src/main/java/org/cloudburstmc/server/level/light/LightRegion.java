@@ -1,12 +1,11 @@
 package org.cloudburstmc.server.level.light;
 
 import com.google.common.base.Preconditions;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 
@@ -15,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.IntConsumer;
 import java.util.function.LongConsumer;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -25,20 +25,27 @@ import java.util.function.Supplier;
  * channels, and releases in reverse. Locks taken before a failure are released
  * before it propagates.
  *
- * <p>Chunk initialization seeds in column bands spread over one hold each, so
- * no single hold carries the whole-chunk scan; every other operation seeds at
- * once. Each operation then runs propagation in slices: it locks the 3x3,
- * runs up to {@code sliceSteps} propagation steps combined across both
- * channels, releases, records the hold, and re-locks with a freshly read 3x3
- * until drained. Chunks that unloaded in between read as absent. One
+ * <p>Every operation seeds in bands over one hold each, so no single hold
+ * carries a whole-chunk scan or a large edit: initialization in column bands,
+ * block changes in bands of {@value #UPDATE_BAND_POSITIONS} positions,
+ * unloads in bands of {@value #UNLOAD_BAND_HEIGHTS} heights. Each operation
+ * then runs propagation in slices: it locks the 3x3, runs up to
+ * {@code sliceSteps} propagation steps combined across both channels,
+ * releases, records the hold, and re-locks with a freshly read 3x3 until
+ * drained. Chunks that unloaded in between read as absent. One
  * {@link LightStateCache} is shared by the whole operation.
+ *
+ * <p>A hold waits behind any population or finishing task holding a promoted
+ * neighbour in chunk-lock order; the main thread can then briefly wait on a
+ * chunk the lane already holds. This cannot deadlock: every path locks in the
+ * same sorted {@link CloudChunk} order.
  *
  * <p>{@link LightScheduler} queues background work over it.
  *
  * <p>Each operation covers only the chunk's loaded 3x3 neighbourhood. While
  * some loaded chunks still have their own initialization queued, intermediate
- * light can differ from the synchronous oracle, which lights every chunk at
- * promotion; once every loaded chunk's queued work has drained, the results
+ * light can differ from lighting every chunk at promotion, as the previous
+ * engine did; once every loaded chunk's queued work has drained, the results
  * match.
  */
 final class LightRegion {
@@ -46,12 +53,22 @@ final class LightRegion {
     /**
      * The column bands initialization seeds across, one band per hold.
      */
-    private static final int SEED_BANDS = 16;
+    static final int SEED_BANDS = 16;
 
     /**
      * The column bands the sky spread check runs across, one band per hold.
      */
-    private static final int SPREAD_BANDS = 8;
+    static final int SPREAD_BANDS = 8;
+
+    /**
+     * The changed positions one block-change seed band holds at most.
+     */
+    static final int UPDATE_BAND_POSITIONS = 128;
+
+    /**
+     * The heights one unload seed band covers at most.
+     */
+    static final int UNLOAD_BAND_HEIGHTS = 32;
 
     private final BlockRegistry registry;
     private final int minHeight;
@@ -60,15 +77,31 @@ final class LightRegion {
     private final LongFunction<CloudChunk> loadedChunks;
     private final int sliceSteps;
     private final @Nullable LongConsumer holdNanos;
+    private final @Nullable IntConsumer holdSteps;
     private volatile @Nullable Runnable afterSeedBand;
     private volatile @Nullable Runnable afterSlice;
 
     /**
      * @param loadedChunks returns the chunk for a chunk key, or null when absent
+     * @param sliceSteps   the combined propagation step budget per lock hold;
+     *                     must be positive
+     * @param holdNanos    receives each lock hold duration in nanoseconds, or null
+     * @param holdSteps    receives the propagation steps each lock hold ran
+     *                     (0 for seed holds), or null. Each hold notifies the
+     *                     duration before its steps.
      */
     LightRegion(BlockRegistry registry, int minHeight, int maxHeight, boolean skyLight,
-            LongFunction<CloudChunk> loadedChunks) {
-        this(registry, minHeight, maxHeight, skyLight, loadedChunks, Integer.MAX_VALUE, null);
+            LongFunction<CloudChunk> loadedChunks, int sliceSteps, @Nullable LongConsumer holdNanos,
+            @Nullable IntConsumer holdSteps) {
+        Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
+        this.registry = registry;
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
+        this.skyLight = skyLight;
+        this.loadedChunks = loadedChunks;
+        this.sliceSteps = sliceSteps;
+        this.holdNanos = holdNanos;
+        this.holdSteps = holdSteps;
     }
 
     /**
@@ -79,14 +112,7 @@ final class LightRegion {
      */
     LightRegion(BlockRegistry registry, int minHeight, int maxHeight, boolean skyLight,
             LongFunction<CloudChunk> loadedChunks, int sliceSteps, @Nullable LongConsumer holdNanos) {
-        Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
-        this.registry = registry;
-        this.minHeight = minHeight;
-        this.maxHeight = maxHeight;
-        this.skyLight = skyLight;
-        this.loadedChunks = loadedChunks;
-        this.sliceSteps = sliceSteps;
-        this.holdNanos = holdNanos;
+        this(registry, minHeight, maxHeight, skyLight, loadedChunks, sliceSteps, holdNanos, null);
     }
 
     /**
@@ -114,17 +140,22 @@ final class LightRegion {
      * <p>Skipped when the chunk itself is no longer loaded. Seeding runs in
      * column bands over one hold each, so no single hold carries the
      * whole-chunk scan. The scope is the chunk's loaded 3x3; light matches
-     * the synchronous oracle only once every loaded chunk's queued
-     * initialization has drained.
+     * lighting every chunk at promotion, as the previous engine did, only once
+     * every loaded chunk's queued initialization has drained.
      */
     void initialize(int chunkX, int chunkZ) {
         if (this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ)) == null) {
             return;
         }
-        runSlices(() -> surrounding(chunkX, chunkZ, true), new Seeder() {
+        runSlices(new Seeder() {
             @Override
             public int bands() {
                 return SEED_BANDS + (LightRegion.this.skyLight ? SPREAD_BANDS : 0);
+            }
+
+            @Override
+            public Collection<CloudChunk> seedScope(int band) {
+                return surrounding(chunkX, chunkZ, true);
             }
 
             @Override
@@ -139,25 +170,37 @@ final class LightRegion {
                     SkyLightEngine.spreadBand(pass.skyAccess, chunkX, chunkZ, spread, SPREAD_BANDS, sky);
                 }
             }
-        });
+        }, () -> surrounding(chunkX, chunkZ, true));
     }
 
     /**
      * Refreshes the ring around an unloaded chunk.
+     *
+     * <p>Seeding runs in bands of {@value #UNLOAD_BAND_HEIGHTS} heights over
+     * one hold each, so one unload cannot hold the ring's write locks while
+     * scanning the whole column.
      */
     void unloaded(int chunkX, int chunkZ) {
         if (surrounding(chunkX, chunkZ, false).isEmpty()) {
             return;
         }
-        runSlices(() -> surrounding(chunkX, chunkZ, false), new Seeder() {
+        int bands = unloadBands(this.minHeight, this.maxHeight);
+        runSlices(new Seeder() {
             @Override
             public int bands() {
-                return 1;
+                return bands;
+            }
+
+            @Override
+            public Collection<CloudChunk> seedScope(int band) {
+                return surrounding(chunkX, chunkZ, false);
             }
 
             @Override
             public void seed(Pass pass, LightPropagation block, LightPropagation sky, int band) {
-                forNeighbourBorder(chunkX, chunkZ, LightRegion.this.minHeight, LightRegion.this.maxHeight,
+                int fromY = unloadBandFromY(LightRegion.this.minHeight, band);
+                int toY = unloadBandToY(LightRegion.this.minHeight, LightRegion.this.maxHeight, band);
+                LightPositions.forNeighbourBorder(chunkX, chunkZ, fromY, toY,
                         (x, y, z, intoChunk) -> {
                             invalidateIfHorizontallyLit(pass.blockAccess, block, x, y, z);
                             if (LightRegion.this.skyLight) {
@@ -165,52 +208,134 @@ final class LightRegion {
                             }
                         });
             }
-        });
+        }, () -> surrounding(chunkX, chunkZ, false));
     }
 
     /**
      * Repropagates both channels from the changed packed positions.
+     *
+     * <p>Seeding runs in bands of {@value #UPDATE_BAND_POSITIONS} positions
+     * over one hold each, each locking only its own band's neighbourhood, so a
+     * large edit cannot hold the write locks while invalidating every change
+     * at once.
      */
     void update(LongCollection positions) {
         if (positions.isEmpty() || neighbourhood(positions).isEmpty()) {
             return;
         }
-        runSlices(() -> neighbourhood(positions), new Seeder() {
+        long[] all = positions.toLongArray();
+        int bands = updateBands(all.length);
+        runSlices(new Seeder() {
             @Override
             public int bands() {
-                return 1;
+                return bands;
+            }
+
+            @Override
+            public Collection<CloudChunk> seedScope(int band) {
+                return neighbourhood(all, updateBandFrom(all.length, band), updateBandTo(all.length, band));
             }
 
             @Override
             public void seed(Pass pass, LightPropagation block, LightPropagation sky, int band) {
-                for (long packed : positions) {
-                    block.invalidate(pass.blockAccess, packed);
+                int from = updateBandFrom(all.length, band);
+                int to = updateBandTo(all.length, band);
+                for (int i = from; i < to; i++) {
+                    block.invalidate(pass.blockAccess, all[i]);
                     if (LightRegion.this.skyLight) {
-                        sky.invalidate(pass.skyAccess, packed);
+                        sky.invalidate(pass.skyAccess, all[i]);
                     }
                 }
             }
-        });
+        }, () -> neighbourhood(all, 0, all.length));
+    }
+
+    /**
+     * Returns the seed bands an update of {@code positions} changed positions
+     * needs.
+     *
+     * @param positions the number of changed positions
+     * @return the band count, at least 1
+     */
+    static int updateBands(int positions) {
+        return Math.max(1, (positions + UPDATE_BAND_POSITIONS - 1) / UPDATE_BAND_POSITIONS);
+    }
+
+    /**
+     * Returns the first position index of an update seed band.
+     *
+     * @param total the number of changed positions
+     * @param band  the band from {@code 0} to {@code updateBands(total) - 1}
+     * @return the first index of the band
+     */
+    static int updateBandFrom(int total, int band) {
+        return Math.min(total, band * UPDATE_BAND_POSITIONS);
+    }
+
+    /**
+     * Returns one past the last position index of an update seed band.
+     *
+     * @param total the number of changed positions
+     * @param band  the band from {@code 0} to {@code updateBands(total) - 1}
+     * @return one past the last index of the band
+     */
+    static int updateBandTo(int total, int band) {
+        return Math.min(total, (band + 1) * UPDATE_BAND_POSITIONS);
+    }
+
+    /**
+     * Returns the seed bands an unload refresh of the height range needs.
+     *
+     * @param minHeight the lowest lit height
+     * @param maxHeight one past the highest lit height
+     * @return the band count, at least 1
+     */
+    static int unloadBands(int minHeight, int maxHeight) {
+        return Math.max(1, (maxHeight - minHeight + UNLOAD_BAND_HEIGHTS - 1) / UNLOAD_BAND_HEIGHTS);
+    }
+
+    /**
+     * Returns the lowest height of an unload seed band.
+     *
+     * @param minHeight the lowest lit height
+     * @param band      the band from {@code 0} to {@code unloadBands - 1}
+     * @return the lowest y of the band
+     */
+    static int unloadBandFromY(int minHeight, int band) {
+        return minHeight + band * UNLOAD_BAND_HEIGHTS;
+    }
+
+    /**
+     * Returns one past the highest height of an unload seed band.
+     *
+     * @param minHeight the lowest lit height
+     * @param maxHeight one past the highest lit height
+     * @param band      the band from {@code 0} to {@code unloadBands - 1}
+     * @return one past the highest y of the band
+     */
+    static int unloadBandToY(int minHeight, int maxHeight, int band) {
+        return Math.min(maxHeight, minHeight + (band + 1) * UNLOAD_BAND_HEIGHTS);
     }
 
     /**
      * Seeds in bands over one hold each, then locks, propagates and releases
-     * until both channels drain. The scope is re-read before every hold, so
+     * until both channels drain. Scopes are re-read before every hold, so
      * unloaded chunks drop out.
      */
-    private void runSlices(Supplier<? extends Collection<CloudChunk>> scope, Seeder seeder) {
+    private void runSlices(Seeder seeder, Supplier<? extends Collection<CloudChunk>> scope) {
         LightStateCache states = new LightStateCache(this.registry);
         LightPropagation block = new LightPropagation(LightChannel.BLOCK);
         LightPropagation sky = new LightPropagation(LightChannel.SKY);
         int bands = seeder.bands();
         for (int band = 0; band < bands; band++) {
-            LockedChunk[] locked = lockSorted(scope.get());
+            LockedChunk[] locked = lockSorted(seeder.seedScope(band));
             long start = System.nanoTime();
             try {
                 seeder.seed(new Pass(states, this.minHeight, this.maxHeight, views(locked)), block, sky, band);
             } finally {
                 releaseReversed(locked);
                 notifyHold(System.nanoTime() - start);
+                notifySteps(0);
             }
             notifyAfterSeedBand();
         }
@@ -219,14 +344,17 @@ final class LightRegion {
             long start = System.nanoTime();
             boolean blockDrained = false;
             boolean skyDrained = false;
+            int steps = 0;
             try {
                 Pass pass = new Pass(states, this.minHeight, this.maxHeight, views(locked));
                 int[] budget = {this.sliceSteps};
                 blockDrained = block.run(pass.blockAccess, budget);
                 skyDrained = !this.skyLight || sky.run(pass.skyAccess, budget);
+                steps = this.sliceSteps - budget[0];
             } finally {
                 releaseReversed(locked);
                 notifyHold(System.nanoTime() - start);
+                notifySteps(steps);
             }
             notifyAfterSlice();
             if (blockDrained && skyDrained) {
@@ -238,6 +366,12 @@ final class LightRegion {
     private void notifyHold(long holdNanos) {
         if (this.holdNanos != null) {
             this.holdNanos.accept(holdNanos);
+        }
+    }
+
+    private void notifySteps(int steps) {
+        if (this.holdSteps != null) {
+            this.holdSteps.accept(steps);
         }
     }
 
@@ -258,37 +392,25 @@ final class LightRegion {
     }
 
     private Set<CloudChunk> neighbourhood(LongCollection positions) {
+        return neighbourhood(positions.toLongArray(), 0, positions.size());
+    }
+
+    private Set<CloudChunk> neighbourhood(long[] packed, int from, int to) {
+        Set<Long> keys = new LongOpenHashSet(to - from);
+        for (int i = from; i < to; i++) {
+            keys.add(CloudChunk.key(LightPositions.x(packed[i]) >> 4, LightPositions.z(packed[i]) >> 4));
+        }
         Set<CloudChunk> neighbourhood = new TreeSet<>();
-        for (long packed : positions) {
-            neighbourhood.addAll(surrounding(LightPositions.x(packed) >> 4, LightPositions.z(packed) >> 4, true));
+        for (long key : keys) {
+            neighbourhood.addAll(surrounding(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key), true));
         }
         return neighbourhood;
     }
 
-    /**
-     * Visits the ring of cells just outside the chunk; {@code intoChunk} points
-     * from each outside cell to its inside neighbour.
-     */
-    static void forNeighbourBorder(int chunkX, int chunkZ, int minHeight, int maxHeight, NeighbourBorder border) {
-        int minX = chunkX << 4;
-        int minZ = chunkZ << 4;
-        for (int y = minHeight; y < maxHeight; y++) {
-            for (int i = 0; i < 16; i++) {
-                border.outside(minX - 1, y, minZ + i, Direction.EAST);
-                border.outside(minX + 16, y, minZ + i, Direction.WEST);
-                border.outside(minX + i, y, minZ - 1, Direction.SOUTH);
-                border.outside(minX + i, y, minZ + 16, Direction.NORTH);
-            }
-        }
-    }
-
-    @FunctionalInterface
-    interface NeighbourBorder {
-        void outside(int x, int y, int z, Direction intoChunk);
-    }
-
     private interface Seeder {
         int bands();
+
+        Collection<CloudChunk> seedScope(int band);
 
         void seed(Pass pass, LightPropagation block, LightPropagation sky, int band);
     }

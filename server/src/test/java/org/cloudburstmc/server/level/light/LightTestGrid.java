@@ -98,10 +98,20 @@ final class LightTestGrid implements LightAccess {
         return this.light(position.getX(), position.getY(), position.getZ());
     }
 
+    /**
+     * Runs propagation to completion, failing when the step budget runs out.
+     *
+     * @param access      the light access
+     * @param propagation the propagation queues
+     */
+    static void drain(LightAccess access, LightPropagation propagation) {
+        assertTrue(propagation.run(access, new int[]{Integer.MAX_VALUE}), "propagation did not drain");
+    }
+
     void initializeBlock(int chunkX, int chunkZ) {
         LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
-        BlockLightEngine.initialize(this, chunkX, chunkZ, propagation);
-        assertTrue(propagation.run(this, Integer.MAX_VALUE), "block propagation did not drain");
+        BlockLightEngine.initializeBand(this, chunkX, chunkZ, 0, 1, propagation);
+        drain(this, propagation);
     }
 
     void updateBlock(Collection<Vector3i> changed) {
@@ -110,13 +120,14 @@ final class LightTestGrid implements LightAccess {
             propagation.invalidate(this,
                     LightPositions.pack(position.getX(), position.getY(), position.getZ()));
         }
-        assertTrue(propagation.run(this, Integer.MAX_VALUE), "block propagation did not drain");
+        drain(this, propagation);
     }
 
     void initializeSky(int chunkX, int chunkZ) {
         LightPropagation propagation = new LightPropagation(LightChannel.SKY);
-        SkyLightEngine.initialize(this, chunkX, chunkZ, propagation);
-        assertTrue(propagation.run(this, Integer.MAX_VALUE), "sky propagation did not drain");
+        SkyLightEngine.initializeBand(this, chunkX, chunkZ, 0, 1, propagation);
+        SkyLightEngine.spreadBand(this, chunkX, chunkZ, 0, 1, propagation);
+        drain(this, propagation);
     }
 
     void updateSky(Collection<Vector3i> changed) {
@@ -125,6 +136,6 @@ final class LightTestGrid implements LightAccess {
             propagation.invalidate(this,
                     LightPositions.pack(position.getX(), position.getY(), position.getZ()));
         }
-        assertTrue(propagation.run(this, Integer.MAX_VALUE), "sky propagation did not drain");
+        drain(this, propagation);
     }
 }

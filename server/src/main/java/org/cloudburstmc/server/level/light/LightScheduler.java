@@ -55,12 +55,18 @@ public final class LightScheduler {
     private final Object laneLock = new Object();
     private final Deque<WorkItem> queue = new ArrayDeque<>();
     private boolean runnerInFlight;
-    private volatile Runnable beforeItemHook;
 
     private final Object holdLock = new Object();
     private final long[] holds = new long[HOLD_CAPACITY];
+    private final int[] holdSteps = new int[HOLD_CAPACITY];
     private int holdNext;
     private long holdTotal;
+
+    /**
+     * Test seam: runs once before the next lane item, without holding the
+     * lane lock.
+     */
+    private volatile Runnable beforeItemHook;
 
     /**
      * @param level  the level state the lane reads
@@ -87,7 +93,7 @@ public final class LightScheduler {
         Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
         this.region = new LightRegion(level.registry(), level.minHeight(), level.maxHeight(), level.hasSkyLight(),
                 key -> level.loadedChunk(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                sliceSteps, this::recordHold);
+                sliceSteps, this::recordHold, this::recordSteps);
         this.submit = submit;
     }
 
@@ -120,7 +126,7 @@ public final class LightScheduler {
     /**
      * Queues repropagation from the changed packed positions.
      *
-     * @param positions the packed positions
+     * @param positions the packed positions, see {@link LightPositions#pack}
      */
     public void blocksChanged(LongCollection positions) {
         if (positions.isEmpty()) {
@@ -186,6 +192,27 @@ public final class LightScheduler {
     }
 
     /**
+     * Returns the propagation steps each recorded lock hold ran, oldest
+     * first, bounded to the last {@value #HOLD_CAPACITY}. Seed holds ran 0.
+     *
+     * @return the step counts per hold
+     */
+    public int[] holdStepSamples() {
+        synchronized (this.holdLock) {
+            int count = (int) Math.min(this.holdTotal, HOLD_CAPACITY);
+            int[] samples = new int[count];
+            int start = (int) (this.holdNext - count);
+            if (start < 0) {
+                start += HOLD_CAPACITY;
+            }
+            for (int i = 0; i < count; i++) {
+                samples[i] = this.holdSteps[(start + i) % HOLD_CAPACITY];
+            }
+            return samples;
+        }
+    }
+
+    /**
      * Runs a hook once after the next seed band, without holding chunk locks.
      *
      * @param hook the hook, or null to clear it
@@ -221,6 +248,15 @@ public final class LightScheduler {
             }
             this.runnerInFlight = true;
         }
+        handOff();
+    }
+
+    /**
+     * Hands one lane run to the submitter. A rejection drops the pending work
+     * and parks the lane; any other failure keeps the queued work with the
+     * lane parked, and the next submission restarts it.
+     */
+    private void handOff() {
         try {
             this.submit.accept(this::runLane);
         } catch (RejectedExecutionException e) {
@@ -272,19 +308,7 @@ public final class LightScheduler {
                 }
             }
             if (!idle) {
-                try {
-                    this.submit.accept(this::runLane);
-                } catch (RejectedExecutionException e) {
-                    synchronized (this.laneLock) {
-                        this.queue.clear();
-                        this.runnerInFlight = false;
-                    }
-                } catch (Throwable e) {
-                    synchronized (this.laneLock) {
-                        this.runnerInFlight = false;
-                    }
-                    throw e;
-                }
+                handOff();
             }
         }
     }
@@ -332,6 +356,21 @@ public final class LightScheduler {
         }
     }
 
+    /**
+     * Records the propagation steps of the hold {@link #recordHold} just
+     * recorded; seed holds ran 0. The region notifies the hold duration
+     * before its steps, on the lane thread, so this fills the same ring slot.
+     */
+    private void recordSteps(int steps) {
+        synchronized (this.holdLock) {
+            int slot = this.holdNext - 1;
+            if (slot < 0) {
+                slot += HOLD_CAPACITY;
+            }
+            this.holdSteps[slot] = steps;
+        }
+    }
+
     private static final class WorkItem {
 
         enum Kind {
@@ -343,9 +382,12 @@ public final class LightScheduler {
         final Kind kind;
         final int chunkX;
         final int chunkZ;
-        final LongArrayList positions;
+        /**
+         * The queued positions; only block-change items carry any.
+         */
+        final @Nullable LongArrayList positions;
 
-        private WorkItem(Kind kind, int chunkX, int chunkZ, LongArrayList positions) {
+        private WorkItem(Kind kind, int chunkX, int chunkZ, @Nullable LongArrayList positions) {
             this.kind = kind;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
@@ -353,11 +395,11 @@ public final class LightScheduler {
         }
 
         static WorkItem load(int chunkX, int chunkZ) {
-            return new WorkItem(Kind.LOAD, chunkX, chunkZ, new LongArrayList());
+            return new WorkItem(Kind.LOAD, chunkX, chunkZ, null);
         }
 
         static WorkItem unload(int chunkX, int chunkZ) {
-            return new WorkItem(Kind.UNLOAD, chunkX, chunkZ, new LongArrayList());
+            return new WorkItem(Kind.UNLOAD, chunkX, chunkZ, null);
         }
 
         static WorkItem blocks(LongCollection positions) {

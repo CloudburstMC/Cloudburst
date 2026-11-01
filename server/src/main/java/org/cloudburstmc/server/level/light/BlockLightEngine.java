@@ -9,14 +9,6 @@ import lombok.experimental.UtilityClass;
 class BlockLightEngine {
 
     /**
-     * Writes every block of the chunk to its emission, sources every emitter,
-     * and sources lit neighbour cells touching the chunk border.
-     */
-    static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
-        initializeBand(access, chunkX, chunkZ, 0, 1, into);
-    }
-
-    /**
      * Writes the emission of the band's columns and sources the band's
      * emitters. The border sources run with the last band, once every column
      * holds its emission.
@@ -28,8 +20,8 @@ class BlockLightEngine {
             LightPropagation into) {
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
-        int fromX = band * 16 / bands;
-        int toX = (band + 1) * 16 / bands;
+        int fromX = LightPositions.bandFromX(band, bands);
+        int toX = LightPositions.bandToX(band, bands);
         for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
@@ -45,7 +37,7 @@ class BlockLightEngine {
             }
         }
         if (band == bands - 1) {
-            LightRegion.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
+            LightPositions.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(),
                     (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z));
         }
     }
