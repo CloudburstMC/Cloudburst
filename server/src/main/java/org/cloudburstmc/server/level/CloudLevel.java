@@ -2357,14 +2357,12 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public int getMinHeight() {
         // TODO: Support custom world heights.
-        return this.getDimension() == DIMENSION_OVERWORLD ? -64 : 0;
+        return DimensionHeight.of(this.getDimension()).getMinHeight();
     }
 
     @Override
     public int getMaxHeight() {
-        if (this.getDimension() == DIMENSION_NETHER) return 128;
-        if (this.getDimension() == DIMENSION_THE_END) return 256;
-        return 320; // Overworld
+        return DimensionHeight.of(this.getDimension()).getMaxHeight();
     }
 
     @Override
@@ -3081,7 +3079,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
 
     public boolean isAreaLoaded(BoundingBox boundingBox) {
-        if (boundingBox.getMaxY() < -64 || boundingBox.getMinY() >= 320) {
+        if (boundingBox.getMaxY() < this.getMinHeight() || boundingBox.getMinY() >= this.getMaxHeight()) {
             return false;
         }
         int minX = GenericMath.floor(boundingBox.getMinX()) >> 4;
