@@ -26,6 +26,10 @@ public class LightOcclusion {
         return remaining.isEmpty();
     }
 
+    public static VoxelShape faceShape(BlockRegistry registry, BlockState state, Direction direction) {
+        return faces(registry, state).shapes()[direction.ordinal()];
+    }
+
     public static boolean affectsLight(BlockRegistry registry, BlockState before, BlockState after) {
         if (before == after) {
             return false;
