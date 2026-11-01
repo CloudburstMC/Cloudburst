@@ -28,6 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Compares the new engine against the synchronous oracle on fully lit
+ * neighbourhoods: every chunk of each fixture is initialized on both sides,
+ * in sorted key order, before any comparison.
+ */
 class LightEquivalenceTest {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();

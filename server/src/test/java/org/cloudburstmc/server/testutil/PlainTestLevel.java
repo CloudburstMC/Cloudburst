@@ -33,13 +33,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 /**
- * A level whose vertical bounds are concrete fields.
+ * A level whose vertical bounds, seed and server are concrete fields.
  *
  * <p>Dynamic proxies answer every call through reflective dispatch, which
  * dominates the per-cell cost of code reading through chunk levels in a
  * tight loop. The height checks on that path are concrete here, so a
  * benchmark comparing against such code measures the algorithm instead of
- * the proxy. Every other call behaves exactly like the wrapped level.
+ * the proxy. The seed and server are snapshotted at wrap time; every other
+ * call behaves exactly like the wrapped level.
  */
 public final class PlainTestLevel implements Level {
 
@@ -62,7 +63,9 @@ public final class PlainTestLevel implements Level {
     }
 
     /**
-     * Returns a level with the delegate's bounds and seed as concrete fields.
+     * Returns a level with the delegate's bounds, seed and server as concrete
+     * fields; {@code setSeed} forwards to the delegate without refreshing the
+     * snapshotted seed.
      *
      * @param delegate the level supplying every other call
      * @return the level

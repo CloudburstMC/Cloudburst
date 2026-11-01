@@ -51,8 +51,8 @@ public class LightTestChunks {
      * Generates a square of overworld chunks and populates its inner square.
      *
      * <p>Benchmarks pass a level with concrete height checks so the timed code
-     * is measured instead of reflective dispatch; every other caller uses the
-     * shared level above.
+     * is measured instead of reflective dispatch; the four-argument overload
+     * builds a proxy level from TestLevels per call.
      *
      * @param seed         the level seed
      * @param originChunkX the inner square's lowest chunk x

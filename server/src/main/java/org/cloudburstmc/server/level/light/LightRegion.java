@@ -34,6 +34,12 @@ import java.util.function.Supplier;
  * {@link LightStateCache} is shared by the whole operation.
  *
  * <p>{@link LightScheduler} queues background work over it.
+ *
+ * <p>Each operation covers only the chunk's loaded 3x3 neighbourhood. While
+ * some loaded chunks still have their own initialization queued, intermediate
+ * light can differ from the synchronous oracle, which lights every chunk at
+ * promotion; once every loaded chunk's queued work has drained, the results
+ * match.
  */
 final class LightRegion {
 
@@ -107,7 +113,9 @@ final class LightRegion {
      *
      * <p>Skipped when the chunk itself is no longer loaded. Seeding runs in
      * column bands over one hold each, so no single hold carries the
-     * whole-chunk scan.
+     * whole-chunk scan. The scope is the chunk's loaded 3x3; light matches
+     * the synchronous oracle only once every loaded chunk's queued
+     * initialization has drained.
      */
     void initialize(int chunkX, int chunkZ) {
         if (this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ)) == null) {
