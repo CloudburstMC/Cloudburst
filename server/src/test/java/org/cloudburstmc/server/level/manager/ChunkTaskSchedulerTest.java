@@ -97,6 +97,8 @@ class ChunkTaskSchedulerTest {
             try {
                 populate.get(30, TimeUnit.SECONDS);
             } catch (ExecutionException expected) {
+                // The stub level cannot populate: reaching this means the task
+                // ran instead of waiting on the reserved area.
             }
         } finally {
             generation.shutdownNow();

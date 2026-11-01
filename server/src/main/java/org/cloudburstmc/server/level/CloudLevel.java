@@ -111,6 +111,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.function.LongFunction;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
@@ -1323,38 +1324,58 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     /**
      * The level state the background light lane reads. Only touches
-     * thread-safe state off the calling thread.
+     * thread-safe state off the calling thread: the lane calls
+     * {@link #loadedChunk} from worker threads, which must only see promoted
+     * chunks, as {@link LevelChunkManager#getLoadedChunk} returns.
      */
-    private static final class LightView implements LightLevelView {
-        private final CloudLevel level;
+    static final class LightView implements LightLevelView {
+        private final BlockRegistry registry;
+        private final int minHeight;
+        private final int maxHeight;
+        private final int dimension;
+        private final LongFunction<CloudChunk> loadedChunks;
 
         private LightView(CloudLevel level) {
-            this.level = level;
+            this(level.server.getBlockRegistry(), level.getMinHeight(), level.getMaxHeight(),
+                    level.getDimension(), key -> level.chunkManager.getLoadedChunk(key));
+        }
+
+        /**
+         * @param loadedChunks returns the loaded chunk for a chunk key, or null
+         *                     when absent
+         */
+        LightView(BlockRegistry registry, int minHeight, int maxHeight, int dimension,
+                LongFunction<CloudChunk> loadedChunks) {
+            this.registry = registry;
+            this.minHeight = minHeight;
+            this.maxHeight = maxHeight;
+            this.dimension = dimension;
+            this.loadedChunks = loadedChunks;
         }
 
         @Override
         public BlockRegistry registry() {
-            return this.level.server.getBlockRegistry();
+            return this.registry;
         }
 
         @Override
         public int minHeight() {
-            return this.level.getMinHeight();
+            return this.minHeight;
         }
 
         @Override
         public int maxHeight() {
-            return this.level.getMaxHeight();
+            return this.maxHeight;
         }
 
         @Override
         public boolean hasSkyLight() {
-            return this.level.getDimension() == DIMENSION_OVERWORLD;
+            return this.dimension == DIMENSION_OVERWORLD;
         }
 
         @Override
         public @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ) {
-            return this.level.chunkManager.getLoadedChunk(chunkX, chunkZ);
+            return this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ));
         }
     }
 
@@ -1387,16 +1408,29 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        LongCollection changed = new LongArrayList();
-        for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
-            long chunkKey = entry.getLongKey();
-            for (int blockKey : entry.getValue()) {
-                changed.add(CloudChunk.lightPosition(chunkKey, blockKey, this.getMinHeight()));
-            }
-        }
+        LongCollection changed = collectLightPositions(this.lightQueue, this.getMinHeight());
 
         this.lightQueue.clear();
         this.lightScheduler.blocksChanged(changed);
+    }
+
+    /**
+     * Packs the queued block changes into light positions, dropping the layer
+     * bit: light updates are per position regardless of layer.
+     *
+     * @param queue     the queued block keys by chunk key
+     * @param minHeight the level's lowest valid y
+     * @return the packed light positions
+     */
+    static LongArrayList collectLightPositions(Long2ObjectMap<IntSet> queue, int minHeight) {
+        LongArrayList changed = new LongArrayList();
+        for (Long2ObjectMap.Entry<IntSet> entry : queue.long2ObjectEntrySet()) {
+            long chunkKey = entry.getLongKey();
+            for (int blockKey : entry.getValue()) {
+                changed.add(CloudChunk.lightPosition(chunkKey, blockKey, minHeight));
+            }
+        }
+        return changed;
     }
 
     @Synchronized("lightQueue")

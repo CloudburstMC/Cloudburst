@@ -51,6 +51,10 @@ public final class ChunkTaskScheduler {
      * generation without waiting on area conflicts. The work must not block
      * the generation pool.
      *
+     * <p>Priority orders tasks within one level's queue; with several active
+     * levels on the shared pool, a lane can still wait behind other levels'
+     * generation tasks.
+     *
      * @param work the light work to run
      * @return a future completing when the work runs, or exceptionally when
      * the executor rejects it
