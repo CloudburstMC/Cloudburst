@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -11,10 +12,8 @@ import java.util.List;
 /**
  * Stores a position as a list of three ints, as end gateway exits are stored today.
  */
+@NoArgsConstructor
 public final class Vector3iListCodec implements NbtValueCodec<Vector3i> {
-
-    public Vector3iListCodec() {
-    }
 
     @Override
     public Object toNbt(Vector3i value) {

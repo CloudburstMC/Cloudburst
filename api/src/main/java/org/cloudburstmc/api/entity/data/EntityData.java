@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
@@ -24,6 +25,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @Getter
 @Setter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class EntityData {
 
     @JsonProperty("Invulnerable")
@@ -38,7 +40,4 @@ public class EntityData {
     @JsonProperty("Tags")
     @JsonDeserialize(as = LinkedHashSet.class)
     private Set<String> tags = new LinkedHashSet<>();
-
-    public EntityData() {
-    }
 }

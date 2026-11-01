@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -19,6 +20,7 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class BrewingStandData extends BlockEntityData {
 
     @JsonProperty("Items")
@@ -36,7 +38,4 @@ public class BrewingStandData extends BlockEntityData {
     @NbtClient
     @JsonProperty("FuelTotal")
     private short fuelTotal;
-
-    public BrewingStandData() {
-    }
 }

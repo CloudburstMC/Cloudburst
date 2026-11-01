@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtClient;
@@ -16,6 +17,7 @@ import org.cloudburstmc.api.nbt.NbtClient;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ItemFrameData extends BlockEntityData {
 
     @NbtClient
@@ -30,7 +32,4 @@ public class ItemFrameData extends BlockEntityData {
 
     @JsonIgnore
     private float itemDropChance = 1.0f;
-
-    public ItemFrameData() {
-    }
 }

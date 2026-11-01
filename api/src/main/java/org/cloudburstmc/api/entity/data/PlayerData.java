@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.nbt.NbtContainerSize;
@@ -32,6 +33,7 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties("Skin")
+@NoArgsConstructor
 public class PlayerData extends HumanData {
 
     @JsonProperty("EXP")
@@ -59,7 +61,4 @@ public class PlayerData extends HumanData {
     @NbtSkipEmpty
     @NbtKeepUnlisted
     private ItemContainer enderChest;
-
-    public PlayerData() {
-    }
 }

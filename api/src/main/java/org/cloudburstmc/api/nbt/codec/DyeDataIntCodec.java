@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -7,10 +8,8 @@ import org.cloudburstmc.api.util.data.DyeColor;
 /**
  * Stores a dye colour as its dye data in an int, as banner bases are stored today.
  */
+@NoArgsConstructor
 public final class DyeDataIntCodec implements NbtValueCodec<DyeColor> {
-
-    public DyeDataIntCodec() {
-    }
 
     @Override
     public Object toNbt(DyeColor value) {

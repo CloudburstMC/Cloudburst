@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class MusicData extends BlockEntityData {
 
     @JsonProperty("note")
@@ -18,7 +20,4 @@ public class MusicData extends BlockEntityData {
 
     @JsonProperty("powered")
     private boolean powered;
-
-    public MusicData() {
-    }
 }

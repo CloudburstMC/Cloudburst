@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.api.util.Direction;
@@ -7,10 +8,8 @@ import org.cloudburstmc.api.util.Direction;
 /**
  * Stores a shulker box facing as the byte of its 3-D index, as shulker boxes are stored today.
  */
+@NoArgsConstructor
 public final class ShulkerFacingCodec implements NbtValueCodec<Direction> {
-
-    public ShulkerFacingCodec() {
-    }
 
     @Override
     public Object toNbt(Direction value) {

@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.nbt.NbtClient;
@@ -14,6 +15,7 @@ import org.cloudburstmc.api.nbt.NbtClient;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class CampfireData extends BlockEntityData {
 
     @NbtClient
@@ -47,7 +49,4 @@ public class CampfireData extends BlockEntityData {
     @NbtClient
     @JsonProperty("ItemTime4")
     private Integer itemTime4;
-
-    public CampfireData() {
-    }
 }

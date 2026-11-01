@@ -1,9 +1,7 @@
 package org.cloudburstmc.api.blockentity.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Persistent data shared by every loot-capable item container: an optional loot-table
@@ -13,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class ContainerData extends BlockEntityData implements LootTableHolder {
 
     @JsonProperty("LootTable")
@@ -20,7 +19,4 @@ public abstract class ContainerData extends BlockEntityData implements LootTable
 
     @JsonProperty("LootTableSeed")
     private Integer lootTableSeed;
-
-    protected ContainerData() {
-    }
 }

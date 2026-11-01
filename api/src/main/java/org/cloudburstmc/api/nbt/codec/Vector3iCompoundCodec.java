@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -9,10 +10,8 @@ import org.cloudburstmc.nbt.NbtMap;
  * Stores a position as a compound of three ints, as ender-crystal beam targets
  * are stored today.
  */
+@NoArgsConstructor
 public final class Vector3iCompoundCodec implements NbtValueCodec<Vector3i> {
-
-    public Vector3iCompoundCodec() {
-    }
 
     @Override
     public Object toNbt(Vector3i value) {

@@ -3,6 +3,7 @@ package org.cloudburstmc.api.entity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -15,6 +16,7 @@ import org.cloudburstmc.api.nbt.NbtShortBlockState;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class FallingBlockData extends EntityData {
 
     @JsonProperty(value = "BlockState", access = JsonProperty.Access.READ_ONLY)
@@ -47,7 +49,4 @@ public class FallingBlockData extends EntityData {
 
     @JsonProperty("BreakSound")
     private String breakSound;
-
-    public FallingBlockData() {
-    }
 }

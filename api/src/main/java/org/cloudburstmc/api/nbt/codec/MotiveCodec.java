@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
@@ -9,10 +10,8 @@ import org.cloudburstmc.api.nbt.NbtValueCodec;
  * An unknown title is a shape mismatch, so the property keeps its current value,
  * exactly like the previous load path, which ignored unknown motives.
  */
+@NoArgsConstructor
 public final class MotiveCodec implements NbtValueCodec<Painting.Motive> {
-
-    public MotiveCodec() {
-    }
 
     @Override
     public Object toNbt(Painting.Motive value) {

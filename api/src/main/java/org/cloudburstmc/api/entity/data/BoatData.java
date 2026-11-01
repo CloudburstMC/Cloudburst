@@ -3,6 +3,7 @@ package org.cloudburstmc.api.entity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.entity.vehicle.BoatType;
 
@@ -13,11 +14,9 @@ import org.cloudburstmc.api.entity.vehicle.BoatType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class BoatData extends EntityData {
 
     @JsonProperty("WoodType")
     private BoatType woodType = BoatType.OAK;
-
-    public BoatData() {
-    }
 }

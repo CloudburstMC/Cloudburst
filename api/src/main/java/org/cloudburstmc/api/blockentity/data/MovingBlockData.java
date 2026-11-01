@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
@@ -18,6 +19,7 @@ import org.cloudburstmc.nbt.NbtMap;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class MovingBlockData extends BlockEntityData {
 
     @JsonProperty("movingBlock")
@@ -31,7 +33,4 @@ public class MovingBlockData extends BlockEntityData {
 
     @JsonIgnore
     private Vector3i piston;
-
-    public MovingBlockData() {
-    }
 }

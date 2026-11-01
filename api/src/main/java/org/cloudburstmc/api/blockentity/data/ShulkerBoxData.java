@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -21,6 +22,7 @@ import org.cloudburstmc.api.util.Direction;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ShulkerBoxData extends ContainerData {
 
     @JsonProperty("Items")
@@ -32,7 +34,4 @@ public class ShulkerBoxData extends ContainerData {
     @JsonProperty("facing")
     @NbtCodec(ShulkerFacingCodec.class)
     private Direction facing = Direction.UP;
-
-    public ShulkerBoxData() {
-    }
 }

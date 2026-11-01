@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.api.util.data.DyeColor;
@@ -7,10 +8,8 @@ import org.cloudburstmc.api.util.data.DyeColor;
 /**
  * Stores a dye colour as its wool data in a byte, as bed colours are stored today.
  */
+@NoArgsConstructor
 public final class WoolColorCodec implements NbtValueCodec<DyeColor> {
-
-    public WoolColorCodec() {
-    }
 
     @Override
     public Object toNbt(DyeColor value) {

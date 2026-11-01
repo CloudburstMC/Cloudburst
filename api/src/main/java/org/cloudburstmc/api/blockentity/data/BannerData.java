@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtClient;
 import org.cloudburstmc.api.nbt.NbtCodec;
@@ -25,6 +26,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class BannerData extends BlockEntityData {
 
     @NbtClient
@@ -44,7 +46,4 @@ public class BannerData extends BlockEntityData {
 
     @JsonIgnore
     private boolean patternsPresent;
-
-    public BannerData() {
-    }
 }

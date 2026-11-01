@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -19,6 +20,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ChestData extends ContainerData {
 
     @JsonProperty("Items")
@@ -31,7 +33,4 @@ public class ChestData extends ContainerData {
 
     @JsonIgnore
     private Vector3i pairPosition;
-
-    public ChestData() {
-    }
 }

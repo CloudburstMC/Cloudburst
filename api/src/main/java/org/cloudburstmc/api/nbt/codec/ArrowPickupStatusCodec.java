@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.entity.projectile.ArrowPickupStatus;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
@@ -8,10 +9,8 @@ import org.cloudburstmc.api.nbt.NbtValueCodec;
  * Stores an arrow pickup rule as its byte value, as arrows are stored today.
  * Any other value reads as open pickup, exactly like the previous load path.
  */
+@NoArgsConstructor
 public final class ArrowPickupStatusCodec implements NbtValueCodec<ArrowPickupStatus> {
-
-    public ArrowPickupStatusCodec() {
-    }
 
     @Override
     public Object toNbt(ArrowPickupStatus value) {

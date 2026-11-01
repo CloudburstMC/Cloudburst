@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
@@ -16,6 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
 @Getter
 @Setter
 @EqualsAndHashCode
+@NoArgsConstructor
 public class BlockEntityData {
 
     @JsonProperty("isMovable")
@@ -23,7 +25,4 @@ public class BlockEntityData {
 
     @JsonProperty("CustomName")
     private String customName;
-
-    public BlockEntityData() {
-    }
 }

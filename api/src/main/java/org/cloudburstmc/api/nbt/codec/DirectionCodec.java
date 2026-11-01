@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.api.util.Direction;
@@ -7,10 +8,8 @@ import org.cloudburstmc.api.util.Direction;
 /**
  * Stores a direction as its 3-D index in a byte, as hanging entities are stored today.
  */
+@NoArgsConstructor
 public final class DirectionCodec implements NbtValueCodec<Direction> {
-
-    public DirectionCodec() {
-    }
 
     @Override
     public Object toNbt(Direction value) {

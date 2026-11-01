@@ -3,6 +3,7 @@ package org.cloudburstmc.api.entity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -20,6 +21,7 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class CreatureData extends LivingData {
 
     @JsonProperty("Offhand")
@@ -33,7 +35,4 @@ public class CreatureData extends LivingData {
     @NbtContainerSize(4)
     @NbtPositional
     private ItemContainer armor = ItemContainers.detached(4);
-
-    public CreatureData() {
-    }
 }

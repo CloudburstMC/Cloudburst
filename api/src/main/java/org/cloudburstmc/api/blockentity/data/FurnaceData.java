@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -17,6 +18,7 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class FurnaceData extends BlockEntityData {
 
     @JsonProperty("Items")
@@ -32,7 +34,4 @@ public class FurnaceData extends BlockEntityData {
 
     @JsonProperty("BurnDuration")
     private short burnDuration;
-
-    public FurnaceData() {
-    }
 }

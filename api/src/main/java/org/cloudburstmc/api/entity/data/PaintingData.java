@@ -3,6 +3,7 @@ package org.cloudburstmc.api.entity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.entity.misc.Painting;
 import org.cloudburstmc.api.nbt.NbtCodec;
@@ -14,12 +15,10 @@ import org.cloudburstmc.api.nbt.codec.MotiveCodec;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class PaintingData extends HangingData {
 
     @JsonProperty("Motive")
     @NbtCodec(MotiveCodec.class)
     private Painting.Motive motive = Painting.Motive.KEBAB;
-
-    public PaintingData() {
-    }
 }

@@ -3,6 +3,7 @@ package org.cloudburstmc.api.entity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.item.ItemStack;
 
@@ -14,6 +15,7 @@ import org.cloudburstmc.api.item.ItemStack;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ArrowData extends AbstractArrowData {
 
     @JsonProperty("Item")
@@ -21,7 +23,4 @@ public class ArrowData extends AbstractArrowData {
 
     @JsonProperty("PotionGroundTicks")
     private int potionGroundTicks;
-
-    public ArrowData() {
-    }
 }

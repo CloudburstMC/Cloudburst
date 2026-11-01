@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -16,13 +17,11 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class DispenserData extends ContainerData {
 
     @JsonProperty("Items")
     @NbtTag(value = NbtTagType.LIST, element = NbtTagType.COMPOUND)
     @NbtContainerSize(9)
     private ItemContainer items = ItemContainers.detached(9);
-
-    public DispenserData() {
-    }
 }

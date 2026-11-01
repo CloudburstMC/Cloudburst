@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.nbt.NbtTag;
 import org.cloudburstmc.api.nbt.NbtTagType;
@@ -25,6 +26,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class AreaEffectCloudData extends EntityData {
 
     @JsonProperty("mobEffects")
@@ -52,7 +54,4 @@ public class AreaEffectCloudData extends EntityData {
 
     @JsonIgnore
     private Float potionDurationScale;
-
-    public AreaEffectCloudData() {
-    }
 }

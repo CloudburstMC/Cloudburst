@@ -2,6 +2,7 @@ package org.cloudburstmc.api.entity.data;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -12,8 +13,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class EnderCrystalData extends EntityData {
-
-    public EnderCrystalData() {
-    }
 }

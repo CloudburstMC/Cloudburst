@@ -3,6 +3,7 @@ package org.cloudburstmc.api.blockentity.data;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cloudburstmc.api.inventory.ItemContainer;
 import org.cloudburstmc.api.inventory.ItemContainers;
@@ -16,6 +17,7 @@ import org.cloudburstmc.api.nbt.NbtTagType;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class HopperData extends ContainerData {
 
     @JsonProperty("Items")
@@ -25,7 +27,4 @@ public class HopperData extends ContainerData {
 
     @JsonProperty("TransferCooldown")
     private int transferCooldown = 8;
-
-    public HopperData() {
-    }
 }

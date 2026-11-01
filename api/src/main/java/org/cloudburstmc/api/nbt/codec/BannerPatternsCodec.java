@@ -1,5 +1,6 @@
 package org.cloudburstmc.api.nbt.codec;
 
+import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.nbt.NbtKindMismatchException;
 import org.cloudburstmc.api.nbt.NbtValueCodec;
 import org.cloudburstmc.api.util.data.BannerPattern;
@@ -18,10 +19,8 @@ import java.util.List;
  * with the previous load path's error, exactly like the previous load path, which
  * converted the stored name after reading it.
  */
+@NoArgsConstructor
 public final class BannerPatternsCodec implements NbtValueCodec<List<BannerPattern>> {
-
-    public BannerPatternsCodec() {
-    }
 
     @Override
     public Object toNbt(List<BannerPattern> value) {
