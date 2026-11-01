@@ -6,14 +6,18 @@ import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 /**
- * Synchronous light updates for {@link CloudLevel}; thin overloads over
- * {@link LightRegion}, removed in Task 5.
+ * Synchronous light updates for {@link CloudLevel}; thin synchronous overloads
+ * over {@link LightRegion}.
  */
 @UtilityClass
 public class LevelLightEngine {
 
     public static void initialize(CloudLevel level, CloudChunk chunk) {
-        region(level).initialize(chunk.getX(), chunk.getZ());
+        long centerKey = CloudChunk.key(chunk.getX(), chunk.getZ());
+        LightRegion region = new LightRegion(level.getServer().getBlockRegistry(), level.getMinHeight(),
+                level.getMaxHeight(), level.getDimension() == CloudLevel.DIMENSION_OVERWORLD,
+                key -> key == centerKey ? chunk : level.getLoadedChunk(key));
+        region.initialize(chunk.getX(), chunk.getZ());
     }
 
     public static void updateBoundary(CloudLevel level, int chunkX, int chunkZ) {
@@ -26,7 +30,6 @@ public class LevelLightEngine {
 
     private static LightRegion region(CloudLevel level) {
         return new LightRegion(level.getServer().getBlockRegistry(), level.getMinHeight(), level.getMaxHeight(),
-                level.getDimension() == CloudLevel.DIMENSION_OVERWORLD,
-                key -> level.getLoadedChunk(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)));
+                level.getDimension() == CloudLevel.DIMENSION_OVERWORLD, level::getLoadedChunk);
     }
 }

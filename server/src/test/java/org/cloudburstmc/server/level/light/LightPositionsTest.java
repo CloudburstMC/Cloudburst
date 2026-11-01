@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.light;
 
-import org.cloudburstmc.api.util.Direction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,15 +20,5 @@ class LightPositionsTest {
                 }
             }
         }
-
-        long down = LightPositions.offset(LightPositions.pack(0, -64, 0), Direction.DOWN);
-        assertEquals(0, LightPositions.x(down));
-        assertEquals(-65, LightPositions.y(down));
-        assertEquals(0, LightPositions.z(down));
-
-        long east = LightPositions.offset(LightPositions.pack(-1, 5, -1), Direction.EAST);
-        assertEquals(0, LightPositions.x(east));
-        assertEquals(5, LightPositions.y(east));
-        assertEquals(-1, LightPositions.z(east));
     }
 }

@@ -529,13 +529,6 @@ public final class CloudChunk implements Chunk, Closeable {
         return Vector3i.from(x, y, z);
     }
 
-    public static Vector3i fromKeyLight(long chunkKey, int blockKey, int minHeight) {
-        int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
-        int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
-        return Vector3i.from(x, y, z);
-    }
-
     public static int blockKeyWithLayer(int x, int y, int z, BlockLayer layer, int minHeight) {
         int encodedLayer = BlockLayerStorage.index(layer);
         return encodedLayer | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y - minHeight) & 0x1ff) << 9);

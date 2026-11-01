@@ -21,8 +21,7 @@ import java.util.function.LongFunction;
  * channels, and releases in reverse. Locks taken before a failure are released
  * before it propagates.
  *
- * <p>The later background scheduler reuses this core; {@link LevelLightEngine}
- * is only thin synchronous overloads over it.
+ * <p>{@link LevelLightEngine} is only thin synchronous overloads over it.
  */
 final class LightRegion {
 
@@ -105,16 +104,7 @@ final class LightRegion {
         }
         Set<CloudChunk> surrounding = new TreeSet<>();
         for (long packed : positions) {
-            int chunkX = LightPositions.x(packed) >> 4;
-            int chunkZ = LightPositions.z(packed) >> 4;
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    CloudChunk neighbour = this.loadedChunks.apply(CloudChunk.key(chunkX + dx, chunkZ + dz));
-                    if (neighbour != null) {
-                        surrounding.add(neighbour);
-                    }
-                }
-            }
+            surrounding.addAll(surrounding(LightPositions.x(packed) >> 4, LightPositions.z(packed) >> 4, true));
         }
         if (surrounding.isEmpty()) {
             return true;
@@ -186,15 +176,18 @@ final class LightRegion {
         List<CloudChunk> sorted = chunks.stream().sorted().toList();
         LockedChunk[] locked = new LockedChunk[sorted.size()];
         int taken = 0;
+        boolean success = false;
         try {
             for (CloudChunk chunk : sorted) {
                 locked[taken++] = chunk.lockForWrite();
             }
-        } catch (RuntimeException e) {
-            for (int i = taken - 1; i >= 0; i--) {
-                locked[i].close();
+            success = true;
+        } finally {
+            if (!success) {
+                for (int i = taken - 1; i >= 0; i--) {
+                    locked[i].close();
+                }
             }
-            throw e;
         }
         return locked;
     }
@@ -215,8 +208,9 @@ final class LightRegion {
 
     /**
      * Re-queues a border cell whose light may have arrived horizontally through
-     * the removed neighbour. Light 15 only ever arrives straight from above,
-     * so it never depends on a horizontal neighbour and needs no update.
+     * the removed neighbour. Light 15 is either an emitter's own light or
+     * direct sky from above, so it never depends on a horizontal neighbour
+     * and needs no update.
      */
     private static void invalidateIfHorizontallyLit(ChunkLightAccess access, LightPropagation propagation,
             int x, int y, int z) {

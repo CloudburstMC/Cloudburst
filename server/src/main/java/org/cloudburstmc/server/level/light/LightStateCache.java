@@ -12,24 +12,24 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
  *
  * <p>Not thread-safe; use one instance per pass.
  */
-public final class LightStateCache {
+final class LightStateCache {
 
     private final BlockRegistry registry;
     private final Reference2ObjectOpenHashMap<BlockState, Entry> entries = new Reference2ObjectOpenHashMap<>();
 
-    public LightStateCache(BlockRegistry registry) {
+    LightStateCache(BlockRegistry registry) {
         this.registry = registry;
     }
 
-    public int opacity(BlockState primary, BlockState secondary) {
+    int opacity(BlockState primary, BlockState secondary) {
         return Math.max(entry(primary).dampening(), entry(secondary).dampening());
     }
 
-    public int emission(BlockState primary, BlockState secondary) {
+    int emission(BlockState primary, BlockState secondary) {
         return Math.max(entry(primary).emission(), entry(secondary).emission());
     }
 
-    public boolean occludes(BlockState fromPrimary, BlockState fromSecondary, BlockState toPrimary, BlockState toSecondary, Direction direction) {
+    boolean occludes(BlockState fromPrimary, BlockState fromSecondary, BlockState toPrimary, BlockState toSecondary, Direction direction) {
         Direction opposite = direction.getOpposite();
         FaceKind fromPrimaryFace = face(fromPrimary, direction);
         if (fromPrimaryFace == FaceKind.FULL) {

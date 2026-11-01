@@ -1,7 +1,6 @@
 package org.cloudburstmc.server.level.light;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.util.Direction;
 
 /**
  * Packs block positions into longs: 26 bits of x, 26 bits of z and 12 bits of y.
@@ -26,9 +25,5 @@ public class LightPositions {
 
     public static int z(long packed) {
         return (int) (packed << 26 >> 38);
-    }
-
-    public static long offset(long packed, Direction direction) {
-        return pack(x(packed) + direction.getStepX(), y(packed) + direction.getStepY(), z(packed) + direction.getStepZ());
     }
 }

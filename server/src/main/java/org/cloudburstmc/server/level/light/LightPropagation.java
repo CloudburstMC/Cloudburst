@@ -15,11 +15,11 @@ import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 final class LightPropagation {
 
     private final LightChannel channel;
+    private final LongArrayFIFOQueue decreasePositions = new LongArrayFIFOQueue();
     /**
-     * Old levels parallel to {@link #decreasePositions}; a second long queue
+     * Old levels parallel to decreasePositions; a second long queue
      * because the dependency bundle has no int FIFO.
      */
-    private final LongArrayFIFOQueue decreasePositions = new LongArrayFIFOQueue();
     private final LongArrayFIFOQueue decreaseLevels = new LongArrayFIFOQueue();
     private final LongArrayFIFOQueue increasePositions = new LongArrayFIFOQueue();
 

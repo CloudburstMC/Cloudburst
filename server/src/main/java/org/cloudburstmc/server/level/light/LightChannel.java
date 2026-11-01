@@ -19,8 +19,9 @@ enum LightChannel {
      * Light reaching the neighbour of {@code (x, y, z)} in {@code direction}
      * when {@code (x, y, z)} carries {@code level}.
      *
-     * <p>The shared face blocks everything when either side's shape seals it.
-     * Block light is then 0 when the target dampens or emits 15 or more,
+     * <p>The shared face blocks everything when the face shapes of both layers
+     * of both blocks together cover it, so complementary partial faces seal
+     * it together. Block light is then 0 when the target dampens or emits 15 or more,
      * otherwise {@code level} minus at least 1. Sky light is 0 when the target
      * dampens 15 or more, 15 minus dampening moving down at full strength,
      * otherwise {@code level} minus at least 1.
