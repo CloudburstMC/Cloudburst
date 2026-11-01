@@ -87,8 +87,8 @@ import org.cloudburstmc.server.level.light.LightLevelView;
 import org.cloudburstmc.server.level.light.LightOcclusion;
 import org.cloudburstmc.server.level.light.LightScheduler;
 import org.cloudburstmc.server.level.light.SkyLightEngine;
-import org.cloudburstmc.server.level.manager.ChunkTaskScheduler;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
+import org.cloudburstmc.server.level.manager.LightSubmit;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
@@ -240,32 +240,8 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         this.chunkTickList.clear();
         this.chunkManager = new LevelChunkManager(this);
-        this.lightScheduler = new LightScheduler(new LightLevelView() {
-            @Override
-            public BlockRegistry registry() {
-                return CloudLevel.this.server.getBlockRegistry();
-            }
-
-            @Override
-            public int minHeight() {
-                return CloudLevel.this.getMinHeight();
-            }
-
-            @Override
-            public int maxHeight() {
-                return CloudLevel.this.getMaxHeight();
-            }
-
-            @Override
-            public boolean hasSkyLight() {
-                return CloudLevel.this.getDimension() == DIMENSION_OVERWORLD;
-            }
-
-            @Override
-            public @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ) {
-                return CloudLevel.this.chunkManager.getLoadedChunk(chunkX, chunkZ);
-            }
-        }, lightSubmit(this.chunkManager.getScheduler()));
+        this.lightScheduler = new LightScheduler(new LightView(this),
+                new LightSubmit(this.chunkManager.getScheduler()));
         this.collisionEngine = new CollisionEngine(this);
         this.endFight = this.getDimension() == DIMENSION_THE_END
                 ? new EndFightManager(this, this.levelData.getEndFightData())
@@ -1346,33 +1322,39 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     /**
-     * Hands light work to the generation queue for the light lane.
-     *
-     * <p>A rejection that arrives synchronously is rethrown so the lane can
-     * park itself. A rejection that arrives asynchronously, after the work was
-     * accepted, completes the future with no observer and leaves that level's
-     * lane parked; the queue only rejects queued work while the executors are
-     * shutting down, so this only happens during shutdown.
-     *
-     * @param scheduler the level's chunk task scheduler
-     * @return a submit function for {@link LightScheduler}
+     * The level state the background light lane reads. Only touches
+     * thread-safe state off the calling thread.
      */
-    static Consumer<Runnable> lightSubmit(ChunkTaskScheduler scheduler) {
-        return work -> rethrowIfRejected(scheduler.scheduleLight(work));
-    }
+    private static final class LightView implements LightLevelView {
+        private final CloudLevel level;
 
-    /**
-     * Rethrows a synchronously rejected light submission for the light lane,
-     * ignoring any other outcome.
-     *
-     * @param future the submission's future
-     */
-    static void rethrowIfRejected(CompletableFuture<Void> future) {
-        if (future.isCompletedExceptionally()) {
-            Throwable failure = future.exceptionNow();
-            if (failure instanceof RejectedExecutionException rejected) {
-                throw rejected;
-            }
+        private LightView(CloudLevel level) {
+            this.level = level;
+        }
+
+        @Override
+        public BlockRegistry registry() {
+            return this.level.server.getBlockRegistry();
+        }
+
+        @Override
+        public int minHeight() {
+            return this.level.getMinHeight();
+        }
+
+        @Override
+        public int maxHeight() {
+            return this.level.getMaxHeight();
+        }
+
+        @Override
+        public boolean hasSkyLight() {
+            return this.level.getDimension() == DIMENSION_OVERWORLD;
+        }
+
+        @Override
+        public @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ) {
+            return this.level.chunkManager.getLoadedChunk(chunkX, chunkZ);
         }
     }
 
