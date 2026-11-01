@@ -6,24 +6,29 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import lombok.extern.log4j.Log4j2;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
  * Queues light work per level and runs it off the caller's thread.
  *
+ * <p>{@code chunkLoaded}, {@code chunkUnloaded} and {@code blocksChanged} may
+ * be called from any thread. {@code isIdle} is true only when nothing is queued
+ * and no runner is accepted or running.
+ *
  * <p>Submissions only enqueue and hand one runner to {@code submit}; the
- * runner then processes the FIFO in order on the receiving thread. At most one
- * runner is in flight, so units never overlap. Consecutive block-change items
- * are merged. A unit that throws is logged and dropped while the lane
- * continues. When {@code submit} throws {@link RejectedExecutionException},
- * pending work is dropped and the lane goes idle, accepting later submissions.
+ * runner processes one work item per run, in FIFO order, then resubmits itself
+ * while the FIFO is non-empty. At most one runner is in flight, so units never
+ * overlap. Consecutive block-change items are merged. A unit that throws is
+ * logged and dropped while the lane continues. When {@code submit} throws
+ * {@link RejectedExecutionException}, pending work is dropped and the lane goes
+ * idle, accepting later submissions.
  *
  * <p>Chunk loads initialize, unloads refresh the ring, and block changes are
  * grouped by chunk with one update per group, each locking only that chunk's
@@ -59,11 +64,21 @@ public final class LightScheduler {
      * @param submit runs a lane runnable on the background thread
      */
     public LightScheduler(LightLevelView level, Consumer<Runnable> submit) {
+        this(level, submit, SLICE_STEPS);
+    }
+
+    /**
+     * @param level      the level state the lane reads
+     * @param submit     runs a lane runnable on the background thread
+     * @param sliceSteps the combined propagation step budget per lock hold
+     */
+    LightScheduler(LightLevelView level, Consumer<Runnable> submit, int sliceSteps) {
         Preconditions.checkNotNull(level, "level");
         Preconditions.checkNotNull(submit, "submit");
+        Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
         this.region = new LightRegion(level.registry(), level.minHeight(), level.maxHeight(), level.hasSkyLight(),
                 key -> level.loadedChunk(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                SLICE_STEPS, this::recordHold);
+                sliceSteps, this::recordHold);
         this.submit = submit;
     }
 
@@ -167,7 +182,7 @@ public final class LightScheduler {
      *
      * @param hook the hook, or null to clear it
      */
-    void afterSliceForTest(Runnable hook) {
+    void afterSliceForTest(@Nullable Runnable hook) {
         this.region.afterSliceForTest(hook);
     }
 
@@ -185,31 +200,53 @@ public final class LightScheduler {
                 this.queue.clear();
                 this.runnerInFlight = false;
             }
+        } catch (Throwable e) {
+            synchronized (this.laneLock) {
+                this.runnerInFlight = false;
+            }
+            throw e;
         }
     }
 
     private void runLane() {
-        while (true) {
-            WorkItem item;
+        WorkItem item;
+        synchronized (this.laneLock) {
+            item = this.queue.pollFirst();
+            if (item != null && item.kind == WorkItem.Kind.BLOCKS) {
+                WorkItem next;
+                while ((next = this.queue.peekFirst()) != null && next.kind == WorkItem.Kind.BLOCKS) {
+                    this.queue.pollFirst();
+                    item.positions.addAll(next.positions);
+                }
+            }
+            if (item == null) {
+                this.runnerInFlight = false;
+                return;
+            }
+        }
+        try {
+            process(item);
+        } catch (Throwable e) {
+            log.error("Dropping light work after failure", e);
+        }
+        synchronized (this.laneLock) {
+            if (this.queue.isEmpty()) {
+                this.runnerInFlight = false;
+                return;
+            }
+        }
+        try {
+            this.submit.accept(this::runLane);
+        } catch (RejectedExecutionException e) {
             synchronized (this.laneLock) {
-                item = this.queue.pollFirst();
-                if (item != null && item.kind == WorkItem.Kind.BLOCKS) {
-                    WorkItem next;
-                    while ((next = this.queue.peekFirst()) != null && next.kind == WorkItem.Kind.BLOCKS) {
-                        this.queue.pollFirst();
-                        item.positions.addAll(next.positions);
-                    }
-                }
-                if (item == null) {
-                    this.runnerInFlight = false;
-                    return;
-                }
+                this.queue.clear();
+                this.runnerInFlight = false;
             }
-            try {
-                process(item);
-            } catch (Exception e) {
-                log.error("Dropping light work after failure", e);
+        } catch (Throwable e) {
+            synchronized (this.laneLock) {
+                this.runnerInFlight = false;
             }
+            throw e;
         }
     }
 
@@ -240,10 +277,10 @@ public final class LightScheduler {
         }
     }
 
-    private void runUnit(String name, BooleanSupplier unit) {
+    private void runUnit(String name, Runnable unit) {
         try {
-            unit.getAsBoolean();
-        } catch (Exception e) {
+            unit.run();
+        } catch (Throwable e) {
             log.error("Dropping light unit {} after failure", name, e);
         }
     }

@@ -19,8 +19,12 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,8 +47,7 @@ class LightSchedulerTest {
         for (long key : sortedKeys(expected)) {
             OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
                     expected.get(key));
-            assertTrue(region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                    "light did not drain with sliced propagation");
+            region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
         LightTestChunks.assertSameLight(expected, actual);
         assertTrue(holds.size() > 9, "expected several slices per chunk");
@@ -52,7 +55,7 @@ class LightSchedulerTest {
         Vector3i glowstone = openGroundCenter(actual, 1, 1);
         setBoth(expected, actual, List.of(glowstone), BlockTypes.GLOWSTONE.getDefaultState());
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, List.of(glowstone));
-        assertTrue(region.update(packed(List.of(glowstone))), "light did not drain with sliced propagation");
+        region.update(packed(List.of(glowstone)));
         LightTestChunks.assertSameLight(expected, actual);
     }
 
@@ -146,9 +149,9 @@ class LightSchedulerTest {
     void unloadBetweenSlicesSkipsTheAbsentChunk() {
         Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
         Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
-        expected.remove(CloudChunk.key(2, 2));
+        expected.remove(CloudChunk.key(1, 1));
         List<Runnable> pending = new ArrayList<>();
-        LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
+        LightScheduler scheduler = new LightScheduler(view(actual), pending::add, 64);
 
         for (long key : sortedKeys(actual)) {
             scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
@@ -158,7 +161,7 @@ class LightSchedulerTest {
                     expected.get(key));
         }
 
-        scheduler.afterSliceForTest(() -> actual.remove(CloudChunk.key(2, 2)));
+        scheduler.afterSliceForTest(() -> actual.remove(CloudChunk.key(1, 1)));
 
         drain(scheduler, pending);
         LightTestChunks.assertSameLight(expected, actual);
@@ -188,7 +191,6 @@ class LightSchedulerTest {
 
     @Test
     void onlyOneRunnerIsInFlight() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
         Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
@@ -198,15 +200,95 @@ class LightSchedulerTest {
         scheduler.chunkLoaded(0, 2);
         assertEquals(1, pending.size());
 
-        for (long key : sortedKeys(expected)) {
-            if (CloudChunk.fromKeyX(key) != 0 || CloudChunk.fromKeyZ(key) > 2) {
-                continue;
-            }
-            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
-                    expected.get(key));
-        }
         drain(scheduler, pending);
         assertTrue(scheduler.isIdle());
+    }
+
+    @Test
+    void rejectedResubmitLeavesLaneIdleAndUsable() {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
+        List<Runnable> pending = new ArrayList<>();
+        AtomicInteger submits = new AtomicInteger();
+        LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
+            if (submits.getAndIncrement() == 1) {
+                throw new RejectedExecutionException("test");
+            }
+            pending.add(runnable);
+        });
+
+        scheduler.chunkLoaded(0, 0);
+        scheduler.chunkLoaded(0, 0);
+        assertEquals(1, pending.size());
+
+        List<Runnable> running = new ArrayList<>(pending);
+        pending.clear();
+        for (Runnable runnable : running) {
+            runnable.run();
+        }
+        assertTrue(scheduler.isIdle());
+        assertTrue(pending.isEmpty());
+
+        scheduler.chunkLoaded(0, 0);
+        assertEquals(1, pending.size());
+        drain(scheduler, pending);
+        assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
+    }
+
+    @Test
+    void concurrentSubmissionsDrainToTheOracleResult() throws Exception {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(5L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(5L, 0, 0, 3);
+        List<Vector3i> edits = edits(expected, 10);
+        setBoth(expected, actual, edits);
+        LongCollection packedEdits = packed(edits);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            LightScheduler scheduler = new LightScheduler(view(actual), executor::execute);
+
+            Thread submitter = new Thread(() -> scheduler.blocksChanged(packedEdits));
+            submitter.start();
+            for (long key : sortedKeys(expected)) {
+                scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            }
+            submitter.join(10_000);
+            assertTrue(!submitter.isAlive(), "submitter did not finish");
+
+            for (long key : sortedKeys(expected)) {
+                OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
+                        expected.get(key));
+            }
+            OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, edits);
+
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+            while (!scheduler.isIdle() && System.nanoTime() < deadline) {
+                Thread.sleep(10);
+            }
+            assertTrue(scheduler.isIdle(), "scheduler did not drain");
+            LightTestChunks.assertSameLight(expected, actual);
+        } finally {
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS), "executor did not stop");
+        }
+    }
+
+    @Test
+    void errorInUnitKeepsLaneUsable() {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
+
+        scheduler.chunkLoaded(0, 0);
+        scheduler.chunkLoaded(0, 0);
+        AtomicBoolean thrown = new AtomicBoolean();
+        scheduler.afterSliceForTest(() -> {
+            if (thrown.compareAndSet(false, true)) {
+                throw new AssertionError("test");
+            }
+        });
+
+        drain(scheduler, pending);
+        assertTrue(scheduler.isIdle());
+        assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
     }
 
     private static void drain(LightScheduler scheduler, List<Runnable> pending) {

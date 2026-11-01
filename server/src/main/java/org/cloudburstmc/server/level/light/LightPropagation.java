@@ -74,8 +74,22 @@ final class LightPropagation {
     }
 
     boolean run(LightAccess access, int maxSteps) {
+        int[] remaining = {maxSteps};
+        boolean drained = run(access, remaining);
+        return drained;
+    }
+
+    /**
+     * Runs at most {@code remaining[0]} entries in total, decrements the budget,
+     * and returns true once both queues are empty.
+     *
+     * @param access    the light access
+     * @param remaining the shared step budget, decremented by the steps taken
+     * @return true once both queues are empty
+     */
+    boolean run(LightAccess access, int[] remaining) {
         int steps = 0;
-        while (steps < maxSteps && (!this.decreasePositions.isEmpty() || !this.increasePositions.isEmpty())) {
+        while (steps < remaining[0] && (!this.decreasePositions.isEmpty() || !this.increasePositions.isEmpty())) {
             if (!this.decreasePositions.isEmpty()) {
                 long position = this.decreasePositions.dequeueLong();
                 int oldLevel = (int) this.decreaseLevels.dequeueLong();
@@ -85,6 +99,7 @@ final class LightPropagation {
             }
             steps++;
         }
+        remaining[0] -= steps;
         return this.decreasePositions.isEmpty() && this.increasePositions.isEmpty();
     }
 

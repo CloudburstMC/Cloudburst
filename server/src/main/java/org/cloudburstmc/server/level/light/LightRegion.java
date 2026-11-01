@@ -25,9 +25,10 @@ import java.util.function.Supplier;
  * channels, and releases in reverse. Locks taken before a failure are released
  * before it propagates.
  *
- * <p>Each operation runs propagation in slices: it locks the 3x3, seeds and
- * runs up to {@code sliceSteps} propagation steps, releases, records the hold,
- * and re-locks with a freshly read 3x3 until drained. Chunks that unloaded in
+ * <p>Each operation runs propagation in slices: it locks the 3x3, runs up to
+ * {@code sliceSteps} propagation steps combined across both channels, releases,
+ * records the hold, and re-locks with a freshly read 3x3 until drained. The
+ * seeding of an operation happens in its first hold. Chunks that unloaded in
  * between read as absent. One {@link LightStateCache} is shared by the whole
  * operation.
  *
@@ -54,7 +55,8 @@ final class LightRegion {
 
     /**
      * @param loadedChunks returns the chunk for a chunk key, or null when absent
-     * @param sliceSteps   the propagation steps per lock hold; must be positive
+     * @param sliceSteps   the combined propagation step budget per lock hold;
+     *                     must be positive
      * @param holdNanos    receives each lock hold duration in nanoseconds, or null
      */
     LightRegion(BlockRegistry registry, int minHeight, int maxHeight, boolean skyLight,
@@ -82,14 +84,12 @@ final class LightRegion {
      * Lights a chunk from scratch with its loaded neighbours.
      *
      * <p>Skipped when the chunk itself is no longer loaded.
-     *
-     * @return true when propagation drained
      */
-    boolean initialize(int chunkX, int chunkZ) {
+    void initialize(int chunkX, int chunkZ) {
         if (this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ)) == null) {
-            return true;
+            return;
         }
-        return runSlices(() -> surrounding(chunkX, chunkZ, true), (pass, block, sky) -> {
+        runSlices(() -> surrounding(chunkX, chunkZ, true), (pass, block, sky) -> {
             BlockLightEngine.initialize(pass.blockAccess, chunkX, chunkZ, block);
             if (this.skyLight) {
                 SkyLightEngine.initialize(pass.skyAccess, chunkX, chunkZ, sky);
@@ -99,14 +99,12 @@ final class LightRegion {
 
     /**
      * Refreshes the ring around an unloaded chunk.
-     *
-     * @return true when propagation drained
      */
-    boolean unloaded(int chunkX, int chunkZ) {
+    void unloaded(int chunkX, int chunkZ) {
         if (surrounding(chunkX, chunkZ, false).isEmpty()) {
-            return true;
+            return;
         }
-        return runSlices(() -> surrounding(chunkX, chunkZ, false), (pass, block, sky) -> {
+        runSlices(() -> surrounding(chunkX, chunkZ, false), (pass, block, sky) -> {
             forNeighbourBorder(chunkX, chunkZ, this.minHeight, this.maxHeight, (x, y, z, intoChunk) -> {
                 invalidateIfHorizontallyLit(pass.blockAccess, block, x, y, z);
                 if (this.skyLight) {
@@ -118,14 +116,12 @@ final class LightRegion {
 
     /**
      * Repropagates both channels from the changed packed positions.
-     *
-     * @return true when propagation drained
      */
-    boolean update(LongCollection positions) {
+    void update(LongCollection positions) {
         if (positions.isEmpty() || neighbourhood(positions).isEmpty()) {
-            return true;
+            return;
         }
-        return runSlices(() -> neighbourhood(positions), (pass, block, sky) -> {
+        runSlices(() -> neighbourhood(positions), (pass, block, sky) -> {
             for (long packed : positions) {
                 block.invalidate(pass.blockAccess, packed);
                 if (this.skyLight) {
@@ -138,10 +134,8 @@ final class LightRegion {
     /**
      * Seeds once, then locks, propagates and releases until both channels drain.
      * The scope is re-read before every slice, so unloaded chunks drop out.
-     *
-     * @return true when propagation drained
      */
-    private boolean runSlices(Supplier<? extends Collection<CloudChunk>> scope, Seeder seeder) {
+    private void runSlices(Supplier<? extends Collection<CloudChunk>> scope, Seeder seeder) {
         LightStateCache states = new LightStateCache(this.registry);
         LightPropagation block = new LightPropagation(LightChannel.BLOCK);
         LightPropagation sky = new LightPropagation(LightChannel.SKY);
@@ -157,15 +151,16 @@ final class LightRegion {
                     seeder.seed(pass, block, sky);
                     seeded = true;
                 }
-                blockDrained = block.run(pass.blockAccess, this.sliceSteps);
-                skyDrained = !this.skyLight || sky.run(pass.skyAccess, this.sliceSteps);
+                int[] budget = {this.sliceSteps};
+                blockDrained = block.run(pass.blockAccess, budget);
+                skyDrained = !this.skyLight || sky.run(pass.skyAccess, budget);
             } finally {
                 releaseReversed(locked);
                 notifyHold(System.nanoTime() - start);
             }
             notifyAfterSlice();
             if (blockDrained && skyDrained) {
-                return true;
+                return;
             }
         }
     }

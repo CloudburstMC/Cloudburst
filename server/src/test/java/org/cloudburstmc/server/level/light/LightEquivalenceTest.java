@@ -168,7 +168,7 @@ class LightEquivalenceTest {
         actual.remove(removed);
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(0, 0));
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
-        assertTrue(region.unloaded(0, 0), "light propagation did not drain after unload");
+        region.unloaded(0, 0);
         LightTestChunks.assertSameLight(expected, actual);
     }
 
@@ -191,9 +191,7 @@ class LightEquivalenceTest {
         }
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
         for (long key : sortedKeys(actual)) {
-            assertTrue(region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                    () -> "light did not drain initializing chunk "
-                            + CloudChunk.fromKeyX(key) + "," + CloudChunk.fromKeyZ(key));
+            region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
     }
 
@@ -201,7 +199,7 @@ class LightEquivalenceTest {
             Collection<Vector3i> changed) {
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, changed);
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get);
-        assertTrue(region.update(packed(changed)), "light propagation did not drain");
+        region.update(packed(changed));
     }
 
     private static LongCollection packed(Collection<Vector3i> positions) {
