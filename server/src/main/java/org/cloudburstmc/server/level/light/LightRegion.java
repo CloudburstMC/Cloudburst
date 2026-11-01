@@ -54,6 +54,7 @@ final class LightRegion {
     private final LongFunction<CloudChunk> loadedChunks;
     private final int sliceSteps;
     private final @Nullable LongConsumer holdNanos;
+    private volatile @Nullable Runnable afterSeedBand;
     private volatile @Nullable Runnable afterSlice;
 
     /**
@@ -83,7 +84,17 @@ final class LightRegion {
     }
 
     /**
-     * Runs a hook once after the next slice, without holding chunk locks.
+     * Runs a hook once after the next seed band, without holding chunk locks.
+     *
+     * @param afterSeedBand the hook, or null to clear it
+     */
+    void afterSeedBandForTest(@Nullable Runnable afterSeedBand) {
+        this.afterSeedBand = afterSeedBand;
+    }
+
+    /**
+     * Runs a hook once after the next propagation slice, without holding chunk
+     * locks.
      *
      * @param afterSlice the hook, or null to clear it
      */
@@ -193,7 +204,7 @@ final class LightRegion {
                 releaseReversed(locked);
                 notifyHold(System.nanoTime() - start);
             }
-            notifyAfterSlice();
+            notifyAfterSeedBand();
         }
         while (true) {
             LockedChunk[] locked = lockSorted(scope.get());
@@ -219,6 +230,14 @@ final class LightRegion {
     private void notifyHold(long holdNanos) {
         if (this.holdNanos != null) {
             this.holdNanos.accept(holdNanos);
+        }
+    }
+
+    private void notifyAfterSeedBand() {
+        Runnable hook = this.afterSeedBand;
+        if (hook != null) {
+            this.afterSeedBand = null;
+            hook.run();
         }
     }
 

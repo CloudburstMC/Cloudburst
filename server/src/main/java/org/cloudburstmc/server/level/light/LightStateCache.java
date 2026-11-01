@@ -75,10 +75,6 @@ final class LightStateCache {
                 toPrimary.state(), toSecondary.state(), direction);
     }
 
-    private FaceKind face(BlockState state, Direction direction) {
-        return entry(state).faces()[direction.ordinal()];
-    }
-
     private Entry entry(BlockState state) {
         Entry entry = this.entries.get(state);
         if (entry == null) {

@@ -186,6 +186,15 @@ public final class LightScheduler {
     }
 
     /**
+     * Runs a hook once after the next seed band, without holding chunk locks.
+     *
+     * @param hook the hook, or null to clear it
+     */
+    void afterSeedBandForTest(@Nullable Runnable hook) {
+        this.region.afterSeedBandForTest(hook);
+    }
+
+    /**
      * Runs a hook once after the next propagation slice, without holding chunk
      * locks.
      *

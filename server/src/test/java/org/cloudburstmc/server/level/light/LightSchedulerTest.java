@@ -147,6 +147,42 @@ class LightSchedulerTest {
     }
 
     @Test
+    void editBetweenSeedBandsStillDrainsToTheOracleResult() {
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(actual), pending::add);
+
+        for (long key : sortedKeys(expected)) {
+            scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
+                    expected.get(key));
+        }
+
+        Vector3i glowstone = openGroundCenter(actual, 1, 1);
+        long glowKey = CloudChunk.key(glowstone.getX() >> 4, glowstone.getZ() >> 4);
+        BlockState original = actual.get(glowKey).getBlockState(glowstone.getX() & 15,
+                glowstone.getY(), glowstone.getZ() & 15, BlockLayer.PRIMARY);
+        setBoth(expected, actual, List.of(glowstone), BlockTypes.GLOWSTONE.getDefaultState());
+        OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, List.of(glowstone));
+
+        // Revert the actual edit: the hook below applies it after the first seed band.
+        actual.get(glowKey).setBlockState(glowstone.getX() & 15, glowstone.getY(),
+                glowstone.getZ() & 15, BlockLayer.PRIMARY, original);
+
+        AtomicBoolean once = new AtomicBoolean();
+        scheduler.afterSeedBandForTest(() -> {
+            if (once.compareAndSet(false, true)) {
+                setBoth(null, actual, List.of(glowstone), BlockTypes.GLOWSTONE.getDefaultState());
+                scheduler.blocksChanged(packed(List.of(glowstone)));
+            }
+        });
+
+        drain(scheduler, pending);
+        LightTestChunks.assertSameLight(expected, actual);
+    }
+
+    @Test
     void unloadBetweenSlicesSkipsTheAbsentChunk() {
         Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
         Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);

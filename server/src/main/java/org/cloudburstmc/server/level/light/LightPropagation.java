@@ -182,12 +182,13 @@ final class LightPropagation {
             }
             // Arrivals never exceed the source level, so a neighbour already
             // at or above it cannot rise from here.
-            if (access.light(nx, ny, nz) >= level) {
+            int current = access.light(nx, ny, nz);
+            if (current >= level) {
                 continue;
             }
             int arrival = this.channel.arrive(states, fromPrimary, fromSecondary,
                     access.primary(nx, ny, nz), access.secondary(nx, ny, nz), direction, level);
-            if (arrival > access.light(nx, ny, nz)) {
+            if (arrival > current) {
                 access.setLight(nx, ny, nz, arrival);
                 this.increasePositions.enqueue(LightPositions.pack(nx, ny, nz));
             }

@@ -19,15 +19,15 @@ import java.util.function.LongFunction;
  *
  * <p>{@code chunks} returns the already-locked chunk for a chunk key, or null
  * when the chunk is absent; only the last chunk is remembered, since
- * propagation mostly walks within one chunk at a time. Sections are read
- * through the locked chunk on every access, so the block and sky views over
- * the same chunks stay consistent: new sections are zero-filled and each
- * channel writes only its own nibble.
+ * propagation mostly walks within one chunk at a time.
  *
- * <p>Section arrays are snapshotted per locked chunk so the hot path avoids
- * level lookups and bounds checks on every cell: block states come straight
- * from palette storage and light values straight from the nibble arrays.
- * Sections created mid-pass are written back into the snapshot.
+ * <p>Each locked chunk's section array is snapshotted on first use, so block
+ * states come straight from palette storage and light values straight from
+ * the nibble arrays, without level lookups or per-cell bounds checks. A null
+ * snapshot entry reads as air and 0, matching a zero-filled fresh section;
+ * sections created mid-pass are written back into the snapshot, so the block
+ * and sky views over the same chunks stay consistent while each channel
+ * writes only its own nibble.
  */
 final class ChunkLightAccess implements LightAccess {
 

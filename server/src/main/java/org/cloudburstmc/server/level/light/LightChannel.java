@@ -109,11 +109,6 @@ enum LightChannel {
                 maxArrival(access, states, primary, secondary, x, y, z)), 0, 15);
     }
 
-    private int maxArrival(LightAccess access, int x, int y, int z) {
-        LightStateCache states = access.states();
-        return maxArrival(access, states, access.primary(x, y, z), access.secondary(x, y, z), x, y, z);
-    }
-
     private int maxArrival(LightAccess access, LightStateCache states,
             BlockState primary, BlockState secondary, int x, int y, int z) {
         int best = 0;
