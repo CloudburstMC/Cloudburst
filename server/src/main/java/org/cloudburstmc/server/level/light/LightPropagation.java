@@ -74,9 +74,7 @@ final class LightPropagation {
     }
 
     boolean run(LightAccess access, int maxSteps) {
-        int[] remaining = {maxSteps};
-        boolean drained = run(access, remaining);
-        return drained;
+        return run(access, new int[]{maxSteps});
     }
 
     /**

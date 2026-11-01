@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -149,11 +151,13 @@ class LightSchedulerTest {
     void unloadBetweenSlicesSkipsTheAbsentChunk() {
         Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(9L, 0, 0, 3);
         Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(9L, 0, 0, 3);
-        expected.remove(CloudChunk.key(1, 1));
+        long removed = CloudChunk.key(1, 1);
+        expected.remove(removed);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(actual), pending::add, 64);
 
-        for (long key : sortedKeys(actual)) {
+        long[] keys = sortedKeys(actual);
+        for (long key : keys) {
             scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
         for (long key : sortedKeys(expected)) {
@@ -161,9 +165,23 @@ class LightSchedulerTest {
                     expected.get(key));
         }
 
-        scheduler.afterSliceForTest(() -> actual.remove(CloudChunk.key(1, 1)));
+        AtomicInteger slices = new AtomicInteger();
+        AtomicBoolean unloaded = new AtomicBoolean();
+        Runnable[] hook = new Runnable[1];
+        hook[0] = () -> {
+            slices.incrementAndGet();
+            if (unloaded.compareAndSet(false, true)) {
+                actual.remove(removed);
+            }
+            scheduler.afterSliceForTest(hook[0]);
+        };
+        scheduler.afterSliceForTest(hook[0]);
 
         drain(scheduler, pending);
+        assertTrue(unloaded.get(), "hook did not run");
+        assertTrue(slices.get() > keys.length,
+                () -> "expected the first unit to span several slices, got " + slices.get()
+                        + " slices for " + keys.length + " units");
         LightTestChunks.assertSameLight(expected, actual);
     }
 
@@ -242,6 +260,7 @@ class LightSchedulerTest {
         setBoth(expected, actual, edits);
         LongCollection packedEdits = packed(edits);
         ExecutorService executor = Executors.newSingleThreadExecutor();
+        boolean terminated = false;
         try {
             LightScheduler scheduler = new LightScheduler(view(actual), executor::execute);
 
@@ -251,7 +270,7 @@ class LightSchedulerTest {
                 scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
             }
             submitter.join(10_000);
-            assertTrue(!submitter.isAlive(), "submitter did not finish");
+            assertFalse(submitter.isAlive(), "submitter did not finish");
 
             for (long key : sortedKeys(expected)) {
                 OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get,
@@ -267,8 +286,9 @@ class LightSchedulerTest {
             LightTestChunks.assertSameLight(expected, actual);
         } finally {
             executor.shutdownNow();
-            assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS), "executor did not stop");
+            terminated = executor.awaitTermination(10, TimeUnit.SECONDS);
         }
+        assertTrue(terminated, "executor did not stop");
     }
 
     @Test
@@ -291,8 +311,102 @@ class LightSchedulerTest {
         assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
     }
 
-    private static void drain(LightScheduler scheduler, List<Runnable> pending) {
-        for (int i = 0; i < 1000; i++) {
+    @Test
+    void laneFailureKeepsLaneUsable() throws Exception {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
+        List<Runnable> pending = new ArrayList<>();
+        LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
+
+        scheduler.chunkLoaded(0, 0);
+        corruptLaneHeadWithNullKind(scheduler);
+
+        drain(scheduler, pending);
+        assertTrue(scheduler.isIdle());
+        assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
+    }
+
+    @Test
+    void nonRejectedSubmitFailureKeepsWorkAndRestarts() {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
+        List<Runnable> pending = new ArrayList<>();
+        AtomicBoolean thrown = new AtomicBoolean();
+        LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
+            if (thrown.compareAndSet(false, true)) {
+                throw new IllegalStateException("test");
+            }
+            pending.add(runnable);
+        });
+
+        try {
+            scheduler.chunkLoaded(0, 0);
+            fail("expected the submit failure to propagate");
+        } catch (IllegalStateException expected) {
+            // The flag is cleared with queued work kept.
+        }
+        assertFalse(scheduler.isIdle(), "queued work must be kept");
+        assertTrue(pending.isEmpty());
+
+        scheduler.chunkLoaded(0, 0);
+        assertEquals(1, pending.size());
+        drain(scheduler, pending);
+        assertTrue(scheduler.isIdle());
+        assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
+    }
+
+    @Test
+    void nonRejectedResubmitFailureKeepsWorkAndRestarts() {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
+        List<Runnable> pending = new ArrayList<>();
+        AtomicInteger submits = new AtomicInteger();
+        LightScheduler scheduler = new LightScheduler(view(chunks), runnable -> {
+            if (submits.getAndIncrement() == 1) {
+                throw new IllegalStateException("test");
+            }
+            pending.add(runnable);
+        });
+
+        scheduler.chunkLoaded(0, 0);
+        scheduler.chunkLoaded(0, 0);
+        assertEquals(1, pending.size());
+
+        List<Runnable> running = new ArrayList<>(pending);
+        pending.clear();
+        try {
+            for (Runnable runnable : running) {
+                runnable.run();
+            }
+            fail("expected the resubmit failure to propagate");
+        } catch (IllegalStateException expected) {
+            // The flag is cleared with queued work kept.
+        }
+        assertFalse(scheduler.isIdle(), "queued work must be kept");
+        assertTrue(pending.isEmpty());
+
+        scheduler.chunkLoaded(0, 0);
+        assertEquals(1, pending.size());
+        drain(scheduler, pending);
+        assertTrue(scheduler.isIdle());
+        assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
+    }
+
+    /**
+     * Inserts a work item with a null kind at the lane head, so the lane-level
+     * catch (outside the per-unit catch) drops it.
+     */
+    private static void corruptLaneHeadWithNullKind(LightScheduler scheduler) throws Exception {
+        java.lang.reflect.Field queueField = LightScheduler.class.getDeclaredField("queue");
+        queueField.setAccessible(true);
+        @SuppressWarnings("rawtypes")
+        Deque queue = (Deque) queueField.get(scheduler);
+        Class<?> itemClass = Class.forName("org.cloudburstmc.server.level.light.LightScheduler$WorkItem");
+        Class<?> kindClass = Class.forName("org.cloudburstmc.server.level.light.LightScheduler$WorkItem$Kind");
+        java.lang.reflect.Constructor<?> constructor =
+                itemClass.getDeclaredConstructor(kindClass, int.class, int.class, LongArrayList.class);
+        constructor.setAccessible(true);
+        queue.addFirst(constructor.newInstance(null, 0, 0, new LongArrayList()));
+    }
+
+    private static void drain(LightScheduler scheduler, List<Runnable> pending) {        for (int i = 0; i < 1000; i++) {
             if (scheduler.isIdle() && pending.isEmpty()) {
                 return;
             }

@@ -28,7 +28,9 @@ import java.util.function.Consumer;
  * overlap. Consecutive block-change items are merged. A unit that throws is
  * logged and dropped while the lane continues. When {@code submit} throws
  * {@link RejectedExecutionException}, pending work is dropped and the lane goes
- * idle, accepting later submissions.
+ * idle, accepting later submissions. When {@code submit} throws anything else,
+ * the in-flight flag is cleared with queued work kept, the throwable
+ * propagates, and the next submission restarts the lane.
  *
  * <p>Chunk loads initialize, unloads refresh the ring, and block changes are
  * grouped by chunk with one update per group, each locking only that chunk's
@@ -61,7 +63,10 @@ public final class LightScheduler {
 
     /**
      * @param level  the level state the lane reads
-     * @param submit runs a lane runnable on the background thread
+     * @param submit hands each lane runnable to another thread; it must not run
+     *               the runnable synchronously on the calling thread, since each
+     *               run resubmits from within the run and synchronous execution
+     *               would nest a frame per queued item
      */
     public LightScheduler(LightLevelView level, Consumer<Runnable> submit) {
         this(level, submit, SLICE_STEPS);
@@ -69,7 +74,10 @@ public final class LightScheduler {
 
     /**
      * @param level      the level state the lane reads
-     * @param submit     runs a lane runnable on the background thread
+     * @param submit     hands each lane runnable to another thread; it must not
+     *                   run the runnable synchronously on the calling thread,
+     *                   since each run resubmits from within the run and
+     *                   synchronous execution would nest a frame per queued item
      * @param sliceSteps the combined propagation step budget per lock hold
      */
     LightScheduler(LightLevelView level, Consumer<Runnable> submit, int sliceSteps) {
@@ -212,41 +220,47 @@ public final class LightScheduler {
         WorkItem item;
         synchronized (this.laneLock) {
             item = this.queue.pollFirst();
-            if (item != null && item.kind == WorkItem.Kind.BLOCKS) {
-                WorkItem next;
-                while ((next = this.queue.peekFirst()) != null && next.kind == WorkItem.Kind.BLOCKS) {
-                    this.queue.pollFirst();
-                    item.positions.addAll(next.positions);
-                }
-            }
             if (item == null) {
                 this.runnerInFlight = false;
                 return;
             }
         }
         try {
+            if (item.kind == WorkItem.Kind.BLOCKS) {
+                synchronized (this.laneLock) {
+                    WorkItem next;
+                    while ((next = this.queue.peekFirst()) != null && next.kind == WorkItem.Kind.BLOCKS) {
+                        this.queue.pollFirst();
+                        item.positions.addAll(next.positions);
+                    }
+                }
+            }
             process(item);
         } catch (Throwable e) {
             log.error("Dropping light work after failure", e);
-        }
-        synchronized (this.laneLock) {
-            if (this.queue.isEmpty()) {
-                this.runnerInFlight = false;
-                return;
-            }
-        }
-        try {
-            this.submit.accept(this::runLane);
-        } catch (RejectedExecutionException e) {
+        } finally {
+            boolean idle;
             synchronized (this.laneLock) {
-                this.queue.clear();
-                this.runnerInFlight = false;
+                idle = this.queue.isEmpty();
+                if (idle) {
+                    this.runnerInFlight = false;
+                }
             }
-        } catch (Throwable e) {
-            synchronized (this.laneLock) {
-                this.runnerInFlight = false;
+            if (!idle) {
+                try {
+                    this.submit.accept(this::runLane);
+                } catch (RejectedExecutionException e) {
+                    synchronized (this.laneLock) {
+                        this.queue.clear();
+                        this.runnerInFlight = false;
+                    }
+                } catch (Throwable e) {
+                    synchronized (this.laneLock) {
+                        this.runnerInFlight = false;
+                    }
+                    throw e;
+                }
             }
-            throw e;
         }
     }
 
