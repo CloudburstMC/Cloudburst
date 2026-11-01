@@ -55,6 +55,7 @@ public final class LightScheduler {
     private final Object laneLock = new Object();
     private final Deque<WorkItem> queue = new ArrayDeque<>();
     private boolean runnerInFlight;
+    private volatile Runnable beforeItemHook;
 
     private final Object holdLock = new Object();
     private final long[] holds = new long[HOLD_CAPACITY];
@@ -194,6 +195,16 @@ public final class LightScheduler {
         this.region.afterSliceForTest(hook);
     }
 
+    /**
+     * Runs a hook once before the next lane item, without holding the lane
+     * lock.
+     *
+     * @param hook the hook, or null to clear it
+     */
+    void beforeItemForTest(@Nullable Runnable hook) {
+        this.beforeItemHook = hook;
+    }
+
     private void submitRunner() {
         synchronized (this.laneLock) {
             if (this.runnerInFlight) {
@@ -234,6 +245,11 @@ public final class LightScheduler {
                         item.positions.addAll(next.positions);
                     }
                 }
+            }
+            Runnable hook = this.beforeItemHook;
+            this.beforeItemHook = null;
+            if (hook != null) {
+                hook.run();
             }
             process(item);
         } catch (Throwable e) {

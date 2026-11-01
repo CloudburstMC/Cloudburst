@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -177,11 +176,17 @@ class LightSchedulerTest {
         };
         scheduler.afterSliceForTest(hook[0]);
 
-        drain(scheduler, pending);
+        // One item per run: the first pending runnable is the (0, 0) load.
+        assertEquals(1, pending.size());
+        List<Runnable> first = new ArrayList<>(pending);
+        pending.clear();
+        for (Runnable runnable : first) {
+            runnable.run();
+        }
         assertTrue(unloaded.get(), "hook did not run");
-        assertTrue(slices.get() > keys.length,
-                () -> "expected the first unit to span several slices, got " + slices.get()
-                        + " slices for " + keys.length + " units");
+        assertTrue(slices.get() > 1,
+                () -> "expected the first unit to span several slices, got " + slices.get());
+        drain(scheduler, pending);
         LightTestChunks.assertSameLight(expected, actual);
     }
 
@@ -312,13 +317,18 @@ class LightSchedulerTest {
     }
 
     @Test
-    void laneFailureKeepsLaneUsable() throws Exception {
+    void laneFailureKeepsLaneUsable() {
         Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(5L, 0, 0, 1);
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
 
         scheduler.chunkLoaded(0, 0);
-        corruptLaneHeadWithNullKind(scheduler);
+        scheduler.chunkLoaded(0, 0);
+        // Thrown from the new seam after the merge and before process: at the
+        // same program point the pre-fix lane left unguarded.
+        scheduler.beforeItemForTest(() -> {
+            throw new AssertionError("test");
+        });
 
         drain(scheduler, pending);
         assertTrue(scheduler.isIdle());
@@ -389,24 +399,8 @@ class LightSchedulerTest {
         assertSkyTop(chunks.get(CloudChunk.key(0, 0)), 15);
     }
 
-    /**
-     * Inserts a work item with a null kind at the lane head, so the lane-level
-     * catch (outside the per-unit catch) drops it.
-     */
-    private static void corruptLaneHeadWithNullKind(LightScheduler scheduler) throws Exception {
-        java.lang.reflect.Field queueField = LightScheduler.class.getDeclaredField("queue");
-        queueField.setAccessible(true);
-        @SuppressWarnings("rawtypes")
-        Deque queue = (Deque) queueField.get(scheduler);
-        Class<?> itemClass = Class.forName("org.cloudburstmc.server.level.light.LightScheduler$WorkItem");
-        Class<?> kindClass = Class.forName("org.cloudburstmc.server.level.light.LightScheduler$WorkItem$Kind");
-        java.lang.reflect.Constructor<?> constructor =
-                itemClass.getDeclaredConstructor(kindClass, int.class, int.class, LongArrayList.class);
-        constructor.setAccessible(true);
-        queue.addFirst(constructor.newInstance(null, 0, 0, new LongArrayList()));
-    }
-
-    private static void drain(LightScheduler scheduler, List<Runnable> pending) {        for (int i = 0; i < 1000; i++) {
+    private static void drain(LightScheduler scheduler, List<Runnable> pending) {
+        for (int i = 0; i < 1000; i++) {
             if (scheduler.isIdle() && pending.isEmpty()) {
                 return;
             }
