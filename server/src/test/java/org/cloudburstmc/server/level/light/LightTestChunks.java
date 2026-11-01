@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.experimental.UtilityClass;
 import net.daporkchop.lib.random.impl.FastPRandom;
+import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.server.level.DimensionHeight;
 import org.cloudburstmc.server.level.chunk.ChunkGenerationStatus;
@@ -90,6 +91,46 @@ public class LightTestChunks {
         }
 
         return populated;
+    }
+
+    /**
+     * Compares primary and secondary block states for every block of every chunk.
+     *
+     * @param expected the expected chunks
+     * @param actual   the chunks to compare
+     */
+    public static void assertSameBlocks(Long2ObjectMap<CloudChunk> expected, Long2ObjectMap<CloudChunk> actual) {
+        long[] keys = expected.keySet().toLongArray();
+        Arrays.sort(keys);
+        for (long key : keys) {
+            CloudChunk expectedChunk = expected.get(key);
+            CloudChunk actualChunk = actual.get(key);
+            assertNotNull(actualChunk, () -> "Missing chunk " + CloudChunk.fromKeyX(key) + "," + CloudChunk.fromKeyZ(key));
+            int minHeight = expectedChunk.getLevel().getMinHeight();
+            int maxHeight = expectedChunk.getLevel().getMaxHeight();
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int y = minHeight; y < maxHeight; y++) {
+                        assertPrimary(expectedChunk, actualChunk, x, y, z);
+                        assertSecondary(expectedChunk, actualChunk, x, y, z);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void assertPrimary(CloudChunk expectedChunk, CloudChunk actualChunk, int x, int y, int z) {
+        assertEquals(expectedChunk.getBlockState(x, y, z, BlockLayer.PRIMARY),
+                actualChunk.getBlockState(x, y, z, BlockLayer.PRIMARY),
+                () -> "First primary difference at x=" + ((expectedChunk.getX() << 4) + x)
+                        + " y=" + y + " z=" + ((expectedChunk.getZ() << 4) + z));
+    }
+
+    private static void assertSecondary(CloudChunk expectedChunk, CloudChunk actualChunk, int x, int y, int z) {
+        assertEquals(expectedChunk.getBlockState(x, y, z, BlockLayer.SECONDARY),
+                actualChunk.getBlockState(x, y, z, BlockLayer.SECONDARY),
+                () -> "First secondary difference at x=" + ((expectedChunk.getX() << 4) + x)
+                        + " y=" + y + " z=" + ((expectedChunk.getZ() << 4) + z));
     }
 
     /**

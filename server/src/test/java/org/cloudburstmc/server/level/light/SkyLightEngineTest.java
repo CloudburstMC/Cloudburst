@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.light;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
@@ -14,6 +13,7 @@ import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +25,7 @@ class SkyLightEngineTest {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
     private static final Vector3i ICE = Vector3i.from(8, 2, 8);
+    private static final LightStateCache STATES = new LightStateCache(REGISTRY);
 
     @Test
     void slabFacesStopDirectSkyAndShapeChangesUpdateTheColumn() {
@@ -46,13 +47,13 @@ class SkyLightEngineTest {
         assertEquals(0, grid.light(slab.add(0, -1, 0)));
 
         grid.blocks.put(slab, bottom.withTrait(BlockTraits.SLAB_SLOT, SlabSlot.TOP));
-        SkyLightEngine.update(grid, List.of(slab));
+        update(grid, List.of(slab));
 
         assertEquals(0, grid.light(slab));
         assertEquals(0, grid.light(slab.add(0, -1, 0)));
 
         grid.blocks.put(slab, BlockStates.AIR);
-        SkyLightEngine.update(grid, List.of(slab));
+        update(grid, List.of(slab));
 
         assertEquals(15, grid.light(slab.add(0, -1, 0)));
     }
@@ -102,13 +103,13 @@ class SkyLightEngineTest {
         assertEquals(0, grid.light(below));
 
         grid.blocks.remove(ICE);
-        SkyLightEngine.update(grid, List.of(ICE));
+        update(grid, List.of(ICE));
 
         assertEquals(15, grid.light(below));
         assertEquals(14, grid.light(below.add(1, 0, 0)));
 
         grid.blocks.put(ICE, BlockStates.STONE);
-        SkyLightEngine.update(grid, List.of(ICE));
+        update(grid, List.of(ICE));
 
         assertEquals(0, grid.light(below));
         assertEquals(0, grid.light(below.add(1, 0, 0)));
@@ -124,7 +125,7 @@ class SkyLightEngineTest {
         assertEquals(15 - BlockStates.WATER.getLightDampening(), grid.light(ICE));
 
         grid.secondary.remove(ICE);
-        SkyLightEngine.update(grid, List.of(ICE));
+        update(grid, List.of(ICE));
 
         assertEquals(15, grid.light(ICE));
     }
@@ -145,7 +146,18 @@ class SkyLightEngineTest {
     }
 
     private static void initialize(Grid grid) {
-        SkyLightEngine.update(grid, SkyLightEngine.initialize(grid, 0, 0));
+        LightPropagation propagation = new LightPropagation(LightChannel.SKY);
+        SkyLightEngine.initialize(grid, 0, 0, propagation);
+        assertTrue(propagation.run(grid, Integer.MAX_VALUE));
+    }
+
+    private static void update(Grid grid, Collection<Vector3i> changed) {
+        LightPropagation propagation = new LightPropagation(LightChannel.SKY);
+        for (Vector3i position : changed) {
+            propagation.invalidate(grid,
+                    LightPositions.pack(position.getX(), position.getY(), position.getZ()));
+        }
+        assertTrue(propagation.run(grid, Integer.MAX_VALUE));
     }
 
     private static class Grid implements LightAccess {
@@ -153,11 +165,6 @@ class SkyLightEngineTest {
         private final Map<Vector3i, BlockState> blocks = new HashMap<>();
         private final Map<Vector3i, BlockState> secondary = new HashMap<>();
         private final Map<Vector3i, Integer> lights = new HashMap<>();
-
-        @Override
-        public CloudBlockRegistry registry() {
-            return REGISTRY;
-        }
 
         @Override
         public int minHeight() {
@@ -170,23 +177,49 @@ class SkyLightEngineTest {
         }
 
         @Override
-        public LightAccess.@Nullable Sample read(Vector3i position) {
-            if (!contains(position)) {
-                return null;
-            }
-
-            return new LightAccess.Sample(this.blocks.getOrDefault(position, BlockStates.AIR),
-                    this.secondary.getOrDefault(position, BlockStates.AIR), this.light(position));
+        public boolean isLoaded(int x, int z) {
+            return contains(Vector3i.from(x, 0, z));
         }
 
         @Override
-        public void write(Vector3i position, int light) {
-            assertTrue(contains(position));
+        public BlockState primary(int x, int y, int z) {
+            Vector3i position = Vector3i.from(x, y, z);
+            if (!contains(position)) {
+                return BlockStates.AIR;
+            }
+            return this.blocks.getOrDefault(position, BlockStates.AIR);
+        }
+
+        @Override
+        public BlockState secondary(int x, int y, int z) {
+            Vector3i position = Vector3i.from(x, y, z);
+            if (!contains(position)) {
+                return BlockStates.AIR;
+            }
+            return this.secondary.getOrDefault(position, BlockStates.AIR);
+        }
+
+        @Override
+        public int light(int x, int y, int z) {
+            return this.lights.getOrDefault(Vector3i.from(x, y, z), 0);
+        }
+
+        @Override
+        public void setLight(int x, int y, int z, int light) {
+            Vector3i position = Vector3i.from(x, y, z);
+            if (!contains(position)) {
+                return;
+            }
             this.lights.put(position, light);
         }
 
+        @Override
+        public LightStateCache states() {
+            return STATES;
+        }
+
         private int light(Vector3i position) {
-            return this.lights.getOrDefault(position, 0);
+            return this.light(position.getX(), position.getY(), position.getZ());
         }
 
         private static boolean contains(Vector3i position) {

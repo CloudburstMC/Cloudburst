@@ -46,9 +46,7 @@ public final class LightStateCache {
                 && toPrimaryFace == FaceKind.EMPTY && toSecondaryFace == FaceKind.EMPTY) {
             return false;
         }
-        return LightOcclusion.occludes(this.registry,
-                new LightAccess.Sample(fromPrimary, fromSecondary, 0),
-                new LightAccess.Sample(toPrimary, toSecondary, 0), direction);
+        return LightOcclusion.occludes(this.registry, fromPrimary, fromSecondary, toPrimary, toSecondary, direction);
     }
 
     private FaceKind face(BlockState state, Direction direction) {

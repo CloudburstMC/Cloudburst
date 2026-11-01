@@ -62,6 +62,18 @@ public final class LockedChunk implements Chunk, AutoCloseable {
         return this.writableUnsafe().getOrCreateSection(y);
     }
 
+    /**
+     * Returns the section at the given array index, creating it when absent
+     * without marking the chunk dirty.
+     *
+     * @param sectionIndex the section index from {@code 0} to the level's section count minus one
+     * @return the section
+     */
+    @NonNull
+    public CloudChunkSection getOrCreateLightSection(int sectionIndex) {
+        return this.writableUnsafe().getOrCreateLightSection(sectionIndex);
+    }
+
     @Nullable
     @Override
     public CloudChunkSection getSection(int y) {

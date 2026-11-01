@@ -1,13 +1,12 @@
 package org.cloudburstmc.server.level.light;
 
 import lombok.experimental.UtilityClass;
+import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.level.DayCycle;
-import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.math.vector.Vector3i;
 
-import java.util.*;
+import java.util.List;
 
 @UtilityClass
 public class SkyLightEngine {
@@ -28,92 +27,94 @@ public class SkyLightEngine {
         return (int) (15 - light);
     }
 
-    public static void update(Level level, Collection<Vector3i> changed) {
-        update(new ChunkLightAccess(level, LightAccess.Type.SKY), changed);
-    }
-
-    public static List<Vector3i> initialize(LightAccess access, int chunkX, int chunkZ) {
-        List<Vector3i> updates = new ArrayList<>();
+    public static void initialize(LightAccess access, int chunkX, int chunkZ, LightPropagation into) {
+        int minX = chunkX << 4;
+        int minZ = chunkZ << 4;
+        LightStateCache states = access.states();
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 int light = 15;
-                LightAccess.Sample above = new LightAccess.Sample(BlockStates.AIR, BlockStates.AIR, 15);
+                BlockState abovePrimary = BlockStates.AIR;
+                BlockState aboveSecondary = BlockStates.AIR;
                 for (int y = access.maxHeight() - 1; y >= access.minHeight(); y--) {
-                    Vector3i position = Vector3i.from((chunkX << 4) + x, y, (chunkZ << 4) + z);
-                    LightAccess.Sample sample = access.read(position);
-                    if (sample == null) {
-                        break;
-                    }
-
-                    int opacity = sample.opacity();
-                    if (LightOcclusion.occludes(access.registry(), above, sample, Direction.DOWN)) {
+                    BlockState primary = access.primary(minX + x, y, minZ + z);
+                    BlockState secondary = access.secondary(minX + x, y, minZ + z);
+                    int opacity = states.opacity(primary, secondary);
+                    if (states.occludes(abovePrimary, aboveSecondary, primary, secondary, Direction.DOWN)) {
                         light = 0;
                     } else {
                         light = Math.max(0, light - (light == 15 ? opacity : Math.max(1, opacity)));
                     }
-                    above = sample;
-
-                    if (sample.light() != light) {
-                        access.write(position, light);
-                    }
-
-                    if (opacity < 15 && light < 15 || x == 0 || x == 15 || z == 0 || z == 15) {
-                        updates.add(position);
+                    abovePrimary = primary;
+                    aboveSecondary = secondary;
+                    if (access.light(minX + x, y, minZ + z) != light) {
+                        access.setLight(minX + x, y, minZ + z, light);
                     }
                 }
             }
         }
-
-        return updates;
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = access.minHeight(); y < access.maxHeight(); y++) {
+                    int level = access.light(minX + x, y, minZ + z);
+                    if (level > 0 && needsSpread(access, into, minX + x, y, minZ + z, level)) {
+                        into.source(LightPositions.pack(minX + x, y, minZ + z));
+                    }
+                }
+            }
+        }
+        for (int y = access.minHeight(); y < access.maxHeight(); y++) {
+            for (int i = 0; i < 16; i++) {
+                sourceIfLit(access, into, minX - 1, y, minZ + i, minX, y, minZ + i);
+                sourceIfLit(access, into, minX + 16, y, minZ + i, minX + 15, y, minZ + i);
+                sourceIfLit(access, into, minX + i, y, minZ - 1, minX + i, y, minZ);
+                sourceIfLit(access, into, minX + i, y, minZ + 16, minX + i, y, minZ + 15);
+            }
+        }
     }
 
-    public static void update(LightAccess access, Collection<Vector3i> changed) {
-        ArrayDeque<Vector3i> queue = new ArrayDeque<>();
-        Set<Vector3i> pending = new HashSet<>();
-        for (Vector3i position : changed) {
-            enqueue(queue, pending, position);
-            for (Direction direction : Direction.values()) {
-                enqueue(queue, pending, direction.relative(position));
-            }
-        }
-
-        while (!queue.isEmpty()) {
-            Vector3i position = queue.removeFirst();
-            pending.remove(position);
-            LightAccess.Sample sample = access.read(position);
-            if (sample == null) {
+    private static boolean needsSpread(LightAccess access, LightPropagation into, int x, int y, int z, int level) {
+        for (Direction direction : Direction.values()) {
+            if (direction == Direction.UP) {
                 continue;
             }
-
-            int opacity = sample.opacity();
-            int light = 0;
-            if (opacity < 15) {
-                for (Direction direction : Direction.values()) {
-                    Vector3i neighborPosition = direction.relative(position);
-                    LightAccess.Sample neighbor = access.read(neighborPosition);
-                    int incoming = neighbor == null ? 0 : neighbor.light();
-                    if (direction == Direction.UP && neighborPosition.getY() == access.maxHeight()) {
-                        neighbor = new LightAccess.Sample(BlockStates.AIR, BlockStates.AIR, 15);
-                        incoming = 15;
-                    }
-
-                    int attenuation = direction == Direction.UP && incoming == 15 ? opacity : Math.max(1, opacity);
-                    if (neighbor != null && incoming - attenuation > light && !LightOcclusion.occludes(access.registry(), neighbor, sample, direction.getOpposite())) {
-                        light = incoming - attenuation;
-                    }
-                }
-            }
-
-            light = Math.clamp(light, 0, 15);
-            if (sample.light() == light) {
+            long neighbour = LightPositions.offset(LightPositions.pack(x, y, z), direction);
+            int nx = LightPositions.x(neighbour);
+            int ny = LightPositions.y(neighbour);
+            int nz = LightPositions.z(neighbour);
+            if (ny < access.minHeight() || ny >= access.maxHeight() || !access.isLoaded(nx, nz)) {
                 continue;
             }
-
-            access.write(position, light);
-            for (Direction direction : Direction.values()) {
-                enqueue(queue, pending, direction.relative(position));
+            if (access.light(nx, ny, nz) < into.arrive(access, x, y, z, nx, ny, nz, direction, level)) {
+                return true;
             }
         }
+        return false;
+    }
+
+    private static void sourceIfLit(LightAccess access, LightPropagation into,
+            int fromX, int fromY, int fromZ, int toX, int toY, int toZ) {
+        if (!access.isLoaded(fromX, fromZ)) {
+            return;
+        }
+        int level = access.light(fromX, fromY, fromZ);
+        if (level <= 0) {
+            return;
+        }
+        Direction direction = directionTo(fromX, fromZ, toX, toZ);
+        if (into.arrive(access, fromX, fromY, fromZ, toX, toY, toZ, direction, level) > access.light(toX, toY, toZ)) {
+            into.source(LightPositions.pack(fromX, fromY, fromZ));
+        }
+    }
+
+    private static Direction directionTo(int fromX, int fromZ, int toX, int toZ) {
+        if (toX > fromX) {
+            return Direction.EAST;
+        }
+        if (toX < fromX) {
+            return Direction.WEST;
+        }
+        return toZ > fromZ ? Direction.SOUTH : Direction.NORTH;
     }
 
     private static float skyLightLevel(long time) {
@@ -133,12 +134,6 @@ public class SkyLightEngine {
         }
 
         throw new IllegalStateException("Sky light cycle does not cover tick " + tick);
-    }
-
-    private static void enqueue(ArrayDeque<Vector3i> queue, Set<Vector3i> pending, Vector3i position) {
-        if (pending.add(position)) {
-            queue.addLast(position);
-        }
     }
 
     private record SkyLightKeyframe(int tick, float light) {

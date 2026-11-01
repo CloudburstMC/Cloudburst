@@ -17,12 +17,13 @@ public class LightOcclusion {
 
     private static final ConcurrentMap<BlockState, Faces> CACHE = new ConcurrentHashMap<>();
 
-    public static boolean occludes(BlockRegistry registry, LightAccess.Sample from, LightAccess.Sample to, Direction direction) {
+    public static boolean occludes(BlockRegistry registry, BlockState fromPrimary, BlockState fromSecondary,
+            BlockState toPrimary, BlockState toSecondary, Direction direction) {
         VoxelShape remaining = CloudVoxelShapes.block();
-        remaining = subtractFace(registry, from.primary(), direction, remaining);
-        remaining = subtractFace(registry, from.secondary(), direction, remaining);
-        remaining = subtractFace(registry, to.primary(), direction.getOpposite(), remaining);
-        remaining = subtractFace(registry, to.secondary(), direction.getOpposite(), remaining);
+        remaining = subtractFace(registry, fromPrimary, direction, remaining);
+        remaining = subtractFace(registry, fromSecondary, direction, remaining);
+        remaining = subtractFace(registry, toPrimary, direction.getOpposite(), remaining);
+        remaining = subtractFace(registry, toSecondary, direction.getOpposite(), remaining);
         return remaining.isEmpty();
     }
 

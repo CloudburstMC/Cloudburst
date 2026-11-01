@@ -1,36 +1,22 @@
 package org.cloudburstmc.server.level.light;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.math.vector.Vector3i;
 
 public interface LightAccess {
-
-    BlockRegistry registry();
 
     int minHeight();
 
     int maxHeight();
 
-    @Nullable
-    Sample read(Vector3i position);
+    boolean isLoaded(int x, int z);
 
-    void write(Vector3i position, int light);
+    BlockState primary(int x, int y, int z);
 
-    enum Type {
-        BLOCK,
-        SKY
-    }
+    BlockState secondary(int x, int y, int z);
 
-    record Sample(BlockState primary, BlockState secondary, int light) {
+    int light(int x, int y, int z);
 
-        public int opacity() {
-            return Math.max(this.primary.getLightDampening(), this.secondary.getLightDampening());
-        }
+    void setLight(int x, int y, int z, int light);
 
-        public int emission() {
-            return Math.max(this.primary.getLightEmission(), this.secondary.getLightEmission());
-        }
-    }
+    LightStateCache states();
 }

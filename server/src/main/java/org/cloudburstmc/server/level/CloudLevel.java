@@ -82,9 +82,9 @@ import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.level.light.BlockLightEngine;
 import org.cloudburstmc.server.level.light.LevelLightEngine;
 import org.cloudburstmc.server.level.light.LightOcclusion;
+import org.cloudburstmc.server.level.light.LightPositions;
 import org.cloudburstmc.server.level.light.SkyLightEngine;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.provider.LevelProvider;
@@ -1324,18 +1324,16 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        List<Vector3i> changed = new ArrayList<>();
+        LongCollection changed = new LongArrayList();
         for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
             for (int blockKey : entry.getValue()) {
-                changed.add(CloudChunk.fromKeyLight(entry.getLongKey(), blockKey, this.getMinHeight()));
+                Vector3i position = CloudChunk.fromKeyLight(entry.getLongKey(), blockKey, this.getMinHeight());
+                changed.add(LightPositions.pack(position.getX(), position.getY(), position.getZ()));
             }
         }
 
         this.lightQueue.clear();
-        BlockLightEngine.update(this, changed);
-        if (this.getDimension() == DIMENSION_OVERWORLD) {
-            SkyLightEngine.update(this, changed);
-        }
+        LevelLightEngine.update(this, changed);
     }
 
     @Synchronized("lightQueue")

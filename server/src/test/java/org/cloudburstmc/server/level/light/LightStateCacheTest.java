@@ -23,16 +23,17 @@ class LightStateCacheTest {
     @Test
     void fastOcclusionMatchesShapeOcclusion() {
         LightStateCache cache = new LightStateCache(REGISTRY);
-        List<LightAccess.Sample> samples = new ArrayList<>();
+        List<StatePair> samples = new ArrayList<>();
         for (BlockState state : states()) {
-            samples.add(new LightAccess.Sample(state, BlockStates.AIR, 0));
-            samples.add(new LightAccess.Sample(BlockStates.AIR, state, 0));
+            samples.add(new StatePair(state, BlockStates.AIR));
+            samples.add(new StatePair(BlockStates.AIR, state));
         }
 
-        for (LightAccess.Sample from : samples) {
-            for (LightAccess.Sample to : samples) {
+        for (StatePair from : samples) {
+            for (StatePair to : samples) {
                 for (Direction direction : Direction.values()) {
-                    assertEquals(LightOcclusion.occludes(REGISTRY, from, to, direction),
+                    assertEquals(LightOcclusion.occludes(REGISTRY, from.primary(), from.secondary(),
+                                    to.primary(), to.secondary(), direction),
                             cache.occludes(from.primary(), from.secondary(), to.primary(), to.secondary(), direction),
                             () -> "occludes " + from.primary() + "," + from.secondary()
                                     + " -> " + to.primary() + "," + to.secondary() + " " + direction);
@@ -53,8 +54,7 @@ class LightStateCacheTest {
         assertEquals(15, cache.emission(lava, BlockStates.AIR));
     }
 
-    private static List<BlockState> states() {
-        List<BlockState> states = new ArrayList<>(List.of(
+    private static List<BlockState> states() {        List<BlockState> states = new ArrayList<>(List.of(
                 BlockStates.AIR,
                 BlockTypes.STONE.getDefaultState(),
                 BlockTypes.GLASS.getDefaultState(),
@@ -76,5 +76,8 @@ class LightStateCacheTest {
             states.add(BlockTypes.SNOW_LAYER.getDefaultState().withTrait(BlockTraits.HEIGHT, layers - 1));
         }
         return states;
+    }
+
+    private record StatePair(BlockState primary, BlockState secondary) {
     }
 }
