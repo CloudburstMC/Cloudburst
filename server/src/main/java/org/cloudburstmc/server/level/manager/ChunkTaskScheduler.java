@@ -19,14 +19,50 @@ public final class ChunkTaskScheduler {
     private final TaskQueue generationQueue;
 
     public ChunkTaskScheduler(CloudLevel level, GlobalConfiguration.ChunkGeneration config) {
+        this(level.getServer().getLevelManager().getIoExecutor(),
+                level.getServer().getLevelManager().getGenerationExecutor(),
+                config);
+    }
+
+    /**
+     * Creates a scheduler over the given executors, using the concurrency
+     * settings from the generation configuration.
+     *
+     * @param storage    the executor for storage reads and writes
+     * @param generation the executor for generation and light work
+     * @param config     the chunk-generation concurrency settings
+     */
+    ChunkTaskScheduler(Executor storage, Executor generation, GlobalConfiguration.ChunkGeneration config) {
         this.storageQueue = new TaskQueue(
-                level.getServer().getLevelManager().getIoExecutor(),
+                storage,
                 config.getLoadConcurrency()
         );
 
         this.generationQueue = new TaskQueue(
-                level.getServer().getLevelManager().getGenerationExecutor(),
+                generation,
                 config.getGenerationConcurrency()
+        );
+    }
+
+    /**
+     * Schedules light work on the generation queue at blocking priority.
+     *
+     * <p>The work reserves no chunk area, so it runs ahead of queued
+     * generation without waiting on area conflicts. The work must not block
+     * the generation pool.
+     *
+     * @param work the light work to run
+     * @return a future completing when the work runs, or exceptionally when
+     * the executor rejects it
+     */
+    public CompletableFuture<Void> scheduleLight(Runnable work) {
+        return this.generationQueue.schedule(
+                new ChunkTaskIdentifier(ChunkTaskType.LIGHT, 0L),
+                ChunkTaskPriority.BLOCKING,
+                () -> {
+                    work.run();
+                    return null;
+                }
         );
     }
 

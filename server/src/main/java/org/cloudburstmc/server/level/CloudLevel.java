@@ -49,6 +49,7 @@ import org.cloudburstmc.api.level.particle.ParticleEmitter;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -82,10 +83,11 @@ import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.level.light.LevelLightEngine;
+import org.cloudburstmc.server.level.light.LightLevelView;
 import org.cloudburstmc.server.level.light.LightOcclusion;
-import org.cloudburstmc.server.level.light.LightPositions;
+import org.cloudburstmc.server.level.light.LightScheduler;
 import org.cloudburstmc.server.level.light.SkyLightEngine;
+import org.cloudburstmc.server.level.manager.ChunkTaskScheduler;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
@@ -191,6 +193,12 @@ public class CloudLevel implements Level, BlockStateRegion {
             .removalListener(cacheRemover)
             .build();
     private final LevelChunkManager chunkManager;
+    /**
+     * The per-level background light lane. Submissions only enqueue work on
+     * the generation pool; the lane reads level state off the calling thread,
+     * so its view only touches thread-safe state.
+     */
+    private final LightScheduler lightScheduler;
     private final CloudLevelData levelData;
     private final CollisionEngine collisionEngine;
     private final EndFightManager endFight;
@@ -232,6 +240,32 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         this.chunkTickList.clear();
         this.chunkManager = new LevelChunkManager(this);
+        this.lightScheduler = new LightScheduler(new LightLevelView() {
+            @Override
+            public BlockRegistry registry() {
+                return CloudLevel.this.server.getBlockRegistry();
+            }
+
+            @Override
+            public int minHeight() {
+                return CloudLevel.this.getMinHeight();
+            }
+
+            @Override
+            public int maxHeight() {
+                return CloudLevel.this.getMaxHeight();
+            }
+
+            @Override
+            public boolean hasSkyLight() {
+                return CloudLevel.this.getDimension() == DIMENSION_OVERWORLD;
+            }
+
+            @Override
+            public @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ) {
+                return CloudLevel.this.chunkManager.getLoadedChunk(chunkX, chunkZ);
+            }
+        }, lightSubmit(this.chunkManager.getScheduler()));
         this.collisionEngine = new CollisionEngine(this);
         this.endFight = this.getDimension() == DIMENSION_THE_END
                 ? new EndFightManager(this, this.levelData.getEndFightData())
@@ -1311,14 +1345,61 @@ public class CloudLevel implements Level, BlockStateRegion {
         });
     }
 
+    /**
+     * Hands light work to the generation queue for the light lane.
+     *
+     * <p>A rejection that arrives synchronously is rethrown so the lane can
+     * park itself. A rejection that arrives asynchronously, after the work was
+     * accepted, completes the future with no observer and leaves that level's
+     * lane parked; the queue only rejects queued work while the executors are
+     * shutting down, so this only happens during shutdown.
+     *
+     * @param scheduler the level's chunk task scheduler
+     * @return a submit function for {@link LightScheduler}
+     */
+    static Consumer<Runnable> lightSubmit(ChunkTaskScheduler scheduler) {
+        return work -> rethrowIfRejected(scheduler.scheduleLight(work));
+    }
+
+    /**
+     * Rethrows a synchronously rejected light submission for the light lane,
+     * ignoring any other outcome.
+     *
+     * @param future the submission's future
+     */
+    static void rethrowIfRejected(CompletableFuture<Void> future) {
+        if (future.isCompletedExceptionally()) {
+            Throwable failure = future.exceptionNow();
+            if (failure instanceof RejectedExecutionException rejected) {
+                throw rejected;
+            }
+        }
+    }
+
+    /**
+     * Queues lighting for a promoted chunk. Only enqueues; the background
+     * lane does the work.
+     *
+     * @param chunk the promoted chunk
+     */
     public void initializeChunkLight(CloudChunk chunk) {
-        LevelLightEngine.initialize(this, chunk);
+        this.lightScheduler.chunkLoaded(chunk.getX(), chunk.getZ());
     }
 
+    /**
+     * Queues a boundary refresh around an unloaded chunk. Only enqueues; the
+     * background lane does the work.
+     *
+     * @param chunk the unloaded chunk
+     */
     public void updateChunkLightBoundary(CloudChunk chunk) {
-        LevelLightEngine.updateBoundary(this, chunk.getX(), chunk.getZ());
+        this.lightScheduler.chunkUnloaded(chunk.getX(), chunk.getZ());
     }
 
+    /**
+     * Drains the queued block changes into the background light lane.
+     * Only enqueues; the lane propagates without blocking this thread.
+     */
     private void updateQueuedLight() {
         if (this.lightQueue.isEmpty()) {
             return;
@@ -1327,19 +1408,13 @@ public class CloudLevel implements Level, BlockStateRegion {
         LongCollection changed = new LongArrayList();
         for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
             long chunkKey = entry.getLongKey();
-            int chunkX = CloudChunk.fromKeyX(chunkKey);
-            int chunkZ = CloudChunk.fromKeyZ(chunkKey);
             for (int blockKey : entry.getValue()) {
-                // Matches CloudChunk.blockKeyWithLayer: bit 0 is the layer, then x, z and y.
-                int x = ((blockKey >>> 1) & 0xf) | (chunkX << 4);
-                int z = ((blockKey >>> 5) & 0xf) | (chunkZ << 4);
-                int y = ((blockKey >>> 9) & 0x1ff) + this.getMinHeight();
-                changed.add(LightPositions.pack(x, y, z));
+                changed.add(CloudChunk.lightPosition(chunkKey, blockKey, this.getMinHeight()));
             }
         }
 
         this.lightQueue.clear();
-        LevelLightEngine.update(this, changed);
+        this.lightScheduler.blocksChanged(changed);
     }
 
     @Synchronized("lightQueue")

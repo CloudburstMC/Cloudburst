@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * between read as absent. One {@link LightStateCache} is shared by the whole
  * operation.
  *
- * <p>{@link LevelLightEngine} is only thin synchronous overloads over it.
+ * <p>{@link LightScheduler} queues background work over it.
  */
 final class LightRegion {
 
