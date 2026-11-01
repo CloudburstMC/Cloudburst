@@ -32,11 +32,18 @@ public class StandardGeneratorUtils {
     }
 
     public static InputStream read(@NonNull String category, @NonNull Identifier id) throws IOException {
-        String name = String.format("generator/%s/%s/%s.yml", category, id.getNamespace(), id.getName());
+        return readResource(category, id, "yml");
+    }
 
-        File file = CloudServer.getInstance().getDataPath().resolve(name).toFile();
-        if (PFiles.checkFileExists(file)) {
-            return new BufferedInputStream(new FileInputStream(file));
+    public static InputStream readResource(@NonNull String category, @NonNull Identifier id, @NonNull String extension) throws IOException {
+        String name = String.format("generator/%s/%s/%s.%s", category, id.getNamespace(), id.getName(), extension);
+
+        CloudServer server = CloudServer.getInstance();
+        if (server != null) {
+            File file = server.getDataPath().resolve(name).toFile();
+            if (PFiles.checkFileExists(file)) {
+                return new BufferedInputStream(new FileInputStream(file));
+            }
         }
 
         InputStream in = null;
@@ -46,9 +53,11 @@ public class StandardGeneratorUtils {
                 in = Bootstrap.class.getClassLoader().getResourceAsStream(name);
                 break;
             default:
-                Optional<PluginContainer> plugin = CloudServer.getInstance().getPluginManager().getPlugin(id.getNamespace());
-                if (plugin.isPresent()) {
-                    in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
+                if (server != null) {
+                    Optional<PluginContainer> plugin = server.getPluginManager().getPlugin(id.getNamespace());
+                    if (plugin.isPresent()) {
+                        in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
+                    }
                 }
         }
         if (in == null) {
