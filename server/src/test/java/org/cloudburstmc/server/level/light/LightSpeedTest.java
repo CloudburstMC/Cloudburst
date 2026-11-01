@@ -2,17 +2,21 @@ package org.cloudburstmc.server.level.light;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.server.level.DimensionHeight;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.light.oracle.OracleLight;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
+import org.cloudburstmc.server.testutil.PlainTestLevel;
+import org.cloudburstmc.server.testutil.TestLevels;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Bounds the light engine's initialization cost, lock holds and backlog drain.
+ *
+ * <p>Fixtures use a level with concrete height checks so both sides are timed
+ * on the same dispatch instead of the oracle paying reflective dispatch the
+ * engine never touches.
  */
 class LightSpeedTest {
 
@@ -68,15 +76,16 @@ class LightSpeedTest {
 
     @Test
     void lockHoldsStayShort() {
-        drainScheduler(LightTestChunks.overworld(SPEED_SEED, WARMUP_ORIGIN_X, 0, HOLD_WIDTH));
+        drainScheduler(LightTestChunks.overworld(SPEED_SEED, WARMUP_ORIGIN_X, 0, HOLD_WIDTH, plainLevel()));
 
-        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(SPEED_SEED, HOLD_ORIGIN_X, 0, HOLD_WIDTH);
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(SPEED_SEED, HOLD_ORIGIN_X, 0, HOLD_WIDTH,
+                plainLevel());
         List<Runnable> pending = new ArrayList<>();
         LightScheduler scheduler = new LightScheduler(view(chunks), pending::add);
         for (long key : sortedKeys(chunks)) {
             scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
-        drainScheduler(scheduler, pending, chunks);
+        drainScheduler(scheduler, pending);
 
         long[] holds = scheduler.holdNanosSamples();
         assertTrue(holds.length > 0, "expected lock hold samples");
@@ -90,19 +99,25 @@ class LightSpeedTest {
         final long observedP99 = p99;
         final long observedMax = max;
         assertTrue(observedP99 <= P99_HOLD_NANOS,
-                () -> "p99 hold " + toMillis(observedP99) + " ms exceeds 2.0 ms (max " + toMillis(observedMax) + " ms)");
+                () -> "p99 hold " + toMillis(observedP99) + " ms exceeds " + toMillis(P99_HOLD_NANOS)
+                        + " ms (max " + toMillis(observedMax) + " ms)");
     }
 
     @Test
     void backlogDrains() throws Exception {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(SPEED_SEED, BACKLOG_ORIGIN_X, 0, BACKLOG_WIDTH);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(SPEED_SEED, BACKLOG_ORIGIN_X, 0, BACKLOG_WIDTH);
+        drainScheduler(LightTestChunks.overworld(SPEED_SEED, WARMUP_ORIGIN_X, 0, HOLD_WIDTH, plainLevel()));
+
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(SPEED_SEED, BACKLOG_ORIGIN_X, 0,
+                BACKLOG_WIDTH, plainLevel());
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(SPEED_SEED, BACKLOG_ORIGIN_X, 0,
+                BACKLOG_WIDTH, plainLevel());
 
         long[] keys = sortedKeys(actual);
         for (long key : keys) {
             OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, expected.get(key));
         }
 
+        boolean terminated = false;
         ForkJoinPool pool = new ForkJoinPool(2);
         try {
             LightScheduler scheduler = new LightScheduler(view(actual), pool::execute);
@@ -110,23 +125,34 @@ class LightSpeedTest {
             for (long key : keys) {
                 scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
             }
-            long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(keys.length * BACKLOG_MS_PER_CHUNK);
+            long budgetNanos = TimeUnit.MILLISECONDS.toNanos(keys.length * BACKLOG_MS_PER_CHUNK);
+            long deadline = start + budgetNanos;
             while (!scheduler.isIdle() && System.nanoTime() < deadline) {
                 Thread.sleep(BACKLOG_POLL_MS);
             }
             long elapsed = System.nanoTime() - start;
             System.out.println("backlog drain ms=" + toMillis(elapsed));
-            assertTrue(scheduler.isIdle(), () -> "backlog did not drain, idle=false");
+            final long observedElapsed = elapsed;
+            final long observedBudget = budgetNanos;
+            assertTrue(scheduler.isIdle(), () -> "backlog did not drain after " + toMillis(observedElapsed)
+                    + " ms (budget " + toMillis(observedBudget) + " ms)");
             LightTestChunks.assertSameLight(expected, actual);
         } finally {
             pool.shutdownNow();
-            assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS), "pool did not stop");
+            try {
+                terminated = pool.awaitTermination(10, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
+        assertTrue(terminated, "pool did not stop");
     }
 
     private static long[] timePair(int originX) {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(SPEED_SEED, originX, 0, SPEED_WIDTH);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(SPEED_SEED, originX, 0, SPEED_WIDTH);
+        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(SPEED_SEED, originX, 0, SPEED_WIDTH,
+                plainLevel());
+        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(SPEED_SEED, originX, 0, SPEED_WIDTH,
+                plainLevel());
         long[] inner = innerKeys(expected, originX, 0);
 
         long start = System.nanoTime();
@@ -142,6 +168,19 @@ class LightSpeedTest {
             region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
         long newNanos = System.nanoTime() - start;
+
+        // The timed window lights only the inner square, whose border arrivals
+        // depend on seed order on each side. Seeding the ring afterwards, off
+        // the clock, completes both fixtures, so the comparison below covers
+        // the timed work in a fully seeded fixture where both sides agree.
+        long[] ring = ringKeys(expected, inner);
+        for (long key : ring) {
+            OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, expected.get(key));
+        }
+        for (long key : ring) {
+            region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+        }
+        LightTestChunks.assertSameLight(expected, actual);
         return new long[]{oracleNanos, newNanos};
     }
 
@@ -160,8 +199,23 @@ class LightSpeedTest {
         return Arrays.copyOf(keys, index);
     }
 
-    private static void drainScheduler(LightScheduler scheduler, List<Runnable> pending,
-            Long2ObjectMap<CloudChunk> chunks) {
+    private static long[] ringKeys(Long2ObjectMap<CloudChunk> chunks, long[] inner) {
+        long[] all = sortedKeys(chunks);
+        long[] ring = new long[all.length - inner.length];
+        int index = 0;
+        for (long key : all) {
+            if (Arrays.binarySearch(inner, key) < 0) {
+                ring[index++] = key;
+            }
+        }
+        return Arrays.copyOf(ring, index);
+    }
+
+    private static Level plainLevel() {
+        return PlainTestLevel.wrap(TestLevels.level(MIN_HEIGHT, MAX_HEIGHT, Map.of("getSeed", SPEED_SEED)));
+    }
+
+    private static void drainScheduler(LightScheduler scheduler, List<Runnable> pending) {
         for (int i = 0; i < 10_000; i++) {
             if (scheduler.isIdle() && pending.isEmpty()) {
                 return;
@@ -184,7 +238,7 @@ class LightSpeedTest {
         for (long key : sortedKeys(chunks)) {
             scheduler.chunkLoaded(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
         }
-        drainScheduler(scheduler, pending, chunks);
+        drainScheduler(scheduler, pending);
     }
 
     private static LightLevelView view(Long2ObjectMap<CloudChunk> chunks) {

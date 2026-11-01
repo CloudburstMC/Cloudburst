@@ -42,9 +42,29 @@ public class LightTestChunks {
      * @return the populated chunks keyed by {@code CloudChunk.key}
      */
     public static Long2ObjectMap<CloudChunk> overworld(long seed, int originChunkX, int originChunkZ, int width) {
+        return overworld(seed, originChunkX, originChunkZ, width, TestLevels.level(
+                DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight(),
+                Map.of("getSeed", seed)));
+    }
+
+    /**
+     * Generates a square of overworld chunks and populates its inner square.
+     *
+     * <p>Benchmarks pass a level with concrete height checks so the timed code
+     * is measured instead of reflective dispatch; every other caller uses the
+     * shared level above.
+     *
+     * @param seed         the level seed
+     * @param originChunkX the inner square's lowest chunk x
+     * @param originChunkZ the inner square's lowest chunk z
+     * @param width        the inner square's width in chunks
+     * @param level        the level the generated chunks belong to
+     * @return the populated chunks keyed by {@code CloudChunk.key}
+     */
+    public static Long2ObjectMap<CloudChunk> overworld(long seed, int originChunkX, int originChunkZ, int width,
+            Level level) {
         BlockTestRegistry.get();
         Generator generator = StandardGenerator.FACTORY.create(seed, "minecraft:overworld");
-        Level level = TestLevels.level(DimensionHeight.OVERWORLD.getMinHeight(), DimensionHeight.OVERWORLD.getMaxHeight(), Map.of("getSeed", seed));
 
         Long2ObjectMap<CloudChunk> generated = new Long2ObjectOpenHashMap<>();
         for (int chunkX = originChunkX - 1; chunkX < originChunkX + width + 1; chunkX++) {
