@@ -58,8 +58,6 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
             return false;
         }
 
-        this.timing.startTiming();
-
         boolean hasUpdate = super.onUpdate(currentTick);
 
         if (this.isCollided) {
@@ -70,8 +68,6 @@ public class EntityEnderPearl extends EntityProjectile implements EnderPearl {
             this.kill();
             hasUpdate = true;
         }
-
-        this.timing.stopTiming();
 
         return hasUpdate;
     }

@@ -1,24 +1,30 @@
 package org.cloudburstmc.api.event.server;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.api.registry.ResourcePackRegistry;
 
+import java.util.Objects;
+
 /**
- * Fired immediately after the registries are closed.
+ * Fired on the server thread immediately after the registries are closed.
  */
-@RequiredArgsConstructor
 public class RegistriesClosedEvent extends ServerEvent {
 
-    @NonNull
     private final ResourcePackRegistry resourcePackRegistry;
+
+    /**
+     * Creates a notification that registration has closed.
+     *
+     * @param resourcePackRegistry the closed resource pack registry
+     */
+    public RegistriesClosedEvent(ResourcePackRegistry resourcePackRegistry) {
+        this.resourcePackRegistry = Objects.requireNonNull(resourcePackRegistry, "resourcePackRegistry");
+    }
 
     /**
      * Returns the resource pack registry after registration has closed.
      *
      * @return the resource pack registry
      */
-    @NonNull
     public ResourcePackRegistry getResourcePackRegistry() {
         return this.resourcePackRegistry;
     }

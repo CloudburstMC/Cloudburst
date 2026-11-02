@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.level;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.TimingsHistory;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -100,7 +98,6 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
-import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.awt.*;
@@ -136,7 +133,6 @@ public class CloudLevel implements Level, BlockStateRegion {
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
 
     private final CloudServer server;
-    public final LevelTimings timings;
 
     private LevelProvider provider;
 
@@ -218,7 +214,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.autoSave = server.getAutoSave();
         this.provider = levelProvider;
         this.levelData = levelData;
-        this.timings = new LevelTimings(this);
 
         this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
@@ -490,145 +485,128 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void doTick(int currentTick) {
-        try (Timing ignored = this.timings.doTick.startTiming()) {
-            synchronized (lightQueue) {
-                this.updateQueuedLight();
-            }
+        synchronized (lightQueue) {
+            this.updateQueuedLight();
+        }
 
-            this.levelData.tick();
+        this.levelData.tick();
 
-            if (this.getGameTime() % 20 == 0 || this.hasDaylightCycle() && !this.isTimePaused() && this.getTimeRate() != 1 && this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
-                this.sendTime();
-            }
+        if (this.getGameTime() % 20 == 0 || this.hasDaylightCycle() && !this.isTimePaused() && this.getTimeRate() != 1 && this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
+            this.sendTime();
+        }
 
-            // Tick Weather
-            if (this.getDimension() != CloudLevel.DIMENSION_NETHER && this.getDimension() != CloudLevel.DIMENSION_THE_END && this.doWeatherCycle()) {
-                this.levelData.setRainTime(getRainTime() - 1);
-                if (this.levelData.getRainTime() <= 0) {
-                    if (!this.setRaining(this.levelData.getRainLevel() <= 0)) {
-                        if (this.levelData.getRainLevel() > 0) {
-                            setRainTime(this.random.nextInt(12000) + 12000);
-                        } else {
-                            setRainTime(this.random.nextInt(168000) + 12000);
-                        }
-                    }
-                }
-
-                this.levelData.setLightningTime(this.levelData.getLightningTime() - 1);
-                if (this.levelData.getLightningTime() <= 0) {
-                    if (!this.setThundering(this.levelData.getLightningLevel() <= 0)) {
-                        if (this.levelData.getLightningLevel() > 0) {
-                            setThunderTime(this.random.nextInt(12000) + 3600);
-                        } else {
-                            setThunderTime(this.random.nextInt(168000) + 12000);
-                        }
-                    }
-                }
-
-                if (this.isThundering()) {
-                    for (Chunk chunk : this.getChunks()) {
-                        this.performThunder(chunk);
+        // Tick Weather
+        if (this.getDimension() != CloudLevel.DIMENSION_NETHER && this.getDimension() != CloudLevel.DIMENSION_THE_END && this.doWeatherCycle()) {
+            this.levelData.setRainTime(getRainTime() - 1);
+            if (this.levelData.getRainTime() <= 0) {
+                if (!this.setRaining(this.levelData.getRainLevel() <= 0)) {
+                    if (this.levelData.getRainLevel() > 0) {
+                        setRainTime(this.random.nextInt(12000) + 12000);
+                    } else {
+                        setRainTime(this.random.nextInt(168000) + 12000);
                     }
                 }
             }
 
-            this.checkSleep();
-            this.updateSkyBrightness();
-            if (this.endFight != null) {
-                this.endFight.tick();
-            }
-
-            int maxBlockTicks = this.getConfiguration().getLevel().getMaxBlockTicks();
-            int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
-            this.chunkManager.promoteReadyChunks();
-            try (Timing ignored2 = timings.scheduledBlockTicks.startTiming()) {
-                this.blockUpdateQueue.tick(this.getGameTime(), maxBlockTicks);
-            }
-
-            try (Timing ignored2 = timings.scheduledLiquidTicks.startTiming()) {
-                this.liquidUpdateQueue.tick(this.getGameTime(), maxLiquidTicks);
-            }
-
-            TimingsHistory.entityTicks += this.updateEntities.size();
-
-            try (Timing ignored2 = this.timings.entityTick.startTiming()) {
-                if (!this.updateEntities.isEmpty()) {
-                    this.updateEntities.forEach(entity -> {
-                        if (entity.isClosed() || !entity.onUpdate(currentTick)) {
-                            this.updateEntities.remove(entity);
-                        }
-                    });
+            this.levelData.setLightningTime(this.levelData.getLightningTime() - 1);
+            if (this.levelData.getLightningTime() <= 0) {
+                if (!this.setThundering(this.levelData.getLightningLevel() <= 0)) {
+                    if (this.levelData.getLightningLevel() > 0) {
+                        setThunderTime(this.random.nextInt(12000) + 3600);
+                    } else {
+                        setThunderTime(this.random.nextInt(168000) + 12000);
+                    }
                 }
             }
 
-            TimingsHistory.tileEntityTicks += this.updateBlockEntities.size();
-            try (Timing ignored2 = this.timings.blockEntityTick.startTiming()) {
-                this.updateBlockEntities.removeIf(blockEntity -> blockEntity.isClosed() || !blockEntity.onUpdate());
+            if (this.isThundering()) {
+                for (Chunk chunk : this.getChunks()) {
+                    this.performThunder(chunk);
+                }
             }
+        }
 
-            try (Timing ignored2 = this.timings.tickChunks.startTiming()) {
-                this.tickChunks();
+        this.checkSleep();
+        this.updateSkyBrightness();
+        if (this.endFight != null) {
+            this.endFight.tick();
+        }
 
-                synchronized (changedBlocks) {
-                    ConcurrentMap<Long, IntSet> changedBlocks = this.changedBlocks.asMap();
-                    if (!changedBlocks.isEmpty()) {
-                        if (!this.players.isEmpty()) {
-                            Iterator<Map.Entry<Long, IntSet>> iter = changedBlocks.entrySet().iterator();
-                            while (iter.hasNext()) {
-                                Map.Entry<Long, IntSet> entry = iter.next();
-                                long chunkKey = entry.getKey();
-                                IntSet blocks = entry.getValue();
-                                int chunkX = CloudChunk.fromKeyX(chunkKey);
-                                int chunkZ = CloudChunk.fromKeyZ(chunkKey);
-                                if (blocks.size() > MAX_BLOCK_CACHE) {
-                                    Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
-                                    if (chunk != null) {
-                                        for (CloudPlayer player : this.getChunkPlayers(chunkX, chunkZ)) {
-                                            player.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
-                                        }
-                                    }
-                                } else {
-                                    Collection<CloudPlayer> toSend = this.getChunkPlayers(chunkX, chunkZ);
-                                    Player[] playerArray = toSend.toArray(new Player[0]);
-                                    Block[] blocksArray = new Block[blocks.size()];
-                                    int i = 0;
-                                    for (int blockKey : blocks) {
-                                        blocksArray[i++] = this.getBlock(CloudChunk.fromBlockKey(chunkKey, blockKey, this.getMinHeight()));
-                                    }
-                                    this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
+        int maxBlockTicks = this.getConfiguration().getLevel().getMaxBlockTicks();
+        int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
+        this.chunkManager.promoteReadyChunks();
+        this.blockUpdateQueue.tick(this.getGameTime(), maxBlockTicks);
+
+        this.liquidUpdateQueue.tick(this.getGameTime(), maxLiquidTicks);
+
+        if (!this.updateEntities.isEmpty()) {
+            this.updateEntities.forEach(entity -> {
+                if (entity.isClosed() || !entity.onUpdate(currentTick)) {
+                    this.updateEntities.remove(entity);
+                }
+            });
+        }
+
+        this.updateBlockEntities.removeIf(blockEntity -> blockEntity.isClosed() || !blockEntity.onUpdate());
+
+        this.tickChunks();
+
+        synchronized (changedBlocks) {
+            ConcurrentMap<Long, IntSet> changedBlocks = this.changedBlocks.asMap();
+            if (!changedBlocks.isEmpty()) {
+                if (!this.players.isEmpty()) {
+                    Iterator<Map.Entry<Long, IntSet>> iter = changedBlocks.entrySet().iterator();
+                    while (iter.hasNext()) {
+                        Map.Entry<Long, IntSet> entry = iter.next();
+                        long chunkKey = entry.getKey();
+                        IntSet blocks = entry.getValue();
+                        int chunkX = CloudChunk.fromKeyX(chunkKey);
+                        int chunkZ = CloudChunk.fromKeyZ(chunkKey);
+                        if (blocks.size() > MAX_BLOCK_CACHE) {
+                            Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                            if (chunk != null) {
+                                for (CloudPlayer player : this.getChunkPlayers(chunkX, chunkZ)) {
+                                    player.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
                                 }
-                                iter.remove();
                             }
+                        } else {
+                            Collection<CloudPlayer> toSend = this.getChunkPlayers(chunkX, chunkZ);
+                            Player[] playerArray = toSend.toArray(new Player[0]);
+                            Block[] blocksArray = new Block[blocks.size()];
+                            int i = 0;
+                            for (int blockKey : blocks) {
+                                blocksArray[i++] = this.getBlock(CloudChunk.fromBlockKey(chunkKey, blockKey, this.getMinHeight()));
+                            }
+                            this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
                         }
+                        iter.remove();
                     }
-                }
-
-                //this.processChunkRequest();
-
-                synchronized (chunkPackets) {
-                    for (long index : this.chunkPackets.keySet()) {
-                        CloudChunk chunk = this.getLoadedChunk(index);
-
-                        Set<CloudPlayer> viewers;
-                        if (chunk == null || (viewers = chunk.getViewers()).isEmpty()) {
-                            // Chunk is unloaded.
-                            continue;
-                        }
-
-                        for (BedrockPacket packet : this.chunkPackets.get(index)) {
-                            CloudServer.broadcastPacket(viewers, packet);
-                        }
-                    }
-                    this.chunkPackets.clear();
-                }
-
-                if (this.levelData.getGameRules().isDirty()) {
-                    GameRulesChangedPacket packet = LevelTimePacketFactory.gameRules(this);
-                    CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
-                    this.sendTime();
-                    this.levelData.getGameRules().markClean();
                 }
             }
+        }
+
+        synchronized (chunkPackets) {
+            for (long index : this.chunkPackets.keySet()) {
+                CloudChunk chunk = this.getLoadedChunk(index);
+
+                Set<CloudPlayer> viewers;
+                if (chunk == null || (viewers = chunk.getViewers()).isEmpty()) {
+                    // Chunk is unloaded.
+                    continue;
+                }
+
+                for (BedrockPacket packet : this.chunkPackets.get(index)) {
+                    CloudServer.broadcastPacket(viewers, packet);
+                }
+            }
+            this.chunkPackets.clear();
+        }
+
+        if (this.levelData.getGameRules().isDirty()) {
+            GameRulesChangedPacket packet = LevelTimePacketFactory.gameRules(this);
+            CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
+            this.sendTime();
+            this.levelData.getGameRules().markClean();
         }
     }
 

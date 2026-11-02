@@ -20,7 +20,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.block.BlockPalette;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.registry.RegistryUtils;
@@ -156,7 +156,7 @@ public class ItemPalette implements DefinitionRegistry<ItemDefinition> {
 
         CreativeData data;
         try (InputStream input = RegistryUtils.getOrAssertResource("data/creative_items.json")) {
-            data = Objects.requireNonNull(Bootstrap.JSON_MAPPER.readValue(input, CreativeData.class), "creative data");
+            data = Objects.requireNonNull(ServerJson.MAPPER.readValue(input, CreativeData.class), "creative data");
         } catch (IOException | RuntimeException failure) {
             throw new RegistryException("Unable to load creative inventory data", failure);
         }

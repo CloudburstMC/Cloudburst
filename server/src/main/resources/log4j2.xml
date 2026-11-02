@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+    <Properties>
+        <Property name="console-pattern">%cyan{%d{HH:mm:ss}} [%highlight{%-5level}{STYLE=Logback}] %minecraftFormatting{%msg}%n</Property>
+    </Properties>
     <Appenders>
         <TerminalConsole name="Console">
-            <PatternLayout charset="UTF-8" pattern="%cyan{%d{HH:mm:ss}} [%style{%highlight{%-5level}{STYLE=Logback}}] %minecraftFormatting{%msg}%n"/>
+            <PatternLayout charset="UTF-8"
+                           disableAnsi="${sys:cloudburst.disable-ansi:-false}"
+                           pattern="${sys:cloudburst.console-pattern:-${console-pattern}}"/>
         </TerminalConsole>
         <RollingRandomAccessFile name="File" fileName="${sys:cloudburst.log-directory:-logs}/latest.log" filePattern="${sys:cloudburst.log-directory:-logs}/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout charset="UTF-8" pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level - %msg%n"/>

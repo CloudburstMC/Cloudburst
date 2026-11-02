@@ -30,7 +30,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescripto
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.crafting.*;
 import org.cloudburstmc.server.item.ItemUtils;
 import org.cloudburstmc.server.utils.Utils;
@@ -236,7 +236,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         int unlabeled = 0;
 
         try {
-            json = Bootstrap.JSON_MAPPER.readTree(file.toURL().openStream());
+            json = ServerJson.MAPPER.readTree(file.toURL().openStream());
         } catch (IOException e) {
             throw new RuntimeException("Unable to read JSON File to load recipes", e);
         }
@@ -931,19 +931,19 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private static List<Map<String, Object>> toMapList(JsonNode node) {
-        return Bootstrap.JSON_MAPPER.convertValue(node, LIST_OF_MAPS);
+        return ServerJson.MAPPER.convertValue(node, LIST_OF_MAPS);
     }
 
     private static Map<String, Map<String, Object>> toMapOfMaps(JsonNode node) {
-        return Bootstrap.JSON_MAPPER.convertValue(node, MAP_OF_MAPS);
+        return ServerJson.MAPPER.convertValue(node, MAP_OF_MAPS);
     }
 
     private static Map<String, Object> toMap(JsonNode node) {
-        return Bootstrap.JSON_MAPPER.convertValue(node, MAP_OF_OBJECTS);
+        return ServerJson.MAPPER.convertValue(node, MAP_OF_OBJECTS);
     }
 
     private static String[] toStringArray(JsonNode node) {
-        return Bootstrap.JSON_MAPPER.convertValue(node, STRING_ARRAY);
+        return ServerJson.MAPPER.convertValue(node, STRING_ARRAY);
     }
 
     private static List<ItemDescriptorWithCount> resolveDescriptors(CloudShapelessRecipe recipe) {

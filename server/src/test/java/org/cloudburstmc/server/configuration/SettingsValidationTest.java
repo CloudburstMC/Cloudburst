@@ -58,7 +58,7 @@ class SettingsValidationTest {
         Path file = directory.resolve("cloudburst.yml");
 
         for (String yaml : List.of("network:\n  max-connections: 1.5\n", "movement:\n  strict-movement: 'true'\n")) {
-            Files.writeString(file, "config-version: 1\n" + yaml);
+            Files.writeString(file, yaml);
             ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class, () -> GlobalConfiguration.fromFile(file));
 
             assertEquals(file, exception.getFile());

@@ -105,7 +105,6 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
             return false;
         }
 
-        this.timing.startTiming();
         int tickDiff = currentTick - lastUpdate;
         if (tickDiff <= 0 && !justCreated) {
             return true;
@@ -135,8 +134,6 @@ public class EntityPrimedTnt extends CloudEntity implements PrimedTnt, Explosive
                 this.close();
             }
         }
-
-        this.timing.stopTiming();
 
         return !this.closed && (hasUpdate || this.getFuse() > 0 || this.motion.length() > 0.00001);
     }

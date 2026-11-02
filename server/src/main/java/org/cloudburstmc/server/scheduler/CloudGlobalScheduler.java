@@ -8,24 +8,21 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.scheduler.ScheduledTask;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
- * Main-thread tick-bound scheduler. All tasks run on the thread that calls {@link #tick(int)}.
- * <p>
- * Task state machine uses VarHandle CAS to avoid synchronized blocks wherever possible.
- * The task map is guarded by a single lock only during scheduling and cancellation scans.
+ * Runs tick-bound tasks on the server thread. Deadlines use an independent long tick counter.
  */
 @Log4j2
 @Singleton
 public final class CloudGlobalScheduler implements GlobalScheduler {
 
     private final Object stateLock = new Object();
+    private final Thread owner = Thread.currentThread();
     private final Long2ObjectOpenHashMap<List<GlobalScheduledTask>> tasksByDeadline = new Long2ObjectOpenHashMap<>();
     private long tickCount = 0L;
 
@@ -33,11 +30,17 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
     public CloudGlobalScheduler() {
     }
 
-    @Override
-    public void tick(int currentTick) {
+    /**
+     * Advances one simulation tick and runs the tasks due on that tick.
+     */
+    public void tick() {
+        if (Thread.currentThread() != this.owner) {
+            throw new IllegalStateException("Global scheduler ticks must run on the server thread");
+        }
+
         final List<GlobalScheduledTask> run;
         synchronized (this.stateLock) {
-            this.tickCount = currentTick;
+            this.tickCount = Math.incrementExact(this.tickCount);
             if (this.tasksByDeadline.isEmpty()) {
                 run = null;
             } else {
@@ -56,7 +59,6 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
     @Override
     public void execute(PluginContainer plugin, Runnable run) {
-        // plugin may be null for internal server tasks
         Objects.requireNonNull(run, "Runnable may not be null");
         this.run(plugin, task -> run.run());
     }
@@ -68,7 +70,6 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
     @Override
     public ScheduledTask runDelayed(PluginContainer plugin, Consumer<ScheduledTask> task, long delayTicks) {
-        // plugin may be null for internal server tasks
         Objects.requireNonNull(task, "Task may not be null");
         if (delayTicks <= 0) {
             throw new IllegalArgumentException("Delay ticks must be > 0");
@@ -81,7 +82,6 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
     @Override
     public ScheduledTask runAtFixedRate(PluginContainer plugin, Consumer<ScheduledTask> task, long initialDelayTicks, long periodTicks) {
-        // plugin may be null for internal server tasks
         Objects.requireNonNull(task, "Task may not be null");
 
         if (initialDelayTicks <= 0) {
@@ -99,7 +99,6 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
     @Override
     public void cancelTasks(PluginContainer plugin) {
-        // plugin may be null for internal server tasks; treat null as a valid owner key
         List<GlobalScheduledTask> toCancel = new ArrayList<>();
         synchronized (this.stateLock) {
             for (List<GlobalScheduledTask> bucket : this.tasksByDeadline.values()) {
@@ -129,14 +128,12 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
         for (GlobalScheduledTask globalScheduledTask : toCancel) {
             globalScheduledTask.cancel();
         }
-
-        this.tick((int) this.tickCount);
     }
 
     private void scheduleInternal(GlobalScheduledTask task, long delay) {
         synchronized (this.stateLock) {
             this.tasksByDeadline
-                    .computeIfAbsent(this.tickCount + delay, k -> new ArrayList<>())
+                    .computeIfAbsent(Math.addExact(this.tickCount, delay), k -> new ArrayList<>())
                     .add(task);
         }
     }
@@ -149,21 +146,10 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
         private static final int STATE_FINISHED = 3;
         private static final int STATE_CANCELLED = 4;
 
-        private static final VarHandle STATE_HANDLE;
-
-        static {
-            try {
-                STATE_HANDLE = MethodHandles.lookup()
-                        .findVarHandle(GlobalScheduledTask.class, "state", int.class);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-        }
-
         private final PluginContainer plugin;
         private final long repeatDelay;
         private Consumer<ScheduledTask> run;
-        private int state = STATE_IDLE;
+        private final AtomicInteger state = new AtomicInteger(STATE_IDLE);
 
         private GlobalScheduledTask(PluginContainer plugin, long repeatDelay, Consumer<ScheduledTask> run) {
             this.plugin = plugin;
@@ -171,22 +157,10 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
             this.run = run;
         }
 
-        private int getStateVolatile() {
-            return (int) STATE_HANDLE.getVolatile(this);
-        }
-
-        private void setStateVolatile(int value) {
-            STATE_HANDLE.setVolatile(this, value);
-        }
-
-        private int compareAndExchangeState(int expect, int update) {
-            return (int) STATE_HANDLE.compareAndExchange(this, expect, update);
-        }
-
         @Override
         public void run() {
             boolean repeating = this.isRepeatingTask();
-            if (STATE_IDLE != this.compareAndExchangeState(STATE_IDLE, STATE_EXECUTING)) {
+            if (!this.state.compareAndSet(STATE_IDLE, STATE_EXECUTING)) {
                 return;
             }
 
@@ -198,9 +172,11 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
             } finally {
                 boolean reschedule = false;
                 if (!repeating) {
-                    this.setStateVolatile(STATE_FINISHED);
-                } else if (STATE_EXECUTING == this.compareAndExchangeState(STATE_EXECUTING, STATE_IDLE)) {
+                    this.state.set(STATE_FINISHED);
+                } else if (this.state.compareAndSet(STATE_EXECUTING, STATE_IDLE)) {
                     reschedule = true;
+                } else {
+                    this.state.set(STATE_CANCELLED);
                 }
 
                 if (!reschedule) {
@@ -223,10 +199,10 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
         @Override
         public ScheduledTask.CancelledState cancel() {
-            for (int curr = this.getStateVolatile(); ; ) {
+            for (int curr = this.state.get(); ; ) {
                 switch (curr) {
                     case STATE_IDLE -> {
-                        int witness = this.compareAndExchangeState(STATE_IDLE, STATE_CANCELLED);
+                        int witness = this.state.compareAndExchange(STATE_IDLE, STATE_CANCELLED);
                         if (witness == STATE_IDLE) {
                             this.run = null;
                             return CancelledState.CANCELLED_BY_CALLER;
@@ -237,7 +213,7 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
                         if (!this.isRepeatingTask()) {
                             return CancelledState.RUNNING;
                         }
-                        int witness = this.compareAndExchangeState(STATE_EXECUTING, STATE_EXECUTING_CANCELLED);
+                        int witness = this.state.compareAndExchange(STATE_EXECUTING, STATE_EXECUTING_CANCELLED);
                         if (witness == STATE_EXECUTING) {
                             return CancelledState.NEXT_RUNS_CANCELLED;
                         }
@@ -259,13 +235,14 @@ public final class CloudGlobalScheduler implements GlobalScheduler {
 
         @Override
         public ScheduledTask.ExecutionState getExecutionState() {
-            return switch (this.getStateVolatile()) {
+            int current = this.state.get();
+            return switch (current) {
                 case STATE_IDLE -> ExecutionState.IDLE;
                 case STATE_EXECUTING -> ExecutionState.RUNNING;
                 case STATE_EXECUTING_CANCELLED -> ExecutionState.CANCELLED_RUNNING;
                 case STATE_FINISHED -> ExecutionState.FINISHED;
                 case STATE_CANCELLED -> ExecutionState.CANCELLED;
-                default -> throw new IllegalStateException("Unknown state: " + this.getStateVolatile());
+                default -> throw new IllegalStateException("Unknown state: " + current);
             };
         }
     }

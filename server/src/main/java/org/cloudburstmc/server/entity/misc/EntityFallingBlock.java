@@ -166,12 +166,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         }
         this.lastUpdate = currentTick;
 
-        this.timing.startTiming();
-        try {
-            return this.tickFallingBlock(tickDiff);
-        } finally {
-            this.timing.stopTiming();
-        }
+        return this.tickFallingBlock(tickDiff);
     }
 
     @Override

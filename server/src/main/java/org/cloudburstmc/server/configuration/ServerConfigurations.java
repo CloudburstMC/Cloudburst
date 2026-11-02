@@ -206,8 +206,8 @@ public class ServerConfigurations {
         updateProperties(properties -> properties.modifyDifficulty(difficulty));
     }
 
-    public GlobalConfiguration.Timings getTimings() {
-        return snapshot.global().getTimings();
+    public GlobalConfiguration.Spark getSpark() {
+        return snapshot.global().getSpark();
     }
 
     public GlobalConfiguration.Settings getSettings() {
@@ -355,7 +355,7 @@ public class ServerConfigurations {
         checkRestart(problems, "chunk-generation", before.getChunkGeneration(), after.getChunkGeneration());
         checkRestart(problems, "chunk-system", before.getChunkSystem(), after.getChunkSystem());
         checkRestart(problems, "player", before.getPlayer(), after.getPlayer());
-        checkRestart(problems, "timings", before.getTimings(), after.getTimings());
+        checkRestart(problems, "spark", before.getSpark(), after.getSpark());
         checkRestart(problems, "ticks-per", before.getTicksPer(), after.getTicksPer());
         checkRestart(problems, "debug", before.getDebug(), after.getDebug());
         checkRestart(problems, "levels", before.getLevels(), after.getLevels());

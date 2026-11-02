@@ -105,8 +105,6 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
             return false;
         }
 
-        this.timing.startTiming();
-
         boolean hasUpdate = (this.isEmbedded() || this.data().isDealtDamage())
                 && this.loyaltyLevel() > 0 && this.getOwner() instanceof CloudPlayer player
                 && player.isOnline() && player.isAlive() && !player.isSpectator()
@@ -120,8 +118,6 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
             this.close();
             hasUpdate = true;
         }
-
-        this.timing.stopTiming();
 
         return hasUpdate;
     }

@@ -137,8 +137,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
             return false;
         }
 
-        this.timing.startTiming();
-
         boolean ret = false;
 
         ItemStack fuel = this.getFuel();
@@ -211,8 +209,6 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         }
 
         this.lastUpdate = System.currentTimeMillis();
-
-        this.timing.stopTiming();
 
         return ret;
     }

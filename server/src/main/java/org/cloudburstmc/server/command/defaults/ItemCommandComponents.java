@@ -5,7 +5,7 @@ import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStackBuilder;
 import org.cloudburstmc.api.item.data.ItemLockMode;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import tools.jackson.databind.JsonNode;
 
 import java.util.*;
@@ -49,7 +49,7 @@ public class ItemCommandComponents {
 
         JsonNode root;
         try {
-            root = Bootstrap.JSON_MAPPER.readTree(input);
+            root = ServerJson.MAPPER.readTree(input);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid item components JSON", e);
         }

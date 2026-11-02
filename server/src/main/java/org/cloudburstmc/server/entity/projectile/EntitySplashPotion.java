@@ -109,8 +109,6 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             return false;
         }
 
-        this.timing.startTiming();
-
         boolean hasUpdate = super.onUpdate(currentTick);
 
         if (this.age > 1200) {
@@ -120,7 +118,6 @@ public class EntitySplashPotion extends EntityProjectile implements SplashPotion
             this.splash(null);
             hasUpdate = true;
         }
-        this.timing.stopTiming();
         return hasUpdate;
     }
 

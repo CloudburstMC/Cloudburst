@@ -5,68 +5,72 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.diagnostics.CrashReports;
 import org.cloudburstmc.server.diagnostics.ThreadDump;
 
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Monitors tick heartbeats without reading or mutating world state from the watchdog thread.
+ */
 @Log4j2
 public class Watchdog extends Thread {
 
     private final CloudServer server;
-    private final long time;
-    public boolean running;
-    private boolean responding = true;
+    private final long timeoutNanos;
+    private final CountDownLatch stopped = new CountDownLatch(1);
 
-    public Watchdog(CloudServer server, long time) {
-        this.server = server;
-        this.time = time;
-        this.running = true;
+    public Watchdog(CloudServer server, long timeoutMillis) {
+        if (timeoutMillis <= 0) {
+            throw new IllegalArgumentException("Watchdog timeout must be positive");
+        }
+        this.server = Objects.requireNonNull(server, "server");
+        this.timeoutNanos = TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
         this.setName("Watchdog");
         this.setDaemon(true);
     }
 
     public void kill() {
-        running = false;
-        synchronized (this) {
-            this.notifyAll();
-        }
+        this.stopped.countDown();
     }
 
     @Override
     public void run() {
-        while (this.running) {
-            long current = server.getNextTick();
-            if (current != 0) {
-                long diff = System.currentTimeMillis() - current;
-                if (!responding && diff > time * 2) {
-                    System.exit(1); // Kill the server if it gets stuck on shutdown
+        boolean shutdownRequested = false;
+        long shutdownAt = 0;
+        long pollInterval = Math.min(this.timeoutNanos / 4, TimeUnit.SECONDS.toNanos(1));
+
+        while (this.stopped.getCount() != 0) {
+            long unresponsive = this.server.getUnresponsiveNanos();
+            if (!shutdownRequested && unresponsive >= this.timeoutNanos) {
+                long milliseconds = TimeUnit.NANOSECONDS.toMillis(unresponsive);
+                log.fatal("Server has not responded for {} ms. Requesting shutdown.", milliseconds);
+                log.fatal(ThreadDump.capture());
+
+                try {
+                    log.fatal("Crash report saved to {}", CrashReports.write(
+                            this.server.getFiles().crashReports(), this.server.getPrimaryThread(),
+                            new IllegalStateException("Server stopped responding for " + milliseconds + " ms")));
+                } catch (Exception failure) {
+                    log.error("Unable to write watchdog crash report", failure);
                 }
 
-                if (server.isRunning() && diff > time) {
-                    if (responding) {
+                shutdownRequested = true;
+                shutdownAt = System.nanoTime();
+                this.server.shutdown();
+            }
 
-                        log.fatal("--------- Server stopped responding --------- (" + Math.round(diff / 1000d) + "s)");
-                        log.fatal("Please report this to Cloudburst:");
-                        log.fatal(" - https://github.com/CloudburstMC/Server/issues/new");
-                        log.fatal(ThreadDump.capture());
-
-                        try {
-                            log.fatal("Crash report saved to {}", CrashReports.write(
-                                    server.getFiles().crashReports(), this,
-                                    new IllegalStateException("Server stopped responding for " + diff + "ms")));
-                        } catch (Exception failure) {
-                            log.error("Unable to write watchdog crash report", failure);
-                        }
-
-                        responding = false;
-                        this.server.forceShutdown();
-                    }
-                } else {
-                    responding = true;
-                }
+            if (shutdownRequested && System.nanoTime() - shutdownAt >= this.timeoutNanos) {
+                log.fatal("Server did not complete watchdog shutdown. Terminating the process.");
+                Runtime.getRuntime().halt(1);
             }
 
             try {
-                synchronized (this) {
-                    this.wait(Math.max(time / 4, 1000));
+                if (this.stopped.await(pollInterval, TimeUnit.NANOSECONDS)) {
+                    return;
                 }
-            } catch (InterruptedException ignore) {
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                return;
             }
         }
     }
