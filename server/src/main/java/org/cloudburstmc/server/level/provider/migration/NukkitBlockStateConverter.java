@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.provider.migration;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.*;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import tools.jackson.core.type.TypeReference;
@@ -28,7 +28,7 @@ public class NukkitBlockStateConverter {
 
     public NukkitBlockStateConverter() throws IOException {
         try (InputStream input = RegistryUtils.getOrAssertResource("migration/nukkit/block_save_ids.json")) {
-            this.saveIds = Map.copyOf(Bootstrap.JSON_MAPPER.readValue(input, new TypeReference<Map<String, Integer>>() {}));
+            this.saveIds = Map.copyOf(ServerJson.MAPPER.readValue(input, new TypeReference<Map<String, Integer>>() {}));
         }
 
         try (NBTInputStream input = NbtUtils.createGZIPReader(RegistryUtils.getOrAssertResource("migration/nukkit/block_states.nbt"))) {

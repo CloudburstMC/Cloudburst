@@ -11,6 +11,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.*;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CloudCommandSourceStack;
+import org.cloudburstmc.server.command.ServerOnlyArgumentType;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudCommandRegistry;
 
@@ -18,6 +19,7 @@ import java.util.*;
 
 @UtilityClass
 public class CommandNetworkCompiler {
+
     private static final Set<CommandEnumConstraint> ALIAS_CONSTRAINTS =
             Collections.unmodifiableSet(EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
 
@@ -137,12 +139,18 @@ public class CommandNetworkCompiler {
             if (!child.canUse(source)) {
                 continue;
             }
+
+            if (child instanceof ArgumentCommandNode<CommandSourceStack, ?> argument && argument.getType() instanceof ServerOnlyArgumentType<?>) {
+                continue;
+            }
+
             nodes.add(child);
             path.add(toNetworkParameter(child, networkData));
             collectExecutablePaths(child, source, nodes, path, paths, visiting, networkData);
             path.removeLast();
             nodes.removeLast();
         }
+
         visiting.remove(node);
     }
 
@@ -203,7 +211,8 @@ public class CommandNetworkCompiler {
     }
 
     private static boolean isRequired(CommandNode<CommandSourceStack> node) {
-        return node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
+        return node instanceof LiteralCommandNode<?>
+                || node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
                 && argument.getType() instanceof CommandArgumentType<?> commandArgument
                 && commandArgument.isRequiredInSyntax();
     }

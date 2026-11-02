@@ -7,7 +7,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import tools.jackson.core.type.TypeReference;
 
@@ -134,7 +134,7 @@ public record VanillaItemPaletteData(
 
     private static <T> T readJson(String resource, TypeReference<T> type) {
         try (InputStream input = RegistryUtils.getOrAssertResource(resource)) {
-            return Objects.requireNonNull(Bootstrap.JSON_MAPPER.readValue(input, type), resource);
+            return Objects.requireNonNull(ServerJson.MAPPER.readValue(input, type), resource);
         } catch (IOException | RuntimeException failure) {
             throw new RegistryException("Unable to load " + resource, failure);
         }

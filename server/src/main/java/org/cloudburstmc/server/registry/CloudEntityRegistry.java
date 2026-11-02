@@ -29,7 +29,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
@@ -66,7 +66,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
-            Map<String, String> legacyNames = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
+            Map<String, String> legacyNames = ServerJson.MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
             });
 
             ImmutableBiMap.Builder<String, Identifier> mapBuilder = ImmutableBiMap.builder();

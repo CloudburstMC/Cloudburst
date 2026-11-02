@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.player.manager;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import it.unimi.dsi.fastutil.longs.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -136,50 +134,46 @@ public final class PlayerChunkManager {
 
         LongList list = new LongArrayList(this.sendQueue.keySet());
 
-        try (Timing ignored = Timings.playerChunkOrderTimer.startTiming()) {
-            list.unstableSort(this.distanceSorter);
-        }
+        list.unstableSort(this.distanceSorter);
 
-        try (Timing ignored = Timings.playerChunkSendTimer.startTiming()) {
-            for (long key : list.toLongArray()) {
-                if (chunksPerTick <= 0) {
-                    break;
-                }
+        for (long key : list.toLongArray()) {
+            if (chunksPerTick <= 0) {
+                break;
+            }
 
-                ChunkSend request = this.sendQueue.get(key);
-                if (request == null || request.packet == null) {
-                    continue;
-                }
-                LevelChunkPacket packet = request.packet;
+            ChunkSend request = this.sendQueue.get(key);
+            if (request == null || request.packet == null) {
+                continue;
+            }
+            LevelChunkPacket packet = request.packet;
 
-                this.sendQueue.remove(key);
-                if (!this.player.sendPacket(packet)) {
-                    this.release(packet);
-                    if (this.viewRevision != revision) {
-                        return;
-                    }
-                    this.loadQueue.add(key);
-                    continue;
-                }
-
-                chunksPerTick--;
-                this.chunksSentCounter.incrementAndGet();
+            this.sendQueue.remove(key);
+            if (!this.player.sendPacket(packet)) {
+                this.release(packet);
                 if (this.viewRevision != revision) {
                     return;
                 }
+                this.loadQueue.add(key);
+                continue;
+            }
 
-                int subChunkLimit = packet.getSubChunkLimit();
-                this.shellSentChunks.add(key);
+            chunksPerTick--;
+            this.chunksSentCounter.incrementAndGet();
+            if (this.viewRevision != revision) {
+                return;
+            }
 
-                if (subChunkLimit <= 0) {
-                    this.markReady(key);
-                } else {
-                    this.pendingSubChunks.put(key, subChunkLimit);
-                }
+            int subChunkLimit = packet.getSubChunkLimit();
+            this.shellSentChunks.add(key);
 
-                if (this.viewRevision != revision) {
-                    return;
-                }
+            if (subChunkLimit <= 0) {
+                this.markReady(key);
+            } else {
+                this.pendingSubChunks.put(key, subChunkLimit);
+            }
+
+            if (this.viewRevision != revision) {
+                return;
             }
         }
 

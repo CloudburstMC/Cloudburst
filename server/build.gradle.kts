@@ -10,6 +10,15 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+repositories {
+    maven("https://repo.lucko.me/") {
+        content {
+            includeGroup("me.lucko")
+            includeModule("net.kyori", "adventure-text-feature-pagination")
+        }
+    }
+}
+
 @CacheableRule
 public abstract class LibDataChannelAlignmentRule : ComponentMetadataRule {
     public override fun execute(context: ComponentMetadataContext) {
@@ -58,6 +67,10 @@ dependencies {
     implementation(libs.jopt.simple)
     implementation(libs.jose.jwt)
     implementation(libs.upnp)
+    implementation(libs.spark.common) {
+        exclude(group = "me.lucko", module = "spark-api")
+    }
+    implementation(libs.spark.api)
 
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
@@ -66,6 +79,12 @@ dependencies {
 
 extraJavaModuleInfo {
     failOnAutomaticModules.set(false)
+    automaticModule(libs.spark.common, "me.lucko.spark.common")
+    automaticModule(libs.spark.api, "me.lucko.spark.api")
+    automaticModule("me.lucko:bytesocks-java-client", "me.lucko.bytesocks.client")
+    knownModule("net.kyori:adventure-text-feature-pagination", "net.kyori.adventure.text.feature.pagination")
+    knownModule("com.google.protobuf:protobuf-javalite", "com.google.protobuf")
+    automaticModule("tools.profiler:async-profiler", "tools.profiler.async")
     automaticModule(libs.block.state.updater, "org.cloudburstmc.blockstateupdater") {
         overrideModuleName()
     }

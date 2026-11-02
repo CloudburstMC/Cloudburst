@@ -145,8 +145,6 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
             return false;
         }
 
-        this.timing.startTiming();
-
         int tickDiff = Math.max(0, currentTick - this.lastUpdate);
         boolean hasUpdate = super.onUpdate(currentTick);
 
@@ -168,8 +166,6 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
             this.close();
             hasUpdate = true;
         }
-
-        this.timing.stopTiming();
 
         return hasUpdate;
     }

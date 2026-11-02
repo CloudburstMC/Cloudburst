@@ -39,6 +39,7 @@ public class CloudburstPrivateModule extends PrivateModule {
         this.bindAndExpose(CloudEnchantmentRegistry.class).toInstance(CloudEnchantmentRegistry.get());
         this.bindAndExpose(CloudEntityRegistry.class).toInstance(CloudEntityRegistry.get());
         this.bindAndExpose(CloudGameRuleRegistry.class).toInstance(CloudGameRuleRegistry.get());
+        this.bindAndExpose(CloudGlobalScheduler.class);
         this.bindAndExpose(CloudItemRegistry.class).toInstance(CloudItemRegistry.get());
         this.bindAndExpose(CloudParticleRegistry.class).toInstance(CloudParticleRegistry.get());
         this.bindAndExpose(CloudRecipeRegistry.class).toInstance(CloudRecipeRegistry.get());

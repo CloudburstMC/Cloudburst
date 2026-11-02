@@ -9,7 +9,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.utils.SkinUtils;
 import tools.jackson.databind.JsonNode;
 
@@ -60,7 +60,7 @@ public class AuthenticatedPlayerData implements PlayerProfile, PlayerClientInfo 
                 throw new IllegalStateException("Client data signature does not match the identity key");
             }
 
-            JsonNode skinToken = Objects.requireNonNull(Bootstrap.JSON_MAPPER.readTree(verifiedSkinData), "Client data is empty");
+            JsonNode skinToken = Objects.requireNonNull(ServerJson.MAPPER.readTree(verifiedSkinData), "Client data is empty");
             DecodedClientData clientData = DecodedClientData.read(skinToken);
 
             this.clientId = clientData.clientId();

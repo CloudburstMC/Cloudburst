@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.manager;
 
-import co.aikar.timings.Timing;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
@@ -445,26 +444,24 @@ public class LevelChunkManager {
             pendingTickSaveTicker = 0;
         }
 
-        try (Timing ignored = this.level.timings.doChunkGC.startTiming()) {
-            for (Iterator<Map.Entry<Long, ChunkHolder>> iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
-                Map.Entry<Long, ChunkHolder> entry = iter.next();
-                ChunkHolder loadingChunk = entry.getValue();
-                long chunkKey = loadingChunk.getKey();
-                CloudChunk chunk = loadingChunk.getLoadedChunk();
-                if (chunk == null) {
-                    continue;
-                }
+        for (Iterator<Map.Entry<Long, ChunkHolder>> iter = this.chunks.entrySet().iterator(); iter.hasNext(); ) {
+            Map.Entry<Long, ChunkHolder> entry = iter.next();
+            ChunkHolder loadingChunk = entry.getValue();
+            long chunkKey = loadingChunk.getKey();
+            CloudChunk chunk = loadingChunk.getLoadedChunk();
+            if (chunk == null) {
+                continue;
+            }
 
-                if (doTickSave && loadingChunk.isPromoted() && this.level.areTicksDirty(chunkKey)) {
-                    this.provider.savePendingTicks(chunk).exceptionally(throwable -> {
-                        log.warn("Failed to incrementally save pending ticks for chunk ({}, {})", chunk.getX(), chunk.getZ(), throwable);
-                        return null;
-                    });
-                }
+            if (doTickSave && loadingChunk.isPromoted() && this.level.areTicksDirty(chunkKey)) {
+                this.provider.savePendingTicks(chunk).exceptionally(throwable -> {
+                    log.warn("Failed to incrementally save pending ticks for chunk ({}, {})", chunk.getX(), chunk.getZ(), throwable);
+                    return null;
+                });
+            }
 
-                if (tryUnload(chunkKey, loadingChunk, true)) {
-                    iter.remove();
-                }
+            if (tryUnload(chunkKey, loadingChunk, true)) {
+                iter.remove();
             }
         }
     }
@@ -551,7 +548,7 @@ public class LevelChunkManager {
             return false;
         }
 
-        try (Timing ignored = this.level.timings.doChunkUnload.startTiming()) {
+        try {
             if (loadingChunk.isPromoted()) {
                 ChunkUnloadEvent chunkUnloadEvent = new ChunkUnloadEvent(chunk, save);
                 this.level.getServer().getEventManager().fire(chunkUnloadEvent);

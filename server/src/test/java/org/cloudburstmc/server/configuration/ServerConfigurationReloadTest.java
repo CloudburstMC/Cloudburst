@@ -77,7 +77,7 @@ class ServerConfigurationReloadTest {
         ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
         writeGlobal(30);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"),
-                "config-version: 1\nlevel:\n  water-over-lava-flow-speed: 9\n");
+                "level:\n  water-over-lava-flow-speed: 9\n");
 
         config.reload();
 
@@ -92,12 +92,12 @@ class ServerConfigurationReloadTest {
         ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
         Path file = directory.resolve("worlds/dynamic/cloudburst-level.yml");
         Files.createDirectories(file.getParent());
-        Files.writeString(file, "config-version: 1\nlevel:\n  max-liquid-ticks: 12\n");
+        Files.writeString(file, "level:\n  max-liquid-ticks: 12\n");
         config.initializeLevelConfiguration("dynamic");
 
         assertEquals(12, config.getLevelConfiguration("dynamic").getLevel().getMaxLiquidTicks());
 
-        Files.writeString(file, "config-version: 1\nlevel:\n  max-liquid-ticks: 18\n");
+        Files.writeString(file, "level:\n  max-liquid-ticks: 18\n");
         config.reload();
 
         assertEquals(18, config.getLevelConfiguration("dynamic").getLevel().getMaxLiquidTicks());
@@ -109,7 +109,7 @@ class ServerConfigurationReloadTest {
         ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds")));
         writeGlobal(30);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"),
-                "config-version: 1\nlevel:\n  max-liquid-ticks: 0\n");
+                "level:\n  max-liquid-ticks: 0\n");
 
         ConfigurationValidationException exception = assertThrows(ConfigurationValidationException.class, config::reload);
 
@@ -132,19 +132,21 @@ class ServerConfigurationReloadTest {
     }
 
     @Test
-    void unsupportedOrMissingVersionsAreRejected() throws Exception {
+    void documentsNeedOnlyTheirSettingsAndStillRejectUnknownFields() throws Exception {
         prepare();
         Path file = directory.resolve("config/cloudburst-global.yml");
 
         Files.writeString(file, "settings: {}\n");
-        assertThrows(ConfigurationValidationException.class, () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+        assertEquals(new GlobalConfiguration(), GlobalConfiguration.fromFile(file));
 
-        Files.writeString(file, "config-version: 2\n");
-        assertThrows(ConfigurationValidationException.class, () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+        Files.writeString(file, "unknown-setting: true\n");
+        assertThrows(ConfigurationValidationException.class, () -> GlobalConfiguration.fromFile(file));
 
         writeGlobal(20);
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"), "level: {}\n");
-        assertThrows(ConfigurationValidationException.class, () -> ServerConfigurations.load(new ServerFileLayout(directory, directory.resolve("worlds"))));
+        ServerFileLayout layout = new ServerFileLayout(directory, directory.resolve("worlds"));
+        ServerConfigurations settings = ServerConfigurations.load(layout);
+        assertEquals(40, settings.getLevelConfiguration("example").getLevel().getMaxLiquidTicks());
     }
 
     @Test
@@ -153,7 +155,7 @@ class ServerConfigurationReloadTest {
         Path levels = directory.resolve("custom-levels");
         Path overrides = levels.resolve("example/cloudburst-level.yml");
         Files.createDirectories(overrides.getParent());
-        Files.writeString(overrides, "config-version: 1\nlevel:\n  max-liquid-ticks: 17\n");
+        Files.writeString(overrides, "level:\n  max-liquid-ticks: 17\n");
 
         ServerConfigurations config = ServerConfigurations.load(new ServerFileLayout(directory, levels));
 
@@ -191,7 +193,6 @@ class ServerConfigurationReloadTest {
     void obsoleteStorageGroupHasNoCompatibilityAlias() throws Exception {
         prepare();
         Files.writeString(directory.resolve("config/cloudburst-global.yml"), """
-                config-version: 1
                 level-settings:
                   default-format: minecraft:leveldb
                 """);
@@ -229,7 +230,6 @@ class ServerConfigurationReloadTest {
         for (String name : new String[]{"missing", "example"}) {
             Files.writeString(layout.properties(), "default-level=" + name + "\n");
             Files.writeString(layout.global(), """
-                    config-version: 1
                     levels:
                       example:
                         dimension: the_end
@@ -263,7 +263,6 @@ class ServerConfigurationReloadTest {
         Files.writeString(directory.resolve("server.properties"), "default-level=example\n");
         writeGlobal(20);
         Files.writeString(directory.resolve("config/cloudburst-level-defaults.yml"), """
-                config-version: 1
                 level:
                   max-liquid-ticks: 40
                 chunk-ticking:
@@ -271,7 +270,6 @@ class ServerConfigurationReloadTest {
                 """);
         Files.createDirectories(directory.resolve("worlds/example"));
         Files.writeString(directory.resolve("worlds/example/cloudburst-level.yml"), """
-                config-version: 1
                 level:
                   water-over-lava-flow-speed: 8
                 chunk-sending:
@@ -282,7 +280,6 @@ class ServerConfigurationReloadTest {
     private void writeGlobal(int speed) throws Exception {
         Files.createDirectories(directory.resolve("config"));
         Files.writeString(directory.resolve("config/cloudburst-global.yml"), """
-                config-version: 1
                 movement:
                   max-speed-threshold: %s
                 levels:

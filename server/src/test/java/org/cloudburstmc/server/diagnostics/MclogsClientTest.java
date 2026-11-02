@@ -1,7 +1,7 @@
 package org.cloudburstmc.server.diagnostics;
 
 import com.sun.net.httpserver.HttpServer;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -41,8 +41,8 @@ class MclogsClientTest {
             assertEquals(URI.create("https://mclo.gs/Ab123"), client.upload(report));
             assertEquals("POST", method.get());
             assertEquals("application/json; charset=utf-8", contentType.get());
-            assertEquals(Bootstrap.JSON_MAPPER.valueToTree(Map.of("source", "Cloudburst", "content", report)),
-                    Bootstrap.JSON_MAPPER.readTree(request.get()));
+            assertEquals(ServerJson.MAPPER.valueToTree(Map.of("source", "Cloudburst", "content", report)),
+                    ServerJson.MAPPER.readTree(request.get()));
         } finally {
             server.stop(0);
         }
