@@ -239,8 +239,16 @@ public class CloudServer implements Server {
         broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
     }
 
+    public void broadcastMessage(String message) {
+        this.broadcastMessage(Component.text(message));
+    }
+
     public void broadcastMessage(Component message) {
         this.broadcast(message, BROADCAST_CHANNEL_USERS);
+    }
+
+    public void broadcastMessage(String message, CommandSender[] recipients) {
+        this.broadcastMessage(Component.text(message), recipients);
     }
 
     public void broadcastMessage(Component message, CommandSender[] recipients) {
@@ -249,10 +257,18 @@ public class CloudServer implements Server {
         }
     }
 
+    public void broadcastMessage(String message, Collection<? extends CommandSender> recipients) {
+        this.broadcastMessage(Component.text(message), recipients);
+    }
+
     public void broadcastMessage(Component message, Collection<? extends CommandSender> recipients) {
         for (CommandSender recipient : recipients) {
             recipient.sendMessage(message);
         }
+    }
+
+    public void broadcast(String message, String permission) {
+        this.broadcast(Component.text(message), permission);
     }
 
     public void broadcast(Component message, String permission) {

@@ -570,12 +570,20 @@ public interface Player extends Creature, CommandSender {
      */
     void sendPopup(Component message);
 
+    default void sendPopup(String message) {
+        this.sendPopup(Component.text(message));
+    }
+
     /**
      * Sends a tip message.
      *
      * @param message the tip message
      */
     void sendTip(Component message);
+
+    default void sendTip(String message) {
+        this.sendTip(Component.text(message));
+    }
 
     /**
      * Sends an action bar message.
@@ -584,6 +592,10 @@ public interface Player extends Creature, CommandSender {
      */
     @Override
     void sendActionBar(@NonNull Component message);
+
+    default void sendActionBar(String message) {
+        this.sendActionBar(Component.text(message));
+    }
 
     /**
      * Sends an action bar message with explicit animation timing in ticks.
@@ -595,12 +607,20 @@ public interface Player extends Creature, CommandSender {
      */
     void sendActionBar(Component message, int fadeIn, int stay, int fadeOut);
 
+    default void sendActionBar(String message, int fadeIn, int stay, int fadeOut) {
+        this.sendActionBar(Component.text(message), fadeIn, stay, fadeOut);
+    }
+
     /**
      * Sends a title with default animation timing.
      *
      * @param title the title text
      */
     void sendTitle(Component title);
+
+    default void sendTitle(String title) {
+        this.sendTitle(Component.text(title));
+    }
 
     /**
      * Sends a title and subtitle with default animation timing.
@@ -609,6 +629,10 @@ public interface Player extends Creature, CommandSender {
      * @param subtitle the subtitle text
      */
     void sendTitle(Component title, Component subtitle);
+
+    default void sendTitle(String title, String subtitle) {
+        this.sendTitle(Component.text(title), Component.text(subtitle));
+    }
 
     /**
      * Sends a title and subtitle with explicit animation timing in ticks.
@@ -621,12 +645,20 @@ public interface Player extends Creature, CommandSender {
      */
     void sendTitle(Component title, Component subtitle, int fadeIn, int stay, int fadeOut);
 
+    default void sendTitle(String title, Component subtitle, int fadeIn, int stay, int fadeOut) {
+        this.sendTitle(Component.text(title), subtitle, fadeIn, stay, fadeOut);
+    }
+
     /**
      * Sends a subtitle without replacing the current title.
      *
      * @param subtitle the subtitle text
      */
     void sendSubtitle(Component subtitle);
+
+    default void sendSubtitle(String message) {
+        this.sendSubtitle(Component.text(message));
+    }
 
     /**
      * Sets title animation timing in ticks.

@@ -22,6 +22,10 @@ public interface CommandSender extends Audience, Permissible {
     @Override
     void sendMessage(@NonNull Component message);
 
+    default void sendMessage(@NonNull String message) {
+        this.sendMessage(Component.text(message));
+    }
+
     /**
      * Returns the server instance associated with this command sender.
      *
