@@ -6,14 +6,12 @@ import org.cloudburstmc.server.level.generator.GeneratorConfigurationMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GlobalConfigurationMappingTest {
 
@@ -22,6 +20,8 @@ class GlobalConfigurationMappingTest {
     void parsingWorks() {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("config/cloudburst.yml");
         GlobalConfiguration yml = GeneratorConfigurationMapper.MAPPER.readValue(stream, GlobalConfiguration.class);
+
+        assertFalse(yml.getSpark().isEnabled());
 
         assertEquals(
                 GlobalConfiguration.Settings.builder()
@@ -56,19 +56,6 @@ class GlobalConfigurationMappingTest {
                         .ignoredPackets(Stream.of("LevelChunkPacket").collect(Collectors.toList()))
                         .build(),
                 yml.getDebug()
-        );
-
-        assertEquals(
-                GlobalConfiguration.Timings.builder()
-                        .enabled(false)
-                        .verbose(false)
-                        .historyInterval(6000)
-                        .historyLength(72000)
-                        .bypassMax(false)
-                        .privacy(false)
-                        .ignore(Collections.emptyList())
-                        .build(),
-                yml.getTimings()
         );
 
         assertEquals(

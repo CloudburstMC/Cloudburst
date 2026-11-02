@@ -2,8 +2,6 @@
 # %header.2
 # %header.3
 
-config-version: 1
-
 # Global server settings. Level overrides belong in each level's cloudburst-level.yml.
 
 settings:
@@ -47,27 +45,8 @@ debug:
   ignored-packets:
     - "LevelChunkPacket"
 
-timings:
-  # %timings.enabled
-  enabled: false
-  # %timings.verbose
-  verbose: false
-  # %timings.history-interval.1
-  # %timings.history-interval.2
-  history-interval: 6000
-  # %timings.history-length.1
-  # %timings.history-length.2
-  # %timings.history-length.3
-  history-length: 72000
-  # %timings.bypass-max.1
-  # %timings.bypass-max.2
-  # %timings.bypass-max.3
-  bypass-max: false
-  # %timings.privacy
-  privacy: false
-  # %timings.ignore.1
-  # %timings.ignore.2
-  ignore: []
+spark:
+  enabled: true
 
 level-storage:
   # %level-settings.default-format

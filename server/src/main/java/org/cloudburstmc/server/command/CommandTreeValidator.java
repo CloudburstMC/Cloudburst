@@ -11,7 +11,7 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 /**
- * Validates that a Brigadier tree has an exact representation in command data sent to clients.
+ * Validates advertised argument types and redirect structure.
  */
 @UtilityClass
 public class CommandTreeValidator {
@@ -28,7 +28,9 @@ public class CommandTreeValidator {
             throw new IllegalArgumentException("Command tree contains a redirect cycle: " + node.getName());
         }
 
-        if (node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument && !(argument.getType() instanceof CommandArgumentType<?>)) {
+        if (node instanceof ArgumentCommandNode<CommandSourceStack, ?> argument
+                && !(argument.getType() instanceof CommandArgumentType<?>)
+                && !(argument.getType() instanceof ServerOnlyArgumentType<?>)) {
             throw new IllegalArgumentException("Command argument has no client representation: " + node.getName());
         }
 

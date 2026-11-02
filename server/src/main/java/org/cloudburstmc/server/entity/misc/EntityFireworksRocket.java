@@ -104,8 +104,6 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
 
         this.lastUpdate = currentTick;
 
-        this.timing.startTiming();
-
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
         if (this.isAlive()) {
@@ -116,7 +114,6 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
             }
 
             if (!this.isAlive()) {
-                this.timing.stopTiming();
                 return true;
             }
 
@@ -131,8 +128,6 @@ public class EntityFireworksRocket extends EntityProjectile implements Fireworks
                 this.explode();
             }
         }
-
-        this.timing.stopTiming();
 
         return hasUpdate || !this.onGround ||
                 Math.abs(this.motion.getX()) > 0.00001 ||

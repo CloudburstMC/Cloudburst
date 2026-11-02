@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.event;
 
-import co.aikar.timings.Timings;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -16,7 +15,6 @@ import org.cloudburstmc.server.event.firehandler.ReflectionEventFireHandler;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -66,7 +64,6 @@ public class CloudEventManager implements EventManager {
                             eventClass.getSimpleName(), listener.getClass().getSimpleName());
                 }
 
-                method.setAccessible(true);
                 validListener = true;
             }
         }
@@ -159,15 +156,13 @@ public class CloudEventManager implements EventManager {
     private void bakeHandlers() {
         Map<Class<? extends Event>, List<ReflectionEventFireHandler.ListenerMethod>> listenerMap = new HashMap<>();
 
-        for (Entry<PluginContainer, Set<Object>> entry : listenersByPlugin.entrySet()) {
-            PluginContainer container = entry.getKey();
-
-            for (Object listener : entry.getValue()) {
+        for (Set<Object> listeners : listenersByPlugin.values()) {
+            for (Object listener : listeners) {
                 for (Method method : listener.getClass().getDeclaredMethods()) {
-                    if (method.isAnnotationPresent(Listener.class)) {
+                    if (!method.isBridge() && !method.isSynthetic() && method.isAnnotationPresent(Listener.class)) {
                         Class<? extends Event> event = (Class<? extends Event>) method.getParameterTypes()[0];
                         listenerMap.computeIfAbsent(event, (k) -> new ArrayList<>())
-                                .add(new ReflectionEventFireHandler.ListenerMethod(listener, method, Timings.getPluginEventTiming(event, listener, method, container)));
+                                .add(new ReflectionEventFireHandler.ListenerMethod(listener, method));
                     }
                 }
             }

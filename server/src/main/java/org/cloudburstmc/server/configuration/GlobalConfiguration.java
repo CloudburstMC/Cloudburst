@@ -33,11 +33,7 @@ import java.util.Map;
 public class GlobalConfiguration {
 
     @Builder.Default
-    @SettingConstraint(min = 1, max = 1)
-    private int configVersion = ConfigurationVersions.CURRENT;
-
-    @Builder.Default
-    private Timings timings = new Timings();
+    private Spark spark = new Spark();
 
     @Builder.Default
     private Settings settings = new Settings();
@@ -75,7 +71,6 @@ public class GlobalConfiguration {
     public static GlobalConfiguration fromFile(Path file) {
         try {
             Configuration configuration = new YamlConfigurationLoader().load(file);
-            ConfigurationVersions.requireCurrent(file, configuration);
             GlobalConfiguration yaml = ServerConfigurationMappers.SETTINGS.convertValue(
                     configuration.getValues(false), GlobalConfiguration.class);
 
@@ -103,8 +98,24 @@ public class GlobalConfiguration {
     private void freezeCollections() {
         network.advertisedAddresses = List.copyOf(network.advertisedAddresses);
         debug.ignoredPackets = List.copyOf(debug.ignoredPackets);
-        timings.ignore = List.copyOf(timings.ignore);
         levels = Map.copyOf(levels);
+    }
+
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonAutoDetect(
+            fieldVisibility = JsonAutoDetect.Visibility.ANY,
+            getterVisibility = JsonAutoDetect.Visibility.NONE,
+            isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class Spark {
+
+        @Builder.Default
+        private boolean enabled = true;
     }
 
     @Getter
@@ -439,46 +450,5 @@ public class GlobalConfiguration {
         @Builder.Default
         @SettingConstraint(min = 0, minInclusive = false)
         private int cacheCleanup = 900;
-    }
-
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @JsonAutoDetect(
-            fieldVisibility = JsonAutoDetect.Visibility.ANY,
-            getterVisibility = JsonAutoDetect.Visibility.NONE,
-            isGetterVisibility = JsonAutoDetect.Visibility.NONE)
-    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
-    public static class Timings {
-
-        @Builder.Default
-        private boolean enabled = false;
-
-        @Builder.Default
-        private boolean verbose = false;
-
-        @Builder.Default
-        private boolean privacy = false;
-
-        @Builder.Default
-        @SettingConstraint(min = 0, minInclusive = false)
-        private int historyInterval = 6000;
-
-        @Builder.Default
-        @SettingConstraint(min = 0, minInclusive = false)
-        private int historyLength = 72000;
-
-        @Builder.Default
-        private List<String> ignore = Collections.emptyList();
-
-        @Builder.Default
-        private boolean bypassMax = false;
-
-        public List<String> getIgnore() {
-            return List.copyOf(ignore);
-        }
     }
 }

@@ -34,10 +34,11 @@ public class DebugReport {
         report.append("Implementation: ").append(server.getImplementationVersion()).append('\n');
         report.append("Minecraft: ").append(server.getVersion()).append('\n');
         report.append("Protocol: ").append(ProtocolInfo.getDefaultProtocolVersion()).append('\n');
-        report.append("TPS: ").append(server.getTicksPerSecond()).append('\n');
-        report.append("Tick usage: ").append(server.getTickUsage()).append("%\n");
-        report.append("Network bytes sent since statistics reset: ").append(server.getNetwork().getUpload()).append('\n');
-        report.append("Network bytes received since statistics reset: ").append(server.getNetwork().getDownload()).append('\n');
+        ServerTickStatistics.Snapshot statistics = server.getTickStatistics().snapshot();
+        report.append("TPS (1m): ").append(statistics.oneMinuteTps()).append('\n');
+        report.append("MSPT (5s avg): ").append(statistics.fiveSecondMspt().average()).append('\n');
+        report.append("Network bytes sent: ").append(server.getNetwork().getBytesSent()).append('\n');
+        report.append("Network bytes received: ").append(server.getNetwork().getBytesReceived()).append('\n');
         report.append("Players: ").append(server.getOnlinePlayers().size()).append('/').append(server.getMaxPlayers()).append('\n');
 
         for (CloudLevel level : server.getLevels()) {

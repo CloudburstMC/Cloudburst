@@ -342,8 +342,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
             return false;
         }
 
-        this.timing.startTiming();
-
         super.onUpdate(currentTick);
 
         int age = this.age;
@@ -354,7 +352,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         } else if (getDuration() != PotionEffect.INFINITE_DURATION && age - waitTime >= getDuration()) {
             kill();
             this.lastAge = age;
-            this.timing.stopTiming();
             return true;
         } else {
             int tickDiff = age - lastAge;
@@ -418,7 +415,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 if (radius < 0.5F) {
                                     this.setRadius(radius);
                                     this.kill();
-                                    this.timing.stopTiming();
                                     return true;
                                 }
                             }
@@ -427,7 +423,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
                                 int duration = this.getDuration() + this.durationOnUse;
                                 if (duration <= 0) {
                                     this.kill();
-                                    this.timing.stopTiming();
                                     return true;
                                 }
                                 this.setDuration(duration);
@@ -446,8 +441,6 @@ public class EntityAreaEffectCloud extends CloudEntity implements AreaEffectClou
         } else {
             setRadius(radius);
         }
-
-        this.timing.stopTiming();
 
         return true;
     }

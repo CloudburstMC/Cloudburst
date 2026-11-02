@@ -310,19 +310,21 @@ public class LevelManager implements Closeable {
      * Advances registered levels and performs periodic chunk cleanup.
      *
      * @param currentTick current server tick
+     * @throws IllegalStateException if a level fails to tick
      */
     public void tick(int currentTick) {
         for (CloudLevel level : this.levels) {
+            long startNanos = System.nanoTime();
             try {
-                long levelTime = System.nanoTime();
                 level.doTick(currentTick);
-                level.setLastTickDuration((System.nanoTime() - levelTime) / 1_000_000d);
 
                 if (currentTick % 100 == 0) {
                     level.doChunkGarbageCollection();
                 }
-            } catch (Exception e) {
-                log.error("Could not tick world '{}'", level.getId(), e);
+            } catch (Exception failure) {
+                throw new IllegalStateException("Exception ticking world '" + level.getId() + "'", failure);
+            } finally {
+                level.setLastTickDuration((System.nanoTime() - startNanos) / 1_000_000d);
             }
         }
     }

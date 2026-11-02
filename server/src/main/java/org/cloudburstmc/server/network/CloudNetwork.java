@@ -248,17 +248,12 @@ public class CloudNetwork implements AutoCloseable {
                 .build();
     }
 
-    public double getUpload() {
-        return this.upload.doubleValue();
+    public long getBytesSent() {
+        return this.upload.sum();
     }
 
-    public double getDownload() {
-        return this.download.doubleValue();
-    }
-
-    public void resetStatistics() {
-        this.upload.sumThenReset();
-        this.download.sumThenReset();
+    public long getBytesReceived() {
+        return this.download.sum();
     }
 
     private void openPortMappings() {

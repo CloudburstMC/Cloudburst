@@ -1,6 +1,6 @@
 package org.cloudburstmc.server.diagnostics;
 
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class MclogsClient {
     }
 
     public URI upload(String report) throws IOException, InterruptedException {
-        String body = Bootstrap.JSON_MAPPER.writeValueAsString(Map.of("content", report, "source", "Cloudburst"));
+        String body = ServerJson.MAPPER.writeValueAsString(Map.of("content", report, "source", "Cloudburst"));
         HttpRequest request = HttpRequest.newBuilder(this.endpoint)
                 .timeout(Duration.ofSeconds(30))
                 .header("Content-Type", "application/json; charset=utf-8")
@@ -50,7 +50,7 @@ public class MclogsClient {
 
         JsonNode response;
         try {
-            response = Bootstrap.JSON_MAPPER.readTree(body);
+            response = ServerJson.MAPPER.readTree(body);
         } catch (RuntimeException e) {
             throw new IOException("mclo.gs returned invalid JSON");
         }

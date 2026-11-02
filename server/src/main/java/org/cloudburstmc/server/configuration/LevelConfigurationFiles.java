@@ -42,8 +42,6 @@ public class LevelConfigurationFiles {
     }
 
     private static Configuration read(Path file) throws IOException {
-        Configuration document = new YamlConfigurationLoader().load(file);
-        ConfigurationVersions.requireCurrent(file, document);
-        return document;
+        return new YamlConfigurationLoader().load(file);
     }
 }

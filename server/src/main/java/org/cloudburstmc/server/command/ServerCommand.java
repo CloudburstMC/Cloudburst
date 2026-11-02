@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.command;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -32,7 +30,6 @@ public abstract class ServerCommand {
     private final String description;
     private final List<String> aliases;
     private final List<String> accessPermissions;
-    private final Timing timing;
 
     protected ServerCommand(
             String name,
@@ -47,7 +44,6 @@ public abstract class ServerCommand {
                 .map(Permission::normalizeName)
                 .distinct()
                 .toList();
-        this.timing = Timings.getCommandTiming(this);
     }
 
     protected ServerCommand(String name, String description, Collection<String> aliases, String... permissions) {
@@ -69,7 +65,6 @@ public abstract class ServerCommand {
     }
 
     protected final int executeCommand(CommandContext<CommandSourceStack> context, Command<CommandSourceStack> command) throws CommandSyntaxException {
-        this.timing.startTiming();
         try {
             return command.run(context);
         } catch (CommandUsageException e) {
@@ -77,8 +72,6 @@ public abstract class ServerCommand {
             CloudCommandRegistry registry = CloudServer.getInstance().getCommandRegistry();
             CommandUtils.sendUsage(context.getSource().sender(), registry.usages(label, context.getSource()));
             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
-        } finally {
-            this.timing.stopTiming();
         }
     }
 

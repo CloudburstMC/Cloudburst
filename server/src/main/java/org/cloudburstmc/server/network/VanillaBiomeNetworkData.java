@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import tools.jackson.core.type.TypeReference;
 
@@ -31,7 +31,7 @@ public class VanillaBiomeNetworkData {
 
     private static BiomeDefinitions loadDefinitions() {
         try (InputStream input = RegistryUtils.getOrAssertResource("data/stripped_biome_definitions.json")) {
-            Map<String, BiomeDefinitionData> definitions = Bootstrap.JSON_MAPPER.readValue(input, new TypeReference<>() {});
+            Map<String, BiomeDefinitionData> definitions = ServerJson.MAPPER.readValue(input, new TypeReference<>() {});
             return new BiomeDefinitions(definitions);
         } catch (IOException e) {
             throw new ExceptionInInitializerError(e);

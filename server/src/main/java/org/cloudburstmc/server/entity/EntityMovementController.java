@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.BoundingBox;
@@ -32,27 +30,25 @@ public class EntityMovementController {
             return;
         }
 
-        try (Timing ignored = Timings.entityMoveTimer.startTiming()) {
-            BoundingBox previousBox = entity.boundingBox;
-            Vector3f requestedMovement = Vector3f.from(dx, dy, dz);
-            Vector3f resolvedMovement = collide(entity, type, requestedMovement);
-            EntityMovementResult movementResult = new EntityMovementResult(requestedMovement, resolvedMovement);
+        BoundingBox previousBox = entity.boundingBox;
+        Vector3f requestedMovement = Vector3f.from(dx, dy, dz);
+        Vector3f resolvedMovement = collide(entity, type, requestedMovement);
+        EntityMovementResult movementResult = new EntityMovementResult(requestedMovement, resolvedMovement);
 
-            if (resolvedMovement.getX() != 0 || resolvedMovement.getY() != 0 || resolvedMovement.getZ() != 0) {
-                entity.boundingBox = entity.boundingBox.move(resolvedMovement);
-            }
-
-            syncPositionFromBox(entity);
-            entity.checkChunks();
-            entity.recordMovement(previousBox, entity.boundingBox);
-            applyCollisionState(entity, movementResult);
-            stopBlockedMotion(entity, movementResult);
-            entity.updateFallState(entity.onGround);
-            if (type != MovementType.PLAYER && entity instanceof EntityCreature creature) {
-                creature.updateEnchantmentLocationEffects();
-            }
-            synchronizeForcedMovement(entity, type, previousBox);
+        if (resolvedMovement.getX() != 0 || resolvedMovement.getY() != 0 || resolvedMovement.getZ() != 0) {
+            entity.boundingBox = entity.boundingBox.move(resolvedMovement);
         }
+
+        syncPositionFromBox(entity);
+        entity.checkChunks();
+        entity.recordMovement(previousBox, entity.boundingBox);
+        applyCollisionState(entity, movementResult);
+        stopBlockedMotion(entity, movementResult);
+        entity.updateFallState(entity.onGround);
+        if (type != MovementType.PLAYER && entity instanceof EntityCreature creature) {
+            creature.updateEnchantmentLocationEffects();
+        }
+        synchronizeForcedMovement(entity, type, previousBox);
     }
 
     public static void setOnGroundWithMovement(CloudEntity entity, boolean onGround, boolean horizontalCollision, @Nullable Vector3f movement) {

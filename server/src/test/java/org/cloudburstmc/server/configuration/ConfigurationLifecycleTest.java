@@ -278,7 +278,7 @@ class ConfigurationLifecycleTest {
     @Test
     void rejectedSettingsDoNotReplaceThePropertiesFile() throws IOException {
         Files.createDirectories(directory.resolve("config"));
-        Files.writeString(directory.resolve("config/cloudburst-global.yml"), "config-version: 1\nnetwork:\n  max-connections: 0\n");
+        Files.writeString(directory.resolve("config/cloudburst-global.yml"), "network:\n  max-connections: 0\n");
         Path properties = directory.resolve("server.properties");
         Files.writeString(properties, "motd=original\n");
 

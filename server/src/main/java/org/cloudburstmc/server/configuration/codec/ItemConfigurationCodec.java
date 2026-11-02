@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Uses item persistence for vanilla data and explicit codecs for additional component values.
@@ -53,7 +54,7 @@ public class ItemConfigurationCodec implements ConfigurationCodec<ItemStack> {
                 writer.writeTag(stored);
             }
 
-            return Map.of("version", 1, "count", value.getCount(),
+            return Map.of("count", value.getCount(),
                     "item", Base64.getEncoder().encodeToString(bytes.toByteArray()), "components", components);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to encode item configuration", e);
@@ -63,11 +64,13 @@ public class ItemConfigurationCodec implements ConfigurationCodec<ItemStack> {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public ItemStack decode(Map<String, Object> values) {
-        int version = ConfigurationNumbers.integer(values.get("version"), "version");
+        if (!values.keySet().equals(Set.of("count", "item", "components"))) {
+            throw new IllegalArgumentException("Item configuration must contain count, item and components");
+        }
+
         int count = ConfigurationNumbers.integer(values.get("count"), "count");
 
-        if (version != 1 || !(values.get("item") instanceof String encoded)
-                || !(values.get("components") instanceof Map<?, ?> components)) {
+        if (!(values.get("item") instanceof String encoded) || !(values.get("components") instanceof Map<?, ?> components)) {
             throw new IllegalArgumentException("Invalid item configuration");
         }
 

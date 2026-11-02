@@ -1,277 +1,211 @@
 package org.cloudburstmc.server;
 
-import com.google.common.base.Preconditions;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Log4J2LoggerFactory;
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import joptsimple.util.PathConverter;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
-import org.cloudburstmc.server.block.BlockDefinitionDeserializer;
-import org.cloudburstmc.server.block.BlockStateDeserializer;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.diagnostics.CrashReports;
-import org.cloudburstmc.server.utils.ColorDeserializer;
-import org.cloudburstmc.server.utils.ServerKiller;
-import tools.jackson.core.Version;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
 
-import java.awt.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Properties;
-
-/*
- *    _____ _                 _ _                    _
- *   / ____| |               | | |                  | |
- *  | |    | | ___  _   _  __| | |__  _   _ _ __ ___| |_
- *  | |    | |/ _ \| | | |/ _` | '_ \| | | | '__/ __| __|
- *  | |____| | (_) | |_| | (_| | |_) | |_| | |  \__ \ |_
- *   \_____|_|\___/ \__,_|\__,_|_.__/ \__,_|_|  |___/\__|
- */
+import java.util.*;
 
 /**
- * The entry point of Cloudburst CloudServer.
+ * Configures the process, launches the server and reports startup failures.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Bootstrap {
-    public final static Properties GIT_INFO = getGitInfo();
-    public final static String VERSION = getVersion();
-    public final static String API_VERSION = "2.0.0";
-    public final static Path PATH = Paths.get(System.getProperty("user.dir"));
-    public static final JsonMapper JSON_MAPPER = JsonMapper.builder()
-            .addModule(createCloudburstModule())
-            .build();
+
+    public static final String VERSION = readVersion();
+    public static final String API_VERSION = "2.0.0";
+
+    public static final Path PATH = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
     public static final long START_TIME = System.currentTimeMillis();
-    public static boolean ANSI = true;
-    public static boolean TITLE = false;
-    public static boolean shortTitle = requiresShortTitle();
+
     public static int DEBUG = 1;
+    private static @Nullable Level commandLineLogLevel;
 
-    static {
-        configureStandardStreams();
-        // Disable JLine deprecated terminal provider warning
-        System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
-        // Disable Guice bytecode generation to avoid Unsafe.staticFieldBase deprecation warning
-        System.setProperty("guice_bytecode_gen_option", "DISABLED");
-    }
-
-    private static SimpleModule createCloudburstModule() {
-        SimpleModule module = new SimpleModule("Cloudburst", new Version(0, 0, 1, null, null, null));
-        module.addDeserializer(BlockState.class, new BlockStateDeserializer());
-        module.addDeserializer(BlockDefinition.class, new BlockDefinitionDeserializer());
-        module.addDeserializer(Color.class, new ColorDeserializer());
-        return module;
-    }
-
-    private static void configureStandardStreams() {
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
-        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, StandardCharsets.UTF_8));
-    }
+    @Getter
+    private static boolean titleDisabled = true;
 
     static void main(String[] args) {
-        Locale.setDefault(Locale.ENGLISH);
+        configureRuntime();
 
-        // Force Mapped ByteBuffers for LevelDB till fixed.
-        System.setProperty("leveldb.mmap", "true");
-
-        System.getProperties().putIfAbsent("io.netty.allocator.type", "unpooled");
-
-        // Define args
-        OptionParser parser = new OptionParser();
-        parser.allowsUnrecognizedOptions();
-
-        OptionSpec<Void> helpSpec = parser.accepts("help", "Shows this page").forHelp();
-        OptionSpec<Void> ansiSpec = parser.accepts("disable-ansi", "Disables console coloring");
-        OptionSpec<Void> titleSpec = parser.accepts("enable-title", "Enables title at the top of the window");
-        OptionSpec<String> verbositySpec = parser.acceptsAll(Arrays.asList("v", "verbosity"),
-                "Set verbosity of logging").withRequiredArg().ofType(String.class);
-        OptionSpec<String> languageSpec = parser.accepts("language",
-                "Set a predefined language").withOptionalArg().ofType(String.class);
-        OptionSpec<Path> dataPathSpec = parser.accepts("data-path", "Main server data directory")
-                .withRequiredArg()
-                .withValuesConvertedBy(new PathConverter())
-                .defaultsTo(PATH);
-        OptionSpec<Path> pluginPathSpec = parser.accepts("plugin-path", "path to your plugins directory")
-                .withRequiredArg()
-                .withValuesConvertedBy(new PathConverter());
-        OptionSpec<Path> levelPathSpec = parser.accepts("level-path", "path to your worlds directory")
-                .withRequiredArg()
-                .withValuesConvertedBy(new PathConverter());
-
-
-        // Parse arguments
-        OptionSet options = parser.parse(args);
-
-        if (options.has(helpSpec)) {
-            try {
-                // Display help page
-                parser.printHelpOn(System.out);
-            } catch (IOException ignored) {
+        LaunchOptions options;
+        try {
+            Optional<LaunchOptions> parsed = parseArguments(args);
+            if (parsed.isEmpty()) {
+                return;
             }
+            options = parsed.get();
+        } catch (OptionException | IllegalArgumentException | IOException failure) {
+            System.err.println("Unable to start Cloudburst: " + failure.getMessage());
+            System.err.println("Use --help to view launch options.");
+            System.exit(1);
             return;
         }
 
-        Path dataPath = options.valueOf(dataPathSpec).toAbsolutePath().normalize();
-        System.setProperty("cloudburst.log-directory", dataPath.resolve("logs").toString());
-        LoggerContext logging = (LoggerContext) LogManager.getContext(false);
-        logging.reconfigure();
-        Logger log = LogManager.getLogger(Bootstrap.class);
+        int exitCode = 1;
+        try {
+            configureLogging(options);
+            exitCode = runServer(options);
+        } catch (Throwable failure) {
+            System.err.println("Unable to launch Cloudburst");
+            failure.printStackTrace(System.err);
+        } finally {
+            LogManager.shutdown();
+        }
+
+        System.exit(exitCode);
+    }
+
+    private static void configureRuntime() {
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
+        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, StandardCharsets.UTF_8));
+        Locale.setDefault(Locale.ENGLISH);
+
+        System.setProperty("org.jline.terminal.disableDeprecatedProviderWarning", "true");
+        System.setProperty("guice_bytecode_gen_option", "DISABLED");
+        System.setProperty("leveldb.mmap", "true");
+        System.getProperties().putIfAbsent("io.netty.allocator.type", "unpooled");
+    }
+
+    private static Optional<LaunchOptions> parseArguments(String[] args) throws IOException {
+        OptionParser parser = new OptionParser();
+        OptionSpec<Void> help = parser.accepts("help", "Shows this page").forHelp();
+        OptionSpec<Void> disableAnsi = parser.accepts("disable-ansi", "Disables console coloring");
+        OptionSpec<Void> enableTitle = parser.accepts("enable-title", "Enables terminal title updates");
+        OptionSpec<String> verbosity = parser.acceptsAll(List.of("v", "verbosity"), "Sets the log level")
+                .withRequiredArg();
+        OptionSpec<String> language = parser.accepts("language", "Sets the initial server language")
+                .withRequiredArg();
+        OptionSpec<Path> dataPath = parser.accepts("data-path", "Main server data directory")
+                .withRequiredArg().withValuesConvertedBy(new PathConverter()).defaultsTo(PATH);
+        OptionSpec<Path> pluginPath = parser.accepts("plugin-path", "Plugin directory")
+                .withRequiredArg().withValuesConvertedBy(new PathConverter());
+        OptionSpec<Path> levelPath = parser.accepts("level-path", "World directory")
+                .withRequiredArg().withValuesConvertedBy(new PathConverter());
+
+        OptionSet options = parser.parse(args);
+        if (options.has(help)) {
+            parser.printHelpOn(System.out);
+            return Optional.empty();
+        }
+
+        if (!options.nonOptionArguments().isEmpty()) {
+            throw new IllegalArgumentException("Unexpected arguments: " + options.nonOptionArguments());
+        }
+
+        Path data = options.valueOf(dataPath).toAbsolutePath().normalize();
+        Path plugins = options.has(pluginPath) ? options.valueOf(pluginPath) : data.resolve("plugins");
+        Path levels = options.has(levelPath) ? options.valueOf(levelPath) : data.resolve("worlds");
+        Level logLevel = parseLogLevel(options.valueOf(verbosity));
+
+        return Optional.of(new LaunchOptions(data, plugins.toAbsolutePath().normalize(),
+                levels.toAbsolutePath().normalize(), options.valueOf(language), logLevel,
+                options.has(disableAnsi), options.has(enableTitle)));
+    }
+
+    private static @Nullable Level parseLogLevel(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+
+        Level level = Level.getLevel(value.toUpperCase(Locale.ROOT));
+        if (level == null) {
+            throw new IllegalArgumentException("Unknown log level: " + value);
+        }
+
+        return level;
+    }
+
+    private static void configureLogging(LaunchOptions options) {
+        titleDisabled = options.disableAnsi() || !options.enableTitle();
+        commandLineLogLevel = options.logLevel();
+        System.setProperty("cloudburst.disable-ansi", Boolean.toString(options.disableAnsi()));
+        if (options.disableAnsi()) {
+            System.setProperty("terminal.ansi", "false");
+            System.setProperty("cloudburst.console-pattern", "%d{HH:mm:ss} [%-5level] %minecraftFormatting{%msg}{strip}%n");
+        }
+
+        System.setProperty("cloudburst.log-directory", options.dataPath().resolve("logs").toString());
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        context.reconfigure();
+        configureLogLevel(DEBUG);
 
         InternalLoggerFactory.setDefaultFactory(Log4J2LoggerFactory.INSTANCE);
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
+    }
 
-        Path pluginPath;
-        if (options.has(pluginPathSpec)) {
-            pluginPath = options.valueOf(pluginPathSpec);
-        } else {
-            pluginPath = dataPath.resolve("plugins");
-        }
+    public static void configureLogLevel(int debugLevel) {
+        DEBUG = Math.max(debugLevel, 1);
+        Level configured = DEBUG >= 3 ? Level.TRACE : DEBUG == 2 ? Level.DEBUG : Level.INFO;
+        setLogLevel(commandLineLogLevel != null ? commandLineLogLevel : configured);
+    }
 
-        Path levelPath;
-        if (options.has(levelPathSpec)) {
-            levelPath = options.valueOf(levelPathSpec);
-        } else {
-            levelPath = dataPath.resolve("worlds");
-        }
+    private static void setLogLevel(Level level) {
+        Objects.requireNonNull(level, "level");
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        context.getConfiguration().getRootLogger().setLevel(level);
+        context.updateLoggers();
+    }
 
-        ANSI = !options.has(ansiSpec);
-        TITLE = options.has(titleSpec);
-
-        String verbosity = options.valueOf(verbositySpec);
-        if (verbosity != null) {
-            try {
-                Level level = Level.valueOf(verbosity);
-                setLogLevel(level);
-            } catch (Exception e) {
-                // ignore
-            }
-        }
-
-        String language = options.valueOf(languageSpec);
-        ServerFileLayout files = new ServerFileLayout(dataPath, levelPath);
-
+    private static int runServer(LaunchOptions options) {
+        Logger log = LogManager.getLogger(Bootstrap.class);
+        ServerFileLayout files = new ServerFileLayout(options.dataPath(), options.levelPath());
+        CloudServer server = null;
         try {
-            CloudServer server = new CloudServer(dataPath, pluginPath, levelPath, language);
-            if (TITLE) {
-                System.out.print((char) 0x1b + "]0;Cloudburst is starting up..." + (char) 0x07);
-            }
+            CloudConsole.setWindowTitle("Cloudburst is starting up...");
+            server = new CloudServer(options.dataPath(), options.pluginPath(), options.levelPath(), options.language());
             server.boot();
-        } catch (Throwable t) {
-            log.fatal("Cloudburst crashed", t);
-            try {
-                log.fatal("Crash report saved to {}", CrashReports.write(files.crashReports(), Thread.currentThread(), t));
-            } catch (Exception reportFailure) {
-                log.error("Unable to write crash report", reportFailure);
+            return 0;
+        } catch (Throwable failure) {
+            reportCrash(log, files, failure);
+            return 1;
+        } finally {
+            if (server != null) {
+                server.forceShutdown();
             }
+            CloudConsole.setWindowTitle("Cloudburst stopped");
         }
-
-        if (TITLE) {
-            System.out.print((char) 0x1b + "]0;Stopping CloudServer..." + (char) 0x07);
-        }
-
-        log.info("Stopping other threads");
-
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (!(thread instanceof InterruptibleThread)) {
-                continue;
-            }
-
-            log.debug("Stopping {} thread", thread.getClass().getSimpleName());
-
-            if (thread.isAlive()) {
-                thread.interrupt();
-            }
-        }
-
-        ServerKiller killer = new ServerKiller(8);
-        killer.start();
-
-        if (TITLE) {
-            System.out.print((char) 0x1b + "]0;Server Stopped" + (char) 0x07);
-        }
-
-        // Make sure all log messages have made it to their destination before ending the process,
-        // especially since we use async logging.
-        LogManager.shutdown();
     }
 
-    /**
-     * Checks if the shorter version of the window title should be used.
-     * <p>
-     * The longer window title also contains the upload and download
-     * speeds, in KB/s, for the network.
-     *
-     * @return true if the os is windows 8 or windows server 2020
-     */
-    private static boolean requiresShortTitle() {
-        // Shorter title for windows 8/2012
-        String osName = System.getProperty("os.name").toLowerCase();
-        return osName.contains("windows") && (osName.contains("windows 8") || osName.contains("2012"));
-    }
-
-    /**
-     * Returns the git information from this build of Cloudburst.
-     * <p>
-     * The information is created by the "git-commit-id-plugin" maven
-     * plugin and is saved in the resources directory.
-     *
-     * @return The git information as a {@link Properties} object
-     */
-    private static Properties getGitInfo() {
-        InputStream gitFileStream = Bootstrap.class.getClassLoader().getResourceAsStream("git.properties");
-        if (gitFileStream == null) {
-            return null;
-        }
-        Properties properties = new Properties();
+    private static void reportCrash(Logger log, ServerFileLayout files, Throwable failure) {
+        log.fatal("Cloudburst crashed", failure);
         try {
-            properties.load(gitFileStream);
-        } catch (IOException e) {
-            return null;
+            Path report = CrashReports.write(files.crashReports(), Thread.currentThread(), failure);
+            log.fatal("Crash report saved to {}", report);
+        } catch (Exception reportFailure) {
+            log.error("Unable to write crash report", reportFailure);
         }
-        return properties;
     }
 
-    /**
-     * Returns the git commit that this build of Cloudburst was built on.
-     *
-     * @return The git commit hash, if found, prefixed with "git-", else "git-null"
-     */
-    private static String getVersion() {
-        StringBuilder version = new StringBuilder();
-        version.append("git-");
-        String commitId;
-        if (GIT_INFO == null || (commitId = GIT_INFO.getProperty("git.commit.id.abbrev")) == null) {
-            return version.append("null").toString();
+    private static String readVersion() {
+        Properties properties = new Properties();
+        try (InputStream stream = Bootstrap.class.getClassLoader().getResourceAsStream("git.properties")) {
+            if (stream != null) {
+                properties.load(stream);
+            }
+        } catch (IOException ignored) {
+            return "git-null";
         }
-        return version.append(commitId).toString();
+        return "git-" + properties.getProperty("git.commit.id.abbrev", "null");
     }
 
-    public static Level getLogLevel() {
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration log4jConfig = ctx.getConfiguration();
-        LoggerConfig loggerConfig = log4jConfig.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME);
-        return loggerConfig.getLevel();
-    }
-
-    public static void setLogLevel(Level level) {
-        Preconditions.checkNotNull(level, "level");
-        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        Configuration log4jConfig = ctx.getConfiguration();
-        LoggerConfig loggerConfig = log4jConfig.getLoggerConfig(org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(level);
-        ctx.updateLoggers();
+    private record LaunchOptions(Path dataPath, Path pluginPath, Path levelPath, @Nullable String language, @Nullable Level logLevel, boolean disableAnsi, boolean enableTitle) {
     }
 }

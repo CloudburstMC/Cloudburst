@@ -1,6 +1,5 @@
 package org.cloudburstmc.server.level.chunk;
 
-import co.aikar.timings.Timing;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.NonNull;
@@ -75,17 +74,15 @@ public final class CloudChunk implements Chunk, Closeable {
      */
     public void initialize() {
         if (this.unsafe.beginInitialization()) {
-            try (Timing ignored = ((CloudLevel) unsafe.getLevel()).timings.syncChunkLoadEntitiesTimer.startTiming()) {
-                List<CloudChunkLoadTask> loadTasks = this.loadTasks;
-                this.loadTasks = List.of();
-                for (CloudChunkLoadTask loadTask : loadTasks) {
-                    if (loadTask.load(this)) {
-                        this.markDirty();
-                    }
+            List<CloudChunkLoadTask> loadTasks = this.loadTasks;
+            this.loadTasks = List.of();
+            for (CloudChunkLoadTask loadTask : loadTasks) {
+                if (loadTask.load(this)) {
+                    this.markDirty();
                 }
-
-                this.unsafe.completeInitialization();
             }
+
+            this.unsafe.completeInitialization();
         }
     }
 
