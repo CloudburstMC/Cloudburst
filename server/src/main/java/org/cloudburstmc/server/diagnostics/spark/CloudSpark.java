@@ -42,6 +42,7 @@ public class CloudSpark implements SparkPlugin, AutoCloseable {
     private final Object lifecycleLock = new Object();
     private final SparkTickMonitor ticks;
     private final SparkMainThreadExecutor synchronousTasks;
+    private final SparkWorldInfoProvider worldInfo;
     private final Map<CommandSender, CloudSparkSender> commandSenders = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("Cloudburst Spark #", 0).factory());
     private final ThreadDumper threadDumper;
@@ -65,6 +66,7 @@ public class CloudSpark implements SparkPlugin, AutoCloseable {
         this.server = Objects.requireNonNull(server, "server");
         this.ticks = new SparkTickMonitor(server.getPrimaryThread());
         this.synchronousTasks = new SparkMainThreadExecutor(server.getPrimaryThread());
+        this.worldInfo = new SparkWorldInfoProvider(new CloudSparkWorldInfoProvider(server), this.synchronousTasks);
         this.threadDumper = new ThreadDumper.Specific(server.getPrimaryThread());
         this.platform = new SparkPlatform(this);
         this.permissions = this.platform.getCommandManager().getAllSparkPermissions().stream().sorted().toList();
@@ -180,6 +182,8 @@ public class CloudSpark implements SparkPlugin, AutoCloseable {
             this.closed = true;
             disposeNow = this.activeTasks == 0;
         }
+
+        this.worldInfo.close();
 
         if (this.server.isPrimaryThread()) {
             this.synchronousTasks.close();
@@ -328,7 +332,7 @@ public class CloudSpark implements SparkPlugin, AutoCloseable {
 
     @Override
     public WorldInfoProvider createWorldInfoProvider() {
-        return new CloudSparkWorldInfoProvider(this.server);
+        return this.worldInfo;
     }
 
     @Override
@@ -398,6 +402,7 @@ public class CloudSpark implements SparkPlugin, AutoCloseable {
     }
 
     private void refreshSnapshots() {
+        this.worldInfo.refresh();
         this.plugins = List.copyOf(this.server.getPluginManager().getAllPlugins());
         List<CommandSender> connected = Stream.concat(
                 this.server.getOnlinePlayers().values().stream(),
