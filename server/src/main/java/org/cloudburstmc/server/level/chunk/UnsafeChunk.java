@@ -130,10 +130,12 @@ final class UnsafeChunk implements Chunk, Closeable {
     @Override
     public CloudChunkSection getOrCreateSection(int y) {
         CloudChunkSection section = this.getSection(y);
+
         if (section == null) {
             section = this.getOrCreateLightSection(y);
             this.markDirty();
         }
+
         return section;
     }
 
@@ -141,10 +143,7 @@ final class UnsafeChunk implements Chunk, Closeable {
      * Returns the section at the given array index, creating it when absent
      * without marking the chunk dirty.
      *
-     * <p>Used by the light engine: light writes must not dirty chunks, while
-     * missing sections are still created where a non-zero value must be stored.
-     *
-     * <p>Must be called with the owning chunk's write lock held.
+     * The owning chunk's write lock must be held.
      *
      * @param sectionIndex the section index from {@code 0} to the level's section count minus one
      * @return the section
@@ -154,10 +153,12 @@ final class UnsafeChunk implements Chunk, Closeable {
         checkElementIndex(sectionIndex, sections.length, "section Y");
 
         CloudChunkSection section = this.sections[sectionIndex];
+
         if (section == null) {
             section = new CloudChunkSection(this.level.getServer().getBlockRegistry());
             this.sections[sectionIndex] = section;
         }
+
         return section;
     }
 

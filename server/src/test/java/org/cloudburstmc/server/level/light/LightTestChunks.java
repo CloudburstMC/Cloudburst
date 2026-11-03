@@ -15,7 +15,6 @@ import org.cloudburstmc.server.level.chunk.TestChunkCopies;
 import org.cloudburstmc.server.level.generator.Generator;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
 import org.cloudburstmc.server.level.manager.PopulationChunkManager;
-import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.TestLevels;
 
 import java.util.ArrayList;
@@ -51,10 +50,6 @@ public class LightTestChunks {
     /**
      * Generates a square of overworld chunks and populates its inner square.
      *
-     * <p>Benchmarks pass a level with concrete height checks so the timed code
-     * is measured instead of reflective dispatch; the four-argument overload
-     * builds a proxy level from TestLevels per call.
-     *
      * @param seed         the level seed
      * @param originChunkX the inner square's lowest chunk x
      * @param originChunkZ the inner square's lowest chunk z
@@ -62,29 +57,31 @@ public class LightTestChunks {
      * @param level        the level the generated chunks belong to
      * @return the populated chunks keyed by {@code CloudChunk.key}
      */
-    public static Long2ObjectMap<CloudChunk> overworld(long seed, int originChunkX, int originChunkZ, int width,
-            Level level) {
-        BlockTestRegistry.get();
+    public static Long2ObjectMap<CloudChunk> overworld(long seed, int originChunkX, int originChunkZ, int width, Level level) {
         Generator generator = StandardGenerator.FACTORY.create(seed, "minecraft:overworld");
-
         Long2ObjectMap<CloudChunk> generated = new Long2ObjectOpenHashMap<>();
+
         for (int chunkX = originChunkX - 1; chunkX < originChunkX + width + 1; chunkX++) {
             for (int chunkZ = originChunkZ - 1; chunkZ < originChunkZ + width + 1; chunkZ++) {
                 CloudChunk chunk = new CloudChunk(chunkX, chunkZ, level);
                 RandomGenerator random = new FastPRandom(chunkX * 3053330778986901431L ^ chunkZ * 1517227374085824433L ^ seed);
+
                 try (LockedChunk locked = chunk.lockForWrite()) {
                     generator.generate(random, locked, chunkX, chunkZ);
                     chunk.advanceGenerationStatus(ChunkGenerationStatus.GENERATED);
                 }
+
                 generated.put(CloudChunk.key(chunkX, chunkZ), chunk);
             }
         }
 
         Long2ObjectMap<CloudChunk> populated = new Long2ObjectOpenHashMap<>();
+
         for (int chunkX = originChunkX; chunkX < originChunkX + width; chunkX++) {
             for (int chunkZ = originChunkZ; chunkZ < originChunkZ + width; chunkZ++) {
                 CloudChunk chunk = generated.get(CloudChunk.key(chunkX, chunkZ));
                 List<CloudChunk> surrounding = new ArrayList<>(9);
+
                 for (int neighborX = chunkX - 1; neighborX <= chunkX + 1; neighborX++) {
                     for (int neighborZ = chunkZ - 1; neighborZ <= chunkZ + 1; neighborZ++) {
                         CloudChunk neighbor = generated.get(CloudChunk.key(neighborX, neighborZ));
@@ -99,6 +96,7 @@ public class LightTestChunks {
                         .sorted()
                         .map(CloudChunk::lockForWrite)
                         .toArray(LockedChunk[]::new);
+
                 try {
                     generator.populate(random, new PopulationChunkManager(chunk, lockedChunks, seed), chunkX, chunkZ);
                     chunk.advanceGenerationStatus(ChunkGenerationStatus.POPULATED);
@@ -107,6 +105,7 @@ public class LightTestChunks {
                         lockedChunks[i].close();
                     }
                 }
+
                 populated.put(CloudChunk.key(chunkX, chunkZ), chunk);
             }
         }
@@ -117,10 +116,7 @@ public class LightTestChunks {
     /**
      * Copies fixture chunks with independent section storage and light arrays.
      *
-     * <p>Copies carry the fixture's light, which is 0 only because generation
-     * writes none, and the fixture's generation status with initialization not
-     * started. No mutable chunk state is shared with the fixture or between
-     * copies; block states are shared, as states are immutable.
+     * <p>Light values and generation status are preserved. Mutable chunk storage is copied.
      *
      * @param chunks the chunks to copy
      * @return the copies keyed by {@code CloudChunk.key}
@@ -138,12 +134,14 @@ public class LightTestChunks {
     public static void assertSameBlocks(Long2ObjectMap<CloudChunk> expected, Long2ObjectMap<CloudChunk> actual) {
         long[] keys = expected.keySet().toLongArray();
         Arrays.sort(keys);
+
         for (long key : keys) {
             CloudChunk expectedChunk = expected.get(key);
             CloudChunk actualChunk = actual.get(key);
             assertNotNull(actualChunk, () -> "Missing chunk " + CloudChunk.fromKeyX(key) + "," + CloudChunk.fromKeyZ(key));
             int minHeight = expectedChunk.getLevel().getMinHeight();
             int maxHeight = expectedChunk.getLevel().getMaxHeight();
+
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     for (int y = minHeight; y < maxHeight; y++) {
@@ -178,12 +176,14 @@ public class LightTestChunks {
     public static void assertSameLight(Long2ObjectMap<CloudChunk> expected, Long2ObjectMap<CloudChunk> actual) {
         long[] keys = expected.keySet().toLongArray();
         Arrays.sort(keys);
+
         for (long key : keys) {
             CloudChunk expectedChunk = expected.get(key);
             CloudChunk actualChunk = actual.get(key);
             assertNotNull(actualChunk, () -> "Missing chunk " + CloudChunk.fromKeyX(key) + "," + CloudChunk.fromKeyZ(key));
             int minHeight = expectedChunk.getLevel().getMinHeight();
             int maxHeight = expectedChunk.getLevel().getMaxHeight();
+
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     for (int y = minHeight; y < maxHeight; y++) {

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -37,38 +38,42 @@ class ChunkTaskSchedulerTest {
         GlobalConfiguration.ChunkGeneration config = GlobalConfiguration.ChunkGeneration.builder()
                 .generationConcurrency(1)
                 .build();
-        ExecutorService backing = Executors.newSingleThreadExecutor();
-        CountDownLatch gate = new CountDownLatch(1);
-        Executor generation = command -> backing.execute(() -> {
-            try {
-                gate.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-            command.run();
-        });
-        ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, generation, config);
-        try {
+        try (ExecutorService backing = Executors.newSingleThreadExecutor()) {
+            CountDownLatch gate = new CountDownLatch(1);
+            Executor generation = command -> backing.execute(() -> {
+                try {
+                    gate.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+
+                command.run();
+            });
+            ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, generation, config);
             Level level = TestLevels.level(MIN_HEIGHT, MAX_HEIGHT, Map.of("getSeed", 5L));
-            List<String> order = Collections.synchronizedList(new ArrayList<>());
-            CompletableFuture<CloudChunk> first =
-                    scheduler.scheduleGeneration(0, 0, generatedChunk(0, 0, level), ChunkTaskPriority.NORMAL);
-            CompletableFuture<CloudChunk> second =
-                    scheduler.scheduleGeneration(1, 0, generatedChunk(1, 0, level), ChunkTaskPriority.NORMAL);
-            CompletableFuture<Void> generationRecorded =
-                    second.thenRun(() -> order.add("generation"));
-            CompletableFuture<Void> light = scheduler.scheduleLight(() -> order.add("light"));
 
-            gate.countDown();
+            try (CloudChunk firstChunk = generatedChunk(0, level);
+                 CloudChunk secondChunk = generatedChunk(1, level)) {
+                List<String> order = Collections.synchronizedList(new ArrayList<>());
+                CompletableFuture<CloudChunk> first =
+                        scheduler.scheduleGeneration(0, 0, firstChunk, ChunkTaskPriority.NORMAL);
+                CompletableFuture<CloudChunk> second =
+                        scheduler.scheduleGeneration(1, 0, secondChunk, ChunkTaskPriority.NORMAL);
+                CompletableFuture<Void> generationRecorded = second.thenRun(() -> order.add("generation"));
+                CompletableFuture<Void> light = scheduler.scheduleLight(() -> order.add("light"));
 
-            light.get(30, TimeUnit.SECONDS);
-            first.get(30, TimeUnit.SECONDS);
-            generationRecorded.get(30, TimeUnit.SECONDS);
-            assertEquals(List.of("light", "generation"), order);
-        } finally {
-            backing.shutdownNow();
-            assertTrue(backing.awaitTermination(10, TimeUnit.SECONDS), "generation executor did not stop");
+                gate.countDown();
+
+                light.get(30, TimeUnit.SECONDS);
+                first.get(30, TimeUnit.SECONDS);
+                generationRecorded.get(30, TimeUnit.SECONDS);
+                assertEquals(List.of("light", "generation"), order);
+            } finally {
+                gate.countDown();
+                backing.shutdownNow();
+                assertTrue(backing.awaitTermination(10, TimeUnit.SECONDS), "generation executor did not stop");
+            }
         }
     }
 
@@ -77,38 +82,39 @@ class ChunkTaskSchedulerTest {
         GlobalConfiguration.ChunkGeneration config = GlobalConfiguration.ChunkGeneration.builder()
                 .generationConcurrency(2)
                 .build();
-        ExecutorService generation = Executors.newFixedThreadPool(2);
-        ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, generation, config);
-        try {
+        try (ExecutorService generation = Executors.newFixedThreadPool(2)) {
+            ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, generation, config);
             Level level = TestLevels.level(MIN_HEIGHT, MAX_HEIGHT, Map.of("getSeed", 5L));
-            CloudChunk center = generatedChunk(0, 0, level);
-            CloudChunk neighbor = generatedChunk(1, 0, level);
-            CompletableFuture<CloudChunk> populate;
-            try (LockedChunk held = neighbor.lockForWrite()) {
-                populate = scheduler.schedulePopulation(0, 0, center, List.of(neighbor), ChunkTaskPriority.NORMAL);
-                CompletableFuture<Void> light = scheduler.scheduleLight(() -> {
-                });
 
-                light.get(30, TimeUnit.SECONDS);
-                assertFalse(populate.isDone(), "populate must still be blocked on the neighbor lock");
+            try (CloudChunk center = generatedChunk(0, level);
+                 CloudChunk neighbor = generatedChunk(1, level)) {
+                CompletableFuture<CloudChunk> populate;
+
+                try (LockedChunk _ = neighbor.lockForWrite()) {
+                    populate = scheduler.schedulePopulation(0, 0, center, List.of(neighbor), ChunkTaskPriority.NORMAL);
+                    CompletableFuture<Void> light = scheduler.scheduleLight(() -> {
+                    });
+
+                    light.get(30, TimeUnit.SECONDS);
+                    assertFalse(populate.isDone(), "populate must still be blocked on the neighbor lock");
+                }
+
+                // Either outcome proves the population task stopped waiting for the lock.
+                try {
+                    populate.get(30, TimeUnit.SECONDS);
+                } catch (ExecutionException expected) {
+                    // The stub level cannot populate.
+                }
+            } finally {
+                generation.shutdownNow();
+                assertTrue(generation.awaitTermination(10, TimeUnit.SECONDS), "generation executor did not stop");
             }
-            // Unblocked, the populate task runs to completion; any outcome proves
-            // the worker was genuinely inside the task.
-            try {
-                populate.get(30, TimeUnit.SECONDS);
-            } catch (ExecutionException expected) {
-                // The stub level cannot populate: reaching this means the task
-                // ran instead of waiting on the reserved area.
-            }
-        } finally {
-            generation.shutdownNow();
-            assertTrue(generation.awaitTermination(10, TimeUnit.SECONDS), "generation executor did not stop");
         }
     }
 
     @Test
     void rejectedLightScheduleCompletesTheFutureExceptionally() {
-        Executor rejecting = command -> {
+        Executor rejecting = _ -> {
             throw new RejectedExecutionException("test");
         };
         ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, rejecting,
@@ -119,11 +125,11 @@ class ChunkTaskSchedulerTest {
         // The CloudLevel adapter relies on this: a synchronous rejection
         // surfaces on the future so it can rethrow it to the light lane.
         assertTrue(future.isCompletedExceptionally());
-        assertTrue(future.exceptionNow() instanceof RejectedExecutionException);
+        assertInstanceOf(RejectedExecutionException.class, future.exceptionNow());
     }
 
-    private static CloudChunk generatedChunk(int chunkX, int chunkZ, Level level) {
-        CloudChunk chunk = new CloudChunk(chunkX, chunkZ, level);
+    private static CloudChunk generatedChunk(int chunkX, Level level) {
+        CloudChunk chunk = new CloudChunk(chunkX, 0, level);
         chunk.advanceGenerationStatus(ChunkGenerationStatus.GENERATED);
         return chunk;
     }

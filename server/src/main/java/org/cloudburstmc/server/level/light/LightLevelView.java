@@ -9,7 +9,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
  *
  * <p>{@link #registry()}, {@link #minHeight()}, {@link #maxHeight()} and
  * {@link #hasSkyLight()} are stable for the life of the level.
- * {@link #loadedChunk(int, int)} is called from the background lane and must
+ * {@link #getChunkForLighting(int, int)} is called from the background lane and must
  * be thread-safe.
  */
 public interface LightLevelView {
@@ -43,11 +43,12 @@ public interface LightLevelView {
     boolean hasSkyLight();
 
     /**
-     * Returns the loaded chunk, or null when no chunk is loaded there.
+     * Returns finished terrain available to lighting, including unpromoted chunks.
      *
      * @param chunkX the chunk x
      * @param chunkZ the chunk z
      * @return the chunk, or null when absent
      */
-    @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ);
+    @Nullable
+    CloudChunk getChunkForLighting(int chunkX, int chunkZ);
 }

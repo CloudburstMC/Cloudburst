@@ -4,11 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongCollection;
 import net.daporkchop.lib.random.impl.FastPRandom;
-import org.cloudburstmc.api.block.BlockLayer;
-import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.BlockTypes;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.level.DimensionHeight;
@@ -16,22 +12,20 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.light.oracle.OracleLight;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Compares the engine against the synchronous oracle on fully lit
- * neighbourhoods: every chunk of each fixture is initialized on both sides,
+ * neighborhoods: every chunk of each fixture is initialized on both sides,
  * in sorted key order, before any comparison.
  */
 class LightEquivalenceTest {
@@ -40,17 +34,26 @@ class LightEquivalenceTest {
     private static final int MIN_HEIGHT = DimensionHeight.OVERWORLD.getMinHeight();
     private static final int MAX_HEIGHT = DimensionHeight.OVERWORLD.getMaxHeight();
 
+    private final List<CloudChunk> ownedChunks = new ArrayList<>();
+
+    @AfterEach
+    void closeChunks() {
+        for (CloudChunk chunk : this.ownedChunks) {
+            chunk.close();
+        }
+    }
+
     @Test
     void generatedBlocksAreDeterministic() {
         LightTestChunks.assertSameBlocks(
-                LightTestChunks.overworld(11L, -2, -2, 5),
-                LightTestChunks.overworld(11L, -2, -2, 5));
+                this.createChunks(11L, -2, -2, 5),
+                this.createChunks(11L, -2, -2, 5));
     }
 
     @Test
     void initializationMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, -2, -2, 5);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, -2, -2, 5);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(11L, -2, -2, 5);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(11L, -2, -2, 5);
         initializeBoth(expected, actual);
 
         LightTestChunks.assertSameLight(expected, actual);
@@ -60,23 +63,27 @@ class LightEquivalenceTest {
 
     @Test
     void removingSourcesAndRoofsMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 0, 0, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(11L, 0, 0, 3);
         initializeBoth(expected, actual);
 
         Vector3i center = openGroundCenter(actual, 1, 1);
         List<Vector3i> cluster = new ArrayList<>();
+
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 cluster.add(Vector3i.from(center.getX() + dx, center.getY(), center.getZ() + dz));
             }
         }
+
         List<Vector3i> roof = new ArrayList<>();
+
         for (int dx = -4; dx <= 4; dx++) {
             for (int dz = -4; dz <= 4; dz++) {
                 roof.add(Vector3i.from(center.getX() + dx, center.getY() + 4, center.getZ() + dz));
             }
         }
+
         setBoth(expected, actual, cluster, BlockTypes.GLOWSTONE.getDefaultState());
         setBoth(expected, actual, roof, BlockStates.STONE);
         List<Vector3i> changed = new ArrayList<>(cluster);
@@ -110,8 +117,8 @@ class LightEquivalenceTest {
 
     @Test
     void editsMatchTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 1, 1, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 1, 1, 3);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(11L, 1, 1, 3);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(11L, 1, 1, 3);
         initializeBoth(expected, actual);
         LightTestChunks.assertSameLight(expected, actual);
 
@@ -128,11 +135,13 @@ class LightEquivalenceTest {
         RandomGenerator random = new FastPRandom(3L);
         List<Vector3i> batch = new ArrayList<>(5);
         Vector3i glowstone = null;
+
         for (int i = 0; i < 40; i++) {
             int chunkX = 1 + random.nextInt(3);
             int chunkZ = 1 + random.nextInt(3);
             int localX = random.nextInt(16);
             int localZ = random.nextInt(16);
+
             if (i < 10) {
                 if (random.nextBoolean()) {
                     localX = random.nextBoolean() ? 0 : 15;
@@ -140,17 +149,21 @@ class LightEquivalenceTest {
                     localZ = random.nextBoolean() ? 0 : 15;
                 }
             }
+
             CloudChunk column = expected.get(CloudChunk.key(chunkX, chunkZ));
             int surface = column.getHighestBlock(localX, localZ);
-            int y = Math.min(MAX_HEIGHT - 1, Math.max(MIN_HEIGHT, surface + random.nextInt(7) - 3));
+            int y = Math.clamp(surface + random.nextInt(7) - 3, MIN_HEIGHT, MAX_HEIGHT - 1);
             Vector3i position = Vector3i.from((chunkX << 4) + localX, y, (chunkZ << 4) + localZ);
             BlockState state = palette[random.nextInt(palette.length)];
+
             if (i == 39) {
                 state = BlockTypes.GLOWSTONE.getDefaultState();
                 glowstone = position;
             }
+
             setBoth(expected, actual, List.of(position), state);
             batch.add(position);
+
             if (batch.size() == 5) {
                 updateBoth(expected, actual, batch);
                 LightTestChunks.assertSameLight(expected, actual);
@@ -164,50 +177,42 @@ class LightEquivalenceTest {
 
     @Test
     void unloadBoundaryMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 0, 0, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(11L, 0, 0, 3);
         initializeBoth(expected, actual);
         LightTestChunks.assertSameLight(expected, actual);
 
         long removed = CloudChunk.key(0, 0);
-        expected.remove(removed);
-        actual.remove(removed);
+        assertTrue(expected.keySet().remove(removed));
+        assertTrue(actual.keySet().remove(removed));
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(0, 0));
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
                 Integer.MAX_VALUE, null);
-        region.unloaded(0, 0);
+        LightTestTasks.drain(region.unloaded(0, 0));
         LightTestChunks.assertSameLight(expected, actual);
     }
 
     @Test
     void unloadInteriorChunkMatchesTheOracle() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(11L, 0, 0, 3);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(11L, 0, 0, 3);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(11L, 0, 0, 3);
         initializeBoth(expected, actual);
         LightTestChunks.assertSameLight(expected, actual);
 
         long removed = CloudChunk.key(1, 1);
-        expected.remove(removed);
-        actual.remove(removed);
+        assertTrue(expected.keySet().remove(removed));
+        assertTrue(actual.keySet().remove(removed));
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, insideBoundary(1, 1));
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
                 Integer.MAX_VALUE, null);
-        AtomicInteger seedBands = new AtomicInteger();
-        Runnable[] hook = new Runnable[1];
-        hook[0] = () -> {
-            seedBands.incrementAndGet();
-            region.afterSeedBandForTest(hook[0]);
-        };
-        region.afterSeedBandForTest(hook[0]);
-        region.unloaded(1, 1);
-        assertEquals(LightRegion.unloadBands(MIN_HEIGHT, MAX_HEIGHT), seedBands.get());
+        LightTestTasks.drain(region.unloaded(1, 1));
         LightTestChunks.assertSameLight(expected, actual);
     }
 
     @Test
     void updateStaysInsideTheLockedNeighbourhood() {
-        Long2ObjectMap<CloudChunk> expected = LightTestChunks.overworld(7L, 0, 0, 5);
-        Long2ObjectMap<CloudChunk> actual = LightTestChunks.overworld(7L, 0, 0, 5);
+        Long2ObjectMap<CloudChunk> expected = this.createChunks(7L, 0, 0, 5);
+        Long2ObjectMap<CloudChunk> actual = this.createChunks(7L, 0, 0, 5);
         initializeBoth(expected, actual);
 
         Vector3i center = openGroundCenter(actual, 2, 2);
@@ -217,14 +222,22 @@ class LightEquivalenceTest {
         assertEquals(15, blockLightAt(actual, center));
     }
 
+    private Long2ObjectMap<CloudChunk> createChunks(long seed, int chunkX, int chunkZ, int size) {
+        Long2ObjectMap<CloudChunk> chunks = LightTestChunks.overworld(seed, chunkX, chunkZ, size);
+        this.ownedChunks.addAll(chunks.values());
+        return chunks;
+    }
+
     private static void initializeBoth(Long2ObjectMap<CloudChunk> expected, Long2ObjectMap<CloudChunk> actual) {
         for (long key : sortedKeys(expected)) {
             OracleLight.initialize(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, expected.get(key));
         }
+
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
                 Integer.MAX_VALUE, null);
+
         for (long key : sortedKeys(actual)) {
-            region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key));
+            LightTestTasks.drain(region.initialize(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)));
         }
     }
 
@@ -233,14 +246,16 @@ class LightEquivalenceTest {
         OracleLight.update(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, expected::get, changed);
         LightRegion region = new LightRegion(REGISTRY, MIN_HEIGHT, MAX_HEIGHT, true, actual::get,
                 Integer.MAX_VALUE, null);
-        region.update(packed(changed));
+        LightTestTasks.drain(region.update(packed(changed)));
     }
 
     private static LongCollection packed(Collection<Vector3i> positions) {
         LongCollection packed = new LongArrayList(positions.size());
+
         for (Vector3i position : positions) {
             packed.add(LightPositions.pack(position.getX(), position.getY(), position.getZ()));
         }
+
         return packed;
     }
 
@@ -248,16 +263,19 @@ class LightEquivalenceTest {
         List<Vector3i> positions = new ArrayList<>();
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
+
         for (int y = MIN_HEIGHT; y < MAX_HEIGHT; y++) {
             for (int offset = 0; offset < 16; offset++) {
                 positions.add(Vector3i.from(minX + offset, y, minZ));
                 positions.add(Vector3i.from(minX + offset, y, minZ + 15));
+
                 if (offset > 0 && offset < 15) {
                     positions.add(Vector3i.from(minX, y, minZ + offset));
                     positions.add(Vector3i.from(minX + 15, y, minZ + offset));
                 }
             }
         }
+
         return positions;
     }
 
@@ -307,15 +325,18 @@ class LightEquivalenceTest {
         outer:
         for (long key : sortedKeys(chunks)) {
             CloudChunk chunk = chunks.get(key);
+
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     if (chunk.getSkyLight(x, MAX_HEIGHT - 1, z) == 15) {
                         top = true;
                     }
+
                     for (int y = MIN_HEIGHT; y < MAX_HEIGHT - 1; y++) {
                         if (chunk.getSkyLight(x, y, z) == 15) {
                             below = true;
                         }
+
                         if (top && below) {
                             break outer;
                         }
@@ -323,6 +344,7 @@ class LightEquivalenceTest {
                 }
             }
         }
+
         assertTrue(top, "No sky light 15 in the top layer after initialization");
         assertTrue(below, "No sky light 15 below the top layer after initialization");
     }
@@ -330,6 +352,7 @@ class LightEquivalenceTest {
     private static void assertHasBlockLight(Long2ObjectMap<CloudChunk> chunks) {
         for (long key : sortedKeys(chunks)) {
             CloudChunk chunk = chunks.get(key);
+
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     for (int y = MIN_HEIGHT; y < MAX_HEIGHT; y++) {
@@ -340,6 +363,7 @@ class LightEquivalenceTest {
                 }
             }
         }
+
         throw new AssertionError("No block light found after initialization");
     }
 

@@ -19,9 +19,7 @@ public final class ChunkTaskScheduler {
     private final TaskQueue generationQueue;
 
     public ChunkTaskScheduler(CloudLevel level, GlobalConfiguration.ChunkGeneration config) {
-        this(level.getServer().getLevelManager().getIoExecutor(),
-                level.getServer().getLevelManager().getGenerationExecutor(),
-                config);
+        this(level.getServer().getLevelManager().getIoExecutor(), level.getServer().getLevelManager().getGenerationExecutor(), config);
     }
 
     /**
@@ -33,41 +31,8 @@ public final class ChunkTaskScheduler {
      * @param config     the chunk-generation concurrency settings
      */
     ChunkTaskScheduler(Executor storage, Executor generation, GlobalConfiguration.ChunkGeneration config) {
-        this.storageQueue = new TaskQueue(
-                storage,
-                config.getLoadConcurrency()
-        );
-
-        this.generationQueue = new TaskQueue(
-                generation,
-                config.getGenerationConcurrency()
-        );
-    }
-
-    /**
-     * Schedules light work on the generation queue at blocking priority.
-     *
-     * <p>The work reserves no chunk area, so it runs ahead of queued
-     * generation without waiting on area conflicts. The work must not block
-     * the generation pool.
-     *
-     * <p>Priority orders tasks within one level's queue; with several active
-     * levels on the shared pool, a lane can still wait behind other levels'
-     * generation tasks.
-     *
-     * @param work the light work to run
-     * @return a future completing when the work runs, or exceptionally when
-     * the executor rejects it
-     */
-    public CompletableFuture<Void> scheduleLight(Runnable work) {
-        return this.generationQueue.schedule(
-                new ChunkTaskIdentifier(ChunkTaskType.LIGHT, 0L),
-                ChunkTaskPriority.BLOCKING,
-                () -> {
-                    work.run();
-                    return null;
-                }
-        );
+        this.storageQueue = new TaskQueue(storage, config.getLoadConcurrency());
+        this.generationQueue = new TaskQueue(generation, config.getGenerationConcurrency());
     }
 
     public CompletableFuture<CloudChunk> scheduleChunkLoad(int chunkX, int chunkZ, ChunkTaskPriority priority, Supplier<CloudChunk> task) {
@@ -97,10 +62,29 @@ public final class ChunkTaskScheduler {
 
     public CompletableFuture<CloudChunk> scheduleFinishing(int chunkX, int chunkZ, CloudChunk chunk, List<CloudChunk> neighbors, ChunkTaskPriority priority) {
         List<CloudChunk> neighborSnapshot = ImmutableList.copyOf(neighbors);
+
         return this.generationQueue.schedule(
                 new ChunkTaskIdentifier(ChunkTaskType.FINISH, CloudChunk.key(chunkX, chunkZ)),
                 priority,
                 () -> FinishingTask.INSTANCE.apply(chunk, neighborSnapshot)
+        );
+    }
+
+    /**
+     * Submits nonblocking light work at blocking priority without reserving a chunk area.
+     * Priority applies within this level's queue and does not interrupt active tasks.
+     *
+     * @param work a bounded light slice that must not wait for chunk locks
+     * @return task completion, failing if execution fails or submission is rejected
+     */
+    public CompletableFuture<Void> scheduleLight(Runnable work) {
+        return this.generationQueue.schedule(
+                new ChunkTaskIdentifier(ChunkTaskType.LIGHT, 0L),
+                ChunkTaskPriority.BLOCKING,
+                () -> {
+                    work.run();
+                    return null;
+                }
         );
     }
 

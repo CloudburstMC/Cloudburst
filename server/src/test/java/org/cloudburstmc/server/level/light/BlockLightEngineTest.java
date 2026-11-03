@@ -6,6 +6,7 @@ import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.IceBlockHandlers;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.ChunkLightView;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
@@ -31,6 +32,7 @@ class BlockLightEngineTest {
         grid.maxX = 4;
         grid.minZ = 0;
         grid.maxZ = 0;
+
         for (int x = 0; x <= 4; x++) {
             for (int y = 0; y < 5; y++) {
                 grid.blocks.put(Vector3i.from(x, y, 0), BlockTypes.STONE.getDefaultState());
@@ -79,7 +81,7 @@ class BlockLightEngineTest {
         grid.secondary.put(secondary, BlockTypes.SEA_LANTERN.getDefaultState());
         grid.lights.put(stale, 15);
 
-        grid.initializeBlock(0, 0);
+        grid.initializeBlock(0);
 
         assertEquals(15, grid.lightAt(primary));
         assertEquals(15, grid.lightAt(secondary));
@@ -97,11 +99,11 @@ class BlockLightEngineTest {
         Vector3i source = Vector3i.from(15, 2, 8);
         Vector3i neighbor = source.add(1, 0, 0);
         grid.blocks.put(source, BlockStates.LAVA);
-        grid.initializeBlock(0, 0);
+        grid.initializeBlock(0);
         assertFalse(grid.lights.containsKey(neighbor));
 
         grid.maxX = 31;
-        grid.initializeBlock(1, 0);
+        grid.initializeBlock(1);
 
         assertEquals(14, grid.lightAt(neighbor));
         assertEquals(10, grid.lightAt(neighbor.add(4, 0, 0)));
@@ -174,9 +176,10 @@ class BlockLightEngineTest {
         Level level = TestLevels.level(0, 16);
         CloudChunk chunk = new CloudChunk(-2, 1, level);
         Vector3i source = Vector3i.from(-17, 2, 17);
+
         try (LockedChunk locked = chunk.lockForWrite()) {
             locked.setBlockState(15, 2, 1, BlockLayer.PRIMARY, BlockStates.LAVA);
-            LongFunction<LockedChunk> views = key -> key == CloudChunk.key(-2, 1) ? locked : null;
+            LongFunction<ChunkLightView> views = key -> key == CloudChunk.key(-2, 1) ? locked : null;
             ChunkLightAccess access = new ChunkLightAccess(LightChannel.BLOCK, 0, 16, STATES, views);
             LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
             propagation.invalidate(access, LightPositions.pack(source.getX(), source.getY(), source.getZ()));

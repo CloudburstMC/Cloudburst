@@ -1,400 +1,348 @@
 package org.cloudburstmc.server.level.light;
 
-import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongCollection;
-import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Consumer;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Function;
 
 /**
- * Queues light work per level and runs it off the caller's thread.
- *
- * <p>{@code chunkLoaded}, {@code chunkUnloaded} and {@code blocksChanged} may
- * be called from any thread. {@code isIdle} is true only when nothing is queued
- * and no runner is accepted or running.
- *
- * <p>Submissions only enqueue and hand one runner to {@code submit}; the
- * runner processes one work item per run, in FIFO order, then resubmits itself
- * while the FIFO is non-empty. At most one runner is in flight, so units never
- * overlap. Consecutive block-change items are merged. A unit that throws is
- * logged and dropped while the lane continues. When {@code submit} throws
- * {@link RejectedExecutionException}, pending work is dropped and the lane goes
- * idle, accepting later submissions. When {@code submit} throws anything else,
- * the in-flight flag is cleared with queued work kept, the throwable
- * propagates, and the next submission restarts the lane.
- *
- * <p>Chunk loads initialize, unloads refresh the ring, and block changes are
- * grouped by chunk with one update per group, each locking only that chunk's
- * 3x3. Every unit propagates in slices through {@link LightRegion}; each lock
- * hold is recorded in a bounded ring for the benchmark.
- *
- * <p>{@link LightLevelView#loadedChunk} must stay callable from the lane.
+ * Serializes light updates while yielding workers and chunk locks between slices.
+ * Initial lighting completes only after the surrounding finished chunks are initialized.
+ * Requests may be submitted from any thread. Completion runs on an unspecified thread.
+ * A failed update stops the lane and fails outstanding requests.
  */
-@Log4j2
-public final class LightScheduler {
+public class LightScheduler implements AutoCloseable {
 
     /**
-     * The propagation steps per lock hold.
+     * Maximum combined propagation steps per slice.
      */
     public static final int SLICE_STEPS = 4096;
 
-    private static final int HOLD_CAPACITY = 4096;
-
+    private final Object lock = new Object();
+    private final LightLevelView level;
     private final LightRegion region;
-    private final Consumer<Runnable> submit;
-
-    private final Object laneLock = new Object();
-    private final Deque<WorkItem> queue = new ArrayDeque<>();
-    private boolean runnerInFlight;
-
-    private final Object holdLock = new Object();
-    private final long[] holds = new long[HOLD_CAPACITY];
-    private final int[] holdSteps = new int[HOLD_CAPACITY];
-    private int holdNext;
-    private long holdTotal;
+    private final Function<Runnable, CompletableFuture<Void>> submit;
+    private final Executor retry = CompletableFuture.delayedExecutor(1, TimeUnit.MILLISECONDS);
+    private final Deque<Job> queue = new ArrayDeque<>();
+    private final Long2ObjectMap<CloudChunk> initialized = new Long2ObjectOpenHashMap<>();
+    private boolean scheduled;
+    private boolean running;
+    private boolean closed;
+    private @Nullable Throwable failure;
 
     /**
-     * Test seam: runs once before the next lane item, without holding the
-     * lane lock.
+     * @param level the lighting settings and finished-chunk lookup
+     * @param submit asynchronous submission whose future reports task completion or rejection
      */
-    private volatile @Nullable Runnable beforeItemHook;
-
-    /**
-     * @param level  the level state the lane reads
-     * @param submit hands each lane runnable to another thread; it must not run
-     *               the runnable synchronously on the calling thread, since each
-     *               run resubmits from within the run and synchronous execution
-     *               would nest a frame per queued item
-     */
-    public LightScheduler(LightLevelView level, Consumer<Runnable> submit) {
-        this(level, submit, SLICE_STEPS);
+    public LightScheduler(LightLevelView level, Function<Runnable, CompletableFuture<Void>> submit) {
+        this(level, submit, SLICE_STEPS, null);
     }
 
     /**
-     * @param level      the level state the lane reads
-     * @param submit     hands each lane runnable to another thread; it must not
-     *                   run the runnable synchronously on the calling thread,
-     *                   since each run resubmits from within the run and
-     *                   synchronous execution would nest a frame per queued item
-     * @param sliceSteps the combined propagation step budget per lock hold
+     * @param level      the lighting settings and finished-chunk lookup
+     * @param submit     asynchronous submission whose future reports task completion or rejection
+     * @param sliceSteps positive propagation budget per slice
+     * @param recorder   optional timing callback invoked after chunk locks are released
      */
-    LightScheduler(LightLevelView level, Consumer<Runnable> submit, int sliceSteps) {
-        Preconditions.checkNotNull(level, "level");
-        Preconditions.checkNotNull(submit, "submit");
-        Preconditions.checkArgument(sliceSteps > 0, "sliceSteps must be positive");
-        this.region = new LightRegion(level.registry(), level.minHeight(), level.maxHeight(), level.hasSkyLight(),
-                key -> level.loadedChunk(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)),
-                sliceSteps, this::recordHold);
-        this.submit = submit;
+    public LightScheduler(LightLevelView level, Function<Runnable, CompletableFuture<Void>> submit, int sliceSteps, LightRegion.@Nullable HoldRecorder recorder) {
+        this.level = Objects.requireNonNull(level, "level");
+        this.submit = Objects.requireNonNull(submit, "submit");
+        this.region = new LightRegion(level.registry(), level.minHeight(), level.maxHeight(), level.hasSkyLight(), key -> level.getChunkForLighting(CloudChunk.fromKeyX(key), CloudChunk.fromKeyZ(key)), sliceSteps, recorder);
     }
 
     /**
-     * Queues lighting for a loaded chunk.
+     * Requests initial lighting for a finished chunk and its available neighbors.
+     * The caller must retain those chunks until completion.
      *
-     * @param chunkX the chunk x
-     * @param chunkZ the chunk z
+     * @return propagation completion, canceled if the requested chunk unloads
      */
-    public void chunkLoaded(int chunkX, int chunkZ) {
-        synchronized (this.laneLock) {
-            this.queue.addLast(WorkItem.load(chunkX, chunkZ));
-        }
-        submitRunner();
+    public CompletableFuture<Void> chunkLoaded(int chunkX, int chunkZ) {
+        return this.enqueue(new Job(Kind.LOAD, chunkX, chunkZ, new LongArrayList()));
     }
 
     /**
-     * Queues a boundary refresh around an unloaded chunk.
-     *
-     * @param chunkX the chunk x
-     * @param chunkZ the chunk z
+     * Requests a boundary refresh after a chunk is removed.
      */
     public void chunkUnloaded(int chunkX, int chunkZ) {
-        synchronized (this.laneLock) {
-            this.queue.addLast(WorkItem.unload(chunkX, chunkZ));
-        }
-        submitRunner();
+        this.enqueue(new Job(Kind.UNLOAD, chunkX, chunkZ, new LongArrayList()));
     }
 
     /**
-     * Queues repropagation from the changed packed positions.
+     * Requests light updates for positions packed by {@link LightPositions#pack}.
      *
-     * @param positions the packed positions, see {@link LightPositions#pack}
+     * @return completion of propagation for these changes
      */
-    public void blocksChanged(LongCollection positions) {
-        if (positions.isEmpty()) {
-            return;
-        }
-        synchronized (this.laneLock) {
-            WorkItem tail = this.queue.peekLast();
-            if (tail != null && tail.kind == WorkItem.Kind.BLOCKS) {
-                tail.positions.addAll(positions);
-            } else {
-                this.queue.addLast(WorkItem.blocks(positions));
-            }
-        }
-        submitRunner();
+    public CompletableFuture<Void> blocksChanged(LongCollection positions) {
+        return this.enqueue(new Job(Kind.BLOCKS, 0, 0, new LongArrayList(positions)));
     }
 
     /**
-     * Returns whether no work is queued or running.
-     *
-     * @return true when idle
+     * Returns whether no requests are queued or running.
      */
     public boolean isIdle() {
-        synchronized (this.laneLock) {
-            return !this.runnerInFlight && this.queue.isEmpty();
+        synchronized (this.lock) {
+            return !this.scheduled && this.queue.isEmpty();
         }
     }
 
     /**
-     * Returns the longest recorded lock hold, or 0 when none was recorded.
+     * Checks whether the scheduler has stopped because of a failure.
      *
-     * @return the maximum hold in nanoseconds
+     * @throws CompletionException if light work or task submission failed
      */
-    public long maxHoldNanos() {
-        synchronized (this.holdLock) {
-            long max = 0;
-            int count = (int) Math.min(this.holdTotal, HOLD_CAPACITY);
-            for (int i = 0; i < count; i++) {
-                max = Math.max(max, this.holds[i]);
+    public void checkFailure() {
+        synchronized (this.lock) {
+            if (this.failure != null) {
+                throw new CompletionException("Level lighting failed", this.failure);
             }
-            return max;
         }
     }
 
     /**
-     * Returns the recorded lock holds, oldest first, bounded to the last
-     * {@value #HOLD_CAPACITY}.
-     *
-     * @return the hold samples in nanoseconds
+     * Cancels outstanding requests and rejects new work without waiting for an active slice.
+     * An active slice releases its chunk locks before stopping.
      */
-    public long[] holdNanosSamples() {
-        synchronized (this.holdLock) {
-            int count = (int) Math.min(this.holdTotal, HOLD_CAPACITY);
-            long[] samples = new long[count];
-            int start = this.holdNext - count;
-            if (start < 0) {
-                start += HOLD_CAPACITY;
+    @Override
+    public void close() {
+        this.stop(new CancellationException("Level lighting is closed"), false);
+    }
+
+    private CompletableFuture<Void> enqueue(Job job) {
+        synchronized (this.lock) {
+            if (this.closed) {
+                return CompletableFuture.failedFuture(this.failure != null ? this.failure
+                        : new CancellationException("Level lighting is closed"));
             }
-            for (int i = 0; i < count; i++) {
-                samples[i] = this.holds[(start + i) % HOLD_CAPACITY];
-            }
-            return samples;
+
+            this.queue.addLast(job);
         }
+
+        this.schedule(false);
+        return job.completion;
     }
 
-    /**
-     * Returns the propagation steps each recorded lock hold ran, oldest
-     * first, bounded to the last {@value #HOLD_CAPACITY}. Seed holds ran 0.
-     *
-     * @return the step counts per hold
-     */
-    public int[] holdStepSamples() {
-        synchronized (this.holdLock) {
-            int count = (int) Math.min(this.holdTotal, HOLD_CAPACITY);
-            int[] samples = new int[count];
-            int start = (int) (this.holdNext - count);
-            if (start < 0) {
-                start += HOLD_CAPACITY;
-            }
-            for (int i = 0; i < count; i++) {
-                samples[i] = this.holdSteps[(start + i) % HOLD_CAPACITY];
-            }
-            return samples;
-        }
-    }
-
-    /**
-     * Runs a hook once after the next seed band, without holding chunk locks.
-     *
-     * @param hook the hook, or null to clear it
-     */
-    void afterSeedBandForTest(@Nullable Runnable hook) {
-        this.region.afterSeedBandForTest(hook);
-    }
-
-    /**
-     * Runs a hook once after the next propagation slice, without holding chunk
-     * locks.
-     *
-     * @param hook the hook, or null to clear it
-     */
-    void afterSliceForTest(@Nullable Runnable hook) {
-        this.region.afterSliceForTest(hook);
-    }
-
-    /**
-     * Runs a hook once before the next lane item, without holding the lane
-     * lock.
-     *
-     * @param hook the hook, or null to clear it
-     */
-    void beforeItemForTest(@Nullable Runnable hook) {
-        this.beforeItemHook = hook;
-    }
-
-    private void submitRunner() {
-        synchronized (this.laneLock) {
-            if (this.runnerInFlight) {
+    private void schedule(boolean delayed) {
+        synchronized (this.lock) {
+            if (this.closed || this.scheduled || this.queue.isEmpty()) {
                 return;
             }
-            this.runnerInFlight = true;
-        }
-        handOff();
-    }
 
-    /**
-     * Hands one lane run to the submitter. A rejection drops the pending work
-     * and parks the lane; any other failure keeps the queued work with the
-     * lane parked, and the next submission restarts it.
-     */
-    private void handOff() {
-        try {
-            this.submit.accept(this::runLane);
-        } catch (RejectedExecutionException e) {
-            synchronized (this.laneLock) {
-                this.queue.clear();
-                this.runnerInFlight = false;
-            }
-        } catch (Throwable e) {
-            synchronized (this.laneLock) {
-                this.runnerInFlight = false;
-            }
-            throw e;
+            this.scheduled = true;
+        }
+
+        if (delayed) {
+            this.retry.execute(this::dispatch);
+        } else {
+            this.dispatch();
         }
     }
 
-    private void runLane() {
-        WorkItem item;
-        synchronized (this.laneLock) {
-            item = this.queue.pollFirst();
-            if (item == null) {
-                this.runnerInFlight = false;
+    private void dispatch() {
+        synchronized (this.lock) {
+            if (this.closed) {
+                this.scheduled = false;
                 return;
             }
         }
+
         try {
-            if (item.kind == WorkItem.Kind.BLOCKS) {
-                synchronized (this.laneLock) {
-                    WorkItem next;
-                    while ((next = this.queue.peekFirst()) != null && next.kind == WorkItem.Kind.BLOCKS) {
-                        this.queue.pollFirst();
-                        item.positions.addAll(next.positions);
+            this.submit.apply(this::runSlice).whenComplete((ignored, error) -> {
+                if (error != null) {
+                    this.stop(error, true);
+                }
+            });
+        } catch (Throwable error) {
+            this.stop(error, true);
+        }
+    }
+
+    private void runSlice() {
+        Job job;
+
+        synchronized (this.lock) {
+            if (this.closed) {
+                this.scheduled = false;
+                return;
+            }
+
+            job = this.queue.peekFirst();
+            this.running = true;
+        }
+
+        if (job == null) {
+            synchronized (this.lock) {
+                this.scheduled = false;
+                this.running = false;
+            }
+
+            return;
+        }
+
+        boolean busy = false;
+
+        try {
+            if (job.completion.isCancelled()) {
+                synchronized (this.lock) {
+                    this.queue.remove(job);
+                }
+
+                return;
+            }
+
+            if (job.kind == Kind.LOAD && job.center != null && this.level.getChunkForLighting(job.chunkX, job.chunkZ) != job.center) {
+                throw new CancellationException("Chunk unloaded during lighting");
+            }
+
+            Deque<Unit> operations = job.operations;
+
+            if (operations == null) {
+                operations = this.prepare(job);
+                job.operations = operations;
+            }
+
+            Unit unit = operations.peekFirst();
+
+            if (unit != null) {
+                LightRegion.Step step = unit.operation.advance();
+                busy = step == LightRegion.Step.BUSY;
+
+                if (step == LightRegion.Step.COMPLETE) {
+                    operations.removeFirst();
+
+                    if (unit.chunk != null) {
+                        this.initialized.put(unit.chunk.getKey(), unit.chunk);
                     }
                 }
             }
-            Runnable hook = this.beforeItemHook;
-            this.beforeItemHook = null;
-            if (hook != null) {
-                hook.run();
+
+            if (operations.isEmpty()) {
+                synchronized (this.lock) {
+                    this.queue.remove(job);
+                }
+
+                job.completion.complete(null);
             }
-            process(item);
-        } catch (Throwable e) {
-            log.error("Dropping light work after failure", e);
+        } catch (CancellationException cancelled) {
+            synchronized (this.lock) {
+                this.queue.remove(job);
+            }
+
+            job.completion.completeExceptionally(cancelled);
+        } catch (Throwable error) {
+            this.stop(error, true);
         } finally {
-            boolean idle;
-            synchronized (this.laneLock) {
-                idle = this.queue.isEmpty();
-                if (idle) {
-                    this.runnerInFlight = false;
+            synchronized (this.lock) {
+                this.scheduled = false;
+                this.running = false;
+
+                if (this.closed) {
+                    this.initialized.clear();
                 }
             }
-            if (!idle) {
-                handOff();
-            }
+
+            this.schedule(busy);
         }
     }
 
-    private void process(WorkItem item) {
-        switch (item.kind) {
-            case LOAD -> runUnit("initialize",
-                    () -> this.region.initialize(item.chunkX, item.chunkZ));
-            case UNLOAD -> runUnit("unloaded",
-                    () -> this.region.unloaded(item.chunkX, item.chunkZ));
+    private Deque<Unit> prepare(Job job) {
+        Deque<Unit> operations = new ArrayDeque<>();
+
+        switch (job.kind) {
+            case LOAD -> {
+                CloudChunk center = this.level.getChunkForLighting(job.chunkX, job.chunkZ);
+                if (center == null) {
+                    throw new CancellationException("Chunk unloaded before lighting");
+                }
+
+                job.center = center;
+
+                for (int x = job.chunkX - 1; x <= job.chunkX + 1; x++) {
+                    for (int z = job.chunkZ - 1; z <= job.chunkZ + 1; z++) {
+                        CloudChunk chunk = this.level.getChunkForLighting(x, z);
+                        if (chunk != null && this.initialized.get(chunk.getKey()) != chunk) {
+                            operations.addLast(new Unit(this.region.initialize(x, z), chunk));
+                        }
+                    }
+                }
+            }
+            case UNLOAD -> {
+                this.initialized.keySet().remove(CloudChunk.key(job.chunkX, job.chunkZ));
+                operations.addLast(new Unit(this.region.unloaded(job.chunkX, job.chunkZ), null));
+            }
             case BLOCKS -> {
                 Long2ObjectMap<LongArrayList> groups = new Long2ObjectOpenHashMap<>();
-                for (long packed : item.positions) {
-                    long key = CloudChunk.key(LightPositions.x(packed) >> 4, LightPositions.z(packed) >> 4);
-                    LongArrayList group = groups.get(key);
-                    if (group == null) {
-                        group = new LongArrayList();
-                        groups.put(key, group);
-                    }
-                    group.add(packed);
+
+                for (long position : job.positions) {
+                    long key = CloudChunk.key(LightPositions.x(position) >> 4, LightPositions.z(position) >> 4);
+                    groups.computeIfAbsent(key, ignored -> new LongArrayList()).add(position);
                 }
-                long[] keys = groups.keySet().toLongArray();
-                Arrays.sort(keys);
-                for (long key : keys) {
-                    LongArrayList group = groups.get(key);
-                    runUnit("update", () -> this.region.update(group));
+
+                for (LongArrayList group : groups.values()) {
+                    operations.addLast(new Unit(this.region.update(group), null));
                 }
             }
         }
+
+        return operations;
     }
 
-    private void runUnit(String name, Runnable unit) {
-        try {
-            unit.run();
-        } catch (Throwable e) {
-            log.error("Dropping light unit {} after failure", name, e);
+    private void stop(Throwable error, boolean failed) {
+        List<Job> pending;
+
+        synchronized (this.lock) {
+            if (this.closed) {
+                return;
+            }
+
+            this.closed = true;
+
+            if (failed) {
+                this.failure = error;
+            }
+
+            pending = new ArrayList<>(this.queue);
+            this.queue.clear();
+
+            if (!this.running) {
+                this.scheduled = false;
+                this.initialized.clear();
+            }
+        }
+
+        for (Job job : pending) {
+            job.completion.completeExceptionally(error);
         }
     }
 
-    /**
-     * Records one lock hold's duration with the propagation steps it ran, in
-     * the same ring slot; seed holds ran 0 steps. The region reports both
-     * together on the lane thread.
-     */
-    private void recordHold(long nanos, int steps) {
-        synchronized (this.holdLock) {
-            this.holds[this.holdNext] = nanos;
-            this.holdSteps[this.holdNext] = steps;
-            this.holdNext = (this.holdNext + 1) % HOLD_CAPACITY;
-            this.holdTotal++;
-        }
+    private enum Kind {
+        LOAD,
+        UNLOAD,
+        BLOCKS
     }
 
-    private static final class WorkItem {
+    private static class Job {
+        private final Kind kind;
+        private final int chunkX;
+        private final int chunkZ;
+        private final LongArrayList positions;
+        private final CompletableFuture<Void> completion = new CompletableFuture<>();
+        private @Nullable Deque<Unit> operations;
+        private @Nullable CloudChunk center;
 
-        enum Kind {
-            LOAD,
-            UNLOAD,
-            BLOCKS
-        }
-
-        final Kind kind;
-        final int chunkX;
-        final int chunkZ;
-        /**
-         * The queued positions; only block-change items carry any.
-         */
-        final @Nullable LongArrayList positions;
-
-        private WorkItem(Kind kind, int chunkX, int chunkZ, @Nullable LongArrayList positions) {
+        private Job(Kind kind, int chunkX, int chunkZ, LongArrayList positions) {
             this.kind = kind;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
             this.positions = positions;
         }
+    }
 
-        static WorkItem load(int chunkX, int chunkZ) {
-            return new WorkItem(Kind.LOAD, chunkX, chunkZ, null);
-        }
-
-        static WorkItem unload(int chunkX, int chunkZ) {
-            return new WorkItem(Kind.UNLOAD, chunkX, chunkZ, null);
-        }
-
-        static WorkItem blocks(LongCollection positions) {
-            return new WorkItem(Kind.BLOCKS, 0, 0, new LongArrayList(positions));
-        }
+    private record Unit(LightRegion.Operation operation, @Nullable CloudChunk chunk) {
     }
 }

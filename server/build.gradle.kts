@@ -190,7 +190,7 @@ tasks.shadowJar {
 }
 
 tasks.test {
-    // Forwarded as-is; the light speed test only gates on the value "true".
+    // Generated-terrain measurements are opt-in.
     System.getProperty("cloudburst.lightBenchmark")?.let { systemProperty("cloudburst.lightBenchmark", it) }
 }
 

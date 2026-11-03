@@ -24,7 +24,7 @@ public record DimensionHeight(int minHeight, int maxHeight) implements LevelHeig
      *
      * @param dimension the dimension id, one of {@link CloudLevel#DIMENSION_OVERWORLD},
      *                  {@link CloudLevel#DIMENSION_NETHER} or {@link CloudLevel#DIMENSION_THE_END}
-     * @return the dimension's build limits; the overworld's for an unknown id
+     * @return the dimension's build limits, defaulting to the overworld for an unknown id
      */
     public static DimensionHeight of(int dimension) {
         return switch (dimension) {

@@ -17,7 +17,7 @@ public class TestLevels {
 
     /**
      * Returns a level spanning {@code [minHeight, maxHeight)}. Default methods such as
-     * {@code getSectionIndex} run their real implementation; the given return values answer
+     * {@code getSectionIndex} run their real implementation. The given return values answer
      * the other methods, {@code getServer} defaults to a server holding the test block registry,
      * and anything else returns its type's default.
      *
@@ -33,10 +33,12 @@ public class TestLevels {
         values.putIfAbsent("getServer", InterfaceProxy.create(Server.class,
                 Map.of("getBlockRegistry", BlockTestRegistry.get())));
         Level fallback = InterfaceProxy.create(Level.class, values);
+
         return InterfaceProxy.create(Level.class, (InvocationHandler) (proxy, method, arguments) -> {
             if (method.isDefault() && !values.containsKey(method.getName())) {
                 return InvocationHandler.invokeDefault(proxy, method, arguments);
             }
+
             return method.invoke(fallback, arguments);
         });
     }

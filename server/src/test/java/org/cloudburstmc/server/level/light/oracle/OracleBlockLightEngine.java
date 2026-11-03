@@ -16,16 +16,19 @@ public class OracleBlockLightEngine {
 
     public static List<Vector3i> initialize(OracleLightAccess access, int chunkX, int chunkZ) {
         List<Vector3i> updates = new ArrayList<>();
+
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
                     Vector3i position = Vector3i.from((chunkX << 4) + x, y, (chunkZ << 4) + z);
                     OracleLightAccess.Sample sample = access.read(position);
+
                     if (sample == null) {
                         continue;
                     }
 
                     int emission = sample.emission();
+
                     if (sample.light() != emission) {
                         access.write(position, emission);
                         updates.add(position);
@@ -42,8 +45,10 @@ public class OracleBlockLightEngine {
     public static void update(OracleLightAccess access, Collection<Vector3i> changed) {
         ArrayDeque<Vector3i> queue = new ArrayDeque<>();
         Set<Vector3i> pending = new HashSet<>();
+
         for (Vector3i position : changed) {
             enqueue(queue, pending, position);
+
             for (Direction direction : Direction.values()) {
                 enqueue(queue, pending, direction.relative(position));
             }
@@ -53,15 +58,18 @@ public class OracleBlockLightEngine {
             Vector3i position = queue.removeFirst();
             pending.remove(position);
             OracleLightAccess.Sample sample = access.read(position);
+
             if (sample == null) {
                 continue;
             }
 
             int light = sample.emission();
             int attenuation = Math.max(1, sample.opacity());
+
             if (light < 15 && attenuation < 15) {
                 for (Direction direction : Direction.values()) {
                     OracleLightAccess.Sample neighbor = access.read(direction.relative(position));
+
                     if (neighbor != null && neighbor.light() - attenuation > light
                             && !OracleLightOcclusion.occludes(access.registry(), neighbor, sample, direction.getOpposite())) {
                         light = Math.max(light, neighbor.light() - attenuation);
@@ -70,11 +78,13 @@ public class OracleBlockLightEngine {
             }
 
             light = Math.clamp(light, 0, 15);
+
             if (sample.light() == light) {
                 continue;
             }
 
             access.write(position, light);
+
             for (Direction direction : Direction.values()) {
                 enqueue(queue, pending, direction.relative(position));
             }

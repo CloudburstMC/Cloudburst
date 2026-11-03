@@ -13,8 +13,10 @@ class CloudChunkLightPositionTest {
         int[] minHeights = {-64, 0};
         int[][] origins = {{0, 0}, {-3, 5}};
         BlockLayer[] layers = {BlockLayer.PRIMARY, BlockLayer.SECONDARY};
+
         for (int minHeight : minHeights) {
             int[] heights = {minHeight, minHeight + 1, minHeight + 16, minHeight + 511};
+
             for (int[] origin : origins) {
                 for (BlockLayer layer : layers) {
                     for (int localX = 0; localX < 16; localX++) {

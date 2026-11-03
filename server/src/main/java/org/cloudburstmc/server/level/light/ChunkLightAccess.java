@@ -6,41 +6,30 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockLayer;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.server.level.chunk.BlockLayerStorage;
+import org.cloudburstmc.server.level.chunk.ChunkLightView;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.level.chunk.CloudChunkSection;
-import org.cloudburstmc.server.level.chunk.BlockLayerStorage;
-import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.utils.NibbleArray;
 
 import java.util.function.LongFunction;
 
 /**
- * {@link LightAccess} over locked chunks.
- *
- * <p>{@code chunks} returns the already-locked chunk for a chunk key, or null
- * when the chunk is absent; only the last chunk is remembered, since
- * propagation mostly walks within one chunk at a time.
- *
- * <p>Each locked chunk's section array is snapshotted on first use, so block
- * states come straight from palette storage and light values straight from
- * the nibble arrays, without level lookups or per-cell bounds checks. A null
- * snapshot entry reads as air and 0, matching a zero-filled fresh section;
- * sections created mid-pass are written back into the snapshot, so later
- * reads in the same view see them. The block and sky views keep separate
- * snapshots and still agree, because a fresh section reads as air and 0 while
- * each channel writes only its own nibble.
+ * Light access restricted to borrowed chunk-section views.
+ * Use on the lock-owning thread and discard before releasing those views.
+ * Light writes do not mark chunks dirty.
  */
-final class ChunkLightAccess implements LightAccess {
+public class ChunkLightAccess implements LightAccess {
 
     private final LightChannel channel;
     private final int minHeight;
     private final int maxHeight;
     private final LightStateCache states;
-    private final LongFunction<LockedChunk> chunks;
+    private final LongFunction<? extends ChunkLightView> chunks;
 
     private boolean hasCached;
     private long cachedKey;
-    private @Nullable LockedChunk cachedChunk;
+    private @Nullable ChunkLightView cachedChunk;
 
     private boolean hasSectionCached;
     private long sectionCachedKey;
@@ -49,8 +38,14 @@ final class ChunkLightAccess implements LightAccess {
 
     private final Long2ObjectMap<CloudChunkSection[]> sectionsByKey = new Long2ObjectOpenHashMap<>();
 
-    ChunkLightAccess(LightChannel channel, int minHeight, int maxHeight, LightStateCache states,
-            LongFunction<LockedChunk> chunks) {
+    /**
+     * @param channel   the light channel to read and write
+     * @param minHeight the lowest accessible y
+     * @param maxHeight one past the highest accessible y
+     * @param states    the thread-confined block-state cache
+     * @param chunks    lookup of borrowed views held under write locks, returning null when absent
+     */
+    public ChunkLightAccess(LightChannel channel, int minHeight, int maxHeight, LightStateCache states, LongFunction<? extends ChunkLightView> chunks) {
         this.channel = channel;
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
@@ -69,6 +64,11 @@ final class ChunkLightAccess implements LightAccess {
     }
 
     @Override
+    public LightStateCache states() {
+        return this.states;
+    }
+
+    @Override
     public boolean isLoaded(int x, int z) {
         return this.chunkFor(x >> 4, z >> 4) != null;
     }
@@ -76,9 +76,11 @@ final class ChunkLightAccess implements LightAccess {
     @Override
     public BlockState primary(int x, int y, int z) {
         CloudChunkSection section = this.sectionFor(x, y, z);
+
         if (section == null) {
             return BlockStates.AIR;
         }
+
         return section.getBlockStorageArray()[BlockLayerStorage.index(BlockLayer.PRIMARY)]
                 .getBlock(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15));
     }
@@ -86,9 +88,11 @@ final class ChunkLightAccess implements LightAccess {
     @Override
     public BlockState secondary(int x, int y, int z) {
         CloudChunkSection section = this.sectionFor(x, y, z);
+
         if (section == null) {
             return BlockStates.AIR;
         }
+
         return section.getBlockStorageArray()[BlockLayerStorage.index(BlockLayer.SECONDARY)]
                 .getBlock(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15));
     }
@@ -96,9 +100,11 @@ final class ChunkLightAccess implements LightAccess {
     @Override
     public int light(int x, int y, int z) {
         CloudChunkSection section = this.sectionFor(x, y, z);
+
         if (section == null) {
             return 0;
         }
+
         NibbleArray nibbles = this.channel == LightChannel.BLOCK
                 ? section.getBlockLightArray()
                 : section.getSkyLightArray();
@@ -110,17 +116,22 @@ final class ChunkLightAccess implements LightAccess {
         if (y < this.minHeight || y >= this.maxHeight) {
             return;
         }
+
         long key = CloudChunk.key(x >> 4, z >> 4);
         int index = (y - this.minHeight) >> 4;
         CloudChunkSection section = this.sectionFor(x, y, z);
+
         if (section == null) {
-            LockedChunk chunk = this.chunkForKey(key);
+            ChunkLightView chunk = this.chunkForKey(key);
+
             if (chunk == null) {
                 return;
             }
+
             if (light == 0) {
                 return;
             }
+
             section = chunk.getOrCreateLightSection(index);
             this.sectionsFor(key, chunk)[index] = section;
             this.sectionCachedKey = key;
@@ -128,35 +139,31 @@ final class ChunkLightAccess implements LightAccess {
             this.sectionCached = section;
             this.hasSectionCached = true;
         }
+
         NibbleArray nibbles = this.channel == LightChannel.BLOCK
                 ? section.getBlockLightArray()
                 : section.getSkyLightArray();
         nibbles.set(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15), (byte) light);
     }
 
-    @Override
-    public LightStateCache states() {
-        return this.states;
-    }
-
-    /**
-     * Returns the section holding the cell, or null for out-of-height cells
-     * and cells in absent or ungenerated sections. The last section is
-     * remembered, since most visits stay within one section at a time.
-     */
     private @Nullable CloudChunkSection sectionFor(int x, int y, int z) {
         if (y < this.minHeight || y >= this.maxHeight) {
             return null;
         }
+
         long key = CloudChunk.key(x >> 4, z >> 4);
         int index = (y - this.minHeight) >> 4;
+
         if (this.hasSectionCached && key == this.sectionCachedKey && index == this.sectionCachedIndex) {
             return this.sectionCached;
         }
-        LockedChunk chunk = this.chunkForKey(key);
+
+        ChunkLightView chunk = this.chunkForKey(key);
+
         if (chunk == null) {
             return null;
         }
+
         CloudChunkSection section = this.sectionsFor(key, chunk)[index];
         this.sectionCachedKey = key;
         this.sectionCachedIndex = index;
@@ -165,31 +172,28 @@ final class ChunkLightAccess implements LightAccess {
         return section;
     }
 
-    /**
-     * Returns the snapshotted sections of an already-locked chunk.
-     */
-    private CloudChunkSection[] sectionsFor(long key, LockedChunk chunk) {
+    private CloudChunkSection[] sectionsFor(long key, ChunkLightView chunk) {
         CloudChunkSection[] sections = this.sectionsByKey.get(key);
+
         if (sections == null) {
-            sections = chunk.getSections();
+            sections = chunk.getLightSections();
             this.sectionsByKey.put(key, sections);
         }
+
         return sections;
     }
 
-    /**
-     * Returns the already-locked chunk, or null when it is absent.
-     */
-    private @Nullable LockedChunk chunkFor(int chunkX, int chunkZ) {
+    private @Nullable ChunkLightView chunkFor(int chunkX, int chunkZ) {
         return chunkForKey(CloudChunk.key(chunkX, chunkZ));
     }
 
-    private @Nullable LockedChunk chunkForKey(long key) {
+    private @Nullable ChunkLightView chunkForKey(long key) {
         if (!this.hasCached || key != this.cachedKey) {
             this.cachedKey = key;
             this.hasCached = true;
             this.cachedChunk = this.chunks.apply(key);
         }
+
         return this.cachedChunk;
     }
 }

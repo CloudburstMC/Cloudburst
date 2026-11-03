@@ -16,25 +16,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Mutable {@link LightAccess} over a bounded box for engine tests.
  *
- * <p>Writes outside the loaded box or height fail; reads outside return air
+ * <p>Writes outside the loaded box or height fail. Reads outside return air
  * or 0 like production.
  */
-final class LightTestGrid implements LightAccess {
+public class LightTestGrid implements LightAccess {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
     private static final LightStateCache STATES = new LightStateCache(REGISTRY);
 
-    final Map<Vector3i, BlockState> blocks = new HashMap<>();
-    final Map<Vector3i, BlockState> secondary = new HashMap<>();
-    final Map<Vector3i, Integer> lights = new HashMap<>();
-    int minX;
-    int maxX;
-    int minZ;
-    int maxZ;
+    public final Map<Vector3i, BlockState> blocks = new HashMap<>();
+    public final Map<Vector3i, BlockState> secondary = new HashMap<>();
+    public final Map<Vector3i, Integer> lights = new HashMap<>();
+
+    public int minX;
+    public int maxX;
+    public int minZ;
+    public int maxZ;
+
     private final int minY;
     private final int maxY;
 
-    LightTestGrid(int minX, int maxX, int minZ, int maxZ, int minY, int maxY) {
+    public LightTestGrid(int minX, int maxX, int minZ, int maxZ, int minY, int maxY) {
         this.minX = minX;
         this.maxX = maxX;
         this.minZ = minZ;
@@ -63,6 +65,7 @@ final class LightTestGrid implements LightAccess {
         if (!this.isLoaded(x, z) || y < this.minY || y >= this.maxY) {
             return BlockStates.AIR;
         }
+
         return this.blocks.getOrDefault(Vector3i.from(x, y, z), BlockStates.AIR);
     }
 
@@ -71,6 +74,7 @@ final class LightTestGrid implements LightAccess {
         if (!this.isLoaded(x, z) || y < this.minY || y >= this.maxY) {
             return BlockStates.AIR;
         }
+
         return this.secondary.getOrDefault(Vector3i.from(x, y, z), BlockStates.AIR);
     }
 
@@ -79,6 +83,7 @@ final class LightTestGrid implements LightAccess {
         if (!this.isLoaded(x, z) || y < this.minY || y >= this.maxY) {
             return 0;
         }
+
         return this.lights.getOrDefault(Vector3i.from(x, y, z), 0);
     }
 
@@ -108,34 +113,36 @@ final class LightTestGrid implements LightAccess {
         assertTrue(propagation.run(access, new int[]{Integer.MAX_VALUE}), "propagation did not drain");
     }
 
-    void initializeBlock(int chunkX, int chunkZ) {
+    void initializeBlock(int chunkX) {
         LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
-        BlockLightEngine.initializeBand(this, chunkX, chunkZ, 0, 1, propagation);
+        BlockLightEngine.initializeBand(this, chunkX, 0, 0, 1, propagation);
         drain(this, propagation);
     }
 
     void updateBlock(Collection<Vector3i> changed) {
         LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
+
         for (Vector3i position : changed) {
-            propagation.invalidate(this,
-                    LightPositions.pack(position.getX(), position.getY(), position.getZ()));
+            propagation.invalidate(this, LightPositions.pack(position.getX(), position.getY(), position.getZ()));
         }
+
         drain(this, propagation);
     }
 
-    void initializeSky(int chunkX, int chunkZ) {
+    void initializeSky() {
         LightPropagation propagation = new LightPropagation(LightChannel.SKY);
-        SkyLightEngine.initializeBand(this, chunkX, chunkZ, 0, 1, propagation);
-        SkyLightEngine.spreadBand(this, chunkX, chunkZ, 0, 1, propagation);
+        SkyLightEngine.initializeBand(this, 0, 0, 0, 1);
+        SkyLightEngine.spreadBand(this, 0, 0, 0, 1, propagation);
         drain(this, propagation);
     }
 
     void updateSky(Collection<Vector3i> changed) {
         LightPropagation propagation = new LightPropagation(LightChannel.SKY);
+
         for (Vector3i position : changed) {
-            propagation.invalidate(this,
-                    LightPositions.pack(position.getX(), position.getY(), position.getZ()));
+            propagation.invalidate(this, LightPositions.pack(position.getX(), position.getY(), position.getZ()));
         }
+
         drain(this, propagation);
     }
 }

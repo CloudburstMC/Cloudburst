@@ -50,6 +50,7 @@ public class OracleChunkLightAccess implements OracleLightAccess {
         }
 
         Chunk chunk = this.chunk(position);
+
         if (chunk == null) {
             return null;
         }
@@ -58,6 +59,7 @@ public class OracleChunkLightAccess implements OracleLightAccess {
         int y = position.getY();
         int z = position.getZ() & 15;
         int light = this.type == Type.BLOCK ? chunk.getBlockLight(x, y, z) : chunk.getSkyLight(x, y, z);
+
         return new Sample(chunk.getBlockState(x, y, z, BlockLayer.PRIMARY), chunk.getBlockState(x, y, z, BlockLayer.SECONDARY), light);
     }
 
@@ -68,6 +70,7 @@ public class OracleChunkLightAccess implements OracleLightAccess {
         }
 
         Chunk chunk = this.chunk(position);
+
         if (chunk != null) {
             if (this.type == Type.BLOCK) {
                 chunk.setBlockLight(position.getX() & 15, position.getY(), position.getZ() & 15, light);
@@ -82,6 +85,7 @@ public class OracleChunkLightAccess implements OracleLightAccess {
         int z = position.getZ() >> 4;
 
         long key = CloudChunk.key(x, z);
+
         if (!this.chunks.containsKey(key)) {
             this.chunks.put(key, this.loadedChunks.apply(key));
         }

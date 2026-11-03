@@ -11,8 +11,7 @@ public enum ChunkTaskType {
     POPULATE(1),
     FINISH(1),
     /**
-     * Background light work. Reserves no chunk area, so it never blocks
-     * generation on area conflicts.
+     * Light work that does not reserve a chunk area.
      */
     LIGHT(-1);
 

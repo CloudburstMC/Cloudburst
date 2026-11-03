@@ -26,28 +26,6 @@ public class OracleLightOcclusion {
         return remaining.isEmpty();
     }
 
-    public static boolean affectsLight(BlockRegistry registry, BlockState before, BlockState after) {
-        if (before == after) {
-            return false;
-        }
-
-        if (before.getLightDampening() != after.getLightDampening() || before.getLightEmission() != after.getLightEmission()) {
-            return true;
-        }
-
-        Faces oldFaces = faces(registry, before);
-        Faces newFaces = faces(registry, after);
-        for (Direction direction : Direction.values()) {
-            VoxelShape oldFace = oldFaces.shapes()[direction.ordinal()];
-            VoxelShape newFace = newFaces.shapes()[direction.ordinal()];
-            if (oldFace != newFace && (!oldFace.covers(newFace) || !newFace.covers(oldFace))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private static VoxelShape subtractFace(BlockRegistry registry, BlockState state, Direction direction, VoxelShape remaining) {
         if (remaining.isEmpty()) {
             return remaining;
@@ -60,6 +38,7 @@ public class OracleLightOcclusion {
     private static Faces faces(BlockRegistry registry, BlockState state) {
         LightOcclusionShapeHandler handler = registry.requireComponent(state.getType(), BlockComponents.GET_LIGHT_OCCLUSION_SHAPE);
         Faces cached = CACHE.get(state);
+
         if (cached != null && cached.handler() == handler) {
             return cached;
         }
@@ -72,9 +51,11 @@ public class OracleLightOcclusion {
     private static Faces createFaces(BlockState state, LightOcclusionShapeHandler handler) {
         VoxelShape shape = handler.execute(state);
         VoxelShape[] faces = new VoxelShape[Direction.values().length];
+
         for (Direction direction : Direction.values()) {
             faces[direction.ordinal()] = shape.getFaceShape(direction);
         }
+
         return new Faces(handler, faces);
     }
 

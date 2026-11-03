@@ -24,6 +24,7 @@ class LightStateCacheTest {
     void fastOcclusionMatchesShapeOcclusion() {
         LightStateCache cache = new LightStateCache(REGISTRY);
         List<StatePair> samples = new ArrayList<>();
+
         for (BlockState state : states()) {
             samples.add(new StatePair(state, BlockStates.AIR));
             samples.add(new StatePair(BlockStates.AIR, state));
@@ -63,6 +64,7 @@ class LightStateCacheTest {
                 BlockTypes.OAK_SLAB.getDefaultState().withTrait(BlockTraits.SLAB_SLOT, SlabSlot.BOTTOM),
                 BlockTypes.OAK_SLAB.getDefaultState().withTrait(BlockTraits.SLAB_SLOT, SlabSlot.TOP),
                 BlockTypes.FROSTED_ICE.getDefaultState()));
+
         for (Direction facing : Direction.Plane.HORIZONTAL) {
             for (boolean upsideDown : new boolean[]{false, true}) {
                 for (StairShape shape : StairShape.values()) {
@@ -73,9 +75,11 @@ class LightStateCacheTest {
                 }
             }
         }
+
         for (int layers = 1; layers <= 8; layers++) {
             states.add(BlockTypes.SNOW_LAYER.getDefaultState().withTrait(BlockTraits.HEIGHT, layers - 1));
         }
+
         return states;
     }
 

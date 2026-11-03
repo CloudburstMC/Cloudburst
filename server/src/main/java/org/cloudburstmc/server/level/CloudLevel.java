@@ -47,7 +47,6 @@ import org.cloudburstmc.api.level.particle.ParticleEmitter;
 import org.cloudburstmc.api.level.sound.SoundPlayback;
 import org.cloudburstmc.api.player.GameMode;
 import org.cloudburstmc.api.player.Player;
-import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
@@ -81,12 +80,8 @@ import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.level.light.LightLevelView;
-import org.cloudburstmc.server.level.light.LightOcclusion;
-import org.cloudburstmc.server.level.light.LightScheduler;
-import org.cloudburstmc.server.level.light.SkyLightEngine;
+import org.cloudburstmc.server.level.light.*;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
-import org.cloudburstmc.server.level.manager.LightSubmit;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
 import org.cloudburstmc.server.math.MathHelper;
@@ -108,7 +103,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import java.util.function.LongFunction;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
@@ -152,6 +146,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     // Storing the vector is redundant
     private final Object changeBlocksPresent = new Object();
     private final Long2ObjectMap<IntSet> lightQueue = new Long2ObjectOpenHashMap<>();
+
     // Storing extra blocks past 512 is redundant
     private final Map<Character, Object> changeBlocksFullMap = new HashMap<Character, Object>() {
         @Override
@@ -160,13 +155,13 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
     };
 
-
     @Getter
     private final BlockUpdateScheduler blockUpdateQueue;
     @Getter
     private final BlockUpdateScheduler liquidUpdateQueue;
 
-    private static final ThreadLocal<NeighborUpdateContext> NEIGHBOR_UPDATES = ThreadLocal.withInitial(NeighborUpdateContext::new);
+    private static final ThreadLocal<NeighborUpdateContext> NEIGHBOR_UPDATES =
+            ThreadLocal.withInitial(NeighborUpdateContext::new);
 
     private boolean autoSave;
 
@@ -236,14 +231,16 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         this.chunkTickList.clear();
         this.chunkManager = new LevelChunkManager(this);
-        this.lightScheduler = new LightScheduler(new LightView(this),
-                new LightSubmit(this.chunkManager.getScheduler()));
+        this.lightScheduler = new LightScheduler(new CloudLevelLightView(this.server.getBlockRegistry(),
+                this.getMinHeight(), this.getMaxHeight(), this.getDimension() == DIMENSION_OVERWORLD,
+                this.chunkManager::getChunkForLighting), this.chunkManager.getScheduler()::scheduleLight
+        );
         this.collisionEngine = new CollisionEngine(this);
         this.endFight = this.getDimension() == DIMENSION_THE_END
                 ? new EndFightManager(this, this.levelData.getEndFightData())
                 : null;
 
-        LongPredicate loadedChunk = chunkKey -> this.chunkManager.isChunkLoaded(chunkKey);
+        LongPredicate loadedChunk = this.chunkManager::isChunkLoaded;
         this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickBlock);
         this.liquidUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickLiquid);
 
@@ -251,7 +248,8 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void reloadGenerator() {
-        this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
+        this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator())
+                .create(this.getSeed(), this.levelData.getGeneratorOptions());
     }
 
     public double getLastTickDuration() {
@@ -303,6 +301,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void close() {
+        this.lightScheduler.close();
         this.save(true, true);
 
         try {
@@ -310,6 +309,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         } catch (IOException e) {
             throw new LevelException("Error occurred whilst closing level", e);
         }
+
         this.provider = null;
         // this.blockMetadata = null;
     }
@@ -489,6 +489,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     public void addChunkPacket(int chunkX, int chunkZ, BedrockPacket packet) {
         long index = CloudChunk.key(chunkX, chunkZ);
+
         synchronized (chunkPackets) {
             Deque<BedrockPacket> packets = chunkPackets.computeIfAbsent(index, i -> new ArrayDeque<>());
             packets.add(packet);
@@ -496,9 +497,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void doTick(int currentTick) {
-        synchronized (lightQueue) {
-            this.updateQueuedLight();
-        }
+        this.updateQueuedLight();
 
         this.levelData.tick();
 
@@ -1301,75 +1300,17 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     /**
-     * The level state the background light lane reads. Only touches
-     * thread-safe state off the calling thread: the lane calls
-     * {@link #loadedChunk} from worker threads, which must only see promoted
-     * chunks, as {@link LevelChunkManager#getLoadedChunk} returns.
-     */
-    static final class LightView implements LightLevelView {
-        private final BlockRegistry registry;
-        private final int minHeight;
-        private final int maxHeight;
-        private final int dimension;
-        private final LongFunction<CloudChunk> loadedChunks;
-
-        private LightView(CloudLevel level) {
-            this(level.server.getBlockRegistry(), level.getMinHeight(), level.getMaxHeight(),
-                    level.getDimension(), key -> level.chunkManager.getLoadedChunk(key));
-        }
-
-        /**
-         * @param loadedChunks returns the loaded chunk for a chunk key, or null
-         *                     when absent
-         */
-        LightView(BlockRegistry registry, int minHeight, int maxHeight, int dimension,
-                LongFunction<CloudChunk> loadedChunks) {
-            this.registry = registry;
-            this.minHeight = minHeight;
-            this.maxHeight = maxHeight;
-            this.dimension = dimension;
-            this.loadedChunks = loadedChunks;
-        }
-
-        @Override
-        public BlockRegistry registry() {
-            return this.registry;
-        }
-
-        @Override
-        public int minHeight() {
-            return this.minHeight;
-        }
-
-        @Override
-        public int maxHeight() {
-            return this.maxHeight;
-        }
-
-        @Override
-        public boolean hasSkyLight() {
-            return this.dimension == DIMENSION_OVERWORLD;
-        }
-
-        @Override
-        public @Nullable CloudChunk loadedChunk(int chunkX, int chunkZ) {
-            return this.loadedChunks.apply(CloudChunk.key(chunkX, chunkZ));
-        }
-    }
-
-    /**
-     * Queues lighting for a promoted chunk. Only enqueues; the background
-     * lane does the work.
+     * Requests initial lighting before a finished chunk is promoted.
      *
-     * @param chunk the promoted chunk
+     * @param chunk the finished chunk
+     * @return completion of initial lighting and its neighbour propagation
      */
-    public void initializeChunkLight(CloudChunk chunk) {
-        this.lightScheduler.chunkLoaded(chunk.getX(), chunk.getZ());
+    public CompletableFuture<Void> initializeChunkLight(CloudChunk chunk) {
+        return this.lightScheduler.chunkLoaded(chunk.getX(), chunk.getZ());
     }
 
     /**
-     * Queues a boundary refresh around an unloaded chunk. Only enqueues; the
-     * background lane does the work.
+     * Queues a boundary refresh around an unloaded chunk.
      *
      * @param chunk the unloaded chunk
      */
@@ -1379,41 +1320,31 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     /**
      * Drains the queued block changes into the background light lane.
-     * Only enqueues; the lane propagates without blocking this thread.
+     * Propagation runs without blocking this thread.
      */
     private void updateQueuedLight() {
-        if (this.lightQueue.isEmpty()) {
-            return;
-        }
+        this.lightScheduler.checkFailure();
 
-        LongCollection changed = collectLightPositions(this.lightQueue, this.getMinHeight());
+        LongCollection changed;
 
-        this.lightQueue.clear();
-        this.lightScheduler.blocksChanged(changed);
-    }
-
-    /**
-     * Packs the queued block changes into light positions, dropping the layer
-     * bit: light updates are per position regardless of layer.
-     *
-     * @param queue     the queued block keys by chunk key
-     * @param minHeight the level's lowest valid y
-     * @return the packed light positions
-     */
-    static LongArrayList collectLightPositions(Long2ObjectMap<IntSet> queue, int minHeight) {
-        LongArrayList changed = new LongArrayList();
-        for (Long2ObjectMap.Entry<IntSet> entry : queue.long2ObjectEntrySet()) {
-            long chunkKey = entry.getLongKey();
-            for (int blockKey : entry.getValue()) {
-                changed.add(CloudChunk.lightPosition(chunkKey, blockKey, minHeight));
+        synchronized (this.lightQueue) {
+            if (this.lightQueue.isEmpty()) {
+                return;
             }
+
+            changed = LightPositions.collectChanges(this.lightQueue, this.getMinHeight());
+            this.lightQueue.clear();
         }
-        return changed;
+
+        this.lightScheduler.blocksChanged(changed);
     }
 
     @Synchronized("lightQueue")
     public void addLightUpdate(int x, int y, int z) {
-        if (this.isOutsideBuildHeight(y)) return;
+        if (this.isOutsideBuildHeight(y)) {
+            return;
+        }
+
         long index = CloudChunk.key(x >> 4, z >> 4);
         this.lightQueue.computeIfAbsent(index, aLong -> new IntOpenHashSet())
                 .add(CloudChunk.blockKeyWithLayer(x, y, z, BlockLayer.PRIMARY, this.getMinHeight()));
@@ -3155,6 +3086,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         if (boundingBox.getMaxY() < this.getMinHeight() || boundingBox.getMinY() >= this.getMaxHeight()) {
             return false;
         }
+
         int minX = GenericMath.floor(boundingBox.getMinX()) >> 4;
         int minZ = GenericMath.floor(boundingBox.getMinZ()) >> 4;
         int maxX = GenericMath.floor(boundingBox.getMaxX()) >> 4;

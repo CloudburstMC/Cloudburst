@@ -23,7 +23,9 @@ import java.util.UUID;
 public class StandardGeneratorUtils {
 
     public static <T> T decode(InputStream stream, Class<T> type) throws IOException {
-        Configuration configuration = new YamlConfigurationLoader().load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+        Configuration configuration = new YamlConfigurationLoader()
+                .load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+
         try {
             return GeneratorConfigurationMapper.MAPPER.convertValue(configuration.getValues(false), type);
         } catch (RuntimeException e) {
@@ -31,16 +33,30 @@ public class StandardGeneratorUtils {
         }
     }
 
+    /**
+     * Opens a generator YAML resource. The caller must close the stream.
+     */
     public static InputStream read(@NonNull String category, @NonNull Identifier id) throws IOException {
         return readResource(category, id, "yml");
     }
 
+    /**
+     * Opens a generator resource, preferring a server data-directory override when available.
+     * Built-in resources remain available without a running server.
+     *
+     * @param category  the generator resource category
+     * @param id        the namespaced resource identifier
+     * @param extension the file extension without a leading dot
+     * @return a stream owned by the caller
+     * @throws IOException if the resource is missing or cannot be opened
+     */
     public static InputStream readResource(@NonNull String category, @NonNull Identifier id, @NonNull String extension) throws IOException {
         String name = String.format("generator/%s/%s/%s.%s", category, id.getNamespace(), id.getName(), extension);
-
         CloudServer server = CloudServer.getInstance();
+
         if (server != null) {
             File file = server.getDataPath().resolve(name).toFile();
+
             if (PFiles.checkFileExists(file)) {
                 return new BufferedInputStream(new FileInputStream(file));
             }
@@ -55,11 +71,13 @@ public class StandardGeneratorUtils {
             default:
                 if (server != null) {
                     Optional<PluginContainer> plugin = server.getPluginManager().getPlugin(id.getNamespace());
+
                     if (plugin.isPresent()) {
                         in = plugin.get().getPlugin().getClass().getClassLoader().getResourceAsStream(name);
                     }
                 }
         }
+
         if (in == null) {
             throw new FileNotFoundException(name);
         } else {
