@@ -14,7 +14,7 @@ These resources are copied from [Nukkit commit 935d60c](https://github.com/Cloud
 
 | Local file           | Nukkit source                                    |
 | -------------------- | ------------------------------------------------ |
-| `block_states.nbt`    | `runtime_block_states.dat` (gzip-compressed NBT)  |
+| `block_states.nbt`   | `runtime_block_states.dat` (gzip-compressed NBT) |
 | `item_ids.json`      | `legacy_item_ids.json`                           |
 | `item_variants.json` | `item_mappings.json`                             |
 

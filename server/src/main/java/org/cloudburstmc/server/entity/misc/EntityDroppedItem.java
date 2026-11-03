@@ -133,8 +133,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
 
         this.lastUpdate = currentTick;
 
-        this.timing.startTiming();
-
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < CloudItemRegistry.get().requireComponent(getItem().getType(), ItemBehaviors.GET_MAX_STACK_SIZE).execute(getItem())) {
                 for (Entity entity : this.getLevel().getNearbyEntities(this, getBoundingBox().inflate(1, 1, 1), false)) {
@@ -241,8 +239,6 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
                 }
             }
         }
-
-        this.timing.stopTiming();
 
         return this.isAlive();
     }

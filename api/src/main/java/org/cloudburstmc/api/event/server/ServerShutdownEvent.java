@@ -1,17 +1,10 @@
 package org.cloudburstmc.api.event.server;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.cloudburstmc.api.event.Event;
 
 /**
- * Called while the server is shutting down.
+ * Fired on the server thread during shutdown before plugins and worlds are closed.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ServerShutdownEvent extends Event {
-
-    /**
-     * The shared event instance.
-     */
-    public static final ServerShutdownEvent INSTANCE = new ServerShutdownEvent();
+@NoArgsConstructor
+public class ServerShutdownEvent extends ServerEvent {
 }

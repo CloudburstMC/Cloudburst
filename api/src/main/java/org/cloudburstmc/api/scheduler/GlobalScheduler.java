@@ -5,13 +5,12 @@ import org.cloudburstmc.api.plugin.PluginContainer;
 import java.util.function.Consumer;
 
 /**
- * Scheduler for tasks that execute on the main server thread, bound to the server tick.
- * Tasks submitted here are guaranteed to run on the same thread that calls {@link #tick(int)}.
+ * Schedules tasks on the main server thread using simulation tick delays.
  */
 public interface GlobalScheduler {
 
     /**
-     * Schedules a runnable to execute on the next tick. Fire-and-forget: no handle returned.
+     * Schedules a runnable to execute on the next tick.
      *
      * @param plugin the owning plugin
      * @param run    task body
@@ -46,7 +45,8 @@ public interface GlobalScheduler {
      * @param periodTicks       ticks between subsequent executions (must be &gt; 0)
      * @return the scheduled task handle
      */
-    ScheduledTask runAtFixedRate(PluginContainer plugin, Consumer<ScheduledTask> task, long initialDelayTicks, long periodTicks);
+    ScheduledTask runAtFixedRate(PluginContainer plugin, Consumer<ScheduledTask> task,
+                                long initialDelayTicks, long periodTicks);
 
     /**
      * Cancels all tasks owned by the given plugin.
@@ -56,16 +56,7 @@ public interface GlobalScheduler {
     void cancelTasks(PluginContainer plugin);
 
     /**
-     * Cancels all pending tasks across all plugins and drains the queue.
-     * Called during server shutdown.
+     * Cancels all pending tasks across all plugins without executing their callbacks.
      */
     void cancelAllTasks();
-
-    /**
-     * Advances the scheduler by one tick, executing all tasks whose deadline has been reached.
-     * Must be called from the main server thread.
-     *
-     * @param currentTick the current server tick counter
-     */
-    void tick(int currentTick);
 }

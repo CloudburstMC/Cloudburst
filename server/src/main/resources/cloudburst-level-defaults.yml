@@ -1,6 +1,5 @@
 # Shared defaults for all levels. Per-level files contain only overrides.
 # Override these values in cloudburst-level.yml inside a level's data directory.
-config-version: 1
 
 level:
   # Scheduled work beyond these budgets carries over to a later tick.

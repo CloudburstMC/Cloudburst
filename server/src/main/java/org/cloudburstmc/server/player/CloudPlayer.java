@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.player;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import io.netty.channel.ChannelPipeline;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -1463,9 +1461,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     }
 
     public void sendPacketInternal(BedrockPacket packet) {
-        try (Timing ignored = Timings.getSendDataPacketTiming(packet).startTiming()) {
-            this.session.sendPacket(packet);
-        }
+        this.session.sendPacket(packet);
     }
 
     public void trackBossBar(CloudBossBar bossBar) {
@@ -1495,9 +1491,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return false;
         }
 
-        try (Timing ignored = Timings.getSendDataPacketTiming(packet).startTiming()) {
-            this.session.sendPacketImmediately(packet);
-        }
+        this.session.sendPacketImmediately(packet);
         return true;
     }
 
@@ -2020,88 +2014,86 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         this.lastUpdate = currentTick;
 
-        try (Timing ignored = this.timing.startTiming()) {
-            if (!this.isAlive() && this.spawned) {
-                ++this.deadTicks;
-                if (this.deadTicks >= 10) {
-                    this.despawnFromAll();
-                }
-                return true;
+        if (!this.isAlive() && this.spawned) {
+            ++this.deadTicks;
+            if (this.deadTicks >= 10) {
+                this.despawnFromAll();
             }
-
-            if (this.spawned) {
-                this.reconcileGlidingState();
-                if (this.spinAttackEndTick >= 0 && currentTick >= this.spinAttackEndTick) {
-                    this.stopSpinAttack();
-                }
-                this.getChunkManager().queueNewChunks(this.getPosition());
-
-                if (!this.isSpectator()) {
-                    this.checkNearEntities();
-                }
-
-                this.entityBaseTick(tickDiff);
-                this.tickTurtleHelmet();
-                this.finishItemUse(currentTick);
-                this.updateBlockingState();
-                this.updateUnderwaterSound();
-
-                if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
-                    if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
-                        this.heal(1, RegainReason.REGEN);
-                    }
-
-                    CloudPlayerFood foodData = this.getFoodData();
-                    if (foodData.getSaturation() < CloudPlayerFood.MAX_LEVEL && this.ticksLived % 20 == 0) {
-                        foodData.setSaturation(foodData.getSaturation() + 1.0f);
-                    }
-
-                    if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
-                        foodData.setLevel(foodData.getLevel() + 1);
-                    }
-                }
-
-                if (this.isOnFire() && this.lastUpdate % 10 == 0) {
-                    if (this.isCreative() && !this.isInsideOfFire()) {
-                        this.extinguish();
-                    } else if (this.getLevel().isRaining()) {
-                        if (this.getLevel().canBlockSeeSky(this.getPosition())) {
-                            this.extinguish();
-                        }
-                    }
-                }
-
-                if (!this.isSpectator()) {
-                    if (this.onGround) {
-                        if (this.inAirTicks != 0) {
-                            this.startAirTicks = 5;
-                        }
-                        this.inAirTicks = 0;
-                    } else {
-                        if (this.isGliding()) this.resetFallDistance();
-
-                        ++this.inAirTicks;
-
-                    }
-
-                    if (this.isSurvival() || this.isAdventure()) {
-                        this.foodData.update(tickDiff);
-                    }
-                }
-            }
-
-            this.checkTeleportPosition();
-
-            if (currentTick % 10 == 0) {
-                this.checkInteractNearby();
-            }
-
-            if (this.spawned && currentTick % 100 == 0) {
-                this.bossBars.forEach(bossBar -> bossBar.updatePosition(this));
-            }
-
-            this.flushEntityData();
+            return true;
         }
+
+        if (this.spawned) {
+            this.reconcileGlidingState();
+            if (this.spinAttackEndTick >= 0 && currentTick >= this.spinAttackEndTick) {
+                this.stopSpinAttack();
+            }
+            this.getChunkManager().queueNewChunks(this.getPosition());
+
+            if (!this.isSpectator()) {
+                this.checkNearEntities();
+            }
+
+            this.entityBaseTick(tickDiff);
+            this.tickTurtleHelmet();
+            this.finishItemUse(currentTick);
+            this.updateBlockingState();
+            this.updateUnderwaterSound();
+
+            if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
+                if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
+                    this.heal(1, RegainReason.REGEN);
+                }
+
+                CloudPlayerFood foodData = this.getFoodData();
+                if (foodData.getSaturation() < CloudPlayerFood.MAX_LEVEL && this.ticksLived % 20 == 0) {
+                    foodData.setSaturation(foodData.getSaturation() + 1.0f);
+                }
+
+                if (foodData.getLevel() < 20 && this.ticksLived % 10 == 0) {
+                    foodData.setLevel(foodData.getLevel() + 1);
+                }
+            }
+
+            if (this.isOnFire() && this.lastUpdate % 10 == 0) {
+                if (this.isCreative() && !this.isInsideOfFire()) {
+                    this.extinguish();
+                } else if (this.getLevel().isRaining()) {
+                    if (this.getLevel().canBlockSeeSky(this.getPosition())) {
+                        this.extinguish();
+                    }
+                }
+            }
+
+            if (!this.isSpectator()) {
+                if (this.onGround) {
+                    if (this.inAirTicks != 0) {
+                        this.startAirTicks = 5;
+                    }
+                    this.inAirTicks = 0;
+                } else {
+                    if (this.isGliding()) this.resetFallDistance();
+
+                    ++this.inAirTicks;
+
+                }
+
+                if (this.isSurvival() || this.isAdventure()) {
+                    this.foodData.update(tickDiff);
+                }
+            }
+        }
+
+        this.checkTeleportPosition();
+
+        if (currentTick % 10 == 0) {
+            this.checkInteractNearby();
+        }
+
+        if (this.spawned && currentTick % 100 == 0) {
+            this.bossBars.forEach(bossBar -> bossBar.updatePosition(this));
+        }
+
+        this.flushEntityData();
 
         return true;
     }
@@ -2303,16 +2295,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
      * @return Entity|null    either NULL if no entity is found or an instance of the entity
      */
     public Interactable getEntityPlayerLookingAt(int maxDistance) {
-        try (Timing ignored = Timings.playerEntityLookingAtTimer.startTiming()) {
-            Vector3f start = this.getPosition().add(0, this.getEyeHeight(), 0);
-            RayTraceContext trace = new RayTraceContext(start, start.add(this.getDirectionVector().mul(maxDistance)),
-                    BlockShapeMode.OUTLINE, FluidCollisionMode.NONE, CollisionContext.of(this));
-            HitResult hit = this.getLevel().rayTrace(trace, 0,
-                    entity -> entity != this && entity instanceof Interactable interactable
-                            && interactable.canDoInteraction());
-            return hit instanceof EntityHitResult entityHit && entityHit.entity() instanceof Interactable interactable
-                    ? interactable : null;
-        }
+        Vector3f start = this.getPosition().add(0, this.getEyeHeight(), 0);
+        RayTraceContext trace = new RayTraceContext(start, start.add(this.getDirectionVector().mul(maxDistance)),
+                BlockShapeMode.OUTLINE, FluidCollisionMode.NONE, CollisionContext.of(this));
+        HitResult hit = this.getLevel().rayTrace(trace, 0,
+                entity -> entity != this && entity instanceof Interactable interactable
+                        && interactable.canDoInteraction());
+        return hit instanceof EntityHitResult entityHit && entityHit.entity() instanceof Interactable interactable
+                ? interactable : null;
     }
 
     public void completeLoginSequence() {
@@ -2422,25 +2412,26 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.server.onPlayerCompleteLoginSequence(this);
     }
 
-    public void checkNetwork() {
+    public void processNetworkInput() {
         if (!this.isConnected()) {
             return;
         }
 
-        try (Timing ignore = Timings.playerNetworkReceiveTimer.startTiming()) {
-            BedrockPacket packet;
-            while ((packet = this.inboundQueue.poll()) != null) {
-                packetHandler.handlePacket(packet);
-            }
+        BedrockPacket packet;
+        while (this.isConnected() && (packet = this.inboundQueue.poll()) != null) {
+            packetHandler.handlePacket(packet);
         }
+    }
 
-        if (!this.loggedIn) {
+    public void flushNetworkUpdates() {
+        if (!this.isConnected() || !this.loggedIn) {
             return;
         }
 
         this.getChunkManager().sendQueued();
 
-        if (this.getChunkManager().getChunksSent() >= this.getLevel().getConfiguration().getChunkSending().getSpawnThreshold() && !this.spawned) {
+        int spawnThreshold = this.getLevel().getConfiguration().getChunkSending().getSpawnThreshold();
+        if (!this.spawned && this.getChunkManager().getChunksSent() >= spawnThreshold) {
             this.doFirstSpawn();
         }
     }
@@ -2492,7 +2483,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.server.saveOfflinePlayerData(this.identity, nbt, true);
         }
 
-        this.server.onPlayerLogin(this);
     }
 
     public void initializeForLogin() {

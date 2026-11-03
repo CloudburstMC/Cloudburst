@@ -31,6 +31,8 @@ import org.cloudburstmc.server.command.ServerCommand;
 import org.cloudburstmc.server.command.argument.CloudCommandArguments;
 import org.cloudburstmc.server.command.defaults.*;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
+import org.cloudburstmc.server.diagnostics.ServerTickStatistics;
+import org.cloudburstmc.server.diagnostics.spark.CloudSpark;
 import org.cloudburstmc.server.utils.Utils;
 
 import java.util.*;
@@ -64,11 +66,13 @@ public class CloudCommandRegistry implements Commands {
     /**
      * Registers the commands provided by the server.
      *
+     * @param spark      bundled profiler host whose permissions have been registered
+     * @param statistics server tick statistics for performance commands
      * @throws RegistryException if registration is closed or a command label conflicts with an existing registration
      */
-    public void registerBuiltIns() {
+    public void registerBuiltIns(CloudSpark spark, ServerTickStatistics statistics) {
         this.registerGameplayCommands();
-        this.registerAdministrationCommands();
+        this.registerAdministrationCommands(spark, statistics);
     }
 
     @Override
@@ -399,17 +403,17 @@ public class CloudCommandRegistry implements Commands {
         this.registerInternal(new XpCommand());
     }
 
-    private void registerAdministrationCommands() {
+    private void registerAdministrationCommands(CloudSpark spark, ServerTickStatistics statistics) {
         this.registerInternal(new DebugPasteCommand());
-        this.registerInternal(new GarbageCollectorCommand());
         this.registerInternal(new HelpCommand());
         this.registerInternal(new PluginsCommand());
         this.registerInternal(new SaveCommand());
         this.registerInternal(new SaveOffCommand());
         this.registerInternal(new SaveOnCommand());
-        this.registerInternal(new StatusCommand());
+        this.registerInternal(new TpsCommand(statistics));
+        this.registerInternal(new MsptCommand(statistics));
+        this.registerInternal(new SparkCommand(spark));
         this.registerInternal(new StopCommand());
-        this.registerInternal(new TimingsCommand());
         this.registerInternal(new VersionCommand());
     }
 

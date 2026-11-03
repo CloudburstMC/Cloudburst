@@ -6,7 +6,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.Identifiers;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
@@ -87,7 +87,7 @@ class ItemPaletteTest {
 
     private static int readDumpedAirRuntimeId() throws IOException {
         try (InputStream input = RegistryUtils.getOrAssertResource("data/runtime_item_states.json")) {
-            JsonNode entries = Bootstrap.JSON_MAPPER.readTree(input);
+            JsonNode entries = ServerJson.MAPPER.readTree(input);
             for (JsonNode entry : entries) {
                 if (Identifiers.AIR.toString().equals(entry.get("name").asString())) {
                     return entry.get("id").intValue();

@@ -6,7 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationStore;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import tools.jackson.databind.JsonNode;
 
 import java.io.BufferedReader;
@@ -139,7 +139,7 @@ public final class LocaleManager {
 
     private static Map<Locale, String> readDisplayNames(InputStream stream) throws IOException {
         Map<Locale, String> displayNames = new HashMap<>();
-        JsonNode array = Bootstrap.JSON_MAPPER.readTree(stream);
+        JsonNode array = ServerJson.MAPPER.readTree(stream);
 
         for (JsonNode element : array) {
             checkArgument(element.size() == 2, "Language display name entries must contain locale and display name");
@@ -157,7 +157,7 @@ public final class LocaleManager {
 
     private static ImmutableSet<Locale> readLocales(InputStream stream) throws IOException {
         ImmutableSet.Builder<Locale> builder = ImmutableSet.builder();
-        JsonNode array = Bootstrap.JSON_MAPPER.readTree(stream);
+        JsonNode array = ServerJson.MAPPER.readTree(stream);
         for (JsonNode element : array) {
             builder.add(parseLocale(element.asString()));
         }

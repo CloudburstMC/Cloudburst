@@ -4,7 +4,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import tools.jackson.core.type.TypeReference;
 
@@ -24,7 +24,7 @@ public class NukkitItemDataConverter {
     public NukkitItemDataConverter() throws IOException {
         Map<String, Integer> ids;
         try (InputStream input = RegistryUtils.getOrAssertResource("migration/nukkit/item_ids.json")) {
-            ids = Bootstrap.JSON_MAPPER.readValue(input, new TypeReference<>() {});
+            ids = ServerJson.MAPPER.readValue(input, new TypeReference<>() {});
         }
 
         Map<Integer, String> names = new HashMap<>();
@@ -33,7 +33,7 @@ public class NukkitItemDataConverter {
         this.names = Map.copyOf(names);
 
         try (InputStream input = RegistryUtils.getOrAssertResource("migration/nukkit/item_variants.json")) {
-            this.variants = Bootstrap.JSON_MAPPER.readValue(input, new TypeReference<>() {});
+            this.variants = ServerJson.MAPPER.readValue(input, new TypeReference<>() {});
         }
     }
 

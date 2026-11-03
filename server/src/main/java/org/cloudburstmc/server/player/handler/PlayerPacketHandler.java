@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.player.handler;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -119,19 +117,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        try (Timing ignored = Timings.getReceiveDataPacketTiming(packet).startTiming()) {
-            if (log.isTraceEnabled() && !player.getServer().isIgnoredPacket(packet.getClass())) {
-                log.trace("Inbound {}: {}", player.getName(), packet);
-            }
-
-            DataPacketReceiveEvent receiveEvent = new DataPacketReceiveEvent(player, packet);
-            player.getServer().getEventManager().fire(receiveEvent);
-            if (receiveEvent.isCancelled()) {
-                return PacketSignal.HANDLED;
-            }
-
-            return packet.handle(this);
+        if (log.isTraceEnabled() && !player.getServer().isIgnoredPacket(packet.getClass())) {
+            log.trace("Inbound {}: {}", player.getName(), packet);
         }
+
+        DataPacketReceiveEvent receiveEvent = new DataPacketReceiveEvent(player, packet);
+        player.getServer().getEventManager().fire(receiveEvent);
+        if (receiveEvent.isCancelled()) {
+            return PacketSignal.HANDLED;
+        }
+
+        return packet.handle(this);
     }
 
     @Override
@@ -1500,9 +1496,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        try (Timing ignored2 = Timings.playerCommandTimer.startTiming()) {
-            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage());
-        }
+        player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage());
 
         return PacketSignal.HANDLED;
     }
@@ -1514,8 +1508,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (packet.getType() == TextPacket.Type.CHAT) {
-            player.chat(packet.getMessage());
+            player.chat(packet.getMessage(CharSequence.class).toString());
         }
+
         return PacketSignal.HANDLED;
     }
 

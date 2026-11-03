@@ -1,7 +1,5 @@
 package org.cloudburstmc.server;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
@@ -35,7 +33,6 @@ import org.cloudburstmc.api.scheduler.AsyncScheduler;
 import org.cloudburstmc.api.scheduler.GlobalScheduler;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.api.util.PlayerDataSerializer;
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
@@ -50,7 +47,8 @@ import org.cloudburstmc.server.configuration.type.LevelDimension;
 import org.cloudburstmc.server.console.CloudConsole;
 import org.cloudburstmc.server.crafting.CraftingManager;
 import org.cloudburstmc.server.diagnostics.ServerExceptionHandler;
-import org.cloudburstmc.server.diagnostics.ThreadDump;
+import org.cloudburstmc.server.diagnostics.ServerTickStatistics;
+import org.cloudburstmc.server.diagnostics.spark.CloudSpark;
 import org.cloudburstmc.server.event.CloudEventManager;
 import org.cloudburstmc.server.inject.CloudburstModule;
 import org.cloudburstmc.server.inject.CloudburstPrivateModule;
@@ -98,22 +96,8 @@ public class CloudServer implements Server {
     @Getter
     private final Injector injector;
 
-    private final CloudConsole console;
-    private final ConsoleThread consoleThread;
-    private final CloudConsoleCommandSender consoleSender;
-
-    private final CloudPluginManager pluginManager;
-    private final CloudEventManager eventManager;
-    private final PermissionManager permissionManager;
-
-    private GlobalScheduler globalScheduler;
-    private AsyncScheduler asyncScheduler;
-
-    private final CraftingManager craftingManager;
-    private final CloudPackManager packManager;
-
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
-    private boolean hasStopped;
+    private final AtomicBoolean shutdownStarted = new AtomicBoolean();
     private Watchdog watchdog;
 
     private ServerConfigurations configuration;
@@ -123,12 +107,29 @@ public class CloudServer implements Server {
     private Difficulty difficulty;
     private GameMode defaultGamemode;
 
+    private final CloudConsole console;
+    private final Thread consoleThread;
+    private final CloudConsoleCommandSender consoleSender;
+
+    private final CloudPluginManager pluginManager;
+    private final CloudEventManager eventManager;
+    private final PermissionManager permissionManager;
+    private final CraftingManager craftingManager;
+    private final CloudPackManager packManager;
+
+    private CloudGlobalScheduler globalScheduler;
+    private AsyncScheduler asyncScheduler;
+
     private CloudNetwork network;
     private final Set<String> ignoredPackets = new HashSet<>();
 
     private final LevelManager levelManager;
     private CloudMapManager mapManager;
     private final CloudLevelDefaults levelDefaults = new CloudLevelDefaults();
+    private volatile Identifier defaultStorageId;
+
+    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
+    private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
 
     private UserProfileCache profileCache;
     private PlayerDataSerializer playerDataSerializer;
@@ -139,48 +140,27 @@ public class CloudServer implements Server {
     private ServerOpList operators;
     private UserWhiteList whitelist;
 
-    private final Map<SocketAddress, CloudPlayer> players = new HashMap<>();
-    private final Map<UUID, CloudPlayer> playerList = new HashMap<>();
-    private final Set<UUID> uniquePlayers = new HashSet<>();
+    private int tickCounter;
+    private final ServerTickLoop tickLoop = new ServerTickLoop();
+    private final ServerTickStatistics tickStatistics = new ServerTickStatistics();
 
     private boolean autoSave = true;
     private int autoSaveTicker;
-    private int autoSaveTicks = 6000;
-
-    private int tickCounter;
-    private long nextTick;
-
-    private final float[] tickAverage = {
-            20, 20, 20, 20, 20,
-            20, 20, 20, 20, 20,
-            20, 20, 20, 20, 20,
-            20, 20, 20, 20, 20
-    };
-
-    private final float[] useAverage = {
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0
-    };
-
-    private float maxTick = 20;
-    private float maxUse;
-    private int sendUsageTicker;
 
     private boolean forceLanguage;
     private String predefinedLanguage;
-
     private final LocaleManager localeManager = LocaleManager.from(
             "locale/cloudburst/languages.json",
             "locale/cloudburst/texts",
             "locale/vanilla"
     );
 
-    private volatile Identifier defaultStorageId;
+    private CloudSpark spark;
+
     private final CloudGameRuleRegistry gameRuleRegistry = CloudGameRuleRegistry.get();
     private final GeneratorRegistry generatorRegistry = GeneratorRegistry.get();
     private final StorageRegistry storageRegistry = StorageRegistry.get();
+    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
 
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
     private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
@@ -192,7 +172,7 @@ public class CloudServer implements Server {
     private final CloudRecipeRegistry recipeRegistry = CloudRecipeRegistry.get();
     private final CloudEntityRegistry entityRegistry = CloudEntityRegistry.get();
     private final CloudParticleRegistry particleRegistry = CloudParticleRegistry.get();
-    private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
+
     private final CloudCommandRegistry commandRegistry = new CloudCommandRegistry(this.blockRegistry);
 
     public CloudServer(final Path dataPath, final Path pluginPath, final Path levelPath, final String predefinedLanguage) {
@@ -224,7 +204,7 @@ public class CloudServer implements Server {
         this.consoleSender = injector.getInstance(CloudConsoleCommandSender.class);
 
         this.console = new CloudConsole(this);
-        this.consoleThread = new ConsoleThread();
+        this.consoleThread = Thread.ofPlatform().name("Cloudburst Console").daemon().unstarted(this.console::start);
     }
 
     public static void broadcastPackets(Player[] players, BedrockPacket[] packets) {
@@ -305,14 +285,14 @@ public class CloudServer implements Server {
                     locale = this.predefinedLanguage;
                     this.predefinedLanguage = null;
                 } else {
-                    locale = this.console.readLine();
+                    locale = this.console.readStartupInput();
                 }
             } while (!localeManager.setLocale(locale));
 
             ConfigurationTemplates.ensure(configPath, "cloudburst-global.yml", locale, true);
         }
 
-        this.console.setExecutingCommands(true);
+        this.console.enableCommands();
 
         log.info("Loading {} ...", configPath);
         this.configuration = ServerConfigurations.load(this.files);
@@ -322,21 +302,9 @@ public class CloudServer implements Server {
                 this.getConfig().getPlayer().getUserCacheSize(), this.getConfig().getPlayer().isSaveUserCacheOnStopOnly());
         this.mapManager = new CloudMapManager(this, this.files.savedData(this.configuration.getDefaultLevel()));
 
-        Timings.init(getConfig().getTimings());
-
         ignoredPackets.addAll(getConfig().getDebug().getIgnoredPackets());
 
-        Bootstrap.DEBUG = Math.max(getConfig().getDebug().getLevel(), 1);
-
-        int logLevel = (Bootstrap.DEBUG + 3) * 100;
-        for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
-            if (level.intLevel() == logLevel) {
-                if (level.intLevel() > Bootstrap.getLogLevel().intLevel()) {
-                    Bootstrap.setLogLevel(level);
-                }
-                break;
-            }
-        }
+        Bootstrap.configureLogLevel(this.getConfig().getDebug().getLevel());
         log.debug("DataPath Directory: {}", this.dataPath);
 
         this.forceLanguage = getConfig().getSettings().isForceLanguage();
@@ -369,14 +337,15 @@ public class CloudServer implements Server {
 
         DefaultPermissions.registerCorePermissions(this.permissionManager);
 
-        this.commandRegistry.registerBuiltIns();
-
+        this.spark = new CloudSpark(this);
+        this.spark.registerPermissions();
+        this.commandRegistry.registerBuiltIns(this.spark, this.tickStatistics);
 
         this.pluginManager.registerLoader(JavaPluginLoader.class, JavaPluginLoader.builder().build());
 
         this.loadPlugins();
 
-        this.eventManager.fire(ServerInitializationEvent.INSTANCE);
+        this.eventManager.fire(new ServerInitializationEvent());
         this.eventManager.fire(new CommandRegistrationEvent(this.commandRegistry));
 
         // load packs before registry closes to register new blocks and after plugins to register block factories.
@@ -425,10 +394,6 @@ public class CloudServer implements Server {
 
         EnumLevel.initLevels();
 
-        if (this.getConfig().getTicksPer().getAutosave() > 0) {
-            this.autoSaveTicks = this.getConfig().getTicksPer().getAutosave();
-        }
-
         //TODO: event
 
         log.info(this.getLanguage().translate("cloudburst.server.networkStart", "§b" + (this.getIp().equals("") ? "*" : this.getIp()) + "§r", "§b" + this.getPort() + "§r"));
@@ -466,12 +431,10 @@ public class CloudServer implements Server {
             return;
         }
 
-        try (Timing ignored = Timings.playerNetworkSendTimer.startTiming()) {
-            for (Player p : players) {
-                if (p.isConnected()) {
-                    for (BedrockPacket packet : packets) {
-                        ((CloudPlayer) p).sendPacket(packet);
-                    }
+        for (Player player : players) {
+            if (player.isConnected()) {
+                for (BedrockPacket packet : packets) {
+                    ((CloudPlayer) player).sendPacket(packet);
                 }
             }
         }
@@ -497,84 +460,85 @@ public class CloudServer implements Server {
         return false;
     }
 
-    //todo: use ticker to check console
     public CloudConsoleCommandSender getConsoleSender() {
         return consoleSender;
     }
 
     public void shutdown() {
-        isRunning.compareAndSet(true, false);
+        this.isRunning.set(false);
+        this.tickLoop.wakeUp();
     }
 
     public void forceShutdown() {
-        if (this.hasStopped) {
+        if (!this.isPrimaryThread()) {
+            throw new IllegalStateException("Shutdown cleanup must run on the server thread");
+        }
+
+        if (!this.shutdownStarted.compareAndSet(false, true)) {
             return;
         }
 
+        this.shutdown();
+        shutdownStep("update terminal title", () -> CloudConsole.setWindowTitle("Stopping Cloudburst..."));
+        if (this.network != null) {
+            shutdownStep("stop accepting connections", this.network::stopAcceptingConnections);
+        }
+
+        shutdownStep("disconnect players", this::disconnectPlayers);
+        shutdownStep("notify shutdown listeners", () -> this.eventManager.fire(new ServerShutdownEvent()));
+
+        this.stopServices();
+        this.saveAndCloseWorlds();
+        this.closeServerResources();
+    }
+
+    private void disconnectPlayers() {
+        for (CloudPlayer player : List.copyOf(this.players.values())) {
+            shutdownStep("disconnect player " + player.getName(), () -> player.close(player.leaveMessage(), this.getConfig().getSettings().getShutdownMessage()));
+        }
+    }
+
+    private void stopServices() {
+        if (this.spark != null) {
+            shutdownStep("stop spark", this.spark::close);
+        }
+
+        shutdownStep("deregister plugin loader", () -> this.pluginManager.deregisterLoader(JavaPluginLoader.class));
+        shutdownStep("cancel global tasks", this.globalScheduler::cancelAllTasks);
+        shutdownStep("cancel asynchronous tasks", this.asyncScheduler::cancelAllTasks);
+    }
+
+    private void saveAndCloseWorlds() {
+        if (this.mapManager != null) {
+            shutdownStep("save maps", this.mapManager::save);
+        }
+        shutdownStep("close worlds", this.levelManager::close);
+    }
+
+    private void closeServerResources() {
+        shutdownStep("stop console", this.consoleThread::interrupt);
+        shutdownStep("finish saving player data", this.playerDataStore::close);
+
+        if (this.profileCache != null) {
+            shutdownStep("save user profile cache", this.profileCache::close);
+        }
+
+        if (this.network != null) {
+            shutdownStep("close network", this.network::close);
+        }
+
+        shutdownStep("release resource packs", this.packManager::shutdown);
+        if (this.watchdog != null) {
+            shutdownStep("stop watchdog", this.watchdog::kill);
+        }
+    }
+
+    private static void shutdownStep(String action, Runnable task) {
+        log.debug("Shutdown: {}", action);
         try {
-            isRunning.compareAndSet(true, false);
-
-            this.hasStopped = true;
-            if (this.network != null) {
-                this.network.stopAcceptingConnections();
-            }
-
-            for (CloudPlayer player : new ArrayList<>(this.players.values())) {
-                try {
-                    player.close(player.leaveMessage(), this.getConfig().getSettings().getShutdownMessage());
-                } catch (Exception e) {
-                    log.error("Error closing player " + player.getName(), e);
-                }
-            }
-
-            this.eventManager.fire(ServerShutdownEvent.INSTANCE);
-
-            this.pluginManager.deregisterLoader(JavaPluginLoader.class);
-
-            log.debug("Stopping all tasks");
-            this.globalScheduler.cancelAllTasks();
-            this.asyncScheduler.cancelAllTasks();
-
-            log.debug("Unloading all worlds");
-            if (this.mapManager != null) {
-                this.mapManager.save();
-            }
-            this.levelManager.close();
-
-            log.debug("Closing console");
-            this.consoleThread.interrupt();
-
-
-            log.debug("Disabling timings");
-            Timings.stopServer();
-            if (this.watchdog != null) {
-                this.watchdog.kill();
-            }
-            //todo other things
-        } catch (Exception e) {
-            log.fatal("Exception happened while shutting down", e);
-        } finally {
-            try {
-                this.playerDataStore.close();
-            } catch (RuntimeException failure) {
-                log.error("Unable to finish saving player data during shutdown", failure);
-            }
-
-            try {
-                if (this.profileCache != null) {
-                    this.profileCache.close();
-                }
-            } catch (RuntimeException failure) {
-                log.error("Unable to save user profile cache during shutdown", failure);
-            } finally {
-                try {
-                    if (this.network != null) {
-                        this.network.close();
-                    }
-                } finally {
-                    this.packManager.shutdown();
-                }
-            }
+            task.run();
+        } catch (Throwable failure) {
+            log.error("Unable to {} during shutdown", action, failure);
         }
     }
 
@@ -582,50 +546,109 @@ public class CloudServer implements Server {
         this.network.refreshStatus();
         this.network.startAcceptingConnections();
 
-        //todo send usage setting
-        this.tickCounter = 0;
+        String gameMode = this.getLanguage().translate(this.getGameMode().translationKey());
+        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + gameMode + "§r"));
 
-        log.info(this.getLanguage().translate("cloudburst.server.defaultGameMode", "§b" + this.getLanguage().translate(this.getGameMode().translationKey()) + "§r"));
-        log.info(this.getLanguage().translate("cloudburst.server.startFinished", String.format("%.2f", (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d)));
+        double startupSeconds = (System.currentTimeMillis() - Bootstrap.START_TIME) / 1000d;
+        log.info(this.getLanguage().translate("cloudburst.server.startFinished", String.format(Locale.ROOT, "%.2f", startupSeconds)));
 
-        this.tickProcessor();
+        this.runTicks();
     }
 
-    public void tickProcessor() {
-        this.nextTick = System.currentTimeMillis();
+    private void runTicks() {
+        this.spark.enable();
+        this.tickStatistics.start();
         try {
-            while (this.isRunning.get()) {
-                try {
-                    this.tick();
-
-                    long next = this.nextTick;
-                    long current = System.currentTimeMillis();
-
-                    if (next - 0.1 > current) {
-                        long allocated = next - current - 1;
-
-                        if (allocated > 0) {
-                            Thread.sleep(allocated, 900000);
-                        }
-                    }
-                } catch (RuntimeException e) {
-                    log.error("Error whilst ticking server", e);
-                }
-            }
-        } catch (Throwable e) {
-            log.fatal("Exception happened while ticking server", e);
-            log.fatal(ThreadDump.capture());
+            this.tickLoop.run(this.isRunning::get, this::tick);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+        } finally {
+            this.shutdown();
         }
+    }
+
+    private void tick(long nextTickDeadlineNanos) {
+        long tickStartNanos = System.nanoTime();
+        try {
+            this.spark.tickStart();
+            int tickNumber = this.tickCounter + 1;
+            this.eventManager.fire(new ServerTickStartEvent(tickNumber));
+            this.tickCounter = tickNumber;
+
+            this.tickServer();
+
+            long endNanos = System.nanoTime();
+            double durationMillis = (endNanos - tickStartNanos) / 1_000_000d;
+            this.eventManager.fire(new ServerTickEndEvent(tickNumber, durationMillis,
+                    nextTickDeadlineNanos - endNanos));
+        } finally {
+            long durationNanos = System.nanoTime() - tickStartNanos;
+            this.tickStatistics.recordTick(durationNanos);
+            this.spark.tickEnd(durationNanos / 1_000_000d);
+        }
+    }
+
+    private void tickServer() {
+        this.globalScheduler.tick();
+        if (!this.isRunning()) {
+            return;
+        }
+
+        for (CloudPlayer player : List.copyOf(this.players.values())) {
+            player.processNetworkInput();
+        }
+
+        if (!this.isRunning()) {
+            return;
+        }
+
+        for (CloudPlayer player : List.copyOf(this.players.values())) {
+            player.onUpdate(this.tickCounter);
+        }
+
+        this.levelManager.tick(this.tickCounter);
+        this.mapManager.tick();
+
+        for (CloudPlayer player : List.copyOf(this.players.values())) {
+            player.flushNetworkUpdates();
+        }
+
+        if (this.tickCounter % 20 == 0) {
+            this.network.refreshStatus();
+        }
+
+        int autoSaveInterval = this.configuration.getTicksPer().getAutosave();
+        if (this.autoSave && autoSaveInterval > 0 && ++this.autoSaveTicker >= autoSaveInterval) {
+            this.autoSaveTicker = 0;
+            this.doAutoSave();
+        }
+
+        this.console.updateStatus();
+    }
+
+    public void doAutoSave() {
+        if (!this.getAutoSave()) {
+            return;
+        }
+
+        for (CloudPlayer player : List.copyOf(this.players.values())) {
+            if (player.isOnline()) {
+                player.save(true);
+            } else if (!player.isConnected()) {
+                this.removePlayer(player);
+            }
+        }
+
+        this.levelManager.save();
+        this.mapManager.save();
+    }
+
+    public long getUnresponsiveNanos() {
+        return this.tickLoop.unresponsiveNanos();
     }
 
     public void onPlayerCompleteLoginSequence(Player player) {
         this.sendFullPlayerListData((CloudPlayer) player);
-    }
-
-    public void onPlayerLogin(Player player) {
-        if (this.sendUsageTicker > 0) {
-            this.uniquePlayers.add(player.getServerId());
-        }
     }
 
     public void addPlayer(SocketAddress socketAddress, Player player) {
@@ -721,146 +744,6 @@ public class CloudServer implements Server {
 
     public void sendRecipeList(Player player) {
         this.craftingManager.sendRecipesTo((CloudPlayer) player);
-    }
-
-    private void checkTickUpdates(int currentTick, long tickTime) {
-        for (Player p : new ArrayList<>(this.players.values())) {
-            p.onUpdate(currentTick);
-        }
-    }
-
-    public void doAutoSave() {
-        if (this.getAutoSave()) {
-            try (Timing ignored = Timings.levelSaveTimer.startTiming()) {
-                for (Player player : new ArrayList<>(this.players.values())) {
-                    if (player.isOnline()) {
-                        player.save(true);
-                    } else if (!player.isConnected()) {
-                        this.removePlayer(player);
-                    }
-                }
-
-                this.levelManager.save();
-                this.mapManager.save();
-            }
-        }
-    }
-
-    private boolean tick() {
-        long tickTime = System.currentTimeMillis();
-
-        // TODO
-        long time = tickTime - this.nextTick;
-        if (time < -25) {
-            try {
-                Thread.sleep(Math.max(5, -time - 25));
-            } catch (InterruptedException e) {
-                log.error("Server interrupted whilst sleeping", e);
-            }
-        }
-
-        long tickTimeNano = System.nanoTime();
-        if ((tickTime - this.nextTick) < -25) {
-            return false;
-        }
-
-        try (Timing ignored = Timings.fullServerTickTimer.startTiming()) {
-
-            ++this.tickCounter;
-
-            try (Timing ignored2 = Timings.schedulerTimer.startTiming()) {
-                this.globalScheduler.tick(this.tickCounter);
-            }
-
-            this.checkTickUpdates(this.tickCounter, tickTime);
-
-            this.levelManager.tick(this.tickCounter);
-            this.mapManager.tick();
-
-            for (Player player : new ArrayList<>(this.players.values())) {
-                ((CloudPlayer) player).checkNetwork();
-            }
-
-            if ((this.tickCounter & 0b1111) == 0) {
-                this.titleTick();
-                this.network.resetStatistics();
-                this.maxTick = 20;
-                this.maxUse = 0;
-
-                try {
-                    this.network.refreshStatus();
-                } catch (Exception e) {
-                    log.error("Unable to refresh server status", e);
-                }
-            }
-
-            if (this.autoSave && ++this.autoSaveTicker >= this.autoSaveTicks) {
-                this.autoSaveTicker = 0;
-                this.doAutoSave();
-            }
-
-            if (this.sendUsageTicker > 0 && --this.sendUsageTicker == 0) {
-                this.sendUsageTicker = 6000;
-                //todo sendUsage
-            }
-        }
-        //long now = System.currentTimeMillis();
-        long nowNano = System.nanoTime();
-        //float tick = Math.min(20, 1000 / Math.max(1, now - tickTime));
-        //float use = Math.min(1, (now - tickTime) / 50);
-
-        float tick = (float) Math.min(20, 1000000000 / Math.max(1000000, ((double) nowNano - tickTimeNano)));
-        float use = (float) Math.min(1, ((double) (nowNano - tickTimeNano)) / 50000000);
-
-        if (this.maxTick > tick) {
-            this.maxTick = tick;
-        }
-
-        if (this.maxUse < use) {
-            this.maxUse = use;
-        }
-
-        System.arraycopy(this.tickAverage, 1, this.tickAverage, 0, this.tickAverage.length - 1);
-        this.tickAverage[this.tickAverage.length - 1] = tick;
-
-        System.arraycopy(this.useAverage, 1, this.useAverage, 0, this.useAverage.length - 1);
-        this.useAverage[this.useAverage.length - 1] = use;
-
-        if ((this.nextTick - tickTime) < -1000) {
-            this.nextTick = tickTime;
-        } else {
-            this.nextTick += 50;
-        }
-
-        return true;
-    }
-
-    public long getNextTick() {
-        return nextTick;
-    }
-
-    // TODO: Fix title tick
-    public void titleTick() {
-        if (!Bootstrap.ANSI || !Bootstrap.TITLE) {
-            return;
-        }
-
-        Runtime runtime = Runtime.getRuntime();
-        double used = GenericMath.round((double) (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024, 2);
-        double max = GenericMath.round(((double) runtime.maxMemory()) / 1024 / 1024, 2);
-        String usage = Math.round(used / max * 100) + "%";
-        String title = (char) 0x1b + "]0;" + this.getName() + " "
-                + this.getImplementationVersion()
-                + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
-                + " | Memory " + usage;
-        if (!Bootstrap.shortTitle) {
-            title += " | U " + GenericMath.round((this.network.getUpload() / 1024 * 1000), 2)
-                    + " D " + GenericMath.round((this.network.getDownload() / 1024 * 1000), 2) + " kB/s";
-        }
-        title += " | TPS " + this.getTicksPerSecond()
-                + " | Load " + this.getTickUsage() + "%" + (char) 0x07;
-
-        System.out.print(title);
     }
 
     public String getName() {
@@ -1056,30 +939,8 @@ public class CloudServer implements Server {
         return tickCounter;
     }
 
-    public float getTicksPerSecond() {
-        return ((float) Math.round(this.maxTick * 100)) / 100;
-    }
-
-    public float getTicksPerSecondAverage() {
-        float sum = 0;
-        int count = this.tickAverage.length;
-        for (float aTickAverage : this.tickAverage) {
-            sum += aTickAverage;
-        }
-        return (float) GenericMath.round(sum / count, 2);
-    }
-
-    public float getTickUsage() {
-        return (float) GenericMath.round(this.maxUse * 100, 2);
-    }
-
-    public float getTickUsageAverage() {
-        float sum = 0;
-        int count = this.useAverage.length;
-        for (float aUseAverage : this.useAverage) {
-            sum += aUseAverage;
-        }
-        return ((float) Math.round(sum / count * 100)) / 100;
+    public ServerTickStatistics getTickStatistics() {
+        return this.tickStatistics;
     }
 
     @Override
@@ -1658,16 +1519,4 @@ public class CloudServer implements Server {
         return this.ignoredPackets.contains(clazz.getSimpleName());
     }
 
-    private class ConsoleThread extends Thread implements InterruptibleThread {
-
-        private ConsoleThread() {
-            super("Console Thread");
-            setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            console.start();
-        }
-    }
 }
