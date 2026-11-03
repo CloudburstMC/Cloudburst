@@ -9,7 +9,6 @@ import org.cloudburstmc.api.command.CommandSourceStack;
 import org.cloudburstmc.api.command.Commands;
 import org.cloudburstmc.api.command.argument.CommandArguments;
 import org.cloudburstmc.api.command.argument.CommandArgumentTypes;
-import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.command.CloudConsoleCommandSender;
 import org.cloudburstmc.server.command.AdvertisedCommand;
 import org.cloudburstmc.server.command.network.CommandNetworkData;
@@ -42,9 +41,7 @@ public class SayCommand extends AdvertisedCommand {
 
         String msg = argumentValue(context, "message");
 
-        ((CloudServer) sender.getServer()).broadcastMessage(
-                Component.translatable("chat.type.announcement", senderName, Component.text(msg))
-                        .color(NamedTextColor.LIGHT_PURPLE));
+        sender.getServer().broadcast(Component.translatable("chat.type.announcement", senderName, Component.text(msg)).color(NamedTextColor.LIGHT_PURPLE));
         return success();
     }
 }
