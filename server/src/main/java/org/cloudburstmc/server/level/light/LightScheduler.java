@@ -1,9 +1,6 @@
 package org.cloudburstmc.server.level.light;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongCollection;
+import it.unimi.dsi.fastutil.longs.*;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 
@@ -63,23 +60,25 @@ public class LightScheduler implements AutoCloseable {
      * @return propagation completion, canceled if the requested chunk unloads
      */
     public CompletableFuture<Void> chunkLoaded(int chunkX, int chunkZ) {
-        return this.enqueue(new Job(Kind.LOAD, chunkX, chunkZ, new LongArrayList()));
+        return this.enqueue(Kind.LOAD, chunkX, chunkZ, LongSet.of());
     }
 
     /**
      * Requests a boundary refresh after a chunk is removed.
      */
     public void chunkUnloaded(int chunkX, int chunkZ) {
-        this.enqueue(new Job(Kind.UNLOAD, chunkX, chunkZ, new LongArrayList()));
+        this.enqueue(Kind.UNLOAD, chunkX, chunkZ, LongSet.of());
     }
 
     /**
      * Requests light updates for positions packed by {@link LightPositions#pack}.
+     * Consecutive unstarted requests share deduplicated work. Canceling the returned
+     * future does not discard queued block changes.
      *
      * @return completion of propagation for these changes
      */
     public CompletableFuture<Void> blocksChanged(LongCollection positions) {
-        return this.enqueue(new Job(Kind.BLOCKS, 0, 0, new LongArrayList(positions)));
+        return this.enqueue(Kind.BLOCKS, 0, 0, positions);
     }
 
     /**
@@ -113,18 +112,28 @@ public class LightScheduler implements AutoCloseable {
         this.stop(new CancellationException("Level lighting is closed"), false);
     }
 
-    private CompletableFuture<Void> enqueue(Job job) {
+    private CompletableFuture<Void> enqueue(Kind kind, int chunkX, int chunkZ, LongCollection positions) {
+        Job queued;
+
         synchronized (this.lock) {
             if (this.closed) {
                 return CompletableFuture.failedFuture(this.failure != null ? this.failure
                         : new CancellationException("Level lighting is closed"));
             }
 
-            this.queue.addLast(job);
+            Job tail = this.queue.peekLast();
+
+            if (kind == Kind.BLOCKS && tail != null && tail.kind == Kind.BLOCKS && !tail.started) {
+                tail.positions.addAll(positions);
+                queued = tail;
+            } else {
+                queued = new Job(kind, chunkX, chunkZ, positions);
+                this.queue.addLast(queued);
+            }
         }
 
         this.schedule(false);
-        return job.completion;
+        return queued.kind == Kind.BLOCKS ? queued.completion.copy() : queued.completion;
     }
 
     private void schedule(boolean delayed) {
@@ -173,6 +182,10 @@ public class LightScheduler implements AutoCloseable {
 
             job = this.queue.peekFirst();
             this.running = true;
+
+            if (job != null) {
+                job.started = true;
+            }
         }
 
         if (job == null) {
@@ -330,16 +343,17 @@ public class LightScheduler implements AutoCloseable {
         private final Kind kind;
         private final int chunkX;
         private final int chunkZ;
-        private final LongArrayList positions;
+        private final LongSet positions;
         private final CompletableFuture<Void> completion = new CompletableFuture<>();
+        private boolean started;
         private @Nullable Deque<Unit> operations;
         private @Nullable CloudChunk center;
 
-        private Job(Kind kind, int chunkX, int chunkZ, LongArrayList positions) {
+        private Job(Kind kind, int chunkX, int chunkZ, LongCollection positions) {
             this.kind = kind;
             this.chunkX = chunkX;
             this.chunkZ = chunkZ;
-            this.positions = positions;
+            this.positions = kind == Kind.BLOCKS ? new LongOpenHashSet(positions) : LongSet.of();
         }
     }
 

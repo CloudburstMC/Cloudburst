@@ -23,6 +23,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,13 +54,10 @@ class ChunkTaskSchedulerTest {
             ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, generation, config);
             Level level = TestLevels.level(MIN_HEIGHT, MAX_HEIGHT, Map.of("getSeed", 5L));
 
-            try (CloudChunk firstChunk = generatedChunk(0, level);
-                 CloudChunk secondChunk = generatedChunk(1, level)) {
+            try (CloudChunk firstChunk = generatedChunk(0, level); CloudChunk secondChunk = generatedChunk(1, level)) {
                 List<String> order = Collections.synchronizedList(new ArrayList<>());
-                CompletableFuture<CloudChunk> first =
-                        scheduler.scheduleGeneration(0, 0, firstChunk, ChunkTaskPriority.NORMAL);
-                CompletableFuture<CloudChunk> second =
-                        scheduler.scheduleGeneration(1, 0, secondChunk, ChunkTaskPriority.NORMAL);
+                CompletableFuture<CloudChunk> first = scheduler.scheduleGeneration(0, 0, firstChunk, ChunkTaskPriority.NORMAL);
+                CompletableFuture<CloudChunk> second = scheduler.scheduleGeneration(1, 0, secondChunk, ChunkTaskPriority.NORMAL);
                 CompletableFuture<Void> generationRecorded = second.thenRun(() -> order.add("generation"));
                 CompletableFuture<Void> light = scheduler.scheduleLight(() -> order.add("light"));
 
@@ -109,6 +107,35 @@ class ChunkTaskSchedulerTest {
                 generation.shutdownNow();
                 assertTrue(generation.awaitTermination(10, TimeUnit.SECONDS), "generation executor did not stop");
             }
+        }
+    }
+
+    @Test
+    void rejectingAQueuedBacklogFailsEveryFutureWithoutRecursion() {
+        List<Runnable> accepted = new ArrayList<>(1);
+        Executor executor = command -> {
+            if (accepted.isEmpty()) {
+                accepted.add(command);
+            } else {
+                throw new RejectedExecutionException("Worker stopped");
+            }
+        };
+
+        ChunkTaskScheduler scheduler = new ChunkTaskScheduler(Runnable::run, executor, GlobalConfiguration.ChunkGeneration.builder().generationConcurrency(1).build());
+        CompletableFuture<Void> first = scheduler.scheduleLight(() -> {});
+        List<CompletableFuture<Void>> pending = new ArrayList<>();
+
+        for (int request = 0; request < 65_536; request++) {
+            pending.add(scheduler.scheduleLight(() -> fail("Rejected work must not run")));
+        }
+
+        assertFalse(first.isDone());
+        assertDoesNotThrow(accepted.getFirst()::run);
+        first.join();
+
+        for (CompletableFuture<Void> future : pending) {
+            assertTrue(future.isCompletedExceptionally());
+            assertInstanceOf(RejectedExecutionException.class, future.exceptionNow());
         }
     }
 

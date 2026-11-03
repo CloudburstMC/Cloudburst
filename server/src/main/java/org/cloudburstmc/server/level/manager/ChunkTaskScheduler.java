@@ -160,7 +160,9 @@ public final class ChunkTaskScheduler {
                         }
                     });
                 } catch (RejectedExecutionException e) {
-                    this.complete(task);
+                    // Drain rejections here instead of recursively scheduling the remaining queue.
+                    this.activeTasks--;
+                    this.updateActiveArea(task, false);
                     task.completeExceptionally(e);
                 }
             }

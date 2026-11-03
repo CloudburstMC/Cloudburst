@@ -157,6 +157,85 @@ class LightSchedulerTest {
     }
 
     @Test
+    void queuedBlockChangesAreDeduplicatedAndCancellationDoesNotDropWork() {
+        fixture.createChunk(0);
+        CloudChunk chunk = fixture.chunks.get(CloudChunk.key(0, 0));
+        List<Integer> steps = new ArrayList<>();
+
+        try (LightScheduler scheduler = new LightScheduler(fixture, fixture.tasks,
+                LightScheduler.SLICE_STEPS, (_, count) -> steps.add(count))) {
+            scheduler.chunkLoaded(0, 0);
+            fixture.tasks.drain(scheduler);
+            steps.clear();
+
+            chunk.setBlockState(0, 8, 8, BlockLayer.PRIMARY, BlockTypes.GLOWSTONE.getDefaultState());
+            LongArrayList positions = LongArrayList.of(LightPositions.pack(0, 8, 8));
+            CompletableFuture<Void> cancelled = scheduler.blocksChanged(positions);
+            List<CompletableFuture<Void>> updates = new ArrayList<>();
+
+            for (int request = 0; request < 128; request++) {
+                updates.add(scheduler.blocksChanged(positions));
+            }
+
+            cancelled.cancel(false);
+            assertTrue(updates.stream().noneMatch(CompletableFuture::isDone));
+            fixture.tasks.drain(scheduler);
+
+            updates.forEach(CompletableFuture::join);
+            assertEquals(15, chunk.getBlockLight(0, 8, 8));
+            assertEquals(14, chunk.getBlockLight(1, 8, 8));
+            assertEquals(1, steps.stream().filter(count -> count == 0).count(),
+                    "Repeated pending changes should share one seed band");
+        }
+    }
+
+    @Test
+    void editsAfterAnUpdateStartsUseAnotherSeedPass() {
+        fixture.createChunk(0);
+        CloudChunk chunk = fixture.chunks.get(CloudChunk.key(0, 0));
+        fixture.scheduler.chunkLoaded(0, 0);
+        fixture.tasks.drain(fixture.scheduler);
+
+        chunk.setBlockState(0, 8, 8, BlockLayer.PRIMARY, BlockTypes.GLOWSTONE.getDefaultState());
+        CompletableFuture<Void> first = fixture.scheduler.blocksChanged(
+                LongArrayList.of(LightPositions.pack(0, 8, 8)));
+        fixture.tasks.runNext();
+
+        chunk.setBlockState(0, 8, 8, BlockLayer.PRIMARY, BlockStates.AIR);
+        CompletableFuture<Void> second = fixture.scheduler.blocksChanged(
+                LongArrayList.of(LightPositions.pack(0, 8, 8)));
+        fixture.tasks.drain(fixture.scheduler);
+
+        first.join();
+        second.join();
+        assertEquals(0, chunk.getBlockLight(0, 8, 8));
+        assertEquals(0, chunk.getBlockLight(1, 8, 8));
+    }
+
+    @Test
+    void blockUpdatesDoNotMergeAcrossAnUnload() {
+        fixture.createChunk(0);
+        fixture.scheduler.chunkLoaded(0, 0);
+        fixture.tasks.drain(fixture.scheduler);
+
+        LongArrayList positions = LongArrayList.of(LightPositions.pack(0, 8, 8));
+        CompletableFuture<Void> before = fixture.scheduler.blocksChanged(positions);
+        fixture.scheduler.chunkUnloaded(1, 0);
+        CompletableFuture<Void> after = fixture.scheduler.blocksChanged(positions);
+
+        for (int slice = 0; slice < 100 && !before.isDone(); slice++) {
+            fixture.tasks.runNext();
+        }
+
+        assertTrue(before.isDone());
+        before.join();
+        assertFalse(after.isDone(), "An unload must remain between the two block updates");
+
+        fixture.tasks.drain(fixture.scheduler);
+        after.join();
+    }
+
+    @Test
     void busyNeighbourDoesNotRetainEarlierChunkLocks() throws Exception {
         fixture.createChunk(0);
         fixture.createChunk(1);
