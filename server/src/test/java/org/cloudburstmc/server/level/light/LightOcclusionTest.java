@@ -59,10 +59,8 @@ class LightOcclusionTest {
     void secondaryLayerFacesAlsoParticipateInOcclusion() {
         BlockState bottom = BlockTypes.OAK_SLAB.getDefaultState().withTrait(BlockTraits.SLAB_SLOT, SlabSlot.BOTTOM);
         BlockState top = bottom.withTrait(BlockTraits.SLAB_SLOT, SlabSlot.TOP);
-        LightAccess.Sample from = new LightAccess.Sample(BlockStates.AIR, bottom, 14);
-        LightAccess.Sample to = new LightAccess.Sample(top, BlockStates.AIR, 0);
 
-        assertTrue(LightOcclusion.occludes(REGISTRY, from, to, Direction.EAST));
+        assertTrue(LightOcclusion.occludes(REGISTRY, BlockStates.AIR, bottom, top, BlockStates.AIR, Direction.EAST));
     }
 
     @Test
@@ -86,7 +84,6 @@ class LightOcclusionTest {
     }
 
     private static boolean occludes(BlockState from, BlockState to, Direction direction) {
-        return LightOcclusion.occludes(REGISTRY, new LightAccess.Sample(from, BlockStates.AIR, 15),
-                new LightAccess.Sample(to, BlockStates.AIR, 0), direction);
+        return LightOcclusion.occludes(REGISTRY, from, BlockStates.AIR, to, BlockStates.AIR, direction);
     }
 }

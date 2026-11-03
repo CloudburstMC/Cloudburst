@@ -22,17 +22,24 @@ import java.util.concurrent.locks.Lock;
  * <p>The view must be closed by the thread that acquired it and must not be
  * used after it is closed.
  */
-public final class LockedChunk implements Chunk, AutoCloseable {
+public final class LockedChunk implements Chunk, ChunkLightView, AutoCloseable {
     private final UnsafeChunk unsafe;
     private final Lock lock;
     private final boolean writable;
     private boolean closed;
 
     LockedChunk(UnsafeChunk unsafe, Lock lock, boolean writable) {
+        this(unsafe, lock, writable, false);
+    }
+
+    LockedChunk(UnsafeChunk unsafe, Lock lock, boolean writable, boolean acquired) {
         this.unsafe = unsafe;
         this.lock = lock;
         this.writable = writable;
-        this.lock.lock();
+
+        if (!acquired) {
+            this.lock.lock();
+        }
     }
 
     @Override
@@ -72,6 +79,25 @@ public final class LockedChunk implements Chunk, AutoCloseable {
     @Override
     public CloudChunkSection[] getSections() {
         return this.unsafe().getSections();
+    }
+
+    @NonNull
+    @Override
+    public CloudChunkSection[] getLightSections() {
+        return this.writableUnsafe().getSections();
+    }
+
+    /**
+     * Returns the section at the given array index, creating it when absent
+     * without marking the chunk dirty.
+     *
+     * @param sectionIndex the section index from {@code 0} to the level's section count minus one
+     * @return the section
+     */
+    @NonNull
+    @Override
+    public CloudChunkSection getOrCreateLightSection(int sectionIndex) {
+        return this.writableUnsafe().getOrCreateLightSection(sectionIndex);
     }
 
     @NonNull

@@ -29,6 +29,10 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
     @Override
     public void fire(Event event) {
+        if (this.methods.isEmpty()) {
+            return;
+        }
+
         long start = System.nanoTime();
         for (EventFireHandler.ListenerMethod method : methods) {
             try {
@@ -40,8 +44,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
         long differenceTaken = System.nanoTime() - start;
         if (differenceTaken >= LONG_RUNNING_EVENT_TIME) {
-            log.warn("Event {} took {} ms to fire", event, BigDecimal.valueOf(differenceTaken)
-                    .divide(new BigDecimal("1000000"), RoundingMode.HALF_UP)
+            log.warn("Event {} took {} ms to fire", event.getClass().getName(), BigDecimal.valueOf(differenceTaken, 6)
                     .setScale(2, RoundingMode.HALF_UP));
         }
     }

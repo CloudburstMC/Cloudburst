@@ -12,20 +12,45 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * Answers whether light passes between two neighboring cells.
+ *
+ * <p>Light is blocked when the face shapes of both layers of both cells
+ * together cover the shared face. Complementary partial faces also block light.
+ * Face shapes are cached per state.
+ */
 @UtilityClass
 public class LightOcclusion {
 
     private static final ConcurrentMap<BlockState, Faces> CACHE = new ConcurrentHashMap<>();
 
-    public static boolean occludes(BlockRegistry registry, LightAccess.Sample from, LightAccess.Sample to, Direction direction) {
+    /**
+     * Tests the shared boundary, with direction pointing from source to target.
+     */
+    public static boolean occludes(BlockRegistry registry, BlockState fromPrimary, BlockState fromSecondary, BlockState toPrimary, BlockState toSecondary, Direction direction) {
         VoxelShape remaining = CloudVoxelShapes.block();
-        remaining = subtractFace(registry, from.primary(), direction, remaining);
-        remaining = subtractFace(registry, from.secondary(), direction, remaining);
-        remaining = subtractFace(registry, to.primary(), direction.getOpposite(), remaining);
-        remaining = subtractFace(registry, to.secondary(), direction.getOpposite(), remaining);
+        remaining = subtractFace(registry, fromPrimary, direction, remaining);
+        remaining = subtractFace(registry, fromSecondary, direction, remaining);
+        remaining = subtractFace(registry, toPrimary, direction.getOpposite(), remaining);
+        remaining = subtractFace(registry, toSecondary, direction.getOpposite(), remaining);
         return remaining.isEmpty();
     }
 
+    /**
+     * Returns the face shape of a block state towards a neighbor.
+     *
+     * @param registry  the block registry
+     * @param state     the block state
+     * @param direction the direction towards the neighbor
+     * @return the face shape in that direction
+     */
+    public static VoxelShape faceShape(BlockRegistry registry, BlockState state, Direction direction) {
+        return faces(registry, state).shapes()[direction.ordinal()];
+    }
+
+    /**
+     * Returns whether changing the state alters emission, attenuation or face occlusion.
+     */
     public static boolean affectsLight(BlockRegistry registry, BlockState before, BlockState after) {
         if (before == after) {
             return false;

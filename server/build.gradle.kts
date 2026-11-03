@@ -189,6 +189,11 @@ tasks.shadowJar {
     )
 }
 
+tasks.test {
+    // Generated-terrain measurements are opt-in.
+    System.getProperty("cloudburst.lightBenchmark")?.let { systemProperty("cloudburst.lightBenchmark", it) }
+}
+
 tasks.register<JavaExec>("run") {
     val runDirectory = layout.projectDirectory.dir("run").asFile
 
