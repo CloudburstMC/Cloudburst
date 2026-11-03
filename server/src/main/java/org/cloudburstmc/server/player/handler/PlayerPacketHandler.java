@@ -1508,8 +1508,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (packet.getType() == TextPacket.Type.CHAT) {
-            player.chat(packet.getMessage());
+            player.chat(packet.getMessage(CharSequence.class).toString());
         }
+
         return PacketSignal.HANDLED;
     }
 

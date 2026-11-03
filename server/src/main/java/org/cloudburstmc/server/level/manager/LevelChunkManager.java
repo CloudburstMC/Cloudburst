@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Log4j2
 public class LevelChunkManager {
+
     private static final CompletableFuture<Void> COMPLETED_VOID_FUTURE = CompletableFuture.completedFuture(null);
 
     /**
@@ -143,6 +144,17 @@ public class LevelChunkManager {
     }
 
     /**
+     * Returns finished terrain for lighting without starting a load or requiring promotion.
+     *
+     * @param key the packed chunk key
+     * @return the finished chunk, or null when unavailable
+     */
+    public @Nullable CloudChunk getChunkForLighting(long key) {
+        ChunkHolder holder = this.chunks.get(mapKey(key));
+        return holder == null ? null : holder.getFinishedChunk();
+    }
+
+    /**
      * Tests whether an open holder exposes a complete, promoted chunk at the packed key.
      */
     public boolean isChunkLoaded(long hash) {
@@ -158,7 +170,7 @@ public class LevelChunkManager {
     }
 
     /**
-     * Returns a loaded chunk or blocks for the finished generation stage and promotion.
+     * Returns a loaded chunk or waits for generation, lighting and promotion.
      * On the server thread, promotion is performed inline. Other threads wait for the
      * queued completion processed by {@link #promoteReadyChunks()}.
      *
@@ -191,7 +203,7 @@ public class LevelChunkManager {
         holder.addTicket(ChunkTicketType.CHUNK_LOAD, ticket);
 
         try {
-            CloudChunk chunk = holder.getFuture(ChunkStage.FINISHED).join();
+            CloudChunk chunk = holder.getFuture(ChunkStage.LIGHTED).join();
             this.promoteChunk(holder);
             return chunk;
         } finally {
@@ -221,7 +233,7 @@ public class LevelChunkManager {
 
         CompletableFuture<CloudChunk> result = new CompletableFuture<>();
         result.whenComplete((chunk, throwable) -> this.removeTicket(chunkKey, ChunkTicketType.CHUNK_LOAD, ticket));
-        holder.getFuture(ChunkStage.FINISHED).whenComplete((chunk, throwable) -> {
+        holder.getFuture(ChunkStage.LIGHTED).whenComplete((chunk, throwable) -> {
             if (throwable != null) {
                 result.completeExceptionally(throwable);
                 return;
@@ -245,7 +257,7 @@ public class LevelChunkManager {
 
     /**
      * Requests a generation stage without adding a retention ticket or waiting for promotion.
-     * Even {@link ChunkStage#FINISHED} completion does not guarantee server-thread initialization
+     * Even {@link ChunkStage#LIGHTED} completion does not guarantee server-thread initialization
      * or event dispatch. Callers must manage retention separately. The returned future is the
      * holder's shared stage future, not an independent load request.
      *
@@ -354,7 +366,7 @@ public class LevelChunkManager {
     }
 
     /**
-     * Submits saves for complete chunks currently observed, including unpromoted chunks.
+     * Submits saves for chunks with finished terrain, including unpromoted chunks.
      * Does not wait for generation or include holders already removed for unloading.
      *
      * @return future for these save requests, failing if any request fails
@@ -362,7 +374,7 @@ public class LevelChunkManager {
     public CompletableFuture<Void> saveChunks() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (ChunkHolder loadingChunk : this.chunks.values()) {
-            CloudChunk chunk = loadingChunk.getCompleteChunk();
+            CloudChunk chunk = loadingChunk.getFinishedChunk();
             if (chunk != null) {
                 futures.add(saveChunk(chunk));
             }
@@ -505,11 +517,21 @@ public class LevelChunkManager {
         this.removeHolder(holder.getKey(), holder);
     }
 
+    /**
+     * Requests initial lighting for a finished chunk before promotion.
+     *
+     * @return propagation completion, without a server-thread completion guarantee
+     */
+    public CompletableFuture<Void> initializeChunkLight(CloudChunk chunk) {
+        return this.level.initializeChunkLight(chunk);
+    }
+
     private ChunkHolder getOrCreateChunk(long chunkKey) {
         return this.chunks.compute(mapKey(chunkKey), (key, chunk) -> {
             if (chunk == null || chunk.isClosed()) {
                 return new ChunkHolder(this, chunkKey);
             }
+
             return chunk;
         });
     }
@@ -524,12 +546,13 @@ public class LevelChunkManager {
             this.level.registerTickContainers(chunk.getKey());
             chunk.initialize();
             chunk.replayRestoredTicks();
+
             if (loadingChunk.isNewChunk()) {
                 EndDimension.onChunkGenerated(this.level, chunk);
             }
-            this.level.initializeChunkLight(chunk);
-            this.level.getServer().getEventManager()
-                    .fire(new ChunkLoadEvent(chunk, loadingChunk.isNewChunk()));
+
+            this.level.getServer().getEventManager().fire(new ChunkLoadEvent(chunk, loadingChunk.isNewChunk()));
+
             if (loadingChunk.isPopulationEventPending()) {
                 this.level.getServer().getEventManager().fire(new ChunkPopulateEvent(chunk));
             }

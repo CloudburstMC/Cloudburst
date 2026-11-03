@@ -433,7 +433,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (event.getJoinMessage() != null) {
-            this.server.broadcastMessage(event.getJoinMessage());
+            this.server.broadcast(event.getJoinMessage());
         }
 
         this.syncClientAuthorityState(true);
@@ -2898,7 +2898,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.loggedIn = false;
 
             if (ev != null && !Objects.equals(this.username, "") && this.initialized && ev.getQuitMessage() != null) {
-                this.server.broadcastMessage(ev.getQuitMessage());
+                this.server.broadcast(ev.getQuitMessage());
             }
 
             this.spawned = false;
@@ -3685,7 +3685,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
 
         if (showMessages && event.getDeathMessage() != null) {
-            this.server.broadcast(event.getDeathMessage(), CloudServer.BROADCAST_CHANNEL_USERS);
+            this.server.broadcast(event.getDeathMessage());
         }
 
         boolean hadPersonalSpawn = this.respawnConfig != null;

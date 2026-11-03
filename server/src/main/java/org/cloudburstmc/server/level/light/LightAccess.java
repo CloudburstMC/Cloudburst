@@ -1,36 +1,51 @@
 package org.cloudburstmc.server.level.light;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
-import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.math.vector.Vector3i;
 
+/**
+ * Block and light access within a locked chunk neighborhood.
+ * Coordinates are absolute block coordinates. Absent sections and out-of-height
+ * positions read as air or zero. Writes outside available chunks or height limits are ignored.
+ */
 public interface LightAccess {
 
-    BlockRegistry registry();
-
+    /**
+     * Returns the lowest accessible y.
+     */
     int minHeight();
 
+    /**
+     * Returns one past the highest accessible y.
+     */
     int maxHeight();
 
-    @Nullable
-    Sample read(Vector3i position);
+    /**
+     * Returns the block-state cache used by this access.
+     */
+    LightStateCache states();
 
-    void write(Vector3i position, int light);
+    /**
+     * Returns whether the chunk containing these block coordinates is available.
+     */
+    boolean isLoaded(int x, int z);
 
-    enum Type {
-        BLOCK,
-        SKY
-    }
+    /**
+     * Returns the primary-layer block state.
+     */
+    BlockState primary(int x, int y, int z);
 
-    record Sample(BlockState primary, BlockState secondary, int light) {
+    /**
+     * Returns the secondary-layer block state.
+     */
+    BlockState secondary(int x, int y, int z);
 
-        public int opacity() {
-            return Math.max(this.primary.getLightDampening(), this.secondary.getLightDampening());
-        }
+    /**
+     * Returns the current value of this access's light channel.
+     */
+    int light(int x, int y, int z);
 
-        public int emission() {
-            return Math.max(this.primary.getLightEmission(), this.secondary.getLightEmission());
-        }
-    }
+    /**
+     * Writes a value from 0 to 15 to this access's light channel.
+     */
+    void setLight(int x, int y, int z, int light);
 }

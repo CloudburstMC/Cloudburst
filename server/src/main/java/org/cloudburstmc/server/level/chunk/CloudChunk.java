@@ -17,6 +17,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.level.CloudLevel;
+import org.cloudburstmc.server.level.light.LightPositions;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
@@ -395,8 +396,23 @@ public final class CloudChunk implements Chunk, Closeable {
         return new LockedChunk(this.unsafe, this.writeLock, true);
     }
 
+    /**
+     * Attempts to acquire a writable view without waiting.
+     * The returned view must be closed by the acquiring thread.
+     *
+     * @return the acquired view, or null when the chunk is busy
+     */
+    public @Nullable LockedChunk tryLockForWrite() {
+        if (!this.writeLock.tryLock()) {
+            return null;
+        }
+
+        return new LockedChunk(this.unsafe, this.writeLock, true, true);
+    }
+
     public void clear() {
         this.writeLock.lock();
+
         try {
             unsafe.clear();
             this.restoredTicks = null;
@@ -523,19 +539,31 @@ public final class CloudChunk implements Chunk, Closeable {
         int x = (blockKey & 0xf) | (fromKeyX(chunkKey) << 4);
         int z = ((blockKey >>> 4) & 0xf) | (fromKeyZ(chunkKey) << 4);
         int y = ((blockKey >>> 8) & 0x1ff) + minHeight;
-        return Vector3i.from(x, y, z);
-    }
 
-    public static Vector3i fromKeyLight(long chunkKey, int blockKey, int minHeight) {
-        int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
-        int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
-        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
         return Vector3i.from(x, y, z);
     }
 
     public static int blockKeyWithLayer(int x, int y, int z, BlockLayer layer, int minHeight) {
         int encodedLayer = BlockLayerStorage.index(layer);
+
         return encodedLayer | ((x & 0xf) << 1) | ((z & 0xf) << 5) | (((y - minHeight) & 0x1ff) << 9);
+    }
+
+    /**
+     * Converts a chunk-local block key to a packed absolute light position.
+     * The block-layer bit does not affect the resulting position.
+     *
+     * @param chunkKey  the packed chunk key from {@link #key(int, int)}
+     * @param blockKey  the entry from {@link #blockKeyWithLayer}
+     * @param minHeight the level's lowest valid y
+     * @return the packed position, see {@link LightPositions#pack}
+     */
+    public static long lightPosition(long chunkKey, int blockKey, int minHeight) {
+        int x = ((blockKey >>> 1) & 0xf) | (fromKeyX(chunkKey) << 4);
+        int z = ((blockKey >>> 5) & 0xf) | (fromKeyZ(chunkKey) << 4);
+        int y = ((blockKey >>> 9) & 0x1ff) + minHeight;
+
+        return LightPositions.pack(x, y, z);
     }
 
     public static long key(int x, int z) {

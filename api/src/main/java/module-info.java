@@ -8,6 +8,7 @@ open module org.cloudburstmc.api {
     requires transitive com.mojang.brigadier;
     requires transitive java.desktop;
     requires transitive net.kyori.adventure;
+    requires transitive net.kyori.adventure.text.minimessage;
     requires transitive net.kyori.examination.api;
     requires transitive org.cloudburstmc.math.immutable;
     requires transitive org.cloudburstmc.nbt;

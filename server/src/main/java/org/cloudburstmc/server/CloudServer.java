@@ -110,6 +110,7 @@ public class CloudServer implements Server {
     private final CloudConsole console;
     private final Thread consoleThread;
     private final CloudConsoleCommandSender consoleSender;
+    private final ServerBroadcaster broadcaster;
 
     private final CloudPluginManager pluginManager;
     private final CloudEventManager eventManager;
@@ -202,6 +203,7 @@ public class CloudServer implements Server {
         this.entityMetadata = injector.getInstance(EntityMetadataStore.class);*/
 
         this.consoleSender = injector.getInstance(CloudConsoleCommandSender.class);
+        this.broadcaster = new ServerBroadcaster(this.currentThread, this.eventManager, this.consoleSender);
 
         this.console = new CloudConsole(this);
         this.consoleThread = Thread.ofPlatform().name("Cloudburst Console").daemon().unstarted(this.console::start);
@@ -219,37 +221,9 @@ public class CloudServer implements Server {
         broadcastPacket(players.toArray(new CloudPlayer[0]), packet);
     }
 
-    public void broadcastMessage(Component message) {
-        this.broadcast(message, BROADCAST_CHANNEL_USERS);
-    }
-
-    public void broadcastMessage(Component message, CommandSender[] recipients) {
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-    }
-
-    public void broadcastMessage(Component message, Collection<? extends CommandSender> recipients) {
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
-    }
-
-    public void broadcast(Component message, String permission) {
-        Set<CommandSender> recipients = new HashSet<>();
-        if (this.consoleSender.hasPermission(permission)) {
-            recipients.add(this.consoleSender);
-        }
-
-        for (CloudPlayer player : this.players.values()) {
-            if (player.hasPermission(permission)) {
-                recipients.add(player);
-            }
-        }
-
-        for (CommandSender recipient : recipients) {
-            recipient.sendMessage(message);
-        }
+    @Override
+    public int broadcast(Component message, String permission) {
+        return this.broadcaster.broadcast(message, permission);
     }
 
     public void boot() throws IOException {
@@ -640,16 +614,19 @@ public class CloudServer implements Server {
     }
 
     public void addOnlinePlayer(Player player) {
-        this.playerList.put(player.getServerId(), (CloudPlayer) player);
+        CloudPlayer previous = this.playerList.put(player.getServerId(), (CloudPlayer) player);
+        if (previous != null && previous != player) {
+            this.broadcaster.removePlayer(previous);
+        }
+        this.broadcaster.addPlayer(player);
         this.updatePlayerListData(player.getServerId(), player.getUniqueId(),
                 BedrockLegacyTextSerializer.getInstance().serialize(player.displayName()),
                 ((CloudPlayer) player).getSerializedSkin(), player.getXuid(), this.playerList.values());
     }
 
     public void removeOnlinePlayer(Player player) {
-        if (this.playerList.containsKey(player.getServerId())) {
-            this.playerList.remove(player.getServerId());
-
+        this.broadcaster.removePlayer(player);
+        if (this.playerList.remove(player.getServerId(), player)) {
             PlayerListPacket packet = new PlayerListPacket();
             PlayerListPacket.Entry entry = new PlayerListPacket.Entry(player.getServerId());
             entry.setAction(PlayerListPacket.Action.REMOVE);

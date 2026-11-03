@@ -129,14 +129,36 @@ final class UnsafeChunk implements Chunk, Closeable {
     @NonNull
     @Override
     public CloudChunkSection getOrCreateSection(int y) {
-        checkElementIndex(y, sections.length, "section Y");
+        CloudChunkSection section = this.getSection(y);
 
-        CloudChunkSection section = this.sections[y];
         if (section == null) {
-            section = new CloudChunkSection(this.level.getServer().getBlockRegistry());
-            this.sections[y] = section;
+            section = this.getOrCreateLightSection(y);
             this.markDirty();
         }
+
+        return section;
+    }
+
+    /**
+     * Returns the section at the given array index, creating it when absent
+     * without marking the chunk dirty.
+     *
+     * The owning chunk's write lock must be held.
+     *
+     * @param sectionIndex the section index from {@code 0} to the level's section count minus one
+     * @return the section
+     */
+    @NonNull
+    public CloudChunkSection getOrCreateLightSection(int sectionIndex) {
+        checkElementIndex(sectionIndex, sections.length, "section Y");
+
+        CloudChunkSection section = this.sections[sectionIndex];
+
+        if (section == null) {
+            section = new CloudChunkSection(this.level.getServer().getBlockRegistry());
+            this.sections[sectionIndex] = section;
+        }
+
         return section;
     }
 
