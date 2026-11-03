@@ -32,7 +32,7 @@ public record Achievement(String message, String... requires) {
         Component message = Component.translatable("chat.type.achievement", player.displayName(), achievementName);
 
         if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            CloudServer.getInstance().broadcastMessage(message);
+            CloudServer.getInstance().broadcast(message);
         } else {
             player.sendMessage(message);
         }
@@ -53,7 +53,7 @@ public record Achievement(String message, String... requires) {
         Component message = Component.translatable("chat.type.achievement", player.displayName(), achievementName);
 
         if (CloudServer.getInstance().getConfig().isAnnouncePlayerAchievements()) {
-            CloudServer.getInstance().broadcastMessage(message);
+            CloudServer.getInstance().broadcast(message);
         } else {
             player.sendMessage(message);
         }

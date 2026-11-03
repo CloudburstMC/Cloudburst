@@ -213,6 +213,33 @@ public interface Server {
     Map<UUID, ? extends Player> getOnlinePlayers();
 
     /**
+     * Broadcasts a component to online players and the console with
+     * {@link #BROADCAST_CHANNEL_USERS} permission.
+     *
+     * @param message the message to broadcast
+     * @return the final recipient count, including the console, or zero if cancelled
+     * @throws NullPointerException if the message is null
+     * @see #broadcast(Component, String)
+     */
+    default int broadcast(Component message) {
+        return this.broadcast(message, BROADCAST_CHANNEL_USERS);
+    }
+
+    /**
+     * Broadcasts a component to online players and the console with the given permission.
+     * {@link org.cloudburstmc.api.event.server.BroadcastMessageEvent} can change the message
+     * and recipients or cancel delivery. Listeners run on the calling thread, with calls outside
+     * the server thread marked asynchronous.
+     *
+     * @param message    the message to broadcast
+     * @param permission the permission recipients must have
+     * @return the final recipient count, including the console, or zero if cancelled
+     * @throws NullPointerException     if the message or permission is null
+     * @throws IllegalArgumentException if the permission name is invalid
+     */
+    int broadcast(Component message, String permission);
+
+    /**
      * Returns the default game mode for players.
      */
     GameMode getGameMode();

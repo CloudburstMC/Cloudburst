@@ -36,6 +36,10 @@ dependencies {
 extraJavaModuleInfo {
     failOnAutomaticModules.set(false)
     module(libs.adventure.api, "net.kyori.adventure")
+    module(libs.adventure.text.minimessage, "net.kyori.adventure.text.minimessage") {
+        exportAllPackages()
+        requireAllDefinedDependencies()
+    }
     module("net.kyori:adventure-key", "net.kyori.adventure.key")
     knownModule("net.kyori:examination-api", "net.kyori.examination.api")
     knownModule("net.kyori:examination-string", "net.kyori.examination.string")
