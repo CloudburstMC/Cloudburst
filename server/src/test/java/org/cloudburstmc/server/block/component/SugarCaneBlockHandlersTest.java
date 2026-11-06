@@ -77,7 +77,7 @@ class SugarCaneBlockHandlersTest {
         }
 
         world.setState(WATER, BlockTypes.MANGROVE_ROOTS.getDefaultState());
-        world.setLiquid(WATER, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(WATER, BlockStates.WATER.getLiquidState());
 
         assertTrue(SugarCaneBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
     }

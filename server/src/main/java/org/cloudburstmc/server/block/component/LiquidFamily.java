@@ -57,15 +57,15 @@ public enum LiquidFamily {
     }
 
     LiquidState source() {
-        return LiquidState.of(this.sourceType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0));
+        return this.sourceType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0).getLiquidState();
     }
 
     LiquidState falling() {
-        return LiquidState.of(this.flowingType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 8));
+        return this.flowingType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 8).getLiquidState();
     }
 
     LiquidState flowing(int amount) {
-        return LiquidState.of(this.flowingType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 8 - amount));
+        return this.flowingType.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 8 - amount).getLiquidState();
     }
 
     LiquidState nextState(CloudLevel level, Vector3i position, LiquidState current) {

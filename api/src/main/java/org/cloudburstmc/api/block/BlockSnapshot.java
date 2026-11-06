@@ -1,6 +1,9 @@
 package org.cloudburstmc.api.block;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.api.block.data.BlockData;
+
+import java.util.Optional;
 
 /**
  * A read-only view of the block states stored at one level position.
@@ -9,6 +12,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * no block state coexists with the primary state.
  */
 public interface BlockSnapshot {
+
+    /**
+     * Returns a typed property view of the primary state. Views that depend on
+     * both layers, such as {@link org.cloudburstmc.api.block.data.Waterlogged},
+     * include the secondary state.
+     *
+     * @param dataType the requested view interface
+     * @param <D>      the view type
+     * @return the view, or empty if the snapshot does not support it
+     */
+    <D extends BlockData> Optional<D> getData(Class<D> dataType);
 
     /**
      * Returns the primary state at this position.
@@ -57,7 +71,7 @@ public interface BlockSnapshot {
      */
     default LiquidState getLiquid() {
         BlockLayer layer = this.getLiquidLayer();
-        return layer == null ? LiquidState.empty() : LiquidState.of(this.getState(layer));
+        return layer == null ? LiquidState.empty() : this.getState(layer).getLiquidState();
     }
 
     /**

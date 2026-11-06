@@ -43,7 +43,7 @@ class TurtleEggBlockHandlersTest {
     @Test
     void newEggsOnSandEmitParticlesEvenWhenWaterlogged() {
         BlockTestWorld world = world();
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
 
         REGISTRY.requireComponent(BlockTypes.TURTLE_EGG, BlockComponents.ON_ADDED).execute(world.block(POSITION));
 

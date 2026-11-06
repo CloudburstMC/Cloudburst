@@ -15,6 +15,7 @@ import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockLayerRules;
+import org.cloudburstmc.server.block.CloudLiquidState;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.utils.Hash;
@@ -43,7 +44,7 @@ public class LiquidBlockHandlers {
         }
 
         LiquidState next = family.nextState(level, pos, liquid);
-        if (LiquidStateAccess.blockState(next) != LiquidStateAccess.blockState(liquid)) {
+        if (CloudLiquidState.toBlockState(next) != CloudLiquidState.toBlockState(liquid)) {
             LiquidLevelChangeEvent event = new LiquidLevelChangeEvent(block, next);
             level.getServer().getEventManager().fire(event);
 
@@ -59,7 +60,7 @@ public class LiquidBlockHandlers {
             return;
         }
 
-        if (LiquidStateAccess.blockState(next) != LiquidStateAccess.blockState(liquid)) {
+        if (CloudLiquidState.toBlockState(next) != CloudLiquidState.toBlockState(liquid)) {
             level.setLiquidState(pos, next);
             level.scheduleLiquidUpdate(pos, next, family.spreadDelay(level, pos, liquid, next));
         }

@@ -67,7 +67,7 @@ class CoralBlockHandlersTest {
             Block block = world.block(POSITION);
 
             CoralBlockHandlers.ON_STATE_CHANGED.execute(block);
-            world.setLiquid(direction.relative(POSITION), LiquidState.of(BlockStates.WATER));
+            world.setLiquid(direction.relative(POSITION), BlockStates.WATER.getLiquidState());
             REGISTRY.requireComponent(BlockTypes.BRAIN_CORAL, BlockComponents.ON_TICK).execute(block, null);
 
             assertSame(BlockTypes.BRAIN_CORAL.getDefaultState(), world.state(POSITION));
@@ -76,7 +76,7 @@ class CoralBlockHandlersTest {
 
         BlockTestWorld waterlogged = new BlockTestWorld(REGISTRY);
         waterlogged.setState(POSITION, BlockTypes.BRAIN_CORAL.getDefaultState());
-        waterlogged.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        waterlogged.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
 
         CoralBlockHandlers.ON_STATE_CHANGED.execute(waterlogged.block(POSITION));
 
@@ -195,7 +195,7 @@ class CoralBlockHandlersTest {
     @Test
     void fanPlacementSelectsTheFloorOrWallVariantBeforeSurvivalChecks() {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         Block target = world.block(POSITION);
 
         for (Direction face : Direction.values()) {
@@ -219,7 +219,7 @@ class CoralBlockHandlersTest {
     @Test
     void dryFansArePlacedDeadEvenBesideWaterAndDeadFansCannotBeRevived() {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
-        world.setLiquid(POSITION.add(1, 0, 0), LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION.add(1, 0, 0), BlockStates.WATER.getLiquidState());
         Block target = world.block(POSITION);
         for (Direction face : List.of(Direction.UP, Direction.NORTH)) {
             BlockState placed = REGISTRY.requireComponent(BlockTypes.BRAIN_CORAL_FAN, BlockComponents.RESOLVE_PLACEMENT_STATE)
@@ -229,7 +229,7 @@ class CoralBlockHandlersTest {
             assertSame(face == Direction.UP ? BlockTypes.DEAD_BRAIN_CORAL_FAN : BlockTypes.DEAD_BRAIN_CORAL_WALL_FAN, placed.getType());
         }
 
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         BlockState dead = REGISTRY.requireComponent(BlockTypes.DEAD_BRAIN_CORAL_FAN, BlockComponents.RESOLVE_PLACEMENT_STATE)
                 .execute(BlockTypes.DEAD_BRAIN_CORAL_FAN.getDefaultState(), target, null, Direction.UP, Vector3f.ZERO);
 
@@ -293,7 +293,7 @@ class CoralBlockHandlersTest {
         assertFalse(UnderwaterPlantBlockHandlers.spread(world.block(POSITION), Direction.UP, new Random(0)).succeeded());
 
         world.setState(POSITION, BlockTypes.SEAGRASS.getDefaultState());
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         world.setState(POSITION.add(0, 1, 0), BlockStates.STONE);
 
         assertFalse(UnderwaterPlantBlockHandlers.FERTILIZE.execute(world.block(POSITION), null, new Random(0)).succeeded());

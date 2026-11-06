@@ -8,7 +8,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -20,6 +19,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
+import org.cloudburstmc.server.block.CloudBlockType;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
 import org.cloudburstmc.server.item.ItemUtils;
@@ -103,7 +103,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
         blockTypes.add(placement);
         Set<BlockType> blocks = Set.copyOf(blockTypes);
         for (BlockType block : blocks) {
-            BlockRegistrationAccess.linkItem(block, itemType);
+            CloudBlockType.require(block).linkItemType(itemType);
             this.typeMap.putIfAbsent(block.getId(), itemType);
         }
 

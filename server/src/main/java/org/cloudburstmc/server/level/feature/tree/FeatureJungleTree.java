@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.feature.tree;
 import lombok.NonNull;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.data.MultipleFacing;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -39,7 +39,8 @@ public class FeatureJungleTree extends FeatureNormalTree {
         x -= face.getUnitVector().getX();
         z -= face.getUnitVector().getZ();
         if (random.nextInt(4) != 0 && this.test(level.getBlockState(x, y, z))) {
-            level.setBlockState(x, y, z, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getIndex()));
+            BlockState vine = BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(face, true);
+            level.setBlockState(x, y, z, vine);
         }
     }
 }

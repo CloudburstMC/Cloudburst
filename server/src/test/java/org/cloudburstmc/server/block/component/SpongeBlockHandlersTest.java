@@ -112,11 +112,11 @@ class SpongeBlockHandlersTest {
         Vector3i bubble = POSITION.add(0, 0, 1);
         BlockState slabState = BlockTypes.OAK_SLAB.getDefaultState();
         world.setState(slab, slabState);
-        world.setLiquid(slab, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(slab, BlockStates.WATER.getLiquidState());
         world.setState(kelp, BlockTypes.KELP.getDefaultState());
-        world.setLiquid(kelp, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(kelp, BlockStates.WATER.getLiquidState());
         world.setState(bubble, BlockTypes.BUBBLE_COLUMN.getDefaultState());
-        world.setLiquid(bubble, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(bubble, BlockStates.WATER.getLiquidState());
 
         SpongeBlockHandlers.absorb(world.block(POSITION));
 

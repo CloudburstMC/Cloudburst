@@ -3,6 +3,7 @@ package org.cloudburstmc.server.block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.server.block.serializer.BlockSerializer;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BlockPaletteTest {
 
-    private static final IntegerBlockTrait STAGE = IntegerBlockTrait.from("palette_stage", 0, 3, 2);
+    private static final IntegerBlockTrait STAGE = IntegerBlockTrait.of("palette_stage", 0, 3, 2);
     private static final Identifier ID = Identifier.parse("cloudburst:palette_test");
     private static final BlockSerializer SERIALIZER = (builder, type, traits) ->
             builder.putCompound("states", NbtMap.builder().putInt("stage", (Integer) traits.get(STAGE)).build());
@@ -22,7 +23,7 @@ class BlockPaletteTest {
     @Test
     void identifierLookupUsesTheDeclaredDefaultInsteadOfTheFirstPermutation() {
         BlockPalette palette = new BlockPalette();
-        BlockType type = BlockType.of(ID, STAGE);
+        BlockType type = BlockRegistry.get().createType(ID, STAGE);
 
         palette.addBlock(type, SERIALIZER);
 
@@ -35,7 +36,7 @@ class BlockPaletteTest {
     @Test
     void stateIdentityIgnoresEnvelopeMetadataButPreservesProperties() {
         BlockPalette palette = new BlockPalette();
-        BlockType type = BlockType.of(ID, STAGE);
+        BlockType type = BlockRegistry.get().createType(ID, STAGE);
         palette.addBlock(type, SERIALIZER);
         BlockState state = type.getDefaultState().withTrait(STAGE, 1);
         NbtMap serialized = palette.getSerialized(state);
@@ -54,7 +55,7 @@ class BlockPaletteTest {
     @Test
     void duplicateSerializationDoesNotPublishAPartialRegistration() {
         BlockPalette palette = new BlockPalette();
-        BlockType type = BlockType.of(ID, STAGE);
+        BlockType type = BlockRegistry.get().createType(ID, STAGE);
         BlockSerializer duplicate = (builder, blockType, traits) -> builder.putCompound("states", NbtMap.EMPTY);
 
         assertThrows(IllegalArgumentException.class, () -> palette.addBlock(type, duplicate));
@@ -69,7 +70,7 @@ class BlockPaletteTest {
     @Test
     void malformedSerializationDoesNotPublishARegistration() {
         BlockPalette palette = new BlockPalette();
-        BlockType type = BlockType.of(ID, STAGE);
+        BlockType type = BlockRegistry.get().createType(ID, STAGE);
         BlockSerializer invalidName = (builder, blockType, traits) -> {
             builder.putInt("name", 1);
             builder.putCompound("states", NbtMap.EMPTY);
@@ -94,7 +95,7 @@ class BlockPaletteTest {
     @Test
     void exposedIndexesCannotBeModified() {
         BlockPalette palette = new BlockPalette();
-        BlockType type = BlockType.of(ID, STAGE);
+        BlockType type = BlockRegistry.get().createType(ID, STAGE);
         palette.addBlock(type, SERIALIZER);
 
         assertThrows(UnsupportedOperationException.class, () -> palette.getSerializedPalette().clear());

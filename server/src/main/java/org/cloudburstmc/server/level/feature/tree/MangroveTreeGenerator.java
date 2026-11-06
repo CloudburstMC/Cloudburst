@@ -2,6 +2,7 @@ package org.cloudburstmc.server.level.feature.tree;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.data.MultipleFacing;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.TreeType;
 import org.cloudburstmc.api.util.Direction;
@@ -223,16 +224,11 @@ public class MangroveTreeGenerator {
                 }
 
                 Vector3i vine = direction.relative(leaf);
-                int bit = switch (direction) {
-                    case WEST -> 8;
-                    case EAST -> 2;
-                    case NORTH -> 1;
-                    case SOUTH -> 4;
-                    default -> throw new IllegalStateException("Non-horizontal vine direction");
-                };
+                BlockState vineState = BlockStates.VINE.getData(MultipleFacing.class).orElseThrow()
+                        .withFace(direction.getOpposite(), true);
 
                 for (int length = 0; length < 5 && this.read(vine) == BlockStates.AIR; length++) {
-                    this.put(vine, BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, bit));
+                    this.put(vine, vineState);
                     vine = vine.add(0, -1, 0);
                 }
             }

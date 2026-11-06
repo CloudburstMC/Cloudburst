@@ -15,6 +15,8 @@ import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.component.ComponentBuilder;
+import org.cloudburstmc.server.block.CloudBlockType;
+import org.cloudburstmc.server.block.SlabFamily;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
@@ -826,7 +828,7 @@ public class VanillaBlockBehaviors {
     }
 
     private ComponentBuilder configureLiquid(CloudBlockRegistry registry, BlockType blockType, LiquidType liquidType) {
-        BlockRegistrationAccess.bindLiquidType(blockType, liquidType);
+        CloudBlockType.require(blockType).bindLiquidType(liquidType);
         return registry.configure(blockType).set(BlockComponents.ON_LIQUID_TICK, LiquidBlockHandlers::tick);
     }
 
@@ -854,7 +856,10 @@ public class VanillaBlockBehaviors {
     }
 
     private void configureSlab(CloudBlockRegistry registry, BlockType slabType, BlockType doubleSlabType) {
-        registry.configure(slabType).set(BlockComponents.ON_PLACE, new SlabPlaceHandler(doubleSlabType));
+        SlabFamily family = new SlabFamily(slabType, doubleSlabType);
+        CloudBlockType.require(slabType).bindSlabFamily(family);
+        CloudBlockType.require(doubleSlabType).bindSlabFamily(family);
+        registry.configure(slabType).set(BlockComponents.ON_PLACE, new SlabPlaceHandler());
     }
 
     private void configureStairs(CloudBlockRegistry registry) {

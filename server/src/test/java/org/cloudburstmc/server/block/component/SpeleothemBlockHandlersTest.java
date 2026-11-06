@@ -208,7 +208,7 @@ class SpeleothemBlockHandlersTest {
         for (int scenario = 0; scenario < 3; scenario++) {
             BlockTestWorld world = sulfur();
             switch (scenario) {
-                case 0 -> world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+                case 0 -> world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
                 case 1 -> world.setState(POSITION.add(0, -1, 0), BlockStates.WATER);
                 case 2 -> world.unload(POSITION.add(0, -1, 0));
                 default -> throw new AssertionError();

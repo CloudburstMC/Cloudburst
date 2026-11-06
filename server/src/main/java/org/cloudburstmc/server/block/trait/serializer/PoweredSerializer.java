@@ -5,6 +5,7 @@ import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
+import org.cloudburstmc.server.block.trait.BedrockBlockTraitNames;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
@@ -18,6 +19,6 @@ public class PoweredSerializer implements TraitSerializer<Boolean> {
             return BedrockStateTags.TAG_RAIL_DATA_BIT;
         }
 
-        return blockTrait.getVanillaName();
+        return BedrockBlockTraitNames.name(blockTrait);
     }
 }

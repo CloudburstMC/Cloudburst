@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.server.block.CloudBlockType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -129,7 +130,7 @@ class VanillaBlockTags {
                 tags.add(key);
             }
         }
-        BlockRegistrationAccess.bindTags(type, tags);
+        CloudBlockType.require(type).bindTags(tags);
     }
 
     static void freeze() {

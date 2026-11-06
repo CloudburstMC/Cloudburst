@@ -36,7 +36,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class BucketItemHandlers {
+public class BucketItemHandlers {
 
     public static final UseHandler PICK_UP = BucketItemHandlers::pickUp;
 
@@ -178,7 +178,7 @@ public final class BucketItemHandlers {
                 return item;
             }
 
-            LiquidState liquid = LiquidState.of(state);
+            LiquidState liquid = state.getLiquidState();
             CloudLevel level = player.getLevel();
             Block clicked = level.getBlock(position);
             Vector3i target = LiquidBlockHandlers.canOccupySecondaryLayer(liquid)

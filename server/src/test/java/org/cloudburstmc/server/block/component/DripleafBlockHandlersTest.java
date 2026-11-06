@@ -97,7 +97,7 @@ class DripleafBlockHandlersTest {
         world.setState(POSITION, BlockStates.AIR);
         assertNull(SmallDripleafBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(SMALL, world.block(POSITION), null, Direction.UP, Vector3f.ZERO));
         world.setState(POSITION, SMALL);
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         assertTrue(SmallDripleafBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
         world.setState(POSITION.add(0, -1, 0), BlockStates.STONE);
         assertFalse(SmallDripleafBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
@@ -110,7 +110,7 @@ class DripleafBlockHandlersTest {
             world.setState(POSITION.add(0, -1, 0), soil);
             world.setState(POSITION, SMALL);
             world.setState(POSITION.add(0, 1, 0), SMALL.withTrait(BlockTraits.IS_UPPER_BLOCK, true));
-            world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+            world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
             SmallDripleafBlockHandlers.ON_STATE_CHANGED.execute(world.block(POSITION));
             assertSame(SMALL, world.state(POSITION));
 
@@ -141,7 +141,7 @@ class DripleafBlockHandlersTest {
             BlockLayers layers = BlockLayerRules.resolveReplacement(new BlockLayers(water, BlockStates.AIR), BlockLayer.PRIMARY, state);
             assertNotNull(layers);
             Block proposed = InterfaceProxy.create(Block.class, Map.of("getLevel", world.block(POSITION).getLevel(),
-                    "getPosition", POSITION, "getState", layers.primary(), "getLiquid", LiquidState.of(layers.secondary())));
+                    "getPosition", POSITION, "getState", layers.primary(), "getLiquid", layers.secondary().getLiquidState()));
             boolean survives = depth == 0 || depth >= 8;
             assertTrue(REGISTRY.requireComponent(BlockTypes.SMALL_DRIPLEAF_BLOCK, BlockComponents.CAN_BE_PLACED).execute(proposed));
             assertEquals(survives, SmallDripleafBlockHandlers.CAN_SURVIVE.execute(proposed));

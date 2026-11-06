@@ -36,7 +36,7 @@ class LightOcclusionTest {
         BlockState straight = BlockTypes.OAK_STAIRS.getDefaultState()
                 .withTrait(BlockTraits.DIRECTION, Direction.NORTH)
                 .withTrait(BlockTraits.IS_UPSIDE_DOWN, false)
-                .withTrait(BlockTraits.STAIR_SHAPE, StairShape.NONE);
+                .withTrait(BlockTraits.STAIR_SHAPE, StairShape.STRAIGHT);
         BlockState outer = straight.withTrait(BlockTraits.STAIR_SHAPE, StairShape.OUTER_LEFT);
 
         assertTrue(occludes(straight, BlockStates.AIR, Direction.NORTH));

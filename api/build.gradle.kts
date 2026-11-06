@@ -61,6 +61,8 @@ extraJavaModuleInfo {
         overrideModuleName()
         exportAllPackages()
         requireAllDefinedDependencies()
+        uses("org.cloudburstmc.math.vector.VectorProvider")
+        uses("org.cloudburstmc.math.imaginary.ImaginaryProvider")
     }
     automaticModule("aopalliance:aopalliance", "aopalliance.aop")
     automaticModule("com.google.guava:listenablefuture", "com.google.guava.listenablefuture")

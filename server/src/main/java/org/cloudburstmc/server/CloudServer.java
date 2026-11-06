@@ -164,7 +164,7 @@ public class CloudServer implements Server {
     private final BiomeRegistry biomeRegistry = CloudBiomeRegistry.get();
 
     private final CloudItemRegistry itemRegistry = CloudItemRegistry.get();
-    private final CloudBlockRegistry blockRegistry = new CloudBlockRegistry(itemRegistry);
+    private final CloudBlockRegistry blockRegistry = CloudBlockRegistry.initialize(itemRegistry);
     private final CloudBlockEntityRegistry blockEntityRegistry = CloudBlockEntityRegistry.get();
 
     private final CloudDamageTypeRegistry damageTypeRegistry = CloudDamageTypeRegistry.get();

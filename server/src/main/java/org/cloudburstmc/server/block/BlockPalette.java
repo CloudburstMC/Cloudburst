@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.block.BlockRegistrationAccess;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.util.Identifier;
@@ -18,8 +17,8 @@ import org.cloudburstmc.server.block.util.BlockStateHash;
 import org.cloudburstmc.server.registry.RegistryUtils;
 import org.cloudburstmc.server.registry.VanillaRegistryDiagnostics;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -293,7 +292,7 @@ public class BlockPalette implements DefinitionRegistry<BlockDefinition> {
 
     private static void bindProperties(BlockState state, BlockPropertyData.StateData properties) {
         BlockGeometryData geometry = properties.geometry();
-        BlockRegistrationAccess.bindData(state, new BlockRegistrationAccess.Properties(
+        CloudBlockState.require(state).bindProperties(new BlockStateProperties(
                 geometry.collisionShape(),
                 geometry.outlineShape(),
                 properties.hardness(),

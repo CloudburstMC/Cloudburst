@@ -118,7 +118,7 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public BlockSnapshot snapshot() {
-        return new CloudBlockSnapshot(new BlockState[]{this.getState(), this.getSecondaryState()});
+        return new CloudBlockSnapshot(this.getState(), this.getSecondaryState());
     }
 
     @Override

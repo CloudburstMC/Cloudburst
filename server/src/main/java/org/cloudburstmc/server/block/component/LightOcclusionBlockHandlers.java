@@ -51,7 +51,7 @@ public class LightOcclusionBlockHandlers {
                 boolean forward = inHalf(facing, x, z);
                 boolean lateral = inHalf(side, x, z);
                 boolean occupied = switch (shape) {
-                    case NONE -> forward;
+                    case STRAIGHT -> forward;
                     case INNER_LEFT, INNER_RIGHT -> forward || lateral;
                     case OUTER_LEFT, OUTER_RIGHT -> forward && lateral;
                 };

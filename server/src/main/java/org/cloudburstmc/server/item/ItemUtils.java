@@ -6,11 +6,8 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockType;
-import org.cloudburstmc.api.item.ItemDataComponents;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.item.ItemStackBuilder;
-import org.cloudburstmc.api.item.ItemType;
-import org.cloudburstmc.api.item.ItemTypes;
+import org.cloudburstmc.api.item.*;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.*;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
@@ -163,13 +160,11 @@ public class ItemUtils {
         ItemStackBuilder builder = base.toBuilder();
 
         if (tag.containsKey("CanPlaceOn", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanPlaceOn", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
-            builder.setData(ItemDataComponents.CAN_PLACE_ON, list);
+            builder.setData(ItemDataComponents.CAN_PLACE_ON, readBlockTypes(tag, "CanPlaceOn"));
         }
 
         if (tag.containsKey("CanDestroy", NbtType.LIST)) {
-            List<BlockType> list = tag.getList("CanDestroy", NbtType.STRING, Collections.emptyList()).stream().map(Identifier::parse).map(BlockType::of).toList();
-            builder.setData(ItemDataComponents.CAN_DESTROY, list);
+            builder.setData(ItemDataComponents.CAN_DESTROY, readBlockTypes(tag, "CanDestroy"));
         }
 
         return builder.build();
@@ -199,6 +194,19 @@ public class ItemUtils {
             return ItemStack.EMPTY;
         }
         return builder.build();
+    }
+
+    private static List<BlockType> readBlockTypes(NbtMap tag, String key) {
+        BlockRegistry blocks = BlockRegistry.get();
+        return tag.getList(key, NbtType.STRING, Collections.emptyList()).stream()
+                .map(Identifier::parse)
+                .map(id -> {
+                    BlockType serialized = BlockPalette.INSTANCE.getType(id);
+                    return serialized != null ? serialized : blocks.get(id).orElseThrow(
+                            () -> new IllegalArgumentException("Unknown block type in " + key + ": " + id));
+                })
+                .distinct()
+                .toList();
     }
 
     public static ItemData toNetwork(ItemStack item) {

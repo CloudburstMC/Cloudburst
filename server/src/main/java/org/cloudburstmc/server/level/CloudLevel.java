@@ -61,10 +61,7 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockLayerRules;
-import org.cloudburstmc.server.block.BlockLayers;
-import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.CloudBlock;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
@@ -185,11 +182,6 @@ public class CloudLevel implements Level, BlockStateRegion {
             .removalListener(cacheRemover)
             .build();
     private final LevelChunkManager chunkManager;
-    /**
-     * The per-level background light lane. Submissions only enqueue work on
-     * the generation pool; the lane reads level state off the calling thread,
-     * so its view only touches thread-safe state.
-     */
     private final LightScheduler lightScheduler;
     private final CloudLevelData levelData;
     private final CollisionEngine collisionEngine;
@@ -1448,7 +1440,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (this.getBlockState(position) == newLayers.primary() && this.getBlockState(x, y, z, BlockLayer.SECONDARY) == newLayers.secondary()) {
             BlockState previousLiquidState = oldLayers.primary().getType().isLiquid() ? oldLayers.primary() : oldLayers.secondary();
-            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? LiquidState.of(previousLiquidState) : LiquidState.empty();
+            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? previousLiquidState.getLiquidState() : LiquidState.empty();
             if (!previousLiquid.equals(newBlock.getLiquid())) {
                 this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_LIQUID_CHANGED).execute(newBlock, previousLiquid);
             }
@@ -1544,7 +1536,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return true;
         }
 
-        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, LiquidStateAccess.blockState(liquid));
+        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, CloudLiquidState.toBlockState(liquid));
     }
 
     @Override
@@ -1574,11 +1566,11 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         boolean changed;
         if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
-            boolean primaryChanged = this.setBlockState(position, LiquidStateAccess.blockState(liquid));
+            boolean primaryChanged = this.setBlockState(position, CloudLiquidState.toBlockState(liquid));
             boolean secondaryChanged = this.setBlockState(position, BlockLayer.SECONDARY, BlockStates.AIR);
             changed = primaryChanged || secondaryChanged;
         } else {
-            changed = this.setBlockState(position, BlockLayer.SECONDARY, LiquidStateAccess.blockState(liquid));
+            changed = this.setBlockState(position, BlockLayer.SECONDARY, CloudLiquidState.toBlockState(liquid));
         }
 
         if (changed) {
@@ -1626,12 +1618,12 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, LiquidStateAccess.blockState(liquid).getType(),
+        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, CloudLiquidState.toBlockState(liquid).getType(),
                 (long) delay + this.getGameTime()));
     }
 
     private boolean isLiquidUpdateScheduled(Vector3i position, LiquidState liquid) {
-        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, LiquidStateAccess.blockState(liquid).getType()));
+        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, CloudLiquidState.toBlockState(liquid).getType()));
     }
 
     private void tickBlock(Vector3i position, BlockType scheduledType) {
@@ -1646,7 +1638,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private void tickLiquid(Vector3i position, BlockType scheduledType) {
         Block block = this.getBlock(position);
         LiquidState liquid = block.getLiquid();
-        if (liquid.isEmpty() || LiquidStateAccess.blockState(liquid).getType() != scheduledType) {
+        if (liquid.isEmpty() || CloudLiquidState.toBlockState(liquid).getType() != scheduledType) {
             return;
         }
 
@@ -2057,9 +2049,10 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     /**
      * Attempts to activate an item used in the air.
-     * Requires the item to have a {@code USE} component; items that only have {@code USE_ON} are not applicable here.
      *
-     * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
+     * @param item   the held item
+     * @param player the player using it
+     * @return the resulting item, or {@code null} when use in the air is unsupported
      */
     public ItemStack tryActivateItem(ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());

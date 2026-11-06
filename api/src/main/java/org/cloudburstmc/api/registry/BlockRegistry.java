@@ -2,6 +2,7 @@ package org.cloudburstmc.api.registry;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
@@ -17,6 +18,29 @@ import java.util.Optional;
  * Registry for block types, block states, block components, and block tags.
  */
 public interface BlockRegistry extends ComponentRegistry<BlockType>, KeyedRegistry<BlockType> {
+
+    /**
+     * @return the server's block registry
+     * @throws IllegalStateException if no registry implementation is available
+     */
+    static BlockRegistry get() {
+        return BlockRegistryHolder.INSTANCE;
+    }
+
+    /**
+     * Creates an unregistered type containing every combination of the supplied trait values.
+     *
+     * @param id     the block identifier
+     * @param traits the supported traits
+     * @return an unregistered block type
+     * @throws IllegalArgumentException if trait names repeat or the state count exceeds list capacity
+     */
+    BlockType createType(Identifier id, BlockTrait<?>... traits);
+
+    /**
+     * @return the canonical state representing the absence of liquid
+     */
+    LiquidState getEmptyLiquidState();
 
     /**
      * Returns the default state for a block type.

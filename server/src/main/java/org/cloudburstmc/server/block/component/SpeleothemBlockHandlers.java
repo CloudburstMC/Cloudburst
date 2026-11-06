@@ -17,6 +17,7 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DripstoneThickness;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.CloudLiquidState;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.projectile.EntityThrownTrident;
@@ -103,7 +104,7 @@ public class SpeleothemBlockHandlers {
             return;
         }
 
-        BlockState replacement = LiquidStateAccess.blockState(block.getLiquid());
+        BlockState replacement = CloudLiquidState.toBlockState(block.getLiquid());
         EntityChangeBlockEvent event = new EntityChangeBlockEvent(entity, block, replacement);
         block.getLevel().getServer().getEventManager().fire(event);
         if (!event.isCancelled() && block.getLevel().getBlockState(block.getPosition()) == block.getState()) {

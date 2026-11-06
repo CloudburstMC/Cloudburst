@@ -23,6 +23,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.BlockLayerRules;
 import org.cloudburstmc.server.block.BlockLayers;
+import org.cloudburstmc.server.block.CloudLiquidState;
 import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 
@@ -282,13 +283,13 @@ public class BlockTestWorld {
 
         BlockState state = this.state(position);
         BlockState liquid = state.getType().isLiquid() ? state : this.secondaryState(position);
-        return liquid.getType().isLiquid() ? LiquidState.of(liquid) : LiquidState.empty();
+        return liquid.getType().isLiquid() ? liquid.getLiquidState() : LiquidState.empty();
     }
 
     private BlockState secondaryState(Vector3i position) {
         LiquidState override = this.liquids.get(position);
         if (override != null && !this.state(position).getType().isLiquid()) {
-            return LiquidStateAccess.blockState(override);
+            return CloudLiquidState.toBlockState(override);
         }
 
         return this.secondaryStates.getOrDefault(position, BlockStates.AIR);

@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.registry;
 
+import lombok.NoArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemStack;
@@ -13,6 +15,8 @@ import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.server.block.BlockGeometryData;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.CloudBlockType;
+import org.cloudburstmc.server.block.EmptyLiquidState;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.serializer.DefaultBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
@@ -21,35 +25,62 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Owns registered block states, tags and behavior components.
  */
+@NoArgsConstructor
 public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implements BlockRegistry {
 
     private final BlockPalette palette = BlockPalette.INSTANCE;
-    private final List<BlockType> types;
-    private final List<BlockState> states;
+    private final Map<Identifier, BlockType> typesById = VanillaBlockTypes.create();
+    private final List<BlockType> types = List.copyOf(this.typesById.values());
+    private volatile List<BlockState> states = List.of();
+    private boolean initialized;
     private volatile boolean closed;
 
-    public CloudBlockRegistry(CloudItemRegistry itemRegistry) {
-        checkNotNull(itemRegistry, "itemRegistry");
+    /**
+     * Binds vanilla state properties and behaviors to the shared block registry.
+     *
+     * @param itemRegistry the item registry used for block-item associations
+     * @return the initialized block registry
+     */
+    public static CloudBlockRegistry initialize(CloudItemRegistry itemRegistry) {
+        BlockRegistry registry = BlockRegistry.get();
+        checkState(registry instanceof CloudBlockRegistry, "Block registry is not owned by this server");
+        CloudBlockRegistry blocks = (CloudBlockRegistry) registry;
+        blocks.initializeVanilla(itemRegistry);
+        return blocks;
+    }
 
-        BlockTraitSerializers.init();
-        this.types = List.copyOf(BlockTypes.values());
-        this.registerDefaultComponents();
-        this.types.forEach(this::registerVanilla);
+    @Override
+    public BlockType createType(Identifier id, BlockTrait<?>... traits) {
+        return new CloudBlockType(id, traits);
+    }
 
-        this.palette.generateRuntimeIds();
-        this.states = this.palette.getSerializedPalette().values().stream().distinct().toList();
-        this.types.forEach(this::configureModelOffsetShapes);
+    @Override
+    public LiquidState getEmptyLiquidState() {
+        return EmptyLiquidState.INSTANCE;
+    }
 
-        VanillaBlockItems.register(itemRegistry);
-        VanillaBlockBehaviors.configure(this);
-        VanillaBlockTags.freeze();
+    @Override
+    public Optional<BlockType> get(Identifier id) {
+        return Optional.ofNullable(this.typesById.get(checkNotNull(id, "id")));
+    }
+
+    @Override
+    public Identifier getId(BlockType type) {
+        checkNotNull(type, "type");
+        if (this.typesById.get(type.getId()) != type) {
+            throw new IllegalArgumentException("Block type is not registered: " + type.getId());
+        }
+
+        return type.getId();
     }
 
     @Override
@@ -117,8 +148,27 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
             return;
         }
 
+        checkState(this.initialized, "Block registry has not been initialized");
         this.freezeComponentMaps();
         this.closed = true;
+    }
+
+    private synchronized void initializeVanilla(CloudItemRegistry itemRegistry) {
+        checkNotNull(itemRegistry, "itemRegistry");
+        checkState(!this.initialized, "Block registry has already been initialized");
+
+        BlockTraitSerializers.init();
+        this.registerDefaultComponents();
+        this.types.forEach(this::registerVanilla);
+
+        this.palette.generateRuntimeIds();
+        this.states = this.palette.getSerializedPalette().values().stream().distinct().toList();
+        this.types.forEach(this::configureModelOffsetShapes);
+
+        VanillaBlockItems.register(itemRegistry);
+        VanillaBlockBehaviors.configure(this);
+        VanillaBlockTags.freeze();
+        this.initialized = true;
     }
 
     private void requireOpen() {

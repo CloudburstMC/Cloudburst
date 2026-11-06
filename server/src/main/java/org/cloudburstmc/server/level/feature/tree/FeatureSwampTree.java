@@ -3,7 +3,7 @@ package org.cloudburstmc.server.level.feature.tree;
 import lombok.NonNull;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
-import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.data.MultipleFacing;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.level.generator.standard.misc.IntRange;
@@ -50,7 +50,7 @@ public class FeatureSwampTree extends FeatureNormalTree {
     }
 
     protected void placeVines(GenerationRegion level, RandomGenerator random, int x, int y, int z, Direction face, BlockState leaves) {
-        BlockState vine = BlockStates.VINE.withTrait(BlockTraits.VINE_DIRECTION_BITS, face.getOpposite().getIndex());
+        BlockState vine = BlockStates.VINE.getData(MultipleFacing.class).orElseThrow().withFace(face.getOpposite(), true);
         BlockState block;
         for (int dy = 0; dy < 4 && (block = level.getBlockState(x, y - dy, z)) != leaves && this.test(block); dy++) {
             level.setBlockState(x, y - dy, z, vine);
