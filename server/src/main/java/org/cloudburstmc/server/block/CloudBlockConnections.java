@@ -26,7 +26,7 @@ import static java.util.Objects.requireNonNull;
 @UtilityClass
 public class CloudBlockConnections {
 
-    private static final Map<Direction, BooleanBlockTrait> BOOLEAN_FACES = Map.of(
+    public static final Map<Direction, BooleanBlockTrait> BOOLEAN_FACES = Map.of(
             Direction.DOWN, BlockTraits.CONNECTION_DOWN,
             Direction.UP, BlockTraits.CONNECTION_UP,
             Direction.NORTH, BlockTraits.CONNECTION_NORTH,
@@ -34,20 +34,20 @@ public class CloudBlockConnections {
             Direction.WEST, BlockTraits.CONNECTION_WEST,
             Direction.EAST, BlockTraits.CONNECTION_EAST);
 
-    private static final Map<Direction, Integer> MULTIFACE_BITS = Map.of(
+    public static final Map<Direction, Integer> MULTIFACE_BITS = Map.of(
             Direction.DOWN, 1, Direction.UP, 2, Direction.SOUTH, 4,
             Direction.WEST, 8, Direction.NORTH, 16, Direction.EAST, 32);
 
-    private static final Map<Direction, Integer> VINE_BITS = Map.of(
+    public static final Map<Direction, Integer> VINE_BITS = Map.of(
             Direction.SOUTH, 1, Direction.WEST, 2, Direction.NORTH, 4, Direction.EAST, 8);
 
-    private static final Map<Direction, EnumBlockTrait<WallConnectionType>> WALL_FACES = Map.of(
+    public static final Map<Direction, EnumBlockTrait<WallConnectionType>> WALL_FACES = Map.of(
             Direction.NORTH, BlockTraits.WALL_CONNECTION_NORTH,
             Direction.SOUTH, BlockTraits.WALL_CONNECTION_SOUTH,
             Direction.WEST, BlockTraits.WALL_CONNECTION_WEST,
             Direction.EAST, BlockTraits.WALL_CONNECTION_EAST);
 
-    private static final Map<Direction, EnumBlockTrait<RedstoneSide>> WIRE_FACES = Map.of(
+    public static final Map<Direction, EnumBlockTrait<RedstoneSide>> WIRE_FACES = Map.of(
             Direction.NORTH, BlockTraits.REDSTONE_NORTH,
             Direction.SOUTH, BlockTraits.REDSTONE_SOUTH,
             Direction.WEST, BlockTraits.REDSTONE_WEST,

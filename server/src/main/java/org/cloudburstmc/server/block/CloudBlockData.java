@@ -102,7 +102,12 @@ public class CloudBlockData {
             }
 
             Optional<D> connections = CloudBlockConnections.get(state, dataType);
-            return connections.isPresent() ? connections : CloudBlockPropertyData.get(state, dataType);
+            if (connections.isPresent()) {
+                return connections;
+            }
+
+            Optional<D> properties = CloudBlockPropertyData.get(state, dataType);
+            return properties.isPresent() ? properties : CloudBlockTypeData.get(state, dataType);
         }
 
         return Optional.ofNullable(dataType.cast(data));
@@ -330,6 +335,24 @@ public class CloudBlockData {
         }
     }
 
+    private record OpenData(BlockState state) implements Openable {
+
+        @Override
+        public BlockState getState() {
+            return this.state;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return this.state.ensureTrait(BlockTraits.IS_OPEN);
+        }
+
+        @Override
+        public BlockState withOpen(boolean open) {
+            return this.state.withTrait(BlockTraits.IS_OPEN, open);
+        }
+    }
+
     private record LitData(BlockState state, BooleanBlockTrait trait, boolean inverted) implements Lightable {
 
         @Override
@@ -509,21 +532,4 @@ public class CloudBlockData {
         }
     }
 
-    private record OpenData(BlockState state) implements Openable {
-
-        @Override
-        public BlockState getState() {
-            return this.state;
-        }
-
-        @Override
-        public boolean isOpen() {
-            return this.state.ensureTrait(BlockTraits.IS_OPEN);
-        }
-
-        @Override
-        public BlockState withOpen(boolean open) {
-            return this.state.withTrait(BlockTraits.IS_OPEN, open);
-        }
-    }
 }

@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.api.util.data.BlockMirror;
+import org.cloudburstmc.api.util.data.BlockRotation;
 
 import java.awt.*;
 import java.util.Map;
@@ -116,6 +118,28 @@ public interface BlockState {
      * @throws IllegalArgumentException if the trait is absent from this state
      */
     BlockState toggleTrait(BooleanBlockTrait trait);
+
+    /**
+     * Rotates orientation and connection properties around the vertical axis.
+     * Other properties and this state remain unchanged.
+     *
+     * @param rotation the horizontal rotation
+     * @return the resulting state
+     * @throws IllegalArgumentException      if this type cannot represent the transformed properties
+     * @throws UnsupportedOperationException if an encoded orientation has no supported transform
+     */
+    BlockState rotate(BlockRotation rotation);
+
+    /**
+     * Reflects orientation, connections and handed properties across a vertical plane.
+     * Other properties and this state remain unchanged.
+     *
+     * @param mirror the reflection
+     * @return the resulting state
+     * @throws IllegalArgumentException      if this type cannot represent the transformed properties
+     * @throws UnsupportedOperationException if an encoded orientation has no supported transform
+     */
+    BlockState mirror(BlockMirror mirror);
 
     /**
      * Returns state-only collision geometry in block-local coordinates.

@@ -7,6 +7,8 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.util.VoxelShape;
+import org.cloudburstmc.api.util.data.BlockMirror;
+import org.cloudburstmc.api.util.data.BlockRotation;
 
 import java.awt.*;
 import java.util.*;
@@ -157,6 +159,16 @@ public class CloudBlockState implements BlockState {
         checkNotNull(trait, "trait");
         boolean value = !ensureTrait(trait);
         return stateForTrait(trait, value ? 1 : 0, value);
+    }
+
+    @Override
+    public BlockState rotate(BlockRotation rotation) {
+        return CloudBlockTransforms.rotate(this, rotation);
+    }
+
+    @Override
+    public BlockState mirror(BlockMirror mirror) {
+        return CloudBlockTransforms.mirror(this, mirror);
     }
 
     @Override

@@ -2,6 +2,8 @@ package org.cloudburstmc.api.block;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.data.BlockData;
+import org.cloudburstmc.api.util.data.BlockMirror;
+import org.cloudburstmc.api.util.data.BlockRotation;
 
 import java.util.Optional;
 
@@ -82,4 +84,24 @@ public interface BlockSnapshot {
     default boolean containsLiquid() {
         return this.getLiquidLayer() != null;
     }
+
+    /**
+     * Rotates both captured block layers without changing a level.
+     *
+     * @param rotation the horizontal rotation
+     * @return the resulting snapshot
+     * @throws IllegalArgumentException      if a layer cannot represent the transformed properties
+     * @throws UnsupportedOperationException if a layer has an unsupported encoded orientation
+     */
+    BlockSnapshot rotate(BlockRotation rotation);
+
+    /**
+     * Reflects both captured block layers without changing a level.
+     *
+     * @param mirror the reflection
+     * @return the resulting snapshot
+     * @throws IllegalArgumentException      if a layer cannot represent the transformed properties
+     * @throws UnsupportedOperationException if a layer has an unsupported encoded orientation
+     */
+    BlockSnapshot mirror(BlockMirror mirror);
 }
