@@ -40,7 +40,8 @@ public class BlockComponents {
     public static final ComponentType<Integer> BUTTON_PRESS_DURATION_TICKS = ComponentType.of("button_press_duration_ticks", Integer.class);
 
     /**
-     * Checks whether a proposed block may initially be placed. Defaults to {@link #CAN_SURVIVE}.
+     * Checks whether a proposed block may initially be placed. By default, checks
+     * build limits, layer compatibility and {@link #CAN_SURVIVE} for its block layers.
      */
     public static final ComponentType<BooleanBlockHandler> CAN_BE_PLACED = ComponentType.of("can_be_placed", BooleanBlockHandler.class);
 

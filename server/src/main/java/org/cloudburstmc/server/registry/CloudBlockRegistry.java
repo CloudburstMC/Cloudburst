@@ -213,7 +213,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.BREAKS_ON_LANDING, false);
         this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
         this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
-        this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.requireComponent(BlockComponents.CAN_SURVIVE).execute(block));
+        this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.isSupported(block.getLevel(), block.getPosition()));
         this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);

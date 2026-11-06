@@ -4,9 +4,11 @@ import org.cloudburstmc.api.block.data.BlockData;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.data.BlockMirror;
 import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.awt.*;
 import java.util.Map;
@@ -157,6 +159,27 @@ public interface BlockState {
      * @return outline shape
      */
     VoxelShape getOutlineShape();
+
+    /**
+     * Checks whether this state could remain at the target position, retaining
+     * compatible coexisting contents. Does not place blocks or check replacement
+     * rules, entity collisions or player permissions.
+     *
+     * @param level    the level to query
+     * @param position the target block position
+     * @return whether the state is supported, or false outside the build limits
+     */
+    boolean isSupported(Level level, Vector3i position);
+
+    /**
+     * Checks support at the block's level position using its current surroundings.
+     *
+     * @param block the target block
+     * @return whether this state could remain at the target
+     */
+    default boolean isSupported(Block block) {
+        return this.isSupported(block.getLevel(), block.getPosition());
+    }
 
     /**
      * @return this state's hardness

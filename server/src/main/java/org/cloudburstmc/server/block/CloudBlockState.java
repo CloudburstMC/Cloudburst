@@ -6,9 +6,11 @@ import org.cloudburstmc.api.block.data.BlockData;
 import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.data.BlockMirror;
 import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.awt.*;
 import java.util.*;
@@ -179,6 +181,28 @@ public class CloudBlockState implements BlockState {
     @Override
     public VoxelShape getOutlineShape() {
         return data().outlineShape();
+    }
+
+    @Override
+    public boolean isSupported(Level level, Vector3i position) {
+        checkNotNull(level, "level");
+        checkNotNull(position, "position");
+
+        if (position.getY() < level.getMinHeight() || position.getY() >= level.getMaxHeight()) {
+            return false;
+        }
+
+        Block existing = level.getBlock(position);
+        BlockState secondary = existing.getSecondaryState();
+        if (secondary == BlockStates.AIR && existing.getState().getType().isLiquid()) {
+            secondary = existing.getState();
+        }
+
+        if (!BlockLayerRules.canCoexist(this, secondary)) {
+            secondary = BlockStates.AIR;
+        }
+
+        return new CloudBlockSnapshot(this, secondary).isSupported(level, position);
     }
 
     @Override

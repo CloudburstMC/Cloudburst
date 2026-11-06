@@ -2,8 +2,10 @@ package org.cloudburstmc.api.block;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.data.BlockData;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.data.BlockMirror;
 import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Optional;
 
@@ -83,6 +85,27 @@ public interface BlockSnapshot {
      */
     default boolean containsLiquid() {
         return this.getLiquidLayer() != null;
+    }
+
+    /**
+     * Checks whether both captured layers could remain at the target position.
+     * Evaluates these exact layers against the current surroundings without
+     * placing blocks. Does not check replacement rules, entity collisions or permissions.
+     *
+     * @param level    the level to query
+     * @param position the target block position
+     * @return whether the layers coexist and are supported, or false outside the build limits
+     */
+    boolean isSupported(Level level, Vector3i position);
+
+    /**
+     * Checks support for both captured layers at the block's level position.
+     *
+     * @param block the target block
+     * @return whether these layers could remain at the target
+     */
+    default boolean isSupported(Block block) {
+        return this.isSupported(block.getLevel(), block.getPosition());
     }
 
     /**

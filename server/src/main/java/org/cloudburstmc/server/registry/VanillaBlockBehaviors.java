@@ -884,7 +884,8 @@ public class VanillaBlockBehaviors {
 
     private void configureTorch(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
-                .set(BlockComponents.ON_PLACE, new TorchPlaceHandler())
+                .set(BlockComponents.CAN_SURVIVE, TorchBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, TorchBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TorchBlockHandlers.ON_NEIGHBOUR_CHANGED);
     }
 

@@ -1,12 +1,13 @@
 package org.cloudburstmc.server.block;
 
 import lombok.ToString;
-import org.cloudburstmc.api.block.BlockLayer;
-import org.cloudburstmc.api.block.BlockSnapshot;
-import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.data.BlockData;
+import org.cloudburstmc.api.level.Level;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.data.BlockMirror;
 import org.cloudburstmc.api.util.data.BlockRotation;
+import org.cloudburstmc.math.vector.Vector3i;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -56,6 +57,29 @@ public class CloudBlockSnapshot implements BlockSnapshot {
             case PRIMARY -> this.primary;
             case SECONDARY -> this.secondary;
         };
+    }
+
+    @Override
+    public boolean isSupported(Level level, Vector3i position) {
+        Objects.requireNonNull(level, "level");
+        Objects.requireNonNull(position, "position");
+
+        if (position.getY() < level.getMinHeight() || position.getY() >= level.getMaxHeight() || !BlockLayerRules.canCoexist(this.primary, this.secondary)) {
+            return false;
+        }
+
+        BlockRegistry registry = level.getServer().getBlockRegistry();
+        CloudBlock proposed = new CloudBlock(level, position, new BlockState[]{this.primary, this.secondary});
+        if (!registry.requireComponent(this.primary.getType(), BlockComponents.CAN_SURVIVE).execute(proposed)) {
+            return false;
+        }
+
+        if (this.secondary == BlockStates.AIR) {
+            return true;
+        }
+
+        CloudBlock coexisting = new CloudBlock(level, position, new BlockState[]{this.secondary, BlockStates.AIR});
+        return registry.requireComponent(this.secondary.getType(), BlockComponents.CAN_SURVIVE).execute(coexisting);
     }
 
     @Override
