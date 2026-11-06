@@ -97,7 +97,12 @@ public class CloudBlockData {
             data = new RotationData(state);
         } else {
             Optional<D> structure = CloudBlockStructureData.get(state, dataType);
-            return structure.isPresent() ? structure : CloudBlockConnections.get(state, dataType);
+            if (structure.isPresent()) {
+                return structure;
+            }
+
+            Optional<D> connections = CloudBlockConnections.get(state, dataType);
+            return connections.isPresent() ? connections : CloudBlockPropertyData.get(state, dataType);
         }
 
         return Optional.ofNullable(dataType.cast(data));
