@@ -8,7 +8,6 @@ import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 
 import java.util.ArrayList;
@@ -33,9 +32,7 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
+    protected void loadCustom(NbtMap tag) {
         this.progress = tag.getFloat("Progress", 1.0f);
         this.lastProgress = tag.getFloat("LastProgress", 1.0f);
         this.state = tag.getByte("State", (byte) 1);
@@ -61,11 +58,6 @@ public class PistonBlockEntity extends BaseBlockEntity implements Piston {
                     breakBlocks.get(i + 2)
             ));
         }
-    }
-
-    @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
     }
 
     private void pushEntities() {

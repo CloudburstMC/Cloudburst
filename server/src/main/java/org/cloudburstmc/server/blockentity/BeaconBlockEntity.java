@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.BlockTags;
 import org.cloudburstmc.api.block.BlockType;
 import org.cloudburstmc.api.blockentity.Beacon;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BeaconData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.event.entity.PotionEffectCause;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.chunk.Chunk;
@@ -13,7 +15,6 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.server.container.screen.CloudBeaconContainerScreen;
 import org.cloudburstmc.server.container.screen.CloudInventoryScreen;
@@ -32,8 +33,6 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
 
     private static final int POWER_LEVEL_MAX = 4;
 
-    private EffectType primaryEffect;
-    private EffectType secondaryEffect;
     private int powerLevel;
     private long currentTick = 0;
 
@@ -42,18 +41,13 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("primary", this::setPrimaryEffect);
-        tag.listenForInt("secondary", this::setSecondaryEffect);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BeaconData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-        tag.putInt("primary", NetworkUtils.effectToNetwork(this.getPrimaryEffect()));
-        tag.putInt("secondary", NetworkUtils.effectToNetwork(this.getSecondaryEffect()));
+    protected BeaconData data() {
+        return (BeaconData) super.data();
     }
 
     @Override
@@ -150,12 +144,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public EffectType getPrimaryEffect() {
-        return primaryEffect;
+        return data().getPrimary();
     }
 
     public void setPrimaryEffect(EffectType primaryEfect) {
-        if (primaryEfect != this.primaryEffect) {
-            this.primaryEffect = primaryEfect;
+        if (primaryEfect != data().getPrimary()) {
+            data().setPrimary(primaryEfect);
             setDirty();
             this.spawnToAll();
         }
@@ -166,12 +160,12 @@ public class BeaconBlockEntity extends BaseBlockEntity implements Beacon {
     }
 
     public EffectType getSecondaryEffect() {
-        return secondaryEffect;
+        return data().getSecondary();
     }
 
     public void setSecondaryEffect(EffectType secondaryEffect) {
-        if (secondaryEffect != this.secondaryEffect) {
-            this.secondaryEffect = secondaryEffect;
+        if (secondaryEffect != data().getSecondary()) {
+            data().setSecondary(secondaryEffect);
             setDirty();
             this.spawnToAll();
         }

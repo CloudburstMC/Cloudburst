@@ -13,6 +13,28 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.cloudburstmc.api.block.LiquidTypes;
 import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.data.AbstractArrowData;
+import org.cloudburstmc.api.entity.data.AbstractMinecartData;
+import org.cloudburstmc.api.entity.data.AreaEffectCloudData;
+import org.cloudburstmc.api.entity.data.ArrowData;
+import org.cloudburstmc.api.entity.data.BoatData;
+import org.cloudburstmc.api.entity.data.ChestBoatData;
+import org.cloudburstmc.api.entity.data.CreatureData;
+import org.cloudburstmc.api.entity.data.DroppedItemData;
+import org.cloudburstmc.api.entity.data.EnderCrystalData;
+import org.cloudburstmc.api.entity.data.EnderDragonData;
+import org.cloudburstmc.api.entity.data.ExperienceOrbData;
+import org.cloudburstmc.api.entity.data.FallingBlockData;
+import org.cloudburstmc.api.entity.data.FireworksRocketData;
+import org.cloudburstmc.api.entity.data.HappyGhastData;
+import org.cloudburstmc.api.entity.data.HumanData;
+import org.cloudburstmc.api.entity.data.PaintingData;
+import org.cloudburstmc.api.entity.data.PrimedTntData;
+import org.cloudburstmc.api.entity.data.ProjectileData;
+import org.cloudburstmc.api.entity.data.SplashPotionData;
+import org.cloudburstmc.api.entity.data.ThrownTridentData;
+import org.cloudburstmc.api.entity.data.TntMinecartData;
+import org.cloudburstmc.api.entity.data.TurtleData;
 import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
@@ -62,7 +84,9 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private static final List<NbtMap> VANILLA_ENTITIES;
 
     private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
-            new EntityData<>(false, new RegistryProvider<>(UnknownEntity::new, null, 0));
+            new EntityData<>(false, new RegistryProvider<>(
+                    new EntityFactoryData<>(UnknownEntity::new,
+                            org.cloudburstmc.api.entity.data.EntityData.class), null, 0));
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
@@ -134,24 +158,51 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     @Override
     public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.register(type, factory, priority, hasSpawnEgg, org.cloudburstmc.api.entity.data.EntityData.class);
+    }
+
+    @Override
+    public synchronized <T extends Entity> void register(EntityType<T> type, EntityFactory<T> factory,
+                                                         int priority, boolean hasSpawnEgg,
+                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+        this.registerInternal(null, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
     }
 
     public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
                                                          int priority, boolean hasSpawnEgg) {
-        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg);
+        this.register(plugin, type, factory, priority, hasSpawnEgg,
+                org.cloudburstmc.api.entity.data.EntityData.class);
     }
 
-    private <T extends Entity> void registerVanilla(EntityType<T> type, EntityFactory<T> factory, int legacyId) {
-        this.registerInternal(null, type, factory, legacyId, 1000, false);
+    public synchronized <T extends Entity> void register(Object plugin, EntityType<T> type, EntityFactory<T> factory,
+                                                         int priority, boolean hasSpawnEgg,
+                                                         Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+        this.registerInternal(plugin, type, factory, this.runtimeTypeAllocator++, priority, hasSpawnEgg, dataClass);
+    }
+
+    @Override
+    public Class<? extends org.cloudburstmc.api.entity.data.EntityData> getDataClass(EntityType<?> type) {
+        checkNotNull(type, "type");
+        EntityData<?> data = this.dataMap.get(type);
+        if (data == null) {
+            return org.cloudburstmc.api.entity.data.EntityData.class;
+        }
+        return data.serviceProvider().getProvider().getValue().dataClass();
+    }
+
+    private <T extends Entity> void registerVanilla(EntityType<T> type, EntityFactory<T> factory, int legacyId,
+                                                      Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+        this.registerInternal(null, type, factory, legacyId, 1000, false, dataClass);
     }
 
     private synchronized <T extends Entity> void registerInternal(Object plugin, EntityType<T> type, EntityFactory<T> factory,
-                                                                  int runtimeType, int priority, boolean hasSpawnEgg)
+                                                                  int runtimeType, int priority, boolean hasSpawnEgg,
+                                                                  Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass)
             throws RegistryException {
         checkClosed();
         checkNotNull(type, "type");
         checkNotNull(factory, "factory");
+        checkNotNull(dataClass, "dataClass");
         EntityType<?> existingType = this.identifierTypeMap.get(type.getId());
 
         if (existingType == null) { // new entity
@@ -163,13 +214,15 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
             this.typeToRuntimeMap.put(type, runtimeType);
             this.identifierTypeMap.put(type.getId(), type);
 
-            EntityData<T> entityData = new EntityData<>(hasSpawnEgg, new RegistryProvider<>(factory, plugin, priority));
+            EntityData<T> entityData = new EntityData<>(hasSpawnEgg,
+                    new RegistryProvider<>(new EntityFactoryData<>(factory, dataClass), plugin, priority));
             this.dataMap.put(type, entityData);
 
             CloudComponentMap map = new CloudComponentMap(this);
             putComponents(type, map);
         } else if (existingType == type) { // existing - add plugin's factory if one does not exist
-            RegistryProvider<EntityFactory<T>> provider = new RegistryProvider<>(factory, plugin, priority);
+            RegistryProvider<EntityFactoryData<T>> provider =
+                    new RegistryProvider<>(new EntityFactoryData<>(factory, dataClass), plugin, priority);
             getServiceProvider(type).add(provider);
         } else { // invalid - registering EntityType with used identifier.
             throw new RegistryException(type.getId() + " is already registered");
@@ -211,7 +264,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkState(closed, "Cannot create entity till registry is closed");
         checkNotNull(type, "type");
         checkNotNull(location, "location");
-        EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue();
+        EntityFactory<T> factory = getServiceProvider(type).getProvider().getValue().factory();
         return this.create(factory, type, location);
     }
 
@@ -233,12 +286,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         checkNotNull(plugin, "plugin");
         checkNotNull(location, "location");
 
-        RegistryProvider<EntityFactory<T>> provider = getServiceProvider(type).getProvider(plugin);
+        RegistryProvider<EntityFactoryData<T>> provider = getServiceProvider(type).getProvider(plugin);
         if (provider == null) {
             throw new RegistryException("Plugin has no registered provider for " + type.getId());
         }
 
-        return this.create(provider.getValue(), type, location);
+        return this.create(provider.getValue().factory(), type, location);
     }
 
     private <T extends Entity> T create(EntityFactory<T> factory, EntityType<T> type, Location location) {
@@ -298,7 +351,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Entity> RegistryServiceProvider<EntityFactory<T>> getServiceProvider(EntityType<T> type) {
+    private <T extends Entity> RegistryServiceProvider<EntityFactoryData<T>> getServiceProvider(EntityType<T> type) {
         EntityData<T> entityData = (EntityData<T>) this.dataMap.get(type);
         if (entityData == null) {
             if (type.getEntityClass() != UnknownEntity.class) {
@@ -391,142 +444,142 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     }
 
     private void registerVanillaEntities() {
-        registerVanilla(CHICKEN, EntityChicken::new, 10);
-        registerVanilla(COW, EntityCow::new, 11);
-        registerVanilla(PIG, EntityPig::new, 12);
-        registerVanilla(SHEEP, EntitySheep::new, 13);
-        registerVanilla(WOLF, EntityWolf::new, 14);
-        registerVanilla(DEPRECATED_VILLAGER, EntityDeprecatedVillager::new, 15);
-        registerVanilla(MOOSHROOM, EntityMooshroom::new, 16);
-        registerVanilla(SQUID, EntitySquid::new, 17);
-        registerVanilla(RABBIT, EntityRabbit::new, 18);
-        registerVanilla(BAT, EntityBat::new, 19);
-        registerVanilla(IRON_GOLEM, EntityIronGolem::new, 20);
-        registerVanilla(SNOW_GOLEM, EntitySnowGolem::new, 21);
-        registerVanilla(OCELOT, EntityOcelot::new, 22);
-        registerVanilla(HORSE, EntityHorse::new, 23);
-        registerVanilla(DONKEY, EntityDonkey::new, 24);
-        registerVanilla(MULE, EntityMule::new, 25);
-        registerVanilla(SKELETON_HORSE, EntitySkeletonHorse::new, 26);
-        registerVanilla(ZOMBIE_HORSE, EntityZombieHorse::new, 27);
-        registerVanilla(POLAR_BEAR, EntityPolarBear::new, 28);
-        registerVanilla(LLAMA, EntityLlama::new, 29);
-        registerVanilla(PARROT, EntityParrot::new, 30);
-        registerVanilla(DOLPHIN, EntityDolphin::new, 31);
-        registerVanilla(ZOMBIE, EntityZombie::new, 32);
-        registerVanilla(CREEPER, EntityCreeper::new, 33);
-        registerVanilla(SKELETON, EntitySkeleton::new, 34);
-        registerVanilla(SPIDER, EntitySpider::new, 35);
-        registerVanilla(ZOMBIE_PIGMAN, EntityZombiePigman::new, 36);
-        registerVanilla(SLIME, EntitySlime::new, 37);
-        registerVanilla(ENDERMAN, EntityEnderman::new, 38);
-        registerVanilla(SILVERFISH, EntitySilverfish::new, 39);
-        registerVanilla(CAVE_SPIDER, EntityCaveSpider::new, 40);
-        registerVanilla(GHAST, EntityGhast::new, 41);
-        registerVanilla(MAGMA_CUBE, EntityMagmaCube::new, 42);
-        registerVanilla(BLAZE, EntityBlaze::new, 43);
-        registerVanilla(DEPRECATED_ZOMBIE_VILLAGER, EntityDeprecatedZombieVillager::new, 44);
-        registerVanilla(WITCH, EntityWitch::new, 45);
-        registerVanilla(STRAY, EntityStray::new, 46);
-        registerVanilla(HUSK, EntityHusk::new, 47);
-        registerVanilla(WITHER_SKELETON, EntityWitherSkeleton::new, 48);
-        registerVanilla(GUARDIAN, EntityGuardian::new, 49);
-        registerVanilla(ELDER_GUARDIAN, EntityElderGuardian::new, 50);
-        registerVanilla(NPC, EntityNpc::new, 51);
-        registerVanilla(WITHER, EntityWither::new, 52);
-        registerVanilla(ENDER_DRAGON, EntityEnderDragon::new, 53);
-        registerVanilla(SHULKER, EntityShulker::new, 54);
-        registerVanilla(ENDERMITE, EntityEndermite::new, 55);
-        registerVanilla(AGENT, EntityAgent::new, 56);
-        registerVanilla(VINDICATOR, EntityVindicator::new, 57);
-        registerVanilla(PHANTOM, EntityPhantom::new, 58);
-        registerVanilla(RAVAGER, EntityRavager::new, 59);
-        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61);
-        registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62);
-        registerVanilla(ITEM, EntityItem::new, 64);
-        registerVanilla(TNT, EntityPrimedTnt::new, 65);
-        registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66);
-        registerVanilla(XP_BOTTLE, EntityXpBottle::new, 68);
-        registerVanilla(XP_ORB, EntityXpOrb::new, 69);
-        registerVanilla(EYE_OF_ENDER_SIGNAL, EntityEyeOfEnderSignal::new, 70);
-        registerVanilla(ENDER_CRYSTAL, EntityEnderCrystal::new, 71);
-        registerVanilla(FIREWORKS_ROCKET, EntityFireworksRocket::new, 72);
-        registerVanilla(THROWN_TRIDENT, EntityThrownTrident::new, 73);
-        registerVanilla(TURTLE, EntityTurtle::new, 74);
-        registerVanilla(CAT, EntityCat::new, 75);
-        registerVanilla(SHULKER_BULLET, EntityShulkerBullet::new, 76);
-        registerVanilla(FISHING_HOOK, EntityFishingHook::new, 77);
-        registerVanilla(DRAGON_FIREBALL, EntityDragonFireball::new, 79);
-        registerVanilla(ARROW, EntityArrow::new, 80);
-        registerVanilla(SNOWBALL, EntitySnowball::new, 81);
-        registerVanilla(EGG, EntityEgg::new, 82);
-        registerVanilla(PAINTING, EntityPainting::new, 83);
-        registerVanilla(MINECART, EntityMinecart::new, 84);
-        registerVanilla(FIREBALL, EntityFireball::new, 85);
-        registerVanilla(SPLASH_POTION, EntitySplashPotion::new, 86);
-        registerVanilla(ENDER_PEARL, EntityEnderPearl::new, 87);
-        registerVanilla(LEASH_KNOT, EntityLeashKnot::new, 88);
-        registerVanilla(WITHER_SKULL, EntityWitherSkull::new, 89);
-        registerVanilla(BOAT, EntityBoat::new, 90);
-        registerVanilla(WITHER_SKULL_DANGEROUS, EntityWitherSkullDangerous::new, 91);
-        registerVanilla(LIGHTNING_BOLT, EntityLightningBolt::new, 93);
-        registerVanilla(SMALL_FIREBALL, EntitySmallFireball::new, 94);
-        registerVanilla(AREA_EFFECT_CLOUD, EntityAreaEffectCloud::new, 95);
-        registerVanilla(HOPPER_MINECART, EntityHopperMinecart::new, 96);
-        registerVanilla(TNT_MINECART, EntityTntMinecart::new, 97);
-        registerVanilla(CHEST_MINECART, EntityChestMinecart::new, 98);
-        registerVanilla(COMMAND_BLOCK_MINECART, EntityCommandBlockMinecart::new, 100);
-        registerVanilla(LINGERING_POTION, EntityLingeringPotion::new, 101);
-        registerVanilla(LLAMA_SPIT, EntityLlamaSpit::new, 102);
-        registerVanilla(EVOCATION_FANG, EntityEvocationFang::new, 103);
-        registerVanilla(EVOCATION_ILLAGER, EntityEvocationIllager::new, 104);
-        registerVanilla(VEX, EntityVex::new, 105);
-        registerVanilla(ICE_BOMB, EntityIceBomb::new, 106);
-        registerVanilla(BALLOON, EntityBalloon::new, 107);
-        registerVanilla(PUFFERFISH, EntityPufferfish::new, 108);
-        registerVanilla(SALMON, EntitySalmon::new, 109);
-        registerVanilla(DROWNED, EntityDrowned::new, 110);
-        registerVanilla(TROPICAL_FISH, EntityTropicalFish::new, 111);
-        registerVanilla(COD, EntityCod::new, 112);
-        registerVanilla(PANDA, EntityPanda::new, 113);
-        registerVanilla(PILLAGER, EntityPillager::new, 114);
-        registerVanilla(VILLAGER, EntityVillager::new, 115);
-        registerVanilla(ZOMBIE_VILLAGER, EntityZombieVillager::new, 116);
-        registerVanilla(WANDERING_TRADER, EntityWanderingTrader::new, 118);
-        registerVanilla(ELDER_GUARDIAN_GHOST, EntityElderGuardianGhost::new, 120);
-        registerVanilla(FOX, EntityFox::new, 121);
-        registerVanilla(BEE, EntityBee::new, 122);
-        registerVanilla(PIGLIN, EntityPiglin::new, 123);
-        registerVanilla(HOGLIN, EntityHoglin::new, 124);
-        registerVanilla(STRIDER, EntityStrider::new, 125);
-        registerVanilla(ZOGLIN, EntityZoglin::new, 126);
-        registerVanilla(PIGLIN_BRUTE, EntityPiglinBrute::new, 127);
-        registerVanilla(GOAT, EntityGoat::new, 128);
-        registerVanilla(GLOW_SQUID, EntityGlowSquid::new, 129);
-        registerVanilla(AXOLOTL, EntityAxolotl::new, 130);
-        registerVanilla(WARDEN, EntityWarden::new, 131);
-        registerVanilla(FROG, EntityFrog::new, 132);
-        registerVanilla(TADPOLE, EntityTadpole::new, 133);
-        registerVanilla(ALLAY, EntityAllay::new, 134);
-        registerVanilla(CAMEL, EntityCamel::new, 138);
-        registerVanilla(SNIFFER, EntitySniffer::new, 139);
-        registerVanilla(BREEZE, EntityBreeze::new, 140);
-        registerVanilla(BREEZE_WIND_CHARGE_PROJECTILE, EntityBreezeWindChargeProjectile::new, 141);
-        registerVanilla(ARMADILLO, EntityArmadillo::new, 142);
-        registerVanilla(WIND_CHARGE_PROJECTILE, EntityWindChargeProjectile::new, 143);
-        registerVanilla(BOGGED, EntityBogged::new, 144);
-        registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145);
-        registerVanilla(CREAKING, EntityCreaking::new, 146);
-        registerVanilla(HAPPY_GHAST, EntityHappyGhast::new, 147);
-        registerVanilla(COPPER_GOLEM, EntityCopperGolem::new, 148);
-        registerVanilla(NAUTILUS, EntityNautilus::new, 149);
-        registerVanilla(ZOMBIE_NAUTILUS, EntityZombieNautilus::new, 150);
-        registerVanilla(PARCHED, EntityParched::new, 151);
-        registerVanilla(CAMEL_HUSK, EntityCamelHusk::new, 152);
-        registerVanilla(SULFUR_CUBE, EntitySulfurCube::new, 153);
-        registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157);
-        registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218);
-        registerVanilla(PLAYER, EntityHuman::new, 257);
+        registerVanilla(CHICKEN, EntityChicken::new, 10, CreatureData.class);
+        registerVanilla(COW, EntityCow::new, 11, CreatureData.class);
+        registerVanilla(PIG, EntityPig::new, 12, CreatureData.class);
+        registerVanilla(SHEEP, EntitySheep::new, 13, CreatureData.class);
+        registerVanilla(WOLF, EntityWolf::new, 14, CreatureData.class);
+        registerVanilla(DEPRECATED_VILLAGER, EntityDeprecatedVillager::new, 15, CreatureData.class);
+        registerVanilla(MOOSHROOM, EntityMooshroom::new, 16, CreatureData.class);
+        registerVanilla(SQUID, EntitySquid::new, 17, CreatureData.class);
+        registerVanilla(RABBIT, EntityRabbit::new, 18, CreatureData.class);
+        registerVanilla(BAT, EntityBat::new, 19, CreatureData.class);
+        registerVanilla(IRON_GOLEM, EntityIronGolem::new, 20, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(SNOW_GOLEM, EntitySnowGolem::new, 21, CreatureData.class);
+        registerVanilla(OCELOT, EntityOcelot::new, 22, CreatureData.class);
+        registerVanilla(HORSE, EntityHorse::new, 23, CreatureData.class);
+        registerVanilla(DONKEY, EntityDonkey::new, 24, CreatureData.class);
+        registerVanilla(MULE, EntityMule::new, 25, CreatureData.class);
+        registerVanilla(SKELETON_HORSE, EntitySkeletonHorse::new, 26, CreatureData.class);
+        registerVanilla(ZOMBIE_HORSE, EntityZombieHorse::new, 27, CreatureData.class);
+        registerVanilla(POLAR_BEAR, EntityPolarBear::new, 28, CreatureData.class);
+        registerVanilla(LLAMA, EntityLlama::new, 29, CreatureData.class);
+        registerVanilla(PARROT, EntityParrot::new, 30, CreatureData.class);
+        registerVanilla(DOLPHIN, EntityDolphin::new, 31, CreatureData.class);
+        registerVanilla(ZOMBIE, EntityZombie::new, 32, CreatureData.class);
+        registerVanilla(CREEPER, EntityCreeper::new, 33, CreatureData.class);
+        registerVanilla(SKELETON, EntitySkeleton::new, 34, CreatureData.class);
+        registerVanilla(SPIDER, EntitySpider::new, 35, CreatureData.class);
+        registerVanilla(ZOMBIE_PIGMAN, EntityZombiePigman::new, 36, CreatureData.class);
+        registerVanilla(SLIME, EntitySlime::new, 37, CreatureData.class);
+        registerVanilla(ENDERMAN, EntityEnderman::new, 38, CreatureData.class);
+        registerVanilla(SILVERFISH, EntitySilverfish::new, 39, CreatureData.class);
+        registerVanilla(CAVE_SPIDER, EntityCaveSpider::new, 40, CreatureData.class);
+        registerVanilla(GHAST, EntityGhast::new, 41, CreatureData.class);
+        registerVanilla(MAGMA_CUBE, EntityMagmaCube::new, 42, CreatureData.class);
+        registerVanilla(BLAZE, EntityBlaze::new, 43, CreatureData.class);
+        registerVanilla(DEPRECATED_ZOMBIE_VILLAGER, EntityDeprecatedZombieVillager::new, 44, CreatureData.class);
+        registerVanilla(WITCH, EntityWitch::new, 45, CreatureData.class);
+        registerVanilla(STRAY, EntityStray::new, 46, CreatureData.class);
+        registerVanilla(HUSK, EntityHusk::new, 47, CreatureData.class);
+        registerVanilla(WITHER_SKELETON, EntityWitherSkeleton::new, 48, CreatureData.class);
+        registerVanilla(GUARDIAN, EntityGuardian::new, 49, CreatureData.class);
+        registerVanilla(ELDER_GUARDIAN, EntityElderGuardian::new, 50, CreatureData.class);
+        registerVanilla(NPC, EntityNpc::new, 51, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(WITHER, EntityWither::new, 52, CreatureData.class);
+        registerVanilla(ENDER_DRAGON, EntityEnderDragon::new, 53, EnderDragonData.class);
+        registerVanilla(SHULKER, EntityShulker::new, 54, CreatureData.class);
+        registerVanilla(ENDERMITE, EntityEndermite::new, 55, CreatureData.class);
+        registerVanilla(AGENT, EntityAgent::new, 56, CreatureData.class);
+        registerVanilla(VINDICATOR, EntityVindicator::new, 57, CreatureData.class);
+        registerVanilla(PHANTOM, EntityPhantom::new, 58, CreatureData.class);
+        registerVanilla(RAVAGER, EntityRavager::new, 59, CreatureData.class);
+        registerVanilla(ARMOR_STAND, EntityArmorStand::new, 61, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(TRIPOD_CAMERA, EntityTripodCamera::new, 62, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(ITEM, EntityItem::new, 64, DroppedItemData.class);
+        registerVanilla(TNT, EntityPrimedTnt::new, 65, PrimedTntData.class);
+        registerVanilla(FALLING_BLOCK, EntityFallingBlock::new, 66, FallingBlockData.class);
+        registerVanilla(XP_BOTTLE, EntityXpBottle::new, 68, ProjectileData.class);
+        registerVanilla(XP_ORB, EntityXpOrb::new, 69, ExperienceOrbData.class);
+        registerVanilla(EYE_OF_ENDER_SIGNAL, EntityEyeOfEnderSignal::new, 70, ProjectileData.class);
+        registerVanilla(ENDER_CRYSTAL, EntityEnderCrystal::new, 71, EnderCrystalData.class);
+        registerVanilla(FIREWORKS_ROCKET, EntityFireworksRocket::new, 72, FireworksRocketData.class);
+        registerVanilla(THROWN_TRIDENT, EntityThrownTrident::new, 73, ThrownTridentData.class);
+        registerVanilla(TURTLE, EntityTurtle::new, 74, TurtleData.class);
+        registerVanilla(CAT, EntityCat::new, 75, CreatureData.class);
+        registerVanilla(SHULKER_BULLET, EntityShulkerBullet::new, 76, ProjectileData.class);
+        registerVanilla(FISHING_HOOK, EntityFishingHook::new, 77, ProjectileData.class);
+        registerVanilla(DRAGON_FIREBALL, EntityDragonFireball::new, 79, ProjectileData.class);
+        registerVanilla(ARROW, EntityArrow::new, 80, ArrowData.class);
+        registerVanilla(SNOWBALL, EntitySnowball::new, 81, ProjectileData.class);
+        registerVanilla(EGG, EntityEgg::new, 82, ProjectileData.class);
+        registerVanilla(PAINTING, EntityPainting::new, 83, PaintingData.class);
+        registerVanilla(MINECART, EntityMinecart::new, 84, AbstractMinecartData.class);
+        registerVanilla(FIREBALL, EntityFireball::new, 85, ProjectileData.class);
+        registerVanilla(SPLASH_POTION, EntitySplashPotion::new, 86, SplashPotionData.class);
+        registerVanilla(ENDER_PEARL, EntityEnderPearl::new, 87, ProjectileData.class);
+        registerVanilla(LEASH_KNOT, EntityLeashKnot::new, 88, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(WITHER_SKULL, EntityWitherSkull::new, 89, ProjectileData.class);
+        registerVanilla(BOAT, EntityBoat::new, 90, BoatData.class);
+        registerVanilla(WITHER_SKULL_DANGEROUS, EntityWitherSkullDangerous::new, 91, ProjectileData.class);
+        registerVanilla(LIGHTNING_BOLT, EntityLightningBolt::new, 93, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(SMALL_FIREBALL, EntitySmallFireball::new, 94, ProjectileData.class);
+        registerVanilla(AREA_EFFECT_CLOUD, EntityAreaEffectCloud::new, 95, AreaEffectCloudData.class);
+        registerVanilla(HOPPER_MINECART, EntityHopperMinecart::new, 96, AbstractMinecartData.class);
+        registerVanilla(TNT_MINECART, EntityTntMinecart::new, 97, TntMinecartData.class);
+        registerVanilla(CHEST_MINECART, EntityChestMinecart::new, 98, AbstractMinecartData.class);
+        registerVanilla(COMMAND_BLOCK_MINECART, EntityCommandBlockMinecart::new, 100, AbstractMinecartData.class);
+        registerVanilla(LINGERING_POTION, EntityLingeringPotion::new, 101, SplashPotionData.class);
+        registerVanilla(LLAMA_SPIT, EntityLlamaSpit::new, 102, ProjectileData.class);
+        registerVanilla(EVOCATION_FANG, EntityEvocationFang::new, 103, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(EVOCATION_ILLAGER, EntityEvocationIllager::new, 104, CreatureData.class);
+        registerVanilla(VEX, EntityVex::new, 105, CreatureData.class);
+        registerVanilla(ICE_BOMB, EntityIceBomb::new, 106, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(BALLOON, EntityBalloon::new, 107, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(PUFFERFISH, EntityPufferfish::new, 108, CreatureData.class);
+        registerVanilla(SALMON, EntitySalmon::new, 109, CreatureData.class);
+        registerVanilla(DROWNED, EntityDrowned::new, 110, CreatureData.class);
+        registerVanilla(TROPICAL_FISH, EntityTropicalFish::new, 111, CreatureData.class);
+        registerVanilla(COD, EntityCod::new, 112, CreatureData.class);
+        registerVanilla(PANDA, EntityPanda::new, 113, CreatureData.class);
+        registerVanilla(PILLAGER, EntityPillager::new, 114, CreatureData.class);
+        registerVanilla(VILLAGER, EntityVillager::new, 115, CreatureData.class);
+        registerVanilla(ZOMBIE_VILLAGER, EntityZombieVillager::new, 116, CreatureData.class);
+        registerVanilla(WANDERING_TRADER, EntityWanderingTrader::new, 118, CreatureData.class);
+        registerVanilla(ELDER_GUARDIAN_GHOST, EntityElderGuardianGhost::new, 120, CreatureData.class);
+        registerVanilla(FOX, EntityFox::new, 121, CreatureData.class);
+        registerVanilla(BEE, EntityBee::new, 122, CreatureData.class);
+        registerVanilla(PIGLIN, EntityPiglin::new, 123, CreatureData.class);
+        registerVanilla(HOGLIN, EntityHoglin::new, 124, CreatureData.class);
+        registerVanilla(STRIDER, EntityStrider::new, 125, CreatureData.class);
+        registerVanilla(ZOGLIN, EntityZoglin::new, 126, CreatureData.class);
+        registerVanilla(PIGLIN_BRUTE, EntityPiglinBrute::new, 127, CreatureData.class);
+        registerVanilla(GOAT, EntityGoat::new, 128, CreatureData.class);
+        registerVanilla(GLOW_SQUID, EntityGlowSquid::new, 129, CreatureData.class);
+        registerVanilla(AXOLOTL, EntityAxolotl::new, 130, CreatureData.class);
+        registerVanilla(WARDEN, EntityWarden::new, 131, CreatureData.class);
+        registerVanilla(FROG, EntityFrog::new, 132, CreatureData.class);
+        registerVanilla(TADPOLE, EntityTadpole::new, 133, CreatureData.class);
+        registerVanilla(ALLAY, EntityAllay::new, 134, CreatureData.class);
+        registerVanilla(CAMEL, EntityCamel::new, 138, CreatureData.class);
+        registerVanilla(SNIFFER, EntitySniffer::new, 139, CreatureData.class);
+        registerVanilla(BREEZE, EntityBreeze::new, 140, CreatureData.class);
+        registerVanilla(BREEZE_WIND_CHARGE_PROJECTILE, EntityBreezeWindChargeProjectile::new, 141, ProjectileData.class);
+        registerVanilla(ARMADILLO, EntityArmadillo::new, 142, CreatureData.class);
+        registerVanilla(WIND_CHARGE_PROJECTILE, EntityWindChargeProjectile::new, 143, ProjectileData.class);
+        registerVanilla(BOGGED, EntityBogged::new, 144, CreatureData.class);
+        registerVanilla(OMINOUS_ITEM_SPAWNER, EntityOminousItemSpawner::new, 145, org.cloudburstmc.api.entity.data.EntityData.class);
+        registerVanilla(CREAKING, EntityCreaking::new, 146, CreatureData.class);
+        registerVanilla(HAPPY_GHAST, EntityHappyGhast::new, 147, HappyGhastData.class);
+        registerVanilla(COPPER_GOLEM, EntityCopperGolem::new, 148, CreatureData.class);
+        registerVanilla(NAUTILUS, EntityNautilus::new, 149, CreatureData.class);
+        registerVanilla(ZOMBIE_NAUTILUS, EntityZombieNautilus::new, 150, CreatureData.class);
+        registerVanilla(PARCHED, EntityParched::new, 151, CreatureData.class);
+        registerVanilla(CAMEL_HUSK, EntityCamelHusk::new, 152, CreatureData.class);
+        registerVanilla(SULFUR_CUBE, EntitySulfurCube::new, 153, CreatureData.class);
+        registerVanilla(TRADER_LLAMA, EntityTraderLlama::new, 157, CreatureData.class);
+        registerVanilla(CHEST_BOAT, EntityChestBoat::new, 218, ChestBoatData.class);
+        registerVanilla(PLAYER, EntityHuman::new, 257, HumanData.class);
     }
 
     private void registerProjectileDamageComponents() {
@@ -576,8 +629,12 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         getComponentMap(SNOW_GOLEM).set(EntityComponents.ON_TICK, SnowGolemEntityHandlers.ON_TICK);
     }
 
-    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactory<T>> serviceProvider) {
-        private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactory<T>> provider) {
+    private record EntityFactoryData<T extends Entity>(EntityFactory<T> factory,
+                                                       Class<? extends org.cloudburstmc.api.entity.data.EntityData> dataClass) {
+    }
+
+    private record EntityData<T extends Entity>(boolean hasSpawnEgg, RegistryServiceProvider<EntityFactoryData<T>> serviceProvider) {
+        private EntityData(boolean hasSpawnEgg, RegistryProvider<EntityFactoryData<T>> provider) {
             this(hasSpawnEgg, new RegistryServiceProvider<>(provider));
         }
     }

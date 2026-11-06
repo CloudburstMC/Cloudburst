@@ -6,6 +6,9 @@ import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes.OWNER_EID;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.SITTING;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.TAMED;
@@ -28,22 +31,34 @@ public abstract class EntityTameable extends Animal implements Ownable {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForLong("OwnerID", v -> {
-            this.setOwnerId(v);
+    protected void loadCustom(NbtMap tag) {
+        // Runs before the living-state load below,
+        // matching the historical load order. Only a numeric
+        // value tames, exactly as the old DTO null-check did: a non-numeric
+        // value bound to null and left everything alone.
+        if (tag.get("OwnerID") instanceof Number) {
+            this.setOwnerId(getLong(tag, "OwnerID", this.getOwnerId()));
             this.setTamed(true);
-        });
-        tag.listenForBoolean("Sitting", this::setSitting);
+        }
+        if (tag.containsKey("Sitting")) {
+            this.setSitting(getBoolean(tag, "Sitting", this.isSitting()));
+        }
+        super.loadCustom(tag);
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
+    protected void saveCustom(NbtMapBuilder tag) {
+        super.saveCustom(tag);
         tag.putLong("OwnerID", this.getOwnerId());
         tag.putBoolean("Sitting", this.isSitting());
+    }
+
+    @Override
+    protected Set<String> customKeys() {
+        Set<String> keys = new HashSet<>(super.customKeys());
+        keys.add("OwnerID");
+        keys.add("Sitting");
+        return Set.copyOf(keys);
     }
 
     @Override

@@ -2,46 +2,36 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.Bed;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
+import org.cloudburstmc.api.blockentity.data.BedData;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.DyeColor;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class BedBlockEntity extends BaseBlockEntity implements Bed {
-
-    public DyeColor color = DyeColor.WHITE;
 
     public BedBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("color", this::setColor);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return BedData.class;
     }
 
     @Override
-    protected void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
-
-        tag.putByte("color", (byte) this.getColor().getWoolData());
+    protected BedData data() {
+        return (BedData) super.data();
     }
 
     @Override
     public DyeColor getColor() {
-        return color;
-    }
-
-    private void setColor(int color) {
-        this.color = DyeColor.getByWoolData(color);
+        return data().getColor();
     }
 
     @Override
     public void setColor(DyeColor color) {
-        this.color = color;
+        data().setColor(color);
     }
 
     @Override

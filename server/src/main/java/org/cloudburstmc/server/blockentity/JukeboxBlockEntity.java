@@ -2,6 +2,8 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Jukebox;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.JukeboxData;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.item.ItemTypes;
@@ -9,9 +11,7 @@ import org.cloudburstmc.api.item.data.Record;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -38,42 +38,42 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         SOUND_MAP.put(Record.PIGSTEP, SoundEvent.RECORD_PIGSTEP);
     }
 
-    private ItemStack recordItem = ItemStack.EMPTY;
-
     public JukeboxBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForCompound("RecordItem", itemTag -> {
-            this.recordItem = ItemUtils.deserializeItem(itemTag);
-        });
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return JukeboxData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
+    protected JukeboxData data() {
+        return (JukeboxData) super.data();
+    }
 
-        if (!this.recordItem.isEmpty()) {
-            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        ItemStack loaded = data().getRecordItem();
+        if (loaded != null && loaded.isEmpty()) {
+            // An empty record compound carries no item; keep it absent so it stays omitted.
+            data().setRecordItem(null);
         }
     }
 
     public ItemStack getRecordItem() {
-        return recordItem;
+        ItemStack recordItem = data().getRecordItem();
+        return recordItem != null ? recordItem : ItemStack.EMPTY;
     }
 
     public void setRecordItem(ItemStack recordItem) {
-        this.recordItem = recordItem;
+        data().setRecordItem(recordItem == null || recordItem.isEmpty() ? null : recordItem);
     }
 
     public void play() {
-        if (this.recordItem.getType() == ItemTypes.MUSIC_DISC_13) {
+        if (getRecordItem().getType() == ItemTypes.MUSIC_DISC_13) {
 
-            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(this.recordItem.get(ItemDataComponents.RECORD_TYPE)));
+            this.getLevel().addLevelSoundEvent(this.getPosition(), SOUND_MAP.get(getRecordItem().get(ItemDataComponents.RECORD_TYPE)));
         }
     }
 
@@ -82,10 +82,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
     }
 
     public void dropItem() {
-        if (!this.recordItem.isEmpty()) {
+        ItemStack recordItem = getRecordItem();
+        if (!recordItem.isEmpty()) {
             this.stop();
-            this.getLevel().dropItem(this.getPosition().add(UP), this.recordItem);
-            this.recordItem = ItemStack.EMPTY;
+            this.getLevel().dropItem(this.getPosition().add(UP), recordItem);
+            data().setRecordItem(null);
         }
     }
 
@@ -96,10 +97,11 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
 
     @Override
     public void onBreak() {
-        if (!this.recordItem.isEmpty()) {
+        ItemStack recordItem = getRecordItem();
+        if (!recordItem.isEmpty()) {
             this.stop();
-            this.dropItemOnBreak(this.recordItem);
-            this.recordItem = ItemStack.EMPTY;
+            this.dropItemOnBreak(recordItem);
+            data().setRecordItem(null);
         }
     }
 }

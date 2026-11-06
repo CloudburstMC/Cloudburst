@@ -74,6 +74,11 @@ public class CloudContainer implements Container {
     }
 
     @Override
+    public int getMaxStackSize(int slot) {
+        return getMaxStackSize();
+    }
+
+    @Override
     public String getName() {
         return name;
     }

@@ -2,38 +2,32 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Comparator;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.ComparatorData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class ComparatorBlockEntity extends BaseBlockEntity implements Comparator {
-
-    private int outputSignal;
 
     public ComparatorBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForInt("OutputSignal", this::setOutputSignal);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return ComparatorData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putInt("OutputSignal", this.getOutputSignal());
+    protected ComparatorData data() {
+        return (ComparatorData) super.data();
     }
 
     public int getOutputSignal() {
-        return outputSignal;
+        return data().getOutputSignal();
     }
 
     public void setOutputSignal(int outputSignal) {
-        this.outputSignal = outputSignal;
+        data().setOutputSignal(outputSignal);
     }
 }

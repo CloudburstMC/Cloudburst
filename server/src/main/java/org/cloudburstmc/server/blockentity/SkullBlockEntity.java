@@ -2,71 +2,57 @@ package org.cloudburstmc.server.blockentity;
 
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Skull;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.SkullData;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
 public class SkullBlockEntity extends BaseBlockEntity implements Skull {
-    private float rotation;
-    private int skullType;
-    private boolean mouthMoving;
-    private int mouthTickCount;
 
     public SkullBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        tag.listenForByte("SkullType", this::setSkullType);
-        tag.listenForFloat("Rotation", this::setRotation);
-        tag.listenForInt("MouthTickCount", this::setMouthTickCount);
-        tag.listenForBoolean("MouthMoving", this::setMouthMoving);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return SkullData.class;
     }
 
     @Override
-    public void saveAdditionalData(NbtMapBuilder tag) {
-        super.saveAdditionalData(tag);
-
-        tag.putByte("SkullType", (byte) this.getSkullType());
-        tag.putFloat("Rotation", this.getRotation());
-        tag.putInt("MouthTickCount", this.getMouthTickCount());
-        tag.putBoolean("MouthMoving", this.isMouthMoving());
+    protected SkullData data() {
+        return (SkullData) super.data();
     }
 
     public float getRotation() {
-        return this.rotation;
+        return data().getRotation();
     }
 
     public void setRotation(float rotation) {
-        this.rotation = rotation;
+        data().setRotation(rotation);
     }
 
     public int getMouthTickCount() {
-        return mouthTickCount;
+        return data().getMouthTickCount();
     }
 
     public void setMouthTickCount(int mouthTickCount) {
-        this.mouthTickCount = mouthTickCount;
+        data().setMouthTickCount(mouthTickCount);
     }
 
     public boolean isMouthMoving() {
-        return mouthMoving;
+        return data().isMouthMoving();
     }
 
     public void setMouthMoving(boolean mouthMoving) {
-        this.mouthMoving = mouthMoving;
+        data().setMouthMoving(mouthMoving);
     }
 
     public int getSkullType() {
-        return skullType;
+        return data().getSkullType();
     }
 
     public void setSkullType(int skullType) {
-        this.skullType = skullType;
+        data().setSkullType((byte) skullType);
     }
 
     @Override

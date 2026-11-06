@@ -3,11 +3,12 @@ package org.cloudburstmc.server.blockentity;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.api.blockentity.BlockEntityType;
 import org.cloudburstmc.api.blockentity.Sign;
+import org.cloudburstmc.api.blockentity.data.BlockEntityData;
+import org.cloudburstmc.api.blockentity.data.SignData;
 import org.cloudburstmc.api.event.block.SignChangeEvent;
 import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -17,9 +18,6 @@ import java.util.Objects;
 public class SignBlockEntity extends BaseBlockEntity implements Sign {
 
     private static final String[] LEGACY_TEXT_TAGS = {"Text1", "Text2", "Text3", "Text4"};
-
-    private String[] text = {"", "", "", ""};
-    private String textOwner = "";
 
     public SignBlockEntity(BlockEntityType<?> type, Chunk chunk, Vector3i position) {
         super(type, chunk, position);
@@ -35,37 +33,33 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
     }
 
     @Override
-    public void loadAdditionalData(NbtMap tag) {
-        super.loadAdditionalData(tag);
-
-        String[] text;
-        if (!tag.containsKey("Text")) {
-            text = new String[4];
-            for (int i = 0; i < 4; i++) {
-                text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
-            }
-        } else {
-            text = Arrays.copyOf(tag.getString("Text").split("\n", 4), 4);
-        }
-
-        this.text = text;
-
-        tag.listenForString("TextOwner", this::setTextOwner);
+    protected Class<? extends BlockEntityData> minimumDataClass() {
+        return SignData.class;
     }
 
     @Override
-    public void saveClientData(NbtMapBuilder tag) {
-        super.saveClientData(tag);
+    protected SignData data() {
+        return (SignData) super.data();
+    }
 
-        tag.putString("Text", String.join("\n", this.text));
-        tag.putString("TextOwner", this.textOwner);
+    @Override
+    protected void loadCustom(NbtMap tag) {
+        if (!tag.containsKey("Text")) {
+            String[] text = new String[4];
+            for (int i = 0; i < 4; i++) {
+                text[i] = tag.getString(LEGACY_TEXT_TAGS[i], "");
+            }
+            data().setText(String.join("\n", text));
+        }
     }
 
     public String[] getText() {
-        return Arrays.copyOf(text, text.length);
+        String text = data().getText();
+        return Arrays.copyOf(text != null ? text.split("\n", 4) : new String[0], 4);
     }
 
     public void setText(String... lines) {
+        String[] text = new String[4];
         for (int i = 0; i < 4; i++) {
             if (i < lines.length)
                 text[i] = lines[i];
@@ -73,16 +67,18 @@ public class SignBlockEntity extends BaseBlockEntity implements Sign {
                 text[i] = "";
         }
 
+        data().setText(String.join("\n", text));
         this.spawnToAll();
         this.setDirty();
     }
 
     public String getTextOwner() {
-        return textOwner;
+        String textOwner = data().getTextOwner();
+        return textOwner != null ? textOwner : "";
     }
 
     public void setTextOwner(String textOwner) {
-        this.textOwner = textOwner;
+        data().setTextOwner(textOwner);
     }
 
     @Override

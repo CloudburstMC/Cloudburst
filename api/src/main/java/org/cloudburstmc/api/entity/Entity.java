@@ -18,6 +18,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 
 import java.util.List;
 import java.util.Optional;
@@ -750,5 +751,28 @@ public interface Entity extends Damageable, Emitter {
      * Calling this again has no effect.
      */
     void close();
+
+    /**
+     * Returns the data stored for a plugin.
+     *
+     * @param pluginId the plugin id
+     * @return the stored data, or an empty optional when none is stored
+     */
+    Optional<NbtMap> getPluginData(String pluginId);
+
+    /**
+     * Stores data for a plugin.
+     *
+     * @param pluginId the plugin id
+     * @param data     the data to store
+     */
+    void setPluginData(String pluginId, NbtMap data);
+
+    /**
+     * Discards the data stored for a plugin.
+     *
+     * @param pluginId the plugin id
+     */
+    void removePluginData(String pluginId);
 
 }

@@ -31,6 +31,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.block.material;
     exports org.cloudburstmc.api.block.trait;
     exports org.cloudburstmc.api.blockentity;
+    exports org.cloudburstmc.api.blockentity.data;
     exports org.cloudburstmc.api.boss;
     exports org.cloudburstmc.api.command;
     exports org.cloudburstmc.api.command.argument;
@@ -40,6 +41,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.data;
     exports org.cloudburstmc.api.enchantment;
     exports org.cloudburstmc.api.entity;
+    exports org.cloudburstmc.api.entity.data;
     exports org.cloudburstmc.api.entity.component;
     exports org.cloudburstmc.api.entity.damage;
     exports org.cloudburstmc.api.entity.hostile;
@@ -63,6 +65,7 @@ open module org.cloudburstmc.api {
     exports org.cloudburstmc.api.item.data;
     exports org.cloudburstmc.api.level;
     exports org.cloudburstmc.api.map;
+    exports org.cloudburstmc.api.nbt;
     exports org.cloudburstmc.api.level.biome;
     exports org.cloudburstmc.api.level.chunk;
     exports org.cloudburstmc.api.level.gamerule;
