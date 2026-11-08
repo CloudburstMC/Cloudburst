@@ -3,6 +3,7 @@ package org.cloudburstmc.server.registry;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockLootHandler;
+import org.cloudburstmc.api.block.component.ComplexBlockHandler;
 import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
@@ -36,6 +37,8 @@ public class VanillaBlockBehaviors {
             LARGE_FERN, LILAC, PEONY, PITCHER_PLANT, ROSE_BUSH, SUNFLOWER, TALL_GRASS
     );
 
+    private static final int FALL_PLACEMENT_DELAY = 2;
+    private static final int FALL_NEIGHBOUR_DELAY = 1;
     private static final int MAXIMUM_FALL_DAMAGE = 40;
 
     private static final List<CoralFamily> CORALS = List.of(
@@ -510,7 +513,7 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.CAN_SURVIVE, SnowLayerBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.SNOW_LAYER_BLOCK_SUPPORT_SHAPE)
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(SnowLayerBlockHandlers.getResource(block.getState())))
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, SnowLayerBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .update(BlockComponents.ON_NEIGHBOUR_CHANGED, SnowLayerBlockHandlers::withSnowCoverUpdates)
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, SnowLayerBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.ON_RANDOM_TICK, SnowLayerBlockHandlers.ON_RANDOM_TICK);
         registry.configure(SOUL_CAMPFIRE).set(BlockComponents.GET_IGNITED_STATE,
@@ -773,13 +776,12 @@ public class VanillaBlockBehaviors {
     }
 
     private ComponentBuilder configureFalling(CloudBlockRegistry registry, BlockType type, SoundType landingSound, SoundType breakSound, float damagePerBlock) {
+        ComplexBlockHandler scheduleNeighbourFall = FallingBlockHandlers.scheduleFall(FALL_NEIGHBOUR_DELAY);
         return registry.configure(type)
                 .set(BlockComponents.IS_FREE_TO_FALL, FallingBlockHandlers.IS_FREE_TO_FALL)
-                .set(
-                        BlockComponents.START_FALLING,
-                        FallingBlockHandlers.startFalling(
-                                landingSound, breakSound, damagePerBlock, MAXIMUM_FALL_DAMAGE))
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, FallingBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.START_FALLING, FallingBlockHandlers.startFalling(landingSound, breakSound, damagePerBlock, MAXIMUM_FALL_DAMAGE))
+                .set(BlockComponents.ON_ADDED, FallingBlockHandlers.scheduleFall(FALL_PLACEMENT_DELAY))
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> scheduleNeighbourFall.execute(block))
                 .set(BlockComponents.ON_TICK, FallingBlockHandlers.ON_TICK);
     }
 

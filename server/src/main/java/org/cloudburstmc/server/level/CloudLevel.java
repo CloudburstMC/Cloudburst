@@ -63,10 +63,12 @@ import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
+import org.cloudburstmc.server.block.util.BlockShapeTransitions;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.configuration.LevelConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -1361,22 +1363,22 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.setBlockState(x, y, z, layer, state, direct, update, null, null);
     }
 
-    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, CloudEntity entity) {
+    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, EntityFallingBlock entity) {
         return this.setBlockStateSynced(position, replacement, entity, BlockSyncType.CREATE);
     }
 
-    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, CloudEntity entity) {
+    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, EntityFallingBlock entity) {
         return this.setBlockStateSynced(position, state, entity, BlockSyncType.DESTROY);
     }
 
-    private boolean setBlockStateSynced(Vector3i position, BlockState state, CloudEntity entity,
+    private boolean setBlockStateSynced(Vector3i position, BlockState state, EntityFallingBlock entity,
                                         BlockSyncType syncType) {
         return this.setBlockState(position.getX(), position.getY(), position.getZ(), BlockLayer.PRIMARY, state,
                 false, true, Objects.requireNonNull(entity, "entity"), Objects.requireNonNull(syncType, "syncType"));
     }
 
     private boolean setBlockState(int x, int y, int z, BlockLayer layer, BlockState state, boolean direct, boolean update,
-                                  @Nullable CloudEntity syncedEntity, @Nullable BlockSyncType syncType) {
+                                  @Nullable EntityFallingBlock syncedEntity, @Nullable BlockSyncType syncType) {
         if (this.isOutsideBuildHeight(y)) {
             return false;
         }
@@ -1424,6 +1426,12 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (syncedEntity != null) {
             this.sendSyncedBlockUpdate(newBlock, syncedEntity, Objects.requireNonNull(syncType, "syncType"));
+            if (syncType == BlockSyncType.DESTROY) {
+                BlockShapeTransitions.pushEntitiesUp(this, position, oldLayers.primary(), newLayers.primary(),
+                        entity -> entity != syncedEntity
+                                && entity instanceof EntityFallingBlock falling
+                                && falling.isUnsettled());
+            }
         } else if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {

@@ -59,16 +59,6 @@ public class SnowLayerBlockHandlers {
         }
     };
 
-    public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
-        BlockState state = withCoveredState(block);
-        if (state != block.getState()) {
-            block.set(state, false, true);
-            block = block.refresh();
-        }
-
-        FallingBlockHandlers.ON_NEIGHBOUR_CHANGED.execute(block, neighbor);
-    };
-
     public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE =
             (state, block, player, face, clickPosition) -> {
                 BlockState placed = block.getState().getType() == state.getType()
@@ -76,6 +66,18 @@ public class SnowLayerBlockHandlers {
                         : state.withTrait(BlockTraits.HEIGHT, 0);
                 return BlockLayerRules.normalizeSnowCover(new BlockLayers(placed, block.getSecondaryState()), block.getRelativeState(0, -1, 0)).primary();
             };
+
+    public static NeighborBlockHandler withSnowCoverUpdates(NeighborBlockHandler handler) {
+        return (block, neighbor) -> {
+            BlockState state = withCoveredState(block);
+            if (state != block.getState()) {
+                block.set(state, false, true);
+                block = block.refresh();
+            }
+
+            handler.execute(block, neighbor);
+        };
+    }
 
     public static ItemStack getResource(BlockState state) {
         return ItemStack.builder()

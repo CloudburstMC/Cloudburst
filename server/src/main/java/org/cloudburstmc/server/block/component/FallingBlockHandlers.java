@@ -18,15 +18,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FallingBlockHandlers {
 
-    private static final int FALL_DELAY = 1;
-
     public static final BooleanBlockHandler IS_FREE_TO_FALL = block -> block.getSide(Direction.DOWN).getState().isReplaceable();
-
-    public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
-        if (neighbor.getPosition().equals(block.getSide(Direction.DOWN).getPosition())) {
-            scheduleFall(block);
-        }
-    };
 
     public static final TickBlockHandler ON_TICK = (block, random) -> {
         if (block.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(block)) {
@@ -52,8 +44,8 @@ public class FallingBlockHandlers {
         }
     };
 
-    public static void scheduleFall(Block block) {
-        block.getLevel().scheduleUpdate(block.getPosition(), FALL_DELAY);
+    public static ComplexBlockHandler scheduleFall(int delay) {
+        return block -> block.getLevel().scheduleUpdate(block.getPosition(), delay);
     }
 
     public static ComplexBlockHandler startFalling(@Nullable SoundType landingSound, @Nullable SoundType breakSound, float damagePerBlock, int maximumDamage) {
@@ -74,7 +66,7 @@ public class FallingBlockHandlers {
                 return;
             }
 
-            if (!fallingBlock.startFalling(block.getPosition(), event.getBlockState())) {
+            if (!fallingBlock.startFalling(block, event.getBlockState())) {
                 fallingBlock.close();
             }
         };

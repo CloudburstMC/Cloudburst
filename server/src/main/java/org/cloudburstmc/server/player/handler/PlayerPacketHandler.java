@@ -719,10 +719,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
+        CloudLevel level = player.getLevel();
+        Block target = level.getLoadedBlock(blockPos);
+        if (target == null || target.getState().getType() == BlockTypes.AIR) {
+            rollbackBlock(blockPos, face);
+            return;
+        }
+
         player.interruptBlocking();
 
-        CloudLevel level = player.getLevel();
-        Block target = level.getBlock(blockPos);
         Block side = target.getSide(face);
         ItemStack item = player.getInventory().getSelectedItem();
 

@@ -11,6 +11,7 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.entity.misc.FallingBlock;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
+import org.cloudburstmc.api.event.entity.EntitySpawnEvent;
 import org.cloudburstmc.api.item.ItemDataComponents;
 import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
@@ -263,19 +264,26 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
         this.autoExpire = autoExpire;
     }
 
-    public boolean startFalling(Vector3i position, BlockState replacement) {
-        if (!this.level.removeBlockForFallingEntity(position, replacement, this)) {
+    public boolean isUnsettled() {
+        return !this.isClosed() && this.settledRemovalDelay == 0;
+    }
+
+    public boolean startFalling(Block source, BlockState replacement) {
+        boolean spawned = this.spawn(new EntitySpawnEvent(this), () -> {
+            Vector3i position = source.getPosition();
+            if (this.level.getBlockState(position) != source.getState() || !this.level.removeBlockForFallingEntity(position, replacement, this)) {
+                return false;
+            }
+
+            this.time++;
+            this.applyGravityAndMove();
+            return true;
+        });
+
+        if (!spawned) {
             return false;
         }
 
-        this.time++;
-        this.applyGravityAndMove();
-        if (!this.spawn()) {
-            this.level.setBlockState(position, this.blockState);
-            return false;
-        }
-
-        this.spawnToAll();
         this.data.setFlag(MOVING, true);
         return true;
     }
@@ -331,13 +339,7 @@ public class EntityFallingBlock extends CloudEntity implements FallingBlock {
             return;
         }
 
-        if (this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.BREAKS_ON_LANDING)) {
-            this.close();
-            this.breakBlock();
-            return;
-        }
-
-        if (!this.canPlaceAt(target)) {
+        if (this.level.getServer().getBlockRegistry().requireComponent(this.blockState.getType(), BlockComponents.BREAKS_ON_LANDING) || !this.canPlaceAt(target)) {
             this.close();
             this.breakBlock();
             return;
