@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.registry;
 
+import lombok.NoArgsConstructor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemStack;
@@ -13,6 +15,8 @@ import org.cloudburstmc.api.util.VoxelShape;
 import org.cloudburstmc.api.util.component.ComponentBuilder;
 import org.cloudburstmc.server.block.BlockGeometryData;
 import org.cloudburstmc.server.block.BlockPalette;
+import org.cloudburstmc.server.block.CloudBlockType;
+import org.cloudburstmc.server.block.EmptyLiquidState;
 import org.cloudburstmc.server.block.component.*;
 import org.cloudburstmc.server.block.serializer.DefaultBlockSerializer;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers;
@@ -21,43 +25,73 @@ import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.registry.component.CloudComponentMap;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Owns registered block states, tags and behavior components.
  */
+@NoArgsConstructor
 public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implements BlockRegistry {
 
     private final BlockPalette palette = BlockPalette.INSTANCE;
-    private final List<BlockType> types;
-    private final List<BlockState> states;
+    private final Map<Identifier, BlockType> typesById = VanillaBlockTypes.create();
+    private final List<BlockType> types = List.copyOf(this.typesById.values());
+    private volatile List<BlockState> states = List.of();
+    private boolean initialized;
     private volatile boolean closed;
 
-    public CloudBlockRegistry(CloudItemRegistry itemRegistry) {
-        checkNotNull(itemRegistry, "itemRegistry");
+    /**
+     * Binds vanilla state properties and behaviors to the shared block registry.
+     *
+     * @param itemRegistry the item registry used for block-item associations
+     * @return the initialized block registry
+     */
+    public static CloudBlockRegistry initialize(CloudItemRegistry itemRegistry) {
+        BlockRegistry registry = BlockRegistry.get();
+        checkState(registry instanceof CloudBlockRegistry, "Block registry is not owned by this server");
+        CloudBlockRegistry blocks = (CloudBlockRegistry) registry;
+        blocks.initializeVanilla(itemRegistry);
+        return blocks;
+    }
 
-        BlockTraitSerializers.init();
-        this.types = List.copyOf(BlockTypes.values());
-        this.registerDefaultComponents();
-        this.types.forEach(this::registerVanilla);
+    @Override
+    public BlockType createType(Identifier id, BlockTrait<?>... traits) {
+        return new CloudBlockType(id, traits);
+    }
 
-        this.palette.generateRuntimeIds();
-        this.states = this.palette.getSerializedPalette().values().stream().distinct().toList();
-        this.types.forEach(this::configureModelOffsetShapes);
+    @Override
+    public Optional<BlockType> get(Identifier id) {
+        return Optional.ofNullable(this.typesById.get(checkNotNull(id, "id")));
+    }
 
-        VanillaBlockItems.register(itemRegistry);
-        VanillaBlockBehaviors.configure(this);
-        VanillaBlockTags.freeze();
+    @Override
+    public Identifier getId(BlockType type) {
+        checkNotNull(type, "type");
+
+        if (this.typesById.get(type.getId()) != type) {
+            throw new IllegalArgumentException("Block type is not registered: " + type.getId());
+        }
+
+        return type.getId();
+    }
+
+    @Override
+    public List<BlockType> values() {
+        return this.types;
     }
 
     @Override
     public BlockState getBlock(BlockType type) {
         checkNotNull(type, "type");
+
         if (this.getComponentMap(type) == null) {
             throw new RegistryException("Block type is not registered: " + type.getId());
         }
+
         return type.getDefaultState();
     }
 
@@ -77,8 +111,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     @Override
-    public List<BlockType> values() {
-        return this.types;
+    public LiquidState getEmptyLiquidState() {
+        return EmptyLiquidState.INSTANCE;
     }
 
     @Override
@@ -104,10 +138,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     @Override
     public synchronized ComponentBuilder configure(BlockType type) {
         this.requireOpen();
+
         CloudComponentMap components = this.getComponentMap(checkNotNull(type, "type"));
         if (components == null) {
             throw new RegistryException("Block type is not registered: " + type.getId());
         }
+
         return components;
     }
 
@@ -117,14 +153,98 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
             return;
         }
 
+        checkState(this.initialized, "Block registry has not been initialized");
         this.freezeComponentMaps();
         this.closed = true;
     }
 
-    private void requireOpen() {
-        if (this.closed) {
-            throw new RegistryException("Block registration is closed");
-        }
+    private synchronized void initializeVanilla(CloudItemRegistry itemRegistry) {
+        checkNotNull(itemRegistry, "itemRegistry");
+        checkState(!this.initialized, "Block registry has already been initialized");
+
+        BlockTraitSerializers.init();
+        this.registerDefaultComponents();
+        this.types.forEach(this::registerVanilla);
+
+        this.palette.generateRuntimeIds();
+        this.states = this.palette.getSerializedPalette().values().stream().distinct().toList();
+        this.types.forEach(this::configureModelOffsetShapes);
+
+        VanillaBlockItems.register(itemRegistry);
+        VanillaBlockBehaviors.configure(this);
+        VanillaBlockTags.freeze();
+        this.initialized = true;
+    }
+
+    private void registerDefaultComponents() {
+        this.registerComponent(BlockComponents.AFTER_BREAK, (block, context) -> {});
+        this.registerComponent(BlockComponents.ATTACK, DefaultBlockHandlers.ATTACK);
+        this.registerComponent(BlockComponents.BREAKS_ON_LANDING, false);
+        this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
+        this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
+        this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.isSupported(block.getLevel(), block.getPosition()));
+        this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, context) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
+        this.registerComponent(BlockComponents.CAN_BE_REPLACED_BY_FALLING_BLOCK, BlockState::isReplaceable);
+        this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
+        this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
+        this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);
+        this.registerComponent(BlockComponents.CAN_SLIDE, (block) -> false);
+        this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
+        this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
+        this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {});
+        this.registerComponent(BlockComponents.CONDUCTS_REDSTONE, BlockSupport::isViewBlocking);
+        this.registerComponent(BlockComponents.CONNECTS_TO_REDSTONE_WIRE, (block, direction) -> false);
+        this.registerComponent(BlockComponents.FERTILIZE, (block, player, random) -> FertilizationResult.none());
+        this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
+        this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
+        this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());
+        this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
+        this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
+        this.registerComponent(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, (block, face) -> 0);
+        this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
+        this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
+        this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
+        this.registerComponent(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_BLOCK, entity));
+        this.registerComponent(BlockComponents.GET_FALLING_BREAK_DROP, FallingBlockHandlers.BLOCK_ITEM_DROP);
+        this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
+        this.registerComponent(BlockComponents.GET_IGNITED_STATE, block -> null);
+        this.registerComponent(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, state -> CloudVoxelShapes.empty());
+        this.registerComponent(BlockComponents.GET_LOOT, DefaultBlockHandlers.GET_LOOT);
+        this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> block.getState().getMapColor());
+        this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
+        this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);
+        this.registerComponent(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> 0);
+        this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
+        this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
+        this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);
+        this.registerComponent(BlockComponents.MAY_PICK, (block) -> true);
+        this.registerComponent(BlockComponents.MAY_PLACE_ON, (block) -> true);
+        this.registerComponent(BlockComponents.ON_ADDED, block -> {});
+        this.registerComponent(BlockComponents.ON_DESTROY, DefaultBlockHandlers.ON_DESTROY);
+        this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {});
+        this.registerComponent(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.ON_ENTITY_INSIDE);
+        this.registerComponent(BlockComponents.ON_EXPLOSION_HIT, DefaultBlockHandlers.ON_EXPLOSION_HIT);
+        this.registerComponent(BlockComponents.ON_FALL_ON, DefaultBlockHandlers.ON_FALL_ON);
+        this.registerComponent(BlockComponents.ON_FALLING_LAND, (entity, target, fallDistance) -> {});
+        this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, DefaultBlockHandlers.ON_LIGHTNING_HIT);
+        this.registerComponent(BlockComponents.ON_LIQUID_CHANGED, (block, previousLiquid) -> {});
+        this.registerComponent(BlockComponents.ON_LIQUID_TICK, block -> {});
+        this.registerComponent(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {});
+        this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler());
+        this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, DefaultBlockHandlers.ON_PROJECTILE_HIT);
+        this.registerComponent(BlockComponents.ON_RANDOM_TICK, (block, randomGenerator) -> {});
+        this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, DefaultBlockHandlers.ON_REDSTONE_UPDATE);
+        this.registerComponent(BlockComponents.ON_REMOVE, DefaultBlockHandlers.ON_REMOVE);
+        this.registerComponent(BlockComponents.ON_STAND_ON, DefaultBlockHandlers.ON_STAND_ON);
+        this.registerComponent(BlockComponents.ON_STATE_CHANGED, block -> {});
+        this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
+        this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);
+        this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {});
+        this.registerComponent(BlockComponents.RESOLVE_FALLING_PLACEMENT, FallingBlockHandlers.RESOLVE_PLACEMENT);
+        this.registerComponent(BlockComponents.RESOLVE_PLACEMENT_STATE, DefaultPlacementStateHandler.INSTANCE);
+        this.registerComponent(BlockComponents.START_FALLING, (block) -> {});
+        this.registerComponent(BlockComponents.SUFFOCATING, DefaultBlockHandlers.SUFFOCATING);
+        this.registerComponent(BlockComponents.USE, (block, player, direction, item) -> false);
     }
 
     private void registerVanilla(BlockType type) {
@@ -157,71 +277,9 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         }
     }
 
-    private void registerDefaultComponents() {
-        this.registerComponent(BlockComponents.AFTER_BREAK, (block, context) -> {});
-        this.registerComponent(BlockComponents.ATTACK, DefaultBlockHandlers.ATTACK);
-        this.registerComponent(BlockComponents.BREAKS_ON_LANDING, false);
-        this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
-        this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
-        this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.requireComponent(BlockComponents.CAN_SURVIVE).execute(block));
-        this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
-        this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
-        this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
-        this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);
-        this.registerComponent(BlockComponents.CAN_SLIDE, (block) -> false);
-        this.registerComponent(BlockComponents.CAN_SPAWN_ON, DefaultBlockHandlers.CAN_SPAWN_ON);
-        this.registerComponent(BlockComponents.CAN_SURVIVE, (block) -> true);
-        this.registerComponent(BlockComponents.CHECK_ALIVE, (block) -> {});
-        this.registerComponent(BlockComponents.CONDUCTS_REDSTONE, BlockSupport::isViewBlocking);
-        this.registerComponent(BlockComponents.FERTILIZE, (block, player, random) -> FertilizationResult.none());
-        this.registerComponent(BlockComponents.GET_BLOCK_ENTITY, (block) -> Optional.empty());
-        this.registerComponent(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, DefaultBlockHandlers.GET_BLOCK_SUPPORT_SHAPE);
-        this.registerComponent(BlockComponents.GET_COLLISION_SHAPE, new GetCollisionShapeHandler());
-        this.registerComponent(BlockComponents.GET_COLOR, (block) -> null);
-        this.registerComponent(BlockComponents.GET_DESCRIPTION_ID, (state) -> state.getType().getId().toString());
-        this.registerComponent(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, (block, face) -> 0);
-        this.registerComponent(BlockComponents.GET_ENTITY_INSIDE_COLLISION_SHAPE, DefaultBlockHandlers.GET_ENTITY_INSIDE_COLLISION_SHAPE);
-        this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
-        this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
-        this.registerComponent(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_BLOCK, entity));
-        this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
-        this.registerComponent(BlockComponents.GET_IGNITED_STATE, block -> null);
-        this.registerComponent(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, state -> CloudVoxelShapes.empty());
-        this.registerComponent(BlockComponents.GET_LOOT, DefaultBlockHandlers.GET_LOOT);
-        this.registerComponent(BlockComponents.GET_MAP_COLOR, (block) -> block.getState().getMapColor());
-        this.registerComponent(BlockComponents.GET_OUTLINE_SHAPE, new GetOutlineShapeHandler());
-        this.registerComponent(BlockComponents.GET_PICK_BLOCK, DefaultBlockHandlers.GET_PICK_BLOCK);
-        this.registerComponent(BlockComponents.GET_REDSTONE_SIGNAL, (block, face) -> 0);
-        this.registerComponent(BlockComponents.IS_BREAKABLE, (block, item) -> true);
-        this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
-        this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);
-        this.registerComponent(BlockComponents.MAY_PICK, (block) -> true);
-        this.registerComponent(BlockComponents.MAY_PLACE, (block, direction) -> true);
-        this.registerComponent(BlockComponents.MAY_PLACE_ON, (block) -> true);
-        this.registerComponent(BlockComponents.ON_ADDED, block -> {});
-        this.registerComponent(BlockComponents.ON_DESTROY, DefaultBlockHandlers.ON_DESTROY);
-        this.registerComponent(BlockComponents.ON_ENTITY_COLLIDE, (block, entity) -> {});
-        this.registerComponent(BlockComponents.ON_ENTITY_INSIDE, DefaultBlockHandlers.ON_ENTITY_INSIDE);
-        this.registerComponent(BlockComponents.ON_EXPLOSION_HIT, DefaultBlockHandlers.ON_EXPLOSION_HIT);
-        this.registerComponent(BlockComponents.ON_FALL_ON, DefaultBlockHandlers.ON_FALL_ON);
-        this.registerComponent(BlockComponents.ON_FALLING_LAND, (entity, target, fallDistance) -> {});
-        this.registerComponent(BlockComponents.ON_LIGHTNING_HIT, DefaultBlockHandlers.ON_LIGHTNING_HIT);
-        this.registerComponent(BlockComponents.ON_LIQUID_CHANGED, (block, previousLiquid) -> {});
-        this.registerComponent(BlockComponents.ON_LIQUID_TICK, block -> {});
-        this.registerComponent(BlockComponents.ON_NEIGHBOUR_CHANGED, (block, neighbor) -> {});
-        this.registerComponent(BlockComponents.ON_PLACE, new DefaultBlockPlaceHandler());
-        this.registerComponent(BlockComponents.ON_PROJECTILE_HIT, DefaultBlockHandlers.ON_PROJECTILE_HIT);
-        this.registerComponent(BlockComponents.ON_RANDOM_TICK, (block, randomGenerator) -> {});
-        this.registerComponent(BlockComponents.ON_REDSTONE_UPDATE, DefaultBlockHandlers.ON_REDSTONE_UPDATE);
-        this.registerComponent(BlockComponents.ON_REMOVE, DefaultBlockHandlers.ON_REMOVE);
-        this.registerComponent(BlockComponents.ON_STAND_ON, DefaultBlockHandlers.ON_STAND_ON);
-        this.registerComponent(BlockComponents.ON_STATE_CHANGED, block -> {});
-        this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
-        this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);
-        this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {});
-        this.registerComponent(BlockComponents.RESOLVE_PLACEMENT_STATE, DefaultPlacementStateHandler.INSTANCE);
-        this.registerComponent(BlockComponents.START_FALLING, (block) -> {});
-        this.registerComponent(BlockComponents.SUFFOCATING, DefaultBlockHandlers.SUFFOCATING);
-        this.registerComponent(BlockComponents.USE, (block, player, direction, item) -> false);
+    private void requireOpen() {
+        if (this.closed) {
+            throw new RegistryException("Block registration is closed");
+        }
     }
 }

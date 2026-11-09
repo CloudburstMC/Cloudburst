@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.entity;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -50,6 +48,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.cloudburstmc.api.block.BlockTypes.MAGMA;
 import static org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag.BREATHING;
 
@@ -160,83 +159,81 @@ public abstract class EntityLiving extends CloudEntity implements Living {
 
     @Override
     public boolean entityBaseTick(int tickDiff) {
-        try (Timing ignored = Timings.livingEntityBaseTickTimer.startTiming()) {
-            boolean inWater = this.isInsideOfWater();
-            boolean inBubbleColumn = inWater && this.level.getBlockState(this.position.add(0, this.getEyeHeight(), 0).toInt()).getType() == BlockTypes.BUBBLE_COLUMN;
-            boolean waterBreathing = this.canBreatheUnderwater() || this.hasPotionEffect(EffectTypes.WATER_BREATHING) || this.hasPotionEffect(EffectTypes.CONDUIT_POWER);
-            boolean isBreathing = !inWater || inBubbleColumn || waterBreathing;
-            if (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator())) {
-                isBreathing = true;
-            }
-
-            this.data.setFlag(BREATHING, isBreathing);
-
-            boolean hasUpdate = super.entityBaseTick(tickDiff);
-            this.tickFreezing(tickDiff);
-
-            if (this.isAlive()) {
-                if (this.isInsideOfSolid()) {
-                    hasUpdate = true;
-                    this.damage(1, DamageSource.of(DamageTypes.IN_WALL));
-                }
-
-                BlockState state = this.getLevel().getBlockState(this.getPosition().toInt());
-                if (state.is(BlockTags.FALL_DAMAGE_RESETTING) || this.hasPotionEffect(EffectTypes.LEVITATION)) {
-                    this.resetFallDistance();
-                }
-
-                if (inWater) {
-                    if (inBubbleColumn || waterBreathing || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
-                        this.setAirTicks(400);
-                    } else {
-                        hasUpdate = true;
-                        int airTicks = this.getAirTicks() - tickDiff;
-
-                        if (airTicks <= -20) {
-                            airTicks = 0;
-                            this.damage(2, DamageSource.of(DamageTypes.DROWN));
-                        }
-
-                        setAirTicks(airTicks);
-                    }
-                } else {
-                    if (this instanceof EntityWaterAnimal) {
-                        hasUpdate = true;
-                        int airTicks = getAirTicks() - tickDiff;
-
-                        if (airTicks <= -20) {
-                            airTicks = 0;
-                            this.damage(2, DamageSource.of(DamageTypes.DRY_OUT));
-                        }
-
-                        setAirTicks(airTicks);
-                    } else {
-                        int airTicks = getAirTicks();
-
-                        if (airTicks < 400) {
-                            setAirTicks(Math.min(400, airTicks + tickDiff * 5));
-                        }
-                    }
-                }
-            }
-
-            if (this.hurtCooldownTicks > 0) {
-                this.hurtCooldownTicks = Math.max(this.hurtCooldownTicks - tickDiff, 0);
-            }
-
-            if (this.vehicle == null && this.isPushable()) {
-                for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox)) {
-                    if (entity.isPushable()) {
-                        this.collidingWith(entity);
-                    }
-                }
-            }
-
-            // Used to check collisions with magma blocks
-            Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
-            if (block.getState().getType() == MAGMA) block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
-            return hasUpdate;
+        boolean inWater = this.isInsideOfWater();
+        boolean inBubbleColumn = inWater && this.level.getBlockState(this.position.add(0, this.getEyeHeight(), 0).toInt()).getType() == BlockTypes.BUBBLE_COLUMN;
+        boolean waterBreathing = this.canBreatheUnderwater() || this.hasPotionEffect(EffectTypes.WATER_BREATHING) || this.hasPotionEffect(EffectTypes.CONDUIT_POWER);
+        boolean isBreathing = !inWater || inBubbleColumn || waterBreathing;
+        if (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator())) {
+            isBreathing = true;
         }
+
+        this.data.setFlag(BREATHING, isBreathing);
+
+        boolean hasUpdate = super.entityBaseTick(tickDiff);
+        this.tickFreezing(tickDiff);
+
+        if (this.isAlive()) {
+            if (this.isInsideOfSolid()) {
+                hasUpdate = true;
+                this.damage(1, DamageSource.of(DamageTypes.IN_WALL));
+            }
+
+            BlockState state = this.getLevel().getBlockState(this.getPosition().toInt());
+            if (state.is(BlockTags.FALL_DAMAGE_RESETTING) || this.hasPotionEffect(EffectTypes.LEVITATION)) {
+                this.resetFallDistance();
+            }
+
+            if (inWater) {
+                if (inBubbleColumn || waterBreathing || (this instanceof CloudPlayer && (((CloudPlayer) this).isCreative() || ((CloudPlayer) this).isSpectator()))) {
+                    this.setAirTicks(400);
+                } else {
+                    hasUpdate = true;
+                    int airTicks = this.getAirTicks() - tickDiff;
+
+                    if (airTicks <= -20) {
+                        airTicks = 0;
+                        this.damage(2, DamageSource.of(DamageTypes.DROWN));
+                    }
+
+                    setAirTicks(airTicks);
+                }
+            } else {
+                if (this instanceof EntityWaterAnimal) {
+                    hasUpdate = true;
+                    int airTicks = getAirTicks() - tickDiff;
+
+                    if (airTicks <= -20) {
+                        airTicks = 0;
+                        this.damage(2, DamageSource.of(DamageTypes.DRY_OUT));
+                    }
+
+                    setAirTicks(airTicks);
+                } else {
+                    int airTicks = getAirTicks();
+
+                    if (airTicks < 400) {
+                        setAirTicks(Math.min(400, airTicks + tickDiff * 5));
+                    }
+                }
+            }
+        }
+
+        if (this.hurtCooldownTicks > 0) {
+            this.hurtCooldownTicks = Math.max(this.hurtCooldownTicks - tickDiff, 0);
+        }
+
+        if (this.vehicle == null && this.isPushable()) {
+            for (Entity entity : this.getLevel().getNearbyEntities(this, this.boundingBox)) {
+                if (entity.isPushable()) {
+                    this.collidingWith(entity);
+                }
+            }
+        }
+
+        // Used to check collisions with magma blocks
+        Block block = this.getLevel().getBlock(this.getPosition().sub(0, 1, 0).toInt());
+        if (block.getState().getType() == MAGMA) block.requireComponent(BlockComponents.ON_ENTITY_COLLIDE).execute(block, this);
+        return hasUpdate;
     }
 
     protected boolean canBreatheUnderwater() {
@@ -247,6 +244,13 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         this.inPowderSnow = true;
     }
 
+    public void freezeForTicks(int ticks) {
+        checkArgument(ticks >= 0, "ticks cannot be negative");
+        if (!this.isFreezeTickingLocked() && this.canFreeze()) {
+            this.setFreezeTicks(this.getFreezeTicks() + Math.min(ticks, this.getMaxFreezeTicks() - this.getFreezeTicks()));
+        }
+    }
+
     private void tickFreezing(int tickDiff) {
         if (this.isFreezeTickingLocked()) {
             this.consumeInPowderSnow();
@@ -254,9 +258,10 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         }
 
         boolean canFreeze = this.canFreeze();
+        boolean hasFreezingEffect = this.hasPotionEffect(EffectTypes.FREEZING);
         if (this.consumeInPowderSnow() && canFreeze) {
             this.setFreezeTicks(this.getFreezeTicks() + tickDiff);
-        } else {
+        } else if (!canFreeze || !hasFreezingEffect) {
             this.setFreezeTicks(this.getFreezeTicks() - 2 * tickDiff);
         }
 
@@ -267,7 +272,7 @@ public abstract class EntityLiving extends CloudEntity implements Living {
         int previousTicksLived = Math.max(0, this.ticksLived - tickDiff);
         int damagePulses = this.ticksLived / 40 - previousTicksLived / 40;
         for (int pulse = 0; pulse < damagePulses; pulse++) {
-            if (this.damage(1, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
+            if (this.damage(hasFreezingEffect ? 1.5f : 1f, DamageSource.of(DamageTypes.FREEZE)) && this instanceof CloudPlayer) {
                 this.getLevel().playSound(this.getPosition(), SoundTypes.MOB_PLAYER_HURT_FREEZE);
             }
         }

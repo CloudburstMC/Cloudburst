@@ -1,94 +1,53 @@
 package org.cloudburstmc.server.level.light;
 
 import lombok.experimental.UtilityClass;
-import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.math.vector.Vector3i;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+/**
+ * Writes a chunk's block light from scratch and seeds propagation.
+ */
 @UtilityClass
 public class BlockLightEngine {
 
-    public static void update(Level level, Collection<Vector3i> changed) {
-        update(new ChunkLightAccess(level, LightAccess.Type.BLOCK), changed);
-    }
+    /**
+     * Initializes a column band's emission and queues its light sources.
+     * Call every band in ascending order before propagating the queued sources.
+     *
+     * @param band  the column-band index, starting at zero
+     * @param bands the positive number of column bands
+     */
+    public static void initializeBand(LightAccess access, int chunkX, int chunkZ, int band, int bands, LightPropagation into) {
+        int minX = chunkX << 4;
+        int minZ = chunkZ << 4;
+        int fromX = LightPositions.bandFromX(band, bands);
+        int toX = LightPositions.bandToX(band, bands);
 
-    public static List<Vector3i> initialize(LightAccess access, int chunkX, int chunkZ) {
-        List<Vector3i> updates = new ArrayList<>();
-        for (int x = 0; x < 16; x++) {
+        for (int x = fromX; x < toX; x++) {
             for (int z = 0; z < 16; z++) {
                 for (int y = access.minHeight(); y < access.maxHeight(); y++) {
-                    Vector3i position = Vector3i.from((chunkX << 4) + x, y, (chunkZ << 4) + z);
-                    LightAccess.Sample sample = access.read(position);
-                    if (sample == null) {
-                        continue;
+                    int emission = access.states().emission(
+                            access.primary(minX + x, y, minZ + z),
+                            access.secondary(minX + x, y, minZ + z)
+                    );
+
+                    if (access.light(minX + x, y, minZ + z) != emission) {
+                        access.setLight(minX + x, y, minZ + z, emission);
                     }
 
-                    int emission = sample.emission();
-                    if (sample.light() != emission) {
-                        access.write(position, emission);
-                        updates.add(position);
-                    } else if (emission > 0 || x == 0 || x == 15 || z == 0 || z == 15) {
-                        updates.add(position);
-                    }
-                }
-            }
-        }
-
-        return updates;
-    }
-
-    public static void update(LightAccess access, Collection<Vector3i> changed) {
-        ArrayDeque<Vector3i> queue = new ArrayDeque<>();
-        Set<Vector3i> pending = new HashSet<>();
-        for (Vector3i position : changed) {
-            enqueue(queue, pending, position);
-            for (Direction direction : Direction.values()) {
-                enqueue(queue, pending, direction.relative(position));
-            }
-        }
-
-        while (!queue.isEmpty()) {
-            Vector3i position = queue.removeFirst();
-            pending.remove(position);
-            LightAccess.Sample sample = access.read(position);
-            if (sample == null) {
-                continue;
-            }
-
-            int light = sample.emission();
-            int attenuation = Math.max(1, sample.opacity());
-            if (light < 15 && attenuation < 15) {
-                for (Direction direction : Direction.values()) {
-                    LightAccess.Sample neighbor = access.read(direction.relative(position));
-                    if (neighbor != null && neighbor.light() - attenuation > light
-                            && !LightOcclusion.occludes(access.registry(), neighbor, sample, direction.getOpposite())) {
-                        light = Math.max(light, neighbor.light() - attenuation);
+                    if (emission > 0) {
+                        into.source(LightPositions.pack(minX + x, y, minZ + z));
                     }
                 }
             }
+        }
 
-            light = Math.clamp(light, 0, 15);
-            if (sample.light() == light) {
-                continue;
-            }
-
-            access.write(position, light);
-            for (Direction direction : Direction.values()) {
-                enqueue(queue, pending, direction.relative(position));
-            }
+        if (band == bands - 1) {
+            LightPositions.forNeighbourBorder(chunkX, chunkZ, access.minHeight(), access.maxHeight(), (x, y, z, intoChunk) -> sourceIfLit(access, into, x, y, z));
         }
     }
 
-    private static void enqueue(ArrayDeque<Vector3i> queue, Set<Vector3i> pending, Vector3i position) {
-        if (pending.add(position)) {
-            queue.addLast(position);
+    private static void sourceIfLit(LightAccess access, LightPropagation into, int x, int y, int z) {
+        if (access.isLoaded(x, z) && access.light(x, y, z) > 0) {
+            into.source(LightPositions.pack(x, y, z));
         }
     }
 }

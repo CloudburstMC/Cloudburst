@@ -15,5 +15,4 @@ tasks.register<JavaExec>("generateVanillaData") {
 dependencies {
     implementation(libs.bedrock.codec)
     implementation(libs.jackson.databind)
-    implementation(libs.javapoet)
 }

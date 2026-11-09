@@ -1,5 +1,4 @@
 {
-  "format_version": "1.26.30",
   "components": [
     "minecraft:climate",
     "minecraft:creature_spawn_probability",

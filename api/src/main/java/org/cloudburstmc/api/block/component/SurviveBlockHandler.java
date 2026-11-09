@@ -3,13 +3,16 @@ package org.cloudburstmc.api.block.component;
 import org.cloudburstmc.api.block.Block;
 
 /**
- * Determines whether a block can remain at its current position.
+ * Determines whether the supplied block states can remain at their level position.
+ * The states may describe a proposal that has not been placed.
  */
 @FunctionalInterface
 public interface SurviveBlockHandler {
 
     /**
-     * @param block the block to evaluate
+     * Evaluates support without changing blocks, firing events or scheduling updates.
+     *
+     * @param block the captured or proposed block to evaluate
      * @return whether the block can survive
      */
     boolean execute(Block block);

@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.block;
 
 import org.cloudburstmc.api.block.Block;
+import org.cloudburstmc.api.block.BlockPlacementContext;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
@@ -24,10 +25,14 @@ class CandlePlacementTest {
 
         for (int count = 1; count <= 4; count++) {
             Block block = InterfaceProxy.create(Block.class, Map.of("getState", state));
-            boolean replaceable = CandleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockTypes.RED_CANDLE.getDefaultState(), player, Direction.UP, Vector3f.ZERO);
+            boolean replaceable = CandleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockTypes.RED_CANDLE.getDefaultState(),
+                    new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, player));
             assertEquals(count < 4, replaceable);
             if (replaceable) {
-                state = CandleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(BlockTypes.RED_CANDLE.getDefaultState(), block, player, Direction.UP, Vector3f.ZERO);
+                state = CandleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(
+                        BlockTypes.RED_CANDLE.getDefaultState(), block, player, Direction.UP, Vector3f.ZERO);
+
+                assertNotNull(state, "Matching candles should stack");
                 assertEquals(count, state.ensureTrait(BlockTraits.CANDLES));
                 assertTrue(state.ensureTrait(BlockTraits.IS_LIT));
             }
@@ -37,20 +42,26 @@ class CandlePlacementTest {
     @Test
     void rejectsDifferentColoursForStacking() {
         Block block = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.CANDLE.getDefaultState()));
-        assertFalse(CandleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockTypes.RED_CANDLE.getDefaultState(), null, Direction.UP, Vector3f.ZERO));
+        assertFalse(CandleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockTypes.RED_CANDLE.getDefaultState(),
+                new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, null)));
     }
 
     @Test
     void combinesCandlesWhileSneakPlacingAgainstAnAdjacentBlock() {
         Player sneaking = InterfaceProxy.create(Player.class, Map.of("isSneaking", true));
+        Block clicked = InterfaceProxy.create(Block.class, Map.of("getState", BlockTypes.STONE.getDefaultState()));
+        BlockPlacementContext context = new BlockPlacementContext(clicked, Direction.EAST, Vector3f.from(1, 0.5f, 0.5f), sneaking);
         BlockState state = BlockTypes.CANDLE.getDefaultState().withTrait(BlockTraits.IS_LIT, true);
         for (int count = 1; count <= 4; count++) {
             Block block = InterfaceProxy.create(Block.class, Map.of("getState", state));
             boolean replaceable = CandleBlockHandlers.CAN_BE_REPLACED.execute(
-                    block, BlockTypes.CANDLE.getDefaultState(), sneaking, Direction.EAST, Vector3f.from(1, 0.5f, 0.5f));
+                    block, BlockTypes.CANDLE.getDefaultState(), context);
             assertEquals(count < 4, replaceable);
             if (replaceable) {
-                state = CandleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(BlockTypes.CANDLE.getDefaultState(), block, sneaking, Direction.EAST, Vector3f.from(1, 0.5f, 0.5f));
+                state = CandleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(
+                        BlockTypes.CANDLE.getDefaultState(), block, sneaking, context.clickedFace(), context.clickPosition());
+
+                assertNotNull(state, "Sneaking should not prevent candle stacking");
                 assertEquals(count, state.ensureTrait(BlockTraits.CANDLES));
                 assertTrue(state.ensureTrait(BlockTraits.IS_LIT));
             }

@@ -12,6 +12,7 @@ import org.cloudburstmc.api.potion.EffectTypes;
 import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.EntityLiving;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -69,7 +70,7 @@ public class ActivePotionEffect {
             return false;
         }
 
-        if (this.type == EffectTypes.SATURATION || this.type == EffectTypes.HUNGER) {
+        if (this.type == EffectTypes.SATURATION || this.type == EffectTypes.HUNGER || this.type == EffectTypes.FREEZING) {
             return true;
         }
 
@@ -103,6 +104,8 @@ public class ActivePotionEffect {
             player.getFoodData().eat(nutrition, nutrition * 2.0f);
         } else if (this.type == EffectTypes.HUNGER && entity instanceof CloudPlayer player) {
             player.addExhaustion(0.005f * (this.amplifier + 1), ExhaustionReason.HUNGER_EFFECT);
+        } else if (this.type == EffectTypes.FREEZING && entity instanceof EntityLiving living) {
+            living.freezeForTicks(1);
         }
     }
 

@@ -1,4 +1,3 @@
-config-version: 1
 
 # Advanced configuration file for Cloudburst
 # Some of these settings are safe, others can break your server if modified incorrectly
@@ -15,17 +14,18 @@ settings:
   deprecated-verbose: true
 
 network:
-  identity-file: keys/host.pem
-  advertised-addresses:
-    - "203.0.113.10:19132"
-    - "[2001:db8::1]:19132"
-  tls-certificate: tls/fullchain.pem
-  tls-private-key: tls/private.pem
   max-connections: 64
   max-connections-per-address: 4
   max-pending-joins: 16
-  handshake-timeout-seconds: 20
   login-timeout-seconds: 90
+  builtin:
+    identity-file: keys/host.pem
+    advertised-addresses:
+      - "203.0.113.10:19132"
+      - "[2001:db8::1]:19132"
+    tls-certificate: tls/fullchain.pem
+    tls-private-key: tls/private.pem
+    handshake-timeout-seconds: 20
 
 debug:
   # If > 1, it will show debug messages in the console
@@ -36,27 +36,8 @@ debug:
     - "LevelChunkPacket"
   uncaught-exception-reports: false
 
-timings:
-  # Enable core and plugin timings by default
+spark:
   enabled: false
-  # Enable monitoring at verbose level, include high-frequency timings
-  verbose: false
-  # Interval between history frames in ticks
-  # Default is 5 minutes (6000 ticks)
-  history-interval: 6000
-  # Length of the whole timing history in ticks
-  # Default is 1 hour (72000 ticks)
-  # This value is capped at a maximum of history-interval * 12
-  history-length: 72000
-  # For special cases of servers with special permission to bypass the max
-  # This max helps keep data file sizes reasonable for processing on Aikar's Timing parser side
-  # Setting this will not help you bypass the max unless Aikar has added an exception on the API side
-  bypass-max: false
-  # If set to true, name of your server won't be sent
-  privacy: false
-  # Settings sections to ignore. These sections won't be sent to Aikar's Timing parser
-  # Example formats:
-  ignore: []
 
 level-storage:
   # The default format that levels will use when created

@@ -2,6 +2,7 @@ package org.cloudburstmc.server.potion;
 
 import org.cloudburstmc.api.potion.*;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,7 @@ class PotionCatalogTest {
 
     private static final List<String> EFFECT_IDS = List.of(
             "absorption", "bad_omen", "blindness", "breath_of_the_nautilus", "conduit_power", "darkness",
-            "fatal_poison", "fire_resistance", "haste", "health_boost", "hunger", "infested",
+            "fatal_poison", "fire_resistance", "freezing", "haste", "health_boost", "hunger", "infested",
             "instant_damage", "instant_health", "invisibility", "jump_boost", "levitation", "mining_fatigue",
             "nausea", "night_vision", "oozing", "poison", "raid_omen", "regeneration", "resistance",
             "saturation", "slow_falling", "slowness", "speed", "strength", "trial_omen", "village_hero",
@@ -22,8 +23,8 @@ class PotionCatalogTest {
     );
 
     private static final List<String> POTION_IDS = List.of(
-            "awkward", "fire_resistance", "harming", "healing", "infested", "invisibility", "leaping",
-            "long_fire_resistance", "long_invisibility", "long_leaping", "long_mundane", "long_nightvision",
+            "awkward", "fire_resistance", "freezing", "harming", "healing", "infested", "invisibility", "leaping",
+            "long_fire_resistance", "long_freezing", "long_invisibility", "long_leaping", "long_mundane", "long_nightvision",
             "long_poison", "long_regeneration", "long_slow_falling", "long_slowness", "long_strength",
             "long_swiftness", "long_turtle_master", "long_water_breathing", "long_weakness", "mundane",
             "nightvision", "oozing", "poison", "regeneration", "slow_falling", "slowness", "strength",
@@ -89,5 +90,25 @@ class PotionCatalogTest {
                 new PotionEffect(EffectTypes.SLOWNESS, 400, 3),
                 new PotionEffect(EffectTypes.RESISTANCE, 400, 2)
         ), PotionTypes.TURTLE_MASTER.getEffects());
+    }
+
+    @Test
+    void freezingLastsFortyFiveSeconds() {
+        assertEquals(List.of(new PotionEffect(EffectTypes.FREEZING, 900, 0)), PotionTypes.FREEZING.getEffects());
+    }
+
+    @Test
+    void extendedFreezingLastsNinetySeconds() {
+        assertEquals(List.of(new PotionEffect(EffectTypes.FREEZING, 1800, 0)), PotionTypes.LONG_FREEZING.getEffects());
+    }
+
+    @Test
+    void freezingIsHarmful() {
+        assertEquals(EffectCategory.HARMFUL, EffectTypes.FREEZING.getCategory());
+    }
+
+    @Test
+    void freezingUsesItsParticleColor() {
+        assertEquals(Vector3i.from(158, 238, 238), EffectTypes.FREEZING.getColor());
     }
 }

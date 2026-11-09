@@ -10,10 +10,8 @@ import org.cloudburstmc.api.entity.damage.DamageSource;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.event.block.EntityBlockFormEvent;
 import org.cloudburstmc.api.level.gamerule.GameRules;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.entity.passive.EntitySnowGolem;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.biome.CloudBiome;
@@ -56,12 +54,7 @@ public final class SnowGolemEntityHandlers {
             int z = GenericMath.floor(snowGolem.getZ() + (((index >> 1) & 1) * 2 - 1) * 0.25f);
 
             Block block = snowGolem.getLevel().getBlock(x, y, z);
-            if (block.getState() != BlockStates.AIR) {
-                continue;
-            }
-
-            Block below = block.getSide(Direction.DOWN);
-            if (!BlockSupport.isFaceSturdy(snowGolem.getLevel(), below.getPosition(), Direction.UP)) {
+            if (block.getState() != BlockStates.AIR || !BlockStates.SNOW_LAYER.isSupported(block)) {
                 continue;
             }
 

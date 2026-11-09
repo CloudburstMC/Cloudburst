@@ -1,7 +1,9 @@
 package org.cloudburstmc.server.block.component;
 
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.CloudBlockType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -18,8 +20,8 @@ class LiquidBlockHandlersTest {
     }
 
     private static LiquidState liquidState(String id, LiquidType liquidType) {
-        BlockType blockType = BlockType.of(Identifier.parse("test:" + id), BlockTraits.LIQUID_DEPTH);
-        BlockRegistrationAccess.bindLiquidType(blockType, liquidType);
-        return LiquidState.of(blockType.getDefaultState());
+        BlockType blockType = BlockRegistry.get().createType(Identifier.parse("test:" + id), BlockTraits.LIQUID_DEPTH);
+        CloudBlockType.require(blockType).bindLiquidType(liquidType);
+        return blockType.getDefaultState().getLiquidState();
     }
 }

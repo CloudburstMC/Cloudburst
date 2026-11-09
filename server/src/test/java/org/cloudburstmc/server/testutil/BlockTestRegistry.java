@@ -17,7 +17,7 @@ public class BlockTestRegistry {
     }
 
     private static CloudBlockRegistry createRegistry() {
-        CloudBlockRegistry registry = new CloudBlockRegistry(CloudItemRegistry.get());
+        CloudBlockRegistry registry = CloudBlockRegistry.initialize(CloudItemRegistry.get());
         registry.close();
         return registry;
     }

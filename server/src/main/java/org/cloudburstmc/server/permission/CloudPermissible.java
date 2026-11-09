@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.permission;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import org.cloudburstmc.api.permission.*;
 import org.cloudburstmc.api.plugin.PluginContainer;
 import org.cloudburstmc.server.CloudServer;
@@ -129,34 +127,32 @@ public final class CloudPermissible implements Permissible {
     }
 
     private void rebuild() {
-        try (Timing ignored = Timings.permissibleCalculationTimer.startTiming()) {
-            this.effectivePermissions.clear();
-            boolean operator = this.isOp();
-            Collection<Permission> definitions = this.manager.permissions();
-            for (Permission permission : definitions) {
-                if (permission.defaultValue().grants(operator)) {
-                    this.apply(this.effectivePermissions, permission.name(), true, null, new LinkedHashSet<>());
-                }
+        this.effectivePermissions.clear();
+        boolean operator = this.isOp();
+        Collection<Permission> definitions = this.manager.permissions();
+        for (Permission permission : definitions) {
+            if (permission.defaultValue().grants(operator)) {
+                this.apply(this.effectivePermissions, permission.name(), true, null, new LinkedHashSet<>());
             }
+        }
 
-            for (Permission permission : definitions) {
-                if (permission.defaultValue().grants(operator)) {
-                    this.effectivePermissions.put(permission.name(),
-                            new EffectivePermission(permission.name(), true, null));
-                }
+        for (Permission permission : definitions) {
+            if (permission.defaultValue().grants(operator)) {
+                this.effectivePermissions.put(permission.name(),
+                        new EffectivePermission(permission.name(), true, null));
             }
+        }
 
-            for (CloudPermissionAttachment attachment : this.attachments) {
-                Map<String, Boolean> overrides = attachment.getPermissions();
-                Map<String, EffectivePermission> resolved = new LinkedHashMap<>();
-                overrides.forEach((name, value) ->
-                        this.apply(resolved, name, value, attachment, new LinkedHashSet<>()));
-                overrides.forEach((name, value) -> {
-                    String normalizedName = Permission.normalizeName(name);
-                    resolved.put(normalizedName, new EffectivePermission(normalizedName, value, attachment));
-                });
-                this.effectivePermissions.putAll(resolved);
-            }
+        for (CloudPermissionAttachment attachment : this.attachments) {
+            Map<String, Boolean> overrides = attachment.getPermissions();
+            Map<String, EffectivePermission> resolved = new LinkedHashMap<>();
+            overrides.forEach((name, value) ->
+                    this.apply(resolved, name, value, attachment, new LinkedHashSet<>()));
+            overrides.forEach((name, value) -> {
+                String normalizedName = Permission.normalizeName(name);
+                resolved.put(normalizedName, new EffectivePermission(normalizedName, value, attachment));
+            });
+            this.effectivePermissions.putAll(resolved);
         }
     }
 

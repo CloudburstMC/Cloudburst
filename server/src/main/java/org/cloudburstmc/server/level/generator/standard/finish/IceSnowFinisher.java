@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.block.SupportType;
+import org.cloudburstmc.api.block.component.BlockShapeContext;
 import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.Identifier;
-import org.cloudburstmc.server.block.util.BlockSupport;
+import org.cloudburstmc.server.block.component.SnowLayerBlockHandlers;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.level.generator.GenerationRegion;
 import org.cloudburstmc.server.level.generator.standard.StandardGenerator;
@@ -66,7 +65,8 @@ public class IceSnowFinisher implements Finisher {
             return;
         }
 
-        if (BlockSupport.isFaceSturdy(chunk.getLevel().getServer().getBlockRegistry(), surfaceState, Direction.UP, SupportType.FULL)) {
+        if (SnowLayerBlockHandlers.canBeSupportedBy(
+                chunk.getLevel().getServer().getBlockRegistry(), surfaceState, BlockShapeContext.empty())) {
             level.setBlockState(blockX, snowY, blockZ, BlockStates.SNOW_LAYER);
         }
     }

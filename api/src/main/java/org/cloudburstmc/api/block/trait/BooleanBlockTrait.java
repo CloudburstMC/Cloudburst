@@ -1,63 +1,46 @@
 package org.cloudburstmc.api.block.trait;
 
-import com.google.common.collect.ImmutableList;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+/**
+ * A trait accepting {@code false} and {@code true}.
+ */
 public final class BooleanBlockTrait extends BlockTrait<Boolean> {
-    private static final ImmutableList<Boolean> VALUES = ImmutableList.of(Boolean.FALSE, Boolean.TRUE);
 
-    private final boolean defaultValue;
-
-    private BooleanBlockTrait(String name, @Nullable String vanillaName, boolean defaultValue, boolean onlySerialize) {
-        super(Identifier.parse(name), vanillaName, Boolean.class, VALUES, onlySerialize);
-        this.defaultValue = defaultValue;
+    private BooleanBlockTrait(String name, boolean defaultValue) {
+        super(Identifier.parse(name), Boolean.class, List.of(false, true), defaultValue);
     }
 
+    /**
+     * @param name the trait identifier
+     * @return a trait whose default is false
+     */
     public static BooleanBlockTrait of(String name) {
-        return of(name, null, false);
+        return of(name, false);
     }
 
-    public static BooleanBlockTrait of(String name, @Nullable String vanillaName) {
-        return of(name, vanillaName, false);
-    }
-
+    /**
+     * @param name         the trait identifier
+     * @param defaultValue the default value
+     * @return the trait
+     */
     public static BooleanBlockTrait of(String name, boolean defaultValue) {
-        return of(name, null, defaultValue);
+        return new BooleanBlockTrait(name, defaultValue);
     }
 
-    public static BooleanBlockTrait of(String name, @Nullable String vanillaName, boolean defaultValue) {
-        return of(name, vanillaName, defaultValue, false);
-    }
-
-    public static BooleanBlockTrait of(String name, @Nullable String vanillaName, boolean defaultValue, boolean onlySerialize) {
-        checkNotNull(name, "name");
-        return new BooleanBlockTrait(name, vanillaName, defaultValue, onlySerialize);
-    }
-
+    /**
+     * Accepts {@code true} and {@code false}, ignoring case.
+     */
     @Override
-    public Boolean getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    @Override
-    public int getIndex(Object value) {
-        return getIndex((boolean) value);
-    }
-
-    public int getIndex(boolean value) {
-        return value ? 1 : 0;
-    }
-
-    @Override
-    public Boolean parseValue(String text) {
-        return Boolean.parseBoolean(text);
-    }
-
-    @Override
-    public Boolean parseStorageValue(Object value) {
-        return (byte) value == 1;
+    public Optional<Boolean> parseValue(String text) {
+        Objects.requireNonNull(text, "text");
+        if (text.equalsIgnoreCase("true")) {
+            return Optional.of(true);
+        }
+        return text.equalsIgnoreCase("false") ? Optional.of(false) : Optional.empty();
     }
 }

@@ -21,10 +21,6 @@ import tools.jackson.databind.annotation.JsonNaming;
 public class LevelConfiguration {
 
     @Builder.Default
-    @SettingConstraint(min = 1, max = 1)
-    private int configVersion = ConfigurationVersions.CURRENT;
-
-    @Builder.Default
     private Level level = new Level();
 
     @Builder.Default

@@ -3,10 +3,13 @@ package org.cloudburstmc.server.level.provider.migration;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.blockstateupdater.BlockStateUpdaters;
 import org.cloudburstmc.nbt.*;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.block.BlockStateCodec;
 import org.cloudburstmc.server.registry.RegistryUtils;
+import tools.jackson.core.type.TypeReference;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,15 +17,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Converts Nukkit numeric block references at the world import boundary.
- * Unknown references fail conversion rather than losing blocks or their metadata.
+ * Resolves Nukkit numeric block references and saved block names using pinned mappings.
+ * Unmapped references fail conversion.
  */
 public class NukkitBlockStateConverter {
 
     private final Map<Long, NbtMap> states;
+    private final Map<String, Integer> saveIds;
     private final Map<Long, BlockState> resolved = new ConcurrentHashMap<>();
 
     public NukkitBlockStateConverter() throws IOException {
+        try (InputStream input = RegistryUtils.getOrAssertResource("migration/nukkit/block_save_ids.json")) {
+            this.saveIds = Map.copyOf(ServerJson.MAPPER.readValue(input, new TypeReference<Map<String, Integer>>() {}));
+        }
+
         try (NBTInputStream input = NbtUtils.createGZIPReader(RegistryUtils.getOrAssertResource("migration/nukkit/block_states.nbt"))) {
             Object root = input.readTag();
             if (!(root instanceof NbtList<?> palette) || palette.getType() != NbtType.COMPOUND) {
@@ -51,6 +59,20 @@ public class NukkitBlockStateConverter {
         }
     }
 
+    /**
+     * Resolves the saved block class name used by Anvil scheduled ticks to its numeric ID.
+     */
+    public int readSaveId(String name) {
+        Integer id = this.saveIds.get(name);
+        if (id == null) {
+            throw new IllegalArgumentException("Unmapped Nukkit block save ID: " + name);
+        }
+        return id;
+    }
+
+    /**
+     * Resolves a numeric ID and metadata using the pinned mapping, rejecting unmapped combinations.
+     */
     public BlockState read(int id, int metadata) {
         long key = key(id, metadata);
         return this.resolved.computeIfAbsent(key, ignored -> {
@@ -63,11 +85,17 @@ public class NukkitBlockStateConverter {
         });
     }
 
+    /**
+     * Upgrades saved named states, including states containing legacy numeric metadata.
+     */
     public BlockState readNamed(NbtMap tag) {
         NbtMap state = tag.containsKey("val") ? BlockStateUpdaters.updateBlockState(tag, tag.getInt("version")) : tag;
         return BlockStateCodec.read(state);
     }
 
+    /**
+     * Converts embedded block references and normalizes position and motion vectors to floats.
+     */
     public NbtMap convertEntity(NbtMap tag) {
         NbtMapBuilder converted = tag.toBuilder();
         convertVector(tag, converted, "Pos");
@@ -92,6 +120,9 @@ public class NukkitBlockStateConverter {
         return converted.build();
     }
 
+    /**
+     * Converts flower-pot and moving-block references, including nested moving block entities.
+     */
     public NbtMap convertBlockEntity(NbtMap tag) {
         NbtMapBuilder converted = tag.toBuilder();
         if (tag.getString("id").equals("FlowerPot") && tag.containsKey("item")) {

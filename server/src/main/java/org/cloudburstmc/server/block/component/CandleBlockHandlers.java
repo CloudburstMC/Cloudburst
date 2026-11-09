@@ -12,7 +12,7 @@ import org.cloudburstmc.server.block.util.BlockSupport;
 @UtilityClass
 public class CandleBlockHandlers {
 
-    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, player, face, click) ->
+    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, context) ->
             block.getState().getType() == replacement.getType() && block.getState().ensureTrait(BlockTraits.CANDLES) < 3;
 
     public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) ->

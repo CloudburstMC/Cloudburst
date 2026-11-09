@@ -16,6 +16,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.configuration.codec.BlockStateConfigurationCodec;
 import org.cloudburstmc.server.configuration.codec.ConfigurationResolvers;
+import org.cloudburstmc.server.configuration.codec.ItemConfigurationCodec;
 import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
@@ -23,8 +24,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -101,6 +104,19 @@ class ConfigurationCodecTest {
     void emptyItemRoundTrips() {
         YamlConfigurationLoader loader = new YamlConfigurationLoader();
         assertEquals(ItemStack.EMPTY, loader.decode(loader.encode(ItemStack.EMPTY), ItemStack.class));
+    }
+
+    @Test
+    void itemConfigurationContainsOnlyPayloadFields() {
+        ItemConfigurationCodec codec = new ItemConfigurationCodec(new YamlConfigurationLoader());
+        Map<String, Object> encoded = codec.encode(ItemStack.EMPTY);
+
+        assertEquals(Set.of("count", "item", "components"), encoded.keySet());
+        assertEquals(ItemStack.EMPTY, codec.decode(encoded));
+
+        Map<String, Object> invalid = new LinkedHashMap<>(encoded);
+        invalid.put("unknown-field", true);
+        assertThrows(IllegalArgumentException.class, () -> codec.decode(invalid));
     }
 
     @Test

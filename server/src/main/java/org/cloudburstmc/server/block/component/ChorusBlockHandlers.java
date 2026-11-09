@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
+import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.entity.Projectile;
 import org.cloudburstmc.api.event.block.BlockGrowEvent;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
@@ -16,21 +17,29 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.Direction;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.random.RandomGenerator;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChorusBlockHandlers {
 
     public static final SurviveBlockHandler PLANT_CAN_SURVIVE = ChorusBlockHandlers::canPlantSurvive;
+
     public static final SurviveBlockHandler FLOWER_CAN_SURVIVE = ChorusBlockHandlers::canFlowerSurvive;
 
-    public static final BlockLootHandler PLANT_LOOT = (block, context) ->
-            context.random().nextBoolean()
-                    ? List.of(ItemStack.from(ItemTypes.CHORUS_FRUIT))
-                    : List.of();
+    public static final PlacementStateHandler PLANT_PLACEMENT = (state, block, player, face, clickPosition) -> resolveConnections(state, block::getSideState);
 
-    public static final NeighborBlockHandler PLANT_NEIGHBOUR_CHANGED = (block, neighbor) ->
+    public static final ComplexBlockHandler PLANT_ADDED = ChorusBlockHandlers::updateConnections;
+
+    public static final BlockLootHandler PLANT_LOOT = (block, context) -> context.random().nextBoolean() ? List.of(ItemStack.from(ItemTypes.CHORUS_FRUIT)) : List.of();
+
+    public static final NeighborBlockHandler PLANT_NEIGHBOUR_CHANGED = (block, neighbor) -> {
+        if (!canPlantSurvive(block)) {
             block.getLevel().scheduleUpdate(block.getPosition(), 1);
+        } else {
+            updateConnections(block);
+        }
+    };
 
     public static final NeighborBlockHandler FLOWER_NEIGHBOUR_CHANGED = (block, neighbor) -> {
         if (!neighbor.getPosition().equals(block.getPosition().add(0, 1, 0))) {
@@ -65,10 +74,39 @@ public class ChorusBlockHandlers {
         block.getLevel().breakBlock(block.getPosition(), ItemStack.EMPTY, null, true);
     };
 
+    public static BlockState resolveConnections(BlockState state, Function<Direction, BlockState> neighbors) {
+        for (Direction direction : Direction.values()) {
+            BlockState neighbor = neighbors.apply(direction);
+            boolean connected = neighbor.getType() == BlockTypes.CHORUS_PLANT
+                    || neighbor.getType() == BlockTypes.CHORUS_FLOWER
+                    || direction == Direction.DOWN && isPlantSupport(neighbor);
+            state = state.withTrait(connectionTrait(direction), connected);
+        }
+        return state;
+    }
+
+    private static void updateConnections(Block block) {
+        BlockState state = block.getState();
+        BlockState connected = resolveConnections(state, block::getSideState);
+        if (connected != state) {
+            block.set(connected, false, true);
+        }
+    }
+
+    private static BooleanBlockTrait connectionTrait(Direction direction) {
+        return switch (direction) {
+            case DOWN -> BlockTraits.CONNECTION_DOWN;
+            case UP -> BlockTraits.CONNECTION_UP;
+            case NORTH -> BlockTraits.CONNECTION_NORTH;
+            case SOUTH -> BlockTraits.CONNECTION_SOUTH;
+            case WEST -> BlockTraits.CONNECTION_WEST;
+            case EAST -> BlockTraits.CONNECTION_EAST;
+        };
+    }
+
     private static boolean canPlantSurvive(Block block) {
         BlockState below = block.getSide(Direction.DOWN).getState();
-        boolean blockedVertically = block.getSide(Direction.UP).getState().getType() != BlockTypes.AIR
-                && below.getType() != BlockTypes.AIR;
+        boolean blockedVertically = block.getSide(Direction.UP).getState().getType() != BlockTypes.AIR && below.getType() != BlockTypes.AIR;
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             Block neighbor = block.getSide(direction);
@@ -155,7 +193,7 @@ public class ChorusBlockHandlers {
         if (growUp && horizontalNeighborsAreAir(above, null)
                 && above.getSide(Direction.UP).getState().getType() == BlockTypes.AIR) {
             if (spread(block, above, BlockStates.CHORUS_FLOWER.withTrait(BlockTraits.AGE, age))) {
-                block.set(BlockStates.CHORUS_PLANT, false, true);
+                block.set(resolveConnections(BlockStates.CHORUS_PLANT, block::getSideState), false, true);
                 block.getLevel().playSound(above.getPosition().toFloat(), SoundTypes.BLOCK_CHORUSFLOWER_GROW);
             }
             return;
@@ -176,7 +214,7 @@ public class ChorusBlockHandlers {
             }
 
             if (branched) {
-                block.set(BlockStates.CHORUS_PLANT, false, true);
+                block.set(resolveConnections(BlockStates.CHORUS_PLANT, block::getSideState), false, true);
                 return;
             }
         }

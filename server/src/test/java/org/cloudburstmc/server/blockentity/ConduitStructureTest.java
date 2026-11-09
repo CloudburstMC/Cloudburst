@@ -62,17 +62,17 @@ class ConduitStructureTest {
         BlockTestWorld world = completeFrame();
         Vector3i neighbor = ORIGIN.add(1, 0, 0);
         world.setState(neighbor, BlockTypes.OAK_SLAB.getDefaultState());
-        world.setLiquid(neighbor, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(neighbor, BlockStates.WATER.getLiquidState());
         assertTrue(scan(world).isHunting());
 
         world.setLiquid(neighbor, LiquidState.empty());
         world.setState(neighbor, BlockStates.AIR);
         assertFalse(scan(world).isActive());
 
-        world.setLiquid(neighbor, LiquidState.of(BlockStates.LAVA));
+        world.setLiquid(neighbor, BlockStates.LAVA.getLiquidState());
         assertFalse(scan(world).isActive());
 
-        world.setLiquid(neighbor, LiquidState.of(BlockStates.FLOWING_WATER.withTrait(BlockTraits.LIQUID_DEPTH, 3)));
+        world.setLiquid(neighbor, BlockStates.FLOWING_WATER.withTrait(BlockTraits.LIQUID_DEPTH, 3).getLiquidState());
         assertTrue(scan(world).isHunting());
     }
 
@@ -106,7 +106,7 @@ class ConduitStructureTest {
         }
 
         world.setState(ORIGIN, BlockTypes.CONDUIT.getDefaultState());
-        world.setLiquid(ORIGIN, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(ORIGIN, BlockStates.WATER.getLiquidState());
         return world;
     }
 

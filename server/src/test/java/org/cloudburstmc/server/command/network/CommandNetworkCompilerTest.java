@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CommandNetworkCompilerTest {
 
     @Test
-    void foldsContiguousExecutablePrefixesIntoOptionalParameters() {
+    void keepsLiteralPrefixesRequiredAndRepresentsBareExecutionSeparately() {
         LiteralCommandNode<CommandSourceStack> root = Commands.literal("test")
                 .executes(context -> 1)
                 .then(Commands.literal("first")
@@ -44,10 +44,11 @@ class CommandNetworkCompilerTest {
 
         List<CommandOverloadData> overloads = CommandNetworkCompiler.compileOverloads(root, source(), CommandNetworkData.DEFAULT);
 
-        assertEquals(1, overloads.size());
+        assertEquals(2, overloads.size());
         assertEquals(2, overloads.getFirst().getOverloads().length);
-        assertTrue(Arrays.stream(overloads.getFirst().getOverloads())
-                .allMatch(CommandParamData::isOptional));
+        assertFalse(overloads.getFirst().getOverloads()[0].isOptional());
+        assertTrue(overloads.getFirst().getOverloads()[1].isOptional());
+        assertEquals(0, overloads.getLast().getOverloads().length);
     }
 
     @Test

@@ -19,15 +19,20 @@ public final class ChunkTaskScheduler {
     private final TaskQueue generationQueue;
 
     public ChunkTaskScheduler(CloudLevel level, GlobalConfiguration.ChunkGeneration config) {
-        this.storageQueue = new TaskQueue(
-                level.getServer().getLevelManager().getIoExecutor(),
-                config.getLoadConcurrency()
-        );
+        this(level.getServer().getLevelManager().getIoExecutor(), level.getServer().getLevelManager().getGenerationExecutor(), config);
+    }
 
-        this.generationQueue = new TaskQueue(
-                level.getServer().getLevelManager().getGenerationExecutor(),
-                config.getGenerationConcurrency()
-        );
+    /**
+     * Creates a scheduler over the given executors, using the concurrency
+     * settings from the generation configuration.
+     *
+     * @param storage    the executor for storage reads and writes
+     * @param generation the executor for generation and light work
+     * @param config     the chunk-generation concurrency settings
+     */
+    ChunkTaskScheduler(Executor storage, Executor generation, GlobalConfiguration.ChunkGeneration config) {
+        this.storageQueue = new TaskQueue(storage, config.getLoadConcurrency());
+        this.generationQueue = new TaskQueue(generation, config.getGenerationConcurrency());
     }
 
     public CompletableFuture<CloudChunk> scheduleChunkLoad(int chunkX, int chunkZ, ChunkTaskPriority priority, Supplier<CloudChunk> task) {
@@ -57,10 +62,29 @@ public final class ChunkTaskScheduler {
 
     public CompletableFuture<CloudChunk> scheduleFinishing(int chunkX, int chunkZ, CloudChunk chunk, List<CloudChunk> neighbors, ChunkTaskPriority priority) {
         List<CloudChunk> neighborSnapshot = ImmutableList.copyOf(neighbors);
+
         return this.generationQueue.schedule(
                 new ChunkTaskIdentifier(ChunkTaskType.FINISH, CloudChunk.key(chunkX, chunkZ)),
                 priority,
                 () -> FinishingTask.INSTANCE.apply(chunk, neighborSnapshot)
+        );
+    }
+
+    /**
+     * Submits nonblocking light work at blocking priority without reserving a chunk area.
+     * Priority applies within this level's queue and does not interrupt active tasks.
+     *
+     * @param work a bounded light slice that must not wait for chunk locks
+     * @return task completion, failing if execution fails or submission is rejected
+     */
+    public CompletableFuture<Void> scheduleLight(Runnable work) {
+        return this.generationQueue.schedule(
+                new ChunkTaskIdentifier(ChunkTaskType.LIGHT, 0L),
+                ChunkTaskPriority.BLOCKING,
+                () -> {
+                    work.run();
+                    return null;
+                }
         );
     }
 
@@ -136,7 +160,9 @@ public final class ChunkTaskScheduler {
                         }
                     });
                 } catch (RejectedExecutionException e) {
-                    this.complete(task);
+                    // Drain rejections here instead of recursively scheduling the remaining queue.
+                    this.activeTasks--;
+                    this.updateActiveArea(task, false);
                     task.completeExceptionally(e);
                 }
             }

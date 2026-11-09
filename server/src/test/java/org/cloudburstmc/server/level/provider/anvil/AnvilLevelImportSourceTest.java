@@ -13,6 +13,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class AnvilLevelImportSourceTest {
 
     @Test
+    void emptyRegionsCompleteWithoutCreatingChunks(@TempDir Path directory) throws Exception {
+        Path regions = Files.createDirectory(directory.resolve("region"));
+        Files.write(regions.resolve("r.0.0.mca"), new byte[8192]);
+
+        try (AnvilLevelImportSource source = new AnvilLevelImportSource(directory, Runnable::run)) {
+            source.visitChunks((x, z) -> {
+                throw new AssertionError("Empty regions must not create chunk builders");
+            }, chunk -> {
+                throw new AssertionError("Empty regions must not emit chunks");
+            }).join();
+        }
+    }
+
+    @Test
     void openingMissingSourceDoesNotCreateDirectories(@TempDir Path directory) {
         Path source = directory.resolve("missing");
 

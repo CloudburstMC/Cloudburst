@@ -60,7 +60,7 @@ public class StairBlockHandlers {
             }
         }
 
-        return state.withTrait(BlockTraits.STAIR_SHAPE, StairShape.NONE);
+        return state.withTrait(BlockTraits.STAIR_SHAPE, StairShape.STRAIGHT);
     }
 
     private static boolean canTakeShape(Level level, Vector3i position, BlockState state, Direction direction) {

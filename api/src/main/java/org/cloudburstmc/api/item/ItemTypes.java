@@ -568,6 +568,7 @@ public class ItemTypes {
     public static final ItemType DIRT = type("dirt");
     public static final ItemType DIRT_WITH_ROOTS = type("dirt_with_roots");
     public static final ItemType DISC_FRAGMENT_5 = type("disc_fragment_5");
+    public static final ItemType DISC_PRESS = type("disc_press");
     public static final ItemType DISPENSER = type("dispenser");
     public static final ItemType DOLPHIN_SPAWN_EGG = type("dolphin_spawn_egg");
     public static final ItemType DONKEY_SPAWN_EGG = type("donkey_spawn_egg");
@@ -783,6 +784,7 @@ public class ItemTypes {
     public static final ItemType FRIEND_POTTERY_SHERD = type("friend_pottery_sherd");
     public static final ItemType FROG_SPAWN = type("frog_spawn");
     public static final ItemType FROG_SPAWN_EGG = type("frog_spawn_egg");
+    public static final ItemType FROSTBITE_SPAWN_EGG = type("frostbite_spawn_egg");
     public static final ItemType FROSTED_ICE = type("frosted_ice");
     public static final ItemType FURNACE = type("furnace");
     public static final ItemType GHAST_SPAWN_EGG = type("ghast_spawn_egg");
@@ -939,6 +941,8 @@ public class ItemTypes {
     public static final ItemType HUSK_SPAWN_EGG = type("husk_spawn_egg");
     public static final ItemType ICE = type("ice");
     public static final ItemType ICE_BOMB = type("ice_bomb");
+    public static final ItemType ICE_CRYSTAL = type("ice_crystal");
+    public static final ItemType ICICLE = type("icicle");
     public static final ItemType INFESTED_CHISELED_STONE_BRICKS = type("infested_chiseled_stone_bricks");
     public static final ItemType INFESTED_COBBLESTONE = type("infested_cobblestone");
     public static final ItemType INFESTED_CRACKED_STONE_BRICKS = type("infested_cracked_stone_bricks");

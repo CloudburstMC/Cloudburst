@@ -16,7 +16,7 @@ import java.util.List;
 @UtilityClass
 public class SeaPickleBlockHandlers {
 
-    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, player, face, click) ->
+    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, context) ->
             replacement.getType() == block.getState().getType() && block.getState().ensureTrait(BlockTraits.CLUSTER_COUNT) < 3;
 
     public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) ->

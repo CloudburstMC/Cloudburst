@@ -40,7 +40,8 @@ public class BlockComponents {
     public static final ComponentType<Integer> BUTTON_PRESS_DURATION_TICKS = ComponentType.of("button_press_duration_ticks", Integer.class);
 
     /**
-     * Checks whether a proposed block may initially be placed. Defaults to {@link #CAN_SURVIVE}.
+     * Checks whether a proposed block may initially be placed. By default, checks
+     * build limits, layer compatibility and {@link #CAN_SURVIVE} for its block layers.
      */
     public static final ComponentType<BooleanBlockHandler> CAN_BE_PLACED = ComponentType.of("can_be_placed", BooleanBlockHandler.class);
 
@@ -48,6 +49,11 @@ public class BlockComponents {
      * Checks whether placement may replace the existing block with the supplied state.
      */
     public static final ComponentType<ReplaceBlockHandler> CAN_BE_REPLACED = ComponentType.of("can_be_replaced", ReplaceBlockHandler.class);
+
+    /**
+     * Checks whether a falling block can replace this block state.
+     */
+    public static final ComponentType<BooleanBlockStateHandler> CAN_BE_REPLACED_BY_FALLING_BLOCK = ComponentType.of("can_be_replaced_by_falling_block", BooleanBlockStateHandler.class);
 
     /**
      * Checks whether block interaction may call {@link #USE}.
@@ -88,6 +94,12 @@ public class BlockComponents {
      * Checks whether a block carries direct redstone power to its neighbors.
      */
     public static final ComponentType<BooleanBlockStateHandler> CONDUCTS_REDSTONE = ComponentType.of("conducts_redstone", BooleanBlockStateHandler.class);
+
+    /**
+     * Determines whether redstone wire can connect to a block, independently of its signal strength.
+     * Defaults to rejecting connections.
+     */
+    public static final ComponentType<RedstoneConnectionHandler> CONNECTS_TO_REDSTONE_WIRE = ComponentType.of("connects_to_redstone_wire", RedstoneConnectionHandler.class);
 
     /**
      * Proposes fertilization without applying it. Accepted attempts may produce no changes.
@@ -144,6 +156,11 @@ public class BlockComponents {
      * Resolves the damage source used when a falling entity carrying this block lands on another entity.
      */
     public static final ComponentType<FallingBlockDamageSourceHandler> GET_FALLING_DAMAGE_SOURCE = ComponentType.of("get_falling_damage_source", FallingBlockDamageSourceHandler.class);
+
+    /**
+     * Determines the item to drop when a falling block breaks on landing.
+     */
+    public static final ComponentType<FallingBlockDropHandler> GET_FALLING_BREAK_DROP = ComponentType.of("get_falling_break_drop", FallingBlockDropHandler.class);
 
     /**
      * TODO: Implement block gravity queries.
@@ -207,11 +224,6 @@ public class BlockComponents {
      * TODO: Implement block pick eligibility checks.
      */
     public static final ComponentType<BooleanBlockHandler> MAY_PICK = ComponentType.of("may_pick", BooleanBlockHandler.class);
-
-    /**
-     * TODO: Implement placement face eligibility checks.
-     */
-    public static final ComponentType<MayPlaceBlockHandler> MAY_PLACE = ComponentType.of("may_place", MayPlaceBlockHandler.class);
 
     /**
      * TODO: Implement placement support eligibility checks.
@@ -326,6 +338,11 @@ public class BlockComponents {
      * Handles scheduled or explicitly requested block ticks. The random source may be {@code null}.
      */
     public static final ComponentType<TickBlockHandler> ON_TICK = ComponentType.of("on_tick", TickBlockHandler.class);
+
+    /**
+     * Determines how a falling block settles on landing.
+     */
+    public static final ComponentType<FallingBlockPlacementHandler> RESOLVE_FALLING_PLACEMENT = ComponentType.of("resolve_falling_placement", FallingBlockPlacementHandler.class);
 
     /**
      * Resolves the proposed state before survival, collision and placement checks, without changing the level.

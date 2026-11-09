@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.player.handler;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -55,6 +53,7 @@ import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.block.BlockPlacementResult;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.container.screen.CloudPlayerInventoryScreen;
 import org.cloudburstmc.server.entity.CloudEntity;
@@ -119,19 +118,17 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        try (Timing ignored = Timings.getReceiveDataPacketTiming(packet).startTiming()) {
-            if (log.isTraceEnabled() && !player.getServer().isIgnoredPacket(packet.getClass())) {
-                log.trace("Inbound {}: {}", player.getName(), packet);
-            }
-
-            DataPacketReceiveEvent receiveEvent = new DataPacketReceiveEvent(player, packet);
-            player.getServer().getEventManager().fire(receiveEvent);
-            if (receiveEvent.isCancelled()) {
-                return PacketSignal.HANDLED;
-            }
-
-            return packet.handle(this);
+        if (log.isTraceEnabled() && !player.getServer().isIgnoredPacket(packet.getClass())) {
+            log.trace("Inbound {}: {}", player.getName(), packet);
         }
+
+        DataPacketReceiveEvent receiveEvent = new DataPacketReceiveEvent(player, packet);
+        player.getServer().getEventManager().fire(receiveEvent);
+        if (receiveEvent.isCancelled()) {
+            return PacketSignal.HANDLED;
+        }
+
+        return packet.handle(this);
     }
 
     @Override
@@ -676,7 +673,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     private void handleItemUse(ItemInteraction interaction) {
         switch (interaction.actionType()) {
-            case 0 -> handleItemUseOnBlock(interaction.clientItem(), interaction.blockPosition(), interaction.face(), interaction.clickPosition(), interaction.repeated());
+            case 0 -> handleItemUseOnBlock(interaction);
             case 1 -> handleItemUseInAir(interaction.clientItem(), interaction.face());
             case 2 -> {
                 // Block destruction is processed through player block actions.
@@ -701,7 +698,11 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
     }
 
-    private void handleItemUseOnBlock(@Nullable ItemData clientItemData, Vector3i blockPos, Direction face, Vector3f clickPos, boolean repeated) {
+    private void handleItemUseOnBlock(ItemInteraction interaction) {
+        Vector3i blockPos = interaction.blockPosition();
+        Direction face = interaction.face();
+        Vector3f clickPos = interaction.clickPosition();
+
         boolean spamBug = System.currentTimeMillis() - lastRightClickTime < 110.0
                 && blockPos.distanceSquared(lastRightClickPos) < 0.00001
                 && face == lastRightClickFace;
@@ -713,7 +714,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
         lastRightClickTime = System.currentTimeMillis();
 
-        if (isHeldItemDesynced(clientItemData)) {
+        if (isHeldItemDesynced(interaction.clientItem())) {
             rollbackBlock(blockPos, face);
             return;
         }
@@ -723,10 +724,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return;
         }
 
+        CloudLevel level = player.getLevel();
+        Block target = level.getLoadedBlock(blockPos);
+        if (target == null || target.getState().getType() == BlockTypes.AIR) {
+            rollbackBlock(blockPos, face);
+            return;
+        }
+
         player.interruptBlocking();
 
-        CloudLevel level = player.getLevel();
-        Block target = level.getBlock(blockPos);
         Block side = target.getSide(face);
         ItemStack item = player.getInventory().getSelectedItem();
 
@@ -752,14 +758,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (!item.isEmpty()) {
-            ItemStack afterPlace = level.tryPlaceBlock(target, side, face, clickPos, item, player, true);
-            if (afterPlace != null) {
-                player.getInventory().setSelectedItem(afterPlace);
+            BlockPlacementResult placement = level.tryPlaceBlock(target, side, face, clickPos, item, player, true);
+            if (placement != null) {
+                player.getInventory().setSelectedItem(placement.remainingItem());
+                this.reconcilePlacementPrediction(target.getPosition(), side.getPosition(), placement.position());
                 return;
             }
         }
 
-        if (!item.isEmpty() && !repeated) {
+        if (!item.isEmpty() && !interaction.repeated()) {
             ItemStack afterUse = level.tryActivateItem(item, player);
             if (afterUse != null) {
                 this.blockItemActivationTick = player.getServer().getTick();
@@ -812,6 +819,21 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 if (afterUse.equals(useItem) && !player.isUsingItem()) {
                     player.sendHeldItemSlot();
                 }
+            }
+        }
+    }
+
+    private void reconcilePlacementPrediction(Vector3i clicked, Vector3i adjacent, Vector3i placed) {
+        Vector3i unplaced = placed.equals(clicked) ? adjacent : clicked;
+        if (unplaced.equals(placed)) {
+            return;
+        }
+
+        CloudLevel level = player.getLevel();
+        if (!level.isOutsideBuildHeight(unplaced.getY())) {
+            Block block = level.getLoadedBlock(unplaced);
+            if (block != null) {
+                level.sendBlocks(new CloudPlayer[]{player}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
             }
         }
     }
@@ -1500,9 +1522,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        try (Timing ignored2 = Timings.playerCommandTimer.startTiming()) {
-            player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage());
-        }
+        player.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(), playerCommandPreprocessEvent.getMessage());
 
         return PacketSignal.HANDLED;
     }
@@ -1514,8 +1534,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (packet.getType() == TextPacket.Type.CHAT) {
-            player.chat(packet.getMessage());
+            player.chat(packet.getMessage(CharSequence.class).toString());
         }
+
         return PacketSignal.HANDLED;
     }
 

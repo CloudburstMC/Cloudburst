@@ -3,34 +3,22 @@ package org.cloudburstmc.server.block.component;
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
-import org.cloudburstmc.api.block.component.*;
-import org.cloudburstmc.api.entity.damage.DamageSource;
-import org.cloudburstmc.api.entity.damage.DamageTypes;
+import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.event.block.BlockFormEvent;
 import org.cloudburstmc.api.event.block.BlockSpreadEvent;
-import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
-import org.cloudburstmc.api.item.ItemDataComponents;
-import org.cloudburstmc.api.item.ItemStack;
-import org.cloudburstmc.api.level.gamerule.GameRules;
 import org.cloudburstmc.api.level.particle.ParticleEmission;
 import org.cloudburstmc.api.level.particle.ParticleTypes;
-import org.cloudburstmc.api.level.sound.SoundTypes;
-import org.cloudburstmc.api.player.GameMode;
-import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.util.BoundingBox;
 import org.cloudburstmc.api.util.CollisionContext;
-import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.DripstoneThickness;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockShapeTransitions;
-import org.cloudburstmc.server.block.util.BlockSupport;
-import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.entity.projectile.EntityThrownTrident;
 import org.cloudburstmc.server.level.CloudLevel;
 
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
+
+import static org.cloudburstmc.server.block.component.SpeleothemBlockHandlers.hanging;
+import static org.cloudburstmc.server.block.component.SpeleothemBlockHandlers.loadedVertical;
 
 @UtilityClass
 public class PointedDripstoneBlockHandlers {
@@ -42,89 +30,11 @@ public class PointedDripstoneBlockHandlers {
     private static final int GROWTH_SEARCH_LIMIT = 7;
     private static final BoundingBox DRIP_SPACE = new BoundingBox(6 / 16f, 0, 6 / 16f, 10 / 16f, 1, 10 / 16f);
 
-    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) -> {
-        boolean hanging = player == null ? face == Direction.DOWN : player.getPitch() < 0;
-        if (!canSurvive(block, hanging)) {
-            hanging = !hanging;
-            if (!canSurvive(block, hanging)) {
-                return null;
-            }
-        }
-
-        return state.withTrait(BlockTraits.IS_HANGING, hanging).withTrait(BlockTraits.DRIPSTONE_THICKNESS, thickness(block, hanging, player == null || !player.isSneaking()));
-    };
-
-    public static final SurviveBlockHandler CAN_SURVIVE = block -> canSurvive(block, hanging(block.getState()));
-
-    public static final ComplexBlockHandler START_FALLING = PointedDripstoneBlockHandlers::fall;
-
-    public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
-        if (neighbor.getX() != block.getX() || neighbor.getZ() != block.getZ() || hanging(block.getState()) && block.getLevel().isUpdateScheduled(block.getPosition())) {
-            return;
-        }
-
-        if (!CAN_SURVIVE.execute(block)) {
-            block.getLevel().scheduleUpdate(block.getPosition(), hanging(block.getState()) ? 2 : 1);
-            return;
-        }
-
-        DripstoneThickness thickness = thickness(block, hanging(block.getState()), block.getState().ensureTrait(BlockTraits.DRIPSTONE_THICKNESS) == DripstoneThickness.MERGE);
-        BlockState updated = block.getState().withTrait(BlockTraits.DRIPSTONE_THICKNESS, thickness);
-        if (updated != block.getState()) {
-            block.set(updated, false, true);
-        }
-    };
-
-    public static final TickBlockHandler ON_TICK = (block, random) -> {
-        if (!hanging(block.getState())) {
-            if (!CAN_SURVIVE.execute(block)) {
-                block.getLevel().breakBlock(block.getPosition(), ItemStack.EMPTY, null, true);
-            }
-
-            return;
-        }
-
-        block.requireComponent(BlockComponents.START_FALLING).execute(block);
-    };
-
     public static final TickBlockHandler ON_RANDOM_TICK = (block, random) -> {
         RandomGenerator source = random == null ? ThreadLocalRandom.current() : random;
         transferFluid(block, source.nextFloat());
         if (source.nextFloat() < GROWTH_CHANCE) {
             grow(block, source);
-        }
-    };
-
-    public static final FallOnBlockHandler ON_FALL_ON = (block, entity, distance) -> {
-        if (!hanging(block.getState()) && isTip(block.getState(), false)) {
-            ((CloudEntity) entity).applyFallDamage(distance + 2.5f, 2, DamageSource.builder(DamageTypes.STALAGMITE).block(block).build());
-        } else {
-            ((CloudEntity) entity).applyFallDamage(distance);
-        }
-    };
-
-    public static final EntityBlockHandler ON_PROJECTILE_HIT = (block, entity) -> {
-        if (!(entity instanceof EntityThrownTrident trident) || trident.getMotion().lengthSquared() <= 0.36f
-                || !block.getLevel().getGameRules().get(GameRules.PROJECTILES_CAN_BREAK_BLOCKS)) {
-            return;
-        }
-
-        if (trident.getOwner() instanceof Player player) {
-            if (player.getGameMode() == GameMode.ADVENTURE
-                    && !trident.getTrident().getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()).contains(block.getState().getType())
-                    || player.isSpectator()
-                    || !player.isOp() && block.getLevel() instanceof CloudLevel level && level.isInSpawnRadius(block.getPosition())) {
-                return;
-            }
-        } else if (trident.getOwner() != null && !block.getLevel().getGameRules().get(GameRules.MOB_GRIEFING)) {
-            return;
-        }
-
-        BlockState replacement = LiquidStateAccess.blockState(block.getLiquid());
-        EntityChangeBlockEvent event = new EntityChangeBlockEvent(entity, block, replacement);
-        block.getLevel().getServer().getEventManager().fire(event);
-        if (!event.isCancelled() && block.getLevel().getBlockState(block.getPosition()) == block.getState()) {
-            block.getLevel().breakBlock(block.getPosition(), ItemStack.EMPTY, null, true);
         }
     };
 
@@ -237,7 +147,7 @@ public class PointedDripstoneBlockHandlers {
                 return;
             }
 
-            if (target.getState() == BlockStates.AIR && canSurvive(target, false)) {
+            if (target.getState() == BlockStates.AIR && SpeleothemBlockHandlers.canSurvive(target, BlockTypes.POINTED_DRIPSTONE, false)) {
                 Block below = loadedVertical(target, -1);
                 if (below != null && !below.getLiquid().getType().isSameFamily(LiquidTypes.WATER)) {
                     spread(tip, target, pointed(false, DripstoneThickness.TIP));
@@ -248,50 +158,6 @@ public class PointedDripstoneBlockHandlers {
             if (blocksDripping(target)) {
                 return;
             }
-        }
-    }
-
-    private static boolean canSurvive(Block block, boolean hanging) {
-        Block support = loadedVertical(block, hanging ? 1 : -1);
-        return support != null && (isPointed(support.getState(), hanging)
-                || BlockSupport.isFaceSturdy(block.getLevel(), support.getPosition(), hanging ? Direction.DOWN : Direction.UP));
-    }
-
-    private static DripstoneThickness thickness(Block block, boolean hanging, boolean merge) {
-        Block front = loadedVertical(block, hanging ? -1 : 1);
-        if (front == null) {
-            return DripstoneThickness.TIP;
-        }
-
-        if (isPointed(front.getState(), !hanging)) {
-            return merge || front.getState().ensureTrait(BlockTraits.DRIPSTONE_THICKNESS) == DripstoneThickness.MERGE ? DripstoneThickness.MERGE : DripstoneThickness.TIP;
-        }
-
-        if (!isPointed(front.getState(), hanging)) {
-            return DripstoneThickness.TIP;
-        }
-
-        if (isTip(front.getState(), true)) {
-            return DripstoneThickness.FRUSTUM;
-        }
-
-        Block behind = loadedVertical(block, hanging ? 1 : -1);
-        return behind != null && isPointed(behind.getState(), hanging) ? DripstoneThickness.MIDDLE : DripstoneThickness.BASE;
-    }
-
-    private static void fall(Block start) {
-        Block current = start;
-        int length = 0;
-        while (current != null && isPointed(current.getState(), true)) {
-            boolean tip = isTip(current.getState(), true);
-            FallingBlockHandlers.startFalling(SoundTypes.LAND_POINTED_DRIPSTONE, SoundTypes.LAND_POINTED_DRIPSTONE, tip ? Math.max(1 + length, 6) : 0, 40).execute(current);
-
-            if (tip) {
-                return;
-            }
-
-            length++;
-            current = loadedVertical(start, -length);
         }
     }
 
@@ -415,10 +281,6 @@ public class PointedDripstoneBlockHandlers {
                         bounds.getMinY() - 1 / 16f, (bounds.getMinZ() + bounds.getMaxZ()) * 0.5f));
     }
 
-    private static boolean hanging(BlockState state) {
-        return state.ensureTrait(BlockTraits.IS_HANGING);
-    }
-
     private static boolean isPointed(BlockState state, boolean hanging) {
         return state.getType() == BlockTypes.POINTED_DRIPSTONE && hanging(state) == hanging;
     }
@@ -431,11 +293,6 @@ public class PointedDripstoneBlockHandlers {
     private static BlockState pointed(boolean hanging, DripstoneThickness thickness) {
         return BlockTypes.POINTED_DRIPSTONE.getDefaultState().withTrait(BlockTraits.IS_HANGING, hanging)
                 .withTrait(BlockTraits.DRIPSTONE_THICKNESS, thickness);
-    }
-
-    private static @Nullable Block loadedVertical(Block block, int offsetY) {
-        Vector3i position = block.getPosition().add(0, offsetY, 0);
-        return position.getY() < block.getLevel().getMinHeight() || position.getY() >= block.getLevel().getMaxHeight() ? null : block.getLevel().getLoadedBlock(position);
     }
 
     private record FluidSource(Block block, LiquidType fluid) {

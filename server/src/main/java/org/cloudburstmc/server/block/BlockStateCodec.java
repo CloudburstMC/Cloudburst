@@ -9,15 +9,33 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Reads and writes named block states for persistence.
+ * Reads upgrade saved states and fill omitted properties from registered defaults.
  */
 @UtilityClass
 public class BlockStateCodec {
 
+    /**
+     * Decodes a registered named state, rejecting unknown names and invalid properties.
+     * Legacy numeric metadata must be converted before calling this method.
+     */
     public static BlockState read(NbtMap tag) {
+        return read(tag, id -> {
+            throw new IllegalArgumentException("Unknown persisted block: " + id);
+        });
+    }
+
+    /**
+     * Decodes a state using the supplied resolver only when its block name is unregistered.
+     * Malformed data and invalid properties on registered blocks remain errors.
+     * The resolver receives the upgraded identifier and must return a non-null state.
+     */
+    public static BlockState read(NbtMap tag, Function<Identifier, BlockState> unknownBlock) {
         Objects.requireNonNull(tag, "tag");
+        Objects.requireNonNull(unknownBlock, "unknownBlock");
         if (tag.containsKey("val")) {
             throw new UnsupportedOperationException("Numeric block metadata is no longer supported: " + tag);
         }
@@ -48,7 +66,7 @@ public class BlockStateCodec {
         Identifier id = Identifier.parse(updated.getString("name"));
         BlockState defaultState = BlockPalette.INSTANCE.getState(id);
         if (defaultState == null) {
-            throw new IllegalArgumentException("Unknown persisted block: " + id);
+            return Objects.requireNonNull(unknownBlock.apply(id), "resolved unknown block");
         }
 
         NbtMap defaults = BlockPalette.INSTANCE.getSerialized(defaultState).getCompound("states");
@@ -63,6 +81,10 @@ public class BlockStateCodec {
         return state;
     }
 
+    /**
+     * Returns the canonical persisted tag for a registered state.
+     * Unregistered states are rejected.
+     */
     public static NbtMap write(BlockState state) {
         return BlockPalette.INSTANCE.getSerialized(Objects.requireNonNull(state, "state"));
     }

@@ -48,11 +48,11 @@ body:
       required: true
 
   - type: input
-    id: timings
+    id: spark
     attributes:
-      label: Timings Paste
-      description: If the bug is performance-related (lag, TPS drops, slow startup), run `/timings paste` and paste the link here.
-      placeholder: 'http://timings.aikar.co/aBcDeFgHiJ'
+      label: Spark Report
+      description: For performance issues, reproduce the problem while running `/spark profiler start --timeout 60` and paste the report link here.
+      placeholder: 'https://spark.lucko.me/abc123'
     validations:
       required: false
 

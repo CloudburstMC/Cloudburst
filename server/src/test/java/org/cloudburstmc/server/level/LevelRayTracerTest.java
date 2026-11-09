@@ -6,9 +6,11 @@ import org.cloudburstmc.api.level.BlockShapeMode;
 import org.cloudburstmc.api.level.FluidCollisionMode;
 import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.level.RayTraceContext;
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.CloudBlockType;
 import org.cloudburstmc.server.level.collision.CloudVoxelShapes;
 import org.cloudburstmc.server.testutil.InterfaceProxy;
 import org.junit.jupiter.api.Test;
@@ -117,13 +119,13 @@ class LevelRayTracerTest {
 
     @Test
     void fluidModesSelectSourceAndFlowingLiquid() {
-        BlockType type = BlockType.of(Identifier.parse("test:clip_water"), BlockTraits.LIQUID_DEPTH);
-        BlockRegistrationAccess.bindLiquidType(type, LiquidTypes.FLOWING_WATER);
+        BlockType type = BlockRegistry.get().createType(Identifier.parse("test:clip_water"), BlockTraits.LIQUID_DEPTH);
+        CloudBlockType.require(type).bindLiquidType(LiquidTypes.FLOWING_WATER);
         BlockState source = type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0);
         BlockState flowing = type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 1);
         Block empty = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.empty());
-        Block flowingBlock = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.of(flowing));
-        Block sourceBlock = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.of(source));
+        Block flowingBlock = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), flowing.getLiquidState());
+        Block sourceBlock = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), source.getLiquidState());
 
         assertEquals(MissReason.CLEAR, assertInstanceOf(MissHitResult.class,
                 LevelRayTracer.rayTraceBlocks(level(flowingBlock, empty, Set.of()),
@@ -143,10 +145,10 @@ class LevelRayTracerTest {
 
     @Test
     void sourceTraceFindsWaterAroundAPartialOutline() {
-        BlockType type = BlockType.of(Identifier.parse("test:waterlogged_outline"), BlockTraits.LIQUID_DEPTH);
-        BlockRegistrationAccess.bindLiquidType(type, LiquidTypes.WATER);
+        BlockType type = BlockRegistry.get().createType(Identifier.parse("test:waterlogged_outline"), BlockTraits.LIQUID_DEPTH);
+        CloudBlockType.require(type).bindLiquidType(LiquidTypes.WATER);
 
-        LiquidState liquid = LiquidState.of(type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0));
+        LiquidState liquid = type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, 0).getLiquidState();
         Block waterlogged = block(CloudVoxelShapes.empty(), CloudVoxelShapes.box(0.9375f, 0.125f, 0.125f, 1, 0.875f, 0.875f), liquid);
         Block empty = block(CloudVoxelShapes.empty(), CloudVoxelShapes.empty(), LiquidState.empty());
         Level level = level(waterlogged, empty, Set.of());

@@ -46,7 +46,7 @@ class LilyPadBlockHandlersTest {
         }
 
         world.setState(below, BlockStates.WATER);
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
 
         assertFalse(LilyPadBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
     }

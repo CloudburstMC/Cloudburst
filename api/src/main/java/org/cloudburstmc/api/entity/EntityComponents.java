@@ -52,7 +52,7 @@ public class EntityComponents {
     public static final ComponentType<BooleanEntityHandler> CAN_BE_NAMED = ComponentType.of("entity_can_be_named", BooleanEntityHandler.class);
 
     /**
-     * Whether entities of this type can freeze in powder snow.
+     * Whether entities of this type can freeze in powder snow or receive the freezing effect.
      */
     public static final ComponentType<BooleanEntityHandler> CAN_FREEZE = ComponentType.of("entity_can_freeze", BooleanEntityHandler.class);
 

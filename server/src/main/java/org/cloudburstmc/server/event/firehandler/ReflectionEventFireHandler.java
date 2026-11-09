@@ -1,9 +1,8 @@
 package org.cloudburstmc.server.event.firehandler;
 
-import co.aikar.timings.Timing;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.api.event.Cancellable;
 import org.cloudburstmc.api.event.Event;
 import org.cloudburstmc.api.event.EventFireHandler;
 import org.cloudburstmc.api.event.Listener;
@@ -14,12 +13,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
 public class ReflectionEventFireHandler implements EventFireHandler {
+
     private static final long LONG_RUNNING_EVENT_TIME = TimeUnit.MILLISECONDS.toNanos(5);
     private final List<EventFireHandler.ListenerMethod> methods = new ArrayList<>();
 
@@ -29,6 +29,10 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
     @Override
     public void fire(Event event) {
+        if (this.methods.isEmpty()) {
+            return;
+        }
+
         long start = System.nanoTime();
         for (EventFireHandler.ListenerMethod method : methods) {
             try {
@@ -40,8 +44,7 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
         long differenceTaken = System.nanoTime() - start;
         if (differenceTaken >= LONG_RUNNING_EVENT_TIME) {
-            log.warn("Event {} took {} ms to fire", event, BigDecimal.valueOf(differenceTaken)
-                    .divide(new BigDecimal("1000000"), RoundingMode.HALF_UP)
+            log.warn("Event {} took {} ms to fire", event.getClass().getName(), BigDecimal.valueOf(differenceTaken, 6)
                     .setScale(2, RoundingMode.HALF_UP));
         }
     }
@@ -51,22 +54,25 @@ public class ReflectionEventFireHandler implements EventFireHandler {
         return List.copyOf(methods);
     }
 
-    @RequiredArgsConstructor
     public static class ListenerMethod implements EventFireHandler.ListenerMethod {
 
         private final Object listener;
         private final Method method;
-        private final Timing timing;
+        private final Listener configuration;
 
+        public ListenerMethod(Object listener, Method method) {
+            this.listener = Objects.requireNonNull(listener, "listener");
+            this.method = Objects.requireNonNull(method, "method");
+            this.configuration = Objects.requireNonNull(method.getAnnotation(Listener.class), "listener annotation");
+            this.method.setAccessible(true);
+        }
+
+        @Override
         public void run(Event event) throws InvocationTargetException, IllegalAccessException {
-            if (event.isAsynchronous()) {
-                method.invoke(listener, event);
+            if (this.configuration.ignoreCancelled() && event instanceof Cancellable && event.isCancelled()) {
                 return;
             }
-
-            try (Timing t = this.timing.startTiming()) {
-                method.invoke(listener, event);
-            }
+            method.invoke(listener, event);
         }
 
         @Override
@@ -86,17 +92,12 @@ public class ReflectionEventFireHandler implements EventFireHandler {
 
         @Override
         public int compareTo(EventFireHandler.@NonNull ListenerMethod o) {
-            Listener thisListener = getMethod().getAnnotation(Listener.class);
-            if (listener == null) {
-                return -1;
-            }
-
             Listener thatListener = o.getMethod().getAnnotation(Listener.class);
             if (thatListener == null) {
                 return 1;
             }
 
-            return Integer.compare(thisListener.priority().ordinal(), thatListener.priority().ordinal());
+            return Integer.compare(this.configuration.priority().ordinal(), thatListener.priority().ordinal());
         }
     }
 }

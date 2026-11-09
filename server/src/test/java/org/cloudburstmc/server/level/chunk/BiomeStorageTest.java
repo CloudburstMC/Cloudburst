@@ -36,6 +36,7 @@ class BiomeStorageTest {
 
     @Test
     void everyBitWidthPreservesValuesAcrossDiskAndNetworkEncoding() {
+        // Biome 0 remains in use, so each count needs one additional palette entry.
         int[] sizes = {1, 2, 4, 8, 16, 32, 64, 256, 300};
         int[] widths = {1, 2, 3, 4, 5, 6, 8, 16, 16};
         BiomeStorage storage = new BiomeStorage(0);
@@ -194,8 +195,81 @@ class BiomeStorageTest {
     }
 
     @Test
+    void persistedSingletonHeadersDoNotSelectNetworkIntegerEncoding() {
+        for (int flag : new int[]{0, 1}) {
+            ByteBuf disk = Unpooled.buffer();
+            try {
+                disk.writeByte(flag).writeIntLE(300);
+                BiomeStorage restored = BiomeStorage.readFromDisk(disk, null);
+
+                assertEquals(300, restored.getBiome(0));
+                assertEquals(300, restored.getBiome(SIZE - 1));
+                assertFalse(disk.isReadable());
+            } finally {
+                disk.release();
+            }
+        }
+
+        ByteBuf network = Unpooled.buffer();
+        try {
+            new BiomeStorage(300).writeToNetwork(network, null);
+
+            assertThrows(IndexOutOfBoundsException.class, () -> BiomeStorage.readFromDisk(network, null));
+        } finally {
+            network.release();
+        }
+    }
+
+    @Test
+    void persistedIndexedPalettesAcceptBothHeaderFlags() {
+        BitArray indices = BitArrayVersion.V1.createArray(SIZE);
+        indices.set(12, 1);
+        indices.set(SIZE - 1, 1);
+
+        for (int flag : new int[]{0, 1}) {
+            ByteBuf disk = paletteBuffer(indices, 12, 300);
+            try {
+                disk.setByte(0, disk.getUnsignedByte(0) | flag);
+                BiomeStorage restored = BiomeStorage.readFromDisk(disk, null);
+
+                for (int index = 0; index < SIZE; index++) {
+                    assertEquals(index == 12 || index == SIZE - 1 ? 300 : 12, restored.getBiome(index));
+                }
+
+                assertFalse(disk.isReadable());
+            } finally {
+                disk.release();
+            }
+        }
+    }
+
+    @Test
+    void bothPersistedCopyLastHeadersReturnIndependentCopies() {
+        BiomeStorage previous = new BiomeStorage(12);
+        previous.setBiome(1, 300);
+
+        for (int header : new int[]{0xFE, 0xFF}) {
+            ByteBuf disk = Unpooled.buffer();
+            try {
+                disk.writeByte(header).writeByte(1).writeIntLE(700);
+                BiomeStorage restored = BiomeStorage.readFromDisk(disk, previous);
+
+                assertNotSame(previous, restored);
+                assertEquals(300, restored.getBiome(1));
+                restored.setBiome(1, 42);
+                assertEquals(300, previous.getBiome(1));
+
+                assertEquals(700, BiomeStorage.readFromDisk(disk, restored).getBiome(0));
+                assertFalse(disk.isReadable());
+            } finally {
+                disk.release();
+            }
+        }
+    }
+
+    @Test
     void rejectsMalformedHeadersSizesIndicesAndTruncatedData() {
-        for (int header : new int[]{1, 3, 14, 0xFE, 0xFF}) {
+        for (int header : new int[]{14, 15, 0xFE, 0xFF}) {
             ByteBuf disk = Unpooled.buffer();
             try {
                 disk.writeByte(header);

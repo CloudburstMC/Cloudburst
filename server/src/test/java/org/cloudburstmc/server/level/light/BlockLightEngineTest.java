@@ -1,22 +1,21 @@
 package org.cloudburstmc.server.level.light;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.chunk.Chunk;
 import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.IceBlockHandlers;
+import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.ChunkLightView;
+import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.registry.CloudBlockRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
-import org.cloudburstmc.server.testutil.InterfaceProxy;
+import org.cloudburstmc.server.testutil.TestLevels;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.LongFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,14 +23,16 @@ class BlockLightEngineTest {
 
     private static final CloudBlockRegistry REGISTRY = BlockTestRegistry.get();
     private static final Vector3i SOURCE = Vector3i.from(0, 2, 0);
+    private static final LightStateCache STATES = new LightStateCache(REGISTRY);
 
     @Test
     void complementarySlabFacesSealACorridorAndShapeChangesRelightIt() {
-        Grid grid = new Grid();
+        LightTestGrid grid = grid();
         grid.minX = 0;
         grid.maxX = 4;
         grid.minZ = 0;
         grid.maxZ = 0;
+
         for (int x = 0; x <= 4; x++) {
             for (int y = 0; y < 5; y++) {
                 grid.blocks.put(Vector3i.from(x, y, 0), BlockTypes.STONE.getDefaultState());
@@ -47,28 +48,28 @@ class BlockLightEngineTest {
         grid.blocks.put(second, top);
         grid.blocks.put(beyond, BlockStates.AIR);
 
-        BlockLightEngine.update(grid, List.of(SOURCE));
+        grid.updateBlock(List.of(SOURCE));
 
-        assertEquals(14, grid.light(first));
-        assertEquals(0, grid.light(second));
-        assertEquals(0, grid.light(beyond));
+        assertEquals(14, grid.lightAt(first));
+        assertEquals(0, grid.lightAt(second));
+        assertEquals(0, grid.lightAt(beyond));
 
         grid.blocks.put(second, bottom);
-        BlockLightEngine.update(grid, List.of(second));
+        grid.updateBlock(List.of(second));
 
-        assertEquals(13, grid.light(second));
-        assertEquals(12, grid.light(beyond));
+        assertEquals(13, grid.lightAt(second));
+        assertEquals(12, grid.lightAt(beyond));
 
         grid.blocks.put(second, top);
-        BlockLightEngine.update(grid, List.of(second));
+        grid.updateBlock(List.of(second));
 
-        assertEquals(0, grid.light(second));
-        assertEquals(0, grid.light(beyond));
+        assertEquals(0, grid.lightAt(second));
+        assertEquals(0, grid.lightAt(beyond));
     }
 
     @Test
     void initializationFindsBothLayerSourcesAndReplacesStaleLight() {
-        Grid grid = new Grid();
+        LightTestGrid grid = grid();
         grid.minX = 0;
         grid.maxX = 15;
         grid.minZ = 0;
@@ -80,17 +81,17 @@ class BlockLightEngineTest {
         grid.secondary.put(secondary, BlockTypes.SEA_LANTERN.getDefaultState());
         grid.lights.put(stale, 15);
 
-        BlockLightEngine.update(grid, BlockLightEngine.initialize(grid, 0, 0));
+        grid.initializeBlock(0);
 
-        assertEquals(15, grid.light(primary));
-        assertEquals(15, grid.light(secondary));
-        assertEquals(14, grid.light(primary.add(1, 0, 0)));
-        assertEquals(8, grid.light(stale));
+        assertEquals(15, grid.lightAt(primary));
+        assertEquals(15, grid.lightAt(secondary));
+        assertEquals(14, grid.lightAt(primary.add(1, 0, 0)));
+        assertEquals(8, grid.lightAt(stale));
     }
 
     @Test
     void newlyLoadedBordersReceiveLightAndUnloadedSourcesStopContributing() {
-        Grid grid = new Grid();
+        LightTestGrid grid = grid();
         grid.minX = 0;
         grid.maxX = 15;
         grid.minZ = 0;
@@ -98,164 +99,100 @@ class BlockLightEngineTest {
         Vector3i source = Vector3i.from(15, 2, 8);
         Vector3i neighbor = source.add(1, 0, 0);
         grid.blocks.put(source, BlockStates.LAVA);
-        BlockLightEngine.update(grid, BlockLightEngine.initialize(grid, 0, 0));
+        grid.initializeBlock(0);
         assertFalse(grid.lights.containsKey(neighbor));
 
         grid.maxX = 31;
-        BlockLightEngine.update(grid, BlockLightEngine.initialize(grid, 1, 0));
+        grid.initializeBlock(1);
 
-        assertEquals(14, grid.light(neighbor));
-        assertEquals(10, grid.light(neighbor.add(4, 0, 0)));
+        assertEquals(14, grid.lightAt(neighbor));
+        assertEquals(10, grid.lightAt(neighbor.add(4, 0, 0)));
 
         grid.minX = 16;
-        BlockLightEngine.update(grid, List.of(source));
+        grid.updateBlock(List.of(source));
 
-        assertEquals(0, grid.light(neighbor));
-        assertEquals(0, grid.light(neighbor.add(4, 0, 0)));
+        assertEquals(0, grid.lightAt(neighbor));
+        assertEquals(0, grid.lightAt(neighbor.add(4, 0, 0)));
     }
 
     @Test
     void opaqueLavaEmitsLightAndLightsIceEnoughToMelt() {
-        Grid grid = grid();
+        LightTestGrid grid = grid();
         Vector3i ice = SOURCE.add(1, 0, 0);
         grid.blocks.put(SOURCE, BlockStates.LAVA);
         grid.blocks.put(ice, BlockTypes.ICE.getDefaultState());
 
-        BlockLightEngine.update(grid, List.of(SOURCE));
+        grid.updateBlock(List.of(SOURCE));
 
         int attenuation = Math.max(1, grid.blocks.get(ice).getLightDampening());
-        assertEquals(15, grid.light(SOURCE));
-        assertEquals(15 - attenuation, grid.light(ice));
-        assertEquals(14, grid.light(SOURCE.add(-1, 0, 0)));
+        assertEquals(15, grid.lightAt(SOURCE));
+        assertEquals(15 - attenuation, grid.lightAt(ice));
+        assertEquals(14, grid.lightAt(SOURCE.add(-1, 0, 0)));
 
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(ice, grid.blocks.get(ice));
-        IceBlockHandlers.randomTick(world.block(ice), grid.light(ice), false);
+        IceBlockHandlers.randomTick(world.block(ice), grid.lightAt(ice), false);
         assertSame(BlockStates.WATER, world.state(ice));
     }
 
     @Test
     void removingOneSourcePreservesLightFromAnotherAndRemovingBothClearsIt() {
-        Grid grid = grid();
+        LightTestGrid grid = grid();
         Vector3i second = SOURCE.add(4, 0, 0);
         grid.blocks.put(SOURCE, BlockStates.LAVA);
         grid.blocks.put(second, BlockTypes.TORCH.getDefaultState());
-        BlockLightEngine.update(grid, List.of(SOURCE, second));
+        grid.updateBlock(List.of(SOURCE, second));
 
         grid.blocks.remove(SOURCE);
-        BlockLightEngine.update(grid, List.of(SOURCE));
-        assertEquals(14, grid.light(second));
-        assertEquals(10, grid.light(SOURCE));
+        grid.updateBlock(List.of(SOURCE));
+        assertEquals(14, grid.lightAt(second));
+        assertEquals(10, grid.lightAt(SOURCE));
 
         grid.blocks.remove(second);
-        BlockLightEngine.update(grid, List.of(second));
+        grid.updateBlock(List.of(second));
         assertTrue(grid.lights.values().stream().allMatch(light -> light == 0));
     }
 
     @Test
     void opacityChangesRecalculateIncomingLightAndSecondaryLayersCanEmit() {
-        Grid grid = grid();
+        LightTestGrid grid = grid();
         grid.secondary.put(SOURCE, BlockTypes.GLOWSTONE.getDefaultState());
         Vector3i target = SOURCE.add(1, 0, 0);
-        BlockLightEngine.update(grid, List.of(SOURCE));
-        assertEquals(15, grid.light(SOURCE));
-        assertEquals(14, grid.light(target));
+        grid.updateBlock(List.of(SOURCE));
+        assertEquals(15, grid.lightAt(SOURCE));
+        assertEquals(14, grid.lightAt(target));
 
         grid.blocks.put(target, BlockStates.STONE);
-        BlockLightEngine.update(grid, List.of(target));
-        assertEquals(0, grid.light(target));
+        grid.updateBlock(List.of(target));
+        assertEquals(0, grid.lightAt(target));
 
         grid.blocks.remove(target);
-        BlockLightEngine.update(grid, List.of(target));
-        assertEquals(14, grid.light(target));
+        grid.updateBlock(List.of(target));
+        assertEquals(14, grid.lightAt(target));
     }
 
     @Test
-    void levelAdapterUsesAbsoluteNegativeCoordinatesAndOnlyLoadedChunks() {
-        Grid grid = grid();
+    void chunkAccessUsesAbsoluteNegativeCoordinatesAndOnlyLoadedChunks() {
+        Level level = TestLevels.level(0, 16);
+        CloudChunk chunk = new CloudChunk(-2, 1, level);
         Vector3i source = Vector3i.from(-17, 2, 17);
-        grid.blocks.put(source, BlockStates.LAVA);
-        Chunk chunk = InterfaceProxy.create(Chunk.class, (proxy, method, arguments) -> {
-            Vector3i position = Vector3i.from(-32 + (Integer) arguments[0], (Integer) arguments[1], 16 + (Integer) arguments[2]);
-            return switch (method.getName()) {
-                case "getBlockState" -> ((BlockLayer) arguments[3] == BlockLayer.PRIMARY ? grid.blocks : grid.secondary)
-                        .getOrDefault(position, BlockStates.AIR);
-                case "getBlockLight" -> grid.light(position);
-                case "setBlockLight" -> {
-                    grid.lights.put(position, (Integer) arguments[3]);
-                    yield null;
-                }
-                default -> throw new AssertionError("Unexpected chunk access: " + method);
-            };
-        });
-        Level level = InterfaceProxy.create(Level.class, (proxy, method, arguments) -> switch (method.getName()) {
-            case "getServer" -> InterfaceProxy.create(Server.class, (server, serverMethod, serverArguments) -> {
-                if (serverMethod.getName().equals("getBlockRegistry")) {
-                    return REGISTRY;
-                }
 
-                throw new AssertionError("Unexpected server access: " + serverMethod);
-            });
-            case "getMinHeight" -> 0;
-            case "getMaxHeight" -> 5;
-            case "getLoadedChunk" -> (Integer) arguments[0] == -2 && (Integer) arguments[1] == 1 ? chunk : null;
-            default -> throw new AssertionError("Unexpected level access: " + method);
-        });
+        try (LockedChunk locked = chunk.lockForWrite()) {
+            locked.setBlockState(15, 2, 1, BlockLayer.PRIMARY, BlockStates.LAVA);
+            LongFunction<ChunkLightView> views = key -> key == CloudChunk.key(-2, 1) ? locked : null;
+            ChunkLightAccess access = new ChunkLightAccess(LightChannel.BLOCK, 0, 16, STATES, views);
+            LightPropagation propagation = new LightPropagation(LightChannel.BLOCK);
+            propagation.invalidate(access, LightPositions.pack(source.getX(), source.getY(), source.getZ()));
+            LightTestGrid.drain(access, propagation);
 
-        BlockLightEngine.update(level, List.of(source));
-
-        assertEquals(15, grid.light(source));
-        assertEquals(14, grid.light(source.add(-1, 0, 0)));
-        assertEquals(0, grid.light(source.add(1, 0, 0)));
-        assertFalse(grid.lights.containsKey(Vector3i.from(15, 2, 1)));
+            assertEquals(15, access.light(source.getX(), source.getY(), source.getZ()));
+            assertEquals(14, access.light(source.getX() - 1, source.getY(), source.getZ()));
+            assertEquals(0, access.light(source.getX() + 1, source.getY(), source.getZ()));
+            assertEquals(15, locked.getBlockLight(15, 2, 1));
+        }
     }
 
-    private static Grid grid() {
-        return new Grid();
-    }
-
-    private static class Grid implements LightAccess {
-        private final Map<Vector3i, BlockState> blocks = new HashMap<>();
-        private final Map<Vector3i, BlockState> secondary = new HashMap<>();
-        private final Map<Vector3i, Integer> lights = new HashMap<>();
-        private int minX = -8;
-        private int maxX = 8;
-        private int minZ = -8;
-        private int maxZ = 8;
-
-        @Override
-        public CloudBlockRegistry registry() {
-            return REGISTRY;
-        }
-
-        @Override
-        public LightAccess.@Nullable Sample read(Vector3i position) {
-            if (position.getX() < this.minX || position.getX() > this.maxX
-                    || position.getZ() < this.minZ || position.getZ() > this.maxZ
-                    || position.getY() < 0 || position.getY() > 4) {
-                return null;
-            }
-            return new LightAccess.Sample(this.blocks.getOrDefault(position, BlockStates.AIR),
-                    this.secondary.getOrDefault(position, BlockStates.AIR), this.light(position));
-        }
-
-        @Override
-        public void write(Vector3i position, int light) {
-            this.lights.put(position, light);
-        }
-
-        @Override
-        public int minHeight() {
-            return 0;
-        }
-
-        @Override
-        public int maxHeight() {
-            return 5;
-        }
-
-        private int light(Vector3i position) {
-            return this.lights.getOrDefault(position, 0);
-        }
+    private static LightTestGrid grid() {
+        return new LightTestGrid(-8, 8, -8, 8, 0, 5);
     }
 }

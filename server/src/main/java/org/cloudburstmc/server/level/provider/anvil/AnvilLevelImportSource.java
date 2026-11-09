@@ -25,7 +25,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Reads Nukkit Anvil worlds for conversion into a separate Cloudburst destination.
+ * Traverses offline Anvil regions and converts numeric Nukkit chunk encodings.
+ * The source must remain unchanged throughout both the tick scan and terrain conversion.
  */
 @ParametersAreNonnullByDefault
 public class AnvilLevelImportSource implements LevelImportSource {
@@ -50,6 +51,9 @@ public class AnvilLevelImportSource implements LevelImportSource {
         this.items = new NukkitItemDataConverter();
     }
 
+    /**
+     * Checks for region files without validating the encoding of their chunks.
+     */
     public static boolean isImportSource(Path levelPath) throws IOException {
         Path regions = levelPath.resolve("region");
         if (!Files.isDirectory(regions)) {
@@ -67,6 +71,10 @@ public class AnvilLevelImportSource implements LevelImportSource {
         return false;
     }
 
+    /**
+     * Scans all scheduled ticks before converting terrain so cross-chunk ticks reach their owners.
+     * Each imported chunk is closed after the consumer returns.
+     */
     @Override
     public CompletableFuture<Void> visitChunks(CloudChunkBuilderFactory factory, Consumer<ImportedChunk> consumer) {
         checkForClosed();
@@ -79,6 +87,13 @@ public class AnvilLevelImportSource implements LevelImportSource {
         }
 
         return CompletableFuture.runAsync(() -> {
+            NukkitAnvilPendingTicks pendingTicks;
+            try {
+                pendingTicks = this.readPendingTicks(paths);
+            } catch (IOException failure) {
+                throw new CompletionException("Unable to read Nukkit Anvil scheduled ticks", failure);
+            }
+
             for (Path path : paths) {
                 try (RegionFile regionFile = new RegionFile(path)) {
                     RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
@@ -93,8 +108,10 @@ public class AnvilLevelImportSource implements LevelImportSource {
 
                             CloudChunkBuilder builder = factory.create(chunkX, chunkZ);
                             ByteBuf buffer = regionFile.readChunk(x, z);
-                            try (ImportedChunk imported = AnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items)) {
+                            try (ImportedChunk imported = NukkitAnvilConverter.convertToCloudburst(builder, buffer, this.blocks, this.items, pendingTicks)) {
                                 consumer.accept(imported);
+                            } catch (IOException | RuntimeException failure) {
+                                throw new IOException("Unable to import Nukkit Anvil chunk (" + chunkX + ", " + chunkZ + ") from " + path.getFileName(), failure);
                             } finally {
                                 buffer.release();
                             }
@@ -104,7 +121,40 @@ public class AnvilLevelImportSource implements LevelImportSource {
                     throw new CompletionException(exception);
                 }
             }
+
+            try {
+                pendingTicks.requireConsumed();
+            } catch (IOException failure) {
+                throw new CompletionException(failure);
+            }
         }, Thread::startVirtualThread);
+    }
+
+    private NukkitAnvilPendingTicks readPendingTicks(List<Path> paths) throws IOException {
+        NukkitAnvilPendingTicks ticks = new NukkitAnvilPendingTicks(this.blocks);
+        for (Path path : paths) {
+            RegionChunkOrigin origin = RegionChunkOrigin.fromPath(path);
+            try (RegionFile region = new RegionFile(path)) {
+                for (int x = 0; x < 32; x++) {
+                    for (int z = 0; z < 32; z++) {
+                        if (!region.hasChunk(x, z)) {
+                            continue;
+                        }
+
+                        ByteBuf buffer = region.readChunk(x, z);
+                        try {
+                            ticks.add(origin.x() + x, origin.z() + z, NukkitAnvilConverter.readChunk(buffer));
+                        } catch (IOException | RuntimeException failure) {
+                            throw new IOException("Invalid Nukkit Anvil ticks in chunk (" + (origin.x() + x) + ", " + (origin.z() + z) + ") from " + path.getFileName(), failure);
+                        } finally {
+                            buffer.release();
+                        }
+                    }
+                }
+            }
+        }
+
+        return ticks;
     }
 
     @Override
@@ -113,13 +163,16 @@ public class AnvilLevelImportSource implements LevelImportSource {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return AnvilDataSerializer.INSTANCE.load(initialData, this.levelPath);
+                return NukkitAnvilDataSerializer.INSTANCE.load(initialData, this.levelPath);
             } catch (IOException e) {
                 throw new CompletionException(e);
             }
         }, this.executor);
     }
 
+    /**
+     * Rejects new operations without cancelling visits or metadata reads already started.
+     */
     @Override
     public void close() {
         this.closed = true;

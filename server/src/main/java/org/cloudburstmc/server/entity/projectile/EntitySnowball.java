@@ -58,16 +58,12 @@ public class EntitySnowball extends EntityProjectile implements Snowball {
             return false;
         }
 
-        this.timing.startTiming();
-
         boolean hasUpdate = super.onUpdate(currentTick);
 
         if (this.age > 1200) {
             this.kill();
             hasUpdate = true;
         }
-
-        this.timing.stopTiming();
 
         return hasUpdate;
     }

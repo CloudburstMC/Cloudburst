@@ -28,7 +28,7 @@ public enum EnumLevel {
                 throw new IllegalStateException("Level 'nether' is not configured as the Nether dimension");
             }
         } else {
-            log.info("Nether functionality is disabled because the Nether is disabled or no level named 'nether' is loaded");
+            log.info("Nether functionality is disabled because the Nether is disabled or no world named 'nether' is loaded");
         }
 
         CloudLevel endLevel = CloudServer.getInstance().getLevelByName("the_end");
@@ -38,7 +38,7 @@ public enum EnumLevel {
                 throw new IllegalStateException("Level 'the_end' is not configured as the End dimension");
             }
         } else {
-            log.info("End functionality is disabled because the End is disabled or no level named 'the_end' is loaded");
+            log.info("End functionality is disabled because the End is disabled or no world named 'the_end' is loaded");
         }
     }
 

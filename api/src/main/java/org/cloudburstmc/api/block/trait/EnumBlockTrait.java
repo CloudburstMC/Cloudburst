@@ -1,91 +1,104 @@
 package org.cloudburstmc.api.block.trait;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.util.Identifier;
 
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
+/**
+ * A trait accepting a nonempty selection of constants from one enum.
+ *
+ * @param <E> the enum type
+ */
 public final class EnumBlockTrait<E extends Enum<E>> extends BlockTrait<E> {
 
-    private final E defaultValue;
-    private final Map<E, Integer> indexMap;
+    private final Map<String, E> valuesByName;
 
-    private EnumBlockTrait(String name, @Nullable String vanillaName, Class<E> enumClass, ImmutableList<E> possibleValues, E defaultValue) {
-        super(Identifier.parse(name), vanillaName, enumClass, possibleValues, false);
-        this.defaultValue = defaultValue;
-        EnumMap<E, Integer> map = new EnumMap<>(enumClass);
-        for (int i = 0; i < possibleValues.size(); i++) {
-            map.put(possibleValues.get(i), i);
+    private EnumBlockTrait(String name, Class<E> enumClass, List<E> values, E defaultValue) {
+        super(Identifier.parse(name), requireEnum(enumClass), values, defaultValue);
+        Map<String, E> names = new HashMap<>();
+        for (E value : this.getPossibleValues()) {
+            if (names.putIfAbsent(value.name().toLowerCase(Locale.ROOT), value) != null) {
+                throw new IllegalArgumentException("Enum trait names must be distinct ignoring case: " + name);
+            }
         }
-        this.indexMap = map;
+        this.valuesByName = Map.copyOf(names);
     }
 
+    /**
+     * @param name      the trait identifier
+     * @param enumClass the enum class
+     * @param <E>       the enum type
+     * @return a trait accepting all constants, defaulting to the first
+     * @throws IllegalArgumentException if the enum has no constants
+     */
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass) {
-        return of(name, null, enumClass);
+        E[] values = enumValues(enumClass);
+        return new EnumBlockTrait<>(name, enumClass, Arrays.asList(values), values[0]);
     }
 
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass) {
-        E[] values = enumClass.getEnumConstants();
-        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(values), values[0]);
-    }
-
+    /**
+     * @param name           the trait identifier
+     * @param enumClass      the enum class
+     * @param possibleValues the distinct constants to accept
+     * @param <E>            the enum type
+     * @return a trait defaulting to the first accepted constant
+     * @throws IllegalArgumentException if the selection is empty or contains duplicates
+     */
     @SafeVarargs
     public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E... possibleValues) {
-        return of(name, null, enumClass, possibleValues);
-    }
-
-    @SafeVarargs
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass, E... possibleValues) {
-        return of(name, vanillaName, enumClass, ImmutableSet.copyOf(possibleValues), possibleValues[0]);
-    }
-
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E defaultValue) {
-        return of(name, enumClass, ImmutableSet.copyOf(enumClass.getEnumConstants()), defaultValue);
-    }
-
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, Set<E> possibleValues, E defaultValue) {
-        return of(name, null, enumClass, possibleValues, defaultValue);
-    }
-
-    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, @Nullable String vanillaName, Class<E> enumClass, Set<E> possibleValues, E defaultValue) {
-        checkNotNull(name, "name");
-        checkNotNull(enumClass, "enumClass");
-        checkNotNull(possibleValues, "possibleValues");
-        checkNotNull(defaultValue, "defaultValues");
-        return new EnumBlockTrait<>(name, vanillaName, enumClass, ImmutableList.copyOf(possibleValues), defaultValue);
-    }
-
-    @Override
-    public E getDefaultValue() {
-        return this.defaultValue;
-    }
-
-    @Override
-    public int getIndex(Object value) {
-        checkNotNull(value, "value");
-        Integer index = this.indexMap.get(value);
-        checkArgument(index != null, "Invalid block trait");
-        return index;
-    }
-
-    @Override
-    public E parseValue(String text) {
-        return this.getPossibleValues().stream().filter(e -> e.name().equalsIgnoreCase(text)).findAny().orElse(this.defaultValue);
-    }
-
-    @Override
-    public E parseStorageValue(Object value) {
-        if (value instanceof String) {
-            return parseValue((String) value);
+        Objects.requireNonNull(possibleValues, "possibleValues");
+        if (possibleValues.length == 0) {
+            throw new IllegalArgumentException("Enum trait values must not be empty");
         }
+        return new EnumBlockTrait<>(name, enumClass, Arrays.asList(possibleValues.clone()), possibleValues[0]);
+    }
 
-        return this.valueClass.getEnumConstants()[(int) value];
+    /**
+     * @param name         the trait identifier
+     * @param enumClass    the enum class
+     * @param defaultValue the default constant
+     * @param <E>          the enum type
+     * @return a trait accepting all constants
+     */
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, E defaultValue) {
+        return new EnumBlockTrait<>(name, enumClass, Arrays.asList(enumValues(enumClass)), defaultValue);
+    }
+
+    /**
+     * @param name           the trait identifier
+     * @param enumClass      the enum class
+     * @param possibleValues the accepted constants
+     * @param defaultValue   the default constant within the selection
+     * @param <E>            the enum type
+     * @return the trait
+     * @throws IllegalArgumentException if the selection or default is invalid
+     */
+    public static <E extends Enum<E>> EnumBlockTrait<E> of(String name, Class<E> enumClass, Set<E> possibleValues, E defaultValue) {
+        return new EnumBlockTrait<>(name, enumClass, List.copyOf(possibleValues), defaultValue);
+    }
+
+    /**
+     * Parses an accepted enum constant's name, ignoring case.
+     */
+    @Override
+    public Optional<E> parseValue(String text) {
+        String name = Objects.requireNonNull(text, "text").toLowerCase(Locale.ROOT);
+        return Optional.ofNullable(this.valuesByName.get(name));
+    }
+
+    private static <E extends Enum<E>> E[] enumValues(Class<E> enumClass) {
+        E[] values = requireEnum(enumClass).getEnumConstants();
+        if (values.length == 0) {
+            throw new IllegalArgumentException("Trait requires a nonempty enum class");
+        }
+        return values;
+    }
+
+    private static <E extends Enum<E>> Class<E> requireEnum(Class<E> enumClass) {
+        Objects.requireNonNull(enumClass, "enumClass");
+        if (!enumClass.isEnum()) {
+            throw new IllegalArgumentException("Trait value class must be an enum");
+        }
+        return enumClass;
     }
 }

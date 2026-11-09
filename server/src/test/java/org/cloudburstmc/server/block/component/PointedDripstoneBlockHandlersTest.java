@@ -33,10 +33,10 @@ class PointedDripstoneBlockHandlersTest {
     @Test
     void placementRequiresSupportAndSelectsTheAvailableOrientation() {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
-        assertNull(PointedDripstoneBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(HANGING, world.block(TIP), null, Direction.UP, Vector3f.ZERO));
+        assertNull(SpeleothemBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(HANGING, world.block(TIP), null, Direction.UP, Vector3f.ZERO));
 
         world.setState(TIP.add(0, 1, 0), BlockStates.STONE);
-        BlockState placed = PointedDripstoneBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(HANGING, world.block(TIP), null, Direction.UP, Vector3f.ZERO);
+        BlockState placed = SpeleothemBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(HANGING, world.block(TIP), null, Direction.UP, Vector3f.ZERO);
 
         assertNotNull(placed);
         assertTrue(placed.ensureTrait(BlockTraits.IS_HANGING));
@@ -138,10 +138,10 @@ class PointedDripstoneBlockHandlersTest {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(TIP, pointed(false, DripstoneThickness.TIP));
 
-        PointedDripstoneBlockHandlers.ON_NEIGHBOUR_CHANGED.execute(world.block(TIP), world.block(TIP.add(0, -1, 0)));
+        SpeleothemBlockHandlers.ON_NEIGHBOUR_CHANGED.execute(world.block(TIP), world.block(TIP.add(0, -1, 0)));
         assertEquals(Map.of(TIP, 1), world.getScheduledUpdates());
 
-        PointedDripstoneBlockHandlers.ON_TICK.execute(world.block(TIP), new Random(0));
+        SpeleothemBlockHandlers.ON_TICK.execute(world.block(TIP), new Random(0));
         assertSame(BlockStates.AIR, world.state(TIP));
 
         FallingBlock falling = InterfaceProxy.create(FallingBlock.class, Map.of());

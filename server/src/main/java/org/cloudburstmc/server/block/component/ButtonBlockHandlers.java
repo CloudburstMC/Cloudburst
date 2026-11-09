@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.BlockComponents;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.PlacementStateHandler;
+import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.RedstoneSignalHandler;
 import org.cloudburstmc.api.block.component.TickBlockHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
@@ -20,6 +22,12 @@ public class ButtonBlockHandlers {
 
     public static final int WOODEN_PRESS_TICKS = 30;
     public static final int STONE_PRESS_TICKS = 20;
+
+    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) ->
+            state.withTrait(BlockTraits.FACING_DIRECTION, face);
+
+    public static final SurviveBlockHandler CAN_SURVIVE = block ->
+            PlacementSupport.hasFullFaceSupport(block.getLevel(), block.getPosition(), block.getState().ensureTrait(BlockTraits.FACING_DIRECTION));
 
     public static final RedstoneSignalHandler GET_REDSTONE_SIGNAL = (block, face) ->
             block.getState().ensureTrait(BlockTraits.IS_BUTTON_PRESSED) ? 15 : 0;
@@ -55,12 +63,11 @@ public class ButtonBlockHandlers {
             return;
         }
 
-        CloudLevel level = (CloudLevel) block.getLevel();
-        if (PlacementSupport.hasFullFaceSupport(level, pos, facing)) {
+        if (CAN_SURVIVE.execute(block)) {
             return;
         }
 
-        level.breakBlock(pos, null, null, true);
+        block.getLevel().breakBlock(pos, null, null, true);
     };
 
     public static final UseBlockHandler USE = (block, player, direction, item) -> {

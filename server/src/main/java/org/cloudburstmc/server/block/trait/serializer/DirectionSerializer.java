@@ -7,6 +7,7 @@ import org.cloudburstmc.api.block.trait.BlockTrait;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.server.block.serializer.util.BedrockStateTags;
 import org.cloudburstmc.server.block.trait.BlockTraitSerializers.TraitSerializer;
+import org.cloudburstmc.server.block.trait.BedrockBlockTraitNames;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
@@ -60,6 +61,6 @@ public class DirectionSerializer implements TraitSerializer<Direction> {
             return BedrockStateTags.TAG_MINECRAFT_FACING_DIRECTION;
         }
 
-        return blockTrait.getVanillaName();
+        return BedrockBlockTraitNames.name(blockTrait);
     }
 }

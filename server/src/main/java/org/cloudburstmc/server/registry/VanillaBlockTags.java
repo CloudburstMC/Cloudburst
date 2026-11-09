@@ -2,6 +2,7 @@ package org.cloudburstmc.server.registry;
 
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.*;
+import org.cloudburstmc.server.block.CloudBlockType;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -63,10 +64,18 @@ class VanillaBlockTags {
                 WAXED_WEATHERED_LIGHTNING_ROD, WAXED_OXIDIZED_LIGHTNING_ROD);
 
         tag(SUPPORTS_CHORUS_FLOWER, END_STONE);
+        tag(SPELEOTHEMS, POINTED_DRIPSTONE, SULFUR_SPIKE, ICICLE);
+        tag(MELTS_ICICLE_ABOVE, MAGMA);
+        inherit(MINEABLE_WITH_PICKAXE, SPELEOTHEMS);
+        tag(MINEABLE_WITH_PICKAXE, ICE_CRYSTAL);
+        inherit(TRANSPARENT, SPELEOTHEMS);
+        tag(TRANSPARENT, ICE_CRYSTAL);
         tag(CORAL_BLOCKS, TUBE_CORAL_BLOCK, BRAIN_CORAL_BLOCK, BUBBLE_CORAL_BLOCK, FIRE_CORAL_BLOCK, HORN_CORAL_BLOCK);
         tag(CONDUIT_EFFECT_BLOCK, PRISMARINE, PRISMARINE_BRICKS, DARK_PRISMARINE, SEA_LANTERN);
         tag(CANNOT_SUPPORT_SEAGRASS, MAGMA);
         tag(CANNOT_SUPPORT_KELP, MAGMA);
+        tag(CANNOT_SUPPORT_SNOW_LAYER, ICE, BARRIER);
+        tag(SUPPORT_OVERRIDE_SNOW_LAYER, HONEY_BLOCK, SOUL_SAND, MUD);
         tag(WATER_SOURCE_PLANTS, KELP, SEAGRASS);
         tag(SUPPORTS_LILY_PAD, ICE, FROSTED_ICE);
         tag(BlockTags.SAND, BlockTypes.SAND, RED_SAND, SUSPICIOUS_SAND);
@@ -123,7 +132,7 @@ class VanillaBlockTags {
                 tags.add(key);
             }
         }
-        BlockRegistrationAccess.bindTags(type, tags);
+        CloudBlockType.require(type).bindTags(tags);
     }
 
     static void freeze() {

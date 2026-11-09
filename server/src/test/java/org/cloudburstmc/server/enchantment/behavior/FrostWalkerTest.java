@@ -3,7 +3,6 @@ package org.cloudburstmc.server.enchantment.behavior;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockTypes;
-import org.cloudburstmc.api.block.LiquidState;
 import org.cloudburstmc.api.enchantment.Enchantment;
 import org.cloudburstmc.api.enchantment.EnchantmentTypes;
 import org.cloudburstmc.api.entity.Entity;
@@ -73,7 +72,7 @@ class FrostWalkerTest {
         walker.world.setState(covered, BlockStates.WATER);
         walker.world.setState(covered.add(0, 1, 0), BlockStates.STONE);
         walker.world.setState(waterlogged, BlockTypes.MANGROVE_ROOTS.getDefaultState());
-        walker.world.setLiquid(waterlogged, LiquidState.of(BlockStates.WATER));
+        walker.world.setLiquid(waterlogged, BlockStates.WATER.getLiquidState());
 
         walker.apply(1, EquipmentSlot.FEET);
 

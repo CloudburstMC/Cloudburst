@@ -1,8 +1,5 @@
 package org.cloudburstmc.server.entity;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
-import co.aikar.timings.TimingsHistory;
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
@@ -67,6 +64,7 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 
 import static com.google.common.base.Preconditions.*;
 import static org.cloudburstmc.api.block.BlockTypes.FIRE;
@@ -160,7 +158,6 @@ public abstract class CloudEntity implements Entity {
     protected float absorption = 0;
     protected boolean isStatic = false;
     protected CloudServer server;
-    protected Timing timing;
     protected boolean isPlayer = false;
     private int maxHealth = 20;
     private int freezeTicks;
@@ -205,8 +202,6 @@ public abstract class CloudEntity implements Entity {
         }
 
         this.initialized = true;
-
-        this.timing = Timings.getEntityTiming(this.getType());
 
         this.isPlayer = this instanceof CloudPlayer;
 
@@ -1029,128 +1024,124 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean entityBaseTick(int tickDiff) {
-        try (Timing ignored = Timings.entityBaseTickTimer.startTiming()) {
+        this.justCreated = false;
+        this.boardingCooldown = Math.max(0, this.boardingCooldown - tickDiff);
 
-            this.justCreated = false;
-            this.boardingCooldown = Math.max(0, this.boardingCooldown - tickDiff);
+        if (!this.isAlive()) {
+            this.clearActivePotionEffects(PotionEffectCause.DEATH);
+            this.despawnFromAll();
 
-            if (!this.isAlive()) {
-                this.clearActivePotionEffects(PotionEffectCause.DEATH);
-                this.despawnFromAll();
+            if (!this.isPlayer) {
+                this.close();
+            }
 
-                if (!this.isPlayer) {
-                    this.close();
+            return false;
+        }
+
+        if (this.vehicle != null && (!this.vehicle.isAlive() || this.vehicle.isClosed())) {
+            this.dismount(this.vehicle, false);
+        }
+
+        updatePassengers();
+
+        if (!this.effects.isEmpty()) {
+            for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
+                for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
+                    if (effect.shouldApplyTick(this.age + elapsed)) {
+                        effect.applyTick(this);
+                    }
+
+                    if (this.effects.get(effect.getType()) != effect) {
+                        break;
+                    }
+
+                    effect.decreaseDuration(1);
+                    if (!effect.isInfinite() && effect.getDuration() == 0) {
+                        this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
+                        break;
+                    }
                 }
+            }
+        }
 
+        boolean hasUpdate = false;
+
+        boolean wasBurning = this.isOnFire();
+        boolean wasFreezing = this.getFreezeTicks() > 0;
+
+        this.checkBlockCollision();
+        this.applyLiquidCurrent();
+
+        if (wasBurning && !this.isOnFire() || wasFreezing && this.getFreezeTicks() == 0) {
+            float pitch = 1.6f + (this.level.getRandom().nextFloat() - this.level.getRandom().nextFloat()) * 0.4f;
+            this.level.playSound(this.position, SoundTypes.RANDOM_FIZZ, 0.7f, pitch);
+        }
+
+        if (this.position.getY() < this.level.getMinHeight() - 64) {
+            this.onBelowLevel();
+            if (this.closed) {
                 return false;
             }
 
-            if (this.vehicle != null && (!this.vehicle.isAlive() || this.vehicle.isClosed())) {
-                this.dismount(this.vehicle, false);
-            }
+            hasUpdate = true;
+        }
 
-            updatePassengers();
-
-            if (!this.effects.isEmpty()) {
-                for (ActivePotionEffect effect : List.copyOf(this.effects.values())) {
-                    for (int elapsed = 0; elapsed < tickDiff && this.isAlive() && this.effects.get(effect.getType()) == effect; elapsed++) {
-                        if (effect.shouldApplyTick(this.age + elapsed)) {
-                            effect.applyTick(this);
-                        }
-
-                        if (this.effects.get(effect.getType()) != effect) {
-                            break;
-                        }
-
-                        effect.decreaseDuration(1);
-                        if (!effect.isInfinite() && effect.getDuration() == 0) {
-                            this.removePotionEffect(effect.getType(), PotionEffectCause.EXPIRATION);
-                            break;
-                        }
-                    }
+        if (this.fireTicks > 0) {
+            if (this.fireProof) {
+                this.fireTicks -= 4 * tickDiff;
+                if (this.fireTicks < 0) {
+                    this.fireTicks = 0;
                 }
-            }
-
-            boolean hasUpdate = false;
-
-            boolean wasBurning = this.isOnFire();
-            boolean wasFreezing = this.getFreezeTicks() > 0;
-
-            this.checkBlockCollision();
-            this.applyLiquidCurrent();
-
-            if (wasBurning && !this.isOnFire() || wasFreezing && this.getFreezeTicks() == 0) {
-                float pitch = 1.6f + (this.level.getRandom().nextFloat() - this.level.getRandom().nextFloat()) * 0.4f;
-                this.level.playSound(this.position, SoundTypes.RANDOM_FIZZ, 0.7f, pitch);
-            }
-
-            if (this.position.getY() < this.level.getMinHeight() - 64) {
-                this.onBelowLevel();
-                if (this.closed) {
-                    return false;
+            } else {
+                if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
+                    this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
                 }
 
+                this.fireTicks -= tickDiff;
+            }
+
+            if (this.fireTicks <= 0) {
+                this.extinguish();
+            } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
+                this.data.setFlag(ON_FIRE, true);
                 hasUpdate = true;
             }
-
-            if (this.fireTicks > 0) {
-                if (this.fireProof) {
-                    this.fireTicks -= 4 * tickDiff;
-                    if (this.fireTicks < 0) {
-                        this.fireTicks = 0;
-                    }
-                } else {
-                    if (!this.hasPotionEffect(EffectTypes.FIRE_RESISTANCE) && ((this.fireTicks % 20) == 0 || tickDiff > 20)) {
-                        this.damage(1, DamageSource.of(DamageTypes.ON_FIRE));
-                    }
-
-                    this.fireTicks -= tickDiff;
-                }
-
-                if (this.fireTicks <= 0) {
-                    this.extinguish();
-                } else if (!this.fireProof && (!(this instanceof CloudPlayer) || !((CloudPlayer) this).isSpectator())) {
-                    this.data.setFlag(ON_FIRE, true);
-                    hasUpdate = true;
-                }
-            }
-
-            if (this.noDamageTicks > 0) {
-                this.noDamageTicks -= tickDiff;
-                if (this.noDamageTicks < 0) {
-                    this.noDamageTicks = 0;
-                }
-            }
-
-            if (this.isOnPortalCooldown()) {
-                tickPortalCooldown();
-            } else {
-                int portalThreshold = getPortalTransitionTicks();
-                if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
-                    this.setPortalCooldown();
-                    this.inPortalTicks = 0;
-
-                    Location newLoc = EnumLevel.moveToNether(
-                            this.getX(),
-                            this.getY(),
-                            this.getZ(),
-                            this.getYaw(),
-                            this.getPitch(),
-                            this.getLevel()
-                    );
-
-                    if (newLoc != null) {
-                        NetherPortals.handlePortalTransfer(this, newLoc);
-                    }
-                }
-            }
-
-            this.age += tickDiff;
-            this.ticksLived += tickDiff;
-            TimingsHistory.activatedEntityTicks++;
-
-            return hasUpdate;
         }
+
+        if (this.noDamageTicks > 0) {
+            this.noDamageTicks -= tickDiff;
+            if (this.noDamageTicks < 0) {
+                this.noDamageTicks = 0;
+            }
+        }
+
+        if (this.isOnPortalCooldown()) {
+            tickPortalCooldown();
+        } else {
+            int portalThreshold = getPortalTransitionTicks();
+            if (this.inPortalTicks > 0 && (portalThreshold == 0 || this.inPortalTicks >= portalThreshold)) {
+                this.setPortalCooldown();
+                this.inPortalTicks = 0;
+
+                Location newLoc = EnumLevel.moveToNether(
+                        this.getX(),
+                        this.getY(),
+                        this.getZ(),
+                        this.getYaw(),
+                        this.getPitch(),
+                        this.getLevel()
+                );
+
+                if (newLoc != null) {
+                    NetherPortals.handlePortalTransfer(this, newLoc);
+                }
+            }
+        }
+
+        this.age += tickDiff;
+        this.ticksLived += tickDiff;
+
+        return hasUpdate;
     }
 
     protected void onBelowLevel() {
@@ -2059,6 +2050,10 @@ public abstract class CloudEntity implements Entity {
         checkNotNull(cause, "cause");
         checkState(this instanceof Living, "Potion effects can only be applied to living entities");
 
+        if (effect.getType() == EffectTypes.FREEZING && !CloudEntityRegistry.get().requireComponent(this.getType(), EntityComponents.CAN_FREEZE).execute(this)) {
+            return false;
+        }
+
         ActivePotionEffect oldEffect = this.effects.get(effect.getType());
         PotionEffect oldEffectSnapshot = oldEffect == null ? null : oldEffect.snapshot();
         PotionEffectAction action = oldEffect == null ? PotionEffectAction.ADDED : PotionEffectAction.CHANGED;
@@ -2212,6 +2207,10 @@ public abstract class CloudEntity implements Entity {
     }
 
     public boolean spawn(EntitySpawnEvent event) {
+        return this.spawn(event, () -> true);
+    }
+
+    protected boolean spawn(EntitySpawnEvent event, BooleanSupplier prepareSpawn) {
         if (this.closed || this.spawned) {
             return false;
         }
@@ -2223,6 +2222,10 @@ public abstract class CloudEntity implements Entity {
         this.server.getEventManager().fire(event);
         if (event.isCancelled()) {
             this.closed = true;
+            return false;
+        }
+
+        if (this.closed || this.spawned || !prepareSpawn.getAsBoolean()) {
             return false;
         }
 
@@ -2243,9 +2246,20 @@ public abstract class CloudEntity implements Entity {
             return;
         }
 
+        CloudChunk loadedChunk = this.level.getLoadedChunk(location.getPosition());
+        if (loadedChunk != null) {
+            this.chunk = loadedChunk;
+            loadedChunk.registerEntity(this);
+        }
+
         this.spawned = true;
         this.level.registerEntity(this);
         this.scheduleUpdate();
+
+        if (loadedChunk != null) {
+            this.spawnToAll();
+            return;
+        }
 
         this.level.getChunkFuture(location.getChunkX(), location.getChunkZ()).whenComplete((chunk, throwable) -> {
             if (throwable != null || this.closed || !this.spawned) {

@@ -81,7 +81,10 @@ public class BlockSupport {
     }
 
     public static VoxelShape getBlockSupportShape(Level level, Vector3i pos) {
-        BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+        return getBlockSupportShape(level, pos, level.getBlockState(pos));
+    }
+
+    public static VoxelShape getBlockSupportShape(Level level, Vector3i pos, BlockState state) {
         return getSupportShapeHandler(level.getServer().getBlockRegistry(), state)
                 .execute(state, BlockShapeContext.at(level, pos));
     }
@@ -91,7 +94,10 @@ public class BlockSupport {
     }
 
     public static boolean isFaceSturdy(Level level, Vector3i pos, Direction direction, SupportType supportType) {
-        BlockState state = level.getBlockState(pos.getX(), pos.getY(), pos.getZ());
+        return isFaceSturdy(level, pos, level.getBlockState(pos), direction, supportType);
+    }
+
+    public static boolean isFaceSturdy(Level level, Vector3i pos, BlockState state, Direction direction, SupportType supportType) {
         BlockSupportShapeHandler handler = getSupportShapeHandler(level.getServer().getBlockRegistry(), state);
         if (handler.contextRequirement() != ShapeContextRequirement.STATE_ONLY) {
             return hasRequiredSupport(handler.execute(state, BlockShapeContext.at(level, pos)), direction, supportType);

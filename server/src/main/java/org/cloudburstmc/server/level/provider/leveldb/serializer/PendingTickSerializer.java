@@ -177,7 +177,7 @@ public final class PendingTickSerializer {
                     NbtMap serializedState = entry.getCompound(FIELD_BLOCK_STATE);
                     BlockState state = BlockPalette.INSTANCE.getBlockState(serializedState);
                     if (state == null) {
-                        log.warn("Discarding pending tick for unknown serialized block state {} at ({}, {}, {}) in level \"{}\" chunk ({}, {})",
+                        log.warn("Discarding pending tick for unknown serialized block state {} at ({}, {}, {}) in world '{}' chunk ({}, {})",
                                 serializedState, x, y, z, level.getName(), chunk.getX(), chunk.getZ());
                         continue;
                     }

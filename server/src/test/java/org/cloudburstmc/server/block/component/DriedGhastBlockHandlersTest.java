@@ -164,11 +164,11 @@ class DriedGhastBlockHandlersTest {
         BlockTestWorld world = world(0, BlockStates.WATER);
 
         DriedGhastBlockHandlers.ON_LIQUID_CHANGED.execute(world.block(POSITION), LiquidState.empty());
-        DriedGhastBlockHandlers.ON_LIQUID_CHANGED.execute(world.block(POSITION), LiquidState.of(BlockStates.WATER));
+        DriedGhastBlockHandlers.ON_LIQUID_CHANGED.execute(world.block(POSITION), BlockStates.WATER.getLiquidState());
         assertEquals(List.of(SoundTypes.BLOCK_DRIED_GHAST_PLACE_IN_WATER), world.getSounds());
 
         world.setLiquid(POSITION, LiquidState.empty());
-        DriedGhastBlockHandlers.ON_LIQUID_CHANGED.execute(world.block(POSITION), LiquidState.of(BlockStates.WATER));
+        DriedGhastBlockHandlers.ON_LIQUID_CHANGED.execute(world.block(POSITION), BlockStates.WATER.getLiquidState());
         assertEquals(1, world.getSounds().size());
     }
 
@@ -189,7 +189,7 @@ class DriedGhastBlockHandlersTest {
     private static BlockTestWorld world(int hydration, BlockState liquid) {
         BlockTestWorld world = new BlockTestWorld(REGISTRY);
         world.setState(POSITION, DRIED_GHAST.withTrait(BlockTraits.REHYDRATION_LEVEL, hydration));
-        world.setLiquid(POSITION, LiquidState.of(liquid));
+        world.setLiquid(POSITION, liquid.getLiquidState());
         return world;
     }
 }

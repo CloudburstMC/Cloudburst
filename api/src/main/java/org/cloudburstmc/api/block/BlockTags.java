@@ -39,6 +39,11 @@ public class BlockTags {
     public static final BlockTagKey CANNOT_SUPPORT_SEAGRASS = tag("cannot_support_seagrass");
 
     /**
+     * Blocks on which snow layers cannot settle.
+     */
+    public static final BlockTagKey CANNOT_SUPPORT_SNOW_LAYER = tag("cannot_support_snow_layer");
+
+    /**
      * Blocks that living entities can climb.
      */
     public static final BlockTagKey CLIMBABLE = tag("climbable");
@@ -174,6 +179,11 @@ public class BlockTags {
     public static final BlockTagKey MANGROVE_ROOTS_CAN_GROW_THROUGH = tag("mangrove_roots_can_grow_through");
 
     /**
+     * Blocks whose heat melts icicles one or two blocks above them.
+     */
+    public static final BlockTagKey MELTS_ICICLE_ABOVE = tag("melts_icicle_above");
+
+    /**
      * Blocks mined most effectively with axes.
      */
     public static final BlockTagKey MINEABLE_WITH_AXE = tag("mineable/axe");
@@ -284,6 +294,11 @@ public class BlockTags {
     public static final BlockTagKey SNOWLOGGABLE = tag("snowloggable");
 
     /**
+     * Pointed dripstone, sulfur spikes and icicles.
+     */
+    public static final BlockTagKey SPELEOTHEMS = tag("speleothems");
+
+    /**
      * Blocks that swords break faster than hand mining.
      */
     public static final BlockTagKey SWORD_EFFICIENT = tag("sword_efficient");
@@ -302,6 +317,11 @@ public class BlockTags {
      * Blocks that are mushroom stems or plant stems.
      */
     public static final BlockTagKey STEM = tag("stem");
+
+    /**
+     * Blocks that can support snow layers even without a full collision top face.
+     */
+    public static final BlockTagKey SUPPORT_OVERRIDE_SNOW_LAYER = tag("support_override_snow_layer");
 
     /**
      * Ground blocks that support a big dripleaf or its stem.

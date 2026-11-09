@@ -20,6 +20,22 @@ class DefaultPlayerDataSerializerTest {
     Path directory;
 
     @Test
+    void missingPlayerStorageIsCreatedOnlyWhenSaving() throws Exception {
+        Path storage = directory.resolve("world/playerdata");
+        PlayerDataKey key = PlayerDataKey.of(UUID.randomUUID());
+        DefaultPlayerDataSerializer serializer = new DefaultPlayerDataSerializer(storage);
+
+        assertTrue(serializer.read(key).isEmpty());
+        assertFalse(Files.exists(directory.resolve("world")));
+
+        NbtMap data = NbtMap.builder().putInt("value", 1).build();
+        serializer.write(key, data);
+
+        assertEquals(data, serializer.read(key).orElseThrow());
+        assertTrue(Files.isDirectory(storage));
+    }
+
+    @Test
     void onlyMissingDataReturnsAnEmptyResult() throws Exception {
         PlayerDataKey key = PlayerDataKey.of(UUID.randomUUID());
         DefaultPlayerDataSerializer serializer = new DefaultPlayerDataSerializer(directory);

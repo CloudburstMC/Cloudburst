@@ -40,7 +40,7 @@ class FrogspawnBlockHandlersTest {
         }
 
         world.setState(BELOW, BlockTypes.MANGROVE_ROOTS.getDefaultState());
-        world.setLiquid(BELOW, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(BELOW, BlockStates.WATER.getLiquidState());
         assertTrue(FrogspawnBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
 
         world.unload(BELOW);
@@ -50,7 +50,7 @@ class FrogspawnBlockHandlersTest {
     @Test
     void rejectsWaterAtTheFrogspawnAndPreservesItWhenRemoved() {
         BlockTestWorld world = world();
-        world.setLiquid(POSITION, LiquidState.of(BlockStates.WATER));
+        world.setLiquid(POSITION, BlockStates.WATER.getLiquidState());
         assertFalse(FrogspawnBlockHandlers.CAN_SURVIVE.execute(world.block(POSITION)));
 
         FrogspawnBlockHandlers.ON_STATE_CHANGED.execute(world.block(POSITION));

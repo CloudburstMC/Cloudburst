@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.blockentity;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.Timings;
 import lombok.extern.log4j.Log4j2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.Block;
@@ -48,7 +46,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
 
     protected long lastUpdate;
     protected CloudServer server;
-    protected Timing timing;
     private NbtMap tag;
 
     private String customName;
@@ -60,7 +57,6 @@ public abstract class BaseBlockEntity implements BlockEntity {
         checkNotNull(position, "position");
 
         this.type = type;
-        this.timing = Timings.getBlockEntityTiming(this);
         this.server = (CloudServer) chunk.getLevel().getServer();
         this.position = position;
         this.chunk = (CloudChunk) chunk;

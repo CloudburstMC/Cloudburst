@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * Read-only source used to import a level from another storage format.
+ * Keep the source open until its asynchronous operations have completed.
  */
 public interface LevelImportSource extends Closeable {
 
@@ -21,8 +22,10 @@ public interface LevelImportSource extends Closeable {
     CompletableFuture<CloudLevelData> loadLevelData(CloudLevelData initialData);
 
     /**
-     * Visits every persisted chunk and fails if any chunk cannot be read or consumed.
+     * Visits every chunk selected by this source and fails if any cannot be read or consumed.
      * The source closes each imported chunk after the consumer returns.
+     * The consumer must not retain the chunk for later use.
+     * An empty source completes without invoking the consumer.
      *
      * @param factory  creates builders bound to the importing level
      * @param consumer finishes reading or saving each decoded chunk before returning

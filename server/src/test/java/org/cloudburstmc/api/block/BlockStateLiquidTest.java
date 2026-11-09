@@ -1,11 +1,28 @@
 package org.cloudburstmc.api.block;
 
+import org.cloudburstmc.api.registry.BlockRegistry;
 import org.cloudburstmc.api.util.Identifier;
+import org.cloudburstmc.server.block.CloudBlockType;
+import org.cloudburstmc.server.block.CloudLiquidState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BlockStateLiquidTest {
+
+    @Test
+    void emptyStateIsOwnedByTheBlockRegistry() {
+        LiquidState empty = LiquidState.empty();
+
+        assertSame(BlockRegistry.get().getEmptyLiquidState(), empty);
+        assertTrue(empty.isEmpty());
+        assertSame(LiquidTypes.EMPTY, empty.getType());
+        assertEquals(0, empty.getAmount());
+        assertEquals(0f, empty.getOwnHeight());
+        assertFalse(empty.isSource());
+        assertFalse(empty.isFalling());
+        assertTrue(empty.isSameFamily(LiquidState.empty()));
+    }
 
     @Test
     void decodesBedrockLiquidDepth() {
@@ -23,6 +40,8 @@ class BlockStateLiquidTest {
         assertTrue(BlockTypes.LAVA.isLiquid());
         assertTrue(BlockTypes.FLOWING_LAVA.isLiquid());
         assertFalse(BlockTypes.AIR.isLiquid());
+        assertSame(LiquidState.empty(), BlockTypes.AIR.getDefaultState().getLiquidState());
+        assertSame(LiquidState.empty(), BlockTypes.STONE.getDefaultState().getLiquidState());
     }
 
     @Test
@@ -33,6 +52,7 @@ class BlockStateLiquidTest {
         assertTrue(water.getType().isSameFamily(LiquidTypes.WATER));
         assertFalse(water.getType().isSameFamily(LiquidTypes.LAVA));
         assertSame(LiquidTypes.EMPTY, LiquidState.empty().getType());
+        assertSame(BlockTypes.AIR.getDefaultState(), CloudLiquidState.toBlockState(LiquidState.empty()));
     }
 
     private static void assertLiquidState(int amount, boolean source, boolean falling, int liquidDepth) {
@@ -44,11 +64,12 @@ class BlockStateLiquidTest {
     }
 
     private static LiquidState liquidState(int liquidDepth) {
-        BlockType type = BlockType.of(Identifier.parse("test:flowing_water"), BlockTraits.LIQUID_DEPTH);
-        BlockRegistrationAccess.bindLiquidType(type, LiquidTypes.FLOWING_WATER);
+        BlockType type = BlockRegistry.get().createType(Identifier.parse("test:flowing_water"), BlockTraits.LIQUID_DEPTH);
+        CloudBlockType.require(type).bindLiquidType(LiquidTypes.FLOWING_WATER);
         BlockState state = type.getDefaultState().withTrait(BlockTraits.LIQUID_DEPTH, liquidDepth);
-        LiquidState liquid = LiquidState.of(state);
-        assertSame(liquid, LiquidState.of(state));
+        LiquidState liquid = state.getLiquidState();
+        assertSame(liquid, state.getLiquidState());
+        assertSame(state, CloudLiquidState.toBlockState(liquid));
         return liquid;
     }
 }

@@ -1,7 +1,5 @@
 package org.cloudburstmc.server.level;
 
-import co.aikar.timings.Timing;
-import co.aikar.timings.TimingsHistory;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -52,7 +50,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
-import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -63,15 +60,14 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.server.CloudServer;
-import org.cloudburstmc.server.block.BlockLayerRules;
-import org.cloudburstmc.server.block.BlockLayers;
-import org.cloudburstmc.server.block.BlockPalette;
-import org.cloudburstmc.server.block.CloudBlock;
+import org.cloudburstmc.server.block.*;
 import org.cloudburstmc.server.block.component.LiquidBlockHandlers;
+import org.cloudburstmc.server.block.util.BlockShapeTransitions;
 import org.cloudburstmc.server.blockentity.BaseBlockEntity;
 import org.cloudburstmc.server.blockentity.UnknownBlockEntity;
 import org.cloudburstmc.server.configuration.LevelConfiguration;
 import org.cloudburstmc.server.entity.CloudEntity;
+import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.entity.projectile.EntityArrow;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
@@ -82,10 +78,7 @@ import org.cloudburstmc.server.level.collision.CollisionEngine;
 import org.cloudburstmc.server.level.gamerule.CloudGameRules;
 import org.cloudburstmc.server.level.generator.BlockStateRegion;
 import org.cloudburstmc.server.level.generator.Generator;
-import org.cloudburstmc.server.level.light.BlockLightEngine;
-import org.cloudburstmc.server.level.light.LevelLightEngine;
-import org.cloudburstmc.server.level.light.LightOcclusion;
-import org.cloudburstmc.server.level.light.SkyLightEngine;
+import org.cloudburstmc.server.level.light.*;
 import org.cloudburstmc.server.level.manager.LevelChunkManager;
 import org.cloudburstmc.server.level.provider.LevelProvider;
 import org.cloudburstmc.server.level.weather.PrecipitationHandler;
@@ -100,7 +93,6 @@ import org.cloudburstmc.server.registry.CloudEntityRegistry;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.GeneratorRegistry;
 import org.cloudburstmc.server.scheduler.BlockUpdateScheduler;
-import org.cloudburstmc.server.timings.LevelTimings;
 import org.cloudburstmc.server.utils.BlockUpdateEntry;
 
 import java.awt.*;
@@ -111,6 +103,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 import static com.google.common.base.Preconditions.*;
@@ -136,7 +129,6 @@ public class CloudLevel implements Level, BlockStateRegion {
     private final ConcurrentLinkedQueue<BlockEntity> updateBlockEntities = new ConcurrentLinkedQueue<>();
 
     private final CloudServer server;
-    public final LevelTimings timings;
 
     private LevelProvider provider;
 
@@ -153,6 +145,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     // Storing the vector is redundant
     private final Object changeBlocksPresent = new Object();
     private final Long2ObjectMap<IntSet> lightQueue = new Long2ObjectOpenHashMap<>();
+
     // Storing extra blocks past 512 is redundant
     private final Map<Character, Object> changeBlocksFullMap = new HashMap<Character, Object>() {
         @Override
@@ -161,13 +154,13 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
     };
 
-
     @Getter
     private final BlockUpdateScheduler blockUpdateQueue;
     @Getter
     private final BlockUpdateScheduler liquidUpdateQueue;
 
-    private static final ThreadLocal<NeighborUpdateContext> NEIGHBOR_UPDATES = ThreadLocal.withInitial(NeighborUpdateContext::new);
+    private static final ThreadLocal<NeighborUpdateContext> NEIGHBOR_UPDATES =
+            ThreadLocal.withInitial(NeighborUpdateContext::new);
 
     private boolean autoSave;
 
@@ -191,6 +184,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             .removalListener(cacheRemover)
             .build();
     private final LevelChunkManager chunkManager;
+    private final LightScheduler lightScheduler;
     private final CloudLevelData levelData;
     private final CollisionEngine collisionEngine;
     private final EndFightManager endFight;
@@ -218,7 +212,6 @@ public class CloudLevel implements Level, BlockStateRegion {
         this.autoSave = server.getAutoSave();
         this.provider = levelProvider;
         this.levelData = levelData;
-        this.timings = new LevelTimings(this);
 
         this.generator = generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
 
@@ -232,12 +225,16 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         this.chunkTickList.clear();
         this.chunkManager = new LevelChunkManager(this);
+        this.lightScheduler = new LightScheduler(new CloudLevelLightView(this.server.getBlockRegistry(),
+                this.getMinHeight(), this.getMaxHeight(), this.getDimension() == DIMENSION_OVERWORLD,
+                this.chunkManager::getChunkForLighting), this.chunkManager.getScheduler()::scheduleLight
+        );
         this.collisionEngine = new CollisionEngine(this);
         this.endFight = this.getDimension() == DIMENSION_THE_END
                 ? new EndFightManager(this, this.levelData.getEndFightData())
                 : null;
 
-        LongPredicate loadedChunk = chunkKey -> this.chunkManager.isChunkLoaded(chunkKey);
+        LongPredicate loadedChunk = this.chunkManager::isChunkLoaded;
         this.blockUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickBlock);
         this.liquidUpdateQueue = new BlockUpdateScheduler(this.levelData.getGameTime(), loadedChunk, this::tickLiquid);
 
@@ -245,7 +242,8 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void reloadGenerator() {
-        this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator()).create(this.getSeed(), this.levelData.getGeneratorOptions());
+        this.generator = this.generatorRegistry.getGeneratorFactory(this.levelData.getGenerator())
+                .create(this.getSeed(), this.levelData.getGeneratorOptions());
     }
 
     public double getLastTickDuration() {
@@ -297,6 +295,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void close() {
+        this.lightScheduler.close();
         this.save(true, true);
 
         try {
@@ -304,6 +303,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         } catch (IOException e) {
             throw new LevelException("Error occurred whilst closing level", e);
         }
+
         this.provider = null;
         // this.blockMetadata = null;
     }
@@ -483,6 +483,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     public void addChunkPacket(int chunkX, int chunkZ, BedrockPacket packet) {
         long index = CloudChunk.key(chunkX, chunkZ);
+
         synchronized (chunkPackets) {
             Deque<BedrockPacket> packets = chunkPackets.computeIfAbsent(index, i -> new ArrayDeque<>());
             packets.add(packet);
@@ -490,145 +491,126 @@ public class CloudLevel implements Level, BlockStateRegion {
     }
 
     public void doTick(int currentTick) {
-        try (Timing ignored = this.timings.doTick.startTiming()) {
-            synchronized (lightQueue) {
-                this.updateQueuedLight();
-            }
+        this.updateQueuedLight();
 
-            this.levelData.tick();
+        this.levelData.tick();
 
-            if (this.getGameTime() % 20 == 0 || this.hasDaylightCycle() && !this.isTimePaused() && this.getTimeRate() != 1 && this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
-                this.sendTime();
-            }
+        if (this.getGameTime() % 20 == 0 || this.hasDaylightCycle() && !this.isTimePaused() && this.getTimeRate() != 1 && this.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE)) {
+            this.sendTime();
+        }
 
-            // Tick Weather
-            if (this.getDimension() != CloudLevel.DIMENSION_NETHER && this.getDimension() != CloudLevel.DIMENSION_THE_END && this.doWeatherCycle()) {
-                this.levelData.setRainTime(getRainTime() - 1);
-                if (this.levelData.getRainTime() <= 0) {
-                    if (!this.setRaining(this.levelData.getRainLevel() <= 0)) {
-                        if (this.levelData.getRainLevel() > 0) {
-                            setRainTime(this.random.nextInt(12000) + 12000);
-                        } else {
-                            setRainTime(this.random.nextInt(168000) + 12000);
-                        }
-                    }
-                }
-
-                this.levelData.setLightningTime(this.levelData.getLightningTime() - 1);
-                if (this.levelData.getLightningTime() <= 0) {
-                    if (!this.setThundering(this.levelData.getLightningLevel() <= 0)) {
-                        if (this.levelData.getLightningLevel() > 0) {
-                            setThunderTime(this.random.nextInt(12000) + 3600);
-                        } else {
-                            setThunderTime(this.random.nextInt(168000) + 12000);
-                        }
-                    }
-                }
-
-                if (this.isThundering()) {
-                    for (Chunk chunk : this.getChunks()) {
-                        this.performThunder(chunk);
+        // Tick Weather
+        if (this.getDimension() != CloudLevel.DIMENSION_NETHER && this.getDimension() != CloudLevel.DIMENSION_THE_END && this.doWeatherCycle()) {
+            this.levelData.setRainTime(getRainTime() - 1);
+            if (this.levelData.getRainTime() <= 0) {
+                if (!this.setRaining(this.levelData.getRainLevel() <= 0)) {
+                    if (this.levelData.getRainLevel() > 0) {
+                        setRainTime(this.random.nextInt(12000) + 12000);
+                    } else {
+                        setRainTime(this.random.nextInt(168000) + 12000);
                     }
                 }
             }
 
-            this.checkSleep();
-            this.updateSkyBrightness();
-            if (this.endFight != null) {
-                this.endFight.tick();
-            }
-
-            int maxBlockTicks = this.getConfiguration().getLevel().getMaxBlockTicks();
-            int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
-            this.chunkManager.promoteReadyChunks();
-            try (Timing ignored2 = timings.scheduledBlockTicks.startTiming()) {
-                this.blockUpdateQueue.tick(this.getGameTime(), maxBlockTicks);
-            }
-
-            try (Timing ignored2 = timings.scheduledLiquidTicks.startTiming()) {
-                this.liquidUpdateQueue.tick(this.getGameTime(), maxLiquidTicks);
-            }
-
-            TimingsHistory.entityTicks += this.updateEntities.size();
-
-            try (Timing ignored2 = this.timings.entityTick.startTiming()) {
-                if (!this.updateEntities.isEmpty()) {
-                    this.updateEntities.forEach(entity -> {
-                        if (entity.isClosed() || !entity.onUpdate(currentTick)) {
-                            this.updateEntities.remove(entity);
-                        }
-                    });
+            this.levelData.setLightningTime(this.levelData.getLightningTime() - 1);
+            if (this.levelData.getLightningTime() <= 0) {
+                if (!this.setThundering(this.levelData.getLightningLevel() <= 0)) {
+                    if (this.levelData.getLightningLevel() > 0) {
+                        setThunderTime(this.random.nextInt(12000) + 3600);
+                    } else {
+                        setThunderTime(this.random.nextInt(168000) + 12000);
+                    }
                 }
             }
 
-            TimingsHistory.tileEntityTicks += this.updateBlockEntities.size();
-            try (Timing ignored2 = this.timings.blockEntityTick.startTiming()) {
-                this.updateBlockEntities.removeIf(blockEntity -> blockEntity.isClosed() || !blockEntity.onUpdate());
+            if (this.isThundering()) {
+                for (Chunk chunk : this.getChunks()) {
+                    this.performThunder(chunk);
+                }
             }
+        }
 
-            try (Timing ignored2 = this.timings.tickChunks.startTiming()) {
-                this.tickChunks();
+        this.checkSleep();
+        this.updateSkyBrightness();
+        if (this.endFight != null) {
+            this.endFight.tick();
+        }
 
-                synchronized (changedBlocks) {
-                    ConcurrentMap<Long, IntSet> changedBlocks = this.changedBlocks.asMap();
-                    if (!changedBlocks.isEmpty()) {
-                        if (!this.players.isEmpty()) {
-                            Iterator<Map.Entry<Long, IntSet>> iter = changedBlocks.entrySet().iterator();
-                            while (iter.hasNext()) {
-                                Map.Entry<Long, IntSet> entry = iter.next();
-                                long chunkKey = entry.getKey();
-                                IntSet blocks = entry.getValue();
-                                int chunkX = CloudChunk.fromKeyX(chunkKey);
-                                int chunkZ = CloudChunk.fromKeyZ(chunkKey);
-                                if (blocks.size() > MAX_BLOCK_CACHE) {
-                                    Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
-                                    if (chunk != null) {
-                                        for (CloudPlayer player : this.getChunkPlayers(chunkX, chunkZ)) {
-                                            player.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
-                                        }
-                                    }
-                                } else {
-                                    Collection<CloudPlayer> toSend = this.getChunkPlayers(chunkX, chunkZ);
-                                    Player[] playerArray = toSend.toArray(new Player[0]);
-                                    Block[] blocksArray = new Block[blocks.size()];
-                                    int i = 0;
-                                    for (int blockKey : blocks) {
-                                        blocksArray[i++] = this.getBlock(CloudChunk.fromBlockKey(chunkKey, blockKey, this.getMinHeight()));
-                                    }
-                                    this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
+        int maxBlockTicks = this.getConfiguration().getLevel().getMaxBlockTicks();
+        int maxLiquidTicks = this.getConfiguration().getLevel().getMaxLiquidTicks();
+        this.chunkManager.promoteReadyChunks();
+        this.blockUpdateQueue.tick(this.getGameTime(), maxBlockTicks);
+
+        this.liquidUpdateQueue.tick(this.getGameTime(), maxLiquidTicks);
+
+        if (!this.updateEntities.isEmpty()) {
+            this.updateEntities.forEach(entity -> {
+                if (entity.isClosed() || !entity.onUpdate(currentTick)) {
+                    this.updateEntities.remove(entity);
+                }
+            });
+        }
+
+        this.updateBlockEntities.removeIf(blockEntity -> blockEntity.isClosed() || !blockEntity.onUpdate());
+
+        this.tickChunks();
+
+        synchronized (changedBlocks) {
+            ConcurrentMap<Long, IntSet> changedBlocks = this.changedBlocks.asMap();
+            if (!changedBlocks.isEmpty()) {
+                if (!this.players.isEmpty()) {
+                    Iterator<Map.Entry<Long, IntSet>> iter = changedBlocks.entrySet().iterator();
+                    while (iter.hasNext()) {
+                        Map.Entry<Long, IntSet> entry = iter.next();
+                        long chunkKey = entry.getKey();
+                        IntSet blocks = entry.getValue();
+                        int chunkX = CloudChunk.fromKeyX(chunkKey);
+                        int chunkZ = CloudChunk.fromKeyZ(chunkKey);
+                        if (blocks.size() > MAX_BLOCK_CACHE) {
+                            Chunk chunk = this.getLoadedChunk(chunkX, chunkZ);
+                            if (chunk != null) {
+                                for (CloudPlayer player : this.getChunkPlayers(chunkX, chunkZ)) {
+                                    player.getChunkManager().resendChunk(chunk.getX(), chunk.getZ());
                                 }
-                                iter.remove();
                             }
+                        } else {
+                            Collection<CloudPlayer> toSend = this.getChunkPlayers(chunkX, chunkZ);
+                            Player[] playerArray = toSend.toArray(new Player[0]);
+                            Block[] blocksArray = new Block[blocks.size()];
+                            int i = 0;
+                            for (int blockKey : blocks) {
+                                blocksArray[i++] = this.getBlock(CloudChunk.fromBlockKey(chunkKey, blockKey, this.getMinHeight()));
+                            }
+                            this.sendBlocks(playerArray, blocksArray, UpdateBlockPacket.FLAG_ALL);
                         }
+                        iter.remove();
                     }
-                }
-
-                //this.processChunkRequest();
-
-                synchronized (chunkPackets) {
-                    for (long index : this.chunkPackets.keySet()) {
-                        CloudChunk chunk = this.getLoadedChunk(index);
-
-                        Set<CloudPlayer> viewers;
-                        if (chunk == null || (viewers = chunk.getViewers()).isEmpty()) {
-                            // Chunk is unloaded.
-                            continue;
-                        }
-
-                        for (BedrockPacket packet : this.chunkPackets.get(index)) {
-                            CloudServer.broadcastPacket(viewers, packet);
-                        }
-                    }
-                    this.chunkPackets.clear();
-                }
-
-                if (this.levelData.getGameRules().isDirty()) {
-                    GameRulesChangedPacket packet = LevelTimePacketFactory.gameRules(this);
-                    CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
-                    this.sendTime();
-                    this.levelData.getGameRules().markClean();
                 }
             }
+        }
+
+        synchronized (chunkPackets) {
+            for (long index : this.chunkPackets.keySet()) {
+                CloudChunk chunk = this.getLoadedChunk(index);
+
+                Set<CloudPlayer> viewers;
+                if (chunk == null || (viewers = chunk.getViewers()).isEmpty()) {
+                    // Chunk is unloaded.
+                    continue;
+                }
+
+                for (BedrockPacket packet : this.chunkPackets.get(index)) {
+                    CloudServer.broadcastPacket(viewers, packet);
+                }
+            }
+            this.chunkPackets.clear();
+        }
+
+        if (this.levelData.getGameRules().isDirty()) {
+            GameRulesChangedPacket packet = LevelTimePacketFactory.gameRules(this);
+            CloudServer.broadcastPacket(players.values().toArray(new CloudPlayer[0]), packet);
+            this.sendTime();
+            this.levelData.getGameRules().markClean();
         }
     }
 
@@ -1311,36 +1293,52 @@ public class CloudLevel implements Level, BlockStateRegion {
         });
     }
 
-    public void initializeChunkLight(CloudChunk chunk) {
-        LevelLightEngine.initialize(this, chunk);
+    /**
+     * Requests initial lighting before a finished chunk is promoted.
+     *
+     * @param chunk the finished chunk
+     * @return completion of initial lighting and its neighbour propagation
+     */
+    public CompletableFuture<Void> initializeChunkLight(CloudChunk chunk) {
+        return this.lightScheduler.chunkLoaded(chunk.getX(), chunk.getZ());
     }
 
+    /**
+     * Queues a boundary refresh around an unloaded chunk.
+     *
+     * @param chunk the unloaded chunk
+     */
     public void updateChunkLightBoundary(CloudChunk chunk) {
-        LevelLightEngine.updateBoundary(this, chunk.getX(), chunk.getZ());
+        this.lightScheduler.chunkUnloaded(chunk.getX(), chunk.getZ());
     }
 
+    /**
+     * Drains the queued block changes into the background light lane.
+     * Propagation runs without blocking this thread.
+     */
     private void updateQueuedLight() {
-        if (this.lightQueue.isEmpty()) {
-            return;
-        }
+        this.lightScheduler.checkFailure();
 
-        List<Vector3i> changed = new ArrayList<>();
-        for (Long2ObjectMap.Entry<IntSet> entry : this.lightQueue.long2ObjectEntrySet()) {
-            for (int blockKey : entry.getValue()) {
-                changed.add(CloudChunk.fromKeyLight(entry.getLongKey(), blockKey, this.getMinHeight()));
+        LongCollection changed;
+
+        synchronized (this.lightQueue) {
+            if (this.lightQueue.isEmpty()) {
+                return;
             }
+
+            changed = LightPositions.collectChanges(this.lightQueue, this.getMinHeight());
+            this.lightQueue.clear();
         }
 
-        this.lightQueue.clear();
-        BlockLightEngine.update(this, changed);
-        if (this.getDimension() == DIMENSION_OVERWORLD) {
-            SkyLightEngine.update(this, changed);
-        }
+        this.lightScheduler.blocksChanged(changed);
     }
 
     @Synchronized("lightQueue")
     public void addLightUpdate(int x, int y, int z) {
-        if (this.isOutsideBuildHeight(y)) return;
+        if (this.isOutsideBuildHeight(y)) {
+            return;
+        }
+
         long index = CloudChunk.key(x >> 4, z >> 4);
         this.lightQueue.computeIfAbsent(index, aLong -> new IntOpenHashSet())
                 .add(CloudChunk.blockKeyWithLayer(x, y, z, BlockLayer.PRIMARY, this.getMinHeight()));
@@ -1365,22 +1363,48 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.setBlockState(x, y, z, layer, state, direct, update, null, null);
     }
 
-    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, CloudEntity entity) {
+    public boolean removeBlockForFallingEntity(Vector3i position, BlockState replacement, EntityFallingBlock entity) {
         return this.setBlockStateSynced(position, replacement, entity, BlockSyncType.CREATE);
     }
 
-    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, CloudEntity entity) {
-        return this.setBlockStateSynced(position, state, entity, BlockSyncType.DESTROY);
+    public boolean placeBlocksFromFallingEntity(List<BlockChange> changes, EntityFallingBlock entity) {
+        Set<Vector3i> positions = new HashSet<>();
+        for (BlockChange change : changes) {
+            Block target = change.block();
+            Vector3i position = target.getPosition();
+            if (target.getLevel() != this || this.isOutsideBuildHeight(position.getY()) || !positions.add(position)) {
+                return false;
+            }
+
+            Block current = this.getBlock(position);
+            if (current.getState() != target.getState() || current.getSecondaryState() != target.getSecondaryState()) {
+                return false;
+            }
+        }
+
+        return this.withBatchedBlockUpdates(() -> {
+            BlockChange landing = changes.getFirst();
+            if (!this.setBlockStateSynced(landing.block().getPosition(), landing.newState(), entity, BlockSyncType.DESTROY)) {
+                return false;
+            }
+
+            for (int index = 1; index < changes.size(); index++) {
+                BlockChange change = changes.get(index);
+                this.setBlockState(change.block().getPosition(), change.newState());
+            }
+
+            return true;
+        });
     }
 
-    private boolean setBlockStateSynced(Vector3i position, BlockState state, CloudEntity entity,
+    private boolean setBlockStateSynced(Vector3i position, BlockState state, EntityFallingBlock entity,
                                         BlockSyncType syncType) {
         return this.setBlockState(position.getX(), position.getY(), position.getZ(), BlockLayer.PRIMARY, state,
                 false, true, Objects.requireNonNull(entity, "entity"), Objects.requireNonNull(syncType, "syncType"));
     }
 
     private boolean setBlockState(int x, int y, int z, BlockLayer layer, BlockState state, boolean direct, boolean update,
-                                  @Nullable CloudEntity syncedEntity, @Nullable BlockSyncType syncType) {
+                                  @Nullable EntityFallingBlock syncedEntity, @Nullable BlockSyncType syncType) {
         if (this.isOutsideBuildHeight(y)) {
             return false;
         }
@@ -1428,6 +1452,12 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (syncedEntity != null) {
             this.sendSyncedBlockUpdate(newBlock, syncedEntity, Objects.requireNonNull(syncType, "syncType"));
+            if (syncType == BlockSyncType.DESTROY) {
+                BlockShapeTransitions.pushEntitiesUp(this, position, oldLayers.primary(), newLayers.primary(),
+                        entity -> entity != syncedEntity
+                                && entity instanceof EntityFallingBlock falling
+                                && falling.isUnsettled());
+            }
         } else if (direct) {
             this.sendBlocks(this.getChunkPlayers(cx, cz).toArray(new Player[0]), new Block[]{newBlock}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
         } else {
@@ -1444,7 +1474,7 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         if (this.getBlockState(position) == newLayers.primary() && this.getBlockState(x, y, z, BlockLayer.SECONDARY) == newLayers.secondary()) {
             BlockState previousLiquidState = oldLayers.primary().getType().isLiquid() ? oldLayers.primary() : oldLayers.secondary();
-            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? LiquidState.of(previousLiquidState) : LiquidState.empty();
+            LiquidState previousLiquid = previousLiquidState.getType().isLiquid() ? previousLiquidState.getLiquidState() : LiquidState.empty();
             if (!previousLiquid.equals(newBlock.getLiquid())) {
                 this.blockRegistry.requireComponent(newLayers.primary().getType(), BlockComponents.ON_LIQUID_CHANGED).execute(newBlock, previousLiquid);
             }
@@ -1482,9 +1512,16 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public void batchBlockUpdates(Runnable action) {
         Objects.requireNonNull(action, "action");
+        this.withBatchedBlockUpdates(() -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private <T> T withBatchedBlockUpdates(Supplier<T> action) {
         this.blockUpdateBatchDepth++;
         try {
-            action.run();
+            return action.get();
         } finally {
             if (--this.blockUpdateBatchDepth == 0) {
                 List<Vector3i> changedPositions = List.copyOf(this.batchedNeighbourUpdates);
@@ -1540,7 +1577,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             return true;
         }
 
-        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, LiquidStateAccess.blockState(liquid));
+        return primary.getLiquidReaction().removesBlock() || BlockLayerRules.canCoexist(primary, CloudLiquidState.toBlockState(liquid));
     }
 
     @Override
@@ -1570,11 +1607,11 @@ public class CloudLevel implements Level, BlockStateRegion {
 
         boolean changed;
         if (primary.getType().isLiquid() || primary == BlockStates.AIR) {
-            boolean primaryChanged = this.setBlockState(position, LiquidStateAccess.blockState(liquid));
+            boolean primaryChanged = this.setBlockState(position, CloudLiquidState.toBlockState(liquid));
             boolean secondaryChanged = this.setBlockState(position, BlockLayer.SECONDARY, BlockStates.AIR);
             changed = primaryChanged || secondaryChanged;
         } else {
-            changed = this.setBlockState(position, BlockLayer.SECONDARY, LiquidStateAccess.blockState(liquid));
+            changed = this.setBlockState(position, BlockLayer.SECONDARY, CloudLiquidState.toBlockState(liquid));
         }
 
         if (changed) {
@@ -1622,12 +1659,12 @@ public class CloudLevel implements Level, BlockStateRegion {
             return;
         }
 
-        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, LiquidStateAccess.blockState(liquid).getType(),
+        this.liquidUpdateQueue.add(BlockUpdateEntry.of(position, CloudLiquidState.toBlockState(liquid).getType(),
                 (long) delay + this.getGameTime()));
     }
 
     private boolean isLiquidUpdateScheduled(Vector3i position, LiquidState liquid) {
-        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, LiquidStateAccess.blockState(liquid).getType()));
+        return this.liquidUpdateQueue.contains(BlockUpdateEntry.probe(position, CloudLiquidState.toBlockState(liquid).getType()));
     }
 
     private void tickBlock(Vector3i position, BlockType scheduledType) {
@@ -1642,7 +1679,7 @@ public class CloudLevel implements Level, BlockStateRegion {
     private void tickLiquid(Vector3i position, BlockType scheduledType) {
         Block block = this.getBlock(position);
         LiquidState liquid = block.getLiquid();
-        if (liquid.isEmpty() || LiquidStateAccess.blockState(liquid).getType() != scheduledType) {
+        if (liquid.isEmpty() || CloudLiquidState.toBlockState(liquid).getType() != scheduledType) {
             return;
         }
 
@@ -2053,9 +2090,10 @@ public class CloudLevel implements Level, BlockStateRegion {
 
     /**
      * Attempts to activate an item used in the air.
-     * Requires the item to have a {@code USE} component; items that only have {@code USE_ON} are not applicable here.
      *
-     * @return the updated {@link ItemStack} if the item was consumed/activated, or {@code null} if not handled
+     * @param item   the held item
+     * @param player the player using it
+     * @return the resulting item, or {@code null} when use in the air is unsupported
      */
     public ItemStack tryActivateItem(ItemStack item, Player player) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
@@ -2073,9 +2111,9 @@ public class CloudLevel implements Level, BlockStateRegion {
      * Attempts to place a block from the held item against the target block.
      * Requires a non-empty item.
      *
-     * @return the updated ItemStack after placement, or null if placement was rejected
+     * @return the placement position and remaining item, or null if placement was rejected
      */
-    public ItemStack tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
+    public @Nullable BlockPlacementResult tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         @SuppressWarnings("unchecked")
@@ -2084,18 +2122,14 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
-        boolean isSlab = hand.is(BlockTags.SLAB);
-        boolean targetReplaceable = canReplace(target, hand, player, face, clickPos);
-        boolean sideReplaceable = canReplace(side, hand, player, face, clickPos);
-
-        Block block = isSlab
-                ? resolveSlabTarget(hand, target, side, face, clickPos, targetReplaceable, sideReplaceable)
-                : resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-        if (block == null) {
+        BlockPlacementContext context = new BlockPlacementContext(target, face, clickPos, player);
+        BlockPlacementTarget placementTarget = BlockPlacementTarget.resolve(hand, side, context);
+        if (placementTarget == null) {
             return null;
         }
 
-        Direction placementFace = block == target && targetReplaceable ? Direction.UP : face;
+        Block block = placementTarget.block();
+        Direction placementFace = placementTarget.placementFace();
         ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE).execute(hand, block, player, placementFace, clickPos);
         if (hand == null) {
@@ -2178,43 +2212,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, BlockPalette.INSTANCE.getDefinition(hand).getRuntimeId());
         }
 
-        return item.getCount() <= 0 ? ItemStack.EMPTY : item;
-    }
-
-    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
-                                              Vector3f clickPos, boolean targetReplaceable, boolean sideReplaceable) {
-        BlockState targetState = target.getState();
-        if (targetState.is(BlockTags.SLAB) && !targetState.is(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
-            boolean above = clickPos.getY() > 0.5f;
-            SlabSlot existing = targetState.ensureTrait(BlockTraits.SLAB_SLOT);
-            boolean canMerge = face == Direction.UP ? existing == SlabSlot.BOTTOM
-                    : face == Direction.DOWN ? existing == SlabSlot.TOP
-                      : (existing == SlabSlot.BOTTOM) == above;
-            if (canMerge) {
-                return target;
-            }
-
-            return sideReplaceable ? side : null;
-        }
-
-        if (side.getState().is(BlockTags.SLAB) && !side.getState().is(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
-            return side;
-        }
-
-        return resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-    }
-
-    private static @Nullable Block resolveNormalTarget(Block target, Block side, boolean targetReplaceable, boolean sideReplaceable) {
-        if (targetReplaceable) {
-            return target;
-        }
-
-        return sideReplaceable ? side : null;
-    }
-
-    private boolean canReplace(Block block, BlockState replacement, @Nullable Player player, Direction face, Vector3f clickPosition) {
-        return this.blockRegistry.requireComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
-                .execute(block, replacement, player, face, clickPosition);
+        return new BlockPlacementResult(blockPos, item.getCount() <= 0 ? ItemStack.EMPTY : item);
     }
 
     private static final class NeighborUpdate {
@@ -2357,14 +2355,12 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public int getMinHeight() {
         // TODO: Support custom world heights.
-        return this.getDimension() == DIMENSION_OVERWORLD ? -64 : 0;
+        return DimensionHeight.of(this.getDimension()).getMinHeight();
     }
 
     @Override
     public int getMaxHeight() {
-        if (this.getDimension() == DIMENSION_NETHER) return 128;
-        if (this.getDimension() == DIMENSION_THE_END) return 256;
-        return 320; // Overworld
+        return DimensionHeight.of(this.getDimension()).getMaxHeight();
     }
 
     @Override
@@ -3081,9 +3077,10 @@ public class CloudLevel implements Level, BlockStateRegion {
 
 
     public boolean isAreaLoaded(BoundingBox boundingBox) {
-        if (boundingBox.getMaxY() < -64 || boundingBox.getMinY() >= 320) {
+        if (boundingBox.getMaxY() < this.getMinHeight() || boundingBox.getMinY() >= this.getMaxHeight()) {
             return false;
         }
+
         int minX = GenericMath.floor(boundingBox.getMinX()) >> 4;
         int minZ = GenericMath.floor(boundingBox.getMinZ()) >> 4;
         int maxX = GenericMath.floor(boundingBox.getMaxX()) >> 4;

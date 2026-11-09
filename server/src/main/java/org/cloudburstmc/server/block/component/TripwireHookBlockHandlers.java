@@ -4,9 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
-import org.cloudburstmc.api.block.component.BlockDestroyHandler;
-import org.cloudburstmc.api.block.component.NeighborBlockHandler;
-import org.cloudburstmc.api.block.component.TickBlockHandler;
+import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.PlacementSupport;
@@ -15,6 +13,23 @@ import org.cloudburstmc.server.level.CloudLevel;
 
 @UtilityClass
 public class TripwireHookBlockHandlers {
+
+    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) ->
+            face.getAxis().isHorizontal() ? state.withTrait(BlockTraits.DIRECTION, face) : null;
+
+    public static final SurviveBlockHandler CAN_SURVIVE = block -> {
+        Direction facing = block.getState().ensureTrait(BlockTraits.DIRECTION);
+        return facing.getAxis().isHorizontal() && PlacementSupport.hasFullFaceSupport(block.getLevel(), block.getPosition(), facing);
+    };
+
+    public static final PlaceBlockHandler ON_PLACE = (state, player, position, face, click) -> {
+        if (player == null || !player.getLevel().setBlockState(position, state, true, true)) {
+            return false;
+        }
+
+        TripwireCalculator.calculateState((CloudLevel) player.getLevel(), position, state, false);
+        return true;
+    };
 
     public static final TickBlockHandler ON_TICK = (block, random) -> {
         CloudLevel level = (CloudLevel) block.getLevel();
@@ -30,9 +45,8 @@ public class TripwireHookBlockHandlers {
         Vector3i wallPos = PlacementSupport.supportPosition(pos, facing);
 
         if (neighbor.getPosition().equals(wallPos)) {
-            CloudLevel level = (CloudLevel) block.getLevel();
-            if (!PlacementSupport.hasFullFaceSupport(level, pos, facing)) {
-                level.breakBlock(pos, null, null, true);
+            if (!CAN_SURVIVE.execute(block)) {
+                block.getLevel().breakBlock(pos, null, null, true);
             }
         }
     };

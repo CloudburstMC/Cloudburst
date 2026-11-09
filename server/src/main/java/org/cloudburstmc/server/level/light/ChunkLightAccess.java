@@ -1,94 +1,199 @@
 package org.cloudburstmc.server.level.light;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockLayer;
-import org.cloudburstmc.api.level.Level;
-import org.cloudburstmc.api.level.chunk.Chunk;
-import org.cloudburstmc.api.registry.BlockRegistry;
-import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.api.block.BlockState;
+import org.cloudburstmc.api.block.BlockStates;
+import org.cloudburstmc.server.level.chunk.BlockLayerStorage;
+import org.cloudburstmc.server.level.chunk.ChunkLightView;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
+import org.cloudburstmc.server.level.chunk.CloudChunkSection;
+import org.cloudburstmc.server.utils.NibbleArray;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.LongFunction;
 
+/**
+ * Light access restricted to borrowed chunk-section views.
+ * Use on the lock-owning thread and discard before releasing those views.
+ * Light writes do not mark chunks dirty.
+ */
 public class ChunkLightAccess implements LightAccess {
 
-    private final Level level;
-    private final Type type;
-    private final @Nullable Chunk initializing;
-    private final Map<Long, @Nullable Chunk> chunks = new HashMap<>();
+    private final LightChannel channel;
+    private final int minHeight;
+    private final int maxHeight;
+    private final LightStateCache states;
+    private final LongFunction<? extends ChunkLightView> chunks;
 
-    public ChunkLightAccess(Level level, Type type) {
-        this(level, type, null);
-    }
+    private boolean hasCached;
+    private long cachedKey;
+    private @Nullable ChunkLightView cachedChunk;
 
-    public ChunkLightAccess(Level level, Type type, @Nullable Chunk initializing) {
-        this.level = level;
-        this.type = type;
-        this.initializing = initializing;
-    }
+    private boolean hasSectionCached;
+    private long sectionCachedKey;
+    private int sectionCachedIndex;
+    private @Nullable CloudChunkSection sectionCached;
 
-    @Override
-    public BlockRegistry registry() {
-        return this.level.getServer().getBlockRegistry();
+    private final Long2ObjectMap<CloudChunkSection[]> sectionsByKey = new Long2ObjectOpenHashMap<>();
+
+    /**
+     * @param channel   the light channel to read and write
+     * @param minHeight the lowest accessible y
+     * @param maxHeight one past the highest accessible y
+     * @param states    the thread-confined block-state cache
+     * @param chunks    lookup of borrowed views held under write locks, returning null when absent
+     */
+    public ChunkLightAccess(LightChannel channel, int minHeight, int maxHeight, LightStateCache states, LongFunction<? extends ChunkLightView> chunks) {
+        this.channel = channel;
+        this.minHeight = minHeight;
+        this.maxHeight = maxHeight;
+        this.states = states;
+        this.chunks = chunks;
     }
 
     @Override
     public int minHeight() {
-        return this.level.getMinHeight();
+        return this.minHeight;
     }
 
     @Override
     public int maxHeight() {
-        return this.level.getMaxHeight();
+        return this.maxHeight;
     }
 
     @Override
-    public @Nullable Sample read(Vector3i position) {
-        if (position.getY() < this.minHeight() || position.getY() >= this.maxHeight()) {
+    public LightStateCache states() {
+        return this.states;
+    }
+
+    @Override
+    public boolean isLoaded(int x, int z) {
+        return this.chunkFor(x >> 4, z >> 4) != null;
+    }
+
+    @Override
+    public BlockState primary(int x, int y, int z) {
+        CloudChunkSection section = this.sectionFor(x, y, z);
+
+        if (section == null) {
+            return BlockStates.AIR;
+        }
+
+        return section.getBlockStorageArray()[BlockLayerStorage.index(BlockLayer.PRIMARY)]
+                .getBlock(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15));
+    }
+
+    @Override
+    public BlockState secondary(int x, int y, int z) {
+        CloudChunkSection section = this.sectionFor(x, y, z);
+
+        if (section == null) {
+            return BlockStates.AIR;
+        }
+
+        return section.getBlockStorageArray()[BlockLayerStorage.index(BlockLayer.SECONDARY)]
+                .getBlock(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15));
+    }
+
+    @Override
+    public int light(int x, int y, int z) {
+        CloudChunkSection section = this.sectionFor(x, y, z);
+
+        if (section == null) {
+            return 0;
+        }
+
+        NibbleArray nibbles = this.channel == LightChannel.BLOCK
+                ? section.getBlockLightArray()
+                : section.getSkyLightArray();
+        return nibbles.get(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15));
+    }
+
+    @Override
+    public void setLight(int x, int y, int z, int light) {
+        if (y < this.minHeight || y >= this.maxHeight) {
+            return;
+        }
+
+        long key = CloudChunk.key(x >> 4, z >> 4);
+        int index = (y - this.minHeight) >> 4;
+        CloudChunkSection section = this.sectionFor(x, y, z);
+
+        if (section == null) {
+            ChunkLightView chunk = this.chunkForKey(key);
+
+            if (chunk == null) {
+                return;
+            }
+
+            if (light == 0) {
+                return;
+            }
+
+            section = chunk.getOrCreateLightSection(index);
+            this.sectionsFor(key, chunk)[index] = section;
+            this.sectionCachedKey = key;
+            this.sectionCachedIndex = index;
+            this.sectionCached = section;
+            this.hasSectionCached = true;
+        }
+
+        NibbleArray nibbles = this.channel == LightChannel.BLOCK
+                ? section.getBlockLightArray()
+                : section.getSkyLightArray();
+        nibbles.set(CloudChunkSection.blockIndex(x & 15, (y - this.minHeight) & 15, z & 15), (byte) light);
+    }
+
+    private @Nullable CloudChunkSection sectionFor(int x, int y, int z) {
+        if (y < this.minHeight || y >= this.maxHeight) {
             return null;
         }
 
-        Chunk chunk = this.chunk(position);
+        long key = CloudChunk.key(x >> 4, z >> 4);
+        int index = (y - this.minHeight) >> 4;
+
+        if (this.hasSectionCached && key == this.sectionCachedKey && index == this.sectionCachedIndex) {
+            return this.sectionCached;
+        }
+
+        ChunkLightView chunk = this.chunkForKey(key);
+
         if (chunk == null) {
             return null;
         }
 
-        int x = position.getX() & 15;
-        int y = position.getY();
-        int z = position.getZ() & 15;
-        int light = this.type == Type.BLOCK ? chunk.getBlockLight(x, y, z) : chunk.getSkyLight(x, y, z);
-        return new Sample(chunk.getBlockState(x, y, z, BlockLayer.PRIMARY), chunk.getBlockState(x, y, z, BlockLayer.SECONDARY), light);
+        CloudChunkSection section = this.sectionsFor(key, chunk)[index];
+        this.sectionCachedKey = key;
+        this.sectionCachedIndex = index;
+        this.sectionCached = section;
+        this.hasSectionCached = true;
+        return section;
     }
 
-    @Override
-    public void write(Vector3i position, int light) {
-        if (position.getY() < this.minHeight() || position.getY() >= this.maxHeight()) {
-            return;
+    private CloudChunkSection[] sectionsFor(long key, ChunkLightView chunk) {
+        CloudChunkSection[] sections = this.sectionsByKey.get(key);
+
+        if (sections == null) {
+            sections = chunk.getLightSections();
+            this.sectionsByKey.put(key, sections);
         }
 
-        Chunk chunk = this.chunk(position);
-        if (chunk != null) {
-            if (this.type == Type.BLOCK) {
-                chunk.setBlockLight(position.getX() & 15, position.getY(), position.getZ() & 15, light);
-            } else {
-                chunk.setSkyLight(position.getX() & 15, position.getY(), position.getZ() & 15, light);
-            }
-        }
+        return sections;
     }
 
-    private @Nullable Chunk chunk(Vector3i position) {
-        int x = position.getX() >> 4;
-        int z = position.getZ() >> 4;
-        if (this.initializing != null && x == this.initializing.getX() && z == this.initializing.getZ()) {
-            return this.initializing;
+    private @Nullable ChunkLightView chunkFor(int chunkX, int chunkZ) {
+        return chunkForKey(CloudChunk.key(chunkX, chunkZ));
+    }
+
+    private @Nullable ChunkLightView chunkForKey(long key) {
+        if (!this.hasCached || key != this.cachedKey) {
+            this.cachedKey = key;
+            this.hasCached = true;
+            this.cachedChunk = this.chunks.apply(key);
         }
 
-        long key = CloudChunk.key(x, z);
-        if (!this.chunks.containsKey(key)) {
-            this.chunks.put(key, this.level.getLoadedChunk(x, z));
-        }
-
-        return this.chunks.get(key);
+        return this.cachedChunk;
     }
 }

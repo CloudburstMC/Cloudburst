@@ -1,5 +1,6 @@
 package org.cloudburstmc.server.registry;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -10,13 +11,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.cloudburstmc.api.entity.Entity;
-import org.cloudburstmc.api.entity.EntityComponents;
-import org.cloudburstmc.api.entity.EntityFactory;
-import org.cloudburstmc.api.entity.EntityType;
-import org.cloudburstmc.api.entity.component.InteractEntityHandler;
-import org.cloudburstmc.api.entity.component.Buoyancy;
 import org.cloudburstmc.api.block.LiquidTypes;
+import org.cloudburstmc.api.entity.*;
+import org.cloudburstmc.api.entity.component.Buoyancy;
+import org.cloudburstmc.api.entity.component.InteractEntityHandler;
 import org.cloudburstmc.api.entity.damage.DamageTypes;
 import org.cloudburstmc.api.item.ItemBehaviors;
 import org.cloudburstmc.api.item.ItemStack;
@@ -31,7 +29,7 @@ import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.server.Bootstrap;
+import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.entity.EntityHuman;
 import org.cloudburstmc.server.entity.UnknownEntity;
@@ -60,6 +58,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
     private static final CloudEntityRegistry INSTANCE;
 
     private static final BiMap<String, Identifier> LEGACY_NAMES;
+    private static final Map<String, Identifier> CANONICAL_NAMES;
     private static final List<NbtMap> VANILLA_ENTITIES;
 
     private static final EntityData<UnknownEntity> UNKNOWN_ENTITY_DATA =
@@ -67,7 +66,7 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
 
     static {
         try (InputStream stream = RegistryUtils.getOrAssertResource("legacy/entity_names.json")) {
-            Map<String, String> legacyNames = Bootstrap.JSON_MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
+            Map<String, String> legacyNames = ServerJson.MAPPER.readValue(stream, new TypeReference<Map<String, String>>() {
             });
 
             ImmutableBiMap.Builder<String, Identifier> mapBuilder = ImmutableBiMap.builder();
@@ -86,6 +85,17 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
             throw new AssertionError("Unable to close resource stream", e);
         }
 
+        Map<String, Identifier> canonicalNames = new HashMap<>();
+        for (EntityType<?> type : EntityTypes.values()) {
+            Identifier id = type.getId();
+            String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, id.getName());
+            Identifier previous = canonicalNames.putIfAbsent(name, id);
+            if (previous != null && !previous.equals(id)) {
+                throw new IllegalStateException("Ambiguous canonical entity name: " + name);
+            }
+        }
+
+        CANONICAL_NAMES = Map.copyOf(canonicalNames);
         INSTANCE = new CloudEntityRegistry();
     }
 
@@ -250,10 +260,24 @@ public class CloudEntityRegistry extends CloudComponentRegistry<EntityType<?>> i
         return this.entityIdAllocator.incrementAndGet();
     }
 
+    /**
+     * Resolves unnamespaced saved entity names, preferring historical aliases.
+     * Otherwise matches the UpperCamelCase form of a built-in entity's identifier name.
+     * Both lookups are case-sensitive and do not include plugin registrations.
+     * Returns {@code null} for unrecognized names.
+     */
     public Identifier getIdentifier(String legacyName) {
-        return LEGACY_NAMES.get(legacyName);
+        Identifier historical = LEGACY_NAMES.get(legacyName);
+        if (historical != null) {
+            return historical;
+        }
+
+        return CANONICAL_NAMES.get(legacyName);
     }
 
+    /**
+     * Returns a historical save name, or {@code null} when no historical alias exists.
+     */
     public String getLegacyName(Identifier identifier) {
         return LEGACY_NAMES.inverse().get(identifier);
     }

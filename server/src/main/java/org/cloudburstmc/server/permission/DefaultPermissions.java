@@ -87,10 +87,10 @@ public class DefaultPermissions {
         definitions.add(new Permission(ROOT + ".command.version", "Allows the user to view the version of the server", PermissionDefault.EVERYONE), commands);
         definitions.add(new Permission(ROOT + ".command.defaultgamemode", "Allows the user to change the default gamemode", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.seed", "Allows the user to view the seed of the world", PermissionDefault.OPERATORS), commands);
-        definitions.add(new Permission(ROOT + ".command.status", "Allows the user to view the server performance", PermissionDefault.OPERATORS), commands);
-        definitions.add(new Permission(ROOT + ".command.gc", "Allows the user to fire garbage collection tasks", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.tps", "Allows the user to view server tick rates", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.tpsmemory", "Allows the user to view heap usage with /tps mem", PermissionDefault.OPERATORS), commands);
+        definitions.add(new Permission(ROOT + ".command.mspt", "Allows the user to view server tick times", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.gamerule", "Sets or queries a game rule value", PermissionDefault.OPERATORS), commands);
-        definitions.add(new Permission(ROOT + ".command.timings", "Allows the user to record timings for all plugin events", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.title", "Allows the user to send titles to players", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.spawnpoint", "Allows the user to change a player's spawnpoint", PermissionDefault.OPERATORS), commands);
         definitions.add(new Permission(ROOT + ".command.setworldspawn", "Allows the user to change the world spawn", PermissionDefault.OPERATORS), commands);
