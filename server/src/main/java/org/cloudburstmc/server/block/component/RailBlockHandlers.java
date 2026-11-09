@@ -5,6 +5,8 @@ import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.component.ComplexBlockHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.SurviveBlockHandler;
+import org.cloudburstmc.api.level.Level;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.util.BlockSupport;
@@ -13,6 +15,9 @@ import org.cloudburstmc.server.level.CloudLevel;
 
 @UtilityClass
 public class RailBlockHandlers {
+
+    public static final SurviveBlockHandler CAN_SURVIVE = block ->
+            BlockSupport.canSupportRigidBlock(block.getLevel(), block.getPosition().add(0, -1, 0));
 
     public static final NeighborBlockHandler ON_NEIGHBOUR_CHANGED = (block, neighbor) -> {
         if (checkAndBreakIfUnsupported(block)) {
@@ -34,11 +39,11 @@ public class RailBlockHandlers {
     };
 
     public static boolean isSupported(Block block) {
-        CloudLevel level = (CloudLevel) block.getLevel();
+        Level level = block.getLevel();
         Vector3i pos = block.getPosition();
         BlockState state = block.getState();
 
-        if (!RailConnector.hasRigidSupport(level, pos)) {
+        if (!CAN_SURVIVE.execute(block)) {
             return false;
         }
 

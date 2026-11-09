@@ -78,12 +78,12 @@ public class CloudBlock extends CloudBlockSnapshot implements Block {
 
     @Override
     public VoxelShape getBlockSupportShape() {
-        return BlockSupport.getBlockSupportShape(this.level, this.position);
+        return BlockSupport.getBlockSupportShape(this.level, this.position, this.getState());
     }
 
     @Override
     public boolean isFaceSturdy(Direction face, SupportType supportType) {
-        return BlockSupport.isFaceSturdy(this.level, this.position, face, supportType);
+        return BlockSupport.isFaceSturdy(this.level, this.position, this.getState(), face, supportType);
     }
 
     @Override

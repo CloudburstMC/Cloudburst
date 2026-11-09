@@ -6,6 +6,8 @@ import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.component.BlockDestroyHandler;
 import org.cloudburstmc.api.block.component.NeighborBlockHandler;
+import org.cloudburstmc.api.block.component.PlacementStateHandler;
+import org.cloudburstmc.api.block.component.SurviveBlockHandler;
 import org.cloudburstmc.api.block.component.RedstoneSignalHandler;
 import org.cloudburstmc.api.block.component.UseBlockHandler;
 import org.cloudburstmc.api.util.Direction;
@@ -18,6 +20,15 @@ import org.cloudburstmc.server.level.CloudLevel;
 
 @UtilityClass
 public class LeverBlockHandlers {
+
+    public static final PlacementStateHandler RESOLVE_PLACEMENT_STATE = (state, block, player, face, click) -> {
+        Direction alignment = player == null ? Direction.NORTH : player.getHorizontalDirection();
+        return state.withTrait(BlockTraits.LEVER_DIRECTION, LeverDirection.forDirection(face, alignment));
+    };
+
+    public static final SurviveBlockHandler CAN_SURVIVE = block ->
+            PlacementSupport.hasFullFaceSupport(block.getLevel(), block.getPosition(),
+                    block.getState().ensureTrait(BlockTraits.LEVER_DIRECTION).getDirection());
 
     public static final RedstoneSignalHandler GET_REDSTONE_SIGNAL = (block, face) ->
             block.getState().ensureTrait(BlockTraits.IS_OPEN) ? 15 : 0;
@@ -56,12 +67,11 @@ public class LeverBlockHandlers {
             return;
         }
 
-        CloudLevel level = (CloudLevel) block.getLevel();
-        if (PlacementSupport.hasFullFaceSupport(level, pos, supportFace)) {
+        if (CAN_SURVIVE.execute(block)) {
             return;
         }
 
-        level.breakBlock(pos, null, null, true);
+        block.getLevel().breakBlock(pos, null, null, true);
     };
 
     public static final BlockDestroyHandler ON_DESTROY = (block, cause) -> {

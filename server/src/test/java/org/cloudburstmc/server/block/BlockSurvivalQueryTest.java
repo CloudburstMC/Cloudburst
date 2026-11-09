@@ -14,6 +14,7 @@ import org.cloudburstmc.server.testutil.TestLevels;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -143,7 +144,100 @@ class BlockSurvivalQueryTest {
         assertFalse(snapshot.isSupported(TestLevels.overworld(), above));
         assertThrows(NullPointerException.class, () -> stone.isSupported(null, POSITION));
         assertThrows(NullPointerException.class, () -> snapshot.isSupported(TestLevels.overworld(), null));
-        assertThrows(NullPointerException.class, () -> stone.isSupported((Block) null));
+        //noinspection DataFlowIssue
+        assertThrows(NullPointerException.class, () -> stone.isSupported(null));
+    }
+
+    @Test
+    void everyDoorChecksTheFloorOrItsMatchingLowerHalf() {
+        int checked = 0;
+        for (BlockType type : BlockTypes.values()) {
+            if (!type.getTraits().contains(BlockTraits.IS_DOOR_HINGE)) {
+                continue;
+            }
+
+            BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+            BlockState lower = type.getDefaultState().withTrait(BlockTraits.IS_UPPER_BLOCK, false);
+            BlockState upper = lower.withTrait(BlockTraits.IS_UPPER_BLOCK, true);
+            assertFalse(lower.isSupported(world.block(POSITION)));
+            assertFalse(upper.isSupported(world.block(POSITION)));
+
+            world.setState(POSITION.add(0, -1, 0), BlockStates.STONE);
+            assertTrue(lower.isSupported(world.block(POSITION)));
+            assertFalse(upper.isSupported(world.block(POSITION)));
+
+            world.setState(POSITION.add(0, -1, 0), lower);
+            assertTrue(upper.isSupported(world.block(POSITION)));
+            world.setState(POSITION.add(0, -1, 0), upper);
+            assertFalse(upper.isSupported(world.block(POSITION)));
+            checked++;
+        }
+
+        assertTrue(checked > 10);
+    }
+
+    @Test
+    void everyButtonUsesItsCapturedAttachmentFace() {
+        int checked = 0;
+        for (BlockType type : BlockTypes.values()) {
+            if (!type.getTraits().contains(BlockTraits.IS_BUTTON_PRESSED)) {
+                continue;
+            }
+
+            for (Direction face : Direction.values()) {
+                BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+                BlockState button = type.getDefaultState().withTrait(BlockTraits.FACING_DIRECTION, face);
+                assertFalse(button.isSupported(world.block(POSITION)));
+                world.setState(face.getOpposite().relative(POSITION), BlockStates.STONE);
+                assertTrue(button.isSupported(world.block(POSITION)));
+                assertSame(BlockStates.AIR, world.state(POSITION));
+            }
+
+            checked++;
+        }
+
+        assertTrue(checked > 5);
+    }
+
+    @Test
+    void attachmentResolutionPrecedesPlacementValidation() {
+        for (BlockType type : List.of(BlockTypes.STONE_BUTTON, BlockTypes.OAK_BUTTON, BlockTypes.LEVER)) {
+            for (Direction face : Direction.values()) {
+                BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+                Player player = InterfaceProxy.create(Player.class, Map.of(
+                        "getLevel", world.block(POSITION).getLevel(), "getHorizontalDirection", Direction.NORTH));
+                BlockState resolved = BlockTestRegistry.get().requireComponent(type, BlockComponents.RESOLVE_PLACEMENT_STATE)
+                        .execute(type.getDefaultState(), world.block(POSITION), player, face, Vector3f.ZERO);
+                assertNotNull(resolved);
+                Block proposed = new CloudBlock(player.getLevel(), POSITION, new BlockState[]{resolved, BlockStates.AIR});
+                assertFalse(proposed.requireComponent(BlockComponents.CAN_BE_PLACED).execute(proposed));
+
+                world.setState(face.getOpposite().relative(POSITION), BlockStates.STONE);
+                assertTrue(proposed.requireComponent(BlockComponents.CAN_BE_PLACED).execute(proposed));
+                assertTrue(proposed.requireComponent(BlockComponents.ON_PLACE)
+                        .execute(resolved, player, POSITION, face, Vector3f.ZERO));
+                assertSame(resolved, world.state(POSITION));
+            }
+        }
+    }
+
+    @Test
+    void hooksAndRailsShareTheirExistingSupportRules() {
+        for (Direction face : List.of(Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST)) {
+            BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+            BlockState hook = BlockTypes.TRIPWIRE_HOOK.getDefaultState().withTrait(BlockTraits.DIRECTION, face);
+            assertFalse(hook.isSupported(world.block(POSITION)));
+            world.setState(face.getOpposite().relative(POSITION), BlockStates.STONE);
+            assertTrue(hook.isSupported(world.block(POSITION)));
+        }
+
+        for (BlockType type : List.of(BlockTypes.RAIL, BlockTypes.GOLDEN_RAIL, BlockTypes.ACTIVATOR_RAIL, BlockTypes.DETECTOR_RAIL)) {
+            BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+            BlockState rail = type.getDefaultState();
+            assertFalse(rail.isSupported(world.block(POSITION)));
+            world.setState(POSITION.add(0, -1, 0), BlockStates.STONE);
+            assertTrue(rail.isSupported(world.block(POSITION)));
+        }
     }
 
     @Test

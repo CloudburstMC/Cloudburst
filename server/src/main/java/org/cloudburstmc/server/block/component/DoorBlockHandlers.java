@@ -19,6 +19,15 @@ import java.util.List;
 @UtilityClass
 public class DoorBlockHandlers {
 
+    public static final SurviveBlockHandler CAN_SURVIVE = block -> {
+        if (!block.getState().ensureTrait(BlockTraits.IS_UPPER_BLOCK)) {
+            return PlacementSupport.hasFloorSupport(block.getLevel(), block.getPosition());
+        }
+
+        BlockState below = block.getRelativeState(0, -1, 0);
+        return below.getType() == block.getState().getType() && !below.ensureTrait(BlockTraits.IS_UPPER_BLOCK);
+    };
+
     public static final UseCheckHandler CAN_BE_USED = (block, player) -> block.getState().getType() != BlockTypes.IRON_DOOR;
 
     public static final BlockLootHandler GET_LOOT = (block, context) ->
@@ -52,17 +61,12 @@ public class DoorBlockHandlers {
         CloudLevel level = (CloudLevel) block.getLevel();
         Vector3i pos = block.getPosition();
 
-        boolean shouldBreak = false;
-        if (!isUpperBlock) {
-            if (!PlacementSupport.hasFloorSupport(level, pos)) {
-                shouldBreak = true;
-            }
-        }
+        boolean shouldBreak = !CAN_SURVIVE.execute(block);
 
         if (!shouldBreak) {
             Vector3i partnerPos = isUpperBlock ? pos.sub(0, 1, 0) : pos.add(0, 1, 0);
             BlockState partnerState = level.getBlockState(partnerPos.getX(), partnerPos.getY(), partnerPos.getZ());
-            if (partnerState.getType() != state.getType()) {
+            if (partnerState.getType() != state.getType() || partnerState.ensureTrait(BlockTraits.IS_UPPER_BLOCK) == isUpperBlock) {
                 shouldBreak = true;
             }
         }

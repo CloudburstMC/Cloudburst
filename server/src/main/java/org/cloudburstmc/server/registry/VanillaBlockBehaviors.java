@@ -388,9 +388,10 @@ public class VanillaBlockBehaviors {
         configureUsable(registry, LECTERN, LecternBlockHandlers.USE);
 
         registry.configure(LEVER)
+                .set(BlockComponents.CAN_SURVIVE, LeverBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, LeverBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.GET_REDSTONE_SIGNAL, LeverBlockHandlers.GET_REDSTONE_SIGNAL)
                 .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, LeverBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
-                .set(BlockComponents.ON_PLACE, new LeverPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, LeverBlockHandlers.USE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, LeverBlockHandlers.ON_NEIGHBOUR_CHANGED)
@@ -505,6 +506,7 @@ public class VanillaBlockBehaviors {
         configureSlab(registry, QUARTZ_SLAB, QUARTZ_DOUBLE_SLAB);
 
         registry.configure(RAIL)
+                .set(BlockComponents.CAN_SURVIVE, RailBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.ON_PLACE, RailPlaceHandler.INSTANCE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, RailBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_REMOVE, RailBlockHandlers.ON_REMOVE);
@@ -664,7 +666,9 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_DESTROY, TripwireBlockHandlers.ON_DESTROY);
 
         registry.configure(TRIPWIRE_HOOK)
-                .set(BlockComponents.ON_PLACE, new TripwireHookPlaceHandler())
+                .set(BlockComponents.CAN_SURVIVE, TripwireHookBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, TripwireHookBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.ON_PLACE, TripwireHookBlockHandlers.ON_PLACE)
                 .set(BlockComponents.ON_TICK, TripwireHookBlockHandlers.ON_TICK)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, TripwireHookBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_DESTROY, TripwireHookBlockHandlers.ON_DESTROY);
@@ -909,6 +913,7 @@ public class VanillaBlockBehaviors {
 
     private void configureDoor(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
+                .set(BlockComponents.CAN_SURVIVE, DoorBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.ON_PLACE, new DoorPlaceHandler())
                 .set(BlockComponents.CAN_BE_USED, DoorBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.GET_LOOT, DoorBlockHandlers.GET_LOOT)
@@ -1054,6 +1059,7 @@ public class VanillaBlockBehaviors {
 
     private void configurePoweredRail(CloudBlockRegistry registry, BlockType type) {
         registry.configure(type)
+                .set(BlockComponents.CAN_SURVIVE, RailBlockHandlers.CAN_SURVIVE)
                 .set(BlockComponents.ON_PLACE, RailPlaceHandler.INSTANCE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, PoweredRailBlockHandlers.ON_NEIGHBOUR_CHANGED)
                 .set(BlockComponents.ON_REMOVE, RailBlockHandlers.ON_REMOVE);
@@ -1127,7 +1133,8 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_REDSTONE_SIGNAL)
                 .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
                 .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.STONE_PRESS_TICKS)
-                .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
+                .set(BlockComponents.CAN_SURVIVE, ButtonBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ButtonBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
                 .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)
@@ -1230,7 +1237,8 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_REDSTONE_SIGNAL)
                 .set(BlockComponents.GET_DIRECT_REDSTONE_SIGNAL, ButtonBlockHandlers.GET_DIRECT_REDSTONE_SIGNAL)
                 .set(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS)
-                .set(BlockComponents.ON_PLACE, new ButtonPlaceHandler())
+                .set(BlockComponents.CAN_SURVIVE, ButtonBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ButtonBlockHandlers.RESOLVE_PLACEMENT_STATE)
                 .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
                 .set(BlockComponents.USE, ButtonBlockHandlers.USE)
                 .set(BlockComponents.ON_TICK, ButtonBlockHandlers.ON_TICK)

@@ -9,7 +9,6 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.server.block.util.PlacementSupport;
 
 public class DoorPlaceHandler implements PlaceBlockHandler {
 
@@ -24,7 +23,7 @@ public class DoorPlaceHandler implements PlaceBlockHandler {
         }
 
         Level level = player.getLevel();
-        if (!PlacementSupport.hasFloorSupport(level, blockPosition)) {
+        if (!blockState.withTrait(BlockTraits.IS_UPPER_BLOCK, false).isSupported(level, blockPosition)) {
             return false;
         }
 
