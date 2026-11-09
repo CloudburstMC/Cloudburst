@@ -50,7 +50,6 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.*;
 import org.cloudburstmc.api.util.component.ComponentMap;
-import org.cloudburstmc.api.util.data.SlabSlot;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -2112,9 +2111,9 @@ public class CloudLevel implements Level, BlockStateRegion {
      * Attempts to place a block from the held item against the target block.
      * Requires a non-empty item.
      *
-     * @return the updated ItemStack after placement, or null if placement was rejected
+     * @return the placement position and remaining item, or null if placement was rejected
      */
-    public ItemStack tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
+    public @Nullable BlockPlacementResult tryPlaceBlock(Block target, Block side, Direction face, Vector3f clickPos, ItemStack item, Player player, boolean playSound) {
         ComponentMap itemBehaviors = this.itemRegistry.requireComponents(item.getType());
 
         @SuppressWarnings("unchecked")
@@ -2123,18 +2122,14 @@ public class CloudLevel implements Level, BlockStateRegion {
             return null;
         }
 
-        boolean isSlab = hand.is(BlockTags.SLAB);
-        boolean targetReplaceable = canReplace(target, hand, player, face, clickPos);
-        boolean sideReplaceable = canReplace(side, hand, player, face, clickPos);
-
-        Block block = isSlab
-                ? resolveSlabTarget(hand, target, side, face, clickPos, targetReplaceable, sideReplaceable)
-                : resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-        if (block == null) {
+        BlockPlacementContext context = new BlockPlacementContext(target, face, clickPos, player);
+        BlockPlacementTarget placementTarget = BlockPlacementTarget.resolve(hand, side, context);
+        if (placementTarget == null) {
             return null;
         }
 
-        Direction placementFace = block == target && targetReplaceable ? Direction.UP : face;
+        Block block = placementTarget.block();
+        Direction placementFace = placementTarget.placementFace();
         ComponentMap handBehaviors = this.blockRegistry.requireComponents(hand.getType());
         hand = handBehaviors.require(BlockComponents.RESOLVE_PLACEMENT_STATE).execute(hand, block, player, placementFace, clickPos);
         if (hand == null) {
@@ -2217,43 +2212,7 @@ public class CloudLevel implements Level, BlockStateRegion {
             this.addLevelSoundEvent(block.getPosition(), SoundEvent.PLACE, BlockPalette.INSTANCE.getDefinition(hand).getRuntimeId());
         }
 
-        return item.getCount() <= 0 ? ItemStack.EMPTY : item;
-    }
-
-    private @Nullable Block resolveSlabTarget(BlockState hand, Block target, Block side, Direction face,
-                                              Vector3f clickPos, boolean targetReplaceable, boolean sideReplaceable) {
-        BlockState targetState = target.getState();
-        if (targetState.is(BlockTags.SLAB) && !targetState.is(BlockTags.DOUBLE_SLAB) && targetState.getType() == hand.getType()) {
-            boolean above = clickPos.getY() > 0.5f;
-            SlabSlot existing = targetState.ensureTrait(BlockTraits.SLAB_SLOT);
-            boolean canMerge = face == Direction.UP ? existing == SlabSlot.BOTTOM
-                    : face == Direction.DOWN ? existing == SlabSlot.TOP
-                      : (existing == SlabSlot.BOTTOM) == above;
-            if (canMerge) {
-                return target;
-            }
-
-            return sideReplaceable ? side : null;
-        }
-
-        if (side.getState().is(BlockTags.SLAB) && !side.getState().is(BlockTags.DOUBLE_SLAB) && side.getState().getType() == hand.getType()) {
-            return side;
-        }
-
-        return resolveNormalTarget(target, side, targetReplaceable, sideReplaceable);
-    }
-
-    private static @Nullable Block resolveNormalTarget(Block target, Block side, boolean targetReplaceable, boolean sideReplaceable) {
-        if (targetReplaceable) {
-            return target;
-        }
-
-        return sideReplaceable ? side : null;
-    }
-
-    private boolean canReplace(Block block, BlockState replacement, @Nullable Player player, Direction face, Vector3f clickPosition) {
-        return this.blockRegistry.requireComponent(block.getState().getType(), BlockComponents.CAN_BE_REPLACED)
-                .execute(block, replacement, player, face, clickPosition);
+        return new BlockPlacementResult(blockPos, item.getCount() <= 0 ? ItemStack.EMPTY : item);
     }
 
     private static final class NeighborUpdate {

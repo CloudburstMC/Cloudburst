@@ -83,7 +83,7 @@ public class VegetationBlockHandlers {
         return DefaultPlacementStateHandler.INSTANCE.execute(state, block, player, face, click);
     };
 
-    public static final ReplaceBlockHandler FLOWER_BED_REPLACEABLE = (block, replacement, player, face, click) ->
+    public static final ReplaceBlockHandler FLOWER_BED_REPLACEABLE = (block, replacement, context) ->
             block.getState().getType() == replacement.getType() && block.getState().ensureTrait(BlockTraits.GROWTH) < 3;
 
     public static final NeighborBlockHandler NEIGHBOUR_CHANGED = checkSurvival(CAN_SURVIVE);

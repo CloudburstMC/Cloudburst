@@ -27,7 +27,7 @@ public class SnowLayerBlockHandlers {
     private static final int MAX_HEIGHT = 7;
     private static final int MELTING_BLOCK_LIGHT = 12;
 
-    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, player, face, clickPosition) -> {
+    public static final ReplaceBlockHandler CAN_BE_REPLACED = (block, replacement, context) -> {
         BlockState state = block.getState();
         int height = state.ensureTrait(BlockTraits.HEIGHT);
 
@@ -35,7 +35,8 @@ public class SnowLayerBlockHandlers {
             return isSingleLayer(state);
         }
 
-        return height < MAX_HEIGHT && (face == Direction.UP || face != Direction.DOWN && clickPosition.getY() > (height + 1) / 8f);
+        boolean clicked = context.clickedBlock().getPosition().equals(block.getPosition());
+        return height < MAX_HEIGHT && (!clicked || context.clickedFace() != Direction.DOWN);
     };
 
     public static final BooleanBlockStateHandler CAN_BE_REPLACED_BY_FALLING_BLOCK = SnowLayerBlockHandlers::isSingleLayer;

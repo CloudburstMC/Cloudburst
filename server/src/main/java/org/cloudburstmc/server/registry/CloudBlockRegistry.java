@@ -183,7 +183,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.BUCKET_PICKUP, (block, player) -> ItemStack.EMPTY);
         this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
         this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.isSupported(block.getLevel(), block.getPosition()));
-        this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
+        this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, context) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
         this.registerComponent(BlockComponents.CAN_BE_REPLACED_BY_FALLING_BLOCK, BlockState::isReplaceable);
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
@@ -218,7 +218,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.IS_FREE_TO_FALL, (block) -> false);
         this.registerComponent(BlockComponents.IS_SOLID_SUPPORT, BlockState::isSolid);
         this.registerComponent(BlockComponents.MAY_PICK, (block) -> true);
-        this.registerComponent(BlockComponents.MAY_PLACE, (block, direction) -> true);
         this.registerComponent(BlockComponents.MAY_PLACE_ON, (block) -> true);
         this.registerComponent(BlockComponents.ON_ADDED, block -> {});
         this.registerComponent(BlockComponents.ON_DESTROY, DefaultBlockHandlers.ON_DESTROY);

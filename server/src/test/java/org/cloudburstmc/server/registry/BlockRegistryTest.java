@@ -262,7 +262,7 @@ class BlockRegistryTest {
 
             Block sourceWater = InterfaceProxy.create(Block.class, Map.of("getState", BlockStates.WATER));
             assertTrue(component(BlockTypes.WATER, BlockComponents.CAN_BE_REPLACED)
-                    .execute(sourceWater, type.getDefaultState(), null, Direction.UP, Vector3f.ZERO));
+                    .execute(sourceWater, type.getDefaultState(), new BlockPlacementContext(sourceWater, Direction.UP, Vector3f.ZERO, null)));
             BlockLayers placement = Objects.requireNonNull(BlockLayerRules.resolveReplacement(
                     new BlockLayers(BlockStates.WATER, BlockStates.AIR), BlockLayer.PRIMARY, type.getDefaultState()));
             assertSame(BlockStates.WATER, placement.secondary());

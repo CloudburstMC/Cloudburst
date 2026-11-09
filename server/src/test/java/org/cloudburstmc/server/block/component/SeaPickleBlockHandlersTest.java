@@ -38,9 +38,12 @@ class SeaPickleBlockHandlersTest {
             BlockState state = BlockStates.SEA_PICKLE.withTrait(BlockTraits.CLUSTER_COUNT, count);
             Block block = InterfaceProxy.create(Block.class, Map.of("getState", state));
 
-            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, null, Direction.UP, Vector3f.ZERO));
-            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, sneaking, Direction.UP, Vector3f.ZERO));
-            assertFalse(SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.STONE, null, Direction.UP, Vector3f.ZERO));
+            BlockPlacementContext context = new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, null);
+            BlockPlacementContext sneakingContext = new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, sneaking);
+
+            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, context));
+            assertEquals(count < 3, SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.SEA_PICKLE, sneakingContext));
+            assertFalse(SeaPickleBlockHandlers.CAN_BE_REPLACED.execute(block, BlockStates.STONE, context));
 
             if (count < 3) {
                 BlockState stacked = SeaPickleBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(BlockStates.SEA_PICKLE, block, sneaking, Direction.UP, Vector3f.ZERO);

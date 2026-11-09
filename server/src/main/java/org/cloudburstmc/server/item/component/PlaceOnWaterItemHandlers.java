@@ -13,6 +13,7 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.api.util.CollisionContext;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.server.block.BlockPlacementResult;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.player.CloudPlayer;
 
@@ -41,7 +42,7 @@ public class PlaceOnWaterItemHandlers {
             return item;
         }
 
-        ItemStack placed = level.tryPlaceBlock(target, target, Direction.UP, Vector3f.ZERO, item, player, true);
-        return placed == null ? item : placed;
+        BlockPlacementResult placement = level.tryPlaceBlock(target, target, Direction.UP, Vector3f.ZERO, item, player, true);
+        return placement == null ? item : placement.remainingItem();
     }
 }

@@ -162,7 +162,7 @@ public class VanillaBlockBehaviors {
         configureShulkerBox(registry, BROWN_SHULKER_BOX);
 
         registry.configure(BUBBLE_COLUMN)
-                .set(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> true)
+                .set(BlockComponents.CAN_BE_REPLACED, (block, replacement, context) -> true)
                 .set(BlockComponents.ON_STATE_CHANGED, BubbleColumnBlockHandlers::schedule)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
                         (block, neighbor) -> BubbleColumnBlockHandlers.schedule(block))

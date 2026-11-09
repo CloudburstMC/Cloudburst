@@ -131,8 +131,10 @@ class TurtleEggBlockHandlersTest {
 
         for (TurtleEggCount count : List.of(TurtleEggCount.TWO_EGG, TurtleEggCount.THREE_EGG, TurtleEggCount.FOUR_EGG)) {
             Block block = world.block(POSITION);
-            assertTrue(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(block, EGG, standing, Direction.UP, Vector3f.ZERO));
-            assertFalse(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(block, EGG, sneaking, Direction.UP, Vector3f.ZERO));
+            assertTrue(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(block, EGG,
+                    new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, standing)));
+            assertFalse(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(block, EGG,
+                    new BlockPlacementContext(block, Direction.UP, Vector3f.ZERO, sneaking)));
 
             BlockState placed = TurtleEggBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(EGG, block, standing, Direction.UP, Vector3f.ZERO);
             assertNotNull(placed);
@@ -141,8 +143,10 @@ class TurtleEggBlockHandlersTest {
             world.setState(POSITION, placed);
         }
 
-        assertFalse(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(world.block(POSITION), EGG, standing, Direction.UP, Vector3f.ZERO));
-        assertNull(TurtleEggBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(EGG, world.block(POSITION), standing, Direction.UP, Vector3f.ZERO));
+        Block fullStack = world.block(POSITION);
+        assertFalse(TurtleEggBlockHandlers.CAN_BE_REPLACED.execute(fullStack, EGG,
+                new BlockPlacementContext(fullStack, Direction.UP, Vector3f.ZERO, standing)));
+        assertNull(TurtleEggBlockHandlers.RESOLVE_PLACEMENT_STATE.execute(EGG, fullStack, standing, Direction.UP, Vector3f.ZERO));
     }
 
     @Test

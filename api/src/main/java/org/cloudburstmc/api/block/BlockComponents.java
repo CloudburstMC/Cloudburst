@@ -226,11 +226,6 @@ public class BlockComponents {
     public static final ComponentType<BooleanBlockHandler> MAY_PICK = ComponentType.of("may_pick", BooleanBlockHandler.class);
 
     /**
-     * TODO: Implement placement face eligibility checks.
-     */
-    public static final ComponentType<MayPlaceBlockHandler> MAY_PLACE = ComponentType.of("may_place", MayPlaceBlockHandler.class);
-
-    /**
      * TODO: Implement placement support eligibility checks.
      */
     public static final ComponentType<BooleanBlockHandler> MAY_PLACE_ON = ComponentType.of("may_place_on", BooleanBlockHandler.class);

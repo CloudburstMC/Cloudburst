@@ -11,7 +11,9 @@ import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.biome.BiomeTypes;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.SlabSlot;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.server.block.BlockPlacementTarget;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
 import org.cloudburstmc.server.testutil.BlockTestRegistry;
 import org.cloudburstmc.server.testutil.BlockTestWorld;
@@ -27,6 +29,79 @@ class SnowLayerBlockHandlersTest {
 
     private static final Vector3i POSITION = Vector3i.from(0, 64, 0);
     private static final Vector3i BELOW = POSITION.sub(0, 1, 0);
+
+    @Test
+    void clickingTheSideOfPartialSnowAddsOneLayerToTheClickedStack() {
+        BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+        Block adjacent = world.block(Direction.EAST.relative(POSITION));
+
+        for (int height = 0; height < 7; height++) {
+            world.setState(POSITION, BlockStates.SNOW_LAYER.withTrait(BlockTraits.HEIGHT, height));
+            Block clicked = world.block(POSITION);
+            BlockPlacementContext context = new BlockPlacementContext(clicked, Direction.EAST, Vector3f.ZERO, null);
+
+            BlockPlacementTarget target = BlockPlacementTarget.resolve(BlockStates.SNOW_LAYER, adjacent, context);
+
+            assertNotNull(target, "height=" + height);
+            assertSame(clicked, target.block());
+            assertSame(Direction.UP, target.placementFace());
+
+            BlockState placed = clicked.requireComponent(BlockComponents.RESOLVE_PLACEMENT_STATE)
+                    .execute(BlockStates.SNOW_LAYER, target.block(), null, target.placementFace(), context.clickPosition());
+
+            assertNotNull(placed);
+            assertEquals(height + 1, placed.ensureTrait(BlockTraits.HEIGHT).intValue());
+        }
+    }
+
+    @Test
+    void clickingTheSideOfFullSnowSelectsTheAdjacentPosition() {
+        BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+        Block adjacent = world.block(Direction.EAST.relative(POSITION));
+        BlockState fullStack = BlockStates.SNOW_LAYER.withTrait(BlockTraits.HEIGHT, 7);
+
+        for (BlockState support : List.of(fullStack, BlockStates.SNOW)) {
+            world.setState(POSITION, support);
+            Block clicked = world.block(POSITION);
+            BlockPlacementContext context = new BlockPlacementContext(clicked, Direction.EAST, Vector3f.ZERO, null);
+
+            BlockPlacementTarget target = BlockPlacementTarget.resolve(BlockStates.SNOW_LAYER, adjacent, context);
+
+            assertNotNull(target);
+            assertSame(adjacent, target.block());
+            assertSame(Direction.EAST, target.placementFace());
+        }
+    }
+
+    @Test
+    void clickingTheTopOfSnowSelectsTheExistingStack() {
+        BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+        world.setState(POSITION, BlockStates.SNOW_LAYER);
+        Block clicked = world.block(POSITION);
+        Block above = world.block(Direction.UP.relative(POSITION));
+        BlockPlacementContext context = new BlockPlacementContext(clicked, Direction.UP, Vector3f.ZERO, null);
+
+        BlockPlacementTarget target = BlockPlacementTarget.resolve(BlockStates.SNOW_LAYER, above, context);
+
+        assertNotNull(target);
+        assertSame(clicked, target.block());
+    }
+
+    @Test
+    void snowCanStackAtTheAdjacentPositionWithoutATopClick() {
+        BlockTestWorld world = new BlockTestWorld(BlockTestRegistry.get());
+        Vector3i adjacentPosition = Direction.EAST.relative(POSITION);
+        world.setState(POSITION, BlockStates.STONE);
+        world.setState(adjacentPosition, BlockStates.SNOW_LAYER);
+        Block clicked = world.block(POSITION);
+        Block adjacent = world.block(adjacentPosition);
+        BlockPlacementContext context = new BlockPlacementContext(clicked, Direction.EAST, Vector3f.ZERO, null);
+
+        BlockPlacementTarget target = BlockPlacementTarget.resolve(BlockStates.SNOW_LAYER, adjacent, context);
+
+        assertNotNull(target);
+        assertSame(adjacent, target.block());
+    }
 
     @Test
     void leavesSupportSnowWithoutProvidingGeneralFaceSupport() {
