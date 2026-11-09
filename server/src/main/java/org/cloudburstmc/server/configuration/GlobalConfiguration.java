@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import lombok.*;
 import org.cloudburstmc.api.configuration.Configuration;
 import org.cloudburstmc.server.configuration.file.YamlConfigurationLoader;
+import org.cloudburstmc.server.configuration.type.SignalingMode;
 import org.cloudburstmc.server.configuration.validation.ConfigurationValidationException;
 import org.cloudburstmc.server.configuration.validation.SettingConstraint;
 import org.cloudburstmc.server.configuration.validation.SettingsValidation;
@@ -96,7 +97,7 @@ public class GlobalConfiguration {
     }
 
     private void freezeCollections() {
-        network.advertisedAddresses = List.copyOf(network.advertisedAddresses);
+        network.freezeCollections();
         debug.ignoredPackets = List.copyOf(debug.ignoredPackets);
         levels = Map.copyOf(levels);
     }
@@ -132,16 +133,10 @@ public class GlobalConfiguration {
     public static class Network {
 
         @Builder.Default
-        private String identityFile = "nethernet/identity.pem";
+        private SignalingMode signalingMode = SignalingMode.BUILTIN;
 
         @Builder.Default
-        private List<String> advertisedAddresses = List.of();
-
-        @Builder.Default
-        private String tlsCertificate = "";
-
-        @Builder.Default
-        private String tlsPrivateKey = "";
+        private List<String> mediaProxyRelays = List.of();
 
         @Builder.Default
         @SettingConstraint(min = 0, minInclusive = false)
@@ -157,14 +152,131 @@ public class GlobalConfiguration {
 
         @Builder.Default
         @SettingConstraint(min = 0, minInclusive = false)
-        private int handshakeTimeoutSeconds = 30;
+        private int loginTimeoutSeconds = 120;
+
+        @Builder.Default
+        private BuiltinSignaling builtin = new BuiltinSignaling();
+
+        @Builder.Default
+        private ExternalSignaling nxs = new ExternalSignaling();
+
+        public List<String> getMediaProxyRelays() {
+            return List.copyOf(this.mediaProxyRelays);
+        }
+
+        private void freezeCollections() {
+            this.mediaProxyRelays = List.copyOf(this.mediaProxyRelays);
+            this.builtin.freezeCollections();
+            this.nxs.advertisedAddresses = List.copyOf(this.nxs.advertisedAddresses);
+        }
+    }
+
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonAutoDetect(
+            fieldVisibility = JsonAutoDetect.Visibility.ANY,
+            getterVisibility = JsonAutoDetect.Visibility.NONE,
+            isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class BuiltinSignaling {
+
+        @Builder.Default
+        @SettingConstraint(min = 0, max = 65535)
+        private int mediaPort = 0;
+
+        @Builder.Default
+        private String identityFile = "nethernet/identity.pem";
+
+        @Builder.Default
+        private List<String> advertisedAddresses = List.of();
+
+        @Builder.Default
+        private List<String> stunServers = List.of();
+
+        @Builder.Default
+        private String tlsCertificate = "";
+
+        @Builder.Default
+        private String tlsPrivateKey = "";
+
+        @Builder.Default
+        @ToString.Exclude
+        private String tlsPassword = "";
+
+        @Builder.Default
+        private List<String> forwardedForProxies = List.of();
+
+        @Builder.Default
+        private List<String> proxyProtocolProxies = List.of();
+
+        private boolean preferProxiedAddress;
 
         @Builder.Default
         @SettingConstraint(min = 0, minInclusive = false)
-        private int loginTimeoutSeconds = 120;
+        private int handshakeTimeoutSeconds = 30;
 
         public List<String> getAdvertisedAddresses() {
-            return List.copyOf(advertisedAddresses);
+            return List.copyOf(this.advertisedAddresses);
+        }
+
+        public List<String> getStunServers() {
+            return List.copyOf(this.stunServers);
+        }
+
+        public List<String> getForwardedForProxies() {
+            return List.copyOf(this.forwardedForProxies);
+        }
+
+        public List<String> getProxyProtocolProxies() {
+            return List.copyOf(this.proxyProtocolProxies);
+        }
+
+        private void freezeCollections() {
+            this.advertisedAddresses = List.copyOf(this.advertisedAddresses);
+            this.stunServers = List.copyOf(this.stunServers);
+            this.forwardedForProxies = List.copyOf(this.forwardedForProxies);
+            this.proxyProtocolProxies = List.copyOf(this.proxyProtocolProxies);
+        }
+    }
+
+    @Getter
+    @EqualsAndHashCode
+    @ToString
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @JsonAutoDetect(
+            fieldVisibility = JsonAutoDetect.Visibility.ANY,
+            getterVisibility = JsonAutoDetect.Visibility.NONE,
+            isGetterVisibility = JsonAutoDetect.Visibility.NONE)
+    @JsonNaming(PropertyNamingStrategies.KebabCaseStrategy.class)
+    public static class ExternalSignaling {
+
+        @Builder.Default
+        private String endpoint = "";
+
+        @Builder.Default
+        @ToString.Exclude
+        private String token = "";
+
+        @Builder.Default
+        @SettingConstraint(min = 0, max = 65535)
+        private int mediaPort = 0;
+
+        @Builder.Default
+        private List<String> advertisedAddresses = List.of();
+
+        private boolean connectionChecks;
+        private boolean assistedJoins;
+        private boolean stunDiscovery;
+        private boolean deregisterOnShutdown;
+
+        public List<String> getAdvertisedAddresses() {
+            return List.copyOf(this.advertisedAddresses);
         }
     }
 

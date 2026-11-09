@@ -71,7 +71,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.cloudburstmc.server.Achievement;
 import org.cloudburstmc.server.CloudServer;
@@ -107,6 +106,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
 import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
+import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 import org.cloudburstmc.server.permission.CloudPermissible;
 import org.cloudburstmc.server.player.handler.PlayerPacketHandler;
 import org.cloudburstmc.server.player.manager.PlayerChunkManager;
@@ -122,7 +122,6 @@ import java.net.SocketAddress;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -181,7 +180,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private final CloudEnderChestView enderChest = new CloudEnderChestView(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
 
-    private final Queue<BedrockPacket> inboundQueue = new ConcurrentLinkedQueue<>();
+    private final GameplayPacketQueue inboundQueue;
     private final AtomicReference<Locale> locale = new AtomicReference<>(null);
 
     @Getter
@@ -275,7 +274,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         super(EntityTypes.PLAYER, Location.from(CloudServer.getInstance().getDefaultLevel()));
         this.session = session;
         this.packetHandler = new PlayerPacketHandler(this);
-        session.setPacketHandler(new Handler());
         this.server = CloudServer.getInstance();
         this.lastBreak = -1;
         this.spawnLocation = null;
@@ -304,6 +302,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.enderChestContainer.addContainerListener(this);
         this.armor.getContainer().addContainerListener(this);
         this.offhand.getContainer().addContainerListener(this);
+        this.inboundQueue = ((CloudNetherNetPeer) session.getPeer()).startGameplay(session, new Handler());
     }
 
     private static boolean hasSubstantiallyMoved(Vector3f oldPos, Vector3f newPos) {
@@ -429,6 +428,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
+        this.server.getNetwork().reportExternalJoin(this.session.getPeer().getChannel());
         if (event.getJoinMessage() != null) {
             this.server.broadcast(event.getJoinMessage());
         }
@@ -2417,10 +2417,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        BedrockPacket packet;
-        while (this.isConnected() && (packet = this.inboundQueue.poll()) != null) {
-            packetHandler.handlePacket(packet);
-        }
+        this.inboundQueue.drain(this.packetHandler::handlePacket);
     }
 
     public void flushNetworkUpdates() {
@@ -2588,10 +2585,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     public void kick(Component reason, KickReason cause) {
         String reasonString = PlainTextComponentSerializer.plainText().serialize(reason);
         this.kick(cause, reasonString, true);
-    }
-
-    public void handleDataPacket(BedrockPacket packet) {
-        this.inboundQueue.offer(packet);
     }
 
     public int getChunkRadius() {
@@ -2843,6 +2836,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (this.connected && !this.closed) {
             List.copyOf(this.bossBars).forEach(bossBar -> bossBar.removePlayer(this));
             this.connected = false;
+            this.inboundQueue.close();
             PlayerQuitEvent ev = null;
 
             if (this.getName() != null && !this.getName().isEmpty()) {
@@ -4459,12 +4453,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             } else {
                 CloudPlayer.this.server.getGlobalScheduler().execute(null, () -> CloudPlayer.this.close("", disconnectReason));
             }
-        }
-
-        @Override
-        public PacketSignal handlePacket(BedrockPacket packet) {
-            CloudPlayer.this.handleDataPacket(packet);
-            return PacketSignal.HANDLED;
         }
     }
 }

@@ -19,12 +19,14 @@ public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
 
     private final BedrockServerSession session;
     private final CloudServer server;
+    private final boolean authenticatedTransport;
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         int protocolVersion = packet.getProtocolVersion();
         BedrockCodec codec = ProtocolInfo.getPacketCodec(protocolVersion);
         if (codec == null) {
+            this.server.getNetwork().reportExternalRejection(this.session.getPeer().getChannel(), "unsupported_version");
             PlayStatusPacket statusPacket = new PlayStatusPacket();
             statusPacket.setStatus(protocolVersion < ProtocolInfo.getDefaultProtocolVersion()
                     ? PlayStatusPacket.Status.LOGIN_FAILED_CLIENT_OLD
@@ -41,7 +43,7 @@ public class NetworkSettingsPacketHandler implements BedrockPacketHandler {
         networkSettings.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
         this.session.sendPacketImmediately(networkSettings);
         this.session.setCompression(PacketCompressionAlgorithm.ZLIB);
-        this.session.setPacketHandler(new LoginPacketHandler(this.session, this.server));
+        this.session.setPacketHandler(new LoginPacketHandler(this.session, this.server, this.authenticatedTransport));
         return PacketSignal.HANDLED;
     }
 }

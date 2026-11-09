@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.api.event.player.PlayerAsyncPreLoginEvent;
 import org.cloudburstmc.api.event.player.PlayerLoginResult;
-import org.cloudburstmc.netty.util.nethernet.TransportIdentityBinding;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.DisconnectFailReason;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacketHandler;
@@ -13,6 +12,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.server.CloudServer;
+import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 import org.cloudburstmc.server.player.AuthenticatedPlayerData;
 import org.cloudburstmc.server.player.PlayerLoginContext;
 
@@ -27,12 +27,14 @@ public class LoginPacketHandler implements BedrockPacketHandler {
     private final BedrockServerSession session;
     private final CloudServer server;
     private final PlayerLoginContext loginContext;
+    private final boolean authenticatedTransport;
     private boolean loginStarted;
 
-    public LoginPacketHandler(BedrockServerSession session, CloudServer server) {
+    public LoginPacketHandler(BedrockServerSession session, CloudServer server, boolean authenticatedTransport) {
         this.session = session;
         this.server = server;
         this.loginContext = new PlayerLoginContext(session, server);
+        this.authenticatedTransport = authenticatedTransport;
     }
 
     @Override
@@ -48,6 +50,12 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             this.disconnect(DisconnectFailReason.SERVER_FULL, "disconnectionScreen.serverFull");
         }
 
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public PacketSignal handle(ClientCacheStatusPacket packet) {
+        this.loginContext.setClientCacheEnabled(packet.isSupported());
         return PacketSignal.HANDLED;
     }
 
@@ -71,15 +79,16 @@ public class LoginPacketHandler implements BedrockPacketHandler {
             return;
         }
 
-        String identityMismatch = TransportIdentityBinding.mismatch(this.session.getPeer().getChannel(),
-                this.loginContext.getPlayerData().getParsedIdentityPublicKey());
+        AuthenticatedPlayerData playerData = this.loginContext.getPlayerData();
+        CloudNetherNetPeer peer = (CloudNetherNetPeer) this.session.getPeer();
+        String identityMismatch = peer.loginIdentityMismatch(playerData.getParsedIdentityPublicKey(), playerData.getXuid(), this.authenticatedTransport);
         if (identityMismatch != null) {
             log.debug("Rejected login identity from {}: {}", this.session.getSocketAddress(), identityMismatch);
             this.disconnect(DisconnectFailReason.NOT_AUTHENTICATED, "disconnectionScreen.notAuthenticated");
             return;
         }
 
-        if (!this.loginContext.getPlayerData().isAuthenticated() && this.server.getConfig().isXboxAuth()) {
+        if ((this.authenticatedTransport || this.server.getConfig().isXboxAuth()) && !playerData.isAuthenticated()) {
             this.disconnect(DisconnectFailReason.NOT_AUTHENTICATED, "disconnectionScreen.notAuthenticated");
             return;
         }
@@ -114,19 +123,19 @@ public class LoginPacketHandler implements BedrockPacketHandler {
                 return;
             }
 
-            this.session.setPacketHandler(new ResourcePackPacketHandler(this.session, this.server, context));
+            ResourcePackPacketHandler packs = new ResourcePackPacketHandler(this.session, this.server.getPackManager(),
+                    this.server.getForceResources(), this.server.getNetwork()::executeResourcePackRead,
+                    () -> this.server.getGlobalScheduler().execute(null, context::completeResourcePacks),
+                    context::setClientCacheEnabled
+            );
+            this.session.setPacketHandler(packs);
+
             PlayStatusPacket statusPacket = new PlayStatusPacket();
             statusPacket.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
             this.session.sendPacket(statusPacket);
-            this.session.sendPacket(this.server.getPackManager().createInfoPacket(this.server.getForceResources()));
+            packs.offer();
             this.server.getGlobalScheduler().run(null, mainTask -> context.completePreLogin());
         });
-    }
-
-    @Override
-    public PacketSignal handle(ClientCacheStatusPacket packet) {
-        this.loginContext.setClientCacheEnabled(packet.isSupported());
-        return PacketSignal.HANDLED;
     }
 
     private void disconnect(DisconnectFailReason reason, String translationKey) {

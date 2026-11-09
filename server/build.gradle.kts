@@ -45,6 +45,7 @@ dependencies {
     }
     api(libs.bedrock.adventure)
     implementation(libs.netty.transport.nethernet)
+    implementation(libs.netty.external.signaling)
     runtimeOnly(libs.libdatachannel.natives) {
         exclude(group = "dev.opencollab", module = "libdatachannel-java")
     }

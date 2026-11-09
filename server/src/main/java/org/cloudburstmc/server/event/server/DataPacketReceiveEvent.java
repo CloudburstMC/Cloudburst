@@ -6,8 +6,8 @@ import org.cloudburstmc.api.player.Player;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * Fires before a decoded gameplay packet is handled. A reference-counted payload is borrowed for
+ * the duration of the event.
  */
 public class DataPacketReceiveEvent extends ServerEvent implements Cancellable {
 

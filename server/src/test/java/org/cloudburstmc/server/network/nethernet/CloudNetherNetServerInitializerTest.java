@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.network.nethernet;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.cloudburstmc.protocol.adventure.AdventureTextConverter;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
@@ -9,6 +10,7 @@ import org.cloudburstmc.protocol.bedrock.PacketDirection;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
+import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.netty.codec.FrameIdCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchDecoder;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
@@ -16,7 +18,10 @@ import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCode
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec_v3;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacketHandler;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
+import org.cloudburstmc.protocol.common.util.VarInts;
+import org.cloudburstmc.server.network.GameplayPacketQueue;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -26,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public final class CloudNetherNetServerInitializerTest {
+class CloudNetherNetServerInitializerTest {
 
     @Test
     public void installsHeaderlessStandardBatchPipelineBeforeInvokingSessionSetup() {
@@ -139,7 +144,42 @@ public final class CloudNetherNetServerInitializerTest {
     }
 
     @Test
-    public void requiresASessionCallback() {
-        assertThrows(NullPointerException.class, () -> new CloudNetherNetServerInitializer(null));
+    void keepsSecondarySessionsAndUnknownPacketsOutOfGameplay() {
+        AtomicInteger sessions = new AtomicInteger();
+        AtomicReference<GameplayPacketQueue> gameplay = new AtomicReference<>();
+        EmbeddedChannel channel = new EmbeddedChannel(new CloudNetherNetServerInitializer(session -> {
+            sessions.incrementAndGet();
+            session.setCodec(Bedrock_v649.CODEC);
+            CloudNetherNetPeer peer = assertInstanceOf(CloudNetherNetPeer.class, session.getPeer());
+            gameplay.set(peer.startGameplay(session, new BedrockPacketHandler() {
+            }));
+        }));
+
+        try {
+            channel.runPendingTasks();
+            channel.writeInbound(BedrockPacketWrapper.create(0, 1, 1, new SubClientLoginPacket(), null));
+            channel.writeInbound(BedrockPacketWrapper.create(0, 1, 0, new RequestNetworkSettingsPacket(), null));
+
+            ByteBuf unknown = Unpooled.buffer();
+            VarInts.writeUnsignedInt(unknown, 3);
+            VarInts.writeUnsignedInt(unknown, 1023);
+            unknown.writeByte(42);
+            channel.writeInbound(unknown);
+            assertEquals(0, unknown.refCnt());
+
+            RequestNetworkSettingsPacket request = new RequestNetworkSettingsPacket();
+            request.setProtocolVersion(649);
+            channel.pipeline().get(BedrockPeer.class).sendPacketImmediately(0, 0, request);
+            channel.writeInbound(channel.<ByteBuf>readOutbound());
+
+            List<Integer> versions = new ArrayList<>();
+            gameplay.get().drain(packet ->
+                    versions.add(assertInstanceOf(RequestNetworkSettingsPacket.class, packet).getProtocolVersion()));
+            assertEquals(List.of(649), versions);
+            assertEquals(1, sessions.get());
+            assertTrue(channel.isActive());
+        } finally {
+            channel.finishAndReleaseAll();
+        }
     }
 }

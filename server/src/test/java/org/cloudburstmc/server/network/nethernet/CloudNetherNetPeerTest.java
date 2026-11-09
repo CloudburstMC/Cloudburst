@@ -6,6 +6,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChildChannel;
+import org.cloudburstmc.netty.util.nethernet.PlayerInfo;
 import org.cloudburstmc.protocol.adventure.BedrockComponent;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
@@ -25,7 +27,10 @@ import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -99,6 +104,27 @@ class CloudNetherNetPeerTest {
         } finally {
             channel.finishAndReleaseAll();
             otherChannel.finishAndReleaseAll();
+        }
+    }
+
+    @Test
+    void requiresAConsistentAccountOnlyWhenTheTransportAuthenticatedIt() throws Exception {
+        EmbeddedChannel channel = newChannel();
+        CloudNetherNetPeer peer = new CloudNetherNetPeer(channel, BedrockServerSession::new);
+        PublicKey key = KeyPairGenerator.getInstance("EC").generateKeyPair().getPublic();
+
+        try {
+            assertNotNull(peer.loginIdentityMismatch(key, "123", true));
+            channel.attr(NetherNetChildChannel.PLAYER_INFO).set(
+                    new PlayerInfo("123", "Player", "network", new InetSocketAddress(19132), null, null));
+
+            assertNull(peer.loginIdentityMismatch(key, "123", true));
+            assertNotNull(peer.loginIdentityMismatch(key, "456", true));
+            assertNotNull(peer.loginIdentityMismatch(key, " ", true));
+            assertNotNull(peer.loginIdentityMismatch(key, null, true));
+            assertNull(peer.loginIdentityMismatch(key, "456", false));
+        } finally {
+            channel.finishAndReleaseAll();
         }
     }
 

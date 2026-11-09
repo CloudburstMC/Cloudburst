@@ -7,9 +7,9 @@ fastutil = "8.5.15"
 jackson = "3.2.4"
 jline = "4.4.8"
 junit = "6.1.3"
-libdatachannel = "0.24.6.0-20261029.091642-10"
+libdatachannel = "0.24.6.0-20261105.085043-11"
 log4j = "2.26.1"
-network = "2.0.0.CR6-20261029.102743-20"
+network = "2.0.0.CR6-20261105.090937-25"
 protocol = "3.0.0.Beta15-20261027.163553-3"
 spark = "1.10.186-20260918.205951-1"
 spark-api = "0.1-20260912.112908-2"
@@ -74,6 +74,7 @@ lombok = { group = "org.projectlombok", name = "lombok", version = "1.18.48" }
 math-immutable = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 nbt = { group = "org.cloudburstmc", name = "nbt", version = "3.1.0.Final" }
 netty-transport-nethernet = { group = "org.cloudburstmc.netty", name = "netty-transport-nethernet", version.ref = "network" }
+netty-external-signaling = { group = "org.cloudburstmc.netty", name = "netty-external-signaling", version.ref = "network" }
 noise = { group = "net.daporkchop.lib", name = "noise", version = "0.5.8-SNAPSHOT" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version = "2.0.20" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version = "2.7" }
