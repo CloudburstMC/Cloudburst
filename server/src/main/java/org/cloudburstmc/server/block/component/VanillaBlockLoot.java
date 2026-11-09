@@ -46,6 +46,17 @@ public class VanillaBlockLoot {
         return (block, context) -> hasShears(context) || hasSilkTouch(context) ? List.of(blockItem(drop, 1)) : List.of();
     }
 
+    public static BlockLootHandler deadBush() {
+        return (block, context) -> {
+            if (hasShears(context)) {
+                return List.of(blockItem(BlockTypes.DEADBUSH, 1));
+            }
+
+            int sticks = context.random().nextInt(3);
+            return sticks == 0 ? List.of() : List.of(ItemStack.from(ItemTypes.STICK, sticks));
+        };
+    }
+
     public static BlockLootHandler grass(BlockType drop) {
         requireNonNull(drop, "drop");
         return (block, context) -> {

@@ -224,6 +224,11 @@ public class BlockTags {
     public static final BlockTagKey PLANKS = tag("planks");
 
     /**
+     * Plants that can be placed in flower pots.
+     */
+    public static final BlockTagKey POTTABLE_PLANTS = tag("pottable_plants");
+
+    /**
      * Blocks that are pressure plates.
      */
     public static final BlockTagKey PRESSURE_PLATE = tag("pressure_plate");
@@ -339,7 +344,7 @@ public class BlockTags {
     public static final BlockTagKey SUPPORTS_CHORUS_PLANT = tag("supports_chorus_plant");
 
     /**
-     * Blocks on which dry vegetation may survive.
+     * Blocks on which dead bushes and dry grasses may survive.
      */
     public static final BlockTagKey SUPPORTS_DRY_VEGETATION = tag("supports_dry_vegetation");
 

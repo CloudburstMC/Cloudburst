@@ -95,7 +95,7 @@ public class VanillaBlockBehaviors {
     private static final List<BlockType> SINGLE_PLANTS = List.of(
             ALLIUM, AZURE_BLUET, BLUE_ORCHID, CLOSED_EYEBLOSSOM, CORNFLOWER, DANDELION,
             FERN, GOLDEN_DANDELION, LILY_OF_THE_VALLEY, OPEN_EYEBLOSSOM, ORANGE_TULIP,
-            OXEYE_DAISY, PINK_TULIP, POPPY, RED_SHRUB, RED_TULIP, SHORT_DRY_GRASS, SHORT_GRASS,
+            OXEYE_DAISY, PINK_TULIP, POPPY, RED_SHRUB, RED_TULIP, SHORT_GRASS,
             SWEET_BERRY_BUSH, TORCHFLOWER, WHITE_TULIP
     );
 
@@ -320,6 +320,16 @@ public class VanillaBlockBehaviors {
                     BubbleColumnBlockHandlers.scheduleFormation(block);
                 });
         configureItemFrame(registry, FRAME);
+
+        registry.configure(FLOWER_POT)
+                .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                .set(BlockComponents.USE, FlowerPotBlockHandlers.USE)
+                .set(BlockComponents.CAN_SURVIVE, FlowerPotBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
+                        VegetationBlockHandlers.checkSurvival(FlowerPotBlockHandlers.CAN_SURVIVE))
+                .set(BlockComponents.ON_ADDED, FlowerPotBlockHandlers.ON_ADDED)
+                .set(BlockComponents.GET_LOOT, FlowerPotBlockHandlers.GET_LOOT)
+                .set(BlockComponents.GET_PICK_BLOCK, FlowerPotBlockHandlers.GET_PICK_BLOCK);
 
         registry.configure(FROSTED_ICE)
                 .set(BlockComponents.AFTER_BREAK, IceBlockHandlers.AFTER_BREAK)
@@ -930,6 +940,23 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.DOUBLE_PLANT_NEIGHBOUR_CHANGED);
     }
 
+    private void configureDryVegetation(CloudBlockRegistry registry) {
+        SurviveBlockHandler survival = VegetationBlockHandlers.supportedBy(BlockTags.SUPPORTS_DRY_VEGETATION);
+        for (BlockType type : List.of(DEADBUSH, SHORT_DRY_GRASS, TALL_DRY_GRASS)) {
+            registry.configure(type)
+                    .set(BlockComponents.CAN_SURVIVE, survival)
+                    .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VegetationBlockHandlers.checkSurvival(survival));
+        }
+
+        registry.configure(DEADBUSH).set(BlockComponents.GET_LOOT, VanillaBlockLoot.deadBush());
+        registry.configure(SHORT_DRY_GRASS)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOrSilkTouchOnly(SHORT_DRY_GRASS))
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.replaceWith(TALL_DRY_GRASS));
+        registry.configure(TALL_DRY_GRASS)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOrSilkTouchOnly(TALL_DRY_GRASS))
+                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.spreadToEmptyNeighbor(SHORT_DRY_GRASS, survival));
+    }
+
     private ComponentBuilder configureFalling(
             CloudBlockRegistry registry,
             BlockType type,
@@ -1166,6 +1193,8 @@ public class VanillaBlockBehaviors {
             configureSinglePlant(registry, type);
         }
 
+        configureDryVegetation(registry);
+
         registry.configure(CACTUS_FLOWER)
                 .set(BlockComponents.CAN_SURVIVE, VegetationBlockHandlers.CACTUS_FLOWER_CAN_SURVIVE)
                 .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
@@ -1179,24 +1208,8 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growInto(LARGE_FERN))
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.grass(FERN));
 
-        registry.configure(SHORT_DRY_GRASS)
-                .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.replaceWith(TALL_DRY_GRASS));
-
         registry.configure(SWEET_BERRY_BUSH)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growToAge(3));
-
-        SurviveBlockHandler dryVegetationSurvival = VegetationBlockHandlers.supportedBy(BlockTags.SUPPORTS_DRY_VEGETATION);
-        registry.configure(SHORT_DRY_GRASS)
-                .set(BlockComponents.CAN_SURVIVE, dryVegetationSurvival)
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
-                        VegetationBlockHandlers.checkSurvival(dryVegetationSurvival));
-        registry.configure(TALL_DRY_GRASS)
-                .set(BlockComponents.CAN_SURVIVE, dryVegetationSurvival)
-                .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
-                        VegetationBlockHandlers.checkSurvival(dryVegetationSurvival));
-        registry.configure(TALL_DRY_GRASS)
-                .set(BlockComponents.FERTILIZE,
-                        VegetationBlockHandlers.spread(SHORT_DRY_GRASS, BlockTags.SUPPORTS_DRY_VEGETATION));
 
         SurviveBlockHandler witherRoseSurvival = VegetationBlockHandlers.supportedBy(BlockTags.SUPPORTS_WITHER_ROSE);
         registry.configure(WITHER_ROSE)
