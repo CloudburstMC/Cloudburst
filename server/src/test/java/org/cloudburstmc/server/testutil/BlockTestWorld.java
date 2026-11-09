@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.testutil;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.cloudburstmc.api.Server;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.BlockShapeContext;
@@ -62,6 +63,10 @@ public class BlockTestWorld {
     private final CloudGameRules gameRules = new CloudGameRules();
 
     private Consumer<Event> eventListener = event -> {};
+    @Setter
+    private int biomeId = -1;
+    @Setter
+    private int blockLight;
 
     @Getter
     private int breakCount;
@@ -69,6 +74,7 @@ public class BlockTestWorld {
     public BlockTestWorld(BlockRegistry registry) {
         this.registry = registry;
         this.gameRules.set(GameRules.DO_TILE_DROPS, true);
+
         EventManager eventManager = InterfaceProxy.create(EventManager.class, (proxy, method, arguments) -> {
             if (!method.getName().equals("fire")) {
                 throw new AssertionError("Unexpected event access: " + method);
@@ -80,10 +86,14 @@ public class BlockTestWorld {
             return null;
         });
 
-        this.server = InterfaceProxy.create(Server.class, Map.of("getBlockRegistry", registry, "getEventManager", eventManager));
+        this.server = InterfaceProxy.create(Server.class,
+                Map.of("getBlockRegistry", registry, "getEventManager", eventManager));
+
         this.level = InterfaceProxy.create(Level.class, (proxy, method, arguments) -> switch (method.getName()) {
             case "getServer" -> this.server;
             case "getGameRules" -> this.gameRules;
+            case "getBiomeId" -> this.biomeId;
+            case "getSeaLevel" -> 63;
             case "getMinHeight" -> -64;
             case "getMaxHeight" -> 320;
             case "getTime" -> 0L;
@@ -91,7 +101,9 @@ public class BlockTestWorld {
             case "getBlockState" -> this.state(position(arguments));
             case "getBlock" -> this.block(position(arguments));
             case "getBlockEntity" -> this.blockEntities.get(position(arguments));
-            case "getLoadedBlock" -> this.unloadedPositions.contains(position(arguments)) ? null : this.block(position(arguments));
+            case "getLoadedBlock" -> this.unloadedPositions.contains(position(arguments))
+                    ? null
+                    : this.block(position(arguments));
             case "hasPlacementObstruction" -> this.obstructedPositions.contains((Vector3i) arguments[1]);
             case "setBlockState" -> this.applyState(arguments);
             case "batchBlockUpdates" -> {
@@ -118,7 +130,9 @@ public class BlockTestWorld {
                 yield null;
             }
             case "spawnParticle" -> {
-                ParticleOptions options = arguments[0] instanceof ParticleEmission emission ? emission.options() : (ParticleOptions) arguments[0];
+                ParticleOptions options = arguments[0] instanceof ParticleEmission emission
+                        ? emission.options()
+                        : (ParticleOptions) arguments[0];
                 this.particles.add(options.getType());
                 this.particlePositions.add((Vector3f) arguments[1]);
                 yield null;
@@ -176,24 +190,35 @@ public class BlockTestWorld {
         this.neighborUpdateTypes.addAll(List.of(types));
     }
 
-    public BlockState state(Vector3i position) {
-        return this.states.getOrDefault(position, BlockStates.AIR);
+    public <E extends Event> void onEvent(Class<E> eventType, Consumer<E> listener) {
+        this.eventListener = event -> {
+            if (eventType.isInstance(event)) {
+                listener.accept(eventType.cast(event));
+            }
+        };
     }
 
-    public Map<Vector3i, BlockState> getStates() {
-        return Map.copyOf(this.states);
+    public BlockState state(Vector3i position) {
+        return this.states.getOrDefault(position, BlockStates.AIR);
     }
 
     public Block block(Vector3i position) {
         BlockState state = this.state(position);
         BlockState secondary = this.secondaryState(position);
         LiquidState liquid = this.liquid(position);
+
         return InterfaceProxy.create(Block.class, (proxy, method, arguments) -> switch (method.getName()) {
-            case "getState" -> arguments == null || arguments.length == 0 || arguments[0] == BlockLayer.PRIMARY ? state : secondary;
+            case "getState" -> arguments == null || arguments.length == 0 || arguments[0] == BlockLayer.PRIMARY
+                    ? state
+                    : secondary;
             case "getSecondaryState" -> secondary;
-            case "getLiquidLayer" -> state.getType().isLiquid() ? BlockLayer.PRIMARY : liquid.isEmpty() ? null : BlockLayer.SECONDARY;
+            case "getLiquidLayer" -> state.getType().isLiquid()
+                    ? BlockLayer.PRIMARY
+                    : liquid.isEmpty() ? null
+                    : BlockLayer.SECONDARY;
             case "getPosition" -> position;
             case "getLevel" -> this.level;
+            case "getBlockLight" -> this.blockLight;
             case "getLiquid" -> liquid;
             case "refresh" -> this.block(position);
             case "getCollisionShape" -> this.registry.requireComponent(state.getType(), BlockComponents.GET_COLLISION_SHAPE)
@@ -204,11 +229,16 @@ public class BlockTestWorld {
             case "getSideState" -> {
                 int step = arguments.length > 1 ? (Integer) arguments[1] : 1;
                 Vector3i neighbor = position.add(((Direction) arguments[0]).getUnitVector().mul(step));
-                yield arguments.length < 3 || arguments[2] == BlockLayer.PRIMARY ? this.state(neighbor) : this.secondaryState(neighbor);
+                yield arguments.length < 3 || arguments[2] == BlockLayer.PRIMARY
+                        ? this.state(neighbor)
+                        : this.secondaryState(neighbor);
             }
-            case "isFaceSturdy" -> BlockSupport.isFaceSturdy(this.level, position, (Direction) arguments[0], (SupportType) arguments[1]);
-            case "getRelative" -> this.block(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
-            case "getRelativeState" -> this.state(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
+            case "isFaceSturdy" ->
+                    BlockSupport.isFaceSturdy(this.level, position, (Direction) arguments[0], (SupportType) arguments[1]);
+            case "getRelative" ->
+                    this.block(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
+            case "getRelativeState" ->
+                    this.state(position.add((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]));
             case "getComponents" -> this.registry.requireComponents(state.getType());
             case "set" -> {
                 this.setState(position, (BlockState) arguments[0]);
@@ -223,12 +253,20 @@ public class BlockTestWorld {
         });
     }
 
+    public Map<Vector3i, BlockState> getStates() {
+        return Map.copyOf(this.states);
+    }
+
     public List<Integer> getScheduledDelays() {
         return List.copyOf(this.scheduledDelays);
     }
 
     public Map<Vector3i, Integer> getScheduledUpdates() {
         return Map.copyOf(this.scheduledUpdates);
+    }
+
+    public List<Vector3i> getNeighborUpdates() {
+        return List.copyOf(this.neighborUpdates);
     }
 
     public List<BlockBreakEffect> getBlockBreakEffects() {
@@ -255,24 +293,52 @@ public class BlockTestWorld {
         return List.copyOf(this.soundPlaybacks);
     }
 
-    public List<Vector3i> getNeighborUpdates() {
-        return List.copyOf(this.neighborUpdates);
-    }
-
     public List<ItemStack> getDrops() {
         return List.copyOf(this.drops);
     }
 
     public <E extends Event> List<E> getEvents(Class<E> eventType) {
-        return this.events.stream().filter(eventType::isInstance).map(eventType::cast).toList();
+        return this.events.stream()
+                .filter(eventType::isInstance)
+                .map(eventType::cast)
+                .toList();
     }
 
-    public <E extends Event> void onEvent(Class<E> eventType, Consumer<E> listener) {
-        this.eventListener = event -> {
-            if (eventType.isInstance(event)) {
-                listener.accept(eventType.cast(event));
+    private boolean applyState(Object[] arguments) {
+        Vector3i position = position(arguments);
+        int index = arguments[0] instanceof Vector3i ? 1 : 3;
+        BlockLayer layer = arguments[index] instanceof BlockLayer requested ? requested : BlockLayer.PRIMARY;
+        BlockState state = (BlockState) arguments[index + (arguments[index] instanceof BlockLayer ? 1 : 0)];
+
+        BlockLayers before = new BlockLayers(this.state(position), this.secondaryState(position));
+        BlockLayers after = BlockLayerRules.resolveReplacement(before, layer, state);
+        if (after == null || before.equals(after)) {
+            return false;
+        }
+
+        this.states.put(position, after.primary());
+        this.secondaryStates.put(position, after.secondary());
+        this.liquids.remove(position);
+
+        boolean update = !(arguments[arguments.length - 1] instanceof Boolean flag) || flag;
+        if (update) {
+            this.neighborUpdates.add(position);
+            if (!this.neighborUpdateTypes.isEmpty()) {
+                Block changed = this.block(position);
+                for (Direction direction : Direction.values()) {
+                    Vector3i neighborPosition = direction.relative(position);
+                    if (!this.unloadedPositions.contains(neighborPosition)) {
+                        Block neighbor = this.block(neighborPosition);
+                        if (this.neighborUpdateTypes.contains(neighbor.getState().getType())) {
+                            this.registry.requireComponent(neighbor.getState().getType(), BlockComponents.ON_NEIGHBOUR_CHANGED)
+                                    .execute(neighbor, changed);
+                        }
+                    }
+                }
             }
-        };
+        }
+
+        return true;
     }
 
     private LiquidState liquid(Vector3i position) {
@@ -295,43 +361,10 @@ public class BlockTestWorld {
         return this.secondaryStates.getOrDefault(position, BlockStates.AIR);
     }
 
-    private boolean applyState(Object[] arguments) {
-        Vector3i position = position(arguments);
-        int index = arguments[0] instanceof Vector3i ? 1 : 3;
-        BlockLayer layer = arguments[index] instanceof BlockLayer requested ? requested : BlockLayer.PRIMARY;
-        BlockState state = (BlockState) arguments[index + (arguments[index] instanceof BlockLayer ? 1 : 0)];
-        BlockLayers before = new BlockLayers(this.state(position), this.secondaryState(position));
-        BlockLayers after = BlockLayerRules.resolveReplacement(before, layer, state);
-        if (after == null || before.equals(after)) {
-            return false;
-        }
-
-        this.states.put(position, after.primary());
-        this.secondaryStates.put(position, after.secondary());
-        this.liquids.remove(position);
-        boolean update = !(arguments[arguments.length - 1] instanceof Boolean flag) || flag;
-        if (update) {
-            this.neighborUpdates.add(position);
-            if (!this.neighborUpdateTypes.isEmpty()) {
-                Block changed = this.block(position);
-                for (Direction direction : Direction.values()) {
-                    Vector3i neighborPosition = direction.relative(position);
-                    if (!this.unloadedPositions.contains(neighborPosition)) {
-                        Block neighbor = this.block(neighborPosition);
-                        if (this.neighborUpdateTypes.contains(neighbor.getState().getType())) {
-                            this.registry.requireComponent(neighbor.getState().getType(), BlockComponents.ON_NEIGHBOUR_CHANGED)
-                                    .execute(neighbor, changed);
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
     private static Vector3i position(Object[] arguments) {
-        return arguments[0] instanceof Vector3i position ? position : Vector3i.from((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]);
+        return arguments[0] instanceof Vector3i position
+                ? position
+                : Vector3i.from((Integer) arguments[0], (Integer) arguments[1], (Integer) arguments[2]);
     }
 
     public record BlockBreakEffect(Vector3i position, BlockState state) {

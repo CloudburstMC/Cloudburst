@@ -39,6 +39,11 @@ public class BlockTags {
     public static final BlockTagKey CANNOT_SUPPORT_SEAGRASS = tag("cannot_support_seagrass");
 
     /**
+     * Blocks on which snow layers cannot settle.
+     */
+    public static final BlockTagKey CANNOT_SUPPORT_SNOW_LAYER = tag("cannot_support_snow_layer");
+
+    /**
      * Blocks that living entities can climb.
      */
     public static final BlockTagKey CLIMBABLE = tag("climbable");
@@ -312,6 +317,11 @@ public class BlockTags {
      * Blocks that are mushroom stems or plant stems.
      */
     public static final BlockTagKey STEM = tag("stem");
+
+    /**
+     * Blocks that can support snow layers even without a full collision top face.
+     */
+    public static final BlockTagKey SUPPORT_OVERRIDE_SNOW_LAYER = tag("support_override_snow_layer");
 
     /**
      * Ground blocks that support a big dripleaf or its stem.

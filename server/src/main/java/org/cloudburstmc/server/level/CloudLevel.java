@@ -104,6 +104,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 
 import static com.google.common.base.Preconditions.*;
@@ -1367,8 +1368,34 @@ public class CloudLevel implements Level, BlockStateRegion {
         return this.setBlockStateSynced(position, replacement, entity, BlockSyncType.CREATE);
     }
 
-    public boolean placeBlockFromFallingEntity(Vector3i position, BlockState state, EntityFallingBlock entity) {
-        return this.setBlockStateSynced(position, state, entity, BlockSyncType.DESTROY);
+    public boolean placeBlocksFromFallingEntity(List<BlockChange> changes, EntityFallingBlock entity) {
+        Set<Vector3i> positions = new HashSet<>();
+        for (BlockChange change : changes) {
+            Block target = change.block();
+            Vector3i position = target.getPosition();
+            if (target.getLevel() != this || this.isOutsideBuildHeight(position.getY()) || !positions.add(position)) {
+                return false;
+            }
+
+            Block current = this.getBlock(position);
+            if (current.getState() != target.getState() || current.getSecondaryState() != target.getSecondaryState()) {
+                return false;
+            }
+        }
+
+        return this.withBatchedBlockUpdates(() -> {
+            BlockChange landing = changes.getFirst();
+            if (!this.setBlockStateSynced(landing.block().getPosition(), landing.newState(), entity, BlockSyncType.DESTROY)) {
+                return false;
+            }
+
+            for (int index = 1; index < changes.size(); index++) {
+                BlockChange change = changes.get(index);
+                this.setBlockState(change.block().getPosition(), change.newState());
+            }
+
+            return true;
+        });
     }
 
     private boolean setBlockStateSynced(Vector3i position, BlockState state, EntityFallingBlock entity,
@@ -1486,9 +1513,16 @@ public class CloudLevel implements Level, BlockStateRegion {
     @Override
     public void batchBlockUpdates(Runnable action) {
         Objects.requireNonNull(action, "action");
+        this.withBatchedBlockUpdates(() -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private <T> T withBatchedBlockUpdates(Supplier<T> action) {
         this.blockUpdateBatchDepth++;
         try {
-            action.run();
+            return action.get();
         } finally {
             if (--this.blockUpdateBatchDepth == 0) {
                 List<Vector3i> changedPositions = List.copyOf(this.batchedNeighbourUpdates);

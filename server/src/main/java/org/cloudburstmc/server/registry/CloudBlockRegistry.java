@@ -64,11 +64,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     @Override
-    public LiquidState getEmptyLiquidState() {
-        return EmptyLiquidState.INSTANCE;
-    }
-
-    @Override
     public Optional<BlockType> get(Identifier id) {
         return Optional.ofNullable(this.typesById.get(checkNotNull(id, "id")));
     }
@@ -76,6 +71,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     @Override
     public Identifier getId(BlockType type) {
         checkNotNull(type, "type");
+
         if (this.typesById.get(type.getId()) != type) {
             throw new IllegalArgumentException("Block type is not registered: " + type.getId());
         }
@@ -84,11 +80,18 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     @Override
+    public List<BlockType> values() {
+        return this.types;
+    }
+
+    @Override
     public BlockState getBlock(BlockType type) {
         checkNotNull(type, "type");
+
         if (this.getComponentMap(type) == null) {
             throw new RegistryException("Block type is not registered: " + type.getId());
         }
+
         return type.getDefaultState();
     }
 
@@ -108,8 +111,8 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     }
 
     @Override
-    public List<BlockType> values() {
-        return this.types;
+    public LiquidState getEmptyLiquidState() {
+        return EmptyLiquidState.INSTANCE;
     }
 
     @Override
@@ -135,10 +138,12 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
     @Override
     public synchronized ComponentBuilder configure(BlockType type) {
         this.requireOpen();
+
         CloudComponentMap components = this.getComponentMap(checkNotNull(type, "type"));
         if (components == null) {
             throw new RegistryException("Block type is not registered: " + type.getId());
         }
+
         return components;
     }
 
@@ -171,42 +176,6 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.initialized = true;
     }
 
-    private void requireOpen() {
-        if (this.closed) {
-            throw new RegistryException("Block registration is closed");
-        }
-    }
-
-    private void registerVanilla(BlockType type) {
-        VanillaBlockTags.bind(type);
-        this.putComponents(type, new CloudComponentMap(this));
-        this.palette.addBlock(type, DefaultBlockSerializer.INSTANCE);
-    }
-
-    private void configureModelOffsetShapes(BlockType type) {
-        ComponentBuilder components = this.configure(type);
-
-        boolean collisionOffset = type.getStates().stream().anyMatch(state -> {
-            BlockGeometryData geometry = this.palette.getGeometry(state);
-            return geometry != null && geometry.collisionOffset() != null;
-        });
-
-        if (collisionOffset) {
-            ModelOffsetShapeHandler handler = new ModelOffsetShapeHandler(this.palette, false);
-            components.set(BlockComponents.GET_COLLISION_SHAPE, handler);
-            components.set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, handler);
-        }
-
-        boolean outlineOffset = type.getStates().stream().anyMatch(state -> {
-            BlockGeometryData geometry = this.palette.getGeometry(state);
-            return geometry != null && geometry.outlineOffset() != null;
-        });
-
-        if (outlineOffset) {
-            components.set(BlockComponents.GET_OUTLINE_SHAPE, new ModelOffsetShapeHandler(this.palette, true));
-        }
-    }
-
     private void registerDefaultComponents() {
         this.registerComponent(BlockComponents.AFTER_BREAK, (block, context) -> {});
         this.registerComponent(BlockComponents.ATTACK, DefaultBlockHandlers.ATTACK);
@@ -215,6 +184,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.BUTTON_PRESS_DURATION_TICKS, ButtonBlockHandlers.WOODEN_PRESS_TICKS);
         this.registerComponent(BlockComponents.CAN_BE_PLACED, block -> block.isSupported(block.getLevel(), block.getPosition()));
         this.registerComponent(BlockComponents.CAN_BE_REPLACED, (block, replacement, player, face, click) -> block.getState().isReplaceable() && block.getState().getType() != replacement.getType());
+        this.registerComponent(BlockComponents.CAN_BE_REPLACED_BY_FALLING_BLOCK, BlockState::isReplaceable);
         this.registerComponent(BlockComponents.CAN_BE_USED, (block, player) -> false);
         this.registerComponent(BlockComponents.CAN_BE_USED_IN_COMMANDS, DefaultBlockHandlers.CAN_BE_USED_IN_COMMANDS);
         this.registerComponent(BlockComponents.CAN_RANDOM_TICK, false);
@@ -235,6 +205,7 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.GET_EXPERIENCE, DefaultBlockHandlers.GET_EXPERIENCE);
         this.registerComponent(BlockComponents.GET_EXPLOSION_LOOT, DefaultBlockHandlers.GET_EXPLOSION_LOOT);
         this.registerComponent(BlockComponents.GET_FALLING_DAMAGE_SOURCE, entity -> DamageSource.of(DamageTypes.FALLING_BLOCK, entity));
+        this.registerComponent(BlockComponents.GET_FALLING_BREAK_DROP, FallingBlockHandlers.BLOCK_ITEM_DROP);
         this.registerComponent(BlockComponents.GET_GRAVITY, (block) -> 0.02f);
         this.registerComponent(BlockComponents.GET_IGNITED_STATE, block -> null);
         this.registerComponent(BlockComponents.GET_LIGHT_OCCLUSION_SHAPE, state -> CloudVoxelShapes.empty());
@@ -270,9 +241,46 @@ public class CloudBlockRegistry extends CloudComponentRegistry<BlockType> implem
         this.registerComponent(BlockComponents.ON_STEP_OFF, DefaultBlockHandlers.ON_STEP_OFF);
         this.registerComponent(BlockComponents.ON_STEP_ON, DefaultBlockHandlers.ON_STEP_ON);
         this.registerComponent(BlockComponents.ON_TICK, (block, randomGenerator) -> {});
+        this.registerComponent(BlockComponents.RESOLVE_FALLING_PLACEMENT, FallingBlockHandlers.RESOLVE_PLACEMENT);
         this.registerComponent(BlockComponents.RESOLVE_PLACEMENT_STATE, DefaultPlacementStateHandler.INSTANCE);
         this.registerComponent(BlockComponents.START_FALLING, (block) -> {});
         this.registerComponent(BlockComponents.SUFFOCATING, DefaultBlockHandlers.SUFFOCATING);
         this.registerComponent(BlockComponents.USE, (block, player, direction, item) -> false);
+    }
+
+    private void registerVanilla(BlockType type) {
+        VanillaBlockTags.bind(type);
+        this.putComponents(type, new CloudComponentMap(this));
+        this.palette.addBlock(type, DefaultBlockSerializer.INSTANCE);
+    }
+
+    private void configureModelOffsetShapes(BlockType type) {
+        ComponentBuilder components = this.configure(type);
+
+        boolean collisionOffset = type.getStates().stream().anyMatch(state -> {
+            BlockGeometryData geometry = this.palette.getGeometry(state);
+            return geometry != null && geometry.collisionOffset() != null;
+        });
+
+        if (collisionOffset) {
+            ModelOffsetShapeHandler handler = new ModelOffsetShapeHandler(this.palette, false);
+            components.set(BlockComponents.GET_COLLISION_SHAPE, handler);
+            components.set(BlockComponents.GET_BLOCK_SUPPORT_SHAPE, handler);
+        }
+
+        boolean outlineOffset = type.getStates().stream().anyMatch(state -> {
+            BlockGeometryData geometry = this.palette.getGeometry(state);
+            return geometry != null && geometry.outlineOffset() != null;
+        });
+
+        if (outlineOffset) {
+            components.set(BlockComponents.GET_OUTLINE_SHAPE, new ModelOffsetShapeHandler(this.palette, true));
+        }
+    }
+
+    private void requireOpen() {
+        if (this.closed) {
+            throw new RegistryException("Block registration is closed");
+        }
     }
 }

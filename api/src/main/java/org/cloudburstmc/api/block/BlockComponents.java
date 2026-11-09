@@ -51,6 +51,11 @@ public class BlockComponents {
     public static final ComponentType<ReplaceBlockHandler> CAN_BE_REPLACED = ComponentType.of("can_be_replaced", ReplaceBlockHandler.class);
 
     /**
+     * Checks whether a falling block can replace this block state.
+     */
+    public static final ComponentType<BooleanBlockStateHandler> CAN_BE_REPLACED_BY_FALLING_BLOCK = ComponentType.of("can_be_replaced_by_falling_block", BooleanBlockStateHandler.class);
+
+    /**
      * Checks whether block interaction may call {@link #USE}.
      */
     public static final ComponentType<UseCheckHandler> CAN_BE_USED = ComponentType.of("can_be_used", UseCheckHandler.class);
@@ -151,6 +156,11 @@ public class BlockComponents {
      * Resolves the damage source used when a falling entity carrying this block lands on another entity.
      */
     public static final ComponentType<FallingBlockDamageSourceHandler> GET_FALLING_DAMAGE_SOURCE = ComponentType.of("get_falling_damage_source", FallingBlockDamageSourceHandler.class);
+
+    /**
+     * Determines the item to drop when a falling block breaks on landing.
+     */
+    public static final ComponentType<FallingBlockDropHandler> GET_FALLING_BREAK_DROP = ComponentType.of("get_falling_break_drop", FallingBlockDropHandler.class);
 
     /**
      * TODO: Implement block gravity queries.
@@ -333,6 +343,11 @@ public class BlockComponents {
      * Handles scheduled or explicitly requested block ticks. The random source may be {@code null}.
      */
     public static final ComponentType<TickBlockHandler> ON_TICK = ComponentType.of("on_tick", TickBlockHandler.class);
+
+    /**
+     * Determines how a falling block settles on landing.
+     */
+    public static final ComponentType<FallingBlockPlacementHandler> RESOLVE_FALLING_PLACEMENT = ComponentType.of("resolve_falling_placement", FallingBlockPlacementHandler.class);
 
     /**
      * Resolves the proposed state before survival, collision and placement checks, without changing the level.

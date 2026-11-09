@@ -7,18 +7,31 @@ import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.block.component.*;
 import org.cloudburstmc.api.entity.EntityTypes;
 import org.cloudburstmc.api.event.entity.EntityChangeBlockEvent;
+import org.cloudburstmc.api.item.ItemDataComponents;
+import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.api.level.Location;
 import org.cloudburstmc.api.level.sound.SoundType;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.CardinalDirection;
+import org.cloudburstmc.server.block.CloudBlock;
 import org.cloudburstmc.server.entity.misc.EntityFallingBlock;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.registry.CloudEntityRegistry;
 
+import java.util.List;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FallingBlockHandlers {
 
-    public static final BooleanBlockHandler IS_FREE_TO_FALL = block -> block.getSide(Direction.DOWN).getState().isReplaceable();
+    public static final FallingBlockDropHandler BLOCK_ITEM_DROP = state -> state.getType().asItem()
+            .map(itemType -> ItemStack.builder()
+                    .itemType(itemType)
+                    .setData(ItemDataComponents.BLOCK_STATE, state)
+                    .amount(1)
+                    .build())
+            .orElse(ItemStack.EMPTY);
+
+    public static final BooleanBlockHandler IS_FREE_TO_FALL = block -> canReplace(block.getSide(Direction.DOWN));
 
     public static final TickBlockHandler ON_TICK = (block, random) -> {
         if (block.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(block)) {
@@ -26,11 +39,20 @@ public class FallingBlockHandlers {
         }
     };
 
+    public static final FallingBlockPlacementHandler RESOLVE_PLACEMENT = (state, target) -> {
+        int y = target.getPosition().getY();
+        if (y < target.getLevel().getMinHeight() || y >= target.getLevel().getMaxHeight()
+                || !canReplace(target) || isUnstableOnLanding(state, target)) {
+            return List.of();
+        }
+
+        return List.of(new BlockChange(target, state));
+    };
+
     public static final FallingLandBlockHandler ANVIL_LAND = (entity, target, fallDistance) -> {
         int effectiveDistance = (int) Math.ceil(fallDistance - 1);
         if (Math.floor(effectiveDistance * entity.getDamagePerBlock()) <= 0
-                || ((CloudLevel) entity.getLevel()).getRandom().nextFloat()
-                >= 0.05f + effectiveDistance * 0.05f) {
+                || ((CloudLevel) entity.getLevel()).getRandom().nextFloat() >= 0.05f + effectiveDistance * 0.05f) {
             return;
         }
 
@@ -52,7 +74,9 @@ public class FallingBlockHandlers {
         return block -> {
             EntityFallingBlock fallingBlock = (EntityFallingBlock) CloudEntityRegistry.get().newEntity(
                     EntityTypes.FALLING_BLOCK,
-                    Location.from(block.getPosition().toFloat().add(0.5f, 0, 0.5f), block.getLevel()));
+                    Location.from(block.getPosition().toFloat().add(0.5f, 0, 0.5f), block.getLevel())
+            );
+
             fallingBlock.setBlockState(block.getState());
             fallingBlock.setLandingSound(landingSound);
             fallingBlock.setBreakSound(breakSound);
@@ -70,6 +94,21 @@ public class FallingBlockHandlers {
                 fallingBlock.close();
             }
         };
+    }
+
+    public static boolean canReplace(Block block) {
+        return block.requireComponent(BlockComponents.CAN_BE_REPLACED_BY_FALLING_BLOCK).execute(block.getState());
+    }
+
+    public static boolean isUnstableOnLanding(BlockState state, Block target) {
+        Block proposed = new CloudBlock(
+                target.getLevel(),
+                target.getPosition(),
+                new BlockState[]{state, target.getSecondaryState()}
+        );
+
+        return !proposed.requireComponent(BlockComponents.CAN_SURVIVE).execute(proposed)
+                || proposed.requireComponent(BlockComponents.IS_FREE_TO_FALL).execute(proposed);
     }
 
     public static FallingLandBlockHandler solidifyConcretePowder(BlockType concreteType) {

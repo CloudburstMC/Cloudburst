@@ -7,10 +7,7 @@ import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockStates;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.event.block.BlockFormEvent;
-import org.cloudburstmc.api.util.Direction;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.server.block.component.CauldronBlockHandlers;
-import org.cloudburstmc.server.block.util.BlockSupport;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.biome.CloudBiome;
 import org.cloudburstmc.server.registry.CloudBiomeRegistry;
@@ -46,8 +43,7 @@ public final class PrecipitationHandler {
         }
 
         Block target = level.getBlock(x, targetY, z);
-        BlockState state = target.getState();
-        if (state == BlockStates.AIR && BlockSupport.isFaceSturdy(level, Vector3i.from(x, targetY - 1, z), Direction.UP)) {
+        if (target.getState() == BlockStates.AIR && BlockStates.SNOW_LAYER.isSupported(target)) {
             formBlock(level, target, BlockStates.SNOW_LAYER);
         }
     }
