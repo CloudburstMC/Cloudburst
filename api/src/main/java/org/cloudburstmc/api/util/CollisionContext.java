@@ -9,19 +9,21 @@ import org.cloudburstmc.math.vector.Vector3i;
 
 /**
  * Context passed to block collision shape handlers.
- *
- * <p>The context lets blocks adjust their collision shape for an entity. For example, a block can
- * expose a different shape when an entity is above it or moving downward.</p>
+ * <p>
+ * A shape can differ between placement checks and entity movement.
  */
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class CollisionContext {
+public class CollisionContext {
+
     private static final float ABOVE_EPSILON = 1.0E-5f;
-    private static final CollisionContext EMPTY = new CollisionContext(null, false, Float.NEGATIVE_INFINITY);
+    private static final CollisionContext EMPTY = new CollisionContext(null, false, Float.NEGATIVE_INFINITY, false);
+    private static final CollisionContext EMPTY_PLACEMENT = new CollisionContext(null, false, Float.NEGATIVE_INFINITY, true);
 
     private final @Nullable Entity entity;
     private final boolean descending;
     private final float entityBottom;
+    private final boolean placement;
 
     /**
      * Returns a context with no entity.
@@ -42,7 +44,7 @@ public final class CollisionContext {
         if (entity == null) {
             return empty();
         }
-        return new CollisionContext(entity, entity.getMotion().getY() < 0, entity.getBoundingBox().getMinY());
+        return new CollisionContext(entity, entity.getMotion().getY() < 0, entity.getBoundingBox().getMinY(), false);
     }
 
     /**
@@ -56,7 +58,27 @@ public final class CollisionContext {
         if (entity == null) {
             return empty();
         }
-        return new CollisionContext(entity, descending, entity.getBoundingBox().getMinY());
+        return new CollisionContext(entity, descending, entity.getBoundingBox().getMinY(), false);
+    }
+
+    /**
+     * Creates a context for checking whether a block can be placed.
+     *
+     * @param entity the entity placing the block, if any
+     * @return the placement collision context
+     */
+    public static CollisionContext forPlacement(@Nullable Entity entity) {
+        if (entity == null) {
+            return EMPTY_PLACEMENT;
+        }
+        return new CollisionContext(entity, entity.getMotion().getY() < 0, entity.getBoundingBox().getMinY(), true);
+    }
+
+    /**
+     * @return whether this query checks block placement rather than movement
+     */
+    public boolean isPlacement() {
+        return this.placement;
     }
 
     /**

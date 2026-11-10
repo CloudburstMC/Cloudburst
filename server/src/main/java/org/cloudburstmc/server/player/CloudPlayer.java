@@ -243,6 +243,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private Entity killer = null;
     private boolean foodEnabled = true;
     private boolean wasUnderwater;
+    private boolean scaffoldDescentInput;
 
     public long lastBreak;
     public Block breakingBlock = null;
@@ -1784,6 +1785,14 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         this.setButtonText(target == null ? "" : target.getInteractButtonText());
     }
 
+    public void setScaffoldDescentInput(boolean descending) {
+        this.scaffoldDescentInput = descending;
+    }
+
+    public boolean isDescendingScaffolding() {
+        return this.isSneaking() || this.scaffoldDescentInput;
+    }
+
     public void applyInputMovement() {
         if (!this.isAlive() || !this.spawned || this.vehicle != null || this.newPosition == null || this.teleportPosition != null || this.isSleeping()) {
             return;
@@ -2038,6 +2047,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             this.finishItemUse(currentTick);
             this.updateBlockingState();
             this.updateUnderwaterSound();
+            this.updateScaffoldingFlags();
 
             if (this.getServer().getDifficulty() == Difficulty.PEACEFUL && this.getLevel().getGameRules().get(GameRules.NATURAL_REGENERATION)) {
                 if (this.getHealth() < this.getMaxHealth() && this.ticksLived % 20 == 0) {
@@ -2153,6 +2163,18 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         if (effect != null) {
             this.addPotionEffect(effect, null, PotionEffectCause.TURTLE_HELMET);
         }
+    }
+
+    private void updateScaffoldingFlags() {
+        Vector3i feet = this.getPosition().toInt();
+        boolean canClimb = this.vehicle == null && !this.isSpectator() && !this.getAbilities().get(Ability.FLYING);
+        boolean inside = canClimb && this.level.getBlockState(feet).getType() == BlockTypes.SCAFFOLDING;
+        boolean above = canClimb && !inside && this.onGround && this.level.getBlockState(feet.sub(0, 1, 0)).getType() == BlockTypes.SCAFFOLDING;
+
+        this.data.setFlag(EntityFlag.IN_SCAFFOLDING, inside);
+        this.data.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, inside);
+        this.data.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, inside || above);
+        this.data.setFlag(EntityFlag.OVER_SCAFFOLDING, (inside || above) && this.isDescendingScaffolding());
     }
 
     private void updateUnderwaterSound() {

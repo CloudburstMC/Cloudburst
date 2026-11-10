@@ -9,7 +9,7 @@ import org.cloudburstmc.api.event.Cancellable;
 import java.util.Objects;
 
 /**
- * Called before an entity changes a block when no more specific event applies.
+ * Called before an entity directly changes a block outside normal placement and breaking.
  * Cancelling prevents the proposed change. For tool transformations, it also
  * prevents drops, item consumption and durability loss.
  */

@@ -4,6 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.BlockState;
 import org.cloudburstmc.api.block.BlockTraits;
+import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.block.data.*;
 import org.cloudburstmc.api.block.trait.BooleanBlockTrait;
 import org.cloudburstmc.api.block.trait.EnumBlockTrait;
@@ -44,6 +45,8 @@ public class CloudBlockStructureData {
             } else if (state.getTraits().containsKey(BlockTraits.SIMPLE_RAIL_DIRECTION)) {
                 data = new RailData(state, BlockTraits.SIMPLE_RAIL_DIRECTION);
             }
+        } else if (dataType == Scaffolding.class && state.getType() == BlockTypes.SCAFFOLDING) {
+            data = new ScaffoldingData(state);
         } else if (dataType == Bisected.class) {
             data = bisected(state);
         } else if (dataType == FaceAttachable.class) {
@@ -73,6 +76,29 @@ public class CloudBlockStructureData {
         }
 
         return null;
+    }
+
+    private record ScaffoldingData(BlockState state) implements Scaffolding {
+
+        @Override
+        public BlockState getState() {
+            return this.state;
+        }
+
+        @Override
+        public int getDistance() {
+            return this.state.ensureTrait(BlockTraits.STABILITY);
+        }
+
+        @Override
+        public int getMaximumDistance() {
+            return BlockTraits.STABILITY.getRange().getEnd();
+        }
+
+        @Override
+        public BlockState withDistance(int distance) {
+            return this.state.withTrait(BlockTraits.STABILITY, distance);
+        }
     }
 
     private record SlabData(BlockState state, SlabFamily family) implements Slab {

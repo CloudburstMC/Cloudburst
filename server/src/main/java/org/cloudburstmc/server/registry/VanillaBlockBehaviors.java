@@ -103,6 +103,7 @@ public class VanillaBlockBehaviors {
         configureFenceGates(registry);
         configureFences(registry);
         configureBars(registry);
+        configureClimbingBlocks(registry);
         configureColoredBuildingBlockSlabs(registry);
         configureAquaticBlocks(registry);
         configureStairs(registry);
@@ -701,7 +702,6 @@ public class VanillaBlockBehaviors {
         configureTorch(registry, UNDERWATER_TORCH);
         configureShulkerBox(registry, UNDYED_SHULKER_BOX);
         configureTorch(registry, UNLIT_REDSTONE_TORCH);
-        registry.configure(VINE).set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOnly(VINE));
         configureWoodenButton(registry, WARPED_BUTTON);
         configureDoor(registry, WARPED_DOOR);
         configureHangingSign(registry, WARPED_HANGING_SIGN);
@@ -903,6 +903,45 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.GET_LOOT, (block, context) -> List.of(ItemStack.from(candle)));
     }
 
+    private void configureClimbingBlocks(CloudBlockRegistry registry) {
+        registry.configure(LADDER)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, LadderBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_SURVIVE, LadderBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED,
+                        VegetationBlockHandlers.checkSurvival(LadderBlockHandlers.CAN_SURVIVE));
+
+        registry.configure(SCAFFOLDING)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, ScaffoldingBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_BE_PLACED, block -> true)
+                .set(BlockComponents.CAN_SURVIVE, ScaffoldingBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.GET_COLLISION_SHAPE, ScaffoldingBlockHandlers.GET_COLLISION_SHAPE)
+                .set(BlockComponents.ON_ADDED, ScaffoldingBlockHandlers.ON_ADDED)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, ScaffoldingBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.ON_TICK, ScaffoldingBlockHandlers.ON_TICK);
+
+        registry.configure(VINE)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, VineBlockHandlers.RESOLVE_PLACEMENT_STATE)
+                .set(BlockComponents.CAN_BE_REPLACED, VineBlockHandlers.CAN_BE_REPLACED)
+                .set(BlockComponents.CAN_SURVIVE, VineBlockHandlers.CAN_SURVIVE)
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, VineBlockHandlers.ON_NEIGHBOUR_CHANGED)
+                .set(BlockComponents.CAN_RANDOM_TICK, true)
+                .set(BlockComponents.ON_RANDOM_TICK, VineBlockHandlers.ON_RANDOM_TICK)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.shearsOnly(VINE));
+
+        configureGrowingVine(registry, TWISTING_VINES, GrowingVines.TWISTING)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.netherVines(TWISTING_VINES));
+        configureGrowingVine(registry, WEEPING_VINES, GrowingVines.WEEPING)
+                .set(BlockComponents.GET_LOOT, VanillaBlockLoot.netherVines(WEEPING_VINES));
+
+        for (BlockType type : List.of(CAVE_VINES, CAVE_VINES_HEAD_WITH_BERRIES, CAVE_VINES_BODY_WITH_BERRIES)) {
+            configureGrowingVine(registry, type, GrowingVines.CAVE)
+                    .set(BlockComponents.CAN_BE_USED, DefaultBlockHandlers.CAN_BE_USED)
+                    .set(BlockComponents.USE, GrowingVines.HARVEST_BERRIES)
+                    .set(BlockComponents.GET_LOOT, GrowingVines.CAVE_LOOT)
+                    .set(BlockComponents.GET_PICK_BLOCK, GrowingVines.PICK_CAVE_VINE);
+        }
+    }
+
     private void configureColoredBuildingBlockSlabs(CloudBlockRegistry registry) {
         for (VanillaSlabAndStairFamily family : VanillaBlockFamilies.COLORED_BUILDING_BLOCKS) {
             configureSlab(registry, family.slab(), family.doubleSlab());
@@ -1009,6 +1048,17 @@ public class VanillaBlockBehaviors {
                 .set(BlockComponents.RESOLVE_PLACEMENT_STATE, VegetationBlockHandlers.FLOWER_BED_PLACEMENT)
                 .set(BlockComponents.FERTILIZE, VegetationBlockHandlers.growFlowerBed(type))
                 .set(BlockComponents.GET_LOOT, VanillaBlockLoot.flowerBed(type));
+    }
+
+    private ComponentBuilder configureGrowingVine(CloudBlockRegistry registry, BlockType type, GrowingVines vine) {
+        return registry.configure(type)
+                .set(BlockComponents.RESOLVE_PLACEMENT_STATE, vine.placement())
+                .set(BlockComponents.CAN_SURVIVE, vine.survival())
+                .set(BlockComponents.ON_NEIGHBOUR_CHANGED, vine.neighborChanged())
+                .set(BlockComponents.ON_TICK, vine.supportTick())
+                .set(BlockComponents.CAN_RANDOM_TICK, type != CAVE_VINES_BODY_WITH_BERRIES)
+                .set(BlockComponents.ON_RANDOM_TICK, vine.growthTick())
+                .set(BlockComponents.FERTILIZE, vine.fertilizer());
     }
 
     private void configureHangingSign(CloudBlockRegistry registry, BlockType type) {

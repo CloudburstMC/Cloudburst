@@ -164,6 +164,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
 
+        player.setScaffoldDescentInput(inputData.contains(PlayerAuthInputData.DESCEND_BLOCK));
         processInputFlags(inputData);
         processContinuousInputState(inputData);
 
@@ -824,17 +825,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
     }
 
     private void reconcilePlacementPrediction(Vector3i clicked, Vector3i adjacent, Vector3i placed) {
-        Vector3i unplaced = placed.equals(clicked) ? adjacent : clicked;
-        if (unplaced.equals(placed)) {
-            return;
-        }
-
-        CloudLevel level = player.getLevel();
-        if (!level.isOutsideBuildHeight(unplaced.getY())) {
-            Block block = level.getLoadedBlock(unplaced);
-            if (block != null) {
-                level.sendBlocks(new CloudPlayer[]{player}, new Block[]{block}, UpdateBlockPacket.FLAG_ALL_PRIORITY);
-            }
+        if (placed.equals(clicked)) {
+            sendBlockCorrections(List.of(adjacent));
+        } else if (placed.equals(adjacent)) {
+            sendBlockCorrections(List.of(clicked));
+        } else {
+            sendBlockCorrections(List.of(clicked, adjacent));
         }
     }
 
@@ -857,10 +853,15 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
+        sendBlockCorrections(positions);
+        player.sendHeldItemSlot();
+    }
+
+    private void sendBlockCorrections(Collection<Vector3i> positions) {
         CloudLevel level = player.getLevel();
         List<Block> blocks = new ArrayList<>(positions.size());
         for (Vector3i position : positions) {
-            if (position.getY() >= level.getMinHeight() && position.getY() < level.getMaxHeight()) {
+            if (!level.isOutsideBuildHeight(position.getY())) {
                 Block block = level.getLoadedBlock(position);
                 if (block != null) {
                     blocks.add(block);
@@ -868,8 +869,9 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             }
         }
 
-        level.sendBlocks(new CloudPlayer[]{player}, blocks.toArray(Block[]::new), UpdateBlockPacket.FLAG_ALL_PRIORITY);
-        player.sendHeldItemSlot();
+        if (!blocks.isEmpty()) {
+            level.sendBlocks(new CloudPlayer[]{player}, blocks.toArray(Block[]::new), UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        }
     }
 
     private void processInputFlags(Set<PlayerAuthInputData> inputData) {

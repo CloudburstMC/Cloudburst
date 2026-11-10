@@ -2151,7 +2151,7 @@ public class CloudLevel implements Level, BlockStateRegion {
         }
 
         VoxelShape handShape = handBehaviors.require(BlockComponents.GET_COLLISION_SHAPE)
-                .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.of(player))
+                .execute(hand, BlockShapeContext.at(this, blockPos), CollisionContext.forPlacement(player))
                 .move(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if (!handShape.isEmpty()) {

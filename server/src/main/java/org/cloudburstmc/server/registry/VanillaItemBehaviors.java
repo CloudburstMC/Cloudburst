@@ -16,6 +16,7 @@ import org.cloudburstmc.api.potion.PotionEffect;
 import org.cloudburstmc.api.registry.RegistryException;
 import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.server.block.component.GrowingVines;
 import org.cloudburstmc.server.entity.vehicle.VanillaBoats;
 import org.cloudburstmc.server.item.ArmorMaterial;
 import org.cloudburstmc.server.item.VanillaArmorMaterials;
@@ -284,7 +285,8 @@ public final class VanillaItemBehaviors {
                 .set(ItemBehaviors.USE_ON, BucketItemHandlers.placeEntity(BlockStates.WATER, EntityTypes.SALMON));
         configureSpawnEgg(registry, ItemTypes.SALMON_SPAWN_EGG, EntityTypes.SALMON);
         configureTool(registry, SHEARS, VanillaTools.shears(), 238, 1, repairWith());
-        registry.configure(SHEARS).set(ItemBehaviors.USE_ON, BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHEARS));
+        registry.configure(SHEARS).set(ItemBehaviors.USE_ON,
+                BlockTransformationItemHandlers.useOn(VanillaBlockTransformations.SHEARS, GrowingVines::canPrune));
         configureSpawnEgg(registry, ItemTypes.SHEEP_SPAWN_EGG, EntityTypes.SHEEP);
         configureDamageableEnchantable(registry, ItemTypes.SHIELD, 336, repairWith(ItemTags.WOODEN_TOOL_MATERIALS), EnchantmentTarget.BREAKABLE, EnchantmentTarget.VANISHABLE);
         registry.configure(ItemTypes.SHIELD)

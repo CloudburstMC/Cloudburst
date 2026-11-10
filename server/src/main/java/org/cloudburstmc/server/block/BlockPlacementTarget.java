@@ -4,11 +4,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.api.block.*;
 import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.api.util.data.SlabSlot;
+import org.cloudburstmc.server.block.component.ScaffoldingBlockHandlers;
 
 public record BlockPlacementTarget(Block block, Direction placementFace) {
 
     public static @Nullable BlockPlacementTarget resolve(BlockState placement, Block adjacent, BlockPlacementContext context) {
         Block clicked = context.clickedBlock();
+
+        if (placement.getType() == BlockTypes.SCAFFOLDING) {
+            return ScaffoldingBlockHandlers.resolvePlacement(placement, adjacent, context);
+        }
 
         if (isMatchingSlab(clicked.getState(), placement)) {
             if (canMergeClickedSlab(clicked.getState(), context)) {
@@ -17,6 +22,9 @@ public record BlockPlacementTarget(Block block, Direction placementFace) {
         } else if (isMatchingSlab(adjacent.getState(), placement)) {
             return new BlockPlacementTarget(adjacent, context.clickedFace());
         } else if (canReplace(clicked, placement, context)) {
+            if (clicked.getState().getType() == BlockTypes.VINE && placement.getType() == BlockTypes.VINE) {
+                return new BlockPlacementTarget(clicked, context.clickedFace());
+            }
             return new BlockPlacementTarget(clicked, Direction.UP);
         }
 

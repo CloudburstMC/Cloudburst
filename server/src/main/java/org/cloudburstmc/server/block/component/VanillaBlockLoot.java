@@ -23,6 +23,7 @@ public class VanillaBlockLoot {
     private static final float[] NORMAL_SAPLING_CHANCES = {0.05f, 0.0625f, 0.083333336f, 0.1f};
     private static final float[] JUNGLE_SAPLING_CHANCES = {0.025f, 0.027777778f, 0.03125f, 0.041666668f, 0.1f};
     private static final float[] STICK_CHANCES = {0.02f, 0.022222223f, 0.025f, 0.033333335f, 0.1f};
+    private static final float[] NETHER_VINE_CHANCES = {0.33f, 0.55f, 0.77f, 1.0f};
     private static final float[] APPLE_CHANCES = {0.005f, 0.0055555557f, 0.00625f, 0.008333334f, 0.025f};
 
     public static BlockLootHandler silkTouchAlternative(BlockType silkTouchDrop, BlockType normalDrop) {
@@ -85,6 +86,13 @@ public class VanillaBlockLoot {
 
     public static BlockLootHandler largeFern() {
         return (block, context) -> hasShears(context) ? List.of(blockItem(BlockTypes.FERN, 2)) : List.of();
+    }
+
+    public static BlockLootHandler netherVines(BlockType drop) {
+        requireNonNull(drop, "drop");
+        return (block, context) -> hasShears(context) || hasSilkTouch(context)
+                || passesChance(context, NETHER_VINE_CHANCES, fortuneLevel(context))
+                ? List.of(blockItem(drop, 1)) : List.of();
     }
 
     public static BlockLootHandler sweetBerryBush() {

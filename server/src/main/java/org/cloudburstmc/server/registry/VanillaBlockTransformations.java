@@ -3,6 +3,7 @@ package org.cloudburstmc.server.registry;
 import lombok.experimental.UtilityClass;
 import org.cloudburstmc.api.block.BlockTraits;
 import org.cloudburstmc.api.block.BlockType;
+import org.cloudburstmc.api.block.trait.IntegerBlockTrait;
 import org.cloudburstmc.api.item.ItemTypes;
 import org.cloudburstmc.api.level.sound.SoundTypes;
 import org.cloudburstmc.api.util.Direction;
@@ -22,10 +23,13 @@ public class VanillaBlockTransformations {
     public static final Map<BlockType, BlockTransformation> AXE = createAxe();
     public static final Map<BlockType, BlockTransformation> HOE = createHoe();
     public static final Map<BlockType, BlockTransformation> SHOVEL = createShovel();
-    public static final Map<BlockType, BlockTransformation> SHEARS = Map.of(KELP, BlockTransformation.builder()
-            .transform(state -> state.withTrait(BlockTraits.KELP_AGE, BlockTraits.KELP_AGE.getRange().getEnd()))
-            .soundOverride(SoundTypes.MOB_SHEEP_SHEAR)
-            .build());
+    public static final Map<BlockType, BlockTransformation> SHEARS = Map.of(
+            KELP, stopGrowth(BlockTraits.KELP_AGE),
+            CAVE_VINES, stopGrowth(BlockTraits.CAVE_VINE_AGE),
+            CAVE_VINES_HEAD_WITH_BERRIES, stopGrowth(BlockTraits.CAVE_VINE_AGE),
+            TWISTING_VINES, stopGrowth(BlockTraits.TWISTING_VINES_AGE),
+            WEEPING_VINES, stopGrowth(BlockTraits.WEEPING_VINES_AGE)
+    );
     public static final Map<BlockType, BlockTransformation> HONEYCOMB = createHoneycomb();
 
     private static Map<BlockType, BlockTransformation> createAxe() {
@@ -94,6 +98,13 @@ public class VanillaBlockTransformations {
                 .sound(SoundEvent.COPPER_WAX_ON).particle(LevelEvent.PARTICLE_WAX_ON)
                 .consumesItem(true).build()));
         return Map.copyOf(rules);
+    }
+
+    private static BlockTransformation stopGrowth(IntegerBlockTrait age) {
+        return BlockTransformation.builder()
+                .transform(state -> state.withTrait(age, age.getRange().getEnd()))
+                .soundOverride(SoundTypes.MOB_SHEEP_SHEAR)
+                .build();
     }
 
     private static BlockTransformation.BlockTransformationBuilder replacement(BlockType target) {

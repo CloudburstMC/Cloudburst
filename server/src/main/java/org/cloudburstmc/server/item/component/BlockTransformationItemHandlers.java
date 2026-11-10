@@ -20,11 +20,16 @@ import org.cloudburstmc.server.registry.CloudItemRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 @UtilityClass
 public class BlockTransformationItemHandlers {
 
     public static UseOnHandler useOn(Map<BlockType, BlockTransformation> rules) {
+        return useOn(rules, block -> true);
+    }
+
+    public static UseOnHandler useOn(Map<BlockType, BlockTransformation> rules, Predicate<Block> canApply) {
         return (item, entity, position, face, click) -> {
             if (!(entity instanceof CloudPlayer player)) {
                 return item;
@@ -33,7 +38,7 @@ public class BlockTransformationItemHandlers {
             CloudLevel level = player.getLevel();
             Block block = level.getBlock(position);
             BlockTransformation rule = rules.get(block.getState().getType());
-            if (rule == null) {
+            if (rule == null || !canApply.test(block)) {
                 return item;
             }
 
@@ -60,7 +65,7 @@ public class BlockTransformationItemHandlers {
             }
 
             boolean stillAirAbove = level.getBlockState(position.add(0, 1, 0)).getType() == BlockTypes.AIR;
-            if (!replacement.equals(rule.apply(block.getState(), face, stillAirAbove))) {
+            if (!canApply.test(block) || !replacement.equals(rule.apply(block.getState(), face, stillAirAbove))) {
                 return item;
             }
 
