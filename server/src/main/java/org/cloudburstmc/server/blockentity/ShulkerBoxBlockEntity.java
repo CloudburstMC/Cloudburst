@@ -24,7 +24,7 @@ import org.cloudburstmc.server.block.util.ShulkerBoxGeometry;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.entity.CloudEntity;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemStackNbtCodec.deserializeItem(itemTag);
                 this.container.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -74,7 +74,7 @@ public class ShulkerBoxBlockEntity extends ContainerBlockEntity implements Shulk
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
+        this.container.forEachSlot((itemStack, slot) -> items.add(ItemStackNbtCodec.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         this.saveFacing(tag);
     }

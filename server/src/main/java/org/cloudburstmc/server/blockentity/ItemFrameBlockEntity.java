@@ -12,7 +12,7 @@ import org.cloudburstmc.api.util.Direction;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 import java.util.Objects;
 
@@ -32,7 +32,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound("Item", itemTag -> {
-            this.item = ItemUtils.deserializeItem(itemTag);
+            this.item = ItemStackNbtCodec.deserializeItem(itemTag);
         });
 
         tag.listenForFloat("ItemRotation", value -> {
@@ -68,7 +68,7 @@ public class ItemFrameBlockEntity extends BaseBlockEntity implements ItemFrame {
         tag.putFloat("ItemRotation", this.itemRotation * 45);
         tag.putFloat("ItemDropChance", this.itemDropChance);
         if (!this.item.isEmpty()) {
-            tag.putCompound("Item", ItemUtils.serializeItem(this.item));
+            tag.putCompound("Item", ItemStackNbtCodec.serializeItem(this.item));
         }
     }
 

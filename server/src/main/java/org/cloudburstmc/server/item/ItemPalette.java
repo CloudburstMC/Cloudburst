@@ -134,7 +134,7 @@ public class ItemPalette implements DefinitionRegistry<ItemDefinition> {
         }
 
         int networkId = this.creativeItems.size() + 1;
-        ItemData data = ItemUtils.toNetwork(item).toBuilder().netId(networkId).build();
+        ItemData data = ItemStackPacketCodec.toNetwork(item).toBuilder().netId(networkId).build();
         if (this.customCreativeGroup == -1) {
             this.customCreativeGroup = this.creativeGroups.size();
             this.creativeGroups.add(new CreativeItemGroup(CreativeItemCategory.ITEMS, "", ItemData.AIR));

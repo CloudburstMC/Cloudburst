@@ -31,7 +31,9 @@ import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.cloudburstmc.server.ServerJson;
 import org.cloudburstmc.server.crafting.*;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
+import org.cloudburstmc.server.item.RecipeItemCodec;
 import org.cloudburstmc.server.item.serializer.ItemSerializer;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
@@ -48,7 +50,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
     public static final Comparator<ItemStack> recipeComparator = Comparator
             .comparing((ItemStack i) -> i.isEmpty() ? "" : i.getType().getId().toString())
-            .thenComparingInt(i -> i.isEmpty() ? 0 : ItemUtils.toNetwork(i).getDamage())
+            .thenComparingInt(i -> i.isEmpty() ? 0 : ItemStackPacketCodec.toNetwork(i).getDamage())
             .thenComparingInt(ItemStack::getCount);
 
     private static final String VANILLA_RECIPES = "/data/recipes.json";
@@ -206,7 +208,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static int recipeOutputHash(Recipe recipe) {
         return switch (recipe.getType()) {
             case COMPLEX, SMITHING_TRANSFORM, SMITHING_TRIM -> Objects.hash(System.identityHashCode(recipe.getId()));
-            default -> ItemUtils.getItemHash(recipe.getResult());
+            default -> RecipeItemCodec.getItemHash(recipe.getResult());
         };
     }
 
@@ -286,18 +288,18 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         unlabeled = 0;
         for (JsonNode entry : json.get("potionMixes")) {
             Identifier id = Identifier.parse(UNLABELED_POTION_PREFIX + (++unlabeled));
-            ItemStack input = ItemUtils.deserializeItem(Identifier.parse(entry.get("inputId").asString()), entry.get("inputMeta").shortValue(), 1, NbtMap.EMPTY);
-            ItemStack reagent = ItemUtils.deserializeItem(Identifier.parse(entry.get("reagentId").asString()), entry.get("reagentMeta").shortValue(), 1, NbtMap.EMPTY);
-            ItemStack output = ItemUtils.deserializeItem(Identifier.parse(entry.get("outputId").asString()), entry.get("outputMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack input = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("inputId").asString()), entry.get("inputMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack reagent = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("reagentId").asString()), entry.get("reagentMeta").shortValue(), 1, NbtMap.EMPTY);
+            ItemStack output = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("outputId").asString()), entry.get("outputMeta").shortValue(), 1, NbtMap.EMPTY);
             this.register(new CloudBrewingRecipe(id, input, reagent, output));
         }
 
         unlabeled = 0;
         for (JsonNode entry : json.get("containerMixes")) {
             Identifier id = Identifier.parse(UNLABELED_CONTAINER_PREFIX + (++unlabeled));
-            ItemStack input = ItemUtils.deserializeItem(Identifier.parse(entry.get("inputId").asString()), (short) 0, 1, NbtMap.EMPTY);
-            ItemStack reagent = ItemUtils.deserializeItem(Identifier.parse(entry.get("reagentId").asString()), (short) 0, 1, NbtMap.EMPTY);
-            ItemStack output = ItemUtils.deserializeItem(Identifier.parse(entry.get("outputId").asString()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack input = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("inputId").asString()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack reagent = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("reagentId").asString()), (short) 0, 1, NbtMap.EMPTY);
+            ItemStack output = ItemStackNbtCodec.deserializeItem(Identifier.parse(entry.get("outputId").asString()), (short) 0, 1, NbtMap.EMPTY);
             this.register(new CloudContainerRecipe(id, input, reagent, output));
         }
     }
@@ -310,14 +312,14 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
         List<ItemStack> outputs = new ArrayList<>();
         for (Map<String, Object> item : toMapList(entry.get("output"))) {
-            outputs.add(ItemUtils.fromJson(item));
+            outputs.add(RecipeItemCodec.fromJson(item));
         }
 
         List<ItemStack> inputs = new ArrayList<>();
         List<ItemDescriptorWithCount> inputDescriptors = new ArrayList<>();
         for (Map<String, Object> item : toMapList(entry.get("input"))) {
-            inputDescriptors.add(ItemUtils.descriptorFromJson(item));
-            inputs.add(ItemUtils.fromJson(item));
+            inputDescriptors.add(RecipeItemCodec.descriptorFromJson(item));
+            inputs.add(RecipeItemCodec.fromJson(item));
         }
         inputs.removeIf(ItemStack::isEmpty);
         inputs.sort(recipeComparator);
@@ -341,14 +343,14 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void parseShulkerBox(Identifier id, JsonNode entry, Identifier block) {
         List<ItemStack> outputs = new ArrayList<>();
         for (Map<String, Object> item : toMapList(entry.get("output"))) {
-            outputs.add(ItemUtils.fromJson(item));
+            outputs.add(RecipeItemCodec.fromJson(item));
         }
 
         List<ItemStack> inputs = new ArrayList<>();
         List<ItemDescriptorWithCount> inputDescriptors = new ArrayList<>();
         for (Map<String, Object> item : toMapList(entry.get("input"))) {
-            inputDescriptors.add(ItemUtils.descriptorFromJson(item));
-            inputs.add(ItemUtils.fromJson(item));
+            inputDescriptors.add(RecipeItemCodec.descriptorFromJson(item));
+            inputs.add(RecipeItemCodec.fromJson(item));
         }
         inputs.removeIf(ItemStack::isEmpty);
         inputs.sort(recipeComparator);
@@ -361,7 +363,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
 
         List<ItemStack> outputs = new ArrayList<>();
         for (Map<String, Object> item : toMapList(entry.get("output"))) {
-            outputs.add(ItemUtils.fromJson(item));
+            outputs.add(RecipeItemCodec.fromJson(item));
         }
         ItemStack primary = outputs.removeFirst();
 
@@ -369,8 +371,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         CharObjectMap<ItemDescriptorWithCount> ingredientDescriptors = new CharObjectHashMap<>();
         for (Map.Entry<String, Map<String, Object>> item : toMapOfMaps(entry.get("input")).entrySet()) {
             char key = item.getKey().charAt(0);
-            ingredients.put(key, ItemUtils.fromJson(item.getValue()));
-            ingredientDescriptors.put(key, ItemUtils.descriptorFromJson(item.getValue()));
+            ingredients.put(key, RecipeItemCodec.fromJson(item.getValue()));
+            ingredientDescriptors.put(key, RecipeItemCodec.descriptorFromJson(item.getValue()));
         }
 
         CloudShapedRecipe recipe = new CloudShapedRecipe(id, entry.get("priority").asInt(), primary, shape, ingredients, ingredientDescriptors, outputs, block);
@@ -395,7 +397,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         }
 
         Map<String, Object> inputData = inputs.getFirst();
-        ItemStack output = ItemUtils.fromJson(outputs.getFirst());
+        ItemStack output = RecipeItemCodec.fromJson(outputs.getFirst());
         int priority = entry.has("priority") ? entry.get("priority").asInt() : 0;
         boolean regularFurnace = Identifiers.FURNACE.equals(block);
         int defaultDuration = defaultCookingTime(block);
@@ -404,13 +406,13 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                 : isCampfire(block) ? 0 : VanillaCookingData.experience(output.getType());
         Identifier stationRecipeId = regularFurnace ? id
                 : Identifier.from(id.getNamespace(), block.getName() + "/" + id.getName());
-        ItemDescriptorWithCount descriptor = ItemUtils.descriptorFromJson(inputData);
+        ItemDescriptorWithCount descriptor = RecipeItemCodec.descriptorFromJson(inputData);
         ItemStack input = descriptor.getDescriptor() instanceof ItemTagDescriptor tag
                 ? this.itemRegistry.getTag(ItemTagKey.of(tag.getItemTag())).getValues().stream()
                         .min(Comparator.comparing(ItemType::getId))
                         .map(ItemStack::from)
                         .orElse(ItemStack.EMPTY)
-                : ItemUtils.fromJson(inputData);
+                : RecipeItemCodec.fromJson(inputData);
         this.register(new CloudCookingRecipe(
                 stationRecipeId,
                 output,
@@ -432,11 +434,11 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         Identifier smithingTable = block != null ? block : Identifiers.SMITHING_TABLE;
         JsonNode input = entry.get("input");
 
-        ItemDescriptorWithCount templateDesc = ItemUtils.descriptorFromJson(toMap(input.get("template")));
-        ItemDescriptorWithCount baseDesc = ItemUtils.descriptorFromJson(toMap(input.get("base")));
-        ItemDescriptorWithCount additionDesc = ItemUtils.descriptorFromJson(toMap(input.get("addition")));
+        ItemDescriptorWithCount templateDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("template")));
+        ItemDescriptorWithCount baseDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("base")));
+        ItemDescriptorWithCount additionDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("addition")));
 
-        ItemStack resultItem = ItemUtils.fromJson(toMap(entry.get("output")));
+        ItemStack resultItem = RecipeItemCodec.fromJson(toMap(entry.get("output")));
         Identifier id = entry.has("id") ? Identifier.parse(entry.get("id").asString())
                 : Identifier.parse("smithing_" + resultItem.getType().getId().getName());
         this.register(new CloudSmithingTransformRecipe(id, templateDesc, baseDesc, additionDesc, resultItem, smithingTable));
@@ -446,9 +448,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         Identifier smithingTable = block != null ? block : Identifiers.SMITHING_TABLE;
         JsonNode input = entry.get("input");
 
-        ItemDescriptorWithCount templateDesc = ItemUtils.descriptorFromJson(toMap(input.get("template")));
-        ItemDescriptorWithCount baseDesc = ItemUtils.descriptorFromJson(toMap(input.get("base")));
-        ItemDescriptorWithCount additionDesc = ItemUtils.descriptorFromJson(toMap(input.get("addition")));
+        ItemDescriptorWithCount templateDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("template")));
+        ItemDescriptorWithCount baseDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("base")));
+        ItemDescriptorWithCount additionDesc = RecipeItemCodec.descriptorFromJson(toMap(input.get("addition")));
 
         Identifier id = entry.has("id") ? Identifier.parse(entry.get("id").asString()) : Identifier.parse("smithing_armor_trim");
         this.register(new CloudSmithingTrimRecipe(id, templateDesc, baseDesc, additionDesc, smithingTable));
@@ -579,7 +581,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             return input.size() == 1 ? matchCookingRecipe(input.getFirst(), output, craftingBlock) : null;
         }
 
-        int key = ItemUtils.getItemHash(output);
+        int key = RecipeItemCodec.getItemHash(output);
         if (!recipeHashMap.containsKey(key)) {
             return null;
         }
@@ -928,7 +930,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             packet.getShapelessChemistryData().add(ShapelessRecipeData.shapelessChemistry(
                     recipe.getId().toString(),
                     descriptors,
-                    ItemUtils.toNetworkRecipe(recipe.getAllResults()),
+                    RecipeItemCodec.toNetworkRecipe(recipe.getAllResults()),
                     uuid,
                     blockTag,
                     recipe.getPriority(),
@@ -937,7 +939,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
             packet.getShapelessData().add(ShapelessRecipeData.shapeless(
                     recipe.getId().toString(),
                     descriptors,
-                    ItemUtils.toNetworkRecipe(recipe.getAllResults()),
+                    RecipeItemCodec.toNetworkRecipe(recipe.getAllResults()),
                     uuid,
                     blockTag,
                     recipe.getPriority(),
@@ -949,8 +951,8 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void addStonecuttingToPacket(CraftingDataPacket packet, CloudStonecuttingRecipe recipe, UUID uuid, String blockTag, int netId) {
         packet.getShapelessData().add(ShapelessRecipeData.shapeless(
                 recipe.getId().toString(),
-                ItemUtils.toRecipeDescriptors(recipe.getInputDescriptors()),
-                ItemUtils.toNetworkRecipe(List.of(recipe.getResult())),
+                RecipeItemCodec.toRecipeDescriptors(recipe.getInputDescriptors()),
+                RecipeItemCodec.toNetworkRecipe(List.of(recipe.getResult())),
                 uuid,
                 blockTag,
                 recipe.getPriority(),
@@ -962,7 +964,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
         packet.getShapelessUserData().add(ShapelessRecipeData.shulkerBox(
                 recipe.getId().toString(),
                 resolveDescriptors(recipe),
-                ItemUtils.toNetworkRecipe(recipe.getAllResults()),
+                RecipeItemCodec.toNetworkRecipe(recipe.getAllResults()),
                 uuid,
                 blockTag,
                 recipe.getPriority(),
@@ -981,7 +983,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     recipe.getWidth(),
                     recipe.getHeight(),
                     descriptors,
-                    ItemUtils.toNetworkRecipe(recipe.getAllResults()),
+                    RecipeItemCodec.toNetworkRecipe(recipe.getAllResults()),
                     uuid,
                     blockTag,
                     recipe.getPriority(),
@@ -993,7 +995,7 @@ public class CloudRecipeRegistry implements RecipeRegistry {
                     recipe.getWidth(),
                     recipe.getHeight(),
                     descriptors,
-                    ItemUtils.toNetworkRecipe(recipe.getAllResults()),
+                    RecipeItemCodec.toNetworkRecipe(recipe.getAllResults()),
                     uuid,
                     blockTag,
                     recipe.getPriority(),
@@ -1006,10 +1008,10 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private void addSmithingTransformToPacket(CraftingDataPacket packet, CloudSmithingTransformRecipe recipe, String blockTag, int netId) {
         packet.getSmithingTransformData().add(SmithingTransformRecipeData.of(
                 recipe.getId().toString(),
-                ItemUtils.toRecipeDescriptors(List.of(recipe.getTemplateDescriptor())).getFirst(),
-                ItemUtils.toRecipeDescriptors(List.of(recipe.getBaseDescriptor())).getFirst(),
-                ItemUtils.toRecipeDescriptors(List.of(recipe.getAdditionDescriptor())).getFirst(),
-                ItemUtils.toNetworkRecipe(recipe.getResult()),
+                RecipeItemCodec.toRecipeDescriptors(List.of(recipe.getTemplateDescriptor())).getFirst(),
+                RecipeItemCodec.toRecipeDescriptors(List.of(recipe.getBaseDescriptor())).getFirst(),
+                RecipeItemCodec.toRecipeDescriptors(List.of(recipe.getAdditionDescriptor())).getFirst(),
+                RecipeItemCodec.toNetworkRecipe(recipe.getResult()),
                 blockTag,
                 netId));
     }
@@ -1025,9 +1027,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addBrewingToPacket(CraftingDataPacket packet, CloudBrewingRecipe recipe) {
-        ItemData reagentData = ItemUtils.toNetworkRecipe(recipe.getIngredient());
-        ItemData inputData = ItemUtils.toNetworkRecipe(recipe.getInput());
-        ItemData outputData = ItemUtils.toNetworkRecipe(recipe.getResult());
+        ItemData reagentData = RecipeItemCodec.toNetworkRecipe(recipe.getIngredient());
+        ItemData inputData = RecipeItemCodec.toNetworkRecipe(recipe.getInput());
+        ItemData outputData = RecipeItemCodec.toNetworkRecipe(recipe.getResult());
         packet.getPotionMixData().add(new PotionMixData(
                 inputData.getDefinition().getRuntimeId(),
                 inputData.getDamage(),
@@ -1038,9 +1040,9 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     }
 
     private void addContainerToPacket(CraftingDataPacket packet, CloudContainerRecipe recipe) {
-        ItemData reagentData = ItemUtils.toNetworkRecipe(recipe.getIngredient());
-        ItemData inputData = ItemUtils.toNetworkRecipe(recipe.getInput());
-        ItemData outputData = ItemUtils.toNetworkRecipe(recipe.getResult());
+        ItemData reagentData = RecipeItemCodec.toNetworkRecipe(recipe.getIngredient());
+        ItemData inputData = RecipeItemCodec.toNetworkRecipe(recipe.getInput());
+        ItemData outputData = RecipeItemCodec.toNetworkRecipe(recipe.getResult());
         packet.getContainerMixData().add(new ContainerMixData(
                 inputData.getDefinition().getRuntimeId(),
                 reagentData.getDefinition().getRuntimeId(),
@@ -1090,17 +1092,17 @@ public class CloudRecipeRegistry implements RecipeRegistry {
     private static List<ItemDescriptorWithCount> resolveDescriptors(CloudShapelessRecipe recipe) {
         List<ItemDescriptorWithCount> raw = recipe.getInputDescriptors();
         if (raw == null) {
-            return ItemUtils.toDescriptorsRecipe(recipe.getIngredientList());
+            return RecipeItemCodec.toDescriptorsRecipe(recipe.getIngredientList());
         }
-        return ItemUtils.toRecipeDescriptors(raw);
+        return RecipeItemCodec.toRecipeDescriptors(raw);
     }
 
     private static List<ItemDescriptorWithCount> resolveDescriptors(CloudShapedRecipe recipe) {
         List<ItemDescriptorWithCount> raw = recipe.getInputDescriptorList();
         if (raw == null) {
-            return ItemUtils.toDescriptorsRecipe(recipe.getIngredientList());
+            return RecipeItemCodec.toDescriptorsRecipe(recipe.getIngredientList());
         }
-        return ItemUtils.toRecipeDescriptors(raw);
+        return RecipeItemCodec.toRecipeDescriptors(raw);
     }
 
     private static UUID getInputHash(Recipe recipe) {

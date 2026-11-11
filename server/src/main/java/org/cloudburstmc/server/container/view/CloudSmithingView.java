@@ -28,7 +28,7 @@ public class CloudSmithingView extends CloudSlotGroupBase implements SmithingVie
         ItemStack previous = this.getItem(slot);
         super.setItem(slot, item);
         if (!previous.equals(item)) {
-            this.inputChanged.run();
+            CloudContainer.afterSlotWrites(this.inputChanged);
         }
     }
 

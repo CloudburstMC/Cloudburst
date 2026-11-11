@@ -97,7 +97,7 @@ public class CloudSmithingContainerScreen extends CloudBlockContainerScreen impl
     }
 
     @Override
-    public ItemStack takeResult(ItemStack expected, int count) {
+    public @Nullable ResultTake prepareTake(ItemStack expected, int count) {
         PreparedResult result = this.prepared;
         Block block = this.getBlock();
         if (this.closed || this.updating || result == null || this.isInvalidResultCount(expected, count)
@@ -105,24 +105,28 @@ public class CloudSmithingContainerScreen extends CloudBlockContainerScreen impl
                 || !result.inputs().equals(this.inputs())
                 || block.getLevel() != this.player.getLevel()
                 || block.getLevel().getBlock(block.getPosition()).getState().getType() != BlockTypes.SMITHING_TABLE) {
-            return ItemStack.EMPTY;
+            return null;
         }
 
+        return new ResultTake(expected, () -> this.consumeResult(result), () -> {
+            block.getLevel().playSound(block.getPosition(), SoundTypes.SMITHING_TABLE_USE);
+            this.prepareResult();
+        });
+    }
+
+    private void consumeResult(PreparedResult result) {
         this.updating = true;
         this.prepared = null;
         try {
             Inputs inputs = result.inputs();
             SmithingResult recipe = result.recipe();
             this.smithingView.updateResult(ItemStack.EMPTY);
-            this.smithingView.setTemplate(inputs.template().decreaseCount(recipe.templateCost()));
-            this.smithingView.setBase(inputs.base().decreaseCount(recipe.baseCost()));
-            this.smithingView.setAddition(inputs.addition().decreaseCount(recipe.additionCost()));
+            this.smithingView.getContainer().setItem(CloudSmithingView.TEMPLATE_SLOT, inputs.template().decreaseCount(recipe.templateCost()));
+            this.smithingView.getContainer().setItem(CloudSmithingView.BASE_SLOT, inputs.base().decreaseCount(recipe.baseCost()));
+            this.smithingView.getContainer().setItem(CloudSmithingView.ADDITION_SLOT, inputs.addition().decreaseCount(recipe.additionCost()));
         } finally {
             this.updating = false;
         }
-
-        block.getLevel().playSound(block.getPosition(), SoundTypes.SMITHING_TABLE_USE);
-        return expected;
     }
 
     @Override

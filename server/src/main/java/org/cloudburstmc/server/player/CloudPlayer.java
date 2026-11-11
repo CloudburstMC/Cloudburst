@@ -66,8 +66,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.*;
@@ -96,15 +94,15 @@ import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.event.server.PlayerPacketSendEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.item.component.ConsumableItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
 import org.cloudburstmc.server.level.EndPortals;
-import org.cloudburstmc.server.network.LevelTimePacketFactory;
 import org.cloudburstmc.server.level.chunk.CloudChunk;
 import org.cloudburstmc.server.network.*;
-import org.cloudburstmc.server.network.inventory.ItemStackNetManager;
+import org.cloudburstmc.server.network.inventory.InventoryRequestQueue;
 import org.cloudburstmc.server.network.nethernet.CloudLoginTimeoutHandler;
 import org.cloudburstmc.server.network.nethernet.CloudNetherNetPeer;
 import org.cloudburstmc.server.permission.CloudPermissible;
@@ -159,7 +157,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     protected final Map<UUID, CloudPlayer> hiddenPlayers = new HashMap<>();
 
     @Getter
-    private final ItemStackNetManager itemStackNetManager = new ItemStackNetManager(this);
+    private final InventoryRequestQueue inventoryRequestQueue = new InventoryRequestQueue(this);
 
     @Getter(AccessLevel.NONE)
     private final CloudPlayerInventory inventory = new CloudPlayerInventory(this, this.container);
@@ -169,13 +167,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
     @Getter
     private final CloudContainer enderChestContainer = new CloudContainer(27);
-
-    private final Map<Container, Byte> containerToWindowId = new HashMap<>();
-    private final Map<Byte, Container> windowIdToContainer = new HashMap<>();
-
-    private Container uiContainer;
-    private ContainerSlotType uiContainerSlotType;
-    private int uiContainerSlotOffset;
 
     private final CloudEnderChestView enderChest = new CloudEnderChestView(this);
     private final PlayerInventoryManager invManager = new PlayerInventoryManager(this);
@@ -262,7 +253,6 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     @Getter
     private int selectedHotbarSlot = 0;
 
-    private byte containerIdCounter = 1;
     private final Map<ItemType, Integer> itemCooldowns = new HashMap<>();
     protected int startAction = -1;
     private @Nullable ItemStack activeUseStack;
@@ -533,10 +523,10 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private MobArmorEquipmentPacket buildArmorEquipmentPacket() {
         MobArmorEquipmentPacket packet = new MobArmorEquipmentPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setHelmet(ItemUtils.toNetwork(this.armor.getHelmet()));
-        packet.setChestplate(ItemUtils.toNetwork(this.armor.getChestplate()));
-        packet.setLeggings(ItemUtils.toNetwork(this.armor.getLeggings()));
-        packet.setBoots(ItemUtils.toNetwork(this.armor.getBoots()));
+        packet.setHelmet(ItemStackPacketCodec.toNetwork(this.armor.getHelmet()));
+        packet.setChestplate(ItemStackPacketCodec.toNetwork(this.armor.getChestplate()));
+        packet.setLeggings(ItemStackPacketCodec.toNetwork(this.armor.getLeggings()));
+        packet.setBoots(ItemStackPacketCodec.toNetwork(this.armor.getBoots()));
         packet.setBody(ItemData.AIR);
         return packet;
     }
@@ -544,7 +534,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
     private MobEquipmentPacket createEquipmentPacket(ItemStack item, int containerId, int slot) {
         MobEquipmentPacket packet = new MobEquipmentPacket();
         packet.setRuntimeEntityId(this.getRuntimeId());
-        packet.setItem(ItemUtils.toNetwork(item));
+        packet.setItem(ItemStackPacketCodec.toNetwork(item));
         packet.setContainerId(containerId);
         packet.setInventorySlot(slot);
         packet.setHotbarSlot(containerId == ContainerId.OFFHAND ? -1 : slot);
@@ -569,7 +559,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         packet.setPosition(this.getPosition());
         packet.setMotion(this.getMotion());
         packet.setRotation(Vector3f.from(this.getPitch(), this.getYaw(), this.getYaw()));
-        packet.setHand(ItemUtils.toNetwork(this.getInventory().getSelectedItem()));
+        packet.setHand(ItemStackPacketCodec.toNetwork(this.getInventory().getSelectedItem()));
         packet.setPlatformChatId("");
         packet.setDeviceId("");
         packet.setGameType(GameModeNetworkMapping.forPlayer(this.getGameMode()));
@@ -3405,7 +3395,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         tag.listenForBoolean("seenCredits", value -> this.seenCredits = value);
         tag.listenForList("EnderChestInventory", NbtType.COMPOUND, items -> {
             for (NbtMap itemTag : items) {
-                this.getEnderChestContainer().setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+                this.getEnderChestContainer().setItem(itemTag.getByte("Slot"), ItemStackNbtCodec.deserializeItem(itemTag));
             }
         });
 
@@ -4271,12 +4261,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        if (this.itemStackNetManager.deferInventorySlotUpdate(inventory, slot)) {
-            return;
-        }
-
-        if (inventory == this.uiContainer) {
-            sendUISlot(slot, inventory.getItem(slot));
+        if (this.inventoryRequestQueue.deferInventorySlotUpdate(inventory, slot)) {
             return;
         }
 
@@ -4297,7 +4282,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         ItemStack itemStack = inventory.getItem(slot);
         InventorySlotPacket packet = new InventorySlotPacket();
         packet.setSlot(slot);
-        packet.setItem(ItemUtils.toNetworkNetId(itemStack));
+        packet.setItem(ItemStackPacketCodec.toNetworkNetId(itemStack));
         packet.setContainerId(containerId);
         this.sendPacket(packet);
 
@@ -4314,14 +4299,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
             return;
         }
 
-        if (this.itemStackNetManager.deferInventoryContentsUpdate(inventory)) {
-            return;
-        }
-
-        if (inventory == this.uiContainer) {
-            for (int i = 0; i < inventory.size(); i++) {
-                sendUISlot(i, inventory.getItem(i));
-            }
+        if (this.inventoryRequestQueue.deferInventoryContentsUpdate(inventory)) {
             return;
         }
 
@@ -4336,7 +4314,7 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
 
         List<ItemData> contents = new ArrayList<>();
         for (ItemStack item : inventory.getContents()) {
-            contents.add(ItemUtils.toNetworkNetId(item));
+            contents.add(ItemStackPacketCodec.toNetworkNetId(item));
         }
 
         InventoryContentPacket packet = new InventoryContentPacket();
@@ -4353,60 +4331,20 @@ public class CloudPlayer extends EntityHuman implements Player, ContainerListene
         }
     }
 
-    private void sendUISlot(int localSlot, ItemStack item) {
-        InventorySlotPacket packet = new InventorySlotPacket();
-        packet.setContainerId(ContainerId.UI);
-        packet.setSlot(localSlot + this.uiContainerSlotOffset);
-        packet.setContainerNameData(new FullContainerName(this.uiContainerSlotType, null));
-        packet.setItem(ItemUtils.toNetworkNetId(item));
-        this.sendPacket(packet);
-    }
-
     private int getContainerId(Container inventory) {
         if (inventory == this.container) {
             return ContainerId.INVENTORY;
-        } else if (inventory == this.armor.getContainer()) {
+        }
+
+        if (inventory == this.armor.getContainer()) {
             return ContainerId.ARMOR;
-        } else if (inventory == this.offhand.getContainer()) {
+        }
+
+        if (inventory == this.offhand.getContainer()) {
             return ContainerId.OFFHAND;
-        } else if (inventory == this.uiContainer) {
-            return ContainerId.UI;
         }
-        Byte dynamic = this.containerToWindowId.get(inventory);
-        return dynamic != null ? dynamic : ContainerId.NONE;
-    }
 
-    public byte assignContainerId(Container inventory) {
-        byte id = this.containerIdCounter;
-        this.containerToWindowId.put(inventory, id);
-        this.windowIdToContainer.put(id, inventory);
-        this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
-        return id;
-    }
-
-    public byte nextContainerId() {
-        byte id = this.containerIdCounter;
-        this.containerIdCounter = (byte) (this.containerIdCounter >= 99 ? 1 : this.containerIdCounter + 1);
-        return id;
-    }
-
-    public void registerUIContainer(Container container, ContainerSlotType slotType, int slotOffset) {
-        this.uiContainer = container;
-        this.uiContainerSlotType = slotType;
-        this.uiContainerSlotOffset = slotOffset;
-    }
-
-    public void clearUIContainer() {
-        this.uiContainer = null;
-        this.uiContainerSlotType = null;
-        this.uiContainerSlotOffset = 0;
-    }
-
-    public void unregisterContainerById(byte windowId) {
-        Container c = this.windowIdToContainer.remove(windowId);
-        if (c != null) {
-            this.containerToWindowId.remove(c);
-        }
+        return this.invManager.getWindowId(inventory);
     }
 
     public void sendHeldItemSlot() {

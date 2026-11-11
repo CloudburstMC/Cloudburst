@@ -52,7 +52,7 @@ public class CloudEnchantingView extends CloudSlotGroupBase implements Enchantin
         ItemStack previous = this.getItem(slot);
         super.setItem(slot, item);
         if (slot == INPUT_SLOT && !previous.equals(this.getItem(slot))) {
-            this.inputChanged.run();
+            CloudContainer.afterSlotWrites(this.inputChanged);
         }
     }
 

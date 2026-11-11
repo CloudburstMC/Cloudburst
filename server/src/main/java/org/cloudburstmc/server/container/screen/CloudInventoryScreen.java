@@ -11,9 +11,7 @@ import org.cloudburstmc.api.item.ItemStack;
 import org.cloudburstmc.protocol.adventure.BedrockLegacyTextSerializer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
-import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.server.container.CloudContainer;
@@ -21,7 +19,7 @@ import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.ContainerMapping;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudSlotGroupBase;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.*;
@@ -29,7 +27,7 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Maps network slots to inventory sections and tracks the screen's open window.
+ * Maps network slots to inventory sections and observes containers displayed by the screen.
  * Subclasses define their mappings in {@link #setupMappings()} before {@link #setup()} completes.
  */
 public abstract class CloudInventoryScreen implements InventoryScreen {
@@ -44,7 +42,6 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     private String titleOverride;
     private Set<SlotGroupType<?>> cachedSlotGroupTypes;
     private Set<SlotGroup> cachedAllSlotGroups;
-    private @Nullable NetworkWindow networkWindow;
 
     public CloudInventoryScreen(ScreenType<?> type, CloudPlayer player) {
         Objects.requireNonNull(type, "type");
@@ -66,12 +63,15 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
     }
 
     protected final void openWindow(ContainerOpenPacket packet) {
-        if (this.networkWindow != null) {
-            throw new IllegalStateException("Screen already has an open window");
-        }
+        this.openWindow(packet, null);
+    }
 
-        this.networkWindow = new NetworkWindow(packet.getId(), requireNonNull(packet.getType(), "container type"));
-        this.player.sendPacket(packet);
+    protected final void openWindow(ContainerOpenPacket packet, @Nullable Container storage) {
+        this.player.getInventoryManager().openWindow(this, packet, storage);
+
+        if (storage instanceof CloudContainer container) {
+            this.observeContainer(container);
+        }
 
         for (ContainerMapping mapping : this.mappings.values()) {
             if (mapping instanceof UIContainerMapping && mapping.getView() instanceof CloudSlotGroupBase group) {
@@ -80,39 +80,19 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
         }
     }
 
-    protected final void observeContainer(CloudContainer container) {
+    private void observeContainer(CloudContainer container) {
         if (!container.getListeners().contains(this.player)) {
             this.observedContainers.add(container);
             container.addContainerListener(this.player);
         }
     }
 
-    public final boolean hasWindow(byte id) {
-        return this.networkWindow != null && this.networkWindow.id() == id;
-    }
-
-    public final void closeWindow(@Nullable ContainerClosePacket request) {
+    public final void stopObservingContainers() {
         for (CloudContainer container : this.observedContainers) {
             container.removeContainerListener(this.player);
         }
 
         this.observedContainers.clear();
-        NetworkWindow window = this.networkWindow;
-        this.networkWindow = null;
-        if (window == null) {
-            return;
-        }
-
-        this.player.unregisterContainerById(window.id());
-        if (request == null) {
-            this.player.getInventoryManager().expectWindowClose(window.id());
-        }
-
-        ContainerClosePacket packet = new ContainerClosePacket();
-        packet.setId(request == null ? window.id() : request.getId());
-        packet.setType(request == null ? window.type() : Objects.requireNonNullElse(request.getType(), ContainerType.NONE));
-        packet.setServerInitiated(request == null);
-        this.player.sendPacket(packet);
     }
 
     protected void addMapping(ContainerMapping mapping) {
@@ -148,7 +128,7 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
             packet.setContainerId(ContainerId.UI);
             packet.setContainerNameData(uiSlotContainerName(type));
             packet.setSlot(slot);
-            packet.setItem(ItemUtils.toNetworkNetId(this.getSlot(type, slot)));
+            packet.setItem(ItemStackPacketCodec.toNetworkNetId(this.getSlot(type, slot)));
             this.player.sendPacket(packet);
         } else if (this.resolveSlotGroup(type) instanceof CloudSlotGroupBase group) {
             int inventorySlot = this.resolveInventorySlot(type, slot);
@@ -236,8 +216,5 @@ public abstract class CloudInventoryScreen implements InventoryScreen {
 
     public void setTitleOverride(@Nullable Component component) {
         this.titleOverride = component != null ? BedrockLegacyTextSerializer.getInstance().serialize(component) : null;
-    }
-
-    private record NetworkWindow(byte id, ContainerType type) {
     }
 }

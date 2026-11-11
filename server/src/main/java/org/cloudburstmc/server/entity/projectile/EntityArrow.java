@@ -15,7 +15,7 @@ import org.cloudburstmc.api.util.BlockHitResult;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.network.NetworkUtils;
 import org.cloudburstmc.server.potion.CloudPotion;
 
@@ -42,14 +42,14 @@ public class EntityArrow extends EntityAbstractArrow implements Arrow {
     @Override
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
-        tag.listenForCompound("Item", item -> this.setItemStack(ItemUtils.deserializeItem(item)));
+        tag.listenForCompound("Item", item -> this.setItemStack(ItemStackNbtCodec.deserializeItem(item)));
         this.potionGroundTicks = Math.max(0, tag.getInt("PotionGroundTicks"));
     }
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.putCompound("Item", ItemUtils.serializeItem(this.itemStack));
+        tag.putCompound("Item", ItemStackNbtCodec.serializeItem(this.itemStack));
         tag.putInt("PotionGroundTicks", this.potionGroundTicks);
     }
 

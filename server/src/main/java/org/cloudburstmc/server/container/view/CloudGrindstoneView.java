@@ -27,7 +27,7 @@ public class CloudGrindstoneView extends CloudSlotGroupBase implements Grindston
         ItemStack previous = this.getItem(slot);
         super.setItem(slot, item);
         if (!previous.equals(this.getItem(slot))) {
-            this.inputChanged.run();
+            CloudContainer.afterSlotWrites(this.inputChanged);
         }
     }
 

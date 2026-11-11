@@ -46,11 +46,10 @@ public class CloudChestBoatScreen extends CloudContainerScreen implements Entity
         }
 
         ContainerOpenPacket packet = new ContainerOpenPacket();
-        packet.setId(this.player.assignContainerId(this.storage.getContainer()));
         packet.setType(ContainerType.CONTAINER);
         packet.setBlockPosition(this.boat.getPosition().toInt());
         packet.setUniqueEntityId(this.boat.getUniqueId());
-        this.openWindow(packet);
+        this.openWindow(packet, this.storage.getContainer());
         this.player.getInventoryManager().sendAllInventories();
         this.boat.addInventoryViewer(this.player);
     }

@@ -15,7 +15,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemStackNbtCodec.deserializeItem(itemTag);
                 this.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -74,7 +74,7 @@ public class ChestBlockEntity extends ContainerBlockEntity implements Chest, Blo
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
+        this.container.forEachSlot((itemStack, slot) -> items.add(ItemStackNbtCodec.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putBoolean("Findable", this.findable);
     }

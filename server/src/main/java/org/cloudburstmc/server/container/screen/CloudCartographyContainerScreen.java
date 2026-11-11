@@ -157,49 +157,76 @@ public class CloudCartographyContainerScreen extends CloudBlockContainerScreen i
 
     @Override
     public boolean isInvalidResultCount(ItemStack result, int count) {
-        if (count <= 0 || result.isEmpty() || this.prepared.operation() == Operation.NONE) {
+        return this.isInvalidResultCount(this.prepared, result, count);
+    }
+
+    private boolean isInvalidResultCount(Result plan, ItemStack result, int count) {
+        if (count <= 0 || result.isEmpty() || plan.operation() == Operation.NONE) {
             return true;
         }
 
-        if (this.prepared.operation() == Operation.RENAME) {
+        if (plan.operation() == Operation.RENAME) {
             return count > result.getCount()
-                    || (long) count * this.prepared.inputCount() > this.cartography.getInput().getCount()
-                    || (long) count * this.prepared.additionalCount() > this.cartography.getAdditional().getCount();
+                    || (long) count * plan.inputCount() > this.cartography.getInput().getCount()
+                    || (long) count * plan.additionalCount() > this.cartography.getAdditional().getCount();
         }
 
-        if (count % result.getCount() != 0 || (this.prepared.createsMapCopy() && count != result.getCount())) {
+        if (count % result.getCount() != 0 || (plan.createsMapCopy() && count != result.getCount())) {
             return true;
         }
 
         long crafts = count / result.getCount();
-        return crafts * this.prepared.inputCount() > this.cartography.getInput().getCount()
-                || crafts * this.prepared.additionalCount() > this.cartography.getAdditional().getCount();
+        return crafts * plan.inputCount() > this.cartography.getInput().getCount() || crafts * plan.additionalCount() > this.cartography.getAdditional().getCount();
     }
 
     @Override
-    public ItemStack takeResult(ItemStack expected, int count) {
+    public @Nullable ResultTake prepareTake(ItemStack expected, int count) {
         ItemStack result = this.cartography.getResult();
         ItemStack input = this.cartography.getInput();
 
         MapView original = this.findMap(input, this.cartography.getAdditional());
         Result calculation = this.calculateResult(input, this.cartography.getAdditional(), original);
 
-        if (result.isEmpty() || !result.equals(expected) || this.isInvalidResultCount(result, count) || this.prepared.operation() == Operation.NONE || !this.preparedCalculation.equals(calculation)) {
-            return ItemStack.EMPTY;
+        if (!result.equals(expected) || !this.preparedCalculation.equals(calculation)) {
+            return null;
         }
 
-        Operation operation = this.prepared.operation();
-        int inputCount = this.prepared.consumedInput(count, result.getCount());
-        int additionalCount = this.prepared.consumedAdditional(count, result.getCount());
+        return this.prepareTake(calculation, this.prepared, result, original, this.renameText, count);
+    }
+
+    public ResultQuote quoteRename(String name) {
+        String rename = name.strip();
+        ItemStack input = this.cartography.getInput();
+        ItemStack additional = this.cartography.getAdditional();
+        MapView original = this.findMap(input, additional);
+        Result calculation = this.calculateResult(input, additional, original, rename);
+        PrepareResultEvent event = new PrepareResultEvent(this, calculation.item());
+        this.player.getServer().getEventManager().fire(event);
+        ItemStack output = event.getResult();
+        Result plan = calculation.prepare(output, input, additional);
+        return new ResultQuote(output, count -> this.isInvalidResultCount(plan, output, count),
+                count -> this.prepareTake(calculation, plan, output, original, rename, count));
+    }
+
+    private @Nullable ResultTake prepareTake(Result calculation, Result plan, ItemStack result, @Nullable MapView original, @Nullable String rename, int count) {
+        if (this.isInvalidResultCount(plan, result, count)) {
+            return null;
+        }
+
+        ItemStack input = this.cartography.getInput();
+        Operation operation = plan.operation();
+        int inputCount = plan.consumedInput(count, result.getCount());
+        int additionalCount = plan.consumedAdditional(count, result.getCount());
         result = result.withCount(count);
 
-        if (this.prepared.createsMapCopy() && result.getType() == ItemTypes.FILLED_MAP && Objects.equals(result.get(ItemDataComponents.MAP_ID), calculation.item().get(ItemDataComponents.MAP_ID))) {
+        if (plan.createsMapCopy() && result.getType() == ItemTypes.FILLED_MAP && Objects.equals(result.get(ItemDataComponents.MAP_ID), calculation.item().get(ItemDataComponents.MAP_ID))) {
             Objects.requireNonNull(original, "original map");
-            MapState outputMap = Objects.requireNonNull(this.prepared.outputMap(), "output map");
+            MapState outputMap = Objects.requireNonNull(plan.outputMap(), "output map");
             CloudMapView copy = this.player.getServer().maps().copy(original,
                     outputMap.scale(),
                     outputMap.locked(),
-                    outputMap.tracking());
+                    outputMap.tracking()
+            );
 
             if (operation == Operation.SCALE) {
                 copy.initializeTerrain(this.player);
@@ -211,18 +238,28 @@ public class CloudCartographyContainerScreen extends CloudBlockContainerScreen i
                     .build();
         }
 
-        this.updatingResult = true;
-        try {
-            this.cartography.setInput(input.decreaseCount(inputCount));
-            this.cartography.setAdditional(this.cartography.getAdditional().decreaseCount(additionalCount));
-            this.cartography.setResult(ItemStack.EMPTY);
+        return new ResultTake(result, () -> this.consumeResult(input, inputCount, additionalCount), () -> {
             if (operation != Operation.RENAME || (this.cartography.getInput().isEmpty() && this.cartography.getAdditional().isEmpty())) {
                 this.renameText = null;
+            } else {
+                this.renameText = rename;
             }
+            this.onResultTaken();
+        });
+    }
+
+    private void consumeResult(ItemStack input, int inputCount, int additionalCount) {
+        this.updatingResult = true;
+        try {
+            this.cartography.getContainer().setItem(0, input.decreaseCount(inputCount));
+            this.cartography.getContainer().setItem(1, this.cartography.getAdditional().decreaseCount(additionalCount));
+            this.cartography.setResult(ItemStack.EMPTY);
         } finally {
             this.updatingResult = false;
         }
+    }
 
+    private void onResultTaken() {
         long tick = this.player.getServer().getTick();
         if (this.lastSoundTick != tick) {
             this.player.playSound(SoundTypes.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, 1, 1);
@@ -230,7 +267,6 @@ public class CloudCartographyContainerScreen extends CloudBlockContainerScreen i
         }
 
         this.recomputeResult();
-        return result;
     }
 
     @Override
@@ -259,7 +295,11 @@ public class CloudCartographyContainerScreen extends CloudBlockContainerScreen i
     }
 
     private Result calculateResult(ItemStack input, ItemStack additional, @Nullable MapView map) {
+        return this.calculateResult(input, additional, map, this.renameText);
+    }
+
+    private Result calculateResult(ItemStack input, ItemStack additional, @Nullable MapView map, @Nullable String rename) {
         MapState state = map == null ? null : new MapState(map.getScale(), map.isLocked(), map.isTrackingPosition());
-        return CartographyResultCalculator.calculate(input, additional, state, this.renameText);
+        return CartographyResultCalculator.calculate(input, additional, state, rename);
     }
 }

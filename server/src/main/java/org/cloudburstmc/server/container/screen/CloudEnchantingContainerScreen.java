@@ -1,6 +1,7 @@
 package org.cloudburstmc.server.container.screen;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.api.block.Block;
 import org.cloudburstmc.api.block.BlockTypes;
 import org.cloudburstmc.api.enchantment.Enchantment;
@@ -27,7 +28,7 @@ import org.cloudburstmc.server.container.Container;
 import org.cloudburstmc.server.container.mapping.UIContainerMapping;
 import org.cloudburstmc.server.container.view.CloudEnchantingView;
 import org.cloudburstmc.server.enchantment.TableEnchantments;
-import org.cloudburstmc.server.network.inventory.NetworkItemStack;
+import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -182,11 +183,16 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
                 output.itemType(ItemTypes.ENCHANTED_BOOK);
             }
 
-            this.enchantSection.setInput(output.build());
-            if (!this.player.isCreative()) {
-                this.enchantSection.setReagent(reagent.decreaseCount(cost));
-            }
-            this.player.completeEnchantment(this.player.isCreative() ? 0 : cost);
+            ItemStack enchanted = output.build();
+            boolean creative = this.player.isCreative();
+            CloudContainer.applySlotWrites(() -> {
+                this.enchantSection.setInput(enchanted);
+                if (!creative) {
+                    this.enchantSection.setReagent(reagent.decreaseCount(cost));
+                }
+            });
+
+            this.player.completeEnchantment(creative ? 0 : cost);
             this.player.getLevel().addLevelSoundEvent(this.getBlock().getPosition(), SoundEvent.ENCHANTING_TABLE_USE);
             return true;
         } finally {
@@ -242,7 +248,7 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
             this.enchantSection.updateOffers(prepared);
             Arrays.fill(this.offerIds, 0);
             this.offersDirty = true;
-            if (!this.player.getItemStackNetManager().isProcessingRequests()) {
+            if (!this.player.getInventoryRequestQueue().isProcessingRequests()) {
                 this.sendOffers();
             }
         } finally {
@@ -274,7 +280,7 @@ public class CloudEnchantingContainerScreen extends CloudBlockContainerScreen im
             List<EnchantData> enchants = offer.enchantments().stream()
                     .map(enchantment -> new EnchantData(registry.getSerializedId(enchantment.type()), enchantment.level()))
                     .toList();
-            this.offerIds[i] = NetworkItemStack.allocateNetId();
+            this.offerIds[i] = ItemStackNetworkIds.allocate();
             packet.getOptions().add(new EnchantOptionData(
                     offer.requiredLevel(), PRIMARY_ENCHANTMENT_SLOT,
                     List.of(), List.of(enchants.getFirst()), enchants.subList(1, enchants.size()),

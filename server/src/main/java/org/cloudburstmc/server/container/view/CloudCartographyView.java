@@ -18,7 +18,7 @@ public class CloudCartographyView extends CloudSlotGroupBase implements Cartogra
     public void setItem(int slot, ItemStack item) {
         super.setItem(slot, item);
         if (slot < 2) {
-            this.inputChanged.run();
+            CloudContainer.afterSlotWrites(this.inputChanged);
         }
     }
 

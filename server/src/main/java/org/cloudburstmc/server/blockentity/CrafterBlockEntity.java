@@ -15,7 +15,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,7 +55,7 @@ public class CrafterBlockEntity extends ContainerBlockEntity implements Crafter,
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                ItemStack item = ItemUtils.deserializeItem(itemTag);
+                ItemStack item = ItemStackNbtCodec.deserializeItem(itemTag);
                 this.container.setItem(itemTag.getByte("Slot"), item);
             }
         });
@@ -70,7 +70,7 @@ public class CrafterBlockEntity extends ContainerBlockEntity implements Crafter,
         List<NbtMap> items = new ArrayList<>();
         ItemStack[] contents = this.container.getContents();
         for (int i = 0; i < this.container.size(); i++) {
-            items.add(ItemUtils.serializeItem(contents[i], i));
+            items.add(ItemStackNbtCodec.serializeItem(contents[i], i));
         }
         tag.putList("Items", NbtType.COMPOUND, items);
         tag.putShort("DisabledSlots", this.disabledSlots);

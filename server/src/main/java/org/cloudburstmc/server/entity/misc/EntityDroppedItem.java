@@ -27,7 +27,8 @@ import org.cloudburstmc.server.CloudServer;
 import org.cloudburstmc.server.entity.CloudEntity;
 import org.cloudburstmc.server.event.entity.CloudEntityDamageEvent;
 import org.cloudburstmc.server.item.ItemDisplayNameResolver;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -95,7 +96,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         tag.listenForShort("PickupDelay", this::setPickupDelay);
         tag.listenForShort("Age", v -> this.age = v);
         tag.listenForLong("OwnerID", v -> this.data.set(OWNER_EID, v));
-        tag.listenForCompound("Item", itemTag -> this.item = ItemUtils.deserializeItem(itemTag));
+        tag.listenForCompound("Item", itemTag -> this.item = ItemStackNbtCodec.deserializeItem(itemTag));
     }
 
     @Override
@@ -106,7 +107,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         tag.putShort("PickupDelay", (short) this.pickupDelay);
         tag.putShort("Age", (short) this.age);
         tag.putLong("OwnerID", this.data.require(OWNER_EID));
-        tag.putCompound("Item", ItemUtils.serializeItem(this.item));
+        tag.putCompound("Item", ItemStackNbtCodec.serializeItem(this.item));
     }
 
     @Override
@@ -304,7 +305,7 @@ public class EntityDroppedItem extends CloudEntity implements DroppedItem {
         addEntity.setMotion(this.getMotion());
         addEntity.setFromFishing(this.fromFishing);
         addEntity.getMetadata().putAll(this.data.snapshot());
-        addEntity.setItemInHand(ItemUtils.toNetwork(this.getItem()));
+        addEntity.setItemInHand(ItemStackPacketCodec.toNetwork(this.getItem()));
         return addEntity;
     }
 

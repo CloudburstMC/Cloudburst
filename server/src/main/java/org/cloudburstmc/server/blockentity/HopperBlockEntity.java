@@ -23,7 +23,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.server.container.CloudContainer;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
@@ -62,7 +62,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
 
         tag.listenForList("Items", NbtType.COMPOUND, tags -> {
             for (NbtMap itemTag : tags) {
-                this.container.setItem(itemTag.getByte("Slot"), ItemUtils.deserializeItem(itemTag));
+                this.container.setItem(itemTag.getByte("Slot"), ItemStackNbtCodec.deserializeItem(itemTag));
             }
         });
         tag.listenForInt("TransferCooldown", this::setTransferCooldown);
@@ -75,7 +75,7 @@ public class HopperBlockEntity extends ContainerBlockEntity implements Hopper, B
         super.saveAdditionalData(tag);
 
         List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((itemStack, slot) -> items.add(ItemUtils.serializeItem(itemStack, slot)));
+        this.container.forEachSlot((itemStack, slot) -> items.add(ItemStackNbtCodec.serializeItem(itemStack, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
 
         tag.putInt("TransferCooldown", this.transferCooldown);

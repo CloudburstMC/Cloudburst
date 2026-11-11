@@ -16,7 +16,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudEnchantmentRegistry;
 
@@ -70,14 +70,14 @@ public class EntityThrownTrident extends EntityAbstractArrow implements ThrownTr
     @Override
     public void loadAdditionalData(NbtMap tag) {
         super.loadAdditionalData(tag);
-        tag.listenForCompound("Trident", itemTag -> this.trident = ItemUtils.deserializeItem(itemTag));
+        tag.listenForCompound("Trident", itemTag -> this.trident = ItemStackNbtCodec.deserializeItem(itemTag));
         tag.listenForBoolean("DealtDamage", value -> this.dealtDamage = value);
     }
 
     @Override
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
-        tag.putCompound("Trident", ItemUtils.serializeItem(this.trident));
+        tag.putCompound("Trident", ItemStackNbtCodec.serializeItem(this.trident));
         tag.putBoolean("DealtDamage", this.dealtDamage);
     }
 

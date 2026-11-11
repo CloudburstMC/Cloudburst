@@ -65,13 +65,10 @@ public class CloudLecternContainerScreen extends CloudInventoryScreen implements
     public void open() {
         ContainerType containerType = ContainerTypeRegistry.get(getType());
 
-        byte windowId = player.assignContainerId(lectern.getContainer());
-
         ContainerOpenPacket pkt = new ContainerOpenPacket();
-        pkt.setId(windowId);
         pkt.setType(containerType);
         pkt.setBlockPosition(block.getPosition());
-        this.openWindow(pkt);
+        this.openWindow(pkt, lectern.getContainer());
 
         player.getInventoryManager().sendAllInventories();
     }

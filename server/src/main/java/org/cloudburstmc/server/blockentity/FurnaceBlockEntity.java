@@ -30,7 +30,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
 import org.cloudburstmc.server.crafting.CloudCookingRecipe;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
@@ -85,7 +85,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         for (NbtMap itemTag : tag.getList("Items", NbtType.COMPOUND)) {
             int slot = itemTag.getByte("Slot");
             if (slot >= 0 && slot < this.size()) {
-                this.setItem(slot, ItemUtils.deserializeItem(itemTag));
+                this.setItem(slot, ItemStackNbtCodec.deserializeItem(itemTag));
             }
         }
 
@@ -125,7 +125,7 @@ public class FurnaceBlockEntity extends ContainerBlockEntity implements Furnace 
         List<NbtMap> items = new ArrayList<>();
         this.container.forEachSlot((stack, slot) -> {
             if (!stack.isEmpty()) {
-                items.add(ItemUtils.serializeItem(stack, slot));
+                items.add(ItemStackNbtCodec.serializeItem(stack, slot));
             }
         });
         tag.putList("Items", NbtType.COMPOUND, items);

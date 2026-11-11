@@ -13,7 +13,7 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 import javax.annotation.Nonnegative;
 
@@ -56,7 +56,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
         super.loadAdditionalData(tag);
 
         if (tag.getBoolean(TAG_HAS_BOOK)) {
-            this.book = ItemUtils.deserializeItem(tag.getCompound(TAG_BOOK));
+            this.book = ItemStackNbtCodec.deserializeItem(tag.getCompound(TAG_BOOK));
             this.page = tag.getInt(TAG_PAGE);
             this.totalPages = tag.getInt(TAG_TOTAL_PAGES);
         }
@@ -68,7 +68,7 @@ public class LecternBlockEntity extends BaseBlockEntity implements Lectern {
 
         if (this.book != null) {
             tag.putBoolean(TAG_HAS_BOOK, true);
-            tag.putCompound(TAG_BOOK, ItemUtils.serializeItem(this.book));
+            tag.putCompound(TAG_BOOK, ItemStackNbtCodec.serializeItem(this.book));
             tag.putInt(TAG_PAGE, this.page);
             tag.putInt(TAG_TOTAL_PAGES, this.totalPages);
         }

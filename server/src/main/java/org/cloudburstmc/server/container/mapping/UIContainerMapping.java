@@ -24,13 +24,14 @@ public class UIContainerMapping extends ContainerMapping {
                  MATERIAL_REDUCER_INPUT, LOOM_INPUT, LOOM_DYE, LOOM_MATERIAL, TRADE2_INGREDIENT_1,
                  TRADE2_INGREDIENT_2, GRINDSTONE_INPUT, GRINDSTONE_ADDITIONAL, STONECUTTER_INPUT, CARTOGRAPHY_INPUT,
                  CARTOGRAPHY_ADDITIONAL, CARTOGRAPHY_RESULT, ANVIL_RESULT, GRINDSTONE_RESULT, CREATED_OUTPUT, CURSOR -> 1;
-            case COMPOUND_CREATOR_INPUT, MATERIAL_REDUCER_OUTPUT -> 9;
+            case CRAFTING_INPUT, COMPOUND_CREATOR_INPUT, MATERIAL_REDUCER_OUTPUT -> 9;
             default -> throw new UnsupportedOperationException("Unknown UI container slot type " + type);
         };
     }
 
     private static int getContainerOffset(ContainerSlotType type) {
         return switch (type) {
+            case CRAFTING_INPUT -> -32;
             case ANVIL_INPUT -> -1;
             case ANVIL_MATERIAL -> -2;
             case SMITHING_TABLE_INPUT -> -51;

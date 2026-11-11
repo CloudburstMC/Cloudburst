@@ -64,7 +64,7 @@ import org.cloudburstmc.server.entity.vehicle.EntityChestBoat;
 import org.cloudburstmc.server.event.server.DataPacketReceiveEvent;
 import org.cloudburstmc.server.form.CustomForm;
 import org.cloudburstmc.server.form.Form;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.ToolUtils;
 import org.cloudburstmc.server.item.component.ArmorItemHandlers;
 import org.cloudburstmc.server.level.CloudLevel;
@@ -73,6 +73,7 @@ import org.cloudburstmc.server.level.chunk.CloudChunkSection;
 import org.cloudburstmc.server.level.chunk.LockedChunk;
 import org.cloudburstmc.server.network.GameModeNetworkMapping;
 import org.cloudburstmc.server.network.LevelEffectPacketFactory;
+import org.cloudburstmc.server.network.inventory.ItemStackNetworkIds;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.player.ItemPickController;
 import org.cloudburstmc.server.player.RespawnConfig;
@@ -189,7 +190,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
         }
 
         if (inputData.contains(PlayerAuthInputData.PERFORM_ITEM_STACK_REQUEST) && packet.getItemStackRequest() != null) {
-            player.getItemStackNetManager().handleSingleRequest(packet.getItemStackRequest());
+            player.getInventoryRequestQueue().handleSingleRequest(packet.getItemStackRequest());
         }
 
         return PacketSignal.HANDLED;
@@ -660,8 +661,12 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
      * inventory resynchronized to avoid ghost items.
      */
     private boolean isHeldItemDesynced(@Nullable ItemData clientItemData) {
-        ItemStack clientItem = clientItemData == null ? ItemStack.EMPTY : ItemUtils.fromNetwork(clientItemData);
-        ItemStack serverItem = player.getInventory().getSelectedItem();
+        ItemStack serverItem = this.player.getInventory().getSelectedItem();
+        if (clientItemData != null && clientItemData.isUsingNetId() && !serverItem.isEmpty() && clientItemData.getNetId() == ItemStackNetworkIds.get(serverItem)) {
+            return false;
+        }
+
+        ItemStack clientItem = clientItemData == null ? ItemStack.EMPTY : ItemStackPacketCodec.fromNetwork(clientItemData);
         if (!serverItem.isSimilar(clientItem)) {
             return true;
         }
@@ -1615,7 +1620,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(ItemStackRequestPacket packet) {
-        this.player.getItemStackNetManager().handlePacket(packet);
+        this.player.getInventoryRequestQueue().handlePacket(packet);
         return PacketSignal.HANDLED;
     }
 
@@ -1635,7 +1640,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
             InventoryActionData bookAction = packet.getActions().get(0);
             if (bookAction.getSource().getType() == InventorySource.Type.CONTAINER
                     && player.getSelectedHotbarSlot() == bookAction.getSlot()
-                    && ItemUtils.fromNetwork(bookAction.getFromItem()).getType() == ItemTypes.WRITABLE_BOOK) {
+                    && ItemStackPacketCodec.fromNetwork(bookAction.getFromItem()).getType() == ItemTypes.WRITABLE_BOOK) {
                 return PacketSignal.HANDLED;
             }
         }
@@ -1688,7 +1693,7 @@ public class PlayerPacketHandler implements BedrockPacketHandler {
                 handleItemUse(new ItemInteraction(packet.getActionType(), packet.getBlockPosition(),
                         Direction.fromIndex(packet.getBlockFace()), packet.getClickPosition(), packet.getItemInHand(),
                         packet.getTriggerType() == ItemUseTransaction.TriggerType.SIMULATION_TICK));
-                player.getItemStackNetManager().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
+                player.getInventoryRequestQueue().acknowledgeLegacyTransaction(packet.getLegacyRequestId(), packet.getLegacySlots());
                 return PacketSignal.HANDLED;
             case ITEM_USE_ON_ENTITY: {
                 ItemStack heldItem = player.getInventory().getSelectedItem();

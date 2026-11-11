@@ -25,9 +25,7 @@ public class PrepareItemEnchantEvent extends InventoryEvent implements Cancellab
      * @param bookshelfBonus the number of contributing bookshelves
      * @param offers         the three initial offers, with null for unavailable offers
      */
-    public PrepareItemEnchantEvent(
-            EnchantingScreen screen, ItemStack item, int bookshelfBonus, List<@Nullable EnchantmentOffer> offers
-    ) {
+    public PrepareItemEnchantEvent(EnchantingScreen screen, ItemStack item, int bookshelfBonus, List<@Nullable EnchantmentOffer> offers) {
         super(screen);
         if (offers.size() != 3) {
             throw new IllegalArgumentException("Expected three offer slots");

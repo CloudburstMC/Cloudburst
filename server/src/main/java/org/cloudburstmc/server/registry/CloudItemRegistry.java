@@ -22,7 +22,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.server.block.CloudBlockType;
 import org.cloudburstmc.server.item.CloudItemDefinition;
 import org.cloudburstmc.server.item.ItemPalette;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackPacketCodec;
 import org.cloudburstmc.server.item.component.DefaultItemHandlers;
 import org.cloudburstmc.server.item.data.serializer.*;
 import org.cloudburstmc.server.item.serializer.DefaultItemSerializer;
@@ -208,7 +208,7 @@ public class CloudItemRegistry extends CloudComponentRegistry<ItemType> implemen
     public @Nullable ItemStack getCreativeItem(int creativeNetId) {
         this.requireClosed();
         CreativeItemData entry = this.itemPalette.getCreativeItem(creativeNetId);
-        return entry == null ? null : ItemUtils.fromNetwork(entry.getItem());
+        return entry == null ? null : ItemStackPacketCodec.fromNetwork(entry.getItem());
     }
 
     @Override

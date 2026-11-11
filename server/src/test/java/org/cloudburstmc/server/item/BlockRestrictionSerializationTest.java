@@ -30,13 +30,26 @@ class BlockRestrictionSerializationTest {
                 .putList("CanDestroy", NbtType.STRING, List.of(serializedName))
                 .build();
 
-        ItemStack loaded = ItemUtils.deserializeItem(tag);
+        ItemStack loaded = ItemStackNbtCodec.deserializeItem(tag);
         assertEquals(List.of(sign), loaded.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()));
         assertEquals(List.of(sign), loaded.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()));
 
-        ItemStack restored = ItemUtils.deserializeItem(ItemUtils.serializeItem(loaded));
+        ItemStack restored = ItemStackNbtCodec.deserializeItem(ItemStackNbtCodec.serializeItem(loaded));
         assertEquals(List.of(sign), restored.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()));
         assertEquals(List.of(sign), restored.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()));
+    }
+
+    @Test
+    void restrictionsRoundTripThroughItemPackets() {
+        ItemStack original = ItemStackNbtCodec.deserializeItem(itemTag().toBuilder()
+                .putList("CanPlaceOn", NbtType.STRING, List.of("minecraft:stone"))
+                .putList("CanDestroy", NbtType.STRING, List.of("minecraft:dirt"))
+                .build());
+
+        ItemStack restored = ItemStackPacketCodec.fromNetwork(ItemStackPacketCodec.toNetwork(original));
+
+        assertEquals(List.of(BlockTypes.STONE), restored.getOrDefault(ItemDataComponents.CAN_PLACE_ON, List.of()));
+        assertEquals(List.of(BlockTypes.DIRT), restored.getOrDefault(ItemDataComponents.CAN_DESTROY, List.of()));
     }
 
     @Test
@@ -45,7 +58,7 @@ class BlockRestrictionSerializationTest {
                 .putList("CanPlaceOn", NbtType.STRING, List.of("test:missing_restriction"))
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> ItemUtils.deserializeItem(tag));
+        assertThrows(IllegalArgumentException.class, () -> ItemStackNbtCodec.deserializeItem(tag));
     }
 
     private static NbtMap itemTag() {

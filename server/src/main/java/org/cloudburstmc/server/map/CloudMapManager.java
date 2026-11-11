@@ -174,7 +174,7 @@ public class CloudMapManager implements Maps {
     public void sendLockedPreview(CloudPlayer player, long originalId, long previewId) {
         if (!player.spawned || !player.isOnline() || !player.isAlive() || player.isSpectator()
                 || this.ids.isReserved(previewId)
-                || !(player.getItemStackNetManager().getScreen() instanceof CloudCartographyContainerScreen screen)) {
+                || !(player.getInventoryManager().getScreen() instanceof CloudCartographyContainerScreen screen)) {
             return;
         }
 
@@ -287,7 +287,7 @@ public class CloudMapManager implements Maps {
     }
 
     private static Set<Long> visibleMapIds(CloudPlayer player) {
-        Set<Container> inventories = player.getItemStackNetManager().getAllInventories();
+        Set<Container> inventories = player.getInventoryManager().getAllInventories();
         inventories.add(player.getContainer());
 
         Set<Long> ids = new HashSet<>();

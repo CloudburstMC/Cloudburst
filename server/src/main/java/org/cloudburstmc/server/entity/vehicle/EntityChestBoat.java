@@ -18,7 +18,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.screen.CloudChestBoatScreen;
 import org.cloudburstmc.server.container.view.CloudEntityStorageView;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 
 import java.util.HashSet;
@@ -50,7 +50,7 @@ public class EntityChestBoat extends EntityBoat implements ChestBoat {
                     throw new IllegalArgumentException("Invalid chest boat inventory slot " + slot);
                 }
 
-                this.container.setItem(slot, ItemUtils.deserializeItem(item));
+                this.container.setItem(slot, ItemStackNbtCodec.deserializeItem(item));
             }
         });
     }

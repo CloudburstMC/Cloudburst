@@ -3,7 +3,6 @@ package org.cloudburstmc.server.container.screen;
 import org.cloudburstmc.api.inventory.PlayerInventoryScreen;
 import org.cloudburstmc.api.inventory.ScreenTypes;
 import org.cloudburstmc.api.inventory.view.*;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
@@ -35,7 +34,6 @@ public class CloudPlayerInventoryScreen extends CloudInventoryScreen implements 
     @Override
     public void open() {
         ContainerOpenPacket packet = new ContainerOpenPacket();
-        packet.setId((byte) ContainerId.INVENTORY);
         packet.setType(ContainerType.INVENTORY);
         packet.setUniqueEntityId(-1);
         packet.setBlockPosition(this.player.getPosition().toInt());

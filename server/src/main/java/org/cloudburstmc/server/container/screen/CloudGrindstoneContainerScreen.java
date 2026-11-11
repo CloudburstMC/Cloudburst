@@ -105,10 +105,10 @@ public class CloudGrindstoneContainerScreen extends CloudBlockContainerScreen im
     }
 
     @Override
-    public ItemStack takeResult(ItemStack expected, int count) {
+    public @Nullable ResultTake prepareTake(ItemStack expected, int count) {
         Preview prepared = this.preview;
         if (prepared == null || expected.isEmpty() || this.isInvalidResultCount(expected, count) || this.isStale(prepared, expected)) {
-            return ItemStack.EMPTY;
+            return null;
         }
 
         int cost = GrindstoneResultCalculator.experienceCost(prepared.inputs().first(), prepared.inputs().second());
@@ -123,14 +123,13 @@ public class CloudGrindstoneContainerScreen extends CloudBlockContainerScreen im
         }
 
         if (this.isStale(prepared, expected)) {
-            this.prepareResult();
-            return ItemStack.EMPTY;
+            return null;
         }
 
-        this.clearSlots();
-        this.player.getLevel().dropExpOrb(this.getBlock().getPosition(), event.getExpToDrop());
-        this.player.getLevel().addLevelSoundEvent(this.getBlock().getPosition(), SoundEvent.GRINDSTONE_USE);
-        return expected;
+        return new ResultTake(expected, this::clearSlots, () -> {
+            this.player.getLevel().dropExpOrb(this.getBlock().getPosition(), event.getExpToDrop());
+            this.player.getLevel().addLevelSoundEvent(this.getBlock().getPosition(), SoundEvent.GRINDSTONE_USE);
+        });
     }
 
     private boolean isStale(Preview prepared, ItemStack expected) {
@@ -169,8 +168,8 @@ public class CloudGrindstoneContainerScreen extends CloudBlockContainerScreen im
         this.updating = true;
         try {
             this.grindstoneView.updateResult(ItemStack.EMPTY);
-            this.grindstoneView.setInput(ItemStack.EMPTY);
-            this.grindstoneView.setAdditional(ItemStack.EMPTY);
+            this.grindstoneView.getContainer().setItem(CloudGrindstoneView.INPUT_SLOT, ItemStack.EMPTY);
+            this.grindstoneView.getContainer().setItem(CloudGrindstoneView.ADDITIONAL_SLOT, ItemStack.EMPTY);
         } finally {
             this.updating = false;
         }

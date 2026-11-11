@@ -10,7 +10,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlocking
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.RecipeItemCodec;
 import org.cloudburstmc.server.registry.CloudItemRegistry;
 
 import javax.annotation.concurrent.Immutable;
@@ -122,7 +122,7 @@ public class CloudCookingRecipe implements CookingRecipe {
         return ShapelessRecipeData.shapeless(
                 recipeId.toString(),
                 List.of(inputDescriptor),
-                ItemUtils.toNetworkRecipe(List.of(output)),
+                RecipeItemCodec.toNetworkRecipe(List.of(output)),
                 uuid,
                 block.getName(),
                 priority,

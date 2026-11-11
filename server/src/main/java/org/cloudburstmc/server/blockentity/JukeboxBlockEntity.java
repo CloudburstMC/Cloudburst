@@ -11,7 +11,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         super.loadAdditionalData(tag);
 
         tag.listenForCompound("RecordItem", itemTag -> {
-            this.recordItem = ItemUtils.deserializeItem(itemTag);
+            this.recordItem = ItemStackNbtCodec.deserializeItem(itemTag);
         });
     }
 
@@ -58,7 +58,7 @@ public class JukeboxBlockEntity extends BaseBlockEntity implements Jukebox {
         super.saveAdditionalData(tag);
 
         if (!this.recordItem.isEmpty()) {
-            tag.putCompound("RecordItem", ItemUtils.serializeItem(this.recordItem));
+            tag.putCompound("RecordItem", ItemStackNbtCodec.serializeItem(this.recordItem));
         }
     }
 

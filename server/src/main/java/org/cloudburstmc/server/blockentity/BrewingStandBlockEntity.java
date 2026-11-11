@@ -26,7 +26,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.cloudburstmc.server.container.CloudContainer;
 import org.cloudburstmc.server.container.ContainerListener;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.player.CloudPlayer;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
@@ -158,7 +158,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
         for (NbtMap item : tag.getList("Items", NbtType.COMPOUND)) {
             int slot = item.getByte("Slot");
             if (slot >= 0 && slot < this.size()) {
-                this.setItem(slot, ItemUtils.deserializeItem(item));
+                this.setItem(slot, ItemStackNbtCodec.deserializeItem(item));
             }
         }
 
@@ -174,7 +174,7 @@ public class BrewingStandBlockEntity extends ContainerBlockEntity implements Bre
     public void saveAdditionalData(NbtMapBuilder tag) {
         super.saveAdditionalData(tag);
         List<NbtMap> items = new ArrayList<>();
-        this.container.forEachSlot((item, slot) -> items.add(ItemUtils.serializeItem(item, slot)));
+        this.container.forEachSlot((item, slot) -> items.add(ItemStackNbtCodec.serializeItem(item, slot)));
         tag.putList("Items", NbtType.COMPOUND, items);
         writeNumber(tag, "CookTime", this.brewTime);
         tag.putInt("BrewDuration", this.brewDuration);

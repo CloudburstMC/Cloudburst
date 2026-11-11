@@ -14,7 +14,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 import org.cloudburstmc.server.registry.CloudRecipeRegistry;
 
 import java.util.Arrays;
@@ -40,7 +40,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
         super.loadAdditionalData(tag);
 
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            ItemStack item = ItemUtils.deserializeItem(tag.getCompound(itemKey(slot)));
+            ItemStack item = ItemStackNbtCodec.deserializeItem(tag.getCompound(itemKey(slot)));
             this.clearSlot(slot);
             this.cookingPaused[slot] = tag.getBoolean(pausedKey(slot));
             if (item.isEmpty()) {
@@ -70,7 +70,7 @@ public class CampfireBlockEntity extends BaseBlockEntity implements Campfire {
     protected void saveClientData(NbtMapBuilder tag) {
         super.saveClientData(tag);
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
-            tag.putCompound(itemKey(slot), ItemUtils.serializeItem(this.ingredients[slot]));
+            tag.putCompound(itemKey(slot), ItemStackNbtCodec.serializeItem(this.ingredients[slot]));
             tag.putInt(timeKey(slot), this.duration[slot] - this.progress[slot]);
         }
     }

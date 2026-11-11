@@ -5,7 +5,7 @@ import org.cloudburstmc.api.util.Identifier;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.server.item.ItemUtils;
+import org.cloudburstmc.server.item.ItemStackNbtCodec;
 
 public class ChargedProjectileSerializer implements ItemDataComponentSerializer<ItemStack> {
 
@@ -14,7 +14,7 @@ public class ChargedProjectileSerializer implements ItemDataComponentSerializer<
     @Override
     public void serialize(ItemStack item, NbtMapBuilder tag, ItemStack value) {
         if (!value.isEmpty()) {
-            tag.putCompound(TAG_CHARGED_ITEM, ItemUtils.serializeItem(value));
+            tag.putCompound(TAG_CHARGED_ITEM, ItemStackNbtCodec.serializeItem(value));
         }
     }
 
@@ -24,7 +24,7 @@ public class ChargedProjectileSerializer implements ItemDataComponentSerializer<
             return null;
         }
 
-        ItemStack loaded = ItemUtils.deserializeItem(tag.getCompound(TAG_CHARGED_ITEM));
+        ItemStack loaded = ItemStackNbtCodec.deserializeItem(tag.getCompound(TAG_CHARGED_ITEM));
         return loaded.isEmpty() ? null : loaded;
     }
 }
